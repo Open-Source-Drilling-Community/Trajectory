@@ -1,0 +1,18 @@
+﻿<Project Sdk="Microsoft.NET.Sdk">
+
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="NORCE.General.Coordinates" Version="1.0.0" />
+    <PackageReference Include="NORCE.General.Math" Version="1.0.0" />
+    <PackageReference Include="NORCE.General.Octree" Version="1.0.1" />
+    <PackageReference Include="NORCE.General.Std" Version="1.0.0" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\NORCE.Drilling.SurveyInstrument\NORCE.Drilling.SurveyInstrument.csproj" />
+  </ItemGroup>
+
+</Project>
