@@ -23,7 +23,12 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         [HttpGet("{id}")]
         public Model.Trajectory Get(int id)
         {
-            return TrajectoryManager.Instance.Get(id);
+            Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);
+            if (trajectory!=null && trajectory.SurveyList != null)
+            {
+                trajectory.SurveyList.GetUncertaintyEnvelopeTVD(0.95, 1);
+            }
+            return trajectory;
         }
 		//// GET api/trajectories/5
 		//[HttpGet("{ids}")]
@@ -55,6 +60,21 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);
             trajectory.SurveyList.GetUncertaintyEnvelopeTVD(confidenceFactor, scalingFactor);
             return trajectory.SurveyList.UncertaintyEnvelope;
+        }
+        [HttpGet("{id}/{confidenceFactor}")]
+        public List<List<double?>> Get(int id, double confidenceFactor)
+        {
+            Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);
+            trajectory.SurveyList.GetUncertaintyEnvelopeTVD(confidenceFactor);
+            List<List < double ?> >listAll = new List<List<double?>>();
+            for (int i = 0; i < trajectory.SurveyList.ListOfSurveys.Count; i++)
+            {
+                List<double?> list = new List<double?>();
+                list.Add(trajectory.SurveyList.ListOfSurveys[i].Uncertainty.EllipseRadius[0]);
+                list.Add(trajectory.SurveyList.ListOfSurveys[i].Uncertainty.EllipseRadius[0]);
+                listAll.Add(list);
+            }
+            return listAll;
         }
         // POST api/trajectories
         [HttpPost]

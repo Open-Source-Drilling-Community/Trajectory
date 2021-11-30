@@ -8,111 +8,142 @@
 <p>This page is used to manage trajectories</p>
 @if (trajectories == null)
 {
-    <p><em>Loading...</em></p>
+	<p><em>Loading...</em></p>
 }
 else
 {
-    <h2>Trajectory List</h2>
-    <table class="table">
-        <thead>
-            <tr>
-                <th>Name</th>
-                <th>Description</th>
-                <th>Wellbore ID</th>                
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < trajectories.Count; i++)
+	<h2>Trajectory List</h2>
+	<table class="table">
+		<thead>
+			<tr>
+				<th>Name</th>
+				<th>Description</th>
+				<th>Wellbore ID</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			@for (int i = 0; i < trajectories.Count; i++)
 			{
 				var local = i;
-                <tr>
-                    <td>
-                        <span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].Name</span>
-                        <input class="text" type="text" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.Name" />
-                    </td>
-                    <td>
-                        <span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].Description</span>
-                        <input class="text" type="text" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.Description" />
-                    </td>
-                    <td>
-                        <span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].WellboreID</span>
-                        <select class="form-control selectpicker" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.WellboreID">
-                            @foreach (int wellboreID in wellboreIDs)
+				<tr>
+					<td>
+						<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].Name</span>
+						<input class="text" type="text" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.Name" />
+					</td>
+					<td>
+						<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].Description</span>
+						<input class="text" type="text" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.Description" />
+					</td>
+					<td>
+						<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].WellboreID</span>
+						<select class="form-control selectpicker" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.WellboreID">
+							@foreach (int wellboreID in wellboreIDs)
 							{
-                                <option>@wellboreID</option>
+								<option>@wellboreID</option>
 							}
-                        </select>
-                    </td>                  
-                    <td>
-                        <button class="btn btn-primary" hidden="@IsTrajectoryEditButtonHidden[i]" @onclick="@(() => Edit(local))">Edit</button>
-                        <button class="btn btn-primary" hidden="@IsTrajectoryDeleteButtonHidden[i]" @onclick="@(() => Delete(local))">Delete</button>
-                        <button class="btn btn-primary" hidden="@IsTrajectoryUpdateButtonHidden[i]" @onclick="@(() => Update(local))">Update</button>
-                        <button class="btn btn-primary" hidden="@IsTrajectoryCancelButtonHidden[i]" @onclick="@(() => Cancel(local))">Cancel</button>
-                    </td>
-                </tr>
+						</select>
+					</td>
+					<td>
+						<button class="btn btn-primary" hidden="@IsTrajectoryEditButtonHidden[i]" @onclick="@(() => Edit(local))">Edit</button>
+						<button class="btn btn-primary" hidden="@IsTrajectoryDeleteButtonHidden[i]" @onclick="@(() => Delete(local))">Delete</button>
+						<button class="btn btn-primary" hidden="@IsTrajectoryUpdateButtonHidden[i]" @onclick="@(() => Update(local))">Update</button>
+						<button class="btn btn-primary" hidden="@IsTrajectoryCancelButtonHidden[i]" @onclick="@(() => Cancel(local))">Cancel</button>
+					</td>
+				</tr>
 			}
-        </tbody>
-        <tfoot>
-            <tr>
-                <td>
-                    <input class="text" type="text" hidden="@IsTrajectoryAddInput" @bind="@editedTrajectory.Name" />
-                </td>
-                <td>
-                    <input class="text" type="text" hidden="@IsTrajectoryAddInput" @bind="@editedTrajectory.Description" />
-                </td>
-                <td>
-                    <select class="form-control selectpicker" hidden="@IsTrajectoryAddInput" @bind="@editedTrajectory.WellboreID">
-                        @foreach (int wellboreID in wellboreIDs)
+		</tbody>
+		<tfoot>
+			<tr>
+				<td>
+					<input class="text" type="text" hidden="@IsTrajectoryAddInput" @bind="@editedTrajectory.Name" />
+				</td>
+				<td>
+					<input class="text" type="text" hidden="@IsTrajectoryAddInput" @bind="@editedTrajectory.Description" />
+				</td>
+				<td>
+					<select class="form-control selectpicker" hidden="@IsTrajectoryAddInput" @bind="@editedTrajectory.WellboreID">
+						@foreach (int wellboreID in wellboreIDs)
 						{
-                            <option>@wellboreID</option>
+							<option>@wellboreID</option>
 						}
-                    </select>
-                </td>               
-                <td>
-                    <button class="btn btn-primary" hidden="@IsTrajectoryAddInput" @onclick="Add">Add</button>
-                    <button class="btn btn-primary" hidden="@IsTrajectoryAddInput" @onclick="Cancel">Cancel</button>
-                </td>
-            </tr>
-        </tfoot>
-    </table>
-    <h2 hidden="@IsTableSurveyListHidden">Survey List Editor for @trajectoryName</h2>
-    <table class="tableSlot" hidden="@IsTableSurveyListHidden">
-        <thead>
-            <tr>               
-                <th>MD</th>
-                <th>Inclination</th>
-                <th>Azimuth</th>
-                <th></th>
-            </tr>
-        </thead>
-        <tbody>
-            @for (int i = 0; i < surveyStations.Count; i++)
+					</select>
+				</td>
+				<td>
+					<button class="btn btn-primary" hidden="@IsTrajectoryAddInput" @onclick="Add">Add</button>
+					<button class="btn btn-primary" hidden="@IsTrajectoryAddInput" @onclick="Cancel">Cancel</button>
+				</td>
+			</tr>
+		</tfoot>
+	</table>
+	<h2 hidden="@IsTableSurveyListHidden">Survey List Editor for @trajectoryName</h2>
+	<table class="tableSlot" hidden="@IsTableSurveyListHidden">
+		<thead>
+			<tr>
+				<th>MD</th>
+				<th>Inclination</th>
+				<th>Azimuth</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			@for (int i = 0; i < surveyStations.Count; i++)
 			{
 				var local = i;
-                <tr>                    
-                    <td>
-                        <span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].MD</span>
-                        <input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.MD" />
-                    </td>
-                    <td>
-                        <span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].Incl</span>
-                        <input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.Incl" />
-                    </td>
-                    <td>
-                        <span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].Az</span>
-                        <input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.Az" />
-                    </td>
-                    <td>
-                        <button class="btn btn-primary" hidden="@IsSurveyStationEditButtonHidden[i]" @onclick="@(() => EditSurveyStation(local))">Edit</button>
-                        <button class="btn btn-primary" hidden="@IsSurveyStationDeleteButtonHidden[i]" @onclick="@(() => DeleteSurveyStation(local))">Delete</button>
-                        <button class="btn btn-primary" hidden="@IsSurveyStationUpdateButtonHidden[i]" @onclick="@(() => UpdateSurveyStation(local))">Update</button>
-                        <button class="btn btn-primary" hidden="@IsSurveyStationCancelButtonHidden[i]" @onclick="@(() => CancelSurveyStation(local))">Cancel</button>
-                    </td>
-                </tr>
+				<tr>
+					<td>
+						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].MD</span>
+						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.MD" />
+					</td>
+					<td>
+						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].Incl</span>
+						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.Incl" />
+					</td>
+					<td>
+						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].Az</span>
+						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.Az" />
+					</td>
+					<td>
+						<button class="btn btn-primary" hidden="@IsSurveyStationEditButtonHidden[i]" @onclick="@(() => EditSurveyStation(local))">Edit</button>
+						<button class="btn btn-primary" hidden="@IsSurveyStationDeleteButtonHidden[i]" @onclick="@(() => DeleteSurveyStation(local))">Delete</button>
+						<button class="btn btn-primary" hidden="@IsSurveyStationUpdateButtonHidden[i]" @onclick="@(() => UpdateSurveyStation(local))">Update</button>
+						<button class="btn btn-primary" hidden="@IsSurveyStationCancelButtonHidden[i]" @onclick="@(() => CancelSurveyStation(local))">Cancel</button>
+					</td>
+				</tr>
 			}
-        </tbody>
-    </table>
+		</tbody>
+	</table>
+	<h2 hidden="@IsTableResultHidden">Ellipse Radiuses @trajectoryName</h2>	
+	<table class="tableResult" hidden="@IsTableResultHidden">
+		<thead>
+			<tr>
+				<th>R1</th>
+				<th>R2</th>
+				<th></th>
+			</tr>
+		</thead>
+		<tbody>
+			@for (int i = 0; i < listRadius.Count; i++)
+			{
+				List<double> list = listRadius[i];
+				if (list[0] != null)
+				{
+
+				<tr>
+					<td>
+						<span class="label" hidden="@IsResultDisplayHidden[i]">@list[0]</span>
+						<input class="text" type="text" hidden="@IsResultInputHidden[i]" @bind="@list[0]" />
+					</td>
+					<td>
+						<span class="label" hidden="@IsResultDisplayHidden[i]">@list[0]</span>
+						<input class="text" type="text" hidden="@IsResultInputHidden[i]" @bind="@list[1]" />
+					</td>			
+					
+				</tr>
+				}
+			}
+		</tbody>
+	</table>
 
 }
 
@@ -136,11 +167,15 @@ else
 	private List<bool> IsSurveyStationDeleteButtonHidden;
 	private List<bool> IsSurveyStationUpdateButtonHidden;
 	private List<bool> IsSurveyStationCancelButtonHidden;
+	private List<bool> IsResultDisplayHidden;
+	private List<bool> IsResultInputHidden;
 	private bool IsTrajectoryAddInput;
 	private bool IsTableSurveyListHidden;
+	private bool IsTableResultHidden;
 	private List<NORCE.Drilling.Trajectory.ModelClientShared.Trajectory> trajectories;
 	private List<NORCE.Drilling.Trajectory.ModelClientShared.Slot> slots;
 	private List<NORCE.Drilling.Trajectory.ModelClientShared.SurveyStation> surveyStations;
+	private List<List<double>> listRadius = new List<List<double>>();
 
 	private HttpClient httpWellbore;
 	private int[] wellboreIDs;
@@ -296,6 +331,8 @@ else
 					IsSurveyStationDeleteButtonHidden.Add(false);
 					IsSurveyStationUpdateButtonHidden.Add(true);
 					IsSurveyStationCancelButtonHidden.Add(true);
+					IsResultDisplayHidden.Add(false);
+					IsResultInputHidden.Add(true);
 				}
 			}
 			wellboreIDs = await LoadWellboreIDs("https://app.DigiWells.no/");
@@ -390,9 +427,11 @@ else
 			IsSurveyStationDeleteButtonHidden = new List<bool>();
 			IsSurveyStationUpdateButtonHidden = new List<bool>();
 			IsSurveyStationCancelButtonHidden = new List<bool>();
-			if (updatedTrajectory.SurveyList != null && updatedTrajectory.SurveyList.Surveys != null)
+			IsResultDisplayHidden = new List<bool>();
+			IsResultInputHidden = new List<bool>();
+			if (updatedTrajectory.SurveyList != null && updatedTrajectory.SurveyList.ListOfSurveys != null)
 			{
-				foreach (SurveyStation station in updatedTrajectory.SurveyList.Surveys)
+				foreach (SurveyStation station in updatedTrajectory.SurveyList.ListOfSurveys)
 				{
 					surveyStations.Add(station);
 					IsSurveyStationDisplayHidden.Add(false);
@@ -401,6 +440,8 @@ else
 					IsSurveyStationDeleteButtonHidden.Add(false);
 					IsSurveyStationUpdateButtonHidden.Add(true);
 					IsSurveyStationCancelButtonHidden.Add(true);
+					IsResultDisplayHidden.Add(false);
+					IsResultInputHidden.Add(true);
 				}
 			}
 			if (surveyStations.Count == 0)
@@ -412,6 +453,9 @@ else
 					st.MD = MDi;
 					st.Az = 0.0;
 					st.Incl = 0.0;
+					st.X = 0.0;
+					st.Y = 0.0;
+					st.Z = MDi;
 					surveyStations.Add(st);
 					IsSurveyStationDisplayHidden.Add(false);
 					IsSurveyStationInputHidden.Add(true);
@@ -419,6 +463,8 @@ else
 					IsSurveyStationDeleteButtonHidden.Add(false);
 					IsSurveyStationUpdateButtonHidden.Add(true);
 					IsSurveyStationCancelButtonHidden.Add(true);
+					IsResultDisplayHidden.Add(false);
+					IsResultInputHidden.Add(true);
 					MDi = MDi + 30.0;
 				}
 			}
@@ -511,6 +557,8 @@ else
 					IsSurveyStationDeleteButtonHidden[i] = true;
 					IsSurveyStationUpdateButtonHidden[i] = false;
 					IsSurveyStationCancelButtonHidden[i] = false;
+					IsResultDisplayHidden[i] = true;
+					IsResultInputHidden[i] = false;
 				}
 				else
 				{
@@ -520,6 +568,8 @@ else
 					IsSurveyStationDeleteButtonHidden[i] = true;
 					IsSurveyStationUpdateButtonHidden[i] = true;
 					IsSurveyStationCancelButtonHidden[i] = true;
+					IsResultDisplayHidden[i] = false;
+					IsResultInputHidden[i] = true;
 				}
 			}
 		}
@@ -583,11 +633,11 @@ else
 			//}
 			//// end transfer edited slots
 			// transfer edited slots in trajectory
-			if (updatedTrajectory.SurveyList==null )
+			if (updatedTrajectory.SurveyList == null)
 			{
 				updatedTrajectory.SurveyList = new SurveyList();
 			}
-			if(updatedTrajectory.SurveyList.Surveys == null)
+			if (updatedTrajectory.SurveyList.Surveys == null)
 			{
 				updatedTrajectory.SurveyList.Surveys = new List<SurveyStation>();
 
@@ -601,14 +651,31 @@ else
 					{
 						SurveyStation surveyStation = new SurveyStation();
 						surveyStation = surveyStations[i];
+						surveyStation.Uncertainty = surveyStations[i].Uncertainty;
 						updatedTrajectory.SurveyList.Surveys.Add(surveyStation);
 					}
 				}
+				updatedTrajectory.SurveyList.ListOfSurveys = surveyStations;
 			}
 			// end transfer edited slots
 			IsTableSurveyListHidden = true;
 			StringContent content = new StringContent(updatedTrajectory.GetJson(), Encoding.UTF8, "application/json");
 			var a = await httpTrajectory.PutAsync("Trajectories/" + trajectories[idx].ID, content);
+			string req = "Trajectories/" + trajectories[idx].ID.ToString();
+			string s = "Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1";
+			var b = await httpTrajectory.GetAsync("Trajectories/" + trajectories[idx].ID.ToString() + "/"+"1");
+			Trajectory traj = new Trajectory();
+			if (b.IsSuccessStatusCode)
+			{
+				string str = await b.Content.ReadAsStringAsync();
+				if (!string.IsNullOrEmpty(str))
+				{
+					//traj = Newtonsoft.Json.JsonConvert.DeserializeObject<Trajectory>(str);
+					List<List<double>> list = Newtonsoft.Json.JsonConvert.DeserializeObject<List<List<double>>>(str);
+					listRadius = list;
+				}
+			}
+
 			IsTrajectoryAddInput = false;
 			for (int i = 0; i < IsTrajectoryDisplayHidden.Count; i++)
 			{
@@ -665,6 +732,8 @@ else
 			IsSurveyStationDeleteButtonHidden[i] = false;
 			IsSurveyStationUpdateButtonHidden[i] = true;
 			IsSurveyStationCancelButtonHidden[i] = true;
+			IsResultDisplayHidden[i] = false;
+			IsResultInputHidden[i] = true;
 		}
 	}
 
@@ -715,6 +784,8 @@ else
 			IsSurveyStationDeleteButtonHidden[i] = false;
 			IsSurveyStationUpdateButtonHidden[i] = true;
 			IsSurveyStationCancelButtonHidden[i] = true;
+			IsResultDisplayHidden[i] = false;
+			IsResultInputHidden[i] = true;
 		}
 	}
 	private async void Add()

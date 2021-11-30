@@ -654,6 +654,7 @@ namespace NORCE.Drilling.Trajectory.Service
                         }
                     }
                     trajectory.SurveyList = sl;
+                    trajectory.SurveyList.ListOfSurveys = sl.ListOfSurveys;
                     //trajectory.SurveyList.GetUncertaintyEnvelope(0.95, 1);
                     trajectory.Name = files[0].Substring(13); ;
                     Add(trajectory);

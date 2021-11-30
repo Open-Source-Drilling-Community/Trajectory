@@ -126,9 +126,9 @@ namespace NORCE.Drilling.Trajectory
                 double sinA = System.Math.Sin((double)surveyStation.Az);
                 double cosA = System.Math.Cos((double)surveyStation.Az);
                 double deltaSk = surveyStation.MD - previousStation.MD;
-                double Vk = (double)surveyStation.Z;
-                double Nk = (double)surveyStation.X;
-                double Ek = (double)surveyStation.Y;
+                //double Vk = (double)surveyStation.Z;
+                //double Nk = (double)surveyStation.X;
+                //double Ek = (double)surveyStation.Y;
                 double deltaC10 = surveyTool_.ReferenceError!=null ? (double)surveyTool_.ReferenceError : 0;
                 double deltaC20 = surveyTool_.DrillStringMagnetisation != null ? (double)surveyTool_.DrillStringMagnetisation : 0;
                 double deltaC30 = surveyTool_.GyroCompassError != null ? (double)surveyTool_.GyroCompassError : 0;
