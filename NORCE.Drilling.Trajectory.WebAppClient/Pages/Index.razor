@@ -26,31 +26,40 @@ else
 			@for (int i = 0; i < trajectories.Count; i++)
 			{
 				var local = i;
-				<tr>
-					<td>
-						<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].Name</span>
-						<input class="text" type="text" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.Name" />
-					</td>
-					<td>
-						<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].Description</span>
-						<input class="text" type="text" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.Description" />
-					</td>
-					<td>
-						<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].WellboreID</span>
-						<select class="form-control selectpicker" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.WellboreID">
-							@foreach (int wellboreID in wellboreIDs)
-							{
-								<option>@wellboreID</option>
-							}
-						</select>
-					</td>
-					<td>
-						<button class="btn btn-primary" hidden="@IsTrajectoryEditButtonHidden[i]" @onclick="@(() => Edit(local))">Edit</button>
-						<button class="btn btn-primary" hidden="@IsTrajectoryDeleteButtonHidden[i]" @onclick="@(() => Delete(local))">Delete</button>
-						<button class="btn btn-primary" hidden="@IsTrajectoryUpdateButtonHidden[i]" @onclick="@(() => Update(local))">Update</button>
-						<button class="btn btn-primary" hidden="@IsTrajectoryCancelButtonHidden[i]" @onclick="@(() => Cancel(local))">Cancel</button>
-					</td>
-				</tr>
+			<tr>
+				<td>
+					<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].Name</span>
+					<input class="text" type="text" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.Name" />
+				</td>
+				<td>
+					<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].Description</span>
+					<input class="text" type="text" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.Description" />
+				</td>
+				<td>
+					<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].WellboreID</span>
+					<select class="form-control selectpicker" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.WellboreID">
+						@foreach (int wellboreID in wellboreIDs)
+						{
+							<option>@wellboreID</option>
+						}
+					</select>
+				</td>
+				@*<td>
+					<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@WellboreSurveyInstrument[i]</span>
+					<select class="form-control selectpicker" hidden="@IsTrajectoryInputHidden[i]" @bind="@WellboreSurveyInstrument[i]">
+						@foreach (string surveyInst in surveyInstruments)
+						{
+							<option>@surveyInst</option>
+						}
+					</select>
+				</td>*@
+				<td>
+					<button class="btn btn-primary" hidden="@IsTrajectoryEditButtonHidden[i]" @onclick="@(() => Edit(local))">Edit</button>
+					<button class="btn btn-primary" hidden="@IsTrajectoryDeleteButtonHidden[i]" @onclick="@(() => Delete(local))">Delete</button>
+					<button class="btn btn-primary" hidden="@IsTrajectoryUpdateButtonHidden[i]" @onclick="@(() => Update(local))">Update</button>
+					<button class="btn btn-primary" hidden="@IsTrajectoryCancelButtonHidden[i]" @onclick="@(() => Cancel(local))">Cancel</button>
+				</td>
+			</tr>
 			}
 		</tbody>
 		<tfoot>
@@ -77,7 +86,7 @@ else
 		</tfoot>
 	</table>
 	<h2 hidden="@IsTableSurveyListHidden">Survey List Editor for @trajectoryName</h2>
-	<table class="tableSlot" hidden="@IsTableSurveyListHidden">
+	<table class="tableSurveyList" hidden="@IsTableSurveyListHidden">
 		<thead>
 			<tr>
 				<th>MD</th>
@@ -155,12 +164,6 @@ else
 	private List<bool> IsTrajectoryDeleteButtonHidden;
 	private List<bool> IsTrajectoryUpdateButtonHidden;
 	private List<bool> IsTrajectoryCancelButtonHidden;
-	private List<bool> IsSlotDisplayHidden;
-	private List<bool> IsSlotInputHidden;
-	private List<bool> IsSlotEditButtonHidden;
-	private List<bool> IsSlotDeleteButtonHidden;
-	private List<bool> IsSlotUpdateButtonHidden;
-	private List<bool> IsSlotCancelButtonHidden;
 	private List<bool> IsSurveyStationDisplayHidden;
 	private List<bool> IsSurveyStationInputHidden;
 	private List<bool> IsSurveyStationEditButtonHidden;
@@ -173,19 +176,18 @@ else
 	private bool IsTableSurveyListHidden;
 	private bool IsTableResultHidden;
 	private List<NORCE.Drilling.Trajectory.ModelClientShared.Trajectory> trajectories;
-	private List<NORCE.Drilling.Trajectory.ModelClientShared.Slot> slots;
 	private List<NORCE.Drilling.Trajectory.ModelClientShared.SurveyStation> surveyStations;
 	private List<List<double>> listRadius = new List<List<double>>();
+	private List<string> surveyInstruments = new List<string>();
+	private List<string> WellboreSurveyInstrument = new List<string>();
 
 	private HttpClient httpWellbore;
 	private int[] wellboreIDs;
 	private string trajectoryName;
-	private static int extraSlotCount = 20;
 	private static int extraSurveyStationCount = 20;
 
 	private NORCE.Drilling.Trajectory.ModelClientShared.Trajectory editedTrajectory;
 	private NORCE.Drilling.Trajectory.ModelClientShared.Trajectory updatedTrajectory;
-	private NORCE.Drilling.Trajectory.ModelClientShared.Slot updatedSlot;
 	private NORCE.Drilling.Trajectory.ModelClientShared.SurveyStation updatedSurveyStation;
 
 	protected override async Task OnInitializedAsync()
@@ -199,14 +201,6 @@ else
 			if (updatedTrajectory == null)
 			{
 				updatedTrajectory = new NORCE.Drilling.Trajectory.ModelClientShared.Trajectory();
-			}
-			if (updatedSlot == null)
-			{
-				updatedSlot = new Slot();
-			}
-			if (slots == null)
-			{
-				slots = new List<Slot>();
 			}
 			if (updatedSurveyStation == null)
 			{
@@ -232,30 +226,39 @@ else
 			{
 				initialTrajectoryIDs = await LoadTrajectoryIDs("https://localhost:44369/");
 			}
-			if (IsSlotInputHidden == null)
+			if (IsSurveyStationInputHidden == null)
 			{
-				IsSlotInputHidden = new List<bool>();
+				IsSurveyStationInputHidden = new List<bool>();
 			}
-			if (IsSlotDisplayHidden == null)
+			if (IsSurveyStationDisplayHidden == null)
 			{
-				IsSlotDisplayHidden = new List<bool>();
+				IsSurveyStationDisplayHidden = new List<bool>();
 			}
-			if (IsSlotEditButtonHidden == null)
+			if (IsSurveyStationEditButtonHidden == null)
 			{
-				IsSlotEditButtonHidden = new List<bool>();
+				IsSurveyStationEditButtonHidden = new List<bool>();
 			}
-			if (IsSlotDeleteButtonHidden == null)
+			if (IsSurveyStationDeleteButtonHidden == null)
 			{
-				IsSlotDeleteButtonHidden = new List<bool>();
+				IsSurveyStationDeleteButtonHidden = new List<bool>();
 			}
-			if (IsSlotUpdateButtonHidden == null)
+			if (IsSurveyStationUpdateButtonHidden == null)
 			{
-				IsSlotUpdateButtonHidden = new List<bool>();
+				IsSurveyStationUpdateButtonHidden = new List<bool>();
 			}
-			if (IsSlotCancelButtonHidden == null)
+			if (IsSurveyStationCancelButtonHidden == null)
 			{
-				IsSlotCancelButtonHidden = new List<bool>();
+				IsSurveyStationCancelButtonHidden = new List<bool>();
 			}
+			if (IsResultInputHidden == null)
+			{
+				IsResultInputHidden = new List<bool>();
+			}
+			if (IsResultDisplayHidden == null)
+			{
+				IsResultDisplayHidden = new List<bool>();
+			}
+
 			IsTrajectoryAddInput = false;
 			IsTableSurveyListHidden = true;
 			if (initialTrajectoryIDs != null)
@@ -267,8 +270,7 @@ else
 				IsTrajectoryDeleteButtonHidden = new List<bool>();
 				IsTrajectoryUpdateButtonHidden = new List<bool>();
 				IsTrajectoryCancelButtonHidden = new List<bool>();
-				int maxSlotCount = 0;
-				int maxSurveyStationsCount = 0;
+				int maxSurveyCount = 0;
 				for (int i = 0; i < initialTrajectoryIDs.Length; i++)
 				{
 					var a = await httpTrajectory.GetAsync("Trajectories/" + initialTrajectoryIDs[i].ToString());
@@ -281,14 +283,10 @@ else
 							if (trajectory != null)
 							{
 								trajectories.Add(trajectory);
-								if (trajectory.Slots != null)
-								{
-									if (trajectory.Slots.Count > maxSlotCount) maxSlotCount = trajectory.Slots.Count;
-								}
 								if (trajectory.SurveyList != null)
 									if (trajectory.SurveyList.ListOfSurveys != null)
 									{
-										if (trajectory.SurveyList.ListOfSurveys.Count > maxSlotCount) maxSlotCount = trajectory.SurveyList.ListOfSurveys.Count;
+										if (trajectory.SurveyList.ListOfSurveys.Count > maxSurveyCount) maxSurveyCount = trajectory.SurveyList.ListOfSurveys.Count;
 									}
 								IsTrajectoryDisplayHidden.Add(false);
 								IsTrajectoryInputHidden.Add(true);
@@ -300,39 +298,26 @@ else
 						}
 					}
 				}
-				maxSlotCount += extraSlotCount;
-				slots.Clear();
-				for (int i = 0; i < maxSlotCount; i++)
-				{
-					Slot slot = new Slot();
-					slots.Add(slot);
-					IsSlotDisplayHidden.Add(false);
-					IsSlotInputHidden.Add(true);
-					IsSlotEditButtonHidden.Add(false);
-					IsSlotDeleteButtonHidden.Add(false);
-					IsSlotUpdateButtonHidden.Add(true);
-					IsSlotCancelButtonHidden.Add(true);
-				}
-				if (maxSlotCount == 0)
+				if (maxSurveyCount == 0)
 				{
 					extraSurveyStationCount += extraSurveyStationCount;
 				}
 				//surveyStations.Clear();
-				for (int i = 0; i < maxSurveyStationsCount; i++)
+				for (int i = surveyStations.Count; i < maxSurveyCount; i++)
 				{
-					SurveyStation surveyStation = new SurveyStation();
-					surveyStation.MD = 0.0;
-					surveyStation.Incl = 0.0;
-					surveyStation.Az = 0.0;
-					surveyStations.Add(surveyStation);
-					IsSurveyStationDisplayHidden.Add(false);
-					IsSurveyStationInputHidden.Add(true);
-					IsSurveyStationEditButtonHidden.Add(false);
-					IsSurveyStationDeleteButtonHidden.Add(false);
-					IsSurveyStationUpdateButtonHidden.Add(true);
-					IsSurveyStationCancelButtonHidden.Add(true);
-					IsResultDisplayHidden.Add(false);
-					IsResultInputHidden.Add(true);
+					//SurveyStation surveyStation = new SurveyStation();
+					//surveyStation.MD = 0.0;
+					//surveyStation.Incl = 0.0;
+					//surveyStation.Az = 0.0;
+					//surveyStations.Add(surveyStation);
+					//IsSurveyStationDisplayHidden.Add(false);
+					//IsSurveyStationInputHidden.Add(true);
+					//IsSurveyStationEditButtonHidden.Add(false);
+					//IsSurveyStationDeleteButtonHidden.Add(false);
+					//IsSurveyStationUpdateButtonHidden.Add(true);
+					//IsSurveyStationCancelButtonHidden.Add(true);
+					//IsResultDisplayHidden.Add(false);
+					//IsResultInputHidden.Add(true);
 				}
 			}
 			wellboreIDs = await LoadWellboreIDs("https://app.DigiWells.no/");
@@ -349,6 +334,16 @@ else
 				wellboreIDs = new int[2];
 				wellboreIDs[0] = 1;
 				wellboreIDs[1] = 2;
+			}
+			if (surveyInstruments == null || surveyInstruments.Count == 0)
+			{
+				surveyInstruments = new List<string>();
+				surveyInstruments.Add("GoodMag");
+				surveyInstruments.Add("PoorMag");
+				surveyInstruments.Add("GoodGyro");
+				surveyInstruments.Add("PoorGyro");
+				//surveyInstruments[3] = "GoodGyro";
+				//surveyInstruments[4] = "PoorGyro";
 			}
 		}
 		catch (Exception e)
@@ -468,26 +463,6 @@ else
 					MDi = MDi + 30.0;
 				}
 			}
-			//foreach (Slot slot in updatedTrajectory.Slots)
-			//{
-			//	slots.Add(slot);
-			//	IsSlotDisplayHidden.Add(false);
-			//	IsSlotInputHidden.Add(true);
-			//	IsSlotEditButtonHidden.Add(false);
-			//	IsSlotDeleteButtonHidden.Add(false);
-			//	IsSlotUpdateButtonHidden.Add(true);
-			//	IsSlotCancelButtonHidden.Add(true);
-			//}
-			//for (int i = 0; i < extraSlotCount; i++)
-			//{
-			//	slots.Add(new Slot());
-			//	IsSlotDisplayHidden.Add(false);
-			//	IsSlotInputHidden.Add(true);
-			//	IsSlotEditButtonHidden.Add(false);
-			//	IsSlotDeleteButtonHidden.Add(false);
-			//	IsSlotUpdateButtonHidden.Add(true);
-			//	IsSlotCancelButtonHidden.Add(true);
-			//}
 			IsTrajectoryAddInput = true;
 			for (int i = 0; i < IsTrajectoryDisplayHidden.Count; i++)
 			{
@@ -513,34 +488,7 @@ else
 			IsTableSurveyListHidden = false;
 		}
 	}
-	private void EditSlot(int idx)
-	{
-		if (slots != null && idx >= 0 && idx < slots.Count)
-		{
-			slots[idx].Copy(updatedSlot);
-			for (int i = 0; i < IsSlotDisplayHidden.Count; i++)
-			{
-				if (i == idx)
-				{
-					IsSlotDisplayHidden[i] = true;
-					IsSlotInputHidden[i] = false;
-					IsSlotEditButtonHidden[i] = true;
-					IsSlotDeleteButtonHidden[i] = true;
-					IsSlotUpdateButtonHidden[i] = false;
-					IsSlotCancelButtonHidden[i] = false;
-				}
-				else
-				{
-					IsSlotDisplayHidden[i] = false;
-					IsSlotInputHidden[i] = true;
-					IsSlotEditButtonHidden[i] = true;
-					IsSlotDeleteButtonHidden[i] = true;
-					IsSlotUpdateButtonHidden[i] = true;
-					IsSlotCancelButtonHidden[i] = true;
-				}
-			}
-		}
-	}
+
 
 	private void EditSurveyStation(int idx)
 	{
@@ -588,16 +536,7 @@ else
 			}
 		}
 	}
-	private void DeleteSlot(int idx)
-	{
-		if (slots != null && idx >= 0 && idx < slots.Count)
-		{
-			slots[idx].Name = null;
-			slots[idx].LatitudeWGS84 = 0;
-			slots[idx].LongitudeWGS84 = 0;
-			slots[idx].TVDWGS84 = 0;
-		}
-	}
+
 	private void DeleteSurveyStation(int idx)
 	{
 		if (surveyStations != null && idx >= 0 && idx < surveyStations.Count)
@@ -613,26 +552,7 @@ else
 	{
 		if (trajectories != null && idx >= 0 && idx < trajectories.Count && trajectories[idx].ID > 0)
 		{
-			//// transfer edited slots in trajectory
-			//if (updatedTrajectory.Slots == null)
-			//{
-			//	updatedTrajectory.Slots = new List<Slot>();
-			//}
-			//updatedTrajectory.Slots.Clear();
-			//if (slots != null)
-			//{
-			//	for (int i = 0; i < slots.Count; i++)
-			//	{
-			//		if (!string.IsNullOrEmpty(slots[i].Name))
-			//		{
-			//			Slot slot = new Slot();
-			//			slots[i].Copy(slot);
-			//			updatedTrajectory.Slots.Add(slot);
-			//		}
-			//	}
-			//}
-			//// end transfer edited slots
-			// transfer edited slots in trajectory
+			// transfer edited surveyStations in trajectory
 			if (updatedTrajectory.SurveyList == null)
 			{
 				updatedTrajectory.SurveyList = new SurveyList();
@@ -657,7 +577,7 @@ else
 				}
 				updatedTrajectory.SurveyList.ListOfSurveys = surveyStations;
 			}
-			// end transfer edited slots
+			// end transfer edited surveyStations
 			IsTableSurveyListHidden = true;
 			StringContent content = new StringContent(updatedTrajectory.GetJson(), Encoding.UTF8, "application/json");
 			var a = await httpTrajectory.PutAsync("Trajectories/" + trajectories[idx].ID, content);
@@ -693,26 +613,7 @@ else
 			}
 		}
 	}
-	private void UpdateSlot(int idx)
-	{
-		if (slots != null && idx >= 0 && idx < slots.Count)
-		{
-			updatedSlot.Copy(slots[idx]);
-		}
-		updatedSlot.Name = null;
-		updatedSlot.LatitudeWGS84 = 0;
-		updatedSlot.LongitudeWGS84 = 0;
-		updatedSlot.TVDWGS84 = 0;
-		for (int i = 0; i < IsSlotDisplayHidden.Count; i++)
-		{
-			IsSlotDisplayHidden[i] = false;
-			IsSlotInputHidden[i] = true;
-			IsSlotEditButtonHidden[i] = false;
-			IsSlotDeleteButtonHidden[i] = false;
-			IsSlotUpdateButtonHidden[i] = true;
-			IsSlotCancelButtonHidden[i] = true;
-		}
-	}
+
 
 	private void UpdateSurveyStation(int idx)
 	{
@@ -754,22 +655,7 @@ else
 			}
 		}
 	}
-	private void CancelSlot(int idx)
-	{
-		updatedSlot.Name = null;
-		updatedSlot.LatitudeWGS84 = 0;
-		updatedSlot.LongitudeWGS84 = 0;
-		updatedSlot.TVDWGS84 = 0;
-		for (int i = 0; i < IsSlotDisplayHidden.Count; i++)
-		{
-			IsSlotDisplayHidden[i] = false;
-			IsSlotInputHidden[i] = true;
-			IsSlotEditButtonHidden[i] = false;
-			IsSlotDeleteButtonHidden[i] = false;
-			IsSlotUpdateButtonHidden[i] = true;
-			IsSlotCancelButtonHidden[i] = true;
-		}
-	}
+
 	private void CancelSurveyStation(int idx)
 	{
 		updatedSurveyStation.Abscissa = null;
@@ -795,9 +681,7 @@ else
 		editedTrajectory.Name = null;
 		editedTrajectory.Description = null;
 		editedTrajectory.WellboreID = 0;
-		editedTrajectory.ReferenceLatitudeWGS84 = 0;
-		editedTrajectory.ReferenceLongitudeWGS84 = 0;
-		editedTrajectory.ReferenceTVDWGS84 = 0;
+		WellboreSurveyInstrument.Add(surveyInstruments[0]);
 		StringContent content = new StringContent(newTrajectory.GetJson(), Encoding.UTF8, "application/json");
 
 		var a = await httpTrajectory.PostAsync("Trajectories", content);
@@ -815,9 +699,6 @@ else
 			editedTrajectory.Name = null;
 			editedTrajectory.Description = null;
 			editedTrajectory.WellboreID = 0;
-			editedTrajectory.ReferenceLatitudeWGS84 = 0;
-			editedTrajectory.ReferenceLongitudeWGS84 = 0;
-			editedTrajectory.ReferenceTVDWGS84 = 0;
 		}
 	}
 }

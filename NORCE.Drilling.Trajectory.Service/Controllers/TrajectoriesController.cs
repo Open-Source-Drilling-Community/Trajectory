@@ -26,7 +26,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);
             if (trajectory!=null && trajectory.SurveyList != null)
             {
-                trajectory.SurveyList.GetUncertaintyEnvelopeTVD(0.95, 1);
+                //trajectory.SurveyList.GetUncertaintyEnvelopeTVD(0.95, 1);
             }
             return trajectory;
         }

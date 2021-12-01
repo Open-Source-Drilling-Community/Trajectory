@@ -20,25 +20,9 @@ namespace NORCE.Drilling.Trajectory.Model
         /// <summary>
         ///  the ID of the wellbore in which this trajectory belongs to
         /// </summary>
-        public int WellboreID { get; set; } = -1;
+        public int WellboreID { get; set; } = -1;      
         /// <summary>
-        /// the latitude of the reference point for the trajectory in the WGS84 datum
-        /// </summary>
-        public double ReferenceLatitudeWGS84 { get; set; }
-        /// <summary>
-        /// the longitude of the reference point for the trajectory in the WGS84 datum
-        /// </summary>
-        public double ReferenceLongitudeWGS84 { get; set; }
-        /// <summary>
-        /// the TVD of the reference point for the trajectory in the WGS84 datum
-        /// </summary>
-        public double ReferenceTVDWGS84 { get; set; }
-        /// <summary>
-        /// the set of slots associated with this cluser
-        /// </summary>
-        public List<Slot> Slots { get; set; } = new List<Slot>();
-        /// <summary>
-        /// the set of slots associated with this cluser
+        /// the set of SurveyList associated with this trajectory
         /// </summary>
         public SurveyList SurveyList { get; set; } = new SurveyList();
         /// <summary>
@@ -70,22 +54,7 @@ namespace NORCE.Drilling.Trajectory.Model
             {
                 dest.Name = Name;
                 dest.Description = Description;
-                dest.WellboreID = WellboreID;
-                dest.ReferenceLatitudeWGS84 = ReferenceLatitudeWGS84;
-                dest.ReferenceLongitudeWGS84 = ReferenceLongitudeWGS84;
-                dest.ReferenceTVDWGS84 = ReferenceTVDWGS84;
-                if (dest.Slots == null)
-                {
-                    dest.Slots = new List<Slot>();
-                }
-                dest.Slots.Clear();
-                if (Slots != null)
-                {
-                    foreach (Slot slot in Slots)
-                    {
-                        dest.Slots.Add(new Slot(slot));
-                    }
-                }
+                dest.WellboreID = WellboreID;                
                 if (dest.SurveyList == null)
                 {
                     dest.SurveyList = new SurveyList();

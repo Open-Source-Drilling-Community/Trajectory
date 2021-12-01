@@ -21,9 +21,6 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
                 dest.Name = Name;
                 dest.Description = Description;
                 dest.WellboreID = WellboreID;
-                dest.ReferenceLatitudeWGS84 = ReferenceLatitudeWGS84;
-                dest.ReferenceLongitudeWGS84 = ReferenceLongitudeWGS84;
-                dest.ReferenceTVDWGS84 = ReferenceTVDWGS84;
                 if(dest.SurveyList == null )
 				{
                     dest.SurveyList = new SurveyList();
@@ -43,20 +40,21 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
                         }
                     }
                 }
-                //if (dest.Slots == null)
-                //{
-                //    dest.Slots = new List<Slot>();
-                //}
-                //dest.Slots.Clear();
-                //if (Slots != null)
-                //{
-                //    foreach (Slot slot in Slots)
-                //    {
-                //        Slot copy = new Slot();
-                //        slot.Copy(copy);
-                //        dest.Slots.Add(copy);
-                //    }
-                //}
+                if (SurveyList != null)
+                {
+                    if (dest.SurveyList.ListOfSurveys == null)
+                    {
+                        dest.SurveyList.ListOfSurveys = new List<SurveyStation>();
+                    }
+                    if (SurveyList.ListOfSurveys!= null)
+                    {
+                        dest.SurveyList.ListOfSurveys.Clear();
+                        foreach (SurveyStation surveyStation in SurveyList.ListOfSurveys)
+                        {
+                            dest.SurveyList.ListOfSurveys.Add(surveyStation);
+                        }
+                    }
+                }
                 return true;
             }
             else

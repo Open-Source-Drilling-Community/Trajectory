@@ -9,27 +9,6 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
     #pragma warning disable // Disable all warnings
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v13.0.0.0)")]
-    public partial class Slot 
-    {
-        [Newtonsoft.Json.JsonProperty("ID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public int ID { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public string Name { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("LatitudeWGS84", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double LatitudeWGS84 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("LongitudeWGS84", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double LongitudeWGS84 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("TVDWGS84", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double TVDWGS84 { get; set; }
-    
-    
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v13.0.0.0)")]
     public partial class SurveyList 
     {
         [Newtonsoft.Json.JsonProperty("_ellipseVerticesPhi", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
@@ -277,18 +256,6 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
     
         [Newtonsoft.Json.JsonProperty("WellboreID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int WellboreID { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("ReferenceLatitudeWGS84", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double ReferenceLatitudeWGS84 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("ReferenceLongitudeWGS84", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double ReferenceLongitudeWGS84 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("ReferenceTVDWGS84", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double ReferenceTVDWGS84 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("Slots", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public System.Collections.Generic.ICollection<Slot> Slots { get; set; }
     
         [Newtonsoft.Json.JsonProperty("SurveyList", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public SurveyList SurveyList { get; set; }

@@ -226,49 +226,7 @@ namespace NORCE.Drilling.Trajectory.Service
                             }
                         }
                     }
-                    //command.CommandText = @"SELECT Name, " +
-                    //    "Description, " +
-                    //    "WellboreID, " +
-                    //    "ReferenceLatitudeWGS84, " +
-                    //    "ReferenceLongitudeWGS84, " +
-                    //    "ReferenceTVDWGS84 " +
-                    //    "FROM Trajectory WHERE ID = " + trajectoryID.ToString();
-                    //try
-                    //{
-                    //    using (var reader = command.ExecuteReader())
-                    //    {
-                    //        if (reader.Read())
-                    //        {
-                    //            trajectory = new Model.Trajectory();
-                    //            trajectory.ID = trajectoryID;
-                    //            trajectory.Name = reader.GetString(0);
-                    //            trajectory.Description = reader.GetString(1);
-                    //            trajectory.WellboreID = reader.GetInt32(2);
-                    //            trajectory.ReferenceLatitudeWGS84 = reader.GetDouble(3);
-                    //            trajectory.ReferenceLongitudeWGS84 = reader.GetDouble(4);
-                    //            trajectory.ReferenceTVDWGS84 = reader.GetDouble(5);
-                    //            trajectory.Slots = new List<Slot>();
-                    //        }
-                    //    }
-                    //    command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                    //    command.CommandText = @"SELECT ID, " +
-                    //                           "MD, " +
-                    //                           "Incl, " +
-                    //                           "Az, " +
-                    //                           "FROM SurveyStation WHERE TrajectoryID = " + trajectoryID.ToString();
-                    //    using (var reader = command.ExecuteReader())
-                    //    {
-                    //        while (reader.Read())
-                    //        {
-                    //            SurveyStation surveyStation = new SurveyStation();
-                    //            //surveyStation.ID = reader.GetInt32(0);
-                    //            surveyStation.MD = reader.GetDouble(1);
-                    //            surveyStation.Incl = reader.GetDouble(2);
-                    //            surveyStation.Az = reader.GetDouble(3);
-                    //            trajectory.SurveyList.Surveys.Add(surveyStation);
-                    //        }
-                    //    }
-                    //}
+                    
                     catch (SQLiteException e)
                     {
                     }
@@ -326,76 +284,7 @@ namespace NORCE.Drilling.Trajectory.Service
                                 transaction.Rollback();
                             }
                         }
-                    }
-                    //using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
-                    //{
-                        //try
-                        //{
-                        //    var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                        //    command.CommandText = @"INSERT INTO Trajectory (" +
-                        //        "ID, " +
-                        //        "Name, " +
-                        //        "Description, " +
-                        //        "WellboreID, " +
-                        //        "ReferenceLatitudeWGS84, " +
-                        //        "ReferenceLongitudeWGS84, " +
-                        //        "ReferenceTVDWGS84 " +
-                        //        ") VALUES (" +
-                        //        trajectory.ID.ToString() + ", " +
-                        //        "'" + trajectory.Name + "'" + ", " +
-                        //        "'" + trajectory.Description + "'" + ", " +
-                        //        trajectory.WellboreID.ToString() + ", " +
-                        //        trajectory.ReferenceLatitudeWGS84.ToString() + ", " +
-                        //        trajectory.ReferenceLongitudeWGS84.ToString() + ", " +
-                        //        trajectory.ReferenceTVDWGS84.ToString() +
-                        //        ")";
-                        //    int count = command.ExecuteNonQuery();
-                        //    result = count == 1;
-                        //    if (result)
-                        //    {
-                        //        if (trajectory.SurveyList != null)
-                        //        {
-                        //            if (trajectory.SurveyList.Surveys != null)
-                        //            {
-                        //                foreach (SurveyStation surveyStation in trajectory.SurveyList.Surveys)
-                        //                {
-                        //                    //surveyStation.ID = GetNextSlotID();
-                        //                    command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                        //                    command.CommandText = @"INSERT INTO SurveyStation (" +
-                        //                        "ID, " +                                                
-                        //                        "MD, " +
-                        //                        "Incl, " +
-                        //                        "Az " +
-                        //                        ") VALUES (" +
-                        //                        trajectory.ID.ToString() + ", " +
-                        //                        surveyStation.MD.ToString() + ", " +
-                        //                        surveyStation.Incl.ToString() + ", " +
-                        //                        surveyStation.Az.ToString() + 
-                        //                       ")";
-                        //                    count = command.ExecuteNonQuery();
-                        //                    result &= count == 1;
-                        //                    if (!result)
-                        //                    {
-                        //                        break;
-                        //                    }
-                        //                }
-                        //            }
-                        //        }
-                        //    }
-                        //    if (result)
-                        //    {
-                        //        transaction.Commit();
-                        //    }
-                        //    else
-                        //    {
-                        //        transaction.Rollback();
-                        //    }
-                        //}
-                        //catch (SQLiteException e)
-                        //{
-                        //    transaction.Rollback();
-                        //}
-                    //}
+                    }                    
                 }
             }
             return result;
@@ -425,18 +314,7 @@ namespace NORCE.Drilling.Trajectory.Service
                             var command = SQLConnectionManager.Instance.Connection.CreateCommand();
                             command.CommandText = @"DELETE FROM Trajectory WHERE ID = " + "'" + trajectoryID.ToString() + "'";
                             int count = command.ExecuteNonQuery();
-                            result = count >= 0;
-                            //var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                            //command.CommandText = @"DELETE FROM Trajectory WHERE ID = " + trajectoryID.ToString();
-                            //int count = command.ExecuteNonQuery();
-                            //result = count >= 0;
-                            //if (result)
-                            //{
-                            //    command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                            //    command.CommandText = @"DELETE FROM Slot WHERE TrajectoryID = " + trajectoryID.ToString();
-                            //    count = command.ExecuteNonQuery();
-                            //    result &= count >= 0;
-                            //}
+                            result = count >= 0;                            
                             if (result)
                             {
                                 transaction.Commit();
@@ -477,50 +355,7 @@ namespace NORCE.Drilling.Trajectory.Service
                                 "DataSet = " + "'" + json + "'" + " " +
                                 "WHERE ID = " + "'" + trajectoryID.ToString() + "'";
                             int count = command.ExecuteNonQuery();
-                            result = count == 1;
-                            //var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                            //command.CommandText = @"UPDATE Trajectory SET " +
-                            //    "Name =  " + "'" + updatedTrajectory.Name + "'" + ", " +
-                            //    "Description = " + "'" + updatedTrajectory.Description + "'" + ", " +
-                            //    "WellboreID = " + updatedTrajectory.WellboreID + ", " +
-                            //    "ReferenceLatitudeWGS84 = " + updatedTrajectory.ReferenceLatitudeWGS84 + ", " +
-                            //    "ReferenceLongitudeWGS84 = " + updatedTrajectory.ReferenceLongitudeWGS84 + ", " +
-                            //    "ReferenceTVDWGS84 = " + updatedTrajectory.ReferenceTVDWGS84 + " " +
-                            // "WHERE ID = " + trajectoryID.ToString();
-                            //int count = command.ExecuteNonQuery();
-                            //result = count == 1;
-                            //if (result)
-                            //{
-                            //    command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                            //    command.CommandText = @"DELETE FROM SurveyStation WHERE TrajectoryID = " + trajectoryID.ToString();
-                            //    count = command.ExecuteNonQuery();
-                            //    result &= count >= 0;
-                            //    if (result && updatedTrajectory.Slots != null)
-                            //    {
-                            //        foreach (SurveyStation surveyStation in updatedTrajectory.SurveyList.Surveys)
-                            //        {
-                            //            //slot.ID = GetNextSlotID();
-                            //            command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                            //            command.CommandText = @"INSERT INTO SurveyStation (" +
-                            //                "ID, " +
-                            //                "MD, " +
-                            //                "Incl, " +
-                            //                "Az " +
-                            //                ") VALUES (" +
-                            //                updatedTrajectory.ID.ToString() + ", " +
-                            //                surveyStation.MD.ToString() + ", " +
-                            //                surveyStation.Incl.ToString() + ", " +
-                            //                surveyStation.Az.ToString() +
-                            //               ")";
-                            //            count = command.ExecuteNonQuery();
-                            //            result &= count == 1;
-                            //            if (!result)
-                            //            {
-                            //                break;
-                            //            }
-                            //        }                                   
-                            //    }
-                            //}
+                            result = count == 1;                            
                             if (result)
                             {
                                 transaction.Commit();
@@ -571,37 +406,6 @@ namespace NORCE.Drilling.Trajectory.Service
             return id;
         }
 
-        public int GetNextSlotID()
-        {
-            int id = -1;
-            bool exists = false;
-            do
-            {
-                id = random_.Next();
-                if (SQLConnectionManager.Instance.Connection != null)
-                {
-                    var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                    command.CommandText = @"SELECT count(*) FROM Slot WHERE ID = " + id.ToString();
-                    try
-                    {
-                        using (var reader = command.ExecuteReader())
-                        {
-                            if (reader.Read())
-                            {
-                                int count = (int)reader.GetInt64(0);
-                                exists = count > 0;
-                            }
-                        }
-                    }
-                    catch (SQLiteException e)
-                    {
-                    }
-                }
-            }
-            while (exists);
-            return id;
-        }
-
         /// <summary>
         /// populate with a few default trajectories
         /// </summary>
@@ -615,8 +419,10 @@ namespace NORCE.Drilling.Trajectory.Service
 
             //string[] files = Directory.GetFiles(@"C:\NORCE-DrillingAndWells\AutomatedDrillingEngineeringDemoSummer2021\NORCE.DirectionalSurvyeingAnalyzerDisplayApp\InputData\Wellbores");
             string[] files = Directory.GetFiles(@"..\Wellbores");
-            //foreach (string file in files)
+            int id = 0;
+            foreach (string file in files)
             {
+                id++;
                 using (StreamReader r = new StreamReader(files[0]))
                 {
                     SurveyList sl = new SurveyList();
@@ -656,12 +462,15 @@ namespace NORCE.Drilling.Trajectory.Service
                     trajectory.SurveyList = sl;
                     trajectory.SurveyList.ListOfSurveys = sl.ListOfSurveys;
                     //trajectory.SurveyList.GetUncertaintyEnvelope(0.95, 1);
-                    trajectory.Name = files[0].Substring(13); ;
+                    trajectory.Name = files[0].Substring(13);
+                    trajectory.ID = id;
                     Add(trajectory);
+                    
                     //SurveyListCollection.Add(sl);
                     //string wellname = file.Substring(29);
                 }
             }
+            Get(1);
         }
     }
 }

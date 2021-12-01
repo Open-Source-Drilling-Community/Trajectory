@@ -24,27 +24,6 @@
       "type": "integer",
       "format": "int32"
     },
-    "ReferenceLatitudeWGS84": {
-      "type": "number",
-      "format": "double"
-    },
-    "ReferenceLongitudeWGS84": {
-      "type": "number",
-      "format": "double"
-    },
-    "ReferenceTVDWGS84": {
-      "type": "number",
-      "format": "double"
-    },
-    "Slots": {
-      "type": [
-        "array",
-        "null"
-      ],
-      "items": {
-        "$ref": "#/definitions/Slot"
-      }
-    },
     "SurveyList": {
       "oneOf": [
         {
@@ -57,34 +36,6 @@
     }
   },
   "definitions": {
-    "Slot": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "ID": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "Name": {
-          "type": [
-            "null",
-            "string"
-          ]
-        },
-        "LatitudeWGS84": {
-          "type": "number",
-          "format": "double"
-        },
-        "LongitudeWGS84": {
-          "type": "number",
-          "format": "double"
-        },
-        "TVDWGS84": {
-          "type": "number",
-          "format": "double"
-        }
-      }
-    },
     "SurveyList": {
       "type": "object",
       "additionalProperties": false,
