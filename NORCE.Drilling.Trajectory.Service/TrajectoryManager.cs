@@ -423,7 +423,7 @@ namespace NORCE.Drilling.Trajectory.Service
             foreach (string file in files)
             {
                 id++;
-                using (StreamReader r = new StreamReader(files[0]))
+                using (StreamReader r = new StreamReader(file))
                 {
                     SurveyList sl = new SurveyList();
                     //CultureInfo culture = CultureInfo.InvariantCulture;
@@ -462,7 +462,7 @@ namespace NORCE.Drilling.Trajectory.Service
                     trajectory.SurveyList = sl;
                     trajectory.SurveyList.ListOfSurveys = sl.ListOfSurveys;
                     //trajectory.SurveyList.GetUncertaintyEnvelope(0.95, 1);
-                    trajectory.Name = files[0].Substring(13);
+                    trajectory.Name = file.Substring(13);
                     trajectory.ID = id;
                     Add(trajectory);
                     
