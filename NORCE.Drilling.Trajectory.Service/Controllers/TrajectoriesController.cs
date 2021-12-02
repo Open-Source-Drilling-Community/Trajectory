@@ -4,6 +4,7 @@ using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NORCE.Drilling.Trajectory.Model;
+using NORCE.Drilling.SurveyInstrument;
 
 namespace NORCE.Drilling.Trajectory.Service.Controllers
 {
@@ -26,8 +27,8 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);
             if (trajectory!=null && trajectory.SurveyList != null)
             {
-                //trajectory.SurveyList.GetUncertaintyEnvelopeTVD(0.95, 1);
-            }
+				//trajectory.SurveyList.GetUncertaintyEnvelopeTVD(0.95, 1);
+			}
             return trajectory;
         }
 		//// GET api/trajectories/5
@@ -58,14 +59,43 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         public List<UncertaintyEnvelopeEllipse> Get(int id, double confidenceFactor, double scalingFactor)
         {
             Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);
-            trajectory.SurveyList.GetUncertaintyEnvelopeTVD(confidenceFactor, scalingFactor);
+            //NB: Need to update when more uncertaintymodels are available and SurveyTools included
+            WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+            WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+            wdwun.SurveyTool = surveyTool;
+            if (trajectory.SurveyList != null)
+            {
+                if (trajectory.SurveyList.ListOfSurveys != null)
+                {
+                    for (int i = 0; i < trajectory.SurveyList.ListOfSurveys.Count; i++)
+                    {
+                        trajectory.SurveyList.ListOfSurveys[i].Uncertainty = wdwun;
+                    }
+                    trajectory.SurveyList.GetUncertaintyEnvelopeTVD(confidenceFactor, scalingFactor);
+                }
+            }            
             return trajectory.SurveyList.UncertaintyEnvelope;
         }
         [HttpGet("{id}/{confidenceFactor}")]
         public List<List<double?>> Get(int id, double confidenceFactor)
         {
             Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);
-            trajectory.SurveyList.GetUncertaintyEnvelopeTVD(confidenceFactor);
+            //NB: Need to update when more uncertaintymodels are available and SurveyTools included
+            WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+            WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+            wdwun.SurveyTool = surveyTool;
+            if (trajectory.SurveyList != null)
+            {
+                if (trajectory.SurveyList.ListOfSurveys != null)
+                {
+                    for (int i = 0; i < trajectory.SurveyList.ListOfSurveys.Count; i++)
+                    {
+                        trajectory.SurveyList.ListOfSurveys[i].Uncertainty = wdwun;
+                    }
+                    trajectory.SurveyList.GetUncertaintyEnvelopeTVD(confidenceFactor);
+                }
+            }
+            
             List<List < double ?> >listAll = new List<List<double?>>();
             for (int i = 0; i < trajectory.SurveyList.ListOfSurveys.Count; i++)
             {
@@ -85,6 +115,20 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                 Model.Trajectory trajectory = TrajectoryManager.Instance.Get(value.ID);
                 if (trajectory == null)
                 {
+                    //NB: Need to update when more uncertaintymodels are available and SurveyTools included
+                    WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                    WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+                    wdwun.SurveyTool = surveyTool;
+                    if (value.SurveyList != null)
+                    {
+                        if (value.SurveyList.ListOfSurveys != null)
+                        {
+                            for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
+                            {
+                                value.SurveyList.ListOfSurveys[i].Uncertainty = wdwun;
+                            }
+                        }
+                    }
                     TrajectoryManager.Instance.Add(value);
                 }
             }
@@ -98,10 +142,36 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                 Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);
                 if (trajectory != null)
                 {
+                    //NB: Need to update when more uncertaintymodels are available and SurveyTools included
+                    WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                    WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+                    wdwun.SurveyTool = surveyTool;
+                    if (value.SurveyList != null)
+                    {
+                        if (value.SurveyList.ListOfSurveys != null)
+                        {
+                            for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
+                            {
+                                value.SurveyList.ListOfSurveys[i].Uncertainty = wdwun;
+                            }
+                        }
+                    }
                     TrajectoryManager.Instance.Update(id, value);
                 }
                 else
                 {
+                    //NB: Need to update when more uncertaintymodels are available and SurveyTools included
+                    WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                    WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+                    wdwun.SurveyTool = surveyTool;
+                    if (value.SurveyList != null)
+                    {
+                        if (value.SurveyList.ListOfSurveys != null)
+                            for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
+                            {
+                                value.SurveyList.ListOfSurveys[i].Uncertainty = wdwun;
+                            }
+                    }
                     TrajectoryManager.Instance.Add(value);
                 }
             }

@@ -53,6 +53,29 @@ namespace NORCE.Drilling.Trajectory.Service
             }
         }
 
+        //private int Count
+        //{
+        //    get
+        //    {
+        //        var command = connection_.CreateCommand();
+        //        command.CommandText = @"SELECT count(*) FROM Trajectory";
+        //        long count = -1;
+        //        try
+        //        {
+        //            using (var reader = command.ExecuteReader())
+        //            {
+        //                if (reader.Read())
+        //                {
+        //                    count = reader.GetInt64(0);
+        //                }
+        //            }
+        //        }
+        //        catch (SQLiteException e)
+        //        {
+        //        }
+        //        return (int)count;
+        //    }
+        //}
         private void ManageTrajectory()
         {
             var command = connection_.CreateCommand();
@@ -70,73 +93,7 @@ namespace NORCE.Drilling.Trajectory.Service
             }
             catch (SQLiteException e)
             {
-            }
-            //if (count < 0)
-            //{
-            //    bool success = true;
-            //    // table does no exist
-            //    command.CommandText =
-            //        @"CREATE TABLE Trajectory (" +
-            //        "ID integer primary key, " +
-            //        "Name text, " +
-            //        "Description text, " +
-            //        "WellboreID integer, " +
-            //        "ReferenceLatitudeWGS84 double, " +
-            //        "ReferenceLongitudeWGS84 double, " +
-            //        "ReferenceTVDWGS84 double " +
-            //       ")";
-            //    try
-            //    {
-            //        int res = command.ExecuteNonQuery();
-            //    }
-            //    catch (SQLiteException e)
-            //    {
-            //        success = false;
-            //    }
-            //    if (success)
-            //    {
-            //        command.CommandText =
-            //            @"CREATE UNIQUE INDEX TrajectoryIndex ON Trajectory (ID)";
-            //        try
-            //        {
-            //            int res = command.ExecuteNonQuery();
-            //        }
-            //        catch (SQLiteException e)
-            //        {
-            //            success = false;
-            //        }
-            //    }
-            //    if (!success)
-            //    {
-            //        command.CommandText =
-            //            @"DROP TABLE Trajectory";
-            //        try
-            //        {
-            //            int res = command.ExecuteNonQuery();
-            //        }
-            //        catch (SQLiteException e)
-            //        {
-            //            success = false;
-            //        }
-            //    }
-            //}
-
-            //command = connection_.CreateCommand();
-            //command.CommandText = @"SELECT count(*) FROM TrajectorySet";
-            //count = -1;
-            //try
-            //{
-            //    using (var reader = command.ExecuteReader())
-            //    {
-            //        if (reader.Read())
-            //        {
-            //            count = reader.GetInt64(0);
-            //        }
-            //    }
-            //}
-            //catch (SQLiteException e)
-            //{
-            //}
+            }   
             if (count < 0)
             {
                 bool success = true;
@@ -182,89 +139,26 @@ namespace NORCE.Drilling.Trajectory.Service
                         success = false;
                     }
                 }
-            }
-            //command = connection_.CreateCommand();
-            //command.CommandText = @"SELECT count(*) FROM SurveyStation";
-            //count = -1;
-            //try
-            //{
-            //    using (var reader = command.ExecuteReader())
-            //    {
-            //        if (reader.Read())
-            //        {
-            //            count = reader.GetInt64(0);
-            //        }
-            //    }
-            //}
-            //catch (SQLiteException e)
-            //{
-            //}
-            //if (count < 0)
-            //{
-            //    bool success = true;
-            //    // table does no exist
-            //    command.CommandText =
-            //        @"CREATE TABLE SurveyStation (" +
-            //        "ID integer primary key, " +
-            //        "MD, " +
-            //        "Incl, " +
-            //        "Az, " +
-            //       ")";
-            //    try
-            //    {
-            //        int res = command.ExecuteNonQuery();
-            //    }
-            //    catch (SQLiteException e)
-            //    {
-            //        success = false;
-            //    }
-            //    if (success)
-            //    {
-            //        command.CommandText =
-            //            @"CREATE UNIQUE INDEX SurveyStation ON SurveyStation (ID)";
-            //        try
-            //        {
-            //            int res = command.ExecuteNonQuery();
-            //        }
-            //        catch (SQLiteException e)
-            //        {
-            //            success = false;
-            //        }
-            //    }
-            //    if (!success)
-            //    {
-            //        command.CommandText =
-            //            @"DROP TABLE SurveyStation";
-            //        try
-            //        {
-            //            int res = command.ExecuteNonQuery();
-            //        }
-            //        catch (SQLiteException e)
-            //        {
-            //            success = false;
-            //        }
-            //    }
-            //}
-
-
+            }           
         }
 
         private void Initialize()
         {
-            if (!Directory.Exists("..\\home"))
+            string homeDirectory = ".." + Path.DirectorySeparatorChar + "home";
+            if (!Directory.Exists(homeDirectory))
             {
                 try
                 {
-                    Directory.CreateDirectory("..\\home");
+                    Directory.CreateDirectory(homeDirectory);
                 }
                 catch (Exception e)
                 {
 
                 }
             }
-            if (Directory.Exists("..\\home"))
+            if (Directory.Exists(homeDirectory))
             {
-                string connectionString = @"URI=file:..\home\Trajectory.db";
+                string connectionString = @"URI=file:" + homeDirectory + Path.DirectorySeparatorChar + "Trajectory.db";
                 connection_ = new SQLiteConnection(connectionString);
                 connection_.Open();
                 ManageTrajectory();
