@@ -408,22 +408,19 @@ namespace NORCE.Drilling.Trajectory.Service
         /// </summary>
         private void FillDefault()
         {
-			if (Count <= 0)
-			{
-				Model.Trajectory trajectory = new Model.Trajectory();
+            if (Count <= 0)
+            {
+                Model.Trajectory trajectory = new Model.Trajectory();
                 trajectory.Name = "Trajectory1";
                 trajectory.Description = "UllriggWell";
                 trajectory.SurveyList = new SurveyList();
                 trajectory.SurveyList.Surveys = new List<SurveyStation>();
 
-            //string[] files = Directory.GetFiles(@"C:\NORCE-DrillingAndWells\AutomatedDrillingEngineeringDemoSummer2021\NORCE.DirectionalSurvyeingAnalyzerDisplayApp\InputData\Wellbores");
-            string[] files = Directory.GetFiles(@"..\Wellbores");
-            int id = 0;
-            foreach (string file in files)
-            {
-                using (StreamReader r = new StreamReader(file))
+                //string[] files = Directory.GetFiles(@"C:\NORCE-DrillingAndWells\AutomatedDrillingEngineeringDemoSummer2021\NORCE.DirectionalSurvyeingAnalyzerDisplayApp\InputData\Wellbores");
+                string[] files = Directory.GetFiles(@"..\Wellbores");
+                int id = 0;
+                foreach (string file in files)
                 {
-                    id++;
                     using (StreamReader r = new StreamReader(file))
                     {
                         SurveyList sl = new SurveyList();
@@ -470,10 +467,8 @@ namespace NORCE.Drilling.Trajectory.Service
                         //SurveyListCollection.Add(sl);
                         //string wellname = file.Substring(29);
                     }
-                }
-
-                id++;
-
+                    id++;
+                }               
             }
         }
     }
