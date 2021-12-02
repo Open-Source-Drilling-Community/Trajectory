@@ -243,7 +243,7 @@ namespace NORCE.Drilling.Trajectory.Service
             {
                 if (SQLConnectionManager.Instance.Connection != null)
                 {
-                    if (trajectory.ID <= 0)
+                    if (trajectory.ID < 0)
                     {
                         trajectory.ID = GetNextID();
                     }
@@ -264,7 +264,7 @@ namespace NORCE.Drilling.Trajectory.Service
                                     ") VALUES (" +
                                     "'" + trajectory.ID.ToString() + "'" + ", " +
                                     "'" + trajectory.Name + "'" + ", " +
-                                    (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + ", " + "'" + json + "'" + ")";
+                                    "'" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "'" + ", " + "'" + json + "'" + ")";
                                 int count = command.ExecuteNonQuery();
                                 result = count == 1;
                                 if (result)
@@ -416,10 +416,12 @@ namespace NORCE.Drilling.Trajectory.Service
                 trajectory.SurveyList = new SurveyList();
                 trajectory.SurveyList.Surveys = new List<SurveyStation>();
 
-                //string[] files = Directory.GetFiles(@"C:\NORCE-DrillingAndWells\AutomatedDrillingEngineeringDemoSummer2021\NORCE.DirectionalSurvyeingAnalyzerDisplayApp\InputData\Wellbores");
-                string[] files = Directory.GetFiles(@"..\Wellbores");
-                int id = 0;
-                foreach (string file in files)
+            //string[] files = Directory.GetFiles(@"C:\NORCE-DrillingAndWells\AutomatedDrillingEngineeringDemoSummer2021\NORCE.DirectionalSurvyeingAnalyzerDisplayApp\InputData\Wellbores");
+            string[] files = Directory.GetFiles(@"..\Wellbores");
+            int id = 0;
+            foreach (string file in files)
+            {
+                using (StreamReader r = new StreamReader(file))
                 {
                     id++;
                     using (StreamReader r = new StreamReader(file))
@@ -469,7 +471,9 @@ namespace NORCE.Drilling.Trajectory.Service
                         //string wellname = file.Substring(29);
                     }
                 }
-                Get(1);
+
+                id++;
+
             }
         }
     }
