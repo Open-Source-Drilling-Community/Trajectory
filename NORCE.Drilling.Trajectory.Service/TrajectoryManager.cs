@@ -188,7 +188,7 @@ namespace NORCE.Drilling.Trajectory.Service
 
         public Model.Trajectory Get(int trajectoryID)
         {
-            if (trajectoryID > 0)
+            if (trajectoryID >= 0)
             {
                 Model.Trajectory trajectory= null;
                 if (SQLConnectionManager.Instance.Connection != null)
@@ -410,65 +410,69 @@ namespace NORCE.Drilling.Trajectory.Service
         {
             if (Count <= 0)
             {
-                Model.Trajectory trajectory = new Model.Trajectory();
-                trajectory.Name = "Trajectory1";
-                trajectory.Description = "UllriggWell";
-                trajectory.SurveyList = new SurveyList();
-                trajectory.SurveyList.Surveys = new List<SurveyStation>();
-
-                //string[] files = Directory.GetFiles(@"C:\NORCE-DrillingAndWells\AutomatedDrillingEngineeringDemoSummer2021\NORCE.DirectionalSurvyeingAnalyzerDisplayApp\InputData\Wellbores");
-                string[] files = Directory.GetFiles(@"..\Wellbores");
-                int id = 0;
-                foreach (string file in files)
+                string homeDirectory = ".." + Path.DirectorySeparatorChar + "home";
+                string directory = @homeDirectory + Path.DirectorySeparatorChar + "Wellbores";
+                //string directory = @"\Wellbores";
+                if (Directory.Exists(directory))
                 {
-                    using (StreamReader r = new StreamReader(file))
+                    Model.Trajectory trajectory = new Model.Trajectory();
+                    trajectory.Description = "UllriggWell";
+                    trajectory.SurveyList = new SurveyList();
+                    trajectory.SurveyList.Surveys = new List<SurveyStation>();
+                    string[] files = Directory.GetFiles(directory);
+                    int id = 0;
+                    foreach (string file in files)
                     {
-                        SurveyList sl = new SurveyList();
-                        //CultureInfo culture = CultureInfo.InvariantCulture;
-                        while (!r.EndOfStream)
+                        using (StreamReader r = new StreamReader(file))
                         {
-                            char[] sep = { '\t' };
-                            string[] words = r.ReadLine().Split(sep);
-                            if (words.Length > 1)
+                            SurveyList sl = new SurveyList();
+                            //CultureInfo culture = CultureInfo.InvariantCulture;
+                            while (!r.EndOfStream)
                             {
-                                SurveyStation st = new SurveyStation();
-                                double md = 0.0;
-                                bool ok = NORCE.General.Std.Numeric.TryParse(words[0], out md);
-                                double incl = 0.0;
-                                ok = NORCE.General.Std.Numeric.TryParse(words[1], out incl);
-                                double az = 0.0;
-                                ok = NORCE.General.Std.Numeric.TryParse(words[2], out az);
-                                double tvd = 0.0;
-                                ok = NORCE.General.Std.Numeric.TryParse(words[3], out tvd);
-                                double X = 0.0;
-                                ok = NORCE.General.Std.Numeric.TryParse(words[4], out X);
-                                double Y = 0.0;
-                                ok = NORCE.General.Std.Numeric.TryParse(words[5], out Y);
-                                st.Az = az * Math.PI / 180.0;
-                                st.Incl = incl * Math.PI / 180.0; ;
-                                st.X = X;
-                                st.Y = Y;
-                                st.Z = tvd;
-                                st.MD = md;
-                                WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                                WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
-                                wdwun.SurveyTool = surveyTool;
-                                st.Uncertainty = wdwun;
-                                sl.Add(st);
+                                char[] sep = { '\t' };
+                                string[] words = r.ReadLine().Split(sep);
+                                if (words.Length > 1)
+                                {
+                                    SurveyStation st = new SurveyStation();
+                                    double md = 0.0;
+                                    bool ok = NORCE.General.Std.Numeric.TryParse(words[0], out md);
+                                    double incl = 0.0;
+                                    ok = NORCE.General.Std.Numeric.TryParse(words[1], out incl);
+                                    double az = 0.0;
+                                    ok = NORCE.General.Std.Numeric.TryParse(words[2], out az);
+                                    double tvd = 0.0;
+                                    ok = NORCE.General.Std.Numeric.TryParse(words[3], out tvd);
+                                    double X = 0.0;
+                                    ok = NORCE.General.Std.Numeric.TryParse(words[4], out X);
+                                    double Y = 0.0;
+                                    ok = NORCE.General.Std.Numeric.TryParse(words[5], out Y);
+                                    st.Az = az * Math.PI / 180.0;
+                                    st.Incl = incl * Math.PI / 180.0; ;
+                                    st.X = X;
+                                    st.Y = Y;
+                                    st.Z = tvd;
+                                    st.MD = md;
+                                    WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                                    WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+                                    wdwun.SurveyTool = surveyTool;
+                                    st.Uncertainty = wdwun;
+                                    sl.Add(st);
+                                }
                             }
-                        }
-                        trajectory.SurveyList = sl;
-                        trajectory.SurveyList.ListOfSurveys = sl.ListOfSurveys;
-                        trajectory.SurveyList.GetUncertaintyEnvelope(0.95, 1);
-                        trajectory.Name = file.Substring(13);
-                        trajectory.ID = id;
-                        Add(trajectory);
+                            trajectory.SurveyList = sl;
+                            trajectory.SurveyList.ListOfSurveys = sl.ListOfSurveys;
+                            trajectory.SurveyList.GetUncertaintyEnvelope(0.95, 1);
+                            trajectory.Name = file.Substring(13);
+                            trajectory.ID = id;
+                            Add(trajectory);
 
-                        //SurveyListCollection.Add(sl);
-                        //string wellname = file.Substring(29);
+                            //SurveyListCollection.Add(sl);
+                            //string wellname = file.Substring(29);
+                        }
+                        id++;
                     }
-                    id++;
-                }               
+                }
+
             }
         }
     }

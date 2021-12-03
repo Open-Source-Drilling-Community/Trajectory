@@ -27,4 +27,9 @@
     <ProjectReference Include="..\NORCE.Drilling.Trajectory.Model\NORCE.Drilling.Trajectory.Model.csproj" />
   </ItemGroup>
 
+  <PropertyGroup>
+    <DockerfileRunArguments>-v "C:\DockerVolumes\Trajectory:/home"</DockerfileRunArguments>
+  </PropertyGroup>
+
+
 </Project>
