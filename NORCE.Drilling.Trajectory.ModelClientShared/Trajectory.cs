@@ -18,9 +18,13 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
         {
             if (dest != null)
             {
+                dest.ID = ID;
                 dest.Name = Name;
                 dest.Description = Description;
                 dest.WellboreID = WellboreID;
+                dest.IsDefinitive = IsDefinitive;
+                dest.IsMeasured = IsMeasured;
+                dest.IsPlanned = IsPlanned;
                 if(dest.SurveyList == null )
 				{
                     dest.SurveyList = new SurveyList();
@@ -29,17 +33,17 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
                         dest.SurveyList.Surveys = new List<SurveyStation>();
                     }
                 }
-                dest.SurveyList.Surveys.Clear();
-                if (SurveyList != null)
-                {
-                    if (SurveyList.Surveys != null)
-                    {
-                        foreach (SurveyStation surveyStation in SurveyList.Surveys)
-                        {
-                            dest.SurveyList.Surveys.Add(surveyStation);
-                        }
-                    }
-                }
+                //dest.SurveyList.Surveys.Clear();
+                //if (SurveyList != null)
+                //{
+                //    if (SurveyList.Surveys != null)
+                //    {
+                //        foreach (SurveyStation surveyStation in SurveyList.Surveys)
+                //        {
+                //            dest.SurveyList.Surveys.Add(surveyStation);
+                //        }
+                //    }
+                //}
                 if (SurveyList != null)
                 {
                     if (dest.SurveyList.ListOfSurveys == null)

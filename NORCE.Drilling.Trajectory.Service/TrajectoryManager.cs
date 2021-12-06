@@ -472,7 +472,7 @@ namespace NORCE.Drilling.Trajectory.Service
                         id++;
                     }
                 }
-
+                Get(3);
             }
         }
     }

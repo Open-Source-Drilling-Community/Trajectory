@@ -26,40 +26,40 @@ else
 			@for (int i = 0; i < trajectories.Count; i++)
 			{
 				var local = i;
-			<tr>
-				<td>
-					<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].Name</span>
-					<input class="text" type="text" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.Name" />
-				</td>
-				<td>
-					<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].Description</span>
-					<input class="text" type="text" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.Description" />
-				</td>
-				<td>
-					<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].WellboreID</span>
-					<select class="form-control selectpicker" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.WellboreID">
-						@foreach (int wellboreID in wellboreIDs)
-						{
-							<option>@wellboreID</option>
-						}
-					</select>
-				</td>
-				@*<td>
-					<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@WellboreSurveyInstrument[i]</span>
-					<select class="form-control selectpicker" hidden="@IsTrajectoryInputHidden[i]" @bind="@WellboreSurveyInstrument[i]">
-						@foreach (string surveyInst in surveyInstruments)
-						{
-							<option>@surveyInst</option>
-						}
-					</select>
-				</td>*@
-				<td>
-					<button class="btn btn-primary" hidden="@IsTrajectoryEditButtonHidden[i]" @onclick="@(() => Edit(local))">Edit</button>
-					<button class="btn btn-primary" hidden="@IsTrajectoryDeleteButtonHidden[i]" @onclick="@(() => Delete(local))">Delete</button>
-					<button class="btn btn-primary" hidden="@IsTrajectoryUpdateButtonHidden[i]" @onclick="@(() => Update(local))">Update</button>
-					<button class="btn btn-primary" hidden="@IsTrajectoryCancelButtonHidden[i]" @onclick="@(() => Cancel(local))">Cancel</button>
-				</td>
-			</tr>
+				<tr>
+					<td>
+						<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].Name</span>
+						<input class="text" type="text" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.Name" />
+					</td>
+					<td>
+						<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].Description</span>
+						<input class="text" type="text" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.Description" />
+					</td>
+					<td>
+						<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].WellboreID</span>
+						<select class="form-control selectpicker" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.WellboreID">
+							@foreach (int wellboreID in wellboreIDs)
+							{
+								<option>@wellboreID</option>
+							}
+						</select>
+					</td>
+					@*<td>
+							<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@WellboreSurveyInstrument[i]</span>
+							<select class="form-control selectpicker" hidden="@IsTrajectoryInputHidden[i]" @bind="@WellboreSurveyInstrument[i]">
+								@foreach (string surveyInst in surveyInstruments)
+								{
+									<option>@surveyInst</option>
+								}
+							</select>
+						</td>*@
+					<td>
+						<button class="btn btn-primary" hidden="@IsTrajectoryEditButtonHidden[i]" @onclick="@(() => Edit(local))">Edit</button>
+						<button class="btn btn-primary" hidden="@IsTrajectoryDeleteButtonHidden[i]" @onclick="@(() => Delete(local))">Delete</button>
+						<button class="btn btn-primary" hidden="@IsTrajectoryUpdateButtonHidden[i]" @onclick="@(() => Update(local))">Update</button>
+						<button class="btn btn-primary" hidden="@IsTrajectoryCancelButtonHidden[i]" @onclick="@(() => Cancel(local))">Cancel</button>
+					</td>
+				</tr>
 			}
 		</tbody>
 		<tfoot>
@@ -122,7 +122,8 @@ else
 			}
 		</tbody>
 	</table>
-	<h2 hidden="@IsTableResultHidden">Ellipse Radiuses @trajectoryName</h2>	
+	<h2 hidden="@IsTableResultHidden">Ellipse Radiuses @trajectoryName</h2>
+
 	<table class="tableResult" hidden="@IsTableResultHidden">
 		<thead>
 			<tr>
@@ -138,17 +139,17 @@ else
 				if (list[0] != null)
 				{
 
-				<tr>
-					<td>
-						<span class="label" hidden="@IsResultDisplayHidden[i]">@list[0]</span>
-						<input class="text" type="text" hidden="@IsResultInputHidden[i]" @bind="@list[0]" />
-					</td>
-					<td>
-						<span class="label" hidden="@IsResultDisplayHidden[i]">@list[0]</span>
-						<input class="text" type="text" hidden="@IsResultInputHidden[i]" @bind="@list[1]" />
-					</td>			
-					
-				</tr>
+					<tr>
+						<td>
+							<span class="label" hidden="@IsResultDisplayHidden[i]">@list[0]</span>
+							<input class="text" type="text" hidden="@IsResultInputHidden[i]" @bind="@list[0]" />
+						</td>
+						<td>
+							<span class="label" hidden="@IsResultDisplayHidden[i]">@list[0]</span>
+							<input class="text" type="text" hidden="@IsResultInputHidden[i]" @bind="@list[1]" />
+						</td>
+
+					</tr>
 				}
 			}
 		</tbody>
@@ -197,6 +198,7 @@ else
 			if (editedTrajectory == null)
 			{
 				editedTrajectory = new NORCE.Drilling.Trajectory.ModelClientShared.Trajectory();
+				editedTrajectory.ID = -1;
 			}
 			if (updatedTrajectory == null)
 			{
@@ -413,6 +415,10 @@ else
 	{
 		if (trajectories != null && idx >= 0 && idx < trajectories.Count)
 		{
+			if (listRadius != null && listRadius.Count > 0)
+			{
+				listRadius.Clear();
+			}
 			trajectories[idx].Copy(updatedTrajectory);
 			trajectoryName = updatedTrajectory.Name;
 			surveyStations = new List<SurveyStation>();
@@ -550,7 +556,7 @@ else
 
 	private async void Update(int idx)
 	{
-		if (trajectories != null && idx >= 0 && idx < trajectories.Count && trajectories[idx].ID > 0)
+		if (trajectories != null && idx >= 0 && idx < trajectories.Count && trajectories[idx].ID >= 0)
 		{
 			// transfer edited surveyStations in trajectory
 			if (updatedTrajectory.SurveyList == null)
@@ -583,7 +589,7 @@ else
 			var a = await httpTrajectory.PutAsync("Trajectories/" + trajectories[idx].ID, content);
 			string req = "Trajectories/" + trajectories[idx].ID.ToString();
 			string s = "Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1";
-			var b = await httpTrajectory.GetAsync("Trajectories/" + trajectories[idx].ID.ToString() + "/"+"1");
+			var b = await httpTrajectory.GetAsync("Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1");
 			Trajectory traj = new Trajectory();
 			if (b.IsSuccessStatusCode)
 			{

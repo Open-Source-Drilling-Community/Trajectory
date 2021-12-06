@@ -20,6 +20,16 @@ namespace NORCE.Drilling.Trajectory
         /// </summary>
         public SymmetricMatrix3x3 Covariance { get; set; }
 
+        public double? C11 { get; set; }
+        public double? C12 { get; set; }
+        public double? C13 { get; set; }
+        public double? C21 { get; set; }
+        public double? C22 { get; set; }
+        public double? C23 { get; set; }
+        public double? C31 { get; set; }
+        public double? C32 { get; set; }
+        public double? C33 { get; set; }
+
         /// <summary>
         /// bias vector associated with survey station
         /// </summary>
@@ -354,6 +364,17 @@ namespace NORCE.Drilling.Trajectory
             PerpendicularDirection = perpendicularDirection_;
             EllipseRadius[0] = (semiMinorPerpendicularAxis_ + boreholeRadius) * scalingFactor;
             EllipseRadius[1] = (semiMajorPerpendicularAxis_ + boreholeRadius) * scalingFactor;
+
+            C11 = (double)Covariance[0, 0];
+            C12 = (double)Covariance[0, 1];
+            C13 = (double)Covariance[0, 2];
+            C21 = (double)Covariance[1, 0];
+            C22 = (double)Covariance[1, 1];
+            C23 = (double)Covariance[1, 2];
+            C31 = (double)Covariance[2, 0];
+            C32 = (double)Covariance[2, 1];
+            C33 = (double)Covariance[2, 2];
+
         }
 
         /// <summary>

@@ -26,6 +26,22 @@ namespace NORCE.Drilling.Trajectory.Model
         /// </summary>
         public SurveyList SurveyList { get; set; } = new SurveyList();
         /// <summary>
+        /// IsPlanned
+        /// </summary>
+        public bool IsPlanned { get; set; } = false;
+        /// <summary>
+        /// IsMeasured
+        /// </summary>
+        public bool IsMeasured { get; set; } = true;
+        /// <summary>
+        /// IsDefinite
+        /// </summary>
+        public bool IsDefinitive { get; set; } = true;
+        /// <summary>
+        /// Survey Instrument
+        /// </summary>
+        //public string SurveyInstrument
+        /// <summary>
         /// default constructor
         /// </summary>
         public Trajectory(): base()
@@ -52,9 +68,14 @@ namespace NORCE.Drilling.Trajectory.Model
         {
             if (dest != null)
             {
+                dest.ID = ID;
                 dest.Name = Name;
                 dest.Description = Description;
-                dest.WellboreID = WellboreID;                
+                dest.WellboreID = WellboreID;
+                dest.IsDefinitive = IsDefinitive;
+                dest.IsMeasured = IsMeasured;
+                dest.IsPlanned = IsPlanned;
+
                 if (dest.SurveyList == null)
                 {
                     dest.SurveyList = new SurveyList();

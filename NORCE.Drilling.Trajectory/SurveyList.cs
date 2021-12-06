@@ -286,7 +286,7 @@ namespace NORCE.Drilling.Trajectory
                         wdwun.SurveyTool = surveyTool;
                         _surveyList[i].Uncertainty = wdwun;
                     }
-                    if (_useWdwCovariance == _surveyList[i].Uncertainty is WdWSurveyStationUncertainty && i > 0)
+                    if (((_useWdwCovariance == _surveyList[i].Uncertainty is WdWSurveyStationUncertainty && i > 0) || (_surveyList.Count>1 && _surveyList[1].Uncertainty.Covariance[0,0]==null )) )
                     {
                         WdWSurveyStationUncertainty wdwSurveyStatoinUncertainty = (WdWSurveyStationUncertainty)_surveyList[i].Uncertainty;
                         A = wdwSurveyStatoinUncertainty.CalculateCovariances(_surveyList[i], _surveyList[i - 1], A);

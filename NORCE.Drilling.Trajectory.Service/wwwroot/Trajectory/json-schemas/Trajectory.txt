@@ -33,6 +33,15 @@
           "$ref": "#/definitions/SurveyList"
         }
       ]
+    },
+    "IsPlanned": {
+      "type": "boolean"
+    },
+    "IsMeasured": {
+      "type": "boolean"
+    },
+    "IsDefinitive": {
+      "type": "boolean"
     }
   },
   "definitions": {
@@ -351,6 +360,69 @@
             }
           ]
         },
+        "C11": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "C12": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "C13": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "C21": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "C22": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "C23": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "C31": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "C32": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "C33": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
         "Bias": {
           "oneOf": [
             {
@@ -410,6 +482,69 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "M11": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "M12": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "M13": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "M21": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "M22": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "M23": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "M31": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "M32": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "M33": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
         "ColumnCount": {
           "type": "integer",
           "format": "int32"

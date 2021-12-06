@@ -31,77 +31,84 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
 			}
             return trajectory;
         }
-		//// GET api/trajectories/5
-		//[HttpGet("{ids}")]
-		//public List<Model.Trajectory> Get(List<int> ids)
-		//{
-		//	List<Model.Trajectory> trajectoryList = new List<Model.Trajectory>();
-		//	for (int i = 0; i < ids.Count; i++)
-		//	{
-		//		Model.Trajectory trajectory = TrajectoryManager.Instance.Get(ids[i]);
-		//		trajectoryList.Add(trajectory);
-		//	}
-		//	return trajectoryList;
-		//}
-		//// GET api/trajectories/5
-		//[HttpGet("{id}/{confidenceFactor}/{scalingFactor}")]
-		//public Model.Trajectory Get(int id, double confidenceFactor, double scalingFactor)
-		//{
-		//    Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);
-		//    trajectory.SurveyList.GetUncertaintyEnvelopeTVD(confidenceFactor, scalingFactor);
-		//    trajectory.SurveyList.UncertaintyEnvelope;
-		//    trajectory.SurveyList.Surveys
 
-		//    return trajectory;
-		//}
 		// GET api/trajectories/5/
 		[HttpGet("{id}/{confidenceFactor}/{scalingFactor}")]
         public List<UncertaintyEnvelopeEllipse> Get(int id, double confidenceFactor, double scalingFactor)
         {
-            Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);
-            //NB: Need to update when more uncertaintymodels are available and SurveyTools included
-            WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-            WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
-            wdwun.SurveyTool = surveyTool;
+            Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);           
+            SurveyList surveyList = new SurveyList();
+            
             if (trajectory.SurveyList != null)
             {
-                if (trajectory.SurveyList.ListOfSurveys != null)
+                surveyList = trajectory.SurveyList;
+                if (surveyList.ListOfSurveys != null)
                 {
-                    for (int i = 0; i < trajectory.SurveyList.ListOfSurveys.Count; i++)
-                    {
-                        trajectory.SurveyList.ListOfSurveys[i].Uncertainty = wdwun;
-                    }
-                    trajectory.SurveyList.GetUncertaintyEnvelopeTVD(confidenceFactor, scalingFactor);
+                    for(int i=0;i< surveyList.ListOfSurveys.Count;i++)
+					{
+                        //Not able to deserialize matrix yet. Adding values to covatiance matrix
+                        if (surveyList.ListOfSurveys[i].Uncertainty!=null && surveyList.ListOfSurveys[i].Uncertainty.Covariance!=null)
+                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 0] = surveyList.ListOfSurveys[i].Uncertainty.C11;
+                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 1] = surveyList.ListOfSurveys[i].Uncertainty.C12;
+                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 2] = surveyList.ListOfSurveys[i].Uncertainty.C13;
+                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 0] = surveyList.ListOfSurveys[i].Uncertainty.C21;
+                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 1] = surveyList.ListOfSurveys[i].Uncertainty.C22;
+                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 2] = surveyList.ListOfSurveys[i].Uncertainty.C23;
+                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 0] = surveyList.ListOfSurveys[i].Uncertainty.C31;
+                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 1] = surveyList.ListOfSurveys[i].Uncertainty.C32;
+                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 2] = surveyList.ListOfSurveys[i].Uncertainty.C33;
+
+                    }                    
+                    int ellipseVerticesPhi_ = 32;
+                    surveyList.EllipseVerticesPhi = ellipseVerticesPhi_;
+                    surveyList.IntermediateEllipseNumbers = 10;
+                    surveyList.GetUncertaintyEnvelope(confidenceFactor, scalingFactor);
                 }
             }            
-            return trajectory.SurveyList.UncertaintyEnvelope;
+            return surveyList.UncertaintyEnvelope;
         }
         [HttpGet("{id}/{confidenceFactor}")]
         public List<List<double?>> Get(int id, double confidenceFactor)
         {
-            Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);
-            //NB: Need to update when more uncertaintymodels are available and SurveyTools included
-            WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-            WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
-            wdwun.SurveyTool = surveyTool;
-            if (trajectory.SurveyList != null)
+            
+            Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);			
+			SurveyList surveyList = new SurveyList();
+			if (trajectory.SurveyList != null)
             {
-                if (trajectory.SurveyList.ListOfSurveys != null)
+                surveyList = trajectory.SurveyList;
+                if (surveyList.ListOfSurveys != null)                   
                 {
-                    for (int i = 0; i < trajectory.SurveyList.ListOfSurveys.Count; i++)
-                    {
-                        trajectory.SurveyList.ListOfSurveys[i].Uncertainty = wdwun;
-                    }
-                    trajectory.SurveyList.GetUncertaintyEnvelopeTVD(confidenceFactor);
+                    for(int i=0;i< surveyList.ListOfSurveys.Count;i++)
+					{
+                        //Not able to deserialize matrix yet. Adding values to covatiance matrix
+                        if (surveyList.ListOfSurveys[i].Uncertainty != null && surveyList.ListOfSurveys[i].Uncertainty.Covariance != null &&
+                            surveyList.ListOfSurveys[i].Uncertainty.C11 !=null)
+                        {
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 0] = surveyList.ListOfSurveys[i].Uncertainty.C11;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 1] = surveyList.ListOfSurveys[i].Uncertainty.C12;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 2] = surveyList.ListOfSurveys[i].Uncertainty.C13;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 0] = surveyList.ListOfSurveys[i].Uncertainty.C21;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 1] = surveyList.ListOfSurveys[i].Uncertainty.C22;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 2] = surveyList.ListOfSurveys[i].Uncertainty.C23;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 0] = surveyList.ListOfSurveys[i].Uncertainty.C31;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 1] = surveyList.ListOfSurveys[i].Uncertainty.C32;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 2] = surveyList.ListOfSurveys[i].Uncertainty.C33;
+                        }
+
+                    }                
+                    
+                    int ellipseVerticesPhi_ = 32;
+                    surveyList.EllipseVerticesPhi = ellipseVerticesPhi_;
+                    surveyList.IntermediateEllipseNumbers = 10;
+                    surveyList.GetUncertaintyEnvelope(confidenceFactor, 1);
                 }
             }
-            
             List<List < double ?> >listAll = new List<List<double?>>();
-            for (int i = 0; i < trajectory.SurveyList.ListOfSurveys.Count; i++)
+            for (int i = 0; i < surveyList.ListOfSurveys.Count; i++)
             {
                 List<double?> list = new List<double?>();
-                list.Add(trajectory.SurveyList.ListOfSurveys[i].Uncertainty.EllipseRadius[0]);
-                list.Add(trajectory.SurveyList.ListOfSurveys[i].Uncertainty.EllipseRadius[0]);
+                list.Add(surveyList.ListOfSurveys[i].Uncertainty.EllipseRadius[0]);
+                list.Add(surveyList.ListOfSurveys[i].Uncertainty.EllipseRadius[1]);
                 listAll.Add(list);
             }
             return listAll;
@@ -114,20 +121,44 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             {
                 Model.Trajectory trajectory = TrajectoryManager.Instance.Get(value.ID);
                 if (trajectory == null)
-                {
-                    //NB: Need to update when more uncertaintymodels are available and SurveyTools included
-                    WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                    WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
-                    wdwun.SurveyTool = surveyTool;
+                {                    
                     if (value.SurveyList != null)
                     {
-                        if (value.SurveyList.ListOfSurveys != null)
+                        if (value.SurveyList.ListOfSurveys != null && value.SurveyList.ListOfSurveys.Count > 0)
                         {
+                            SurveyList sl = new SurveyList();
                             for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
                             {
-                                value.SurveyList.ListOfSurveys[i].Uncertainty = wdwun;
+                                SurveyStation st = new SurveyStation();
+                                double? incl = value.SurveyList.ListOfSurveys[i].Incl;
+                                double? az = value.SurveyList.ListOfSurveys[i].Az;
+                                double? md = value.SurveyList.ListOfSurveys[i].MD;
+                                double? tvd = value.SurveyList.ListOfSurveys[i].Z;
+								double X = 0.0; //NB! Need to calculate X,Y and Z using other microservice!
+								double Y = 0.0;
+								double Z = (double)md;
+								st.Az = az * Math.PI / 180.0;
+                                st.Incl = incl * Math.PI / 180.0; ;
+								st.X = X;
+								st.Y = Y;
+								st.Z = tvd;
+								st.MD = (double)md;
+                                //NB: Need to update when more uncertaintymodels are available and SurveyTools included
+                                WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                                WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+                                wdwun.SurveyTool = surveyTool;
+                                st.Uncertainty = wdwun;
+                                sl.Add(st);
                             }
+                            //To calculate Covariance matrices
+                            sl.GetUncertaintyEnvelope(0.95, 1);
+                            value.SurveyList = sl;
+                            value.SurveyList.ListOfSurveys = sl.ListOfSurveys;
+                            value.SurveyList.GetUncertaintyEnvelope(0.95, 1);
+                           
+
                         }
+                        
                     }
                     TrajectoryManager.Instance.Add(value);
                 }
@@ -142,35 +173,85 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                 Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);
                 if (trajectory != null)
                 {
-                    //NB: Need to update when more uncertaintymodels are available and SurveyTools included
-                    WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                    WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
-                    wdwun.SurveyTool = surveyTool;
                     if (value.SurveyList != null)
                     {
-                        if (value.SurveyList.ListOfSurveys != null)
+                        if (value.SurveyList.ListOfSurveys != null && value.SurveyList.ListOfSurveys.Count>0)
                         {
-                            for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
-                            {
-                                value.SurveyList.ListOfSurveys[i].Uncertainty = wdwun;
+                            if (value.SurveyList.ListOfSurveys[0].Uncertainty == null || value.SurveyList.ListOfSurveys[0].Uncertainty.C11 == null)
+                            {                               
+                                SurveyList sl = new SurveyList();
+                                for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
+                                {
+                                    SurveyStation st = new SurveyStation();
+                                    double? incl = value.SurveyList.ListOfSurveys[i].Incl;
+                                    double? az = value.SurveyList.ListOfSurveys[i].Az;
+                                    double? md = value.SurveyList.ListOfSurveys[i].MD;
+                                    double? tvd = value.SurveyList.ListOfSurveys[i].Z;
+									double X = 0.0; //NB! Need to calculate X,Y and Z using other microservice!
+                                    double Y = 0.0;
+									double Z = (double)md;
+									st.Az = az * Math.PI / 180.0;
+                                    st.Incl = incl * Math.PI / 180.0; ;
+									st.X = X;
+									st.Y = Y;
+									st.Z = Z;
+									st.MD = (double)md;
+                                    //NB: Need to update when more uncertaintymodels are available and SurveyTools included
+                                    WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                                    WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+                                    wdwun.SurveyTool = surveyTool;
+                                    st.Uncertainty = wdwun;
+                                    sl.Add(st);
+                                }
+                                //To calculate Covariance matrices
+                                sl.GetUncertaintyEnvelope(0.95, 1);
+                                value.SurveyList = sl;
+                                value.SurveyList.ListOfSurveys = sl.ListOfSurveys;
+                                value.SurveyList.GetUncertaintyEnvelope(0.95, 1);
                             }
                         }
-                    }
-                    TrajectoryManager.Instance.Update(id, value);
+					}
+					TrajectoryManager.Instance.Update(id, value);
                 }
                 else
                 {
-                    //NB: Need to update when more uncertaintymodels are available and SurveyTools included
-                    WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                    WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
-                    wdwun.SurveyTool = surveyTool;
                     if (value.SurveyList != null)
                     {
-                        if (value.SurveyList.ListOfSurveys != null)
-                            for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
+                        if (value.SurveyList.ListOfSurveys != null && value.SurveyList.ListOfSurveys.Count > 0)
+                        {
+                            if (value.SurveyList.ListOfSurveys[0].Uncertainty == null || value.SurveyList.ListOfSurveys[0].Uncertainty.C11 == null)
                             {
-                                value.SurveyList.ListOfSurveys[i].Uncertainty = wdwun;
+                                //NB: Need to update when more uncertaintymodels are available and SurveyTools included                                
+                                SurveyList sl = new SurveyList();
+                                for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
+                                {
+                                    SurveyStation st = new SurveyStation();
+                                    double? incl = value.SurveyList.ListOfSurveys[i].Incl;
+                                    double? az = value.SurveyList.ListOfSurveys[i].Az;
+                                    double? md = value.SurveyList.ListOfSurveys[i].MD;
+                                    double? tvd = value.SurveyList.ListOfSurveys[i].Z;
+									double X = 0.0; //NB! Need to calculate X,Y and Z using other microservice!
+									double Y = 0.0;
+									double Z = (double)md;
+									st.Az = az * Math.PI / 180.0;
+                                    st.Incl = incl * Math.PI / 180.0; ;
+									st.X = X;
+									st.Y = Y;
+									st.Z = Z;
+									st.MD = (double)md;
+                                    //NB: Need to update when more uncertaintymodels are available and SurveyTools included
+                                    WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                                    WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+                                    wdwun.SurveyTool = surveyTool;
+                                    st.Uncertainty = wdwun;
+                                    sl.Add(st);
+                                }
+                                sl.GetUncertaintyEnvelope(0.95, 1);
+                                value.SurveyList = sl;
+                                value.SurveyList.ListOfSurveys = sl.ListOfSurveys;
+                                value.SurveyList.GetUncertaintyEnvelope(0.95, 1);
                             }
+                        }
                     }
                     TrajectoryManager.Instance.Add(value);
                 }

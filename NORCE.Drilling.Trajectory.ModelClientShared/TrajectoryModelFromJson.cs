@@ -170,6 +170,33 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
         [Newtonsoft.Json.JsonProperty("Covariance", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public SymmetricMatrix3x3 Covariance { get; set; }
     
+        [Newtonsoft.Json.JsonProperty("C11", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? C11 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("C12", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? C12 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("C13", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? C13 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("C21", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? C21 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("C22", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? C22 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("C23", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? C23 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("C31", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? C31 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("C32", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? C32 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("C33", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? C33 { get; set; }
+    
         [Newtonsoft.Json.JsonProperty("Bias", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public Vector3D Bias { get; set; }
     
@@ -194,6 +221,33 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v13.0.0.0)")]
     public partial class SymmetricMatrix3x3 
     {
+        [Newtonsoft.Json.JsonProperty("M11", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? M11 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("M12", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? M12 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("M13", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? M13 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("M21", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? M21 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("M22", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? M22 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("M23", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? M23 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("M31", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? M31 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("M32", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? M32 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("M33", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? M33 { get; set; }
+    
         [Newtonsoft.Json.JsonProperty("ColumnCount", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int ColumnCount { get; set; }
     
@@ -259,6 +313,15 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
     
         [Newtonsoft.Json.JsonProperty("SurveyList", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public SurveyList SurveyList { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("IsPlanned", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsPlanned { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("IsMeasured", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsMeasured { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("IsDefinitive", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsDefinitive { get; set; }
     
     
     }
