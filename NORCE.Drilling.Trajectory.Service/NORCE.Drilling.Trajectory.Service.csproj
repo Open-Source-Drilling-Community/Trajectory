@@ -29,6 +29,8 @@
 
   <PropertyGroup>
     <DockerfileRunArguments>-v "C:\DockerVolumes\Trajectory:/home"</DockerfileRunArguments>
+    <Version>1.0.1</Version>
+    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
   </PropertyGroup>
 
 

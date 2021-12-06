@@ -286,7 +286,7 @@ namespace NORCE.Drilling.Trajectory
                         wdwun.SurveyTool = surveyTool;
                         _surveyList[i].Uncertainty = wdwun;
                     }
-                    if (((_useWdwCovariance == _surveyList[i].Uncertainty is WdWSurveyStationUncertainty && i > 0) || (_surveyList.Count>1 && _surveyList[1].Uncertainty.Covariance[0,0]==null )) )
+                    if (((_useWdwCovariance == _surveyList[i].Uncertainty is WdWSurveyStationUncertainty && i > 0) || (_surveyList.Count>1 && _surveyList[i].Uncertainty.Covariance[0,0]==null )) )
                     {
                         WdWSurveyStationUncertainty wdwSurveyStatoinUncertainty = (WdWSurveyStationUncertainty)_surveyList[i].Uncertainty;
                         A = wdwSurveyStatoinUncertainty.CalculateCovariances(_surveyList[i], _surveyList[i - 1], A);
@@ -464,6 +464,18 @@ namespace NORCE.Drilling.Trajectory
             // Start from i = 0 to include the first surveystation. This will typically have radius 0
             for (int i = 0; i < _surveyList.Count; i++)
             {
+                if (_surveyList[i].Uncertainty == null)
+                {
+                    WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                    WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+                    wdwun.SurveyTool = surveyTool;
+                    _surveyList[i].Uncertainty = wdwun;
+                }
+                if (((_useWdwCovariance == _surveyList[i].Uncertainty is WdWSurveyStationUncertainty && i > 0) || (_surveyList.Count > 1 && _surveyList[i].Uncertainty.Covariance[0, 0] == null)))
+                {
+                    WdWSurveyStationUncertainty wdwSurveyStatoinUncertainty = (WdWSurveyStationUncertainty)_surveyList[i].Uncertainty;
+                    A = wdwSurveyStatoinUncertainty.CalculateCovariances(_surveyList[i], _surveyList[i - 1], A);
+                }
                 if (_useWdwCovariance == _surveyList[i].Uncertainty is WdWSurveyStationUncertainty && i > 0)
                 {
                     WdWSurveyStationUncertainty wdwSurveyStatoinUncertainty = (WdWSurveyStationUncertainty)_surveyList[i].Uncertainty;
