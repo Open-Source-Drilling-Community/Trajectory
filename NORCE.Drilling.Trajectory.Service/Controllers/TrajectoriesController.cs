@@ -24,11 +24,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         [HttpGet("{id}")]
         public Model.Trajectory Get(int id)
         {
-            Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);
-            if (trajectory!=null && trajectory.SurveyList != null)
-            {
-				//trajectory.SurveyList.GetUncertaintyEnvelopeTVD(0.95, 1);
-			}
+            Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);            
             return trajectory;
         }
 
@@ -37,8 +33,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         public List<UncertaintyEnvelopeEllipse> Get(int id, double confidenceFactor, double scalingFactor)
         {
             Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);           
-            SurveyList surveyList = new SurveyList();
-            
+            SurveyList surveyList = new SurveyList();            
             if (trajectory.SurveyList != null)
             {
                 surveyList = trajectory.SurveyList;
@@ -58,19 +53,17 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                         surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 1] = surveyList.ListOfSurveys[i].Uncertainty.C32;
                         surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 2] = surveyList.ListOfSurveys[i].Uncertainty.C33;
 
-                    }                    
-                    int ellipseVerticesPhi_ = 32;
-                    surveyList.EllipseVerticesPhi = ellipseVerticesPhi_;
-                    surveyList.IntermediateEllipseNumbers = 10;
+                    }    
                     surveyList.GetUncertaintyEnvelope(confidenceFactor, scalingFactor);
                 }
             }            
             return surveyList.UncertaintyEnvelope;
         }
+
+        //Return list of principal axes radiuses for uncertainty ellipses
         [HttpGet("{id}/{confidenceFactor}")]
         public List<List<double?>> Get(int id, double confidenceFactor)
-        {
-            
+        { 
             Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);			
 			SurveyList surveyList = new SurveyList();
 			if (trajectory.SurveyList != null)
@@ -95,11 +88,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                             surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 2] = surveyList.ListOfSurveys[i].Uncertainty.C33;
                         }
 
-                    }                
-                    
-                    int ellipseVerticesPhi_ = 32;
-                    surveyList.EllipseVerticesPhi = ellipseVerticesPhi_;
-                    surveyList.IntermediateEllipseNumbers = 10;
+                    }    
                     surveyList.GetUncertaintyEnvelope(confidenceFactor, 1);
                 }
             }
@@ -127,18 +116,19 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                         if (value.SurveyList.ListOfSurveys != null && value.SurveyList.ListOfSurveys.Count > 0)
                         {
                             SurveyList sl = new SurveyList();
+                            value.SurveyList.CalculateMinimumCurvatureMethod();
                             for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
                             {
                                 SurveyStation st = new SurveyStation();
                                 double? incl = value.SurveyList.ListOfSurveys[i].Incl;
                                 double? az = value.SurveyList.ListOfSurveys[i].Az;
                                 double? md = value.SurveyList.ListOfSurveys[i].MD;
-                                double? tvd = value.SurveyList.ListOfSurveys[i].Z;
-								double X = 0.0; //NB! Need to calculate X,Y and Z using other microservice!
-								double Y = 0.0;
-								double Z = (double)md;
-								st.Az = az * Math.PI / 180.0;
-                                st.Incl = incl * Math.PI / 180.0; ;
+                                double? tvd = value.SurveyList.ListOfSurveys[i].Z;    
+                                double? X = value.SurveyList.ListOfSurveys[i].X; 
+								double? Y = value.SurveyList.ListOfSurveys[i].Y;
+                                double? Z = value.SurveyList.ListOfSurveys[i].Z;
+                                st.Az = az ;
+                                st.Incl = incl;
 								st.X = X;
 								st.Y = Y;
 								st.Z = tvd;
@@ -150,15 +140,11 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                 st.Uncertainty = wdwun;
                                 sl.Add(st);
                             }
-                            //To calculate Covariance matrices
-                            sl.GetUncertaintyEnvelope(0.95, 1);
+                            //To calculate Covariance matrices                            
                             value.SurveyList = sl;
                             value.SurveyList.ListOfSurveys = sl.ListOfSurveys;
                             value.SurveyList.GetUncertaintyEnvelope(0.95, 1);
-                           
-
                         }
-                        
                     }
                     TrajectoryManager.Instance.Add(value);
                 }
@@ -178,7 +164,8 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                         if (value.SurveyList.ListOfSurveys != null && value.SurveyList.ListOfSurveys.Count>0)
                         {
                             if (value.SurveyList.ListOfSurveys[0].Uncertainty == null || value.SurveyList.ListOfSurveys[0].Uncertainty.C11 == null)
-                            {                               
+                            {
+                                value.SurveyList.CalculateMinimumCurvatureMethod();
                                 SurveyList sl = new SurveyList();
                                 for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
                                 {
@@ -187,15 +174,15 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     double? az = value.SurveyList.ListOfSurveys[i].Az;
                                     double? md = value.SurveyList.ListOfSurveys[i].MD;
                                     double? tvd = value.SurveyList.ListOfSurveys[i].Z;
-									double X = 0.0; //NB! Need to calculate X,Y and Z using other microservice!
-                                    double Y = 0.0;
-									double Z = (double)md;
-									st.Az = az * Math.PI / 180.0;
-                                    st.Incl = incl * Math.PI / 180.0; ;
-									st.X = X;
-									st.Y = Y;
-									st.Z = Z;
-									st.MD = (double)md;
+                                    double? X = value.SurveyList.ListOfSurveys[i].X;
+                                    double? Y = value.SurveyList.ListOfSurveys[i].Y;
+                                    double? Z = value.SurveyList.ListOfSurveys[i].Z;
+                                    st.Az = az;
+                                    st.Incl = incl;
+                                    st.X = X;
+                                    st.Y = Y;
+                                    st.Z = tvd;
+                                    st.MD = (double)md;
                                     //NB: Need to update when more uncertaintymodels are available and SurveyTools included
                                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
                                     WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
@@ -203,8 +190,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     st.Uncertainty = wdwun;
                                     sl.Add(st);
                                 }
-                                //To calculate Covariance matrices
-                                sl.GetUncertaintyEnvelope(0.95, 1);
+                                //To calculate Covariance matrices                                
                                 value.SurveyList = sl;
                                 value.SurveyList.ListOfSurveys = sl.ListOfSurveys;
                                 value.SurveyList.GetUncertaintyEnvelope(0.95, 1);
@@ -221,7 +207,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                         {
                             if (value.SurveyList.ListOfSurveys[0].Uncertainty == null || value.SurveyList.ListOfSurveys[0].Uncertainty.C11 == null)
                             {
-                                //NB: Need to update when more uncertaintymodels are available and SurveyTools included                                
+                                value.SurveyList.CalculateMinimumCurvatureMethod();
                                 SurveyList sl = new SurveyList();
                                 for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
                                 {
@@ -230,23 +216,22 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     double? az = value.SurveyList.ListOfSurveys[i].Az;
                                     double? md = value.SurveyList.ListOfSurveys[i].MD;
                                     double? tvd = value.SurveyList.ListOfSurveys[i].Z;
-									double X = 0.0; //NB! Need to calculate X,Y and Z using other microservice!
-									double Y = 0.0;
-									double Z = (double)md;
-									st.Az = az * Math.PI / 180.0;
-                                    st.Incl = incl * Math.PI / 180.0; ;
-									st.X = X;
-									st.Y = Y;
-									st.Z = Z;
-									st.MD = (double)md;
+                                    double? X = value.SurveyList.ListOfSurveys[i].X; 
+                                    double? Y = value.SurveyList.ListOfSurveys[i].Y;
+                                    double? Z = value.SurveyList.ListOfSurveys[i].Z;
+                                    st.Az = az;
+                                    st.Incl = incl;
+                                    st.X = X;
+                                    st.Y = Y;
+                                    st.Z = tvd;
+                                    st.MD = (double)md;
                                     //NB: Need to update when more uncertaintymodels are available and SurveyTools included
                                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
                                     WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
                                     wdwun.SurveyTool = surveyTool;
                                     st.Uncertainty = wdwun;
                                     sl.Add(st);
-                                }
-                                sl.GetUncertaintyEnvelope(0.95, 1);
+                                }                                
                                 value.SurveyList = sl;
                                 value.SurveyList.ListOfSurveys = sl.ListOfSurveys;
                                 value.SurveyList.GetUncertaintyEnvelope(0.95, 1);

@@ -38,9 +38,12 @@ else
 					<td>
 						<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].WellboreID</span>
 						<select class="form-control selectpicker" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.WellboreID">
-							@foreach (int wellboreID in wellboreIDs)
+							@if (wellboreIDs != null)
 							{
-								<option>@wellboreID</option>
+								@foreach (int wellboreID in wellboreIDs)
+								{
+									<option>@wellboreID</option>
+								}
 							}
 						</select>
 					</td>
@@ -500,7 +503,7 @@ else
 	{
 		if (surveyStations != null && idx >= 0 && idx < surveyStations.Count)
 		{
-			surveyStations[idx] = updatedSurveyStation;
+			surveyStations[idx].Copy(updatedSurveyStation);
 			for (int i = 0; i < IsSurveyStationDisplayHidden.Count; i++)
 			{
 				if (i == idx)
@@ -626,7 +629,7 @@ else
 
 		if (surveyStations != null && idx >= 0 && idx < surveyStations.Count)
 		{
-			surveyStations[idx] = updatedSurveyStation;
+			updatedSurveyStation.Copy(surveyStations[idx]);
 		}
 		//updatedSurveyStation.MD = 0;
 		//updatedSurveyStation.Incl = 0;

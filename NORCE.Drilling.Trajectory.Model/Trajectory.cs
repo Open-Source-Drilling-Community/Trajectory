@@ -25,10 +25,7 @@ namespace NORCE.Drilling.Trajectory.Model
         /// the set of SurveyList associated with this trajectory
         /// </summary>
         public SurveyList SurveyList { get; set; } = new SurveyList();
-        /// <summary>
-        /// IsPlanned
-        /// </summary>
-        public bool IsPlanned { get; set; } = false;
+       
         /// <summary>
         /// IsMeasured
         /// </summary>
@@ -74,7 +71,6 @@ namespace NORCE.Drilling.Trajectory.Model
                 dest.WellboreID = WellboreID;
                 dest.IsDefinitive = IsDefinitive;
                 dest.IsMeasured = IsMeasured;
-                dest.IsPlanned = IsPlanned;
 
                 if (dest.SurveyList == null)
                 {

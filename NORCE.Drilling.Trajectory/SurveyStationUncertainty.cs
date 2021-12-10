@@ -151,12 +151,13 @@ namespace NORCE.Drilling.Trajectory
 
                 // calculate the inverse of the eigenvectors
                 //double[,] PInverse = new double[3, 3];
+                //Check if this is correct. Maybe a transpose is forgotten
                 double determinant = (p11 * p22 - p12 * p21) * p33 + (p13 * p21 - p11 * p23) * p32 + (p12 * p23 - p13 * p22) * p31;
                 PInverse[0, 0] = (p22 * p33 - p23 * p32) / determinant;
                 PInverse[1, 0] = -(p12 * p33 - p13 * p32) / determinant;
                 PInverse[2, 0] = (p12 * p23 - p13 * p22) / determinant;
                 PInverse[0, 1] = -(p21 * p33 - p23 * p31) / determinant;
-                PInverse[1, 1] = (p11 * p33 - p13 * 31) / determinant;
+                PInverse[1, 1] = (p11 * p33 - p13 * p31) / determinant;
                 PInverse[2, 1] = -(p11 * p23 - p13 * p21) / determinant;
                 PInverse[0, 2] = (p21 * p32 - p22 * p31) / determinant;
                 PInverse[1, 2] = -(p11 * p32 - p12 * p31) / determinant;
@@ -233,7 +234,7 @@ namespace NORCE.Drilling.Trajectory
                 }
                 if (!ok)
                 {
-                    Console.WriteLine("problem");
+                    Console.WriteLine("problem H");
                 }
             }
 

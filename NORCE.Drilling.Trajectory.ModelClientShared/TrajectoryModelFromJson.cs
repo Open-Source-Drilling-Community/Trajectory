@@ -314,9 +314,6 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
         [Newtonsoft.Json.JsonProperty("SurveyList", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public SurveyList SurveyList { get; set; }
     
-        [Newtonsoft.Json.JsonProperty("IsPlanned", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public bool IsPlanned { get; set; }
-    
         [Newtonsoft.Json.JsonProperty("IsMeasured", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public bool IsMeasured { get; set; }
     

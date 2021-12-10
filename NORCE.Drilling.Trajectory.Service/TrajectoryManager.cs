@@ -465,14 +465,10 @@ namespace NORCE.Drilling.Trajectory.Service
                             trajectory.Name = file.Substring(13);
                             trajectory.ID = id;
                             Add(trajectory);
-
-                            //SurveyListCollection.Add(sl);
-                            //string wellname = file.Substring(29);
                         }
                         id++;
                     }
                 }
-                Get(3);
             }
         }
     }

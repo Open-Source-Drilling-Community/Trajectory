@@ -24,7 +24,6 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
                 dest.WellboreID = WellboreID;
                 dest.IsDefinitive = IsDefinitive;
                 dest.IsMeasured = IsMeasured;
-                dest.IsPlanned = IsPlanned;
                 if(dest.SurveyList == null )
 				{
                     dest.SurveyList = new SurveyList();
