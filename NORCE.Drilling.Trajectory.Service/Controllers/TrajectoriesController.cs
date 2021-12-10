@@ -53,7 +53,27 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                         surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 1] = surveyList.ListOfSurveys[i].Uncertainty.C32;
                         surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 2] = surveyList.ListOfSurveys[i].Uncertainty.C33;
 
-                    }    
+                    }   
+                    if(surveyList.EllipseVerticesPhi == 0.0)
+					{
+                        surveyList.EllipseVerticesPhi = 32;
+
+                    }
+                    if (surveyList.IntermediateEllipseNumbers == 0.0)
+                    {
+                        surveyList.IntermediateEllipseNumbers = 6;
+
+                    }
+                    if (surveyList.MaxDistanceCoordinate == 0.0)
+                    {
+                        surveyList.MaxDistanceCoordinate = 3;
+
+                    }
+                    if (surveyList.MaxDistanceEllipse == 0.0)
+                    {
+                        surveyList.MaxDistanceEllipse = 3;
+
+                    }                   
                     surveyList.GetUncertaintyEnvelope(confidenceFactor, scalingFactor);
                 }
             }            

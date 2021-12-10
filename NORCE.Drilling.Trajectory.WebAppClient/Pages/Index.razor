@@ -592,7 +592,8 @@ else
 			var a = await httpTrajectory.PutAsync("Trajectories/" + trajectories[idx].ID, content);
 			string req = "Trajectories/" + trajectories[idx].ID.ToString();
 			string s = "Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1";
-			var b = await httpTrajectory.GetAsync("Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1");
+			//var b = await httpTrajectory.GetAsync("Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1" + "/" + "1");
+			var b = await httpTrajectory.GetAsync(s);
 			Trajectory traj = new Trajectory();
 			if (b.IsSuccessStatusCode)
 			{
