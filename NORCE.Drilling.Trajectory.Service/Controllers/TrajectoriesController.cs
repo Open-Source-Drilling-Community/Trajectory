@@ -155,7 +155,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
 								st.MD = (double)md;
                                 //NB: Need to update when more uncertaintymodels are available and SurveyTools included
                                 WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                                WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+                                SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
                                 wdwun.SurveyTool = surveyTool;
                                 st.Uncertainty = wdwun;
                                 sl.Add(st);
@@ -205,7 +205,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     st.MD = (double)md;
                                     //NB: Need to update when more uncertaintymodels are available and SurveyTools included
                                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                                    WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+                                    SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
                                     wdwun.SurveyTool = surveyTool;
                                     st.Uncertainty = wdwun;
                                     sl.Add(st);
@@ -247,7 +247,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     st.MD = (double)md;
                                     //NB: Need to update when more uncertaintymodels are available and SurveyTools included
                                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                                    WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+                                    SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
                                     wdwun.SurveyTool = surveyTool;
                                     st.Uncertainty = wdwun;
                                     sl.Add(st);

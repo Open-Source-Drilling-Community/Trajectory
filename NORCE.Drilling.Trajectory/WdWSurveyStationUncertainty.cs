@@ -3,13 +3,13 @@ using System.Collections.Generic;
 using System.Text;
 using NORCE.General.Std;
 using NORCE.General.Math;
-using NORCE.Drilling.SurveyInstrument;
+using NORCE.Drilling.SurveyInstrument.Model;
 
 namespace NORCE.Drilling.Trajectory
 {
     public class WdWSurveyStationUncertainty : SurveyStationUncertainty
     {
-        private WdWSurveyTool surveyTool_ = null;
+        private SurveyInstrument.Model.SurveyInstrument surveyTool_ = null;
         private double[,] P_ = new double[3, 3];
 
         /// <summary>
@@ -82,7 +82,7 @@ namespace NORCE.Drilling.Trajectory
         /// 
         /// </summary>
         /// <param name="surveyTool"></param>
-        public WdWSurveyStationUncertainty(WdWSurveyTool surveyTool)
+        public WdWSurveyStationUncertainty(SurveyInstrument.Model.SurveyInstrument surveyTool)
         {
             surveyTool_ = surveyTool;
             for (int i = 0; i < Covariance.RowCount; i++)
@@ -104,7 +104,7 @@ namespace NORCE.Drilling.Trajectory
         /// <summary>
         /// 
         /// </summary>
-        public WdWSurveyTool SurveyTool
+        public SurveyInstrument.Model.SurveyInstrument SurveyTool
         {
             get { return surveyTool_; }
             set { surveyTool_ = value; }
@@ -130,11 +130,11 @@ namespace NORCE.Drilling.Trajectory
                 //double Nk = (double)surveyStation.X;
                 //double Ek = (double)surveyStation.Y;
                 double deltaC10 = surveyTool_.ReferenceError!=null ? (double)surveyTool_.ReferenceError : 0;
-                double deltaC20 = surveyTool_.DrillStringMagnetisation != null ? (double)surveyTool_.DrillStringMagnetisation : 0;
+                double deltaC20 = surveyTool_.DrillStringMag != null ? (double)surveyTool_.DrillStringMag : 0;
                 double deltaC30 = surveyTool_.GyroCompassError != null ? (double)surveyTool_.GyroCompassError : 0;
                 double deltaIt0 = surveyTool_.TrueInclination != null ? (double)surveyTool_.TrueInclination : 0;
                 double deltaIm = surveyTool_.Misalignment != null ? (double)surveyTool_.Misalignment : 0;
-                double epsilon = surveyTool_.RelativeDepthError != null ? (double)surveyTool_.RelativeDepthError : 0;
+                double epsilon = surveyTool_.RelDepthError != null ? (double)surveyTool_.RelDepthError : 0;
                 double deltaZ = (double)surveyStation.Z - (double)previousStation.Z;
                 double deltaX = (double)surveyStation.X - (double)previousStation.X;
                 double deltaY = (double)surveyStation.Y - (double)previousStation.Y;

@@ -5,7 +5,7 @@ using NORCE.General.Math;
 using NORCE.General.Std;
 using NORCE.General.Coordinates;
 using NORCE.General.Octree;
-using NORCE.Drilling.SurveyInstrument;
+using NORCE.Drilling.SurveyInstrument.Model;
 
 
 namespace NORCE.Drilling.Trajectory
@@ -282,7 +282,7 @@ namespace NORCE.Drilling.Trajectory
                     if(_surveyList[i].Uncertainty==null)
 					{
                         WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                        WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+                        SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
                         wdwun.SurveyTool = surveyTool;
                         _surveyList[i].Uncertainty = wdwun;
                     }
@@ -467,7 +467,7 @@ namespace NORCE.Drilling.Trajectory
                 if (_surveyList[i].Uncertainty == null)
                 {
                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                    WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+                    SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
                     wdwun.SurveyTool = surveyTool;
                     _surveyList[i].Uncertainty = wdwun;
                 }

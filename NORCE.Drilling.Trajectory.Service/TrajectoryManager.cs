@@ -6,7 +6,7 @@ using System.Data.SQLite;
 using System.Text.Json;
 using System.IO;
 using NORCE.Drilling.Trajectory.Model;
-using NORCE.Drilling.SurveyInstrument;
+using NORCE.Drilling.SurveyInstrument.Model;
 
 namespace NORCE.Drilling.Trajectory.Service
 {
@@ -453,7 +453,7 @@ namespace NORCE.Drilling.Trajectory.Service
                                     st.Z = tvd;
                                     st.MD = md;
                                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                                    WdWSurveyTool surveyTool = new WdWSurveyTool(WdWSurveyTool.GoodMag);
+                                    SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
                                     wdwun.SurveyTool = surveyTool;
                                     st.Uncertainty = wdwun;
                                     sl.Add(st);

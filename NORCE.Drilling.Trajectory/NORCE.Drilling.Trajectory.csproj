@@ -4,18 +4,15 @@
     <TargetFramework>netstandard2.0</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>NORCE</Authors>
-    <Version>1.0.3</Version>
+    <Version>1.0.4</Version>
   </PropertyGroup>
 
   <ItemGroup>
+    <PackageReference Include="NORCE.Drilling.SurveyInstrument.Model" Version="1.0.2" />
     <PackageReference Include="NORCE.General.Coordinates" Version="1.0.0" />
     <PackageReference Include="NORCE.General.Math" Version="1.0.6" />
     <PackageReference Include="NORCE.General.Octree" Version="1.0.4" />
     <PackageReference Include="NORCE.General.Std" Version="1.0.0" />
-  </ItemGroup>
-
-  <ItemGroup>
-    <ProjectReference Include="..\NORCE.Drilling.SurveyInstrument\NORCE.Drilling.SurveyInstrument.csproj" />
   </ItemGroup>
 
 </Project>
