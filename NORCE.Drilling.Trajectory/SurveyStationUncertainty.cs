@@ -36,6 +36,10 @@ namespace NORCE.Drilling.Trajectory
         public Vector3D Bias { get; set; }
 
         /// <summary>
+        /// 
+        /// </summary>
+        //public SurveyInstrument.Model.SurveyInstrument SurveyTool { get; set; }
+        /// <summary>
         /// Eigenvector matrix associated with survey station Covariance
         /// </summary>
         public Matrix EigenVectors { get; set; }

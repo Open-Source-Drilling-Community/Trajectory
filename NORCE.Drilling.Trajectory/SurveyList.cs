@@ -283,7 +283,7 @@ namespace NORCE.Drilling.Trajectory
 					{
                         WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
                         SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
-                        wdwun.SurveyTool = surveyTool;
+                        _surveyList[i].SurveyTool = surveyTool;
                         _surveyList[i].Uncertainty = wdwun;
                     }
                     if (((_useWdwCovariance == _surveyList[i].Uncertainty is WdWSurveyStationUncertainty && i > 0) || (_surveyList.Count>1 && _surveyList[i].Uncertainty.Covariance[0,0]==null )) )
@@ -468,7 +468,7 @@ namespace NORCE.Drilling.Trajectory
                 {
                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
                     SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
-                    wdwun.SurveyTool = surveyTool;
+                    _surveyList[i].SurveyTool = surveyTool;
                     _surveyList[i].Uncertainty = wdwun;
                 }
                 if (((_useWdwCovariance == _surveyList[i].Uncertainty is WdWSurveyStationUncertainty && i > 0) || (_surveyList.Count > 1 && _surveyList[i].Uncertainty.Covariance[0, 0] == null)))

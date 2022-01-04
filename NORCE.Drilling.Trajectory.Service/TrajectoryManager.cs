@@ -454,7 +454,7 @@ namespace NORCE.Drilling.Trajectory.Service
                                     st.MD = md;
                                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
                                     SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
-                                    wdwun.SurveyTool = surveyTool;
+                                    st.SurveyTool = surveyTool;
                                     st.Uncertainty = wdwun;
                                     sl.Add(st);
                                 }
@@ -462,7 +462,7 @@ namespace NORCE.Drilling.Trajectory.Service
                             trajectory.SurveyList = sl;
                             trajectory.SurveyList.ListOfSurveys = sl.ListOfSurveys;
                             trajectory.SurveyList.GetUncertaintyEnvelope(0.95, 1);
-                            trajectory.Name = file.Substring(13);
+                            trajectory.Name = file.Substring(18);
                             trajectory.ID = id;
                             Add(trajectory);
                         }

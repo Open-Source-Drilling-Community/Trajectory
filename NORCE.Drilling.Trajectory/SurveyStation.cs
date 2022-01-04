@@ -35,5 +35,9 @@ namespace NORCE.Drilling.Trajectory
         ///  accessor to the survey station uncertainty
         /// </summary>
         public SurveyStationUncertainty Uncertainty { get; set; }
+        /// <summary>
+        ///  accessor to the survey station uncertainty
+        /// </summary>
+        public SurveyInstrument.Model.SurveyInstrument SurveyTool { get; set; }
     }
 }

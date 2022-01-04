@@ -107,7 +107,6 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                             surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 1] = surveyList.ListOfSurveys[i].Uncertainty.C32;
                             surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 2] = surveyList.ListOfSurveys[i].Uncertainty.C33;
                         }
-
                     }    
                     surveyList.GetUncertaintyEnvelope(confidenceFactor, 1);
                 }
@@ -156,7 +155,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                 //NB: Need to update when more uncertaintymodels are available and SurveyTools included
                                 WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
                                 SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
-                                wdwun.SurveyTool = surveyTool;
+                                st.SurveyTool = surveyTool;
                                 st.Uncertainty = wdwun;
                                 sl.Add(st);
                             }
@@ -206,7 +205,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     //NB: Need to update when more uncertaintymodels are available and SurveyTools included
                                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
                                     SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
-                                    wdwun.SurveyTool = surveyTool;
+                                    st.SurveyTool = surveyTool;
                                     st.Uncertainty = wdwun;
                                     sl.Add(st);
                                 }
@@ -248,7 +247,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     //NB: Need to update when more uncertaintymodels are available and SurveyTools included
                                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
                                     SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
-                                    wdwun.SurveyTool = surveyTool;
+                                    st.SurveyTool = surveyTool;
                                     st.Uncertainty = wdwun;
                                     sl.Add(st);
                                 }                                

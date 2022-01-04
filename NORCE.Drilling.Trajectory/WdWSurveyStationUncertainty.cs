@@ -8,8 +8,7 @@ using NORCE.Drilling.SurveyInstrument.Model;
 namespace NORCE.Drilling.Trajectory
 {
     public class WdWSurveyStationUncertainty : SurveyStationUncertainty
-    {
-        private SurveyInstrument.Model.SurveyInstrument surveyTool_ = null;
+    {       
         private double[,] P_ = new double[3, 3];
 
         /// <summary>
@@ -41,7 +40,7 @@ namespace NORCE.Drilling.Trajectory
         {
             if (source != null)
             {
-                surveyTool_ = source.surveyTool_;
+                //SurveyTool = source.SurveyTool;
                 Bias = new Vector3D(source.Bias);
   
 
@@ -84,7 +83,7 @@ namespace NORCE.Drilling.Trajectory
         /// <param name="surveyTool"></param>
         public WdWSurveyStationUncertainty(SurveyInstrument.Model.SurveyInstrument surveyTool)
         {
-            surveyTool_ = surveyTool;
+            //SurveyTool = surveyTool;
             for (int i = 0; i < Covariance.RowCount; i++)
             {
                 for (int j = 0; j < Covariance.ColumnCount; j++)
@@ -101,14 +100,7 @@ namespace NORCE.Drilling.Trajectory
             }
         }
 
-        /// <summary>
-        /// 
-        /// </summary>
-        public SurveyInstrument.Model.SurveyInstrument SurveyTool
-        {
-            get { return surveyTool_; }
-            set { surveyTool_ = value; }
-        }
+        
 
         /// <summary>
         /// 
@@ -119,7 +111,7 @@ namespace NORCE.Drilling.Trajectory
         /// <returns></returns>
         public double[,] CalculateCovariances(SurveyStation surveyStation, SurveyStation previousStation, double[,] A)
         {
-            if (surveyStation != null && surveyTool_ != null && previousStation != null && A != null)
+            if (surveyStation != null && surveyStation.SurveyTool != null && previousStation != null && A != null)
             {
                 double sinI = System.Math.Sin((double)surveyStation.Incl);
                 double cosI = System.Math.Cos((double)surveyStation.Incl);
@@ -129,12 +121,12 @@ namespace NORCE.Drilling.Trajectory
                 //double Vk = (double)surveyStation.Z;
                 //double Nk = (double)surveyStation.X;
                 //double Ek = (double)surveyStation.Y;
-                double deltaC10 = surveyTool_.ReferenceError!=null ? (double)surveyTool_.ReferenceError : 0;
-                double deltaC20 = surveyTool_.DrillStringMag != null ? (double)surveyTool_.DrillStringMag : 0;
-                double deltaC30 = surveyTool_.GyroCompassError != null ? (double)surveyTool_.GyroCompassError : 0;
-                double deltaIt0 = surveyTool_.TrueInclination != null ? (double)surveyTool_.TrueInclination : 0;
-                double deltaIm = surveyTool_.Misalignment != null ? (double)surveyTool_.Misalignment : 0;
-                double epsilon = surveyTool_.RelDepthError != null ? (double)surveyTool_.RelDepthError : 0;
+                double deltaC10 = surveyStation.SurveyTool.ReferenceError!=null ? (double)surveyStation.SurveyTool.ReferenceError : 0;
+                double deltaC20 = surveyStation.SurveyTool.DrillStringMag != null ? (double)surveyStation.SurveyTool.DrillStringMag : 0;
+                double deltaC30 = surveyStation.SurveyTool.GyroCompassError != null ? (double)surveyStation.SurveyTool.GyroCompassError : 0;
+                double deltaIt0 = surveyStation.SurveyTool.TrueInclination != null ? (double)surveyStation.SurveyTool.TrueInclination : 0;
+                double deltaIm = surveyStation.SurveyTool.Misalignment != null ? (double)surveyStation.SurveyTool.Misalignment : 0;
+                double epsilon = surveyStation.SurveyTool.RelDepthError != null ? (double)surveyStation.SurveyTool.RelDepthError : 0;
                 double deltaZ = (double)surveyStation.Z - (double)previousStation.Z;
                 double deltaX = (double)surveyStation.X - (double)previousStation.X;
                 double deltaY = (double)surveyStation.Y - (double)previousStation.Y;

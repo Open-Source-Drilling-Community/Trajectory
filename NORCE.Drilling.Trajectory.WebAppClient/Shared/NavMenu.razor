@@ -6,13 +6,20 @@
 </div>
 
 <div class="@NavMenuCssClass" @onclick="ToggleNavMenu">
-    <ul class="nav flex-column">
-        <li class="nav-item px-3">
-            <NavLink class="nav-link" href="/Trajectory/webapp" Match="NavLinkMatch.All">
-                <span class="oi oi-home" aria-hidden="true"></span> Home
-            </NavLink>
-        </li>
-    </ul>
+	<ul class="nav flex-column">
+		<li class="nav-item px-3">
+			<NavLink class="nav-link" href="/Trajectory/webapp/Trajectory" Match="NavLinkMatch.All">
+				<span class="oi oi-home" aria-hidden="true"></span> Trajectory
+			</NavLink>
+		</li>
+	</ul>
+	<ul class="nav flex-column">
+		<li class="nav-item px-3">
+			<NavLink class="nav-link" href="/Trajectory/webapp/SurveyStationUncertainty" Match="NavLinkMatch.All">
+				<span class="oi oi-home" aria-hidden="true"></span> SurveyStationUncertainty
+			</NavLink>
+		</li>
+	</ul>
 </div>
 
 @code {

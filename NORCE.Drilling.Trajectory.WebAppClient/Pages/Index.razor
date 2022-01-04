@@ -1,4 +1,4 @@
-﻿@page "/Trajectory/webapp"
+﻿@page "/Trajectory/webapp/Trajectory"
 @using System.Text;
 @using NORCE.Drilling.Trajectory.WebApp.Client
 @using NORCE.Drilling.Trajectory.ModelClientShared;
@@ -125,7 +125,7 @@ else
 			}
 		</tbody>
 	</table>
-	<h2 hidden="@IsTableResultHidden">Ellipse Radiuses @trajectoryName</h2>
+	@*<h2 hidden="@IsTableResultHidden">Ellipse Radiuses @trajectoryName</h2>
 
 	<table class="tableResult" hidden="@IsTableResultHidden">
 		<thead>
@@ -148,7 +148,7 @@ else
 							<input class="text" type="text" hidden="@IsResultInputHidden[i]" @bind="@list[0]" />
 						</td>
 						<td>
-							<span class="label" hidden="@IsResultDisplayHidden[i]">@list[0]</span>
+							<span class="label" hidden="@IsResultDisplayHidden[i]">@list[1]</span>
 							<input class="text" type="text" hidden="@IsResultInputHidden[i]" @bind="@list[1]" />
 						</td>
 
@@ -156,7 +156,7 @@ else
 				}
 			}
 		</tbody>
-	</table>
+	</table>*@
 
 }
 
@@ -174,14 +174,14 @@ else
 	private List<bool> IsSurveyStationDeleteButtonHidden;
 	private List<bool> IsSurveyStationUpdateButtonHidden;
 	private List<bool> IsSurveyStationCancelButtonHidden;
-	private List<bool> IsResultDisplayHidden;
-	private List<bool> IsResultInputHidden;
+	//private List<bool> IsResultDisplayHidden;
+	//private List<bool> IsResultInputHidden;
 	private bool IsTrajectoryAddInput;
 	private bool IsTableSurveyListHidden;
 	private bool IsTableResultHidden;
 	private List<NORCE.Drilling.Trajectory.ModelClientShared.Trajectory> trajectories;
 	private List<NORCE.Drilling.Trajectory.ModelClientShared.SurveyStation> surveyStations;
-	private List<List<double>> listRadius = new List<List<double>>();
+	//private List<List<double>> listRadius = new List<List<double>>();
 	private List<string> surveyInstruments = new List<string>();
 	private List<string> WellboreSurveyInstrument = new List<string>();
 
@@ -255,14 +255,14 @@ else
 			{
 				IsSurveyStationCancelButtonHidden = new List<bool>();
 			}
-			if (IsResultInputHidden == null)
-			{
-				IsResultInputHidden = new List<bool>();
-			}
-			if (IsResultDisplayHidden == null)
-			{
-				IsResultDisplayHidden = new List<bool>();
-			}
+			//if (IsResultInputHidden == null)
+			//{
+			//	IsResultInputHidden = new List<bool>();
+			//}
+			//if (IsResultDisplayHidden == null)
+			//{
+			//	IsResultDisplayHidden = new List<bool>();
+			//}
 
 			IsTrajectoryAddInput = false;
 			IsTableSurveyListHidden = true;
@@ -418,10 +418,10 @@ else
 	{
 		if (trajectories != null && idx >= 0 && idx < trajectories.Count)
 		{
-			if (listRadius != null && listRadius.Count > 0)
-			{
-				listRadius.Clear();
-			}
+			//if (listRadius != null && listRadius.Count > 0)
+			//{
+			//	listRadius.Clear();
+			//}
 			trajectories[idx].Copy(updatedTrajectory);
 			trajectoryName = updatedTrajectory.Name;
 			surveyStations = new List<SurveyStation>();
@@ -431,8 +431,8 @@ else
 			IsSurveyStationDeleteButtonHidden = new List<bool>();
 			IsSurveyStationUpdateButtonHidden = new List<bool>();
 			IsSurveyStationCancelButtonHidden = new List<bool>();
-			IsResultDisplayHidden = new List<bool>();
-			IsResultInputHidden = new List<bool>();
+			//IsResultDisplayHidden = new List<bool>();
+			//IsResultInputHidden = new List<bool>();
 			if (updatedTrajectory.SurveyList != null && updatedTrajectory.SurveyList.ListOfSurveys != null)
 			{
 				foreach (SurveyStation station in updatedTrajectory.SurveyList.ListOfSurveys)
@@ -444,8 +444,8 @@ else
 					IsSurveyStationDeleteButtonHidden.Add(false);
 					IsSurveyStationUpdateButtonHidden.Add(true);
 					IsSurveyStationCancelButtonHidden.Add(true);
-					IsResultDisplayHidden.Add(false);
-					IsResultInputHidden.Add(true);
+					//IsResultDisplayHidden.Add(false);
+					//IsResultInputHidden.Add(true);
 				}
 			}
 			if (surveyStations.Count == 0)
@@ -467,8 +467,8 @@ else
 					IsSurveyStationDeleteButtonHidden.Add(false);
 					IsSurveyStationUpdateButtonHidden.Add(true);
 					IsSurveyStationCancelButtonHidden.Add(true);
-					IsResultDisplayHidden.Add(false);
-					IsResultInputHidden.Add(true);
+					//IsResultDisplayHidden.Add(false);
+					//IsResultInputHidden.Add(true);
 					MDi = MDi + 30.0;
 				}
 			}
@@ -514,8 +514,8 @@ else
 					IsSurveyStationDeleteButtonHidden[i] = true;
 					IsSurveyStationUpdateButtonHidden[i] = false;
 					IsSurveyStationCancelButtonHidden[i] = false;
-					IsResultDisplayHidden[i] = true;
-					IsResultInputHidden[i] = false;
+					//IsResultDisplayHidden[i] = true;
+					//IsResultInputHidden[i] = false;
 				}
 				else
 				{
@@ -525,8 +525,8 @@ else
 					IsSurveyStationDeleteButtonHidden[i] = true;
 					IsSurveyStationUpdateButtonHidden[i] = true;
 					IsSurveyStationCancelButtonHidden[i] = true;
-					IsResultDisplayHidden[i] = false;
-					IsResultInputHidden[i] = true;
+					//IsResultDisplayHidden[i] = false;
+					//IsResultInputHidden[i] = true;
 				}
 			}
 		}
@@ -590,21 +590,21 @@ else
 			IsTableSurveyListHidden = true;
 			StringContent content = new StringContent(updatedTrajectory.GetJson(), Encoding.UTF8, "application/json");
 			var a = await httpTrajectory.PutAsync("Trajectories/" + trajectories[idx].ID, content);
-			string req = "Trajectories/" + trajectories[idx].ID.ToString();
-			string s = "Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1";
-			//var b = await httpTrajectory.GetAsync("Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1" + "/" + "1");
-			var b = await httpTrajectory.GetAsync(s);
-			Trajectory traj = new Trajectory();
-			if (b.IsSuccessStatusCode)
-			{
-				string str = await b.Content.ReadAsStringAsync();
-				if (!string.IsNullOrEmpty(str))
-				{
-					//traj = Newtonsoft.Json.JsonConvert.DeserializeObject<Trajectory>(str);
-					List<List<double>> list = Newtonsoft.Json.JsonConvert.DeserializeObject<List<List<double>>>(str);
-					listRadius = list;
-				}
-			}
+			//string req = "Trajectories/" + trajectories[idx].ID.ToString();
+			//string s = "Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1";
+			////var b = await httpTrajectory.GetAsync("Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1" + "/" + "1");
+			//var b = await httpTrajectory.GetAsync(s);
+			//Trajectory traj = new Trajectory();
+			//if (b.IsSuccessStatusCode)
+			//{
+			//	string str = await b.Content.ReadAsStringAsync();
+			//	if (!string.IsNullOrEmpty(str))
+			//	{
+			//		//traj = Newtonsoft.Json.JsonConvert.DeserializeObject<Trajectory>(str);
+			//		List<List<double>> list = Newtonsoft.Json.JsonConvert.DeserializeObject<List<List<double>>>(str);
+			//		listRadius = list;
+			//	}
+			//}
 
 			IsTrajectoryAddInput = false;
 			for (int i = 0; i < IsTrajectoryDisplayHidden.Count; i++)
@@ -643,8 +643,8 @@ else
 			IsSurveyStationDeleteButtonHidden[i] = false;
 			IsSurveyStationUpdateButtonHidden[i] = true;
 			IsSurveyStationCancelButtonHidden[i] = true;
-			IsResultDisplayHidden[i] = false;
-			IsResultInputHidden[i] = true;
+			//IsResultDisplayHidden[i] = false;
+			//IsResultInputHidden[i] = true;
 		}
 	}
 
@@ -680,8 +680,8 @@ else
 			IsSurveyStationDeleteButtonHidden[i] = false;
 			IsSurveyStationUpdateButtonHidden[i] = true;
 			IsSurveyStationCancelButtonHidden[i] = true;
-			IsResultDisplayHidden[i] = false;
-			IsResultInputHidden[i] = true;
+			//IsResultDisplayHidden[i] = false;
+			//IsResultInputHidden[i] = true;
 		}
 	}
 	private async void Add()
