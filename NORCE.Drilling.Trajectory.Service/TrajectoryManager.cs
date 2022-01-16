@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using System.Data.SQLite;
 using System.Text.Json;
 using System.IO;
+using System.Net.Http;
 using NORCE.Drilling.Trajectory.Model;
 using NORCE.Drilling.SurveyInstrument.Model;
 
@@ -420,7 +421,7 @@ namespace NORCE.Drilling.Trajectory.Service
                     trajectory.SurveyList = new SurveyList();
                     trajectory.SurveyList.Surveys = new List<SurveyStation>();
                     string[] files = Directory.GetFiles(directory);
-                    int id = 0;
+                    int id = 1;
                     foreach (string file in files)
                     {
                         using (StreamReader r = new StreamReader(file))
@@ -453,7 +454,12 @@ namespace NORCE.Drilling.Trajectory.Service
                                     st.Z = tvd;
                                     st.MD = md;
                                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                                    SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
+                                    var surveyToolll = LoadSurveyTool(1);
+
+                                    //if (surveyTool == null)
+                                    {
+                                        surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
+                                    }
                                     st.SurveyTool = surveyTool;
                                     st.Uncertainty = wdwun;
                                     sl.Add(st);
@@ -470,6 +476,143 @@ namespace NORCE.Drilling.Trajectory.Service
                     }
                 }
             }
+        }
+
+        public async Task<SurveyInstrument.Model.SurveyInstrument> LoadSurveyTool(int id)
+        {
+            SurveyInstrument.Model.SurveyInstrument surveyList = await LoadSurveyTool("https://app.DigiWells.no/", id);
+            if (surveyList == null)
+            {
+                surveyList = await LoadSurveyTool("http://host.docker.internal:10002/", id);
+            }
+            if (surveyList == null)
+            {
+                // Running in Docker via VS
+                surveyList = await LoadSurveyTool("https://localhost:44369/", id);
+            }
+            if (surveyList == null)
+            {
+                // Running both services in VS without Docker
+                surveyList = await LoadSurveyTool("https://localhost:10001/", id);
+            }
+            if (surveyList == null)
+            {
+                // Running both services in VS without Docker
+                surveyList = await LoadSurveyTool("http://localhost:50002/", id);
+            }
+            return surveyList;
+        }
+
+        public async Task<SurveyInstrument.Model.SurveyInstrument> LoadSurveyTool(string host, int id)
+        {
+            HttpClient httpTrajectory;
+            SurveyInstrument.Model.SurveyInstrument trajectory = null;
+            try
+            {
+                httpTrajectory = new HttpClient();
+                httpTrajectory.BaseAddress = new Uri(host + "SurveyInstrument/api/");
+                httpTrajectory.DefaultRequestHeaders.Accept.Clear();
+                httpTrajectory.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+                var a = await httpTrajectory.GetAsync("SurveyInstruments");
+                if (a.IsSuccessStatusCode)
+                {
+                    string str = await a.Content.ReadAsStringAsync();
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        SurveyInstrument.Model.SurveyInstrument trajectoryShared = Newtonsoft.Json.JsonConvert.DeserializeObject<SurveyInstrument.Model.SurveyInstrument>(str);
+                        if (trajectoryShared != null && trajectoryShared.Name != null )
+                        {
+                            // Convert trajectoryShared to a SurveyList
+                            //trajectory = new SurveyList();
+                            //foreach (Trajectory.ModelClientShared.SurveyStation ss in trajectoryShared.SurveyList.ListOfSurveys)
+                            //{
+                            //    SurveyStation s = new SurveyStation();
+                            //    s.MD = ss.MD;
+                            //    s.Incl = ss.Incl;
+                            //    s.Az = ss.Az;
+                            //    s.X = ss.X;
+                            //    s.Y = ss.Y;
+                            //    s.Z = ss.Z;
+                            //    s.Abscissa = ss.Abscissa;
+
+                            //    // The WdW uncertainty is default in the methods we use here. If others should be used, we have to translate them from the shared object
+                            //    //s.Uncertainty = new Trajectory.WdWSurveyStationUncertainty();
+
+                            //    trajectory.ListOfSurveys.Add(s);
+                            //}
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                httpTrajectory = null;
+                trajectory = null;
+            }
+            return trajectory;
+        }
+        private void GetSurveyTool()
+        {
+            using (HttpClient client = new HttpClient())
+            {
+                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+
+                var response = client.GetAsync("http://localhost:50002/SurveyInstrument/api/surveyInstruments").Result;
+
+                string content = response.Content.ReadAsStringAsync().Result;
+                Console.WriteLine(content);
+                Console.ReadLine();
+            }
+        }
+
+        private SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument();
+        HttpClient httpSurveyInstrument;
+        private async void GetSurveyTool2()
+        {
+            //SurveyInstrument.Model.SurveyInstrument surveyInstrument = new SurveyInstrument.Model.SurveyInstrument();
+            string host = "http://localhost:50002/";
+            int[] initialSurveyInstrumentIDs = null;
+            List<string> initialSurveyInstruments = null;
+            try
+            {
+                httpSurveyInstrument = new HttpClient();
+                httpSurveyInstrument.BaseAddress = new Uri(host + "SurveyInstrument/api/");
+                httpSurveyInstrument.DefaultRequestHeaders.Accept.Clear();
+                httpSurveyInstrument.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+                var a = await httpSurveyInstrument.GetAsync("SurveyInstruments");
+                if (a.IsSuccessStatusCode)
+                {
+                    string str = await a.Content.ReadAsStringAsync();
+                    if (!string.IsNullOrEmpty(str))
+                    {
+                        initialSurveyInstrumentIDs = Newtonsoft.Json.JsonConvert.DeserializeObject<int[]>(str);
+                        for (int i = 0; i < initialSurveyInstrumentIDs.Length; i++)
+                        {
+                            var b = await httpSurveyInstrument.GetAsync("SurveyInstruments/" + initialSurveyInstrumentIDs[i].ToString());
+                            if (b.IsSuccessStatusCode && a.Content != null)
+                            {
+                                str = await b.Content.ReadAsStringAsync();
+                                if (!string.IsNullOrEmpty(str))
+                                {
+                                    surveyTool = Newtonsoft.Json.JsonConvert.DeserializeObject<SurveyInstrument.Model.SurveyInstrument>(str);
+                                    if (surveyTool != null)
+                                    {
+                                        initialSurveyInstruments.Add(surveyTool.Name);
+                                    }
+                                }
+                            }
+                        }
+                    }
+                }
+            }
+            catch (Exception e)
+            {
+                httpSurveyInstrument = null;
+                initialSurveyInstruments = null;
+            }            
         }
     }
 }

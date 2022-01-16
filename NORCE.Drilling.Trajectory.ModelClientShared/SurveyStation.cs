@@ -23,7 +23,8 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
                 dest.MD = MD;
                 dest.X = X;
                 dest.Y = Y;
-                dest.Z = Z;  
+                dest.Z = Z;
+                dest.SurveyTool = SurveyTool;
                 return true;
             }
             else

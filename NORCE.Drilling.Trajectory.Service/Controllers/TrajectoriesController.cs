@@ -5,6 +5,7 @@ using System.Threading.Tasks;
 using Microsoft.AspNetCore.Mvc;
 using NORCE.Drilling.Trajectory.Model;
 using NORCE.Drilling.SurveyInstrument;
+using System.Net.Http;
 
 namespace NORCE.Drilling.Trajectory.Service.Controllers
 {
@@ -16,7 +17,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         // GET api/trajectories
         [HttpGet]
         public IEnumerable<int> Get()
-        {
+        {            
             var ids = TrajectoryManager.Instance.GetIDs();
             return ids;
         }
@@ -154,8 +155,8 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
 								st.MD = (double)md;
                                 //NB: Need to update when more uncertaintymodels are available and SurveyTools included
                                 WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                                SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
-                                st.SurveyTool = surveyTool;
+                                //SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
+                                st.SurveyTool = value.SurveyList.ListOfSurveys[i].SurveyTool;
                                 st.Uncertainty = wdwun;
                                 sl.Add(st);
                             }
@@ -202,10 +203,10 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     st.Y = Y;
                                     st.Z = tvd;
                                     st.MD = (double)md;
-                                    //NB: Need to update when more uncertaintymodels are available and SurveyTools included
-                                    WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                                    SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
-                                    st.SurveyTool = surveyTool;
+									//NB: Need to update when more uncertaintymodels are available and SurveyTools included
+									WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+									//SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
+									st.SurveyTool = value.SurveyList.ListOfSurveys[i].SurveyTool;
                                     st.Uncertainty = wdwun;
                                     sl.Add(st);
                                 }
@@ -246,8 +247,8 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     st.MD = (double)md;
                                     //NB: Need to update when more uncertaintymodels are available and SurveyTools included
                                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                                    SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
-                                    st.SurveyTool = surveyTool;
+                                    //SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
+                                    st.SurveyTool = value.SurveyList.ListOfSurveys[i].SurveyTool;
                                     st.Uncertainty = wdwun;
                                     sl.Add(st);
                                 }                                
@@ -267,5 +268,6 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         {
             TrajectoryManager.Instance.Remove(id);
         }
+       
     }
 }
