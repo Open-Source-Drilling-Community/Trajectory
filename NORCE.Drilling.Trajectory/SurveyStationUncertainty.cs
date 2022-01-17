@@ -2,7 +2,6 @@
 using System.Collections.Generic;
 using System.Text;
 using NORCE.General.Math;
-using NORCE.General.Math;
 using NORCE.General.Std;
 
 
