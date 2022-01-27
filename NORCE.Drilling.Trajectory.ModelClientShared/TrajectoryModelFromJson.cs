@@ -161,6 +161,9 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
         [Newtonsoft.Json.JsonProperty("Uncertainty", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public SurveyStationUncertainty Uncertainty { get; set; }
     
+        [Newtonsoft.Json.JsonProperty("SurveyTool", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public SurveyInstrument SurveyTool { get; set; }
+    
     
     }
     
@@ -278,6 +281,69 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
         [Newtonsoft.Json.JsonProperty("RowCount", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int RowCount { get; set; }
     
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v13.0.0.0)")]
+    public partial class SurveyInstrument 
+    {
+        [Newtonsoft.Json.JsonProperty("ID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public int ID { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Name", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Name { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Description", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string Description { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("UseRelDepthError", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool UseRelDepthError { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("RelDepthError", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? RelDepthError { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("UseMisalignment", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool UseMisalignment { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Misalignment", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? Misalignment { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("UseTrueInclination", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool UseTrueInclination { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("TrueInclination", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? TrueInclination { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("UseReferenceError", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool UseReferenceError { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ReferenceError", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ReferenceError { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("UseDrillStringMag", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool UseDrillStringMag { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DrillStringMag", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DrillStringMag { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("UseGyroCompassError", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool UseGyroCompassError { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GyroCompassError", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GyroCompassError { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ModelType", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public SurveyInstrumentModelType ModelType { get; set; }
+    
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v13.0.0.0)")]
+    public enum SurveyInstrumentModelType
+    {
+        WolffDeWardt = 0,
+    
+        ISCWC = 1,
     
     }
     

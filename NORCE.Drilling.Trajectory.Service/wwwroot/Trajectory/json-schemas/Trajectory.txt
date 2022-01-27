@@ -338,6 +338,16 @@
                   "$ref": "#/definitions/SurveyStationUncertainty"
                 }
               ]
+            },
+            "SurveyTool": {
+              "oneOf": [
+                {
+                  "type": "null"
+                },
+                {
+                  "$ref": "#/definitions/SurveyInstrument"
+                }
+              ]
             }
           }
         }
@@ -589,6 +599,103 @@
           "format": "int32"
         }
       }
+    },
+    "SurveyInstrument": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ID": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "Name": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Description": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "UseRelDepthError": {
+          "type": "boolean"
+        },
+        "RelDepthError": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "UseMisalignment": {
+          "type": "boolean"
+        },
+        "Misalignment": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "UseTrueInclination": {
+          "type": "boolean"
+        },
+        "TrueInclination": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "UseReferenceError": {
+          "type": "boolean"
+        },
+        "ReferenceError": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "UseDrillStringMag": {
+          "type": "boolean"
+        },
+        "DrillStringMag": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "UseGyroCompassError": {
+          "type": "boolean"
+        },
+        "GyroCompassError": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ModelType": {
+          "$ref": "#/definitions/SurveyInstrumentModelType"
+        }
+      }
+    },
+    "SurveyInstrumentModelType": {
+      "type": "integer",
+      "description": "",
+      "x-enumNames": [
+        "WolffDeWardt",
+        "ISCWC"
+      ],
+      "enum": [
+        0,
+        1
+      ]
     },
     "CurvilinearPoint3D": {
       "allOf": [

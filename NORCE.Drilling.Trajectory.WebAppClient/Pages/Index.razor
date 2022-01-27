@@ -89,12 +89,13 @@ else
 		</tfoot>
 	</table>
 	<h2 hidden="@IsTableSurveyListHidden">Survey List Editor for @trajectoryName</h2>
-	<table class="tableSurveyList" hidden="@IsTableSurveyListHidden">
+	<table class="table" hidden="@IsTableSurveyListHidden">
 		<thead>
 			<tr>
 				<th>MD</th>
 				<th>Inclination</th>
 				<th>Azimuth</th>
+				<th>Survey Instrument</th>
 				<th></th>
 			</tr>
 		</thead>
@@ -102,26 +103,35 @@ else
 			@for (int i = 0; i < surveyStations.Count; i++)
 			{
 				var local = i;
-				<tr>
-					<td>
-						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].MD</span>
-						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.MD" />
-					</td>
-					<td>
-						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].Incl</span>
-						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.Incl" />
-					</td>
-					<td>
-						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].Az</span>
-						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.Az" />
-					</td>
-					<td>
-						<button class="btn btn-primary" hidden="@IsSurveyStationEditButtonHidden[i]" @onclick="@(() => EditSurveyStation(local))">Edit</button>
-						<button class="btn btn-primary" hidden="@IsSurveyStationDeleteButtonHidden[i]" @onclick="@(() => DeleteSurveyStation(local))">Delete</button>
-						<button class="btn btn-primary" hidden="@IsSurveyStationUpdateButtonHidden[i]" @onclick="@(() => UpdateSurveyStation(local))">Update</button>
-						<button class="btn btn-primary" hidden="@IsSurveyStationCancelButtonHidden[i]" @onclick="@(() => CancelSurveyStation(local))">Cancel</button>
-					</td>
-				</tr>
+			<tr>
+				<td>
+					<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].MD</span>
+					<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.MD" />
+				</td>
+				<td>
+					<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].Incl</span>
+					<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.Incl" />
+				</td>
+				<td>
+					<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].Az</span>
+					<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.Az" />
+				</td>
+				<td>
+					<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].SurveyTool.ID</span>
+					<select class="form-control selectpicker" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.SurveyTool.ID">
+							@foreach (int surveyInstrumentID in surveyInstrumentIDs)
+							{
+								<option>@surveyInstrumentID</option>
+							}
+						</select>
+				</td>
+				<td>
+					<button class="btn btn-primary" hidden="@IsSurveyStationEditButtonHidden[i]" @onclick="@(() => EditSurveyStation(local))">Edit</button>
+					<button class="btn btn-primary" hidden="@IsSurveyStationDeleteButtonHidden[i]" @onclick="@(() => DeleteSurveyStation(local))">Delete</button>
+					<button class="btn btn-primary" hidden="@IsSurveyStationUpdateButtonHidden[i]" @onclick="@(() => UpdateSurveyStation(local))">Update</button>
+					<button class="btn btn-primary" hidden="@IsSurveyStationCancelButtonHidden[i]" @onclick="@(() => CancelSurveyStation(local))">Cancel</button>
+				</td>
+			</tr>
 			}
 		</tbody>
 	</table>
@@ -181,11 +191,11 @@ else
 	private bool IsTableResultHidden;
 	private List<NORCE.Drilling.Trajectory.ModelClientShared.Trajectory> trajectories;
 	private List<NORCE.Drilling.Trajectory.ModelClientShared.SurveyStation> surveyStations;
-	//private List<List<double>> listRadius = new List<List<double>>();
 	private List<string> surveyInstruments = new List<string>();
-	private List<string> WellboreSurveyInstrument = new List<string>();
+	private int[] surveyInstrumentIDs;
 
 	private HttpClient httpWellbore;
+	private HttpClient httpSurveyInstrument;
 	private int[] wellboreIDs;
 	private string trajectoryName;
 	private static int extraSurveyStationCount = 20;
@@ -213,6 +223,7 @@ else
 				updatedSurveyStation.MD = 0.0;
 				updatedSurveyStation.Incl = 0.0;
 				updatedSurveyStation.Az = 0.0;
+				updatedSurveyStation.SurveyTool = new SurveyInstrument();
 			}
 			if (surveyStations == null)
 			{
@@ -340,6 +351,15 @@ else
 				wellboreIDs[0] = 1;
 				wellboreIDs[1] = 2;
 			}
+			surveyInstruments = await LoadSurveyTools("https://app.DigiWells.no/");
+			if (surveyInstruments == null)
+			{
+				surveyInstruments = await LoadSurveyTools("http://host.docker.internal:1002/");
+			}
+			if (surveyInstruments == null)
+			{
+				surveyInstruments = await LoadSurveyTools("http://localhost:50002/");
+			}
 			if (surveyInstruments == null || surveyInstruments.Count == 0)
 			{
 				surveyInstruments = new List<string>();
@@ -349,6 +369,18 @@ else
 				surveyInstruments.Add("PoorGyro");
 				//surveyInstruments[3] = "GoodGyro";
 				//surveyInstruments[4] = "PoorGyro";
+			}
+			surveyInstrumentIDs = await LoadSurveyToolIDs("https://app.DigiWells.no/");
+			if (surveyInstrumentIDs == null)
+			{
+				surveyInstrumentIDs = await LoadSurveyToolIDs("http://host.docker.internal:1002/");
+			}
+			if (surveyInstrumentIDs == null)
+			{
+				surveyInstrumentIDs = await LoadSurveyToolIDs("http://localhost:50002/");
+			}
+			if (surveyInstrumentIDs == null)
+			{
 			}
 		}
 		catch (Exception e)
@@ -411,6 +443,79 @@ else
 			initialWellboreIDs = null;
 		}
 		return initialWellboreIDs;
+	}
+
+	private async Task<int[]> LoadSurveyToolIDs(string host)
+	{
+		int[] initialSurveyInstrumentIDs = null;
+		try
+		{
+			httpSurveyInstrument = new HttpClient();
+			httpSurveyInstrument.BaseAddress = new Uri(host + "SurveyInstrument/api/");
+			httpSurveyInstrument.DefaultRequestHeaders.Accept.Clear();
+			httpSurveyInstrument.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+			var a = await httpSurveyInstrument.GetAsync("SurveyInstruments");
+			if (a.IsSuccessStatusCode)
+			{
+				string str = await a.Content.ReadAsStringAsync();
+				if (!string.IsNullOrEmpty(str))
+				{
+					initialSurveyInstrumentIDs = Newtonsoft.Json.JsonConvert.DeserializeObject<int[]>(str);
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			httpSurveyInstrument = null;
+			initialSurveyInstrumentIDs = null;
+		}
+		return initialSurveyInstrumentIDs;
+	}
+
+	private async Task<List<string>> LoadSurveyTools(string host)
+	{
+		int[] initialSurveyInstrumentIDs = null;
+		List<string> initialSurveyInstruments = new List<string>();
+		try
+		{
+			httpSurveyInstrument = new HttpClient();
+			httpSurveyInstrument.BaseAddress = new Uri(host + "SurveyInstrument/api/");
+			httpSurveyInstrument.DefaultRequestHeaders.Accept.Clear();
+			httpSurveyInstrument.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+			var a = await httpSurveyInstrument.GetAsync("SurveyInstruments");
+			if (a.IsSuccessStatusCode)
+			{
+				string str = await a.Content.ReadAsStringAsync();
+				if (!string.IsNullOrEmpty(str))
+				{
+					initialSurveyInstrumentIDs = Newtonsoft.Json.JsonConvert.DeserializeObject<int[]>(str);
+					for (int i = 0; i < initialSurveyInstrumentIDs.Length; i++)
+					{
+						var b = await httpSurveyInstrument.GetAsync("SurveyInstruments/" + initialSurveyInstrumentIDs[i].ToString());
+						if (b.IsSuccessStatusCode && a.Content != null)
+						{
+							str = await b.Content.ReadAsStringAsync();
+							if (!string.IsNullOrEmpty(str))
+							{
+								SurveyInstrument surveyInstrument = Newtonsoft.Json.JsonConvert.DeserializeObject<ModelClientShared.SurveyInstrument>(str);
+								if (surveyInstrument != null)
+								{
+									initialSurveyInstruments.Add(surveyInstrument.Name);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			httpSurveyInstrument = null;
+			initialSurveyInstruments = null;
+		}
+		return initialSurveyInstruments;
 	}
 
 
@@ -691,7 +796,6 @@ else
 		editedTrajectory.Name = null;
 		editedTrajectory.Description = null;
 		editedTrajectory.WellboreID = 0;
-		WellboreSurveyInstrument.Add(surveyInstruments[0]);
 		StringContent content = new StringContent(newTrajectory.GetJson(), Encoding.UTF8, "application/json");
 
 		var a = await httpTrajectory.PostAsync("Trajectories", content);
