@@ -4,6 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <UserSecretsId>cccd571c-ef54-4f22-8fb0-70cb8755ad7d</UserSecretsId>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
+    <DockerfileBuildArguments>--build-arg NUGET_USER_NAME=%NORCE_NUGET_USER% --build-arg NUGET_AUTH_TOKEN=%NORCE_NUGET_APIKEY%</DockerfileBuildArguments>
   </PropertyGroup>
 
   <ItemGroup>
