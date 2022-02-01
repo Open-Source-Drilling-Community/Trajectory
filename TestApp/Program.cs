@@ -61,7 +61,6 @@ namespace TestApp
 
             if (surveyList != null)
             {
-
                 if (surveyList.ListOfSurveys != null)
                 {
                     for (int i = 0; i < surveyList.ListOfSurveys.Count; i++)
@@ -112,13 +111,18 @@ namespace TestApp
                     }
                     List<double[,]> drdps = new List<double[,]>();
                     List<double[,]> drdpNexts = new List<double[,]>();
-                    ISCWSA_MWDSurveyStationUncertainty iscwsaSurveyStatoinUncertainty = (ISCWSA_MWDSurveyStationUncertainty)surveyList[0].Uncertainty;
+                    ISCWSA_MWDSurveyStationUncertainty iscwsaSurveyStatoinUncertaintyA = (ISCWSA_MWDSurveyStationUncertainty)surveyList[0].Uncertainty;
+                    //iscwsaSurveyStatoinUncertainty.CalculateCovariances(surveyList);
+                    List<ISCWSAErrorData> ISCWSAErrorDataTmp = new List<ISCWSAErrorData>();
                     for (int i = 0; i < surveyList.Count; i++)
                     {
+                        ISCWSA_MWDSurveyStationUncertainty iscwsaSurveyStatoinUncertainty = (ISCWSA_MWDSurveyStationUncertainty)surveyList[i].Uncertainty;
                         if (((surveyList[i].Uncertainty is ISCWSA_MWDSurveyStationUncertainty && i > 0) || (surveyList.Count > 1 && surveyList[i].Uncertainty.Covariance[0, 0] == null)))
                         {
-                           
 
+                            SurveyStation surveyStation = surveyList[i];
+                            SurveyStation surveyStationPrev = new SurveyStation();
+                            SurveyStation surveyStationNext = new SurveyStation();
                             double[,] drdp = new double[3, 3];
                             if (i == 0)
                             {
@@ -129,40 +133,50 @@ namespace TestApp
                                         drdp[j, k] = 0.0;
                                     }
                                 }
+                                surveyStationPrev.X = 0.0;
+                                surveyStationPrev.Y = 0.0;
+                                surveyStationPrev.Incl = 0.0;
+                                surveyStationPrev.Az = 0.0;
+                                surveyStationPrev.MD = 0.0;
                             }
                             else
                             {
-                                drdp = iscwsaSurveyStatoinUncertainty.CalculateDisplacementMatrix(surveyList[i], surveyList[i - 1], i);                                
+                                surveyStationPrev = surveyList[i - 1];
+                                drdp = iscwsaSurveyStatoinUncertainty.CalculateDisplacementMatrix(surveyStation, surveyStationPrev, i);                                
                             }
                             drdps.Add(drdp);
                             double[,] drdpNext = new double[3, 3];
                             if (i < surveyList.Count - 1)
                             {
-                                drdpNext = iscwsaSurveyStatoinUncertainty.CalculateDisplacemenNexttMatrix(surveyList[i], surveyList[i + 1], i);                                
+                                surveyStationNext = surveyList[i + 1];
                             }
                             else
                             {
-                                SurveyStation surveySt = new SurveyStation();
-                                surveySt.X = 0.0;
-                                surveySt.Y = 0.0;
-                                surveySt.Incl = 0.0;
-                                surveySt.Az = 0.0;
-                                drdpNext = iscwsaSurveyStatoinUncertainty.CalculateDisplacemenNexttMatrix(surveyList[i], surveySt, i);
+                                surveyStationNext.X = 0.0;
+                                surveyStationNext.Y = 0.0;
+                                surveyStationNext.Incl = 0.0;
+                                surveyStationNext.Az = 0.0;
+                                surveyStationNext.MD = 0.0;
                             }
+                            drdpNext = iscwsaSurveyStatoinUncertainty.CalculateDisplacemenNexttMatrix(surveyStation, surveyStationNext, i);
                             drdpNexts.Add(drdpNext);
-                            A = iscwsaSurveyStatoinUncertainty.CalculateCovarianceDRFR(drdp, drdpNext, surveyList[i].SurveyTool, A, i);
-                            
+                            //iscwsaSurveyStatoinUncertainty.ISCWSAErrorDataTmp = (ISCWSA_MWDSurveyStationUncertainty)surveyList[i - 1].Uncertainty.ISCWSAErrorDataTmp;
+                            iscwsaSurveyStatoinUncertainty.CalculateCovariance(surveyStation, surveyStationPrev, surveyStationNext, ISCWSAErrorDataTmp, i);
+                            ISCWSAErrorDataTmp = iscwsaSurveyStatoinUncertainty.ISCWSAErrorDataTmp;
+                            //A = iscwsaSurveyStatoinUncertainty.CalculateCovarianceDRFR(drdp, drdpNext, surveyList[i].SurveyTool, A, i);                            
                         }
                     }
-                    iscwsaSurveyStatoinUncertainty.CalculateCovarianceMSZ(surveyList,drdps,drdpNexts, surveyList[0].SurveyTool);
+                    ErrorSourceDRFR errorSourceDRFR = new ErrorSourceDRFR();
+                    iscwsaSurveyStatoinUncertaintyA.CalculateRandomCovariance(surveyList, drdps, drdpNexts,  errorSourceDRFR);
+                    iscwsaSurveyStatoinUncertaintyA.CalculateCovarianceMSZ(surveyList,drdps,drdpNexts, surveyList[0].SurveyTool);
                     ErrorSourceMSZ errorSourceMSZ = new ErrorSourceMSZ();
                     errorSourceMSZ.Dip = 72 * Math.PI / 180.0;
                     errorSourceMSZ.Declination = -4 * Math.PI / 180.0;
-                    iscwsaSurveyStatoinUncertainty.CalculateSystematicCovariance(surveyList, drdps, drdpNexts, surveyList[0].SurveyTool, errorSourceMSZ);
+                    iscwsaSurveyStatoinUncertaintyA.CalculateSystematicCovariance(surveyList, drdps, drdpNexts,  errorSourceMSZ);
                     ErrorSourceMSXY_TI1 errorSourceMSXY_TI1 = new ErrorSourceMSXY_TI1();
                     errorSourceMSXY_TI1.Dip = 72 * Math.PI / 180.0;
                     errorSourceMSXY_TI1.Declination = -4 * Math.PI / 180.0;
-                    iscwsaSurveyStatoinUncertainty.CalculateSystematicCovariance(surveyList, drdps, drdpNexts, surveyList[0].SurveyTool, errorSourceMSXY_TI1);
+                    iscwsaSurveyStatoinUncertaintyA.CalculateSystematicCovariance(surveyList, drdps, drdpNexts,errorSourceMSXY_TI1);
                     //surveyList.GetUncertaintyEnvelope(0.9, 1.0);
                 }
             }
