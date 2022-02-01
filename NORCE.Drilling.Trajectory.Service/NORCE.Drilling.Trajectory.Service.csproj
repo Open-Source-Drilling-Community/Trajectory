@@ -3,7 +3,7 @@
   <PropertyGroup>
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-    <DockerfileBuildArguments>--build-arg NUGET_USER_NAME=%NORCE_NUGET_USER% --build-arg NUGET_AUTH_TOKEN=%NORCE_NUGET_APIKEY%</DockerfileBuildArguments>
+    <DockerfileBuildArguments>--build-arg NORCE_NUGET_USER --build-arg NORCE_NUGET_APIKEY</DockerfileBuildArguments>
     <UserSecretsId>d4693808-78e9-47c7-919b-bed83a86870d</UserSecretsId>
     <RootNamespace>NORCE.Drilling.Trajectory.Service</RootNamespace>
   </PropertyGroup>
