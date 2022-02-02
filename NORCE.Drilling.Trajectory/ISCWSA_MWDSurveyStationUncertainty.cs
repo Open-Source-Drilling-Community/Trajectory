@@ -11,7 +11,7 @@ namespace NORCE.Drilling.Trajectory
     {
         private double[,] P_ = new double[3, 3];
         /// <summary>
-        /// Dip angle [rad]
+        /// Magnetic Dip angle [rad]
         /// </summary>
         public double Dip { get; set; } = 72 * Math.PI / 180.0;
         /// <summary>
@@ -19,11 +19,11 @@ namespace NORCE.Drilling.Trajectory
         /// </summary>
         public double Declination { get; set; } = -4 * Math.PI / 180.0;
         /// <summary>
-        /// Declination angle [rad]
+        /// Earth's Gravity [m/s2]
         /// </summary>
-        public double Gravitude { get; set; } = 9.80665;
+        public double Gravity { get; set; } = 9.80665;
         /// <summary>
-        /// BField [nT]
+        /// Magnetic Total Field [nT]
         /// </summary>
         public double BField { get; set; } = 50000;
         /// <summary>
@@ -131,208 +131,19 @@ namespace NORCE.Drilling.Trajectory
                 }
             }
         }
+
         /// <summary>
-        /// Calculate Covariance matrix
-        /// </summary>
-        /// <param name="surveyStation"></param>
-        /// <param name="previousStation"></param>
-        /// <returns></returns>
-        public void CalculateCovariances(SurveyList surveyList)
-        {
-            List<double[,]> drdps = new List<double[,]>();
-            List<double[,]> drdpNexts = new List<double[,]>();
-            ISCWSA_MWDSurveyStationUncertainty iscwsaSurveyStatoinUncertainty = (ISCWSA_MWDSurveyStationUncertainty)surveyList[0].Uncertainty;
-            if (surveyList.Count > 1)
-            {
-                for (int i = 0; i < surveyList.Count; i++)
-                {
-
-
-
-                    double[,] drdp = new double[3, 3];
-                    if (i == 0)
-                    {
-                        for (int j = 0; j < 3; j++)
-                        {
-                            for (int k = 0; k < 3; k++)
-                            {
-                                drdp[j, k] = 0.0;
-                            }
-                        }
-                    }
-                    else
-                    {
-                        drdp = CalculateDisplacementMatrix(surveyList[i], surveyList[i - 1], i);
-                    }
-                    drdps.Add(drdp);
-                    double[,] drdpNext = new double[3, 3];
-                    if (i < surveyList.Count - 1)
-                    {
-                        drdpNext = CalculateDisplacemenNexttMatrix(surveyList[i], surveyList[i + 1], i);
-                    }
-                    else
-                    {
-                        SurveyStation surveySt = new SurveyStation();
-                        surveySt.X = 0.0;
-                        surveySt.Y = 0.0;
-                        surveySt.Incl = 0.0;
-                        surveySt.Az = 0.0;
-                        drdpNext = CalculateDisplacemenNexttMatrix(surveyList[i], surveySt, i);
-                    }
-                    drdpNexts.Add(drdpNext);
-                }
-            }
-            for (int i = 0; i < surveyList.Count; i++)
-            {
-                for (int j = 0; j < 3; j++)
-                {
-                    for (int k = 0; k < 3; k++)
-                    {
-                        surveyList[i].Uncertainty.Covariance[j, k] = 0.0;
-                    }
-                }
-            }
-
-            if (ErrorIndices != null)
-            {
-
-            }
-            else
-            {
-                ErrorSourceDRFR errorSourceDRFR = new ErrorSourceDRFR();
-                CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceDRFR);
-                ErrorSourceDSFS errorSourceDSFS = new ErrorSourceDSFS();
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDSFS);
-                ErrorSourceDSTG errorSourceDSTG = new ErrorSourceDSTG();
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDSTG);
-                ErrorSourceABXY_TI1S errorSourceABXY_TI1S = new ErrorSourceABXY_TI1S();
-                errorSourceABXY_TI1S.Dip = Dip;
-                errorSourceABXY_TI1S.Gravitude = Gravitude;
-                errorSourceABXY_TI1S.Declination = Declination;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceABXY_TI1S);
-                ErrorSourceABXY_TI2S errorSourceABXY_TI2S = new ErrorSourceABXY_TI2S();
-                errorSourceABXY_TI2S.Dip = Dip;
-                errorSourceABXY_TI2S.Gravitude = Gravitude;
-                errorSourceABXY_TI2S.Declination = Declination;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceABXY_TI2S);
-                ErrorSourceABZ errorSourceABZ = new ErrorSourceABZ();
-                errorSourceABZ.Dip = Dip;
-                errorSourceABZ.Gravitude = Gravitude;
-                errorSourceABZ.Declination = Declination;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceABZ);
-                ErrorSourceASXY_TI1S errorSourceASXY_TI1S = new ErrorSourceASXY_TI1S();
-                errorSourceASXY_TI1S.Dip = Dip;
-                errorSourceASXY_TI1S.Declination = Declination;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceASXY_TI1S);
-                ErrorSourceASXY_TI2S errorSourceASXY_TI2S = new ErrorSourceASXY_TI2S();
-                errorSourceASXY_TI2S.Dip = Dip;
-                errorSourceASXY_TI2S.Declination = Declination;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceASXY_TI2S);
-                ErrorSourceASXY_TI3S errorSourceASXY_TI3S = new ErrorSourceASXY_TI3S();
-                errorSourceASXY_TI3S.Dip = Dip;
-                errorSourceASXY_TI3S.Declination = Declination;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceASXY_TI3S);
-                ErrorSourceASZ errorSourceASZ = new ErrorSourceASZ();
-                errorSourceASZ.Dip = Dip;
-                errorSourceASZ.Declination = Declination;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceASZ);
-                ErrorSourceMBXY_TI1 errorSourceMBXY_TI1 = new ErrorSourceMBXY_TI1();
-                errorSourceMBXY_TI1.Dip = Dip;
-                errorSourceMBXY_TI1.Declination = Declination;
-                errorSourceMBXY_TI1.BField = BField;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMBXY_TI1);
-                ErrorSourceMBXY_TI2 ErrorSourceMBXY_TI2 = new ErrorSourceMBXY_TI2();
-                ErrorSourceMBXY_TI2.Dip = Dip;
-                ErrorSourceMBXY_TI2.Declination = Declination;
-                ErrorSourceMBXY_TI2.BField = BField;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, ErrorSourceMBXY_TI2);
-                ErrorSourceMBZ errorSourceMBZ = new ErrorSourceMBZ();
-                errorSourceMBZ.Dip = Dip;
-                errorSourceMBZ.Declination = Declination;
-                errorSourceMBZ.BField = BField;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMBZ);
-                ErrorSourceMSXY_TI1 errorSourceMSXY_TI1 = new ErrorSourceMSXY_TI1();
-                errorSourceMSXY_TI1.Dip = Dip;
-                errorSourceMSXY_TI1.Declination = Declination;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMSXY_TI1);
-                ErrorSourceMSXY_TI2 errorSourceMSXY_TI2 = new ErrorSourceMSXY_TI2();
-                errorSourceMSXY_TI2.Dip = Dip;
-                errorSourceMSXY_TI2.Declination = Declination;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMSXY_TI2);
-                ErrorSourceMSXY_TI3 errorSourceMSXY_TI3 = new ErrorSourceMSXY_TI3();
-                errorSourceMSXY_TI3.Dip = Dip;
-                errorSourceMSXY_TI3.Declination = Declination;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMSXY_TI3);
-                ErrorSourceMSZ errorSourceMSZ = new ErrorSourceMSZ();
-                errorSourceMSZ.Dip = Dip;
-                errorSourceMSZ.Declination = Declination;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMSZ);
-                ErrorSourceDEC_U errorSourceDEC_U = new ErrorSourceDEC_U();
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDEC_U);
-                ErrorSourceDEC_OS errorSourceDEC_OS = new ErrorSourceDEC_OS();
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDEC_OS);
-                ErrorSourceDEC_OH errorSourceDEC_OH = new ErrorSourceDEC_OH();
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDEC_OH);
-                ErrorSourceDEC_OI errorSourceDEC_OI = new ErrorSourceDEC_OI();
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDEC_OI);
-                ErrorSourceDECR errorSourceDECR = new ErrorSourceDECR();
-                CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceDECR);
-                ErrorSourceDBH_U errorSourceDBH_U = new ErrorSourceDBH_U();
-                errorSourceDBH_U.Dip = Dip;
-                errorSourceDBH_U.BField = BField;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDBH_U);
-                ErrorSourceDBH_OS errorSourceDBH_OS = new ErrorSourceDBH_OS();
-                errorSourceDBH_OS.Dip = Dip;
-                errorSourceDBH_OS.BField = BField;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDBH_OS);
-                ErrorSourceDBH_OH errorSourceDBH_OH = new ErrorSourceDBH_OH();
-                errorSourceDBH_OH.Dip = Dip;
-                errorSourceDBH_OH.BField = BField;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDBH_OH);
-                ErrorSourceDBH_OI errorSourceDBH_OI = new ErrorSourceDBH_OI();
-                errorSourceDBH_OI.Dip = Dip;
-                errorSourceDBH_OI.BField = BField;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDBH_OI);
-                ErrorSourceDBHR errorSourceDBHR = new ErrorSourceDBHR();
-                errorSourceDBHR.Dip = Dip;
-                errorSourceDBHR.BField = BField;
-                CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceDBHR);
-                ErrorSourceAMIL errorSourceAMIL = new ErrorSourceAMIL();
-                errorSourceAMIL.Dip = Dip;
-                errorSourceAMIL.BField = BField;
-                errorSourceAMIL.Declination = Declination;
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceAMIL);
-                ErrorSourceSAGE errorSourceSAGE = new ErrorSourceSAGE();
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceSAGE);
-                ErrorSourceXYM1 errorSourceXYM1 = new ErrorSourceXYM1();
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceXYM1);
-                ErrorSourceXYM2 errorSourceXYM2 = new ErrorSourceXYM2();
-                CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceXYM2);
-                ErrorSourceXYM3E errorSourceXYM3 = new ErrorSourceXYM3E();
-                errorSourceXYM3.Convergence = Convergence;
-                CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceXYM3);
-                ErrorSourceXYM4E errorSourceXYM4 = new ErrorSourceXYM4E();
-                errorSourceXYM4.Convergence = Convergence;
-                CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceXYM4);
-                //ErrorSourceXCL errorSourceXCL = new ErrorSourceXCL();
-                //CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceXCL);
-            }
-
-        }
-        /// <summary>
-        /// Calculate Covariance matrix
+        /// Calculate Covariance matrix for a survey station (ISCWSA MWD Rev 5)
         /// </summary>
         /// <param name="surveyStation"></param>
         /// <param name="previousStation"></param>
         /// <returns></returns>
         public void CalculateCovariance(SurveyStation surveyStation, SurveyStation surveyStationPrev, SurveyStation surveyStationNext, List<ISCWSAErrorData> ISCWSAErrorDataPrev, int c)
         {
-            List<double[,]> drdps = new List<double[,]>();
-            List<double[,]> drdpNexts = new List<double[,]>();
-            ISCWSA_MWDSurveyStationUncertainty iscwsaSurveyStatoinUncertainty = (ISCWSA_MWDSurveyStationUncertainty)surveyStation.Uncertainty;
-
-            if (ErrorSources == null)
+			#region Define error sources
+			if (ErrorSources == null)
             {
+                //Use all error sources
                 ErrorSources = new List<IErrorSource>();
                 if (ErrorIndices == null)
                 {
@@ -344,17 +155,17 @@ namespace NORCE.Drilling.Trajectory
                     ErrorSources.Add(errorSourceDSTG);
                     ErrorSourceABXY_TI1S errorSourceABXY_TI1S = new ErrorSourceABXY_TI1S();
                     errorSourceABXY_TI1S.Dip = Dip;
-                    errorSourceABXY_TI1S.Gravitude = Gravitude;
+                    errorSourceABXY_TI1S.Gravity = Gravity;
                     errorSourceABXY_TI1S.Declination = Declination;
                     ErrorSources.Add(errorSourceABXY_TI1S);
                     ErrorSourceABXY_TI2S errorSourceABXY_TI2S = new ErrorSourceABXY_TI2S();
                     errorSourceABXY_TI2S.Dip = Dip;
-                    errorSourceABXY_TI2S.Gravitude = Gravitude;
+                    errorSourceABXY_TI2S.Gravity = Gravity;
                     errorSourceABXY_TI2S.Declination = Declination;
                     ErrorSources.Add(errorSourceABXY_TI2S);
                     ErrorSourceABZ errorSourceABZ = new ErrorSourceABZ();
                     errorSourceABZ.Dip = Dip;
-                    errorSourceABZ.Gravitude = Gravitude;
+                    errorSourceABZ.Gravity = Gravity;
                     errorSourceABZ.Declination = Declination;
                     ErrorSources.Add(errorSourceABZ);
                     ErrorSourceASXY_TI1S errorSourceASXY_TI1S = new ErrorSourceASXY_TI1S();
@@ -451,9 +262,11 @@ namespace NORCE.Drilling.Trajectory
                     ErrorSourceXYM4E errorSourceXYM4 = new ErrorSourceXYM4E();
                     errorSourceXYM4.Convergence = Convergence;
                     ErrorSources.Add(errorSourceXYM4);
-                    //ErrorSourceXCL errorSourceXCL = new ErrorSourceXCL();
-                    //CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceXCL);}
-                }
+					ErrorSourceXCLA errorSourceXCLA = new ErrorSourceXCLA();
+					ErrorSources.Add(errorSourceXCLA);
+					ErrorSourceXCLH errorSourceXCLH = new ErrorSourceXCLH();
+					ErrorSources.Add(errorSourceXCLH);
+				}
                 else
                 {
                     for (int i = 0; i > ErrorIndices.Length; i++)
@@ -463,148 +276,232 @@ namespace NORCE.Drilling.Trajectory
                             ErrorSourceDRFR errorSourceDRFR = new ErrorSourceDRFR();
                             ErrorSources.Add(errorSourceDRFR);
                         }
-
-                        ErrorSourceDSFS errorSourceDSFS = new ErrorSourceDSFS();
-
-                        ErrorSourceDSTG errorSourceDSTG = new ErrorSourceDSTG();
-
-                        ErrorSourceABXY_TI1S errorSourceABXY_TI1S = new ErrorSourceABXY_TI1S();
-                        errorSourceABXY_TI1S.Dip = Dip;
-                        errorSourceABXY_TI1S.Gravitude = Gravitude;
-                        errorSourceABXY_TI1S.Declination = Declination;
-
-                        ErrorSourceABXY_TI2S errorSourceABXY_TI2S = new ErrorSourceABXY_TI2S();
-                        errorSourceABXY_TI2S.Dip = Dip;
-                        errorSourceABXY_TI2S.Gravitude = Gravitude;
-                        errorSourceABXY_TI2S.Declination = Declination;
-
-                        ErrorSourceABZ errorSourceABZ = new ErrorSourceABZ();
-                        errorSourceABZ.Dip = Dip;
-                        errorSourceABZ.Gravitude = Gravitude;
-                        errorSourceABZ.Declination = Declination;
-
-                        ErrorSourceASXY_TI1S errorSourceASXY_TI1S = new ErrorSourceASXY_TI1S();
-                        errorSourceASXY_TI1S.Dip = Dip;
-                        errorSourceASXY_TI1S.Declination = Declination;
-
-                        ErrorSourceASXY_TI2S errorSourceASXY_TI2S = new ErrorSourceASXY_TI2S();
-                        errorSourceASXY_TI2S.Dip = Dip;
-                        errorSourceASXY_TI2S.Declination = Declination;
-
-                        ErrorSourceASXY_TI3S errorSourceASXY_TI3S = new ErrorSourceASXY_TI3S();
-                        errorSourceASXY_TI3S.Dip = Dip;
-                        errorSourceASXY_TI3S.Declination = Declination;
-
-                        ErrorSourceASZ errorSourceASZ = new ErrorSourceASZ();
-                        errorSourceASZ.Dip = Dip;
-                        errorSourceASZ.Declination = Declination;
-
-                        ErrorSourceMBXY_TI1 errorSourceMBXY_TI1 = new ErrorSourceMBXY_TI1();
-                        errorSourceMBXY_TI1.Dip = Dip;
-                        errorSourceMBXY_TI1.Declination = Declination;
-                        errorSourceMBXY_TI1.BField = BField;
-
-                        ErrorSourceMBXY_TI2 ErrorSourceMBXY_TI2 = new ErrorSourceMBXY_TI2();
-                        ErrorSourceMBXY_TI2.Dip = Dip;
-                        ErrorSourceMBXY_TI2.Declination = Declination;
-                        ErrorSourceMBXY_TI2.BField = BField;
-
-                        ErrorSourceMBZ errorSourceMBZ = new ErrorSourceMBZ();
-                        errorSourceMBZ.Dip = Dip;
-                        errorSourceMBZ.Declination = Declination;
-                        errorSourceMBZ.BField = BField;
-
-                        ErrorSourceMSXY_TI1 errorSourceMSXY_TI1 = new ErrorSourceMSXY_TI1();
-                        errorSourceMSXY_TI1.Dip = Dip;
-                        errorSourceMSXY_TI1.Declination = Declination;
-
-                        ErrorSourceMSXY_TI2 errorSourceMSXY_TI2 = new ErrorSourceMSXY_TI2();
-                        errorSourceMSXY_TI2.Dip = Dip;
-                        errorSourceMSXY_TI2.Declination = Declination;
-
-                        ErrorSourceMSXY_TI3 errorSourceMSXY_TI3 = new ErrorSourceMSXY_TI3();
-                        errorSourceMSXY_TI3.Dip = Dip;
-                        errorSourceMSXY_TI3.Declination = Declination;
-
-                        ErrorSourceMSZ errorSourceMSZ = new ErrorSourceMSZ();
-                        errorSourceMSZ.Dip = Dip;
-                        errorSourceMSZ.Declination = Declination;
-
-                        ErrorSourceDEC_U errorSourceDEC_U = new ErrorSourceDEC_U();
-
-                        ErrorSourceDEC_OS errorSourceDEC_OS = new ErrorSourceDEC_OS();
-
-                        ErrorSourceDEC_OH errorSourceDEC_OH = new ErrorSourceDEC_OH();
-
-                        ErrorSourceDEC_OI errorSourceDEC_OI = new ErrorSourceDEC_OI();
-
-                        ErrorSourceDECR errorSourceDECR = new ErrorSourceDECR();
-
-                        ErrorSourceDBH_U errorSourceDBH_U = new ErrorSourceDBH_U();
-                        errorSourceDBH_U.Dip = Dip;
-                        errorSourceDBH_U.BField = BField;
-
-                        ErrorSourceDBH_OS errorSourceDBH_OS = new ErrorSourceDBH_OS();
-                        errorSourceDBH_OS.Dip = Dip;
-                        errorSourceDBH_OS.BField = BField;
-
-                        ErrorSourceDBH_OH errorSourceDBH_OH = new ErrorSourceDBH_OH();
-                        errorSourceDBH_OH.Dip = Dip;
-                        errorSourceDBH_OH.BField = BField;
-
-                        ErrorSourceDBH_OI errorSourceDBH_OI = new ErrorSourceDBH_OI();
-                        errorSourceDBH_OI.Dip = Dip;
-                        errorSourceDBH_OI.BField = BField;
-
-                        ErrorSourceDBHR errorSourceDBHR = new ErrorSourceDBHR();
-                        errorSourceDBHR.Dip = Dip;
-                        errorSourceDBHR.BField = BField;
-
-                        ErrorSourceAMIL errorSourceAMIL = new ErrorSourceAMIL();
-                        errorSourceAMIL.Dip = Dip;
-                        errorSourceAMIL.BField = BField;
-                        errorSourceAMIL.Declination = Declination;
-
-                        ErrorSourceSAGE errorSourceSAGE = new ErrorSourceSAGE();
-
-                        ErrorSourceXYM1 errorSourceXYM1 = new ErrorSourceXYM1();
-
-                        ErrorSourceXYM2 errorSourceXYM2 = new ErrorSourceXYM2();
-
-                        ErrorSourceXYM3E errorSourceXYM3 = new ErrorSourceXYM3E();
-                        errorSourceXYM3.Convergence = Convergence;
-
-                        ErrorSourceXYM4E errorSourceXYM4 = new ErrorSourceXYM4E();
-                        errorSourceXYM4.Convergence = Convergence;
-
-                        //ErrorSourceXCL errorSourceXCL = new ErrorSourceXCL();
-                        //CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceXCL);
-                    }
-
-                }
-            }
-            if (ISCWSAErrorDataTmp == null)
-            {
-                ISCWSAErrorDataTmp = new List<ISCWSAErrorData>();
-                for (int i = 0; i < ErrorSources.Count; i++)
-                {
-                    ISCWSAErrorDataTmp.Add(new ISCWSAErrorData());
-                    ISCWSAErrorDataTmp[i].SigmaErrorRandom = new double[3, 3];
-                    for (int j = 0; j < ISCWSAErrorDataTmp[i].SigmaErrorRandom.GetLength(0); j++)
-                    {
-                        for (int k = 0; k < ISCWSAErrorDataTmp[i].SigmaErrorRandom.GetLength(1); k++)
+                        if (ErrorIndices[i] == 2)
                         {
-                            ISCWSAErrorDataTmp[i].SigmaErrorRandom[j, k] = 0.0;
+                            ErrorSourceDSFS errorSourceDSFS = new ErrorSourceDSFS();
+                            ErrorSources.Add(errorSourceDSFS);
                         }
-                    }
-                    ISCWSAErrorDataTmp[i].ErrorSum = new double[3];
-                    for (int j = 0; j < 3; j++)
-                    {
-                        ISCWSAErrorDataTmp[i].ErrorSum[j] = 0.0;
+                        if (ErrorIndices[i] == 3)
+                        {
+                            ErrorSourceDSTG errorSourceDSTG = new ErrorSourceDSTG();
+                            ErrorSources.Add(errorSourceDSTG);
+                        }
+                        if (ErrorIndices[i] == 4)
+                        {
+                            ErrorSourceABXY_TI1S errorSourceABXY_TI1S = new ErrorSourceABXY_TI1S();
+                            errorSourceABXY_TI1S.Dip = Dip;
+                            errorSourceABXY_TI1S.Gravity = Gravity;
+                            errorSourceABXY_TI1S.Declination = Declination;
+                            ErrorSources.Add(errorSourceABXY_TI1S);
+                        }
+                        if (ErrorIndices[i] == 5)
+                        {
+                            ErrorSourceABXY_TI2S errorSourceABXY_TI2S = new ErrorSourceABXY_TI2S();
+                            errorSourceABXY_TI2S.Dip = Dip;
+                            errorSourceABXY_TI2S.Gravity = Gravity;
+                            errorSourceABXY_TI2S.Declination = Declination;
+                            ErrorSources.Add(errorSourceABXY_TI2S);
+                        }
+                        if (ErrorIndices[i] == 6)
+                        {
+                            ErrorSourceABZ errorSourceABZ = new ErrorSourceABZ();
+                            errorSourceABZ.Dip = Dip;
+                            errorSourceABZ.Gravity = Gravity;
+                            errorSourceABZ.Declination = Declination;
+                            ErrorSources.Add(errorSourceABZ);
+                        }
+                        if (ErrorIndices[i] == 7)
+                        {
+                            ErrorSourceASXY_TI1S errorSourceASXY_TI1S = new ErrorSourceASXY_TI1S();
+                            errorSourceASXY_TI1S.Dip = Dip;
+                            errorSourceASXY_TI1S.Declination = Declination;
+                            ErrorSources.Add(errorSourceASXY_TI1S);
+                        }
+                        if (ErrorIndices[i] == 8)
+                        {
+                            ErrorSourceASXY_TI2S errorSourceASXY_TI2S = new ErrorSourceASXY_TI2S();
+                            errorSourceASXY_TI2S.Dip = Dip;
+                            errorSourceASXY_TI2S.Declination = Declination;
+                            ErrorSources.Add(errorSourceASXY_TI2S);
+                        }
+                        if (ErrorIndices[i] == 9)
+                        {
+                            ErrorSourceASXY_TI3S errorSourceASXY_TI3S = new ErrorSourceASXY_TI3S();
+                            errorSourceASXY_TI3S.Dip = Dip;
+                            errorSourceASXY_TI3S.Declination = Declination;
+                            ErrorSources.Add(errorSourceASXY_TI3S);
+                        }
+                        if (ErrorIndices[i] == 10)
+                        {
+                            ErrorSourceASZ errorSourceASZ = new ErrorSourceASZ();
+                            errorSourceASZ.Dip = Dip;
+                            errorSourceASZ.Declination = Declination;
+                            ErrorSources.Add(errorSourceASZ);
+                        }
+                        if (ErrorIndices[i] == 11)
+                        {
+                            ErrorSourceMBXY_TI1 errorSourceMBXY_TI1 = new ErrorSourceMBXY_TI1();
+                            errorSourceMBXY_TI1.Dip = Dip;
+                            errorSourceMBXY_TI1.Declination = Declination;
+                            errorSourceMBXY_TI1.BField = BField;
+                            ErrorSources.Add(errorSourceMBXY_TI1);
+                        }
+                        if (ErrorIndices[i] == 12)
+                        {
+                            ErrorSourceMBXY_TI2 ErrorSourceMBXY_TI2 = new ErrorSourceMBXY_TI2();
+                            ErrorSourceMBXY_TI2.Dip = Dip;
+                            ErrorSourceMBXY_TI2.Declination = Declination;
+                            ErrorSourceMBXY_TI2.BField = BField;
+                            ErrorSources.Add(ErrorSourceMBXY_TI2);
+                        }
+                        if (ErrorIndices[i] == 13)
+                        {
+                            ErrorSourceMBZ errorSourceMBZ = new ErrorSourceMBZ();
+                            errorSourceMBZ.Dip = Dip;
+                            errorSourceMBZ.Declination = Declination;
+                            errorSourceMBZ.BField = BField;
+                            ErrorSources.Add(errorSourceMBZ);
+                        }
+                        if (ErrorIndices[i] == 14)
+                        {
+                            ErrorSourceMSXY_TI1 errorSourceMSXY_TI1 = new ErrorSourceMSXY_TI1();
+                            errorSourceMSXY_TI1.Dip = Dip;
+                            errorSourceMSXY_TI1.Declination = Declination;
+                            ErrorSources.Add(errorSourceMSXY_TI1);
+                        }
+                        if (ErrorIndices[i] == 15)
+                        {
+                            ErrorSourceMSXY_TI2 errorSourceMSXY_TI2 = new ErrorSourceMSXY_TI2();
+                            errorSourceMSXY_TI2.Dip = Dip;
+                            errorSourceMSXY_TI2.Declination = Declination;
+                            ErrorSources.Add(errorSourceMSXY_TI2);
+                        }
+                        if (ErrorIndices[i] == 16)
+                        {
+                            ErrorSourceMSXY_TI3 errorSourceMSXY_TI3 = new ErrorSourceMSXY_TI3();
+                            errorSourceMSXY_TI3.Dip = Dip;
+                            errorSourceMSXY_TI3.Declination = Declination;
+                            ErrorSources.Add(errorSourceMSXY_TI3);
+                        }
+                        if (ErrorIndices[i] == 17)
+                        {
+                            ErrorSourceMSZ errorSourceMSZ = new ErrorSourceMSZ();
+                            errorSourceMSZ.Dip = Dip;
+                            errorSourceMSZ.Declination = Declination;
+                            ErrorSources.Add(errorSourceMSZ);
+                        }
+                        if (ErrorIndices[i] == 18)
+                        {
+                            ErrorSourceDEC_U errorSourceDEC_U = new ErrorSourceDEC_U();
+                            ErrorSources.Add(errorSourceDEC_U);
+                        }
+                        if (ErrorIndices[i] == 19)
+                        {
+                            ErrorSourceDEC_OS errorSourceDEC_OS = new ErrorSourceDEC_OS();
+                            ErrorSources.Add(errorSourceDEC_OS);
+                        }
+                        if (ErrorIndices[i] == 20)
+                        {
+                            ErrorSourceDEC_OH errorSourceDEC_OH = new ErrorSourceDEC_OH();
+                            ErrorSources.Add(errorSourceDEC_OH);
+                        }
+                        if (ErrorIndices[i] == 21)
+                        {
+                            ErrorSourceDEC_OI errorSourceDEC_OI = new ErrorSourceDEC_OI();
+                            ErrorSources.Add(errorSourceDEC_OI);
+                        }
+                        if (ErrorIndices[i] == 22)
+                        {
+                            ErrorSourceDECR errorSourceDECR = new ErrorSourceDECR();
+                            ErrorSources.Add(errorSourceDECR);
+                        }
+                        if (ErrorIndices[i] == 23)
+                        {
+                            ErrorSourceDBH_U errorSourceDBH_U = new ErrorSourceDBH_U();
+                            errorSourceDBH_U.Dip = Dip;
+                            errorSourceDBH_U.BField = BField;
+                            ErrorSources.Add(errorSourceDBH_U);
+                        }
+                        if (ErrorIndices[i] == 24)
+                        {
+                            ErrorSourceDBH_OS errorSourceDBH_OS = new ErrorSourceDBH_OS();
+                            errorSourceDBH_OS.Dip = Dip;
+                            errorSourceDBH_OS.BField = BField;
+                            ErrorSources.Add(errorSourceDBH_OS);
+                        }
+                        if (ErrorIndices[i] == 25)
+                        {
+                            ErrorSourceDBH_OH errorSourceDBH_OH = new ErrorSourceDBH_OH();
+                            errorSourceDBH_OH.Dip = Dip;
+                            errorSourceDBH_OH.BField = BField;
+                            ErrorSources.Add(errorSourceDBH_OH);
+                        }
+                        if (ErrorIndices[i] == 26)
+                        {
+                            ErrorSourceDBH_OI errorSourceDBH_OI = new ErrorSourceDBH_OI();
+                            errorSourceDBH_OI.Dip = Dip;
+                            errorSourceDBH_OI.BField = BField;
+                            ErrorSources.Add(errorSourceDBH_OI);
+                        }
+                        if (ErrorIndices[i] == 27)
+                        {
+                            ErrorSourceDBHR errorSourceDBHR = new ErrorSourceDBHR();
+                            errorSourceDBHR.Dip = Dip;
+                            errorSourceDBHR.BField = BField;
+                            ErrorSources.Add(errorSourceDBHR);
+                        }
+                        if (ErrorIndices[i] == 28)
+                        {
+                            ErrorSourceAMIL errorSourceAMIL = new ErrorSourceAMIL();
+                            errorSourceAMIL.Dip = Dip;
+                            errorSourceAMIL.BField = BField;
+                            errorSourceAMIL.Declination = Declination;
+                            ErrorSources.Add(errorSourceAMIL);
+                        }
+                        if (ErrorIndices[i] == 29)
+                        {
+                            ErrorSourceSAGE errorSourceSAGE = new ErrorSourceSAGE();
+                            ErrorSources.Add(errorSourceSAGE);
+                        }
+                        if (ErrorIndices[i] == 30)
+                        {
+                            ErrorSourceXYM1 errorSourceXYM1 = new ErrorSourceXYM1();
+                            ErrorSources.Add(errorSourceXYM1);
+                        }
+                        if (ErrorIndices[i] == 31)
+                        {
+                            ErrorSourceXYM2 errorSourceXYM2 = new ErrorSourceXYM2();
+                            ErrorSources.Add(errorSourceXYM2);
+                        }
+                        if (ErrorIndices[i] == 32)
+                        {
+                            ErrorSourceXYM3E errorSourceXYM3 = new ErrorSourceXYM3E();
+                            errorSourceXYM3.Convergence = Convergence;
+                            ErrorSources.Add(errorSourceXYM3);
+                        }
+                        if (ErrorIndices[i] == 33)
+                        {
+                            ErrorSourceXYM4E errorSourceXYM4 = new ErrorSourceXYM4E();
+                            errorSourceXYM4.Convergence = Convergence;
+                            ErrorSources.Add(errorSourceXYM4);
+                        }
+                        if (ErrorIndices[i] == 34)
+                        {
+                            ErrorSourceXCLA errorSourceXCLA = new ErrorSourceXCLA();
+                            ErrorSources.Add(errorSourceXCLA);
+                        }
+                        if (ErrorIndices[i] == 35)
+                        {
+                            ErrorSourceXCLH errorSourceXCLH = new ErrorSourceXCLH();
+                            ErrorSources.Add(errorSourceXCLH);
+                        }
+
                     }
                 }
             }
-            if (ISCWSAErrorDataPrev == null || ISCWSAErrorDataPrev.Count==0)
+            #endregion
+            #region Calculations from previous survey station are used
+            if (ISCWSAErrorDataPrev == null || ISCWSAErrorDataPrev.Count == 0)
             {
                 ISCWSAErrorDataPrev = new List<ISCWSAErrorData>();
                 for (int i = 0; i < ErrorSources.Count; i++)
@@ -626,7 +523,8 @@ namespace NORCE.Drilling.Trajectory
                 }
             }
             ISCWSAErrorDataTmp = ISCWSAErrorDataPrev;
-
+            #endregion
+            #region The effect on the borehole positions of changes in the survey measurement vector
             double[,] drdp = new double[3, 3];
             if (c == 0)
             {
@@ -642,33 +540,21 @@ namespace NORCE.Drilling.Trajectory
             {
                 drdp = CalculateDisplacementMatrix(surveyStation, surveyStationPrev, c);
             }
-
             double[,] drdpNext = new double[3, 3];
-
             drdpNext = CalculateDisplacemenNexttMatrix(surveyStation, surveyStationNext, c);
-
-
-
-            for (int j = 0; j < 3; j++)
+			#endregion
+			#region Covariance calculation
+			for (int j = 0; j < 3; j++)
             {
                 for (int k = 0; k < 3; k++)
                 {
                     Covariance[j, k] = 0.0;
                 }
             }
-
-
-            if (ErrorIndices != null)
-            {
-
-            }
-            else
-            {
-                CalculateAllCovariance(surveyStation, surveyStationPrev, surveyStationNext, drdp, drdpNext, ErrorSources, null, c);
-
-            }
-
+            CalculateAllCovariance(surveyStation, surveyStationPrev, surveyStationNext, drdp, drdpNext, ErrorSources, null, c);
+            #endregion
         }
+        
         /// <summary>
         /// Effect of the errors in the survey measurements at station k, on the position vector from survey station k-1 to survey station k
         /// </summary>
@@ -786,7 +672,7 @@ namespace NORCE.Drilling.Trajectory
             return A;
         }
         /// <summary>
-        /// Error due to the DRFR error source at the kth survey station in the lth survey leg
+        /// Calculate Total Covariance matrix for all error sources for a survey station
         /// </summary>
         /// <param name="surveyStation"></param>
         /// <param name="nextStation"></param>
@@ -838,7 +724,52 @@ namespace NORCE.Drilling.Trajectory
                 }
                 else
                 {
-                    if (errorSources[i].SingularIssues && singular)
+                    if(errorSources[i] is ErrorSourceXCLA)
+					{
+                        double azT = (double)surveyStation.Az + Convergence;
+                        double azTPrev = (double)surveyStationPrev.Az + Convergence;
+                        double mod = (azT - azTPrev + Math.PI) % (2 * Math.PI);
+                        double val1 = mod - Math.PI;
+                        double val2 = 0;
+                        if(surveyStationPrev.Incl >= 0.0001 * Math.PI / 180.0)
+						{
+                            val2 = val1;
+						}
+                        double val3 = Math.Abs(Math.Sin((double)surveyStation.Incl)*val2);
+                        double defaultTortuosity = 0.000572615; //[rad/m]
+                        double val4 = Math.Max(val3, defaultTortuosity * (surveyStation.MD - surveyStationPrev.MD));
+                        double val5 = magnitude * (surveyStation.MD - surveyStationPrev.MD) * val4;
+                        e[0] = val5 * (-Math.Sin(azT)); 
+                        e[1] = val5 * (Math.Cos(azT));
+                        e[2] = 0.0;
+                        eStar[0] = e[0];
+                        eStar[1] = e[1];
+                        eStar[2] = e[2];
+                    }
+                    else if (errorSources[i] is ErrorSourceXCLH)
+                    {
+                        double azT = (double)surveyStation.Az + Convergence;
+                        double azTPrev = (double)surveyStationPrev.Az + Convergence;
+                        //=Model!$W$37*(Wellpath!$K4-Wellpath!$K3)*MAX(ABS(Wellpath!$L4-Wellpath!$L3);Model!$B$24*(Wellpath!$K4-Wellpath!$K3))*COS(Wellpath!$L4)*COS(Wellpath!$M4)
+                        double mod = (azT - azTPrev + Math.PI) % (2 * Math.PI);
+                        double val1 = mod - Math.PI;
+                        double val2 = 0;
+                        if (surveyStationPrev.Incl >= 0.0001 * Math.PI / 180.0)
+                        {
+                            val2 = val1;
+                        }
+                        double val3 = Math.Abs((double)surveyStation.Incl- (double)surveyStationPrev.Incl);
+                        double defaultTortuosity = 0.000572615; //[rad/m]
+                        double val4 = Math.Max(val3, defaultTortuosity * (surveyStation.MD - surveyStationPrev.MD));
+                        double val5 = magnitude * (surveyStation.MD - surveyStationPrev.MD) * val4;
+                        e[0] = val5 * Math.Cos((double)surveyStation.Incl) * Math.Cos(azT);
+                        e[1] = val5 * Math.Cos((double)surveyStation.Incl) * Math.Sin(azT);
+                        e[2] = val5 * (-Math.Sin((double)surveyStation.Incl));
+                        eStar[0] = e[0];
+                        eStar[1] = e[1];
+                        eStar[2] = e[2];
+                    }
+                    else if (errorSources[i].SingularIssues && singular)
                     {
                         if (c == 1)
                         {
@@ -960,439 +891,630 @@ namespace NORCE.Drilling.Trajectory
             }
             return ISCWSAErrorDataTmp;
         }
-        /// <summary>
-        /// Error due to the DRFR error source at the kth survey station in the lth survey leg
-        /// </summary>
-        /// <param name="surveyStation"></param>
-        /// <param name="nextStation"></param>
-        /// <returns></returns>
-        public double[,] CalculateRandomCovariance(SurveyList surveyStations, List<double[,]> drdps, List<double[,]> drdpNexts, IErrorSource errorSource)
-        {
-            //ref https://www.iscwsa.net/error-model-documentation/
-            double[,] sigmaerandom = new double[3, 3];
 
-            for (int i = 0; i < sigmaerandom.GetLength(0); i++)
-            {
-                for (int j = 0; j < sigmaerandom.GetLength(1); j++)
-                {
-                    sigmaerandom[i, j] = 0.0;
-                }
-            }
-
-            for (int i = 0; i < surveyStations.Count; i++)
-            {
-                bool singular = false;
-                SurveyStation surveyStation = surveyStations[i];
-                double[,] drdp = drdps[i];
-                double[,] drdpNext = drdpNexts[i];
-                double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
-                double? depth = errorSource.FunctionDepth(surveyStation.MD, (double)surveyStation.Z); //Depth
-                dpde[0] = (double)depth;
-                double? inclination = errorSource.FunctionInc((double)surveyStation.Incl, (double)surveyStation.Az); //Inclination
-                dpde[1] = (double)inclination;
-                double? azimuth = errorSource.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
-                if (azimuth != null)
-                {
-                    dpde[2] = (double)azimuth;
-                }
-                double magnitude = errorSource.Magnitude;
-                if (errorSource.SingularIssues && (depth == null || inclination == null || azimuth == null))
-                {
-                    singular = true;
-                }
-                double[] e = new double[3]; //the error due to the ith error source at the kth survey station in the lth survey leg
-                double[] eStar = new double[3]; //the error due to the ith error source at the kth survey stations in the lth survey leg, where k is the last survey of interest
-                if (i == 0)
-                {
-                    e[0] = 0;
-                    e[1] = 0;
-                    e[2] = 0;
-                    eStar[0] = 0;
-                    eStar[1] = 0;
-                    eStar[2] = 0;
-                }
-                else
-                {
-                    if (errorSource.SingularIssues && singular)
-                    {
-                        if (i == 1)
-                        {
-                            e[0] = magnitude * (surveyStations[i + 1].MD + surveyStations[i].MD - 2 * surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-                            e[1] = magnitude * (surveyStations[i + 1].MD + surveyStations[i].MD - 2 * surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-                            e[2] = 0.0;
-                            eStar[0] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-                            eStar[1] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-                            eStar[2] = 0.0;
-                        }
-                        else
-                        {
-                            e[0] = magnitude * (surveyStations[i + 1].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-                            e[1] = magnitude * (surveyStations[i + 1].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-                            e[2] = 0.0;
-                            eStar[0] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-                            eStar[1] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-                            eStar[2] = 0.0;
-                        }
-                    }
-                    else
-                    {
-                        e[0] = magnitude * ((drdp[0, 0] + drdpNext[0, 0]) * dpde[0] + (drdp[0, 1] + drdpNext[0, 1]) * dpde[1] + (drdp[0, 2] + drdpNext[0, 2]) * dpde[2]);
-                        e[1] = magnitude * ((drdp[1, 0] + drdpNext[1, 0]) * dpde[0] + (drdp[1, 1] + drdpNext[1, 1]) * dpde[1] + (drdp[1, 2] + drdpNext[1, 2]) * dpde[2]);
-                        e[2] = magnitude * ((drdp[2, 0] + drdpNext[2, 0]) * dpde[0] + (drdp[2, 1] + drdpNext[2, 1]) * dpde[1] + (drdp[2, 2] + drdpNext[2, 2]) * dpde[2]);
-                        eStar[0] = magnitude * ((drdp[0, 0]) * dpde[0] + (drdp[0, 1]) * dpde[1] + (drdp[0, 2]) * dpde[2]);
-                        eStar[1] = magnitude * ((drdp[1, 0]) * dpde[0] + (drdp[1, 1]) * dpde[1] + (drdp[1, 2]) * dpde[2]);
-                        eStar[2] = magnitude * ((drdp[2, 0]) * dpde[0] + (drdp[2, 1]) * dpde[1] + (drdp[2, 2]) * dpde[2]);
-                    }
-                }
-
-                double[,] CovarianceRan = new double[3, 3];
-                if (i == 0)
-                {
-                    CovarianceRan[0, 0] = eStar[0] * eStar[0];
-                    CovarianceRan[1, 1] = eStar[1] * eStar[1];
-                    CovarianceRan[2, 2] = eStar[2] * eStar[2];
-                    CovarianceRan[1, 0] = eStar[0] * eStar[1];
-                    CovarianceRan[0, 1] = CovarianceRan[1, 0];
-                    CovarianceRan[2, 0] = eStar[0] * eStar[2];
-                    CovarianceRan[0, 2] = CovarianceRan[2, 0];
-                    CovarianceRan[1, 2] = eStar[1] * eStar[2];
-                    CovarianceRan[2, 1] = CovarianceRan[2, 1];
-                }
-                else
-                {
-                    CovarianceRan[0, 0] = sigmaerandom[0, 0] + eStar[0] * eStar[0];
-                    CovarianceRan[1, 1] = sigmaerandom[1, 1] + eStar[1] * eStar[1];
-                    CovarianceRan[2, 2] = sigmaerandom[2, 2] + eStar[2] * eStar[2];
-                    CovarianceRan[1, 0] = eStar[0] * eStar[1] + sigmaerandom[1, 0];
-                    CovarianceRan[0, 1] = CovarianceRan[1, 0];
-                    CovarianceRan[2, 0] = eStar[0] * eStar[2] + sigmaerandom[2, 0];
-                    CovarianceRan[0, 2] = CovarianceRan[2, 0];
-                    CovarianceRan[1, 2] = eStar[1] * eStar[2] + sigmaerandom[1, 2];
-                    CovarianceRan[2, 1] = CovarianceRan[1, 2];
-                }
-                for (int j = 0; j < 3; j++)
-                {
-                    for (int k = 0; k < 3; k++)
-                    {
-                        surveyStations[i].Uncertainty.Covariance[j, k] += CovarianceRan[j, k];
-                    }
-                }
-                sigmaerandom[0, 0] = e[0] * e[0] + sigmaerandom[0, 0];
-                sigmaerandom[1, 1] = e[1] * e[1] + sigmaerandom[1, 1];
-                sigmaerandom[2, 2] = e[2] * e[2] + sigmaerandom[2, 2];
-                sigmaerandom[1, 0] = e[0] * e[1] + sigmaerandom[1, 0];
-                sigmaerandom[0, 1] = sigmaerandom[1, 0];
-                sigmaerandom[2, 0] = e[0] * e[2] + sigmaerandom[2, 0];
-                sigmaerandom[0, 2] = sigmaerandom[2, 0];
-                sigmaerandom[1, 2] = e[1] * e[2] + sigmaerandom[1, 2];
-                sigmaerandom[2, 1] = sigmaerandom[1, 2];
-
-            }
-            return null;
-        }
-
-        /// <summary>
-        /// Error due to the Systematic error source at the kth survey station in the lth survey leg
-        /// </summary>
-        /// <param name="surveyStation"></param>
-        /// <param name="nextStation"></param>
-        /// <returns></returns>
-        public double[,] CalculateSystematicCovariance(SurveyList surveyStations, List<double[,]> drdps, List<double[,]> drdpNexts, IErrorSource errorSource)
-        {
-            //ref https://www.iscwsa.net/error-model-documentation/
-            List<double[]> eAll = new List<double[]>();
-            List<double[]> eStarAll = new List<double[]>();
-            double eNSum = 0.0;
-            double eESum = 0.0;
-            double eVSum = 0.0;
-            for (int i = 0; i < surveyStations.Count; i++)
-            {
-                bool singular = false;
-                double[] sigmaesystematic = new double[3];
-                SurveyStation surveyStation = surveyStations[i];
-                double[,] drdp = drdps[i];
-                double[,] drdpNext = drdpNexts[i];
-                double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
-                double? depth = errorSource.FunctionDepth(surveyStation.MD, (double)surveyStation.Z); //Depth
-                dpde[0] = (double)depth;
-                double? inclination = errorSource.FunctionInc((double)surveyStation.Incl, (double)surveyStation.Az); //Inclination
-                dpde[1] = (double)inclination;
-                double? azimuth = errorSource.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
-                if (azimuth != null)
-                {
-                    dpde[2] = (double)azimuth;
-                }
-                double magnitude = errorSource.Magnitude;// (double)surveyInstrument.MSZ;
-                if (errorSource.SingularIssues && (depth == null || inclination == null || azimuth == null))
-                {
-                    singular = true;
-                }
-                double[] e = new double[3]; //the error due to the ith error source at the kth survey station in the lth survey leg
-                double[] eStar = new double[3]; //the error due to the ith error source at the kth survey stations in the lth survey leg, where k is the last survey of interest
-                if (i == 0)
-                {
-                    e[0] = 0;
-                    e[1] = 0;
-                    e[2] = 0;
-                    eStar[0] = 0;
-                    eStar[1] = 0;
-                    eStar[2] = 0;
-                }
-                else
-                {
-                    if (errorSource.SingularIssues && singular)
-                    {
-                        if (i == 1)
-                        {
-                            e[0] = magnitude * (surveyStations[i + 1].MD + surveyStations[i].MD - 2 * surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-                            e[1] = magnitude * (surveyStations[i + 1].MD + surveyStations[i].MD - 2 * surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-                            e[2] = 0.0;
-                            eStar[0] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-                            eStar[1] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-                            eStar[2] = 0.0;
-                        }
-                        else
-                        {
-                            e[0] = magnitude * (surveyStations[i + 1].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-                            e[1] = magnitude * (surveyStations[i + 1].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-                            e[2] = 0.0;
-                            eStar[0] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-                            eStar[1] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-                            eStar[2] = 0.0;
-                        }
-                    }
-                    else
-                    {
-                        e[0] = magnitude * ((drdp[0, 0] + drdpNext[0, 0]) * dpde[0] + (drdp[0, 1] + drdpNext[0, 1]) * dpde[1] + (drdp[0, 2] + drdpNext[0, 2]) * dpde[2]);
-                        e[1] = magnitude * ((drdp[1, 0] + drdpNext[1, 0]) * dpde[0] + (drdp[1, 1] + drdpNext[1, 1]) * dpde[1] + (drdp[1, 2] + drdpNext[1, 2]) * dpde[2]);
-                        e[2] = magnitude * ((drdp[2, 0] + drdpNext[2, 0]) * dpde[0] + (drdp[2, 1] + drdpNext[2, 1]) * dpde[1] + (drdp[2, 2] + drdpNext[2, 2]) * dpde[2]);
-                        eStar[0] = magnitude * ((drdp[0, 0]) * dpde[0] + (drdp[0, 1]) * dpde[1] + (drdp[0, 2]) * dpde[2]);
-                        eStar[1] = magnitude * ((drdp[1, 0]) * dpde[0] + (drdp[1, 1]) * dpde[1] + (drdp[1, 2]) * dpde[2]);
-                        eStar[2] = magnitude * ((drdp[2, 0]) * dpde[0] + (drdp[2, 1]) * dpde[1] + (drdp[2, 2]) * dpde[2]);
-                    }
-
-                }
-
-                sigmaesystematic[0] = eNSum + eStar[0];
-                sigmaesystematic[1] = eESum + eStar[1];
-                sigmaesystematic[2] = eVSum + eStar[2];
-
-                double[,] CovarianceSys = new double[3, 3];
-                if (i == 0)
-                {
-                    CovarianceSys[0, 0] = eStar[0] * eStar[0];
-                    CovarianceSys[1, 1] = eStar[1] * eStar[1];
-                    CovarianceSys[2, 2] = eStar[2] * eStar[2];
-                    CovarianceSys[1, 0] = eStar[0] * eStar[1];
-                    CovarianceSys[0, 1] = CovarianceSys[1, 0];
-                    CovarianceSys[2, 0] = eStar[0] * eStar[2];
-                    CovarianceSys[0, 2] = CovarianceSys[2, 0];
-                    CovarianceSys[1, 2] = eStar[1] * eStar[2];
-                    CovarianceSys[2, 1] = CovarianceSys[2, 1];
-                }
-                else
-                {
-                    CovarianceSys[0, 0] = sigmaesystematic[0] * sigmaesystematic[0];
-                    CovarianceSys[1, 1] = sigmaesystematic[1] * sigmaesystematic[1];
-                    CovarianceSys[2, 2] = sigmaesystematic[2] * sigmaesystematic[2];
-                    CovarianceSys[1, 0] = sigmaesystematic[1] * sigmaesystematic[0];
-                    CovarianceSys[0, 1] = CovarianceSys[1, 0];
-                    CovarianceSys[2, 0] = sigmaesystematic[2] * sigmaesystematic[0];
-                    CovarianceSys[0, 2] = CovarianceSys[2, 0];
-                    CovarianceSys[1, 2] = sigmaesystematic[1] * sigmaesystematic[2];
-                    CovarianceSys[2, 1] = CovarianceSys[1, 2];
-                }
-                for (int j = 0; j < 3; j++)
-                {
-                    for (int k = 0; k < 3; k++)
-                    {
-                        Covariance[j, k] += CovarianceSys[j, k];
-                    }
-                }
-                eAll.Add(e);
-                eStarAll.Add(eStar);
-                eNSum += e[0];
-                eESum += e[1];
-                eVSum += e[2];
-            }
-            return null;
-        }
-        /// <summary>
-        /// Error due to the DRFR error source at the kth survey station in the lth survey leg
-        /// </summary>
-        /// <param name="surveyStation"></param>
-        /// <param name="nextStation"></param>
-        /// <returns></returns>
-        public double[,] CalculateCovarianceDRFR(double[,] drdp, double[,] drdpNext, SurveyInstrument.Model.SurveyInstrument surveyInstrument, double[,] sigmaerandom, int st)
-        {
-            //ref https://www.iscwsa.net/error-model-documentation/
-            double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
-            dpde[0] = 1; //Depth
-            dpde[1] = 0; //Inclination
-            dpde[2] = 0; //Azimuth
-            double magnitude = (double)surveyInstrument.DRFR;
-            double[] e = new double[3]; //the error due to the ith error source at the kth survey station in the lth survey leg
-            double[] eStar = new double[3]; //the error due to the ith error source at the kth survey stations in the lth survey leg, where k is the last survey of interest
-            if (st == 0)
-            {
-                e[0] = 0;
-                e[1] = 0;
-                e[2] = 0;
-                eStar[0] = 0;
-                eStar[1] = 0;
-                eStar[2] = 0;
-            }
-            else
-            {
-                e[0] = magnitude * ((drdp[0, 0] + drdpNext[0, 0]) * dpde[0] + (drdp[0, 1] + drdpNext[0, 1]) * dpde[1] + (drdp[0, 2] + drdpNext[0, 2]) * dpde[2]);
-                e[1] = magnitude * ((drdp[1, 0] + drdpNext[1, 0]) * dpde[0] + (drdp[1, 1] + drdpNext[1, 1]) * dpde[1] + (drdp[1, 2] + drdpNext[1, 2]) * dpde[2]);
-                e[2] = magnitude * ((drdp[2, 0] + drdpNext[2, 0]) * dpde[0] + (drdp[2, 1] + drdpNext[2, 1]) * dpde[1] + (drdp[2, 2] + drdpNext[2, 2]) * dpde[2]);
-                eStar[0] = magnitude * ((drdp[0, 0]) * dpde[0] + (drdp[0, 1]) * dpde[1] + (drdp[0, 2]) * dpde[2]);
-                eStar[1] = magnitude * ((drdp[1, 0]) * dpde[0] + (drdp[1, 1]) * dpde[1] + (drdp[1, 2]) * dpde[2]);
-                eStar[2] = magnitude * ((drdp[2, 0]) * dpde[0] + (drdp[2, 1]) * dpde[1] + (drdp[2, 2]) * dpde[2]);
-            }
+        #region Not in use
+        ///// <summary>
+        ///// Calculate Covariance matrix
+        ///// </summary>
+        ///// <param name="surveyStation"></param>
+        ///// <param name="previousStation"></param>
+        ///// <returns></returns>
+        //public void CalculateCovariances(SurveyList surveyList)
+        //{
+        //    List<double[,]> drdps = new List<double[,]>();
+        //    List<double[,]> drdpNexts = new List<double[,]>();
+        //    ISCWSA_MWDSurveyStationUncertainty iscwsaSurveyStatoinUncertainty = (ISCWSA_MWDSurveyStationUncertainty)surveyList[0].Uncertainty;
+        //    if (surveyList.Count > 1)
+        //    {
+        //        for (int i = 0; i < surveyList.Count; i++)
+        //        {
 
 
-            double[,] CovarianceDRFR = new double[3, 3];
-            if (st == 0)
-            {
-                CovarianceDRFR[0, 0] = eStar[0] * eStar[0];
-                CovarianceDRFR[1, 1] = eStar[1] * eStar[1];
-                CovarianceDRFR[2, 2] = eStar[2] * eStar[2];
-                CovarianceDRFR[1, 0] = eStar[0] * eStar[1];
-                CovarianceDRFR[0, 1] = CovarianceDRFR[1, 0];
-                CovarianceDRFR[2, 0] = eStar[0] * eStar[2];
-                CovarianceDRFR[0, 2] = CovarianceDRFR[2, 0];
-                CovarianceDRFR[1, 2] = eStar[1] * eStar[2];
-                CovarianceDRFR[2, 1] = CovarianceDRFR[2, 1];
-            }
-            else
-            {
-                CovarianceDRFR[0, 0] = sigmaerandom[0, 0] + eStar[0] * eStar[0];
-                CovarianceDRFR[1, 1] = sigmaerandom[1, 1] + eStar[1] * eStar[1];
-                CovarianceDRFR[2, 2] = sigmaerandom[2, 2] + eStar[2] * eStar[2];
-                CovarianceDRFR[1, 0] = eStar[0] * eStar[1] + sigmaerandom[1, 0];
-                CovarianceDRFR[0, 1] = CovarianceDRFR[1, 0];
-                CovarianceDRFR[2, 0] = eStar[0] * eStar[2] + sigmaerandom[2, 0];
-                CovarianceDRFR[0, 2] = CovarianceDRFR[2, 0];
-                CovarianceDRFR[1, 2] = eStar[1] * eStar[2] + sigmaerandom[1, 2];
-                CovarianceDRFR[2, 1] = CovarianceDRFR[1, 2];
-            }
-            for (int j = 0; j < 3; j++)
-            {
-                for (int k = 0; k < 3; k++)
-                {
-                    Covariance[j, k] += CovarianceDRFR[j, k];
-                }
-            }
-            sigmaerandom[0, 0] = e[0] * e[0] + sigmaerandom[0, 0];
-            sigmaerandom[1, 1] = e[1] * e[1] + sigmaerandom[1, 1];
-            sigmaerandom[2, 2] = e[2] * e[2] + sigmaerandom[2, 2];
-            sigmaerandom[1, 0] = e[0] * e[1] + sigmaerandom[1, 0];
-            sigmaerandom[0, 1] = sigmaerandom[1, 0];
-            sigmaerandom[2, 0] = e[0] * e[2] + sigmaerandom[2, 0];
-            sigmaerandom[0, 2] = sigmaerandom[2, 0];
-            sigmaerandom[1, 2] = e[1] * e[2] + sigmaerandom[1, 2];
-            sigmaerandom[2, 1] = sigmaerandom[1, 2];
 
-            return sigmaerandom;
-        }
-        /// <summary>
-        /// Error due to the MWD: Z-Magnetometer Scale Factor error source at the kth survey station in the lth survey leg
-        /// </summary>
-        /// <param name="surveyStation"></param>
-        /// <param name="nextStation"></param>
-        /// <returns></returns>
-        public double[,] CalculateCovarianceMSZ(SurveyList surveyStations, List<double[,]> drdps, List<double[,]> drdpNexts, SurveyInstrument.Model.SurveyInstrument surveyInstrument)
-        {
-            //ref https://www.iscwsa.net/error-model-documentation/
-            List<double[]> eAll = new List<double[]>();
-            List<double[]> eStarAll = new List<double[]>();
-            double eNSum = 0.0;
-            double eESum = 0.0;
-            double eVSum = 0.0;
-            for (int i = 0; i < surveyStations.Count; i++)
-            {
-                double[] sigmaesystematic = new double[3];
-                SurveyStation surveyStation = surveyStations[i];
-                double[,] drdp = drdps[i];
-                double[,] drdpNext = drdpNexts[i];
-                double sinI = System.Math.Sin((double)surveyStation.Incl);
-                double cosI = System.Math.Cos((double)surveyStation.Incl);
-                double sinAm = System.Math.Sin((double)surveyStation.Az - Declination);
-                double cosAm = System.Math.Cos((double)surveyStation.Az - Declination);
-                double tanDip = System.Math.Tan(Dip);
-                double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
-                dpde[0] = 0; //Depth
-                dpde[1] = 0; //Inclination
-                dpde[2] = -(sinI * cosAm + tanDip * cosI) * sinI * sinAm; //Azimuth
-                double magnitude = (double)surveyInstrument.MSZ;
-                double[] e = new double[3]; //the error due to the ith error source at the kth survey station in the lth survey leg
-                double[] eStar = new double[3]; //the error due to the ith error source at the kth survey stations in the lth survey leg, where k is the last survey of interest
-                if (i == 0)
-                {
-                    e[0] = 0;
-                    e[1] = 0;
-                    e[2] = 0;
-                    eStar[0] = 0;
-                    eStar[1] = 0;
-                    eStar[2] = 0;
-                }
-                else
-                {
-                    e[0] = magnitude * ((drdp[0, 0] + drdpNext[0, 0]) * dpde[0] + (drdp[0, 1] + drdpNext[0, 1]) * dpde[1] + (drdp[0, 2] + drdpNext[0, 2]) * dpde[2]);
-                    e[1] = magnitude * ((drdp[1, 0] + drdpNext[1, 0]) * dpde[0] + (drdp[1, 1] + drdpNext[1, 1]) * dpde[1] + (drdp[1, 2] + drdpNext[1, 2]) * dpde[2]);
-                    e[2] = magnitude * ((drdp[2, 0] + drdpNext[2, 0]) * dpde[0] + (drdp[2, 1] + drdpNext[2, 1]) * dpde[1] + (drdp[2, 2] + drdpNext[2, 2]) * dpde[2]);
-                    eStar[0] = magnitude * ((drdp[0, 0]) * dpde[0] + (drdp[0, 1]) * dpde[1] + (drdp[0, 2]) * dpde[2]);
-                    eStar[1] = magnitude * ((drdp[1, 0]) * dpde[0] + (drdp[1, 1]) * dpde[1] + (drdp[1, 2]) * dpde[2]);
-                    eStar[2] = magnitude * ((drdp[2, 0]) * dpde[0] + (drdp[2, 1]) * dpde[1] + (drdp[2, 2]) * dpde[2]);
-                }
+        //            double[,] drdp = new double[3, 3];
+        //            if (i == 0)
+        //            {
+        //                for (int j = 0; j < 3; j++)
+        //                {
+        //                    for (int k = 0; k < 3; k++)
+        //                    {
+        //                        drdp[j, k] = 0.0;
+        //                    }
+        //                }
+        //            }
+        //            else
+        //            {
+        //                drdp = CalculateDisplacementMatrix(surveyList[i], surveyList[i - 1], i);
+        //            }
+        //            drdps.Add(drdp);
+        //            double[,] drdpNext = new double[3, 3];
+        //            if (i < surveyList.Count - 1)
+        //            {
+        //                drdpNext = CalculateDisplacemenNexttMatrix(surveyList[i], surveyList[i + 1], i);
+        //            }
+        //            else
+        //            {
+        //                SurveyStation surveySt = new SurveyStation();
+        //                surveySt.X = 0.0;
+        //                surveySt.Y = 0.0;
+        //                surveySt.Incl = 0.0;
+        //                surveySt.Az = 0.0;
+        //                drdpNext = CalculateDisplacemenNexttMatrix(surveyList[i], surveySt, i);
+        //            }
+        //            drdpNexts.Add(drdpNext);
+        //        }
+        //    }
+        //    for (int i = 0; i < surveyList.Count; i++)
+        //    {
+        //        for (int j = 0; j < 3; j++)
+        //        {
+        //            for (int k = 0; k < 3; k++)
+        //            {
+        //                surveyList[i].Uncertainty.Covariance[j, k] = 0.0;
+        //            }
+        //        }
+        //    }
 
-                sigmaesystematic[0] = eNSum + eStar[0];
-                sigmaesystematic[1] = eESum + eStar[1];
-                sigmaesystematic[2] = eVSum + eStar[2];
+        //    if (ErrorIndices != null)
+        //    {
 
-                double[,] CovarianceMSZ = new double[3, 3];
-                if (i == 0)
-                {
-                    CovarianceMSZ[0, 0] = eStar[0] * eStar[0];
-                    CovarianceMSZ[1, 1] = eStar[1] * eStar[1];
-                    CovarianceMSZ[2, 2] = eStar[2] * eStar[2];
-                    CovarianceMSZ[1, 0] = eStar[0] * eStar[1];
-                    CovarianceMSZ[0, 1] = CovarianceMSZ[1, 0];
-                    CovarianceMSZ[2, 0] = eStar[0] * eStar[2];
-                    CovarianceMSZ[0, 2] = CovarianceMSZ[2, 0];
-                    CovarianceMSZ[1, 2] = eStar[1] * eStar[2];
-                    CovarianceMSZ[2, 1] = CovarianceMSZ[2, 1];
-                }
-                else
-                {
-                    CovarianceMSZ[0, 0] = sigmaesystematic[0] * sigmaesystematic[0];
-                    CovarianceMSZ[1, 1] = sigmaesystematic[1] * sigmaesystematic[1];
-                    CovarianceMSZ[2, 2] = sigmaesystematic[2] * sigmaesystematic[2];
-                    CovarianceMSZ[1, 0] = sigmaesystematic[1] * sigmaesystematic[0];
-                    CovarianceMSZ[0, 1] = CovarianceMSZ[1, 0];
-                    CovarianceMSZ[2, 0] = sigmaesystematic[2] * sigmaesystematic[0];
-                    CovarianceMSZ[0, 2] = CovarianceMSZ[2, 0];
-                    CovarianceMSZ[1, 2] = sigmaesystematic[1] * sigmaesystematic[2];
-                    CovarianceMSZ[2, 1] = CovarianceMSZ[1, 2];
-                }
-                for (int j = 0; j < 3; j++)
-                {
-                    for (int k = 0; k < 3; k++)
-                    {
-                        Covariance[j, k] += CovarianceMSZ[j, k];
-                    }
-                }
-                eAll.Add(e);
-                eStarAll.Add(eStar);
-                eNSum += e[0];
-                eESum += e[1];
-                eVSum += e[2];
-            }
+        //    }
+        //    else
+        //    {
+        //        ErrorSourceDRFR errorSourceDRFR = new ErrorSourceDRFR();
+        //        CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceDRFR);
+        //        ErrorSourceDSFS errorSourceDSFS = new ErrorSourceDSFS();
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDSFS);
+        //        ErrorSourceDSTG errorSourceDSTG = new ErrorSourceDSTG();
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDSTG);
+        //        ErrorSourceABXY_TI1S errorSourceABXY_TI1S = new ErrorSourceABXY_TI1S();
+        //        errorSourceABXY_TI1S.Dip = Dip;
+        //        errorSourceABXY_TI1S.Gravity = Gravity;
+        //        errorSourceABXY_TI1S.Declination = Declination;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceABXY_TI1S);
+        //        ErrorSourceABXY_TI2S errorSourceABXY_TI2S = new ErrorSourceABXY_TI2S();
+        //        errorSourceABXY_TI2S.Dip = Dip;
+        //        errorSourceABXY_TI2S.Gravity = Gravity;
+        //        errorSourceABXY_TI2S.Declination = Declination;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceABXY_TI2S);
+        //        ErrorSourceABZ errorSourceABZ = new ErrorSourceABZ();
+        //        errorSourceABZ.Dip = Dip;
+        //        errorSourceABZ.Gravity = Gravity;
+        //        errorSourceABZ.Declination = Declination;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceABZ);
+        //        ErrorSourceASXY_TI1S errorSourceASXY_TI1S = new ErrorSourceASXY_TI1S();
+        //        errorSourceASXY_TI1S.Dip = Dip;
+        //        errorSourceASXY_TI1S.Declination = Declination;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceASXY_TI1S);
+        //        ErrorSourceASXY_TI2S errorSourceASXY_TI2S = new ErrorSourceASXY_TI2S();
+        //        errorSourceASXY_TI2S.Dip = Dip;
+        //        errorSourceASXY_TI2S.Declination = Declination;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceASXY_TI2S);
+        //        ErrorSourceASXY_TI3S errorSourceASXY_TI3S = new ErrorSourceASXY_TI3S();
+        //        errorSourceASXY_TI3S.Dip = Dip;
+        //        errorSourceASXY_TI3S.Declination = Declination;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceASXY_TI3S);
+        //        ErrorSourceASZ errorSourceASZ = new ErrorSourceASZ();
+        //        errorSourceASZ.Dip = Dip;
+        //        errorSourceASZ.Declination = Declination;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceASZ);
+        //        ErrorSourceMBXY_TI1 errorSourceMBXY_TI1 = new ErrorSourceMBXY_TI1();
+        //        errorSourceMBXY_TI1.Dip = Dip;
+        //        errorSourceMBXY_TI1.Declination = Declination;
+        //        errorSourceMBXY_TI1.BField = BField;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMBXY_TI1);
+        //        ErrorSourceMBXY_TI2 ErrorSourceMBXY_TI2 = new ErrorSourceMBXY_TI2();
+        //        ErrorSourceMBXY_TI2.Dip = Dip;
+        //        ErrorSourceMBXY_TI2.Declination = Declination;
+        //        ErrorSourceMBXY_TI2.BField = BField;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, ErrorSourceMBXY_TI2);
+        //        ErrorSourceMBZ errorSourceMBZ = new ErrorSourceMBZ();
+        //        errorSourceMBZ.Dip = Dip;
+        //        errorSourceMBZ.Declination = Declination;
+        //        errorSourceMBZ.BField = BField;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMBZ);
+        //        ErrorSourceMSXY_TI1 errorSourceMSXY_TI1 = new ErrorSourceMSXY_TI1();
+        //        errorSourceMSXY_TI1.Dip = Dip;
+        //        errorSourceMSXY_TI1.Declination = Declination;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMSXY_TI1);
+        //        ErrorSourceMSXY_TI2 errorSourceMSXY_TI2 = new ErrorSourceMSXY_TI2();
+        //        errorSourceMSXY_TI2.Dip = Dip;
+        //        errorSourceMSXY_TI2.Declination = Declination;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMSXY_TI2);
+        //        ErrorSourceMSXY_TI3 errorSourceMSXY_TI3 = new ErrorSourceMSXY_TI3();
+        //        errorSourceMSXY_TI3.Dip = Dip;
+        //        errorSourceMSXY_TI3.Declination = Declination;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMSXY_TI3);
+        //        ErrorSourceMSZ errorSourceMSZ = new ErrorSourceMSZ();
+        //        errorSourceMSZ.Dip = Dip;
+        //        errorSourceMSZ.Declination = Declination;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMSZ);
+        //        ErrorSourceDEC_U errorSourceDEC_U = new ErrorSourceDEC_U();
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDEC_U);
+        //        ErrorSourceDEC_OS errorSourceDEC_OS = new ErrorSourceDEC_OS();
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDEC_OS);
+        //        ErrorSourceDEC_OH errorSourceDEC_OH = new ErrorSourceDEC_OH();
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDEC_OH);
+        //        ErrorSourceDEC_OI errorSourceDEC_OI = new ErrorSourceDEC_OI();
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDEC_OI);
+        //        ErrorSourceDECR errorSourceDECR = new ErrorSourceDECR();
+        //        CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceDECR);
+        //        ErrorSourceDBH_U errorSourceDBH_U = new ErrorSourceDBH_U();
+        //        errorSourceDBH_U.Dip = Dip;
+        //        errorSourceDBH_U.BField = BField;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDBH_U);
+        //        ErrorSourceDBH_OS errorSourceDBH_OS = new ErrorSourceDBH_OS();
+        //        errorSourceDBH_OS.Dip = Dip;
+        //        errorSourceDBH_OS.BField = BField;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDBH_OS);
+        //        ErrorSourceDBH_OH errorSourceDBH_OH = new ErrorSourceDBH_OH();
+        //        errorSourceDBH_OH.Dip = Dip;
+        //        errorSourceDBH_OH.BField = BField;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDBH_OH);
+        //        ErrorSourceDBH_OI errorSourceDBH_OI = new ErrorSourceDBH_OI();
+        //        errorSourceDBH_OI.Dip = Dip;
+        //        errorSourceDBH_OI.BField = BField;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDBH_OI);
+        //        ErrorSourceDBHR errorSourceDBHR = new ErrorSourceDBHR();
+        //        errorSourceDBHR.Dip = Dip;
+        //        errorSourceDBHR.BField = BField;
+        //        CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceDBHR);
+        //        ErrorSourceAMIL errorSourceAMIL = new ErrorSourceAMIL();
+        //        errorSourceAMIL.Dip = Dip;
+        //        errorSourceAMIL.BField = BField;
+        //        errorSourceAMIL.Declination = Declination;
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceAMIL);
+        //        ErrorSourceSAGE errorSourceSAGE = new ErrorSourceSAGE();
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceSAGE);
+        //        ErrorSourceXYM1 errorSourceXYM1 = new ErrorSourceXYM1();
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceXYM1);
+        //        ErrorSourceXYM2 errorSourceXYM2 = new ErrorSourceXYM2();
+        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceXYM2);
+        //        ErrorSourceXYM3E errorSourceXYM3 = new ErrorSourceXYM3E();
+        //        errorSourceXYM3.Convergence = Convergence;
+        //        CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceXYM3);
+        //        ErrorSourceXYM4E errorSourceXYM4 = new ErrorSourceXYM4E();
+        //        errorSourceXYM4.Convergence = Convergence;
+        //        CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceXYM4);
+        //        //ErrorSourceXCL errorSourceXCL = new ErrorSourceXCL();
+        //        //CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceXCL);
+        //    }
 
-            return null;
-        }
+        //}
+        ///// <summary>
+        ///// Error due to the DRFR error source at the kth survey station in the lth survey leg
+        ///// </summary>
+        ///// <param name="surveyStation"></param>
+        ///// <param name="nextStation"></param>
+        ///// <returns></returns>
+        //public double[,] CalculateRandomCovariance(SurveyList surveyStations, List<double[,]> drdps, List<double[,]> drdpNexts, IErrorSource errorSource)
+        //{
+        //    //ref https://www.iscwsa.net/error-model-documentation/
+        //    double[,] sigmaerandom = new double[3, 3];
+
+        //    for (int i = 0; i < sigmaerandom.GetLength(0); i++)
+        //    {
+        //        for (int j = 0; j < sigmaerandom.GetLength(1); j++)
+        //        {
+        //            sigmaerandom[i, j] = 0.0;
+        //        }
+        //    }
+
+        //    for (int i = 0; i < surveyStations.Count; i++)
+        //    {
+        //        bool singular = false;
+        //        SurveyStation surveyStation = surveyStations[i];
+        //        double[,] drdp = drdps[i];
+        //        double[,] drdpNext = drdpNexts[i];
+        //        double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
+        //        double? depth = errorSource.FunctionDepth(surveyStation.MD, (double)surveyStation.Z); //Depth
+        //        dpde[0] = (double)depth;
+        //        double? inclination = errorSource.FunctionInc((double)surveyStation.Incl, (double)surveyStation.Az); //Inclination
+        //        dpde[1] = (double)inclination;
+        //        double? azimuth = errorSource.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
+        //        if (azimuth != null)
+        //        {
+        //            dpde[2] = (double)azimuth;
+        //        }
+        //        double magnitude = errorSource.Magnitude;
+        //        if (errorSource.SingularIssues && (depth == null || inclination == null || azimuth == null))
+        //        {
+        //            singular = true;
+        //        }
+        //        double[] e = new double[3]; //the error due to the ith error source at the kth survey station in the lth survey leg
+        //        double[] eStar = new double[3]; //the error due to the ith error source at the kth survey stations in the lth survey leg, where k is the last survey of interest
+        //        if (i == 0)
+        //        {
+        //            e[0] = 0;
+        //            e[1] = 0;
+        //            e[2] = 0;
+        //            eStar[0] = 0;
+        //            eStar[1] = 0;
+        //            eStar[2] = 0;
+        //        }
+        //        else
+        //        {
+        //            if (errorSource.SingularIssues && singular)
+        //            {
+        //                if (i == 1)
+        //                {
+        //                    e[0] = magnitude * (surveyStations[i + 1].MD + surveyStations[i].MD - 2 * surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
+        //                    e[1] = magnitude * (surveyStations[i + 1].MD + surveyStations[i].MD - 2 * surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
+        //                    e[2] = 0.0;
+        //                    eStar[0] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
+        //                    eStar[1] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) * errorSource.FunctionSingularityEast((double)surveyStation.Az);
+        //                    eStar[2] = 0.0;
+        //                }
+        //                else
+        //                {
+        //                    e[0] = magnitude * (surveyStations[i + 1].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
+        //                    e[1] = magnitude * (surveyStations[i + 1].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
+        //                    e[2] = 0.0;
+        //                    eStar[0] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
+        //                    eStar[1] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
+        //                    eStar[2] = 0.0;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                e[0] = magnitude * ((drdp[0, 0] + drdpNext[0, 0]) * dpde[0] + (drdp[0, 1] + drdpNext[0, 1]) * dpde[1] + (drdp[0, 2] + drdpNext[0, 2]) * dpde[2]);
+        //                e[1] = magnitude * ((drdp[1, 0] + drdpNext[1, 0]) * dpde[0] + (drdp[1, 1] + drdpNext[1, 1]) * dpde[1] + (drdp[1, 2] + drdpNext[1, 2]) * dpde[2]);
+        //                e[2] = magnitude * ((drdp[2, 0] + drdpNext[2, 0]) * dpde[0] + (drdp[2, 1] + drdpNext[2, 1]) * dpde[1] + (drdp[2, 2] + drdpNext[2, 2]) * dpde[2]);
+        //                eStar[0] = magnitude * ((drdp[0, 0]) * dpde[0] + (drdp[0, 1]) * dpde[1] + (drdp[0, 2]) * dpde[2]);
+        //                eStar[1] = magnitude * ((drdp[1, 0]) * dpde[0] + (drdp[1, 1]) * dpde[1] + (drdp[1, 2]) * dpde[2]);
+        //                eStar[2] = magnitude * ((drdp[2, 0]) * dpde[0] + (drdp[2, 1]) * dpde[1] + (drdp[2, 2]) * dpde[2]);
+        //            }
+        //        }
+
+        //        double[,] CovarianceRan = new double[3, 3];
+        //        if (i == 0)
+        //        {
+        //            CovarianceRan[0, 0] = eStar[0] * eStar[0];
+        //            CovarianceRan[1, 1] = eStar[1] * eStar[1];
+        //            CovarianceRan[2, 2] = eStar[2] * eStar[2];
+        //            CovarianceRan[1, 0] = eStar[0] * eStar[1];
+        //            CovarianceRan[0, 1] = CovarianceRan[1, 0];
+        //            CovarianceRan[2, 0] = eStar[0] * eStar[2];
+        //            CovarianceRan[0, 2] = CovarianceRan[2, 0];
+        //            CovarianceRan[1, 2] = eStar[1] * eStar[2];
+        //            CovarianceRan[2, 1] = CovarianceRan[2, 1];
+        //        }
+        //        else
+        //        {
+        //            CovarianceRan[0, 0] = sigmaerandom[0, 0] + eStar[0] * eStar[0];
+        //            CovarianceRan[1, 1] = sigmaerandom[1, 1] + eStar[1] * eStar[1];
+        //            CovarianceRan[2, 2] = sigmaerandom[2, 2] + eStar[2] * eStar[2];
+        //            CovarianceRan[1, 0] = eStar[0] * eStar[1] + sigmaerandom[1, 0];
+        //            CovarianceRan[0, 1] = CovarianceRan[1, 0];
+        //            CovarianceRan[2, 0] = eStar[0] * eStar[2] + sigmaerandom[2, 0];
+        //            CovarianceRan[0, 2] = CovarianceRan[2, 0];
+        //            CovarianceRan[1, 2] = eStar[1] * eStar[2] + sigmaerandom[1, 2];
+        //            CovarianceRan[2, 1] = CovarianceRan[1, 2];
+        //        }
+        //        for (int j = 0; j < 3; j++)
+        //        {
+        //            for (int k = 0; k < 3; k++)
+        //            {
+        //                surveyStations[i].Uncertainty.Covariance[j, k] += CovarianceRan[j, k];
+        //            }
+        //        }
+        //        sigmaerandom[0, 0] = e[0] * e[0] + sigmaerandom[0, 0];
+        //        sigmaerandom[1, 1] = e[1] * e[1] + sigmaerandom[1, 1];
+        //        sigmaerandom[2, 2] = e[2] * e[2] + sigmaerandom[2, 2];
+        //        sigmaerandom[1, 0] = e[0] * e[1] + sigmaerandom[1, 0];
+        //        sigmaerandom[0, 1] = sigmaerandom[1, 0];
+        //        sigmaerandom[2, 0] = e[0] * e[2] + sigmaerandom[2, 0];
+        //        sigmaerandom[0, 2] = sigmaerandom[2, 0];
+        //        sigmaerandom[1, 2] = e[1] * e[2] + sigmaerandom[1, 2];
+        //        sigmaerandom[2, 1] = sigmaerandom[1, 2];
+
+        //    }
+        //    return null;
+        //}
+
+        ///// <summary>
+        ///// Error due to the Systematic error source at the kth survey station in the lth survey leg
+        ///// </summary>
+        ///// <param name="surveyStation"></param>
+        ///// <param name="nextStation"></param>
+        ///// <returns></returns>
+        //public double[,] CalculateSystematicCovariance(SurveyList surveyStations, List<double[,]> drdps, List<double[,]> drdpNexts, IErrorSource errorSource)
+        //{
+        //    //ref https://www.iscwsa.net/error-model-documentation/
+        //    List<double[]> eAll = new List<double[]>();
+        //    List<double[]> eStarAll = new List<double[]>();
+        //    double eNSum = 0.0;
+        //    double eESum = 0.0;
+        //    double eVSum = 0.0;
+        //    for (int i = 0; i < surveyStations.Count; i++)
+        //    {
+        //        bool singular = false;
+        //        double[] sigmaesystematic = new double[3];
+        //        SurveyStation surveyStation = surveyStations[i];
+        //        double[,] drdp = drdps[i];
+        //        double[,] drdpNext = drdpNexts[i];
+        //        double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
+        //        double? depth = errorSource.FunctionDepth(surveyStation.MD, (double)surveyStation.Z); //Depth
+        //        dpde[0] = (double)depth;
+        //        double? inclination = errorSource.FunctionInc((double)surveyStation.Incl, (double)surveyStation.Az); //Inclination
+        //        dpde[1] = (double)inclination;
+        //        double? azimuth = errorSource.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
+        //        if (azimuth != null)
+        //        {
+        //            dpde[2] = (double)azimuth;
+        //        }
+        //        double magnitude = errorSource.Magnitude;// (double)surveyInstrument.MSZ;
+        //        if (errorSource.SingularIssues && (depth == null || inclination == null || azimuth == null))
+        //        {
+        //            singular = true;
+        //        }
+        //        double[] e = new double[3]; //the error due to the ith error source at the kth survey station in the lth survey leg
+        //        double[] eStar = new double[3]; //the error due to the ith error source at the kth survey stations in the lth survey leg, where k is the last survey of interest
+        //        if (i == 0)
+        //        {
+        //            e[0] = 0;
+        //            e[1] = 0;
+        //            e[2] = 0;
+        //            eStar[0] = 0;
+        //            eStar[1] = 0;
+        //            eStar[2] = 0;
+        //        }
+        //        else
+        //        {
+        //            if (errorSource.SingularIssues && singular)
+        //            {
+        //                if (i == 1)
+        //                {
+        //                    e[0] = magnitude * (surveyStations[i + 1].MD + surveyStations[i].MD - 2 * surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
+        //                    e[1] = magnitude * (surveyStations[i + 1].MD + surveyStations[i].MD - 2 * surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
+        //                    e[2] = 0.0;
+        //                    eStar[0] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
+        //                    eStar[1] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) * errorSource.FunctionSingularityEast((double)surveyStation.Az);
+        //                    eStar[2] = 0.0;
+        //                }
+        //                else
+        //                {
+        //                    e[0] = magnitude * (surveyStations[i + 1].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
+        //                    e[1] = magnitude * (surveyStations[i + 1].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
+        //                    e[2] = 0.0;
+        //                    eStar[0] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
+        //                    eStar[1] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
+        //                    eStar[2] = 0.0;
+        //                }
+        //            }
+        //            else
+        //            {
+        //                e[0] = magnitude * ((drdp[0, 0] + drdpNext[0, 0]) * dpde[0] + (drdp[0, 1] + drdpNext[0, 1]) * dpde[1] + (drdp[0, 2] + drdpNext[0, 2]) * dpde[2]);
+        //                e[1] = magnitude * ((drdp[1, 0] + drdpNext[1, 0]) * dpde[0] + (drdp[1, 1] + drdpNext[1, 1]) * dpde[1] + (drdp[1, 2] + drdpNext[1, 2]) * dpde[2]);
+        //                e[2] = magnitude * ((drdp[2, 0] + drdpNext[2, 0]) * dpde[0] + (drdp[2, 1] + drdpNext[2, 1]) * dpde[1] + (drdp[2, 2] + drdpNext[2, 2]) * dpde[2]);
+        //                eStar[0] = magnitude * ((drdp[0, 0]) * dpde[0] + (drdp[0, 1]) * dpde[1] + (drdp[0, 2]) * dpde[2]);
+        //                eStar[1] = magnitude * ((drdp[1, 0]) * dpde[0] + (drdp[1, 1]) * dpde[1] + (drdp[1, 2]) * dpde[2]);
+        //                eStar[2] = magnitude * ((drdp[2, 0]) * dpde[0] + (drdp[2, 1]) * dpde[1] + (drdp[2, 2]) * dpde[2]);
+        //            }
+
+        //        }
+
+        //        sigmaesystematic[0] = eNSum + eStar[0];
+        //        sigmaesystematic[1] = eESum + eStar[1];
+        //        sigmaesystematic[2] = eVSum + eStar[2];
+
+        //        double[,] CovarianceSys = new double[3, 3];
+        //        if (i == 0)
+        //        {
+        //            CovarianceSys[0, 0] = eStar[0] * eStar[0];
+        //            CovarianceSys[1, 1] = eStar[1] * eStar[1];
+        //            CovarianceSys[2, 2] = eStar[2] * eStar[2];
+        //            CovarianceSys[1, 0] = eStar[0] * eStar[1];
+        //            CovarianceSys[0, 1] = CovarianceSys[1, 0];
+        //            CovarianceSys[2, 0] = eStar[0] * eStar[2];
+        //            CovarianceSys[0, 2] = CovarianceSys[2, 0];
+        //            CovarianceSys[1, 2] = eStar[1] * eStar[2];
+        //            CovarianceSys[2, 1] = CovarianceSys[2, 1];
+        //        }
+        //        else
+        //        {
+        //            CovarianceSys[0, 0] = sigmaesystematic[0] * sigmaesystematic[0];
+        //            CovarianceSys[1, 1] = sigmaesystematic[1] * sigmaesystematic[1];
+        //            CovarianceSys[2, 2] = sigmaesystematic[2] * sigmaesystematic[2];
+        //            CovarianceSys[1, 0] = sigmaesystematic[1] * sigmaesystematic[0];
+        //            CovarianceSys[0, 1] = CovarianceSys[1, 0];
+        //            CovarianceSys[2, 0] = sigmaesystematic[2] * sigmaesystematic[0];
+        //            CovarianceSys[0, 2] = CovarianceSys[2, 0];
+        //            CovarianceSys[1, 2] = sigmaesystematic[1] * sigmaesystematic[2];
+        //            CovarianceSys[2, 1] = CovarianceSys[1, 2];
+        //        }
+        //        for (int j = 0; j < 3; j++)
+        //        {
+        //            for (int k = 0; k < 3; k++)
+        //            {
+        //                Covariance[j, k] += CovarianceSys[j, k];
+        //            }
+        //        }
+        //        eAll.Add(e);
+        //        eStarAll.Add(eStar);
+        //        eNSum += e[0];
+        //        eESum += e[1];
+        //        eVSum += e[2];
+        //    }
+        //    return null;
+        //}
+        ///// <summary>
+        ///// Error due to the DRFR error source at the kth survey station in the lth survey leg
+        ///// </summary>
+        ///// <param name="surveyStation"></param>
+        ///// <param name="nextStation"></param>
+        ///// <returns></returns>
+        //public double[,] CalculateCovarianceDRFR(double[,] drdp, double[,] drdpNext, SurveyInstrument.Model.SurveyInstrument surveyInstrument, double[,] sigmaerandom, int st)
+        //{
+        //    //ref https://www.iscwsa.net/error-model-documentation/
+        //    double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
+        //    dpde[0] = 1; //Depth
+        //    dpde[1] = 0; //Inclination
+        //    dpde[2] = 0; //Azimuth
+        //    double magnitude = (double)surveyInstrument.DRFR;
+        //    double[] e = new double[3]; //the error due to the ith error source at the kth survey station in the lth survey leg
+        //    double[] eStar = new double[3]; //the error due to the ith error source at the kth survey stations in the lth survey leg, where k is the last survey of interest
+        //    if (st == 0)
+        //    {
+        //        e[0] = 0;
+        //        e[1] = 0;
+        //        e[2] = 0;
+        //        eStar[0] = 0;
+        //        eStar[1] = 0;
+        //        eStar[2] = 0;
+        //    }
+        //    else
+        //    {
+        //        e[0] = magnitude * ((drdp[0, 0] + drdpNext[0, 0]) * dpde[0] + (drdp[0, 1] + drdpNext[0, 1]) * dpde[1] + (drdp[0, 2] + drdpNext[0, 2]) * dpde[2]);
+        //        e[1] = magnitude * ((drdp[1, 0] + drdpNext[1, 0]) * dpde[0] + (drdp[1, 1] + drdpNext[1, 1]) * dpde[1] + (drdp[1, 2] + drdpNext[1, 2]) * dpde[2]);
+        //        e[2] = magnitude * ((drdp[2, 0] + drdpNext[2, 0]) * dpde[0] + (drdp[2, 1] + drdpNext[2, 1]) * dpde[1] + (drdp[2, 2] + drdpNext[2, 2]) * dpde[2]);
+        //        eStar[0] = magnitude * ((drdp[0, 0]) * dpde[0] + (drdp[0, 1]) * dpde[1] + (drdp[0, 2]) * dpde[2]);
+        //        eStar[1] = magnitude * ((drdp[1, 0]) * dpde[0] + (drdp[1, 1]) * dpde[1] + (drdp[1, 2]) * dpde[2]);
+        //        eStar[2] = magnitude * ((drdp[2, 0]) * dpde[0] + (drdp[2, 1]) * dpde[1] + (drdp[2, 2]) * dpde[2]);
+        //    }
+
+
+        //    double[,] CovarianceDRFR = new double[3, 3];
+        //    if (st == 0)
+        //    {
+        //        CovarianceDRFR[0, 0] = eStar[0] * eStar[0];
+        //        CovarianceDRFR[1, 1] = eStar[1] * eStar[1];
+        //        CovarianceDRFR[2, 2] = eStar[2] * eStar[2];
+        //        CovarianceDRFR[1, 0] = eStar[0] * eStar[1];
+        //        CovarianceDRFR[0, 1] = CovarianceDRFR[1, 0];
+        //        CovarianceDRFR[2, 0] = eStar[0] * eStar[2];
+        //        CovarianceDRFR[0, 2] = CovarianceDRFR[2, 0];
+        //        CovarianceDRFR[1, 2] = eStar[1] * eStar[2];
+        //        CovarianceDRFR[2, 1] = CovarianceDRFR[2, 1];
+        //    }
+        //    else
+        //    {
+        //        CovarianceDRFR[0, 0] = sigmaerandom[0, 0] + eStar[0] * eStar[0];
+        //        CovarianceDRFR[1, 1] = sigmaerandom[1, 1] + eStar[1] * eStar[1];
+        //        CovarianceDRFR[2, 2] = sigmaerandom[2, 2] + eStar[2] * eStar[2];
+        //        CovarianceDRFR[1, 0] = eStar[0] * eStar[1] + sigmaerandom[1, 0];
+        //        CovarianceDRFR[0, 1] = CovarianceDRFR[1, 0];
+        //        CovarianceDRFR[2, 0] = eStar[0] * eStar[2] + sigmaerandom[2, 0];
+        //        CovarianceDRFR[0, 2] = CovarianceDRFR[2, 0];
+        //        CovarianceDRFR[1, 2] = eStar[1] * eStar[2] + sigmaerandom[1, 2];
+        //        CovarianceDRFR[2, 1] = CovarianceDRFR[1, 2];
+        //    }
+        //    for (int j = 0; j < 3; j++)
+        //    {
+        //        for (int k = 0; k < 3; k++)
+        //        {
+        //            Covariance[j, k] += CovarianceDRFR[j, k];
+        //        }
+        //    }
+        //    sigmaerandom[0, 0] = e[0] * e[0] + sigmaerandom[0, 0];
+        //    sigmaerandom[1, 1] = e[1] * e[1] + sigmaerandom[1, 1];
+        //    sigmaerandom[2, 2] = e[2] * e[2] + sigmaerandom[2, 2];
+        //    sigmaerandom[1, 0] = e[0] * e[1] + sigmaerandom[1, 0];
+        //    sigmaerandom[0, 1] = sigmaerandom[1, 0];
+        //    sigmaerandom[2, 0] = e[0] * e[2] + sigmaerandom[2, 0];
+        //    sigmaerandom[0, 2] = sigmaerandom[2, 0];
+        //    sigmaerandom[1, 2] = e[1] * e[2] + sigmaerandom[1, 2];
+        //    sigmaerandom[2, 1] = sigmaerandom[1, 2];
+
+        //    return sigmaerandom;
+        //}
+        ///// <summary>
+        ///// Error due to the MWD: Z-Magnetometer Scale Factor error source at the kth survey station in the lth survey leg
+        ///// </summary>
+        ///// <param name="surveyStation"></param>
+        ///// <param name="nextStation"></param>
+        ///// <returns></returns>
+        //public double[,] CalculateCovarianceMSZ(SurveyList surveyStations, List<double[,]> drdps, List<double[,]> drdpNexts, SurveyInstrument.Model.SurveyInstrument surveyInstrument)
+        //{
+        //    //ref https://www.iscwsa.net/error-model-documentation/
+        //    List<double[]> eAll = new List<double[]>();
+        //    List<double[]> eStarAll = new List<double[]>();
+        //    double eNSum = 0.0;
+        //    double eESum = 0.0;
+        //    double eVSum = 0.0;
+        //    for (int i = 0; i < surveyStations.Count; i++)
+        //    {
+        //        double[] sigmaesystematic = new double[3];
+        //        SurveyStation surveyStation = surveyStations[i];
+        //        double[,] drdp = drdps[i];
+        //        double[,] drdpNext = drdpNexts[i];
+        //        double sinI = System.Math.Sin((double)surveyStation.Incl);
+        //        double cosI = System.Math.Cos((double)surveyStation.Incl);
+        //        double sinAm = System.Math.Sin((double)surveyStation.Az - Declination);
+        //        double cosAm = System.Math.Cos((double)surveyStation.Az - Declination);
+        //        double tanDip = System.Math.Tan(Dip);
+        //        double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
+        //        dpde[0] = 0; //Depth
+        //        dpde[1] = 0; //Inclination
+        //        dpde[2] = -(sinI * cosAm + tanDip * cosI) * sinI * sinAm; //Azimuth
+        //        double magnitude = (double)surveyInstrument.MSZ;
+        //        double[] e = new double[3]; //the error due to the ith error source at the kth survey station in the lth survey leg
+        //        double[] eStar = new double[3]; //the error due to the ith error source at the kth survey stations in the lth survey leg, where k is the last survey of interest
+        //        if (i == 0)
+        //        {
+        //            e[0] = 0;
+        //            e[1] = 0;
+        //            e[2] = 0;
+        //            eStar[0] = 0;
+        //            eStar[1] = 0;
+        //            eStar[2] = 0;
+        //        }
+        //        else
+        //        {
+        //            e[0] = magnitude * ((drdp[0, 0] + drdpNext[0, 0]) * dpde[0] + (drdp[0, 1] + drdpNext[0, 1]) * dpde[1] + (drdp[0, 2] + drdpNext[0, 2]) * dpde[2]);
+        //            e[1] = magnitude * ((drdp[1, 0] + drdpNext[1, 0]) * dpde[0] + (drdp[1, 1] + drdpNext[1, 1]) * dpde[1] + (drdp[1, 2] + drdpNext[1, 2]) * dpde[2]);
+        //            e[2] = magnitude * ((drdp[2, 0] + drdpNext[2, 0]) * dpde[0] + (drdp[2, 1] + drdpNext[2, 1]) * dpde[1] + (drdp[2, 2] + drdpNext[2, 2]) * dpde[2]);
+        //            eStar[0] = magnitude * ((drdp[0, 0]) * dpde[0] + (drdp[0, 1]) * dpde[1] + (drdp[0, 2]) * dpde[2]);
+        //            eStar[1] = magnitude * ((drdp[1, 0]) * dpde[0] + (drdp[1, 1]) * dpde[1] + (drdp[1, 2]) * dpde[2]);
+        //            eStar[2] = magnitude * ((drdp[2, 0]) * dpde[0] + (drdp[2, 1]) * dpde[1] + (drdp[2, 2]) * dpde[2]);
+        //        }
+
+        //        sigmaesystematic[0] = eNSum + eStar[0];
+        //        sigmaesystematic[1] = eESum + eStar[1];
+        //        sigmaesystematic[2] = eVSum + eStar[2];
+
+        //        double[,] CovarianceMSZ = new double[3, 3];
+        //        if (i == 0)
+        //        {
+        //            CovarianceMSZ[0, 0] = eStar[0] * eStar[0];
+        //            CovarianceMSZ[1, 1] = eStar[1] * eStar[1];
+        //            CovarianceMSZ[2, 2] = eStar[2] * eStar[2];
+        //            CovarianceMSZ[1, 0] = eStar[0] * eStar[1];
+        //            CovarianceMSZ[0, 1] = CovarianceMSZ[1, 0];
+        //            CovarianceMSZ[2, 0] = eStar[0] * eStar[2];
+        //            CovarianceMSZ[0, 2] = CovarianceMSZ[2, 0];
+        //            CovarianceMSZ[1, 2] = eStar[1] * eStar[2];
+        //            CovarianceMSZ[2, 1] = CovarianceMSZ[2, 1];
+        //        }
+        //        else
+        //        {
+        //            CovarianceMSZ[0, 0] = sigmaesystematic[0] * sigmaesystematic[0];
+        //            CovarianceMSZ[1, 1] = sigmaesystematic[1] * sigmaesystematic[1];
+        //            CovarianceMSZ[2, 2] = sigmaesystematic[2] * sigmaesystematic[2];
+        //            CovarianceMSZ[1, 0] = sigmaesystematic[1] * sigmaesystematic[0];
+        //            CovarianceMSZ[0, 1] = CovarianceMSZ[1, 0];
+        //            CovarianceMSZ[2, 0] = sigmaesystematic[2] * sigmaesystematic[0];
+        //            CovarianceMSZ[0, 2] = CovarianceMSZ[2, 0];
+        //            CovarianceMSZ[1, 2] = sigmaesystematic[1] * sigmaesystematic[2];
+        //            CovarianceMSZ[2, 1] = CovarianceMSZ[1, 2];
+        //        }
+        //        for (int j = 0; j < 3; j++)
+        //        {
+        //            for (int k = 0; k < 3; k++)
+        //            {
+        //                Covariance[j, k] += CovarianceMSZ[j, k];
+        //            }
+        //        }
+        //        eAll.Add(e);
+        //        eStarAll.Add(eStar);
+        //        eNSum += e[0];
+        //        eESum += e[1];
+        //        eVSum += e[2];
+        //    }
+
+        //    return null;
+        //}
+        #endregion
     }
 
     public interface IErrorSource
@@ -1445,7 +1567,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public bool SingularIssues { get; } = false;
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -1496,7 +1618,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -1548,7 +1670,7 @@ namespace NORCE.Drilling.Trajectory
             get { return true; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -1600,7 +1722,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -1659,7 +1781,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -1725,7 +1847,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -1784,7 +1906,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -1842,7 +1964,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -1900,7 +2022,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -1958,7 +2080,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -2016,7 +2138,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -2074,7 +2196,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -2132,7 +2254,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -2190,7 +2312,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -2248,7 +2370,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -2306,7 +2428,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -2364,7 +2486,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -2422,7 +2544,7 @@ namespace NORCE.Drilling.Trajectory
             get { return true; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -2475,7 +2597,7 @@ namespace NORCE.Drilling.Trajectory
             get { return true; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -2528,7 +2650,7 @@ namespace NORCE.Drilling.Trajectory
             get { return true; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -2581,7 +2703,7 @@ namespace NORCE.Drilling.Trajectory
             get { return true; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -2634,7 +2756,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
@@ -2687,7 +2809,7 @@ namespace NORCE.Drilling.Trajectory
             get { return true; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 / Math.PI / 180.0;
         public double Declination { get; set; }
@@ -2740,7 +2862,7 @@ namespace NORCE.Drilling.Trajectory
             get { return true; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
@@ -2793,7 +2915,7 @@ namespace NORCE.Drilling.Trajectory
             get { return true; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
@@ -2846,7 +2968,7 @@ namespace NORCE.Drilling.Trajectory
             get { return true; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
@@ -2899,7 +3021,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
@@ -2952,7 +3074,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
@@ -3007,7 +3129,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
@@ -3060,7 +3182,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
@@ -3113,7 +3235,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
@@ -3166,7 +3288,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
@@ -3229,7 +3351,7 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
@@ -3262,18 +3384,18 @@ namespace NORCE.Drilling.Trajectory
         public double FunctionSingularityVert() { return 0; }
     }
     /// <summary>
-    /// Error due to the Depth: Long Course Length XCL error source
+    /// Error due to the Depth: Long Course Length  Azimuth XCL error source
     /// </summary>
-    public class ErrorSourceXCL : IErrorSource
+    public class ErrorSourceXCLA : IErrorSource
     {
         // NB Singularity when vertical
-        public ErrorSourceXCL()
+        public ErrorSourceXCLA()
         {
 
         }
         public string ErrorCode
         {
-            get { return "XCL"; }
+            get { return "XCLA"; }
         }
         public int Index
         {
@@ -3292,7 +3414,61 @@ namespace NORCE.Drilling.Trajectory
             get { return false; }
         }
         public double Latitude { get; set; }
-        public double Gravitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; } = 50000;
+        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.167;
+        public bool SingularIssues { get; } = false;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {          
+            return 0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {           
+            return 0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the Depth: Long Course Length High Side XCL  error source
+    /// </summary>
+    public class ErrorSourceXCLH : IErrorSource
+    {
+        // NB Singularity when vertical
+        public ErrorSourceXCLH()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "XCLH"; }
+        }
+        public int Index
+        {
+            get { return 35; }
+        }
+        public bool IsSystematic
+        {
+            get { return false; }
+        }
+        public bool IsRandom
+        {
+            get { return true; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
@@ -3305,13 +3481,10 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionInc(double incl, double az)
         {
-
-            //return Math.Max(Math.Abs(incl - IncPrev), 0.02165 * (MD - MDPrev));
             return 0;
         }
         public double? FunctionAz(double incl, double az)
-        {
-            //return Max(Abs(AzT - AzPrev), 0.02165 * (MD - MDPrev) / sin(Inc + 0.00001)); //Azimuth
+        {            
             return 0;
         }
         public double FunctionSingularityNorth(double az) { return 0; }
