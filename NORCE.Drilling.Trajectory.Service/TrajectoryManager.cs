@@ -453,15 +453,18 @@ namespace NORCE.Drilling.Trajectory.Service
                                     st.Y = Y;
                                     st.Z = tvd;
                                     st.MD = md;
-                                    WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+
                                     var surveyToolll = LoadSurveyTool(1);
 
-                                    //if (surveyTool == null)
-                                    {
-                                        surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
-                                    }
+									//surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
+									//st.SurveyTool = surveyTool;
+									//WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+									//st.Uncertainty = wdwun;
+									surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.ISCWSA_MWD_Rev5_OWSG);
                                     st.SurveyTool = surveyTool;
-                                    st.Uncertainty = wdwun;
+                                    ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
+                                    st.Uncertainty = iscwsaun;
+
                                     sl.Add(st);
                                 }
                             }

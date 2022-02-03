@@ -154,10 +154,24 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
 								st.Z = tvd;
 								st.MD = (double)md;
                                 //NB: Need to update when more uncertaintymodels are available and SurveyTools included
-                                WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                                
                                 //SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
                                 st.SurveyTool = value.SurveyList.ListOfSurveys[i].SurveyTool;
-                                st.Uncertainty = wdwun;
+                                if (st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.WolffDeWardt)
+                                {
+                                    WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                                    st.Uncertainty = wdwun;
+                                }
+								else if(st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWC_MWD_Rev5) 
+                                {
+                                    ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
+                                    st.Uncertainty = iscwsaun;
+                                }
+                                else
+                                {
+                                    ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
+                                    st.Uncertainty = iscwsaun;
+                                }
                                 sl.Add(st);
                             }
                             //To calculate Covariance matrices                            
@@ -202,12 +216,24 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     st.X = X;
                                     st.Y = Y;
                                     st.Z = tvd;
-                                    st.MD = (double)md;
-									//NB: Need to update when more uncertaintymodels are available and SurveyTools included
-									WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                                    st.MD = (double)md;									
 									//SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
 									st.SurveyTool = value.SurveyList.ListOfSurveys[i].SurveyTool;
-                                    st.Uncertainty = wdwun;
+                                    if (st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.WolffDeWardt)
+                                    {
+                                        WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                                        st.Uncertainty = wdwun;
+                                    }
+                                    else if (st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWC_MWD_Rev5)
+                                    {
+                                        ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
+                                        st.Uncertainty = iscwsaun;
+                                    }
+                                    else
+                                    {
+                                        ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
+                                        st.Uncertainty = iscwsaun;
+                                    }                                   
                                     sl.Add(st);
                                 }
                                 //To calculate Covariance matrices                                
@@ -244,12 +270,23 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     st.X = X;
                                     st.Y = Y;
                                     st.Z = tvd;
-                                    st.MD = (double)md;
-                                    //NB: Need to update when more uncertaintymodels are available and SurveyTools included
-                                    WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
-                                    //SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
+                                    st.MD = (double)md;       
                                     st.SurveyTool = value.SurveyList.ListOfSurveys[i].SurveyTool;
-                                    st.Uncertainty = wdwun;
+                                    if (st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.WolffDeWardt)
+                                    {
+                                        WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                                        st.Uncertainty = wdwun;
+                                    }
+                                    else if (st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWC_MWD_Rev5)
+                                    {
+                                        ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
+                                        st.Uncertainty = iscwsaun;
+                                    }
+                                    else
+                                    {
+                                        ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
+                                        st.Uncertainty = iscwsaun;
+                                    }
                                     sl.Add(st);
                                 }                                
                                 value.SurveyList = sl;

@@ -230,6 +230,7 @@ namespace NORCE.Drilling.Trajectory
                     A[i, j] = 0.0;
                 }
             }
+            List<ISCWSAErrorData> ISCWSAErrorDataTmp = new List<ISCWSAErrorData>();
             List<SurveyStation> surveyList = new List<SurveyStation>();
             // Start from i = 0 to include the first surveystation. This will typically have radius 0
             for (int i = 0; i < _surveyList.Count ; i++)
@@ -290,6 +291,26 @@ namespace NORCE.Drilling.Trajectory
                     {
                         WdWSurveyStationUncertainty wdwSurveyStatoinUncertainty = (WdWSurveyStationUncertainty)_surveyList[i].Uncertainty;
                         A = wdwSurveyStatoinUncertainty.CalculateCovariances(_surveyList[i], _surveyList[i - 1], A);
+                    }
+                    if (((_surveyList[i].Uncertainty is ISCWSA_MWDSurveyStationUncertainty && i > 0) || (_surveyList.Count > 1 && _surveyList[i].Uncertainty.Covariance[0, 0] == null)))
+                    {
+                        ISCWSA_MWDSurveyStationUncertainty ISCWSASurveyStatoinUncertainty = (ISCWSA_MWDSurveyStationUncertainty)_surveyList[i].Uncertainty;
+                        if (i == _surveyList.Count - 1)
+                        {
+                            SurveyStation surveyStationNext = new SurveyStation();
+                            surveyStationNext.X = 0.0;
+                            surveyStationNext.Y = 0.0;
+                            surveyStationNext.Incl = 0.0;
+                            surveyStationNext.Az = 0.0;
+                            surveyStationNext.MD = 0.0;
+                            ISCWSASurveyStatoinUncertainty.CalculateCovariance(_surveyList[i], _surveyList[i - 1], surveyStationNext, ISCWSAErrorDataTmp, i);
+                        }
+                        else
+                        {
+                            ISCWSASurveyStatoinUncertainty.CalculateCovariance(_surveyList[i], _surveyList[i - 1], _surveyList[i + 1], ISCWSAErrorDataTmp, i);
+                        }
+                        
+                        ISCWSAErrorDataTmp = ISCWSASurveyStatoinUncertainty.ISCWSAErrorDataTmp;
                     }
                     _surveyList[i].Uncertainty.Calculate(_surveyList[i], confidenceFactor, scalingFactor);
                     surveyList.Add(_surveyList[i]);

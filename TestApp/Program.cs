@@ -17,7 +17,20 @@ namespace TestApp
             SurveyList surveyList = new SurveyList();
             string homeDirectory = ".." + Path.DirectorySeparatorChar + ".." + Path.DirectorySeparatorChar+ ".." + Path.DirectorySeparatorChar;
             string directory = @homeDirectory ;
-            string file = directory + "iscwsa-1.txt";
+            string file="";
+            int wellcase = 1;
+            if (wellcase == 1)
+            {
+                file = directory + "iscwsa-1.txt";
+            }
+            else if (wellcase == 2)
+            {
+                file = directory + "iscwsa-2.txt";
+            }
+            else if (wellcase == 3)
+            {
+                file = directory + "iscwsa-3.txt";
+            }
             using (StreamReader r = new StreamReader(file))
             {
                 while (!r.EndOfStream)
@@ -45,10 +58,37 @@ namespace TestApp
                         st.Y = Y;
                         st.Z = tvd;
                         st.MD = md;
-                        ISCWSA_MWDSurveyStationUncertainty wdwun = new ISCWSA_MWDSurveyStationUncertainty();
+						ISCWSA_MWDSurveyStationUncertainty iscwsa = new ISCWSA_MWDSurveyStationUncertainty();
+                        if (wellcase == 1)
+                        {
+                            iscwsa.Gravity = 9.80665;
+                            iscwsa.BField = 50000;
+                            iscwsa.Dip = 72 * Math.PI / 180.0;
+                            iscwsa.Declination = -4 * Math.PI / 180.0;
+                            iscwsa.Convergence = 0.0;
+                        }
+                        else if (wellcase == 2)
+                        {
+                            iscwsa.Gravity = 9.80665;
+                            iscwsa.BField = 48000;
+                            iscwsa.Dip = 58 * Math.PI / 180.0;
+                            iscwsa.Declination = 2 * Math.PI / 180.0;
+                            iscwsa.Convergence = 0.0;
+                        }
+                        else if (wellcase == 3)
+                        {
+                            iscwsa.Gravity = 9.80665;
+                            iscwsa.BField = 61000;
+                            iscwsa.Dip = -70 * Math.PI / 180.0;
+                            iscwsa.Declination = 13 * Math.PI / 180.0;
+                            iscwsa.Convergence = 0.0;
+                        }
                         SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSA_MWD_Rev5_OWSG);
+						//WdWSurveyStationUncertainty wdw = new WdWSurveyStationUncertainty();
+      //                  SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.WdWGoodMag);
                         st.SurveyTool = surveyTool;
-                        st.Uncertainty = wdwun;
+                        //st.Uncertainty = wdw;
+                        st.Uncertainty = iscwsa;
                         surveyList.Add(st);
                     }
                 }
@@ -56,46 +96,47 @@ namespace TestApp
 
             if (surveyList != null)
             {
-                if (surveyList.ListOfSurveys != null)
-                {               
-                    List<ISCWSAErrorData> ISCWSAErrorDataTmp = new List<ISCWSAErrorData>();
-                    for (int i = 0; i < surveyList.Count; i++)
-                    {
-                        ISCWSA_MWDSurveyStationUncertainty iscwsaSurveyStatoinUncertainty = (ISCWSA_MWDSurveyStationUncertainty)surveyList[i].Uncertainty;
-                        if (((surveyList[i].Uncertainty is ISCWSA_MWDSurveyStationUncertainty && i > 0) || (surveyList.Count > 1 && surveyList[i].Uncertainty.Covariance[0, 0] == null)))
-                        {
-                            SurveyStation surveyStation = surveyList[i];
-                            SurveyStation surveyStationPrev = new SurveyStation();
-                            SurveyStation surveyStationNext = new SurveyStation();                           
-                            if (i == 0)
-                            {                                
-                                surveyStationPrev.X = 0.0;
-                                surveyStationPrev.Y = 0.0;
-                                surveyStationPrev.Incl = 0.0;
-                                surveyStationPrev.Az = 0.0;
-                                surveyStationPrev.MD = 0.0;
-                            }
-                            else
-                            {
-                                surveyStationPrev = surveyList[i - 1];                                                       
-                            }                            
-                            if (i < surveyList.Count - 1)
-                            {
-                                surveyStationNext = surveyList[i + 1];
-                            }
-                            else
-                            {
-                                surveyStationNext.X = 0.0;
-                                surveyStationNext.Y = 0.0;
-                                surveyStationNext.Incl = 0.0;
-                                surveyStationNext.Az = 0.0;
-                                surveyStationNext.MD = 0.0;
-                            }
-                            iscwsaSurveyStatoinUncertainty.CalculateCovariance(surveyStation, surveyStationPrev, surveyStationNext, ISCWSAErrorDataTmp, i);
-                            ISCWSAErrorDataTmp = iscwsaSurveyStatoinUncertainty.ISCWSAErrorDataTmp;                  
-                        }
-                    }                    
-                }
+                //if (surveyList.ListOfSurveys != null)
+                //{               
+                //    List<ISCWSAErrorData> ISCWSAErrorDataTmp = new List<ISCWSAErrorData>();
+                //    for (int i = 0; i < surveyList.Count; i++)
+                //    {
+                //        ISCWSA_MWDSurveyStationUncertainty iscwsaSurveyStatoinUncertainty = (ISCWSA_MWDSurveyStationUncertainty)surveyList[i].Uncertainty;
+                //        if (((surveyList[i].Uncertainty is ISCWSA_MWDSurveyStationUncertainty && i > 0) || (surveyList.Count > 1 && surveyList[i].Uncertainty.Covariance[0, 0] == null)))
+                //        {
+                //            SurveyStation surveyStation = surveyList[i];
+                //            SurveyStation surveyStationPrev = new SurveyStation();
+                //            SurveyStation surveyStationNext = new SurveyStation();                           
+                //            if (i == 0)
+                //            {                                
+                //                surveyStationPrev.X = 0.0;
+                //                surveyStationPrev.Y = 0.0;
+                //                surveyStationPrev.Incl = 0.0;
+                //                surveyStationPrev.Az = 0.0;
+                //                surveyStationPrev.MD = 0.0;
+                //            }
+                //            else
+                //            {
+                //                surveyStationPrev = surveyList[i - 1];                                                       
+                //            }                            
+                //            if (i < surveyList.Count - 1)
+                //            {
+                //                surveyStationNext = surveyList[i + 1];
+                //            }
+                //            else
+                //            {
+                //                surveyStationNext.X = 0.0;
+                //                surveyStationNext.Y = 0.0;
+                //                surveyStationNext.Incl = 0.0;
+                //                surveyStationNext.Az = 0.0;
+                //                surveyStationNext.MD = 0.0;
+                //            }
+                //            //iscwsaSurveyStatoinUncertainty.CalculateCovariance(surveyStation, surveyStationPrev, surveyStationNext, ISCWSAErrorDataTmp, i);
+                //            //ISCWSAErrorDataTmp = iscwsaSurveyStatoinUncertainty.ISCWSAErrorDataTmp;                  
+                //        }
+                //    }                    
+                //}
+                surveyList.GetUncertaintyEnvelope(0.95, 1);
             }
         }
 	}
