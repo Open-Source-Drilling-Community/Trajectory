@@ -95,47 +95,7 @@ namespace TestApp
             }
 
             if (surveyList != null)
-            {
-                //if (surveyList.ListOfSurveys != null)
-                //{               
-                //    List<ISCWSAErrorData> ISCWSAErrorDataTmp = new List<ISCWSAErrorData>();
-                //    for (int i = 0; i < surveyList.Count; i++)
-                //    {
-                //        ISCWSA_MWDSurveyStationUncertainty iscwsaSurveyStatoinUncertainty = (ISCWSA_MWDSurveyStationUncertainty)surveyList[i].Uncertainty;
-                //        if (((surveyList[i].Uncertainty is ISCWSA_MWDSurveyStationUncertainty && i > 0) || (surveyList.Count > 1 && surveyList[i].Uncertainty.Covariance[0, 0] == null)))
-                //        {
-                //            SurveyStation surveyStation = surveyList[i];
-                //            SurveyStation surveyStationPrev = new SurveyStation();
-                //            SurveyStation surveyStationNext = new SurveyStation();                           
-                //            if (i == 0)
-                //            {                                
-                //                surveyStationPrev.X = 0.0;
-                //                surveyStationPrev.Y = 0.0;
-                //                surveyStationPrev.Incl = 0.0;
-                //                surveyStationPrev.Az = 0.0;
-                //                surveyStationPrev.MD = 0.0;
-                //            }
-                //            else
-                //            {
-                //                surveyStationPrev = surveyList[i - 1];                                                       
-                //            }                            
-                //            if (i < surveyList.Count - 1)
-                //            {
-                //                surveyStationNext = surveyList[i + 1];
-                //            }
-                //            else
-                //            {
-                //                surveyStationNext.X = 0.0;
-                //                surveyStationNext.Y = 0.0;
-                //                surveyStationNext.Incl = 0.0;
-                //                surveyStationNext.Az = 0.0;
-                //                surveyStationNext.MD = 0.0;
-                //            }
-                //            //iscwsaSurveyStatoinUncertainty.CalculateCovariance(surveyStation, surveyStationPrev, surveyStationNext, ISCWSAErrorDataTmp, i);
-                //            //ISCWSAErrorDataTmp = iscwsaSurveyStatoinUncertainty.ISCWSAErrorDataTmp;                  
-                //        }
-                //    }                    
-                //}
+            {                
                 surveyList.GetUncertaintyEnvelope(0.95, 1);
             }
         }

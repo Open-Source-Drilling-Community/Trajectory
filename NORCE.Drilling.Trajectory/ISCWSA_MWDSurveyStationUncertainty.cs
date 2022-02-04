@@ -3491,6 +3491,2140 @@ namespace NORCE.Drilling.Trajectory
         public double FunctionSingularityEast(double az) { return 0; }
         public double FunctionSingularityVert() { return 0; }
     }
+    #region Gyro Error Sources
+    /// <summary>
+    /// Error due to the 3-axis: xy accelerometer bias  error source
+    /// </summary>
+    public class ErrorSourceAXYZ_XYB : IErrorSource
+    {        
+        public ErrorSourceAXYZ_XYB()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "AXYZ_XYB"; }
+        }
+        public int Index
+        {
+            get { return 36; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return true; }
+        }
+        public bool IsStationary
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; }
+        public double Magnitude { get; set; } = 0.005;
+        public bool SingularIssues { get; } = false;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return Math.Cos(incl) * Gravity;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: z accelerometer bias  error source
+    /// </summary>
+    public class ErrorSourceAXYZ_ZB : IErrorSource
+    {
+        public ErrorSourceAXYZ_ZB()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "AXYZ_ZB"; }
+        }
+        public int Index
+        {
+            get { return 37; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return true; }
+        }
+        public bool IsStationary
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; }
+        public double Magnitude { get; set; } = 0.005;
+        public bool SingularIssues { get; } = false;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return Math.Sin(incl) * Gravity;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: accelerometer scale factor error source
+    /// </summary>
+    public class ErrorSourceAXYZ_SF : IErrorSource
+    {
+        public ErrorSourceAXYZ_SF()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "AXYZ_SF"; }
+        }
+        public int Index
+        {
+            get { return 38; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return true; }
+        }
+        public bool IsStationary
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; }
+        public double Magnitude { get; set; } = 0.0005;
+        public bool SingularIssues { get; } = false;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 1.3 * Math.Sin(incl) * Math.Cos(incl);
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: accelerometer misalignment error source
+    /// </summary>
+    public class ErrorSourceAXYZ_MIS : IErrorSource
+    {
+        public ErrorSourceAXYZ_MIS()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "AXYZ_MIS"; }
+        }
+        public int Index
+        {
+            get { return 39; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return true; }
+        }
+        public bool IsStationary
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; }
+        public double Magnitude { get; set; } = 0.05;
+        public bool SingularIssues { get; } = false;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 1.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 2-axis: accelerometer bias error source
+    /// </summary>
+    public class ErrorSourceAXY_B : IErrorSource
+    {
+        public ErrorSourceAXY_B()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "AXY_B"; }
+        }
+        public int Index
+        {
+            get { return 40; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return true; }
+        }
+        public bool IsStationary
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; }
+        public double Magnitude { get; set; } = 0.005;
+        public bool SingularIssues { get; } = false;
+        public double kOperator { get; set; } = 1; // 1 or -1 depending on inclination
+        public double CantAngle { get; set; }
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 1 / (Gravity * Math.Cos(incl - kOperator * CantAngle));
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 2-axis: accelerometer scale factor error source
+    /// </summary>
+    public class ErrorSourceAXY_SF : IErrorSource
+    {
+        public ErrorSourceAXY_SF()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "AXY_SF"; }
+        }
+        public int Index
+        {
+            get { return 41; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return true; }
+        }
+        public bool IsStationary
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; }
+        public double Magnitude { get; set; } = 0.0005;
+        public bool SingularIssues { get; } = false;
+        public double kOperator { get; set; } = 1; // 1 or -1 depending on inclination
+        public double CantAngle { get; set; }
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return Math.Tan(incl - kOperator * CantAngle);
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 2-axis: accelerometer misalignment error source
+    /// </summary>
+    public class ErrorSourceAXY_MS : IErrorSource
+    {
+        public ErrorSourceAXY_MS()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "AXY_MS"; }
+        }
+        public int Index
+        {
+            get { return 42; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return true; }
+        }
+        public bool IsStationary
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; }
+        public double Magnitude { get; set; } = 0.005;
+        public bool SingularIssues { get; } = false;
+        public double kOperator { get; set; } = 1; // 1 or -1 depending on inclination
+        public double CantAngle { get; set; }
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 1;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 2-axis: Gravity bias error source
+    /// </summary>
+    public class ErrorSourceAXY_GB : IErrorSource
+    {
+        public ErrorSourceAXY_GB()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "AXY_GB"; }
+        }
+        public int Index
+        {
+            get { return 43; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return true; }
+        }
+        public bool IsStationary
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; }
+        public double Magnitude { get; set; } = 0.005;
+        public bool SingularIssues { get; } = false;
+        public double kOperator { get; set; } = 1; // 1 or -1 depending on inclination
+        public double CantAngle { get; set; }
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return Math.Tan(incl - kOperator * CantAngle) / Gravity;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: stationary: xy bias 1 error source
+    /// </summary>
+    public class ErrorSourceGXYZ_XYB1 : IErrorSource
+    {
+        public ErrorSourceGXYZ_XYB1()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_XYB1"; }
+        }
+        public int Index
+        {
+            get { return 44; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Sin(AzT) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: stationary: xy bias 2 error source
+    /// </summary>
+    public class ErrorSourceGXYZ_XYB2 : IErrorSource
+    {
+        public ErrorSourceGXYZ_XYB2()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_XYB2"; }
+        }
+        public int Index
+        {
+            get { return 45; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Cos(AzT) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: stationary: xy random noise error source
+    /// </summary>
+    public class ErrorSourceGXYZ_XYRN : IErrorSource
+    {
+        public ErrorSourceGXYZ_XYRN()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_XYRN"; }
+        }
+        public int Index
+        {
+            get { return 44; }
+        }
+        public bool IsSystematic
+        {
+            get { return false; }
+        }
+        public bool IsRandom
+        {
+            get { return true; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double NoiseRedFactor { get; set; } = 1;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Sqrt(1-(Math.Sin(AzT) *Math.Sin(AzT)  * Math.Sin(incl) * Math.Sin(incl))) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: stationary: xy gyro g-dependent error source 1
+    /// </summary>
+    public class ErrorSourceGXYZ_XYG1 : IErrorSource
+    {
+        public ErrorSourceGXYZ_XYG1()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_XYG1"; }
+        }
+        public int Index
+        {
+            get { return 47; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Cos(AzT) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: stationary: xy gyro g-dependent error source 2
+    /// </summary>
+    public class ErrorSourceGXYZ_XYG2 : IErrorSource
+    {
+        public ErrorSourceGXYZ_XYG2()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_XYG2"; }
+        }
+        public int Index
+        {
+            get { return 48; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Cos(AzT)* Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: stationary: xy gyro g-dependent error source 3
+    /// </summary>
+    public class ErrorSourceGXYZ_XYG3 : IErrorSource
+    {
+        public ErrorSourceGXYZ_XYG3()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_XYG3"; }
+        }
+        public int Index
+        {
+            get { return 49; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Sin(AzT) * Math.Cos(incl) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: stationary: xy gyro g-dependent error source 4
+    /// </summary>
+    public class ErrorSourceGXYZ_XYG4 : IErrorSource
+    {
+        public ErrorSourceGXYZ_XYG4()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_XYG4"; }
+        }
+        public int Index
+        {
+            get { return 50; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Sin(AzT) * Math.Sin(incl) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: stationary: z gyro bias error source
+    /// </summary>
+    public class ErrorSourceGXYZ_ZB : IErrorSource
+    {
+        public ErrorSourceGXYZ_ZB()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_ZB"; }
+        }
+        public int Index
+        {
+            get { return 51; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Sin(AzT) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: stationary: z gyro random noise error source
+    /// </summary>
+    public class ErrorSourceGXYZ_ZRN : IErrorSource
+    {
+        public ErrorSourceGXYZ_ZRN()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_ZRN"; }
+        }
+        public int Index
+        {
+            get { return 52; }
+        }
+        public bool IsSystematic
+        {
+            get { return false; }
+        }
+        public bool IsRandom
+        {
+            get { return true; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Sin(AzT) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: stationary: z gyro g-dependent error source 1
+    /// </summary>
+    public class ErrorSourceGXYZ_ZG1 : IErrorSource
+    {
+        public ErrorSourceGXYZ_ZG1()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_ZG1"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Sin(AzT) * Math.Sin(incl) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: stationary: z gyro g-dependent error source 2
+    /// </summary>
+    public class ErrorSourceGXYZ_ZG2 : IErrorSource
+    {
+        public ErrorSourceGXYZ_ZG2()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_ZG2"; }
+        }
+        public int Index
+        {
+            get { return 54; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Sin(AzT) * Math.Sin(incl) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: stationary: z gyro scalefactor error source
+    /// </summary>
+    public class ErrorSourceGXYZ_SF : IErrorSource
+    {
+        public ErrorSourceGXYZ_SF()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_SF"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.001;
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Tan(Latitude) * Math.Sin(AzT) * Math.Sin(incl) * Math.Cos(incl);
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis: stationary: gyro misalignment error source
+    /// </summary>
+    public class ErrorSourceGXYZ_MIS : IErrorSource
+    {
+        public ErrorSourceGXYZ_MIS()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_MIS"; }
+        }
+        public int Index
+        {
+            get { return 56; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.05 * Math.PI / 180.0;
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return 1 /  Math.Cos(Latitude);
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 2-axis: stationary: xy gyro bias 1 error source
+    /// </summary>
+    public class ErrorSourceGXY_B1 : IErrorSource
+    {
+        public ErrorSourceGXY_B1()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXY_B1"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Sin(AzT) / (EarthRotRate * Math.Cos(Latitude) * Math.Cos(incl));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 2-axis: stationary: xy gyro bias 2 error source
+    /// </summary>
+    public class ErrorSourceGXY_B2 : IErrorSource
+    {
+        public ErrorSourceGXY_B2()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXY_B2"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Cos(AzT) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 2-axis: stationary: xy gyro random noise error source
+    /// </summary>
+    public class ErrorSourceGXY_RN : IErrorSource
+    {
+        public ErrorSourceGXY_RN()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXY_RN"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return false; }
+        }
+        public bool IsRandom
+        {
+            get { return true; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double NoiseRedFactor { get; set; } = 1;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return NoiseRedFactor * Math.Sqrt((1 - Math.Cos(AzT) * Math.Cos(AzT) * Math.Sin(incl) * Math.Sin(incl)) / (EarthRotRate * Math.Cos(Latitude) * Math.Cos(incl)));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 2-axis: stationary: xy gyro g-dependent 1 error source
+    /// </summary>
+    public class ErrorSourceGXY_G1 : IErrorSource
+    {
+        public ErrorSourceGXY_G1()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXY_G1"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Cos(AzT) * Math.Sin(incl)/ (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 2-axis: stationary: xy gyro g-dependent 2 error source
+    /// </summary>
+    public class ErrorSourceGXY_G2 : IErrorSource
+    {
+        public ErrorSourceGXY_G2()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXY_G2"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Cos(AzT) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 2-axis: stationary: xy gyro g-dependent 3 error source
+    /// </summary>
+    public class ErrorSourceGXY_G3 : IErrorSource
+    {
+        public ErrorSourceGXY_G3()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXY_G3"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Sin(AzT) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 2-axis: stationary: xy gyro g-dependent 4 error source
+    /// </summary>
+    public class ErrorSourceGXY_G4 : IErrorSource
+    {
+        public ErrorSourceGXY_G4()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXY_G4"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Sin(AzT) * Math.Tan(incl) / (EarthRotRate * Math.Cos(Latitude));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 2-axis: stationary: gyro scalefactor error source
+    /// </summary>
+    public class ErrorSourceGXY_SF : IErrorSource
+    {
+        public ErrorSourceGXY_SF()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXY_SF"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.001;
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Tan(Latitude) * Math.Sin(AzT) * Math.Tan(incl);
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 2-axis: stationary:gyro misalignment error source
+    /// </summary>
+    public class ErrorSourceGXY_MIS : IErrorSource
+    {
+        public ErrorSourceGXY_MIS()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXY_MIS"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.05 * Math.PI / 180.0;
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return 1 / (Math.Cos(Latitude) * Math.Cos(incl));
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the external reference error source
+    /// </summary>
+    public class ErrorSourceEXT_REF : IErrorSource
+    {
+        public ErrorSourceEXT_REF()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "EXT_REF"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 5.0 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {            
+            return 1.0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the Un-modelled random azimuth error in tie-ontool error source
+    /// </summary>
+    public class ErrorSourceEXT_TIE : IErrorSource
+    {
+        public ErrorSourceEXT_TIE()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "EXT_TIE"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.0 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 1.0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the Misalignment effect at tie-on error source
+    /// </summary>
+    public class ErrorSourceEXT_MIS : IErrorSource
+    {
+        public ErrorSourceEXT_MIS()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "EXT_MIS"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool IsStationary
+        {
+            get { return true; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.0 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 1.0 / Math.Sin(incl);
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis, continuous: xyz gyro drift error source
+    /// </summary>
+    public class ErrorSourceGXYZ_GD : IErrorSource
+    {
+        public ErrorSourceGXYZ_GD()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_GD"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return true; }
+        }
+        public bool IsStationary
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 1.0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    #endregion Gyro Error Sources
     /// <summary>
     /// ISCWSAErrorData
     /// </summary>
