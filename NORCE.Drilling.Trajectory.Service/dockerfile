@@ -26,5 +26,6 @@ RUN dotnet publish "NORCE.Drilling.Trajectory.Service.csproj" -c Release -o /app
 
 FROM base AS final
 WORKDIR /app
+VOLUME /home
 COPY --from=publish /app .
 ENTRYPOINT ["dotnet", "NORCE.Drilling.Trajectory.Service.dll"]
