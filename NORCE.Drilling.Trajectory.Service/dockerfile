@@ -12,10 +12,11 @@ ADD ./NORCE_CA.cer /usr/local/share/ca-certificates/foo.cer
 RUN chmod 644 /usr/local/share/ca-certificates/foo.cer && update-ca-certificates
 
 WORKDIR /src
-COPY ./nuget.config /nugetNoUser.config
 
 COPY ["NORCE.Drilling.Trajectory.Service/NORCE.Drilling.Trajectory.Service.csproj", "NORCE.Drilling.Trajectory.Service/"]
+COPY ./nuget.config .
 RUN dotnet restore "NORCE.Drilling.Trajectory.Service/NORCE.Drilling.Trajectory.Service.csproj"
+
 COPY . .
 WORKDIR "/src/NORCE.Drilling.Trajectory.Service"
 RUN dotnet build "NORCE.Drilling.Trajectory.Service.csproj" -c Release -o /app

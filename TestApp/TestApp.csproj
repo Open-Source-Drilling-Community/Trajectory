@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NORCE.Drilling.SurveyInstrument.Model" Version="1.0.3" />
+    <PackageReference Include="NORCE.Drilling.SurveyInstrument.Model" Version="1.0.4" />
   </ItemGroup>
 
   <ItemGroup>
