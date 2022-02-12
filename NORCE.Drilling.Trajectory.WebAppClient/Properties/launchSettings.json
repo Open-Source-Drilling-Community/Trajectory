@@ -18,10 +18,11 @@
         "NORCE.Drilling.Trajectory.WebApp.Client": {
             "commandName": "Project",
             "launchBrowser": true,
+            "launchUrl": "Trajectory/webapp/Trajectory",
             "environmentVariables": {
                 "ASPNETCORE_ENVIRONMENT": "Development"
             },
-            "applicationUrl": "https://localhost:5001;http://localhost:5000"
+            "applicationUrl": "https://localhost:10011;http://localhost:10012"
         },
         "Docker": {
             "commandName": "Docker",

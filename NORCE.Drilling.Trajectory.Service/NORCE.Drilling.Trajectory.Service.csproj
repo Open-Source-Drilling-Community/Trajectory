@@ -21,6 +21,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <Folder Include="wwwroot\Trajectory\json-schemas\" />
     <Folder Include="wwwroot\Trajectory\ModelAPI\api\" />
     <Folder Include="wwwroot\Trajectory\ServiceAPI\api\" />
   </ItemGroup>

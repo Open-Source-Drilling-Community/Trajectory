@@ -9,12 +9,10 @@ FROM mcr.microsoft.com/dotnet/sdk:3.1 AS build
 
 ARG NORCE_NUGET_USER 
 ARG NORCE_NUGET_APIKEY 
-
-ADD ./NORCE_CA.cer /usr/local/share/ca-certificates/foo.cer
-RUN chmod 644 /usr/local/share/ca-certificates/foo.cer && update-ca-certificates
+ADD ./NORCE_CA.cer /usr/local/share/ca-certificates/foo.crt
+RUN chmod 644 /usr/local/share/ca-certificates/foo.crt && update-ca-certificates
 
 WORKDIR /src
-
 COPY ["NORCE.Drilling.Trajectory.WebAppClient/NORCE.Drilling.Trajectory.WebApp.Client.csproj", "NORCE.Drilling.Trajectory.WebAppClient/"]
 COPY ./nuget.config .
 RUN dotnet restore "NORCE.Drilling.Trajectory.WebAppClient/NORCE.Drilling.Trajectory.WebApp.Client.csproj"

@@ -489,69 +489,6 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
-        "M11": {
-          "type": [
-            "null",
-            "number"
-          ],
-          "format": "double"
-        },
-        "M12": {
-          "type": [
-            "null",
-            "number"
-          ],
-          "format": "double"
-        },
-        "M13": {
-          "type": [
-            "null",
-            "number"
-          ],
-          "format": "double"
-        },
-        "M21": {
-          "type": [
-            "null",
-            "number"
-          ],
-          "format": "double"
-        },
-        "M22": {
-          "type": [
-            "null",
-            "number"
-          ],
-          "format": "double"
-        },
-        "M23": {
-          "type": [
-            "null",
-            "number"
-          ],
-          "format": "double"
-        },
-        "M31": {
-          "type": [
-            "null",
-            "number"
-          ],
-          "format": "double"
-        },
-        "M32": {
-          "type": [
-            "null",
-            "number"
-          ],
-          "format": "double"
-        },
-        "M33": {
-          "type": [
-            "null",
-            "number"
-          ],
-          "format": "double"
-        },
         "ColumnCount": {
           "type": "integer",
           "format": "int32"
@@ -680,6 +617,370 @@
           ],
           "format": "double"
         },
+        "DRFR": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "DRFS": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "DSFS": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "DSTG": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ABXY_TI1S": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ABXY_TI2S": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ABZ": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ASXY_TI1S": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ASXY_TI2S": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ASXY_TI3S": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ASZ": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "MBXY_TI1S": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "MBXY_TI2S": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "MBZ": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "MSXY_TI1S": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "MSXY_TI2S": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "MSXY_TI3S": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "MSZ": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "DEC_U": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "DEC_OS": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "DEC_OH": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "DEC_OI": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "DECR": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "DBH_U": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "DBH_OS": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "DBH_OH": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "DBH_OI": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "DBHR": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "AMIL": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "SAGE": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "XYM1": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "XYM2": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "XYM3": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "XYM4": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "XYM3E": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "XYM4E": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "SAG": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "XCLH": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "XCLL": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "AXY_B": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "AXY_SF": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "AXY_MS": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "AXY_GB": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "GXY_B1": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "GXY_B2": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "GXY_RN": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "GXY_G1": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "GXY_G2": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "GXY_G3": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "GXY_G4": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "GXY_SF": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "GXY_MIS": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
         "ModelType": {
           "$ref": "#/definitions/SurveyInstrumentModelType"
         }
@@ -690,11 +991,15 @@
       "description": "",
       "x-enumNames": [
         "WolffDeWardt",
-        "ISCWC"
+        "ISCWC",
+        "ISCWC_MWD_Rev5",
+        "ISCWSA_Gyro_Ex1"
       ],
       "enum": [
         0,
-        1
+        1,
+        2,
+        3
       ]
     },
     "CurvilinearPoint3D": {

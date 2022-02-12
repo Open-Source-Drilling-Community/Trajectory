@@ -53,29 +53,6 @@ namespace NORCE.Drilling.Trajectory.Service
             }
         }
 
-        //private int Count
-        //{
-        //    get
-        //    {
-        //        var command = connection_.CreateCommand();
-        //        command.CommandText = @"SELECT count(*) FROM Trajectory";
-        //        long count = -1;
-        //        try
-        //        {
-        //            using (var reader = command.ExecuteReader())
-        //            {
-        //                if (reader.Read())
-        //                {
-        //                    count = reader.GetInt64(0);
-        //                }
-        //            }
-        //        }
-        //        catch (SQLiteException e)
-        //        {
-        //        }
-        //        return (int)count;
-        //    }
-        //}
         private void ManageTrajectory()
         {
             var command = connection_.CreateCommand();
@@ -93,18 +70,18 @@ namespace NORCE.Drilling.Trajectory.Service
             }
             catch (SQLiteException e)
             {
-            }   
+            }
             if (count < 0)
             {
                 bool success = true;
                 // table does no exist
                 command.CommandText =
                     @"CREATE TABLE Trajectory (" +
-                    "ID text primary key, " +
+                    "ID integer primary key, " +
                     "Name text, " +
                     "TimeStamp real, " +
                     "DataSet text " +
-                    ")";
+                   ")";
                 try
                 {
                     int res = command.ExecuteNonQuery();
@@ -139,7 +116,7 @@ namespace NORCE.Drilling.Trajectory.Service
                         success = false;
                     }
                 }
-            }           
+            }
         }
 
         private void Initialize()

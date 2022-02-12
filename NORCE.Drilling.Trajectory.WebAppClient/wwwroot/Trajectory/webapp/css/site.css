@@ -20,6 +20,66 @@ app {
     flex-direction: column;
 }
 
+tableTrajectory {
+    table-layout: fixed;
+}
+
+.TrajectoryName {
+    width: 10%;
+}
+
+.TrajectoryDescription {
+    width: 10%;
+}
+
+.FieldName {
+    width: 10%;
+}
+
+.ClusterName {
+    width: 10%;
+}
+
+.SlotName {
+    width: 10%;
+}
+
+.WellName {
+    width: 10%;
+}
+
+.WellBoreName {
+    width: 10%;
+}
+
+.RowButtons {
+    width: 30%;
+}
+
+.tableSurveyList {
+    table-layout: fixed;
+}
+
+.MD {
+    width: 15%;
+}
+
+.Inclination {
+    width: 15%;
+}
+
+.Azimuth {
+    width: 15%;
+}
+
+.SurveyInstrument {
+    width: 15%;
+}
+
+.SurveyListRowButtons {
+    width: 40%;
+}
+
 .top-row {
     height: 3.5rem;
     display: flex;
@@ -66,7 +126,7 @@ app {
     }
 
     .sidebar .nav-item {
-        font-size: 0.9rem;
+        font-size: 0.8rem;
         padding-bottom: 0.5rem;
     }
 
@@ -84,7 +144,7 @@ app {
             height: 3rem;
             display: flex;
             align-items: center;
-            line-height: 3rem;
+            line-height: 1rem;
         }
 
             .sidebar .nav-item a.active {
