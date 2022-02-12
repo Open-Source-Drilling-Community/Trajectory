@@ -290,16 +290,16 @@ else
                                 {
                                     @if (!string.IsNullOrEmpty(editedSlotName) && editedSlotName.Equals(s.Name))
                                     {
-                                        <optgroup label=@(s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
-                                            @foreach (int wKey in wells.Keys)
+                                        @foreach (int wKey in wells.Keys)
+                                        {
+                                            @if (s.ID.Equals(wells[wKey].SlotID))
                                             {
-                                                @if (s.ID.Equals(wells[wKey].SlotID))
+                                                @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
                                                 {
-                                                    @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
-                                                    {
-                                                        foreach (int wbKey in wellBores.Keys)
+                                                    <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                        @foreach (int wbKey in wellBores.Keys)
                                                         {
-                                                            if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                            @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                             {
                                                                 @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                 {
@@ -311,12 +311,15 @@ else
                                                                 }
                                                             }
                                                         }
-                                                    }
-                                                    else if (string.IsNullOrEmpty(editedWellName))
-                                                    {
-                                                        foreach (int wbKey in wellBores.Keys)
+                                                    </optgroup>
+
+                                                }
+                                                else if (string.IsNullOrEmpty(editedWellName))
+                                                {
+                                                    <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                        @foreach (int wbKey in wellBores.Keys)
                                                         {
-                                                            if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                            @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                             {
                                                                 @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                 {
@@ -328,23 +331,23 @@ else
                                                                 }
                                                             }
                                                         }
-                                                    }
+                                                    </optgroup>
                                                 }
                                             }
-                                        </optgroup>
+                                        }
                                     }
                                     else if (string.IsNullOrEmpty(editedSlotName))
                                     {
-                                        <optgroup label=@(s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
-                                            @foreach (int wKey in wells.Keys)
+                                        @foreach (int wKey in wells.Keys)
+                                        {
+                                            @if (s.ID.Equals(wells[wKey].SlotID))
                                             {
-                                                @if (s.ID.Equals(wells[wKey].SlotID))
+                                                @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
                                                 {
-                                                    @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
-                                                    {
-                                                        foreach (int wbKey in wellBores.Keys)
+                                                    <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                        @foreach (int wbKey in wellBores.Keys)
                                                         {
-                                                            if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                            @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                             {
                                                                 @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                 {
@@ -356,12 +359,14 @@ else
                                                                 }
                                                             }
                                                         }
-                                                    }
-                                                    else if (string.IsNullOrEmpty(editedWellName))
-                                                    {
-                                                        foreach (int wbKey in wellBores.Keys)
+                                                    </optgroup>
+                                                }
+                                                else if (string.IsNullOrEmpty(editedWellName))
+                                                {
+                                                    <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                        @foreach (int wbKey in wellBores.Keys)
                                                         {
-                                                            if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                            @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                             {
                                                                 @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                 {
@@ -373,10 +378,10 @@ else
                                                                 }
                                                             }
                                                         }
-                                                    }
+                                                    </optgroup>
                                                 }
                                             }
-                                        </optgroup>
+                                        }
                                     }
                                 }
                             }
@@ -388,16 +393,16 @@ else
                                     {
                                         @if (!string.IsNullOrEmpty(editedSlotName) && editedSlotName.Equals(s.Name))
                                         {
-                                            <optgroup label=@(s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
-                                                @foreach (int wKey in wells.Keys)
+                                            @foreach (int wKey in wells.Keys)
+                                            {
+                                                @if (s.ID.Equals(wells[wKey].SlotID))
                                                 {
-                                                    @if (s.ID.Equals(wells[wKey].SlotID))
+                                                    @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
                                                     {
-                                                        @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -409,12 +414,14 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                        }
-                                                        else if (string.IsNullOrEmpty(editedWellName))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        </optgroup>
+                                                    }
+                                                    else if (string.IsNullOrEmpty(editedWellName))
+                                                    {
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -426,23 +433,23 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                        }
+                                                        </optgroup>
                                                     }
                                                 }
-                                            </optgroup>
+                                            }
                                         }
                                         else if (string.IsNullOrEmpty(editedSlotName))
                                         {
-                                            <optgroup label=@(s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
-                                                @foreach (int wKey in wells.Keys)
+                                            @foreach (int wKey in wells.Keys)
+                                            {
+                                                @if (s.ID.Equals(wells[wKey].SlotID))
                                                 {
-                                                    @if (s.ID.Equals(wells[wKey].SlotID))
+                                                    @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
                                                     {
-                                                        @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -454,12 +461,14 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                        }
-                                                        else if (string.IsNullOrEmpty(editedWellName))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        </optgroup>
+                                                    }
+                                                    else if (string.IsNullOrEmpty(editedWellName))
+                                                    {
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -471,10 +480,10 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                        }
+                                                        </optgroup>
                                                     }
                                                 }
-                                            </optgroup>
+                                            }
                                         }
                                     }
                                 }
@@ -484,16 +493,16 @@ else
                                     {
                                         @if (!string.IsNullOrEmpty(editedSlotName) && editedSlotName.Equals(s.Name))
                                         {
-                                            <optgroup label=@(s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
-                                                @foreach (int wKey in wells.Keys)
+                                            @foreach (int wKey in wells.Keys)
+                                            {
+                                                @if (s.ID.Equals(wells[wKey].SlotID))
                                                 {
-                                                    @if (s.ID.Equals(wells[wKey].SlotID))
+                                                    @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
                                                     {
-                                                        @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -505,12 +514,14 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                        }
-                                                        else if (string.IsNullOrEmpty(editedWellName))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        </optgroup>
+                                                    }
+                                                    else if (string.IsNullOrEmpty(editedWellName))
+                                                    {
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -522,23 +533,23 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                        }
+                                                        </optgroup>
                                                     }
                                                 }
-                                            </optgroup>
+                                            }
                                         }
                                         else if (string.IsNullOrEmpty(editedSlotName))
                                         {
-                                            <optgroup label=@(s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
-                                                @foreach (int wKey in wells.Keys)
+                                            @foreach (int wKey in wells.Keys)
+                                            {
+                                                @if (s.ID.Equals(wells[wKey].SlotID))
                                                 {
-                                                    @if (s.ID.Equals(wells[wKey].SlotID))
+                                                    @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
                                                     {
-                                                        @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -550,12 +561,14 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                        }
-                                                        else if (string.IsNullOrEmpty(editedWellName))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        </optgroup>
+                                                    }
+                                                    else if (string.IsNullOrEmpty(editedWellName))
+                                                    {
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -567,10 +580,10 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                        }
+                                                        </optgroup>
                                                     }
                                                 }
-                                            </optgroup>
+                                            }
                                         }
                                     }
                                 }
@@ -837,16 +850,16 @@ else
                                 {
                                     @if (!string.IsNullOrEmpty(editedSlotName) && editedSlotName.Equals(s.Name))
                                     {
-                                        <optgroup label=@(s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
-                                            @foreach (int wKey in wells.Keys)
+                                        @foreach (int wKey in wells.Keys)
+                                        {
+                                            @if (s.ID.Equals(wells[wKey].SlotID))
                                             {
-                                                @if (s.ID.Equals(wells[wKey].SlotID))
+                                                @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
                                                 {
-                                                    @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
-                                                    {
-                                                        foreach (int wbKey in wellBores.Keys)
+                                                    <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                        @foreach (int wbKey in wellBores.Keys)
                                                         {
-                                                            if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                            @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                             {
                                                                 @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                 {
@@ -858,13 +871,15 @@ else
                                                                 }
                                                             }
                                                         }
-                                                        <option selected>@wells[wKey].Name</option>
-                                                    }
-                                                    else if (string.IsNullOrEmpty(editedWellName))
-                                                    {
-                                                        foreach (int wbKey in wellBores.Keys)
+                                                    </optgroup>
+
+                                                }
+                                                else if (string.IsNullOrEmpty(editedWellName))
+                                                {
+                                                    <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                        @foreach (int wbKey in wellBores.Keys)
                                                         {
-                                                            if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                            @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                             {
                                                                 @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                 {
@@ -876,23 +891,23 @@ else
                                                                 }
                                                             }
                                                         }
-                                                    }
+                                                    </optgroup>
                                                 }
                                             }
-                                        </optgroup>
+                                        }
                                     }
                                     else if (string.IsNullOrEmpty(editedSlotName))
                                     {
-                                        <optgroup label=@(s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
-                                            @foreach (int wKey in wells.Keys)
+                                        @foreach (int wKey in wells.Keys)
+                                        {
+                                            @if (s.ID.Equals(wells[wKey].SlotID))
                                             {
-                                                @if (s.ID.Equals(wells[wKey].SlotID))
+                                                @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
                                                 {
-                                                    @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
-                                                    {
-                                                        foreach (int wbKey in wellBores.Keys)
+                                                    <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                        @foreach (int wbKey in wellBores.Keys)
                                                         {
-                                                            if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                            @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                             {
                                                                 @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                 {
@@ -904,13 +919,14 @@ else
                                                                 }
                                                             }
                                                         }
-                                                        <option selected>@wells[wKey].Name</option>
-                                                    }
-                                                    else if (string.IsNullOrEmpty(editedWellName))
-                                                    {
-                                                        foreach (int wbKey in wellBores.Keys)
+                                                    </optgroup>
+                                                }
+                                                else if (string.IsNullOrEmpty(editedWellName))
+                                                {
+                                                    <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                        @foreach (int wbKey in wellBores.Keys)
                                                         {
-                                                            if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                            @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                             {
                                                                 @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                 {
@@ -922,10 +938,10 @@ else
                                                                 }
                                                             }
                                                         }
-                                                    }
+                                                    </optgroup>
                                                 }
                                             }
-                                        </optgroup>
+                                        }
                                     }
                                 }
                             }
@@ -937,16 +953,16 @@ else
                                     {
                                         @if (!string.IsNullOrEmpty(editedSlotName) && editedSlotName.Equals(s.Name))
                                         {
-                                            <optgroup label=@(s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
-                                                @foreach (int wKey in wells.Keys)
+                                            @foreach (int wKey in wells.Keys)
+                                            {
+                                                @if (s.ID.Equals(wells[wKey].SlotID))
                                                 {
-                                                    @if (s.ID.Equals(wells[wKey].SlotID))
+                                                    @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
                                                     {
-                                                        @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -958,13 +974,14 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                            <option selected>@wells[wKey].Name</option>
-                                                        }
-                                                        else if (string.IsNullOrEmpty(editedWellName))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        </optgroup>
+                                                    }
+                                                    else if (string.IsNullOrEmpty(editedWellName))
+                                                    {
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -976,23 +993,23 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                        }
+                                                        </optgroup>
                                                     }
                                                 }
-                                            </optgroup>
+                                            }
                                         }
                                         else if (string.IsNullOrEmpty(editedSlotName))
                                         {
-                                            <optgroup label=@(s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
-                                                @foreach (int wKey in wells.Keys)
+                                            @foreach (int wKey in wells.Keys)
+                                            {
+                                                @if (s.ID.Equals(wells[wKey].SlotID))
                                                 {
-                                                    @if (s.ID.Equals(wells[wKey].SlotID))
+                                                    @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
                                                     {
-                                                        @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -1004,13 +1021,14 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                            <option selected>@wells[wKey].Name</option>
-                                                        }
-                                                        else if (string.IsNullOrEmpty(editedWellName))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        </optgroup>
+                                                    }
+                                                    else if (string.IsNullOrEmpty(editedWellName))
+                                                    {
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -1022,10 +1040,10 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                        }
+                                                        </optgroup>
                                                     }
                                                 }
-                                            </optgroup>
+                                            }
                                         }
                                     }
                                 }
@@ -1035,16 +1053,16 @@ else
                                     {
                                         @if (!string.IsNullOrEmpty(editedSlotName) && editedSlotName.Equals(s.Name))
                                         {
-                                            <optgroup label=@(s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
-                                                @foreach (int wKey in wells.Keys)
+                                            @foreach (int wKey in wells.Keys)
+                                            {
+                                                @if (s.ID.Equals(wells[wKey].SlotID))
                                                 {
-                                                    @if (s.ID.Equals(wells[wKey].SlotID))
+                                                    @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
                                                     {
-                                                        @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -1056,13 +1074,14 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                            <option selected>@wells[wKey].Name</option>
-                                                        }
-                                                        else if (string.IsNullOrEmpty(editedWellName))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        </optgroup>
+                                                    }
+                                                    else if (string.IsNullOrEmpty(editedWellName))
+                                                    {
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -1074,23 +1093,23 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                        }
+                                                        </optgroup>
                                                     }
                                                 }
-                                            </optgroup>
+                                            }
                                         }
                                         else if (string.IsNullOrEmpty(editedSlotName))
                                         {
-                                            <optgroup label=@(s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
-                                                @foreach (int wKey in wells.Keys)
+                                            @foreach (int wKey in wells.Keys)
+                                            {
+                                                @if (s.ID.Equals(wells[wKey].SlotID))
                                                 {
-                                                    @if (s.ID.Equals(wells[wKey].SlotID))
+                                                    @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
                                                     {
-                                                        @if (!string.IsNullOrEmpty(editedWellName) && wells[wKey] != null && !string.IsNullOrEmpty(wells[wKey].Name) && editedWellName.Equals(wells[wKey].Name))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -1102,13 +1121,14 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                            <option selected>@wells[wKey].Name</option>
-                                                        }
-                                                        else if (string.IsNullOrEmpty(editedWellName))
-                                                        {
-                                                            foreach (int wbKey in wellBores.Keys)
+                                                        </optgroup>
+                                                    }
+                                                    else if (string.IsNullOrEmpty(editedWellName))
+                                                    {
+                                                        <optgroup label=@(wells[wKey].Name + " @ " + s.Name + " @ " + clusters[key].Name + " @ " +  clusters[key].Field.Name)>
+                                                            @foreach (int wbKey in wellBores.Keys)
                                                             {
-                                                                if (wells[wKey].ID == wellBores[wbKey].WellID)
+                                                                @if (wells[wKey].ID == wellBores[wbKey].WellID)
                                                                 {
                                                                     @if (!string.IsNullOrEmpty(editedWellBoreName) && wellBores[wbKey] != null && !string.IsNullOrEmpty(wellBores[wbKey].Name) && editedWellBoreName.Equals(wellBores[wbKey].Name))
                                                                     {
@@ -1120,10 +1140,10 @@ else
                                                                     }
                                                                 }
                                                             }
-                                                        }
+                                                        </optgroup>
                                                     }
                                                 }
-                                            </optgroup>
+                                            }
                                         }
                                     }
                                 }
