@@ -9,10 +9,10 @@
 
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.11.1" />
-    <PackageReference Include="NORCE.Drilling.Cluster.ModelClientShared" Version="1.0.4" />
-    <PackageReference Include="NORCE.Drilling.Field.ModelClientShared" Version="1.0.0" />
-    <PackageReference Include="NORCE.Drilling.Well.ModelClientShared" Version="1.0.0" />
-    <PackageReference Include="NORCE.Drilling.WellBore.ModelClientShared" Version="1.0.0" />
+    <PackageReference Include="NORCE.Drilling.Cluster.ModelClientShared" Version="1.0.5" />
+    <PackageReference Include="NORCE.Drilling.Field.ModelClientShared" Version="1.0.1" />
+    <PackageReference Include="NORCE.Drilling.Well.ModelClientShared" Version="1.0.2" />
+    <PackageReference Include="NORCE.Drilling.WellBore.ModelClientShared" Version="1.0.1" />
   </ItemGroup>
 
   <ItemGroup>
