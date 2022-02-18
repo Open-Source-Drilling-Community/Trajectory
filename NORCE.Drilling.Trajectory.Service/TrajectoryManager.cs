@@ -134,17 +134,8 @@ namespace NORCE.Drilling.Trajectory.Service
                     {
                         while (reader.Read())
                         {
-                            try
-                            {
-                                //long inttt = reader.GetInt64(0);
-								string IDString = reader.GetString(0);
-                                int ID = (int)Int64.Parse(IDString);
-								ids.Add(ID);
-							}
-                            catch (Exception e)
-							{
-
-							}
+                            int ID = (int)reader.GetInt64(0);
+                            ids.Add(ID);
                         }
                     }
                 }
@@ -153,7 +144,7 @@ namespace NORCE.Drilling.Trajectory.Service
                 }
             }
             if(ids.Count==0)
-			{
+            {
                 FillDefault();
                 if (SQLConnectionManager.Instance.Connection != null)
                 {
@@ -165,17 +156,8 @@ namespace NORCE.Drilling.Trajectory.Service
                         {
                             while (reader.Read())
                             {
-                                try
-                                {
-                                    //long inttt = reader.GetInt64(0);
-                                    string IDString = reader.GetString(0);
-                                    int ID = (int)Int64.Parse(IDString);
-                                    ids.Add(ID);
-                                }
-                                catch (Exception e)
-                                {
-
-                                }
+                                int ID = (int)reader.GetInt64(0);
+                                ids.Add(ID);
                             }
                         }
                     }
@@ -189,13 +171,13 @@ namespace NORCE.Drilling.Trajectory.Service
 
         public Model.Trajectory Get(int trajectoryID)
         {
-            if (trajectoryID >= 0)
+            if (trajectoryID > 0)
             {
-                Model.Trajectory trajectory= null;
+                Model.Trajectory trajectory = null;
                 if (SQLConnectionManager.Instance.Connection != null)
                 {
                     var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                    command.CommandText = @"SELECT DataSet FROM Trajectory WHERE ID = " + "'" + trajectoryID.ToString() + "'";
+                    command.CommandText = @"SELECT DataSet FROM Trajectory WHERE ID = " + trajectoryID.ToString();
                     try
                     {
                         using (var reader = command.ExecuteReader())
@@ -210,7 +192,7 @@ namespace NORCE.Drilling.Trajectory.Service
                                         try
                                         {
                                             trajectory = JsonSerializer.Deserialize<Model.Trajectory>(json);
-                                            if (!trajectory.ID.Equals(trajectoryID))
+                                            if (trajectory.ID != trajectoryID)
                                             {
                                                 trajectory.ID = trajectoryID;
                                             }
@@ -224,7 +206,6 @@ namespace NORCE.Drilling.Trajectory.Service
                             }
                         }
                     }
-                    
                     catch (SQLiteException e)
                     {
                     }
@@ -244,45 +225,38 @@ namespace NORCE.Drilling.Trajectory.Service
             {
                 if (SQLConnectionManager.Instance.Connection != null)
                 {
-                    if (trajectory.ID < 0)
+                    if (trajectory.ID <= 0)
                     {
                         trajectory.ID = GetNextID();
                     }
-                    //lock (lock_)
+                    using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
                     {
-                        using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
+                        try
                         {
-                            try
+                            string json = JsonSerializer.Serialize<Model.Trajectory>(trajectory);
+                            bool ok = !json.Contains('\'');
+                            var command = SQLConnectionManager.Instance.Connection.CreateCommand();
+                            command.CommandText = @"INSERT INTO Trajectory (ID, Name, TimeStamp, DataSet) VALUES (" +
+                                + trajectory.ID + ", " +
+                                "'" + trajectory.Name + "'" + ", " +
+                                "'" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "'" + ", " + 
+                                "'" + json + "'" + ")";
+                            int count = command.ExecuteNonQuery();
+                            result = count == 1;
+                            if (result)
                             {
-                                string json = JsonSerializer.Serialize<Model.Trajectory>(trajectory);
-                                bool ok = !json.Contains('\'');
-                                var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                                command.CommandText = @"INSERT INTO Trajectory (" +
-                                    "ID, " +
-                                    "Name, " +
-                                    "TimeStamp, " +
-                                    "DataSet " +
-                                    ") VALUES (" +
-                                    "'" + trajectory.ID.ToString() + "'" + ", " +
-                                    "'" + trajectory.Name + "'" + ", " +
-                                    "'" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "'" + ", " + "'" + json + "'" + ")";
-                                int count = command.ExecuteNonQuery();
-                                result = count == 1;
-                                if (result)
-                                {
-                                    transaction.Commit();
-                                }
-                                else
-                                {
-                                    transaction.Rollback();
-                                }
+                                transaction.Commit();
                             }
-                            catch (SQLiteException e)
+                            else
                             {
                                 transaction.Rollback();
                             }
                         }
-                    }                    
+                        catch (SQLiteException e)
+                        {
+                            transaction.Rollback();
+                        }
+                    }
                 }
             }
             return result;
@@ -310,9 +284,9 @@ namespace NORCE.Drilling.Trajectory.Service
                         try
                         {
                             var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                            command.CommandText = @"DELETE FROM Trajectory WHERE ID = " + "'" + trajectoryID.ToString() + "'";
+                            command.CommandText = @"DELETE FROM Trajectory WHERE ID = " + trajectoryID.ToString();
                             int count = command.ExecuteNonQuery();
-                            result = count >= 0;                            
+                            result = count >= 0;
                             if (result)
                             {
                                 transaction.Commit();
@@ -337,6 +311,7 @@ namespace NORCE.Drilling.Trajectory.Service
             bool result = false;
             if (trajectoryID > 0 && updatedTrajectory != null)
             {
+                updatedTrajectory.ID = trajectoryID;
                 if (SQLConnectionManager.Instance.Connection != null)
                 {
                     using (var transaction = SQLConnectionManager.Instance.Connection.BeginTransaction())
@@ -351,9 +326,9 @@ namespace NORCE.Drilling.Trajectory.Service
                                 "Name =  " + "'" + updatedTrajectory.Name + "'" + ", " +
                                 "TimeStamp = " + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + ", " +
                                 "DataSet = " + "'" + json + "'" + " " +
-                                "WHERE ID = " + "'" + trajectoryID.ToString() + "'";
+                                "WHERE ID = " + trajectoryID;
                             int count = command.ExecuteNonQuery();
-                            result = count == 1;                            
+                            result = count == 1;
                             if (result)
                             {
                                 transaction.Commit();
@@ -375,7 +350,7 @@ namespace NORCE.Drilling.Trajectory.Service
 
         public int GetNextID()
         {
-            int id = -1;
+            int id;
             bool exists = false;
             do
             {
@@ -413,21 +388,22 @@ namespace NORCE.Drilling.Trajectory.Service
             {
                 string homeDirectory = ".." + Path.DirectorySeparatorChar + "home";
                 string directory = @homeDirectory + Path.DirectorySeparatorChar + "Wellbores";
+                // The trajectories MD/TVD should be relative to the slot/cluster since different rigs with different RTE's can operate the same wellbore
+                double rotaryTableElevation_Ullrigg = 8.78;
                 //string directory = @"\Wellbores";
                 if (Directory.Exists(directory))
                 {
                     Model.Trajectory trajectory = new Model.Trajectory();
-                    trajectory.Description = "UllriggWell";
                     trajectory.SurveyList = new SurveyList();
                     trajectory.SurveyList.Surveys = new List<SurveyStation>();
                     string[] files = Directory.GetFiles(directory);
-                    int id = 1;
                     foreach (string file in files)
                     {
                         using (StreamReader r = new StreamReader(file))
                         {
                             SurveyList sl = new SurveyList();
                             //CultureInfo culture = CultureInfo.InvariantCulture;
+                            bool startingPointAdded = false;
                             while (!r.EndOfStream)
                             {
                                 char[] sep = { '\t' };
@@ -451,8 +427,8 @@ namespace NORCE.Drilling.Trajectory.Service
                                     st.Incl = incl * Math.PI / 180.0; ;
                                     st.X = X;
                                     st.Y = Y;
-                                    st.Z = tvd;
-                                    st.MD = md;
+                                    st.Z = tvd - rotaryTableElevation_Ullrigg;
+                                    st.MD = md - rotaryTableElevation_Ullrigg;
 
                                     var surveyToolll = LoadSurveyTool(1);
 
@@ -464,18 +440,33 @@ namespace NORCE.Drilling.Trajectory.Service
                                     st.SurveyTool = surveyTool;
                                     ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
                                     st.Uncertainty = iscwsaun;
-
-                                    sl.Add(st);
+                                    if (st.MD < 0 && st.Z < 0)
+                                    {
+                                        if (startingPointAdded)
+                                        {
+                                            st = null;
+                                        }
+                                        else
+                                        {
+                                            st.MD = 0;
+                                            st.Z = 0;
+                                            startingPointAdded = true;
+                                        }
+                                    }
+                                    if (st != null)
+                                    {
+                                        sl.Add(st);
+                                    }
                                 }
                             }
                             trajectory.SurveyList = sl;
                             trajectory.SurveyList.ListOfSurveys = sl.ListOfSurveys;
                             trajectory.SurveyList.GetUncertaintyEnvelope(0.95, 1);
-                            trajectory.Name = file.Substring(18);
-                            trajectory.ID = id;
+                            trajectory.Name = file.Substring(18).Split('.')[0].Split('-')[0] + "-Trajectory";
+                            trajectory.Description = trajectory.Name + " at Ullrigg";
+                            trajectory.ID = random_.Next();
                             Add(trajectory);
                         }
-                        id++;
                     }
                 }
             }

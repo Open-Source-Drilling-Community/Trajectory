@@ -21,7 +21,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             var ids = TrajectoryManager.Instance.GetIDs();
             return ids;
         }
-        // GET api/trajectories/5
+        // GET api/trajectories/id
         [HttpGet("{id}")]
         public Model.Trajectory Get(int id)
         {
@@ -29,7 +29,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             return trajectory;
         }
 
-		// GET api/trajectories/5/
+		// GET api/trajectories/id/
 		[HttpGet("{id}/{confidenceFactor}/{scalingFactor}")]
         public List<UncertaintyEnvelopeEllipse> Get(int id, double confidenceFactor, double scalingFactor)
         {
@@ -184,7 +184,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                 }
             }
         }
-        // PUT api/trajectories/5
+        // PUT api/trajectories/id
         [HttpPut("{id}")]
         public void Put(int id, [FromBody] Model.Trajectory value)
         {
@@ -299,7 +299,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                 }
             }
         }
-        // DELETE api/trajectories/5
+        // DELETE api/trajectories/id
         [HttpDelete("{id}")]
         public void Delete(int id)
         {

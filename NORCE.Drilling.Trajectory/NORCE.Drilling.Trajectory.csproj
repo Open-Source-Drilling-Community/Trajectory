@@ -8,11 +8,15 @@
   </PropertyGroup>
 
   <ItemGroup>
+<<<<<<< HEAD
     <PackageReference Include="NORCE.Drilling.SurveyInstrument.Model" Version="1.0.13" />
+=======
+    <PackageReference Include="NORCE.Drilling.SurveyInstrument.Model" Version="1.0.4" />
+>>>>>>> 55b6c6972c0ee853638cc6edc7dd385d7b9f0528
     <PackageReference Include="NORCE.General.Coordinates" Version="1.0.0" />
     <PackageReference Include="NORCE.General.Math" Version="1.0.7" />
-    <PackageReference Include="NORCE.General.Octree" Version="1.0.4" />
-    <PackageReference Include="NORCE.General.Std" Version="1.0.0" />
+    <PackageReference Include="NORCE.General.Octree" Version="1.0.7" />
+    <PackageReference Include="NORCE.General.Std" Version="1.0.1" />
   </ItemGroup>
 
 </Project>

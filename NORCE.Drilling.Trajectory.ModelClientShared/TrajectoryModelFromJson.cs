@@ -224,33 +224,6 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v13.0.0.0)")]
     public partial class SymmetricMatrix3x3 
     {
-        [Newtonsoft.Json.JsonProperty("M11", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? M11 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("M12", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? M12 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("M13", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? M13 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("M21", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? M21 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("M22", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? M22 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("M23", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? M23 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("M31", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? M31 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("M32", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? M32 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("M33", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? M33 { get; set; }
-    
         [Newtonsoft.Json.JsonProperty("ColumnCount", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int ColumnCount { get; set; }
     
@@ -332,6 +305,162 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
         [Newtonsoft.Json.JsonProperty("GyroCompassError", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public double? GyroCompassError { get; set; }
     
+        [Newtonsoft.Json.JsonProperty("DRFR", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DRFR { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DRFS", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DRFS { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DSFS", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DSFS { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DSTG", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DSTG { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ABXY_TI1S", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ABXY_TI1S { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ABXY_TI2S", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ABXY_TI2S { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ABZ", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ABZ { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ASXY_TI1S", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ASXY_TI1S { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ASXY_TI2S", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ASXY_TI2S { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ASXY_TI3S", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ASXY_TI3S { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ASZ", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ASZ { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("MBXY_TI1S", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? MBXY_TI1S { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("MBXY_TI2S", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? MBXY_TI2S { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("MBZ", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? MBZ { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("MSXY_TI1S", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? MSXY_TI1S { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("MSXY_TI2S", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? MSXY_TI2S { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("MSXY_TI3S", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? MSXY_TI3S { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("MSZ", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? MSZ { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DEC_U", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DEC_U { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DEC_OS", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DEC_OS { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DEC_OH", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DEC_OH { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DEC_OI", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DEC_OI { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DECR", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DECR { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DBH_U", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DBH_U { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DBH_OS", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DBH_OS { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DBH_OH", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DBH_OH { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DBH_OI", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DBH_OI { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DBHR", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? DBHR { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("AMIL", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? AMIL { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("SAGE", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? SAGE { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("XYM1", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? XYM1 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("XYM2", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? XYM2 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("XYM3", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? XYM3 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("XYM4", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? XYM4 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("XYM3E", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? XYM3E { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("XYM4E", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? XYM4E { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("SAG", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? SAG { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("XCLH", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? XCLH { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("XCLL", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? XCLL { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("AXY_B", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? AXY_B { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("AXY_SF", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? AXY_SF { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("AXY_MS", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? AXY_MS { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("AXY_GB", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? AXY_GB { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GXY_B1", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GXY_B1 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GXY_B2", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GXY_B2 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GXY_RN", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GXY_RN { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GXY_G1", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GXY_G1 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GXY_G2", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GXY_G2 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GXY_G3", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GXY_G3 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GXY_G4", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GXY_G4 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GXY_SF", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GXY_SF { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GXY_MIS", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GXY_MIS { get; set; }
+    
         [Newtonsoft.Json.JsonProperty("ModelType", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public SurveyInstrumentModelType ModelType { get; set; }
     
@@ -344,6 +473,10 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
         WolffDeWardt = 0,
     
         ISCWC = 1,
+    
+        ISCWC_MWD_Rev5 = 2,
+    
+        ISCWSA_Gyro_Ex1 = 3,
     
     }
     
