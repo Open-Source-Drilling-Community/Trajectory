@@ -31,6 +31,10 @@ namespace NORCE.Drilling.Trajectory
         /// </summary>
         public double Convergence { get; set; } = 0;
         /// <summary>
+        /// Latitude [rad]
+        /// </summary>
+        public double Latitude { get; set; } = 0;
+        /// <summary>
         /// Ineces of error sources
         /// </summary>
         public int[] ErrorIndices { get; set; } = null;
@@ -42,6 +46,8 @@ namespace NORCE.Drilling.Trajectory
         /// Used for calculations
         /// </summary>
         public List<ISCWSAErrorData> ISCWSAErrorDataTmp { get; set; } = null;
+
+        
 
         /// <summary>
         /// Default constructor
@@ -143,9 +149,836 @@ namespace NORCE.Drilling.Trajectory
 			#region Define error sources
 			if (ErrorSources == null)
             {
+                //NB!
+                double startInclination = 0.0 * Math.PI / 180.0;
+                double endInclination = 17.0 * Math.PI / 180.0;
+                double initInclination = 17.0 * Math.PI / 180.0;
+                if (surveyStation.SurveyTool.ModelType is SurveyInstrumentModelType.ISCWSA_Gyro_Ex2)
+				{
+
+				}
+
                 //Use all error sources
                 ErrorSources = new List<IErrorSource>();
-                if (ErrorIndices == null)
+                bool GyroEx1 = true;
+                bool GyroEx2 = false;
+                if(this is ISCWSA_MWDSurveyStationUncertainty)
+                { }
+                double earthRotRate = 7.2921159e-5; //7.367e-5; //7.27e-5;//7.292115e-5; //[rad/s]
+                if (surveyStation.SurveyTool.UseXYM1)
+                {
+                    ErrorSourceXYM1 errorSourceXYM1 = new ErrorSourceXYM1();
+                    errorSourceXYM1.Magnitude = (double)surveyStation.SurveyTool.XYM1;
+                    ErrorSources.Add(errorSourceXYM1);
+                }
+                if (surveyStation.SurveyTool.UseXYM2)
+                {
+                    ErrorSourceXYM2 errorSourceXYM2 = new ErrorSourceXYM2();
+                    errorSourceXYM2.Magnitude = (double)surveyStation.SurveyTool.XYM2;
+                    ErrorSources.Add(errorSourceXYM2);
+                }
+                if (surveyStation.SurveyTool.UseXYM3)
+                {
+                    ErrorSourceXYM3 errorSourceXYM3 = new ErrorSourceXYM3(); //NB!
+					errorSourceXYM3.Convergence = 0 * Math.PI / 180;
+					errorSourceXYM3.Magnitude = (double)surveyStation.SurveyTool.XYM3;
+                    ErrorSources.Add(errorSourceXYM3);
+                }
+                if (surveyStation.SurveyTool.UseXYM4)
+                {
+                    ErrorSourceXYM4 errorSourceXYM4 = new ErrorSourceXYM4();
+					errorSourceXYM4.Convergence = 0* Math.PI / 180; ;
+					errorSourceXYM4.Magnitude = (double)surveyStation.SurveyTool.XYM4;
+                    ErrorSources.Add(errorSourceXYM4);
+                }
+                if (surveyStation.SurveyTool.UseSAG )
+                {
+                    ErrorSourceSAG errorSourceSAG = new ErrorSourceSAG();
+                    errorSourceSAG.Magnitude = (double)surveyStation.SurveyTool.SAG;
+                    ErrorSources.Add(errorSourceSAG);
+                }
+                if (surveyStation.SurveyTool.UseDRFR)
+                {
+                    ErrorSourceDRFR errorSourceDRFR = new ErrorSourceDRFR();
+                    errorSourceDRFR.Magnitude = (double)surveyStation.SurveyTool.DRFR;
+                    ErrorSources.Add(errorSourceDRFR);
+                }
+                if (surveyStation.SurveyTool.UseDRFS )
+                {
+                    ErrorSourceDRFS errorSourceDRFS = new ErrorSourceDRFS();
+                    errorSourceDRFS.Magnitude = (double)surveyStation.SurveyTool.DRFS;
+                    ErrorSources.Add(errorSourceDRFS);
+                }
+                if (surveyStation.SurveyTool.UseDSFS )
+                {
+                    ErrorSourceDSFS errorSourceDSFS = new ErrorSourceDSFS();
+                    errorSourceDSFS.Magnitude = (double)surveyStation.SurveyTool.DSFS;
+                    ErrorSources.Add(errorSourceDSFS);
+                }
+                if (surveyStation.SurveyTool.UseDSTG )
+                {
+                    ErrorSourceDSTG errorSourceDSTG = new ErrorSourceDSTG();
+                    errorSourceDSTG.Magnitude = (double)surveyStation.SurveyTool.DSTG;
+                    ErrorSources.Add(errorSourceDSTG);
+                }
+                if (surveyStation.SurveyTool.UseXYM3E)
+                {
+                    ErrorSourceXYM3E errorSourceXYM3E = new ErrorSourceXYM3E();
+                    errorSourceXYM3E.Magnitude = (double)surveyStation.SurveyTool.XYM3E;
+                    ErrorSources.Add(errorSourceXYM3E);
+                }
+                if (surveyStation.SurveyTool.UseXYM4E )
+                {
+                    ErrorSourceXYM4E errorSourceXYM4E = new ErrorSourceXYM4E();
+                    errorSourceXYM4E.Magnitude = (double)surveyStation.SurveyTool.XYM4E;
+                    ErrorSources.Add(errorSourceXYM4E);
+                }
+                if (surveyStation.SurveyTool.UseSAGE )
+                {
+                    ErrorSourceSAGE errorSourceSAGE = new ErrorSourceSAGE();
+                    errorSourceSAGE.Magnitude = (double)surveyStation.SurveyTool.SAGE;
+                    ErrorSources.Add(errorSourceSAGE);
+                }
+                if (surveyStation.SurveyTool.UseXCLH )
+                {
+                    ErrorSourceXCLH errorSourceXCLH = new ErrorSourceXCLH();
+                    errorSourceXCLH.Magnitude = (double)surveyStation.SurveyTool.XCLH;
+                    ErrorSources.Add(errorSourceXCLH);
+                }
+                if (surveyStation.SurveyTool.UseXCLL )
+                {
+                    ErrorSourceXCLA errorSourceXCLA = new ErrorSourceXCLA();
+                    errorSourceXCLA.Magnitude = (double)surveyStation.SurveyTool.XCLL;
+                    ErrorSources.Add(errorSourceXCLA);
+                }
+                if (surveyStation.SurveyTool.UseABXY_TI1S)
+                {
+                    ErrorSourceABXY_TI1S errorSourceABXY_TI1S = new ErrorSourceABXY_TI1S();
+                    errorSourceABXY_TI1S.Magnitude = (double)surveyStation.SurveyTool.ABXY_TI1S;
+                    errorSourceABXY_TI1S.Dip = Dip;
+                    errorSourceABXY_TI1S.Gravity = Gravity;
+                    errorSourceABXY_TI1S.Declination = Declination;
+                    ErrorSources.Add(errorSourceABXY_TI1S);
+                }
+                if (surveyStation.SurveyTool.UseABXY_TI2S )
+                {
+                    ErrorSourceABXY_TI2S errorSourceABXY_TI2S = new ErrorSourceABXY_TI2S();
+                    errorSourceABXY_TI2S.Magnitude = (double)surveyStation.SurveyTool.ABXY_TI2S;
+                    errorSourceABXY_TI2S.Dip = Dip;
+                    errorSourceABXY_TI2S.Gravity = Gravity;
+                    errorSourceABXY_TI2S.Declination = Declination;
+                    ErrorSources.Add(errorSourceABXY_TI2S);
+                }
+                if (surveyStation.SurveyTool.UseABZ )
+                {
+                    ErrorSourceABZ errorSourceABZ = new ErrorSourceABZ();
+                    errorSourceABZ.Magnitude = (double)surveyStation.SurveyTool.ABZ;
+                    errorSourceABZ.Dip = Dip;
+                    errorSourceABZ.Gravity = Gravity;
+                    errorSourceABZ.Declination = Declination;
+                    ErrorSources.Add(errorSourceABZ);
+                }
+                if (surveyStation.SurveyTool.UseASXY_TI1S )
+                {
+                    ErrorSourceASXY_TI1S errorSourceASXY_TI1S = new ErrorSourceASXY_TI1S();
+                    errorSourceASXY_TI1S.Magnitude = (double)surveyStation.SurveyTool.ASXY_TI1S;
+                    errorSourceASXY_TI1S.Dip = Dip;
+                    errorSourceASXY_TI1S.Declination = Declination;
+                    ErrorSources.Add(errorSourceASXY_TI1S);
+                }
+                if (surveyStation.SurveyTool.UseASXY_TI2S)
+                {
+                    ErrorSourceASXY_TI2S errorSourceASXY_TI2S = new ErrorSourceASXY_TI2S();
+                    errorSourceASXY_TI2S.Magnitude = (double)surveyStation.SurveyTool.ASXY_TI2S;
+                    errorSourceASXY_TI2S.Dip = Dip;
+                    errorSourceASXY_TI2S.Declination = Declination;
+                    ErrorSources.Add(errorSourceASXY_TI2S);
+                }
+                if (surveyStation.SurveyTool.UseASXY_TI3S)
+                {
+                    ErrorSourceASXY_TI3S errorSourceASXY_TI3S = new ErrorSourceASXY_TI3S();
+                    errorSourceASXY_TI3S.Magnitude = (double)surveyStation.SurveyTool.ASXY_TI3S;
+                    errorSourceASXY_TI3S.Dip = Dip;
+                    errorSourceASXY_TI3S.Declination = Declination;
+                    ErrorSources.Add(errorSourceASXY_TI3S);
+                }
+                if (surveyStation.SurveyTool.UseASZ )
+                {
+                    ErrorSourceASZ errorSourceASZ = new ErrorSourceASZ();
+                    errorSourceASZ.Magnitude = (double)surveyStation.SurveyTool.ASZ;
+                    errorSourceASZ.Dip = Dip;
+                    errorSourceASZ.Declination = Declination;
+                    ErrorSources.Add(errorSourceASZ);
+                }
+                if (surveyStation.SurveyTool.UseMBXY_TI1S)
+                {
+                    ErrorSourceMBXY_TI1 errorSourceMBXY_TI1 = new ErrorSourceMBXY_TI1();
+                    errorSourceMBXY_TI1.Magnitude = (double)surveyStation.SurveyTool.MBXY_TI1S;
+                    errorSourceMBXY_TI1.Dip = Dip;
+                    errorSourceMBXY_TI1.Declination = Declination;
+                    errorSourceMBXY_TI1.BField = BField;
+                    ErrorSources.Add(errorSourceMBXY_TI1);
+                }
+                if (surveyStation.SurveyTool.UseMBXY_TI2S)
+                {
+                    ErrorSourceMBXY_TI2 errorSourceMBXY_TI2 = new ErrorSourceMBXY_TI2();
+                    errorSourceMBXY_TI2.Magnitude = (double)surveyStation.SurveyTool.MBXY_TI2S;
+                    errorSourceMBXY_TI2.Dip = Dip;
+                    errorSourceMBXY_TI2.Declination = Declination;
+                    errorSourceMBXY_TI2.BField = BField;
+                    ErrorSources.Add(errorSourceMBXY_TI2);
+                }
+                if (surveyStation.SurveyTool.UseMBZ)
+                {
+                    ErrorSourceMBZ errorSourceMBZ = new ErrorSourceMBZ();
+                    errorSourceMBZ.Magnitude = (double)surveyStation.SurveyTool.MBZ;
+                    errorSourceMBZ.Dip = Dip;
+                    errorSourceMBZ.Declination = Declination;
+                    errorSourceMBZ.BField = BField;
+                    ErrorSources.Add(errorSourceMBZ);
+                }
+                if (surveyStation.SurveyTool.UseMSXY_TI1S)
+                {
+                    ErrorSourceMSXY_TI1 errorSourceMSXY_TI1 = new ErrorSourceMSXY_TI1();
+                    errorSourceMSXY_TI1.Magnitude = (double)surveyStation.SurveyTool.MSXY_TI1S;
+                    errorSourceMSXY_TI1.Dip = Dip;
+                    errorSourceMSXY_TI1.Declination = Declination;
+                    ErrorSources.Add(errorSourceMSXY_TI1);
+                }
+                if (surveyStation.SurveyTool.UseMSXY_TI2S)
+                {
+                    ErrorSourceMSXY_TI2 errorSourceMSXY_TI2 = new ErrorSourceMSXY_TI2();
+                    errorSourceMSXY_TI2.Magnitude = (double)surveyStation.SurveyTool.MSXY_TI2S;
+                    errorSourceMSXY_TI2.Dip = Dip;
+                    errorSourceMSXY_TI2.Declination = Declination;
+                    ErrorSources.Add(errorSourceMSXY_TI2);
+                }
+                if (surveyStation.SurveyTool.UseMSXY_TI3S)
+                {
+                    ErrorSourceMSXY_TI3 errorSourceMSXY_TI3 = new ErrorSourceMSXY_TI3();
+                    errorSourceMSXY_TI3.Magnitude = (double)surveyStation.SurveyTool.MSXY_TI3S;
+                    errorSourceMSXY_TI3.Dip = Dip;
+                    errorSourceMSXY_TI3.Declination = Declination;
+                    ErrorSources.Add(errorSourceMSXY_TI3);
+                }
+                if (surveyStation.SurveyTool.UseMSZ)
+                {
+                    ErrorSourceMSZ errorSourceMSZ = new ErrorSourceMSZ();
+                    errorSourceMSZ.Magnitude = (double)surveyStation.SurveyTool.MSZ;
+                    errorSourceMSZ.Dip = Dip;
+                    errorSourceMSZ.Declination = Declination;
+                    ErrorSources.Add(errorSourceMSZ);
+                }
+                if (surveyStation.SurveyTool.UseAMIL)
+                {
+                    ErrorSourceAMIL errorSourceAMIL = new ErrorSourceAMIL();
+                    errorSourceAMIL.Magnitude = (double)surveyStation.SurveyTool.AMIL;
+                    errorSourceAMIL.Dip = Dip;
+                    errorSourceAMIL.BField = BField;
+                    errorSourceAMIL.Declination = Declination;
+                    ErrorSources.Add(errorSourceAMIL);
+                }
+                if (surveyStation.SurveyTool.UseABIXY_TI1S)
+                {
+                    //ErrorSourceABIXY_TI1S errorSourceABIXY_TI1S = new ErrorSourceABIXY_TI1S();
+                    //errorSourceABIXY_TI1S.Magnitude = (double)surveyStation.SurveyTool.ABIXY_TI1S;
+                    //ErrorSources.Add(errorSourceABIXY_TI1S);
+                }
+                if (surveyStation.SurveyTool.UseABIXY_TI2S)
+                {
+                    //ErrorSourceABIXY_TI2S errorSourceABIXY_TI2S = new ErrorSourceABIXY_TI2S();
+                    //errorSourceABIXY_TI2S.Magnitude = (double)surveyStation.SurveyTool.ABIXY_TI2S;
+                    //ErrorSources.Add(errorSourceABIXY_TI2S);
+                }
+                if (surveyStation.SurveyTool.UseABIZ)
+                {
+                    //ErrorSourceABIZ errorSourceABIZ = new ErrorSourceABIZ();
+                    //errorSourceABIZ.Magnitude = (double)surveyStation.SurveyTool.ABIZ;
+                    //ErrorSources.Add(errorSourceABIZ);
+                }
+                if (surveyStation.SurveyTool.UseASIXY_TI1S)
+                {
+                    //ErrorSourceASIXY_TI1S errorSourceASIXY_TI1S = new ErrorSourceASIXY_TI1S();
+                    //errorSourceASIXY_TI1S.Magnitude = (double)surveyStation.SurveyTool.ASIXY_TI1S;
+                    //ErrorSources.Add(errorSourceASIXY_TI1S);
+                }
+                if (surveyStation.SurveyTool.UseASIXY_TI2S)
+                {
+                    //ErrorSourceASIXY_TI2S errorSourceASIXY_TI2S = new ErrorSourceASIXY_TI2S();
+                    //errorSourceASIXY_TI2S.Magnitude = (double)surveyStation.SurveyTool.ASIXY_TI2S;
+                    //ErrorSources.Add(errorSourceASIXY_TI2S);
+                }
+                if (surveyStation.SurveyTool.UseASIXY_TI3S)
+                {
+                    //ErrorSourceASIXY_TI3S errorSourceASIXY_TI3S = new ErrorSourceASIXY_TI3S();
+                    //errorSourceASIXY_TI3S.Magnitude = (double)surveyStation.SurveyTool.ASIXY_TI3S;
+                    //ErrorSources.Add(errorSourceASIXY_TI3S);
+                }
+                if (surveyStation.SurveyTool.UseASIZ)
+                {
+                    //ErrorSourceASIZ errorSourceASIZ = new ErrorSourceASIZ();
+                    //errorSourceASIZ.Magnitude = (double)surveyStation.SurveyTool.ASIZ;
+                    //ErrorSources.Add(errorSourceASIZ);
+                }
+                if (surveyStation.SurveyTool.UseMBIXY_TI1S)
+                {
+                    //ErrorSourceMBIXY_TI1S errorSourceMBIXY_TI1S = new ErrorSourceMBIXY_TI1S();
+                    //errorSourceMBIXY_TI1S.Magnitude = (double)surveyStation.SurveyTool.MBIXY_TI1S;
+                    //ErrorSources.Add(errorSourceMBIXY_TI1S);
+                }
+                if (surveyStation.SurveyTool.UseMBIXY_TI2S)
+                {
+                    //ErrorSourceMBIXY_TI2S errorSourceMBIXY_TI2S = new ErrorSourceMBIXY_TI2S();
+                    //errorSourceMBIXY_TI2S.Magnitude = (double)surveyStation.SurveyTool.MBIXY_TI2S;
+                    //ErrorSources.Add(errorSourceMBIXY_TI2S);
+                }
+                if (surveyStation.SurveyTool.UseMSIXY_TI1S)
+                {
+                    //ErrorSourceMSIXY_TI1S errorSourceMSIXY_TI1S = new ErrorSourceMSIXY_TI1S();
+                    //errorSourceMSIXY_TI1S.Magnitude = (double)surveyStation.SurveyTool.MSIXY_TI1S;
+                    //ErrorSources.Add(errorSourcMSIXY_TI1S);
+                }
+                if (surveyStation.SurveyTool.UseMSIXY_TI2S)
+                {
+                    //ErrorSourceMSIXY_TI2S errorSourceMSIXY_TI2S = new ErrorSourceMSIXY_TI2S();
+                    //errorSourceMSIXY_TI2S.Magnitude = (double)surveyStation.SurveyTool.MSIXY_TI2S;
+                    //ErrorSources.Add(errorSourceMSIXY_TI2S);
+                }
+                if (surveyStation.SurveyTool.UseMSIXY_TI3S)
+                {
+                    //ErrorSourceMSIXY_TI3S errorSourceMSIXY_TI3S = new ErrorSourceMSIXY_TI3S();
+                    //errorSourceMSIXY_TI3S.Magnitude = (double)surveyStation.SurveyTool.MSIXY_TI3S;
+                    //ErrorSources.Add(errorSourceMSIXY_TI3S);
+                }
+                if (surveyStation.SurveyTool.UseDEC_U)
+                {
+                    ErrorSourceDEC_U errorSourceDEC_U = new ErrorSourceDEC_U();
+                    errorSourceDEC_U.Magnitude = (double)surveyStation.SurveyTool.DEC_U;
+                    ErrorSources.Add(errorSourceDEC_U);
+                }
+                if (surveyStation.SurveyTool.UseDEC_OS)
+                {
+                    ErrorSourceDEC_OS errorSourceDEC_OS = new ErrorSourceDEC_OS();
+                    errorSourceDEC_OS.Magnitude = (double)surveyStation.SurveyTool.DEC_OS;
+                    ErrorSources.Add(errorSourceDEC_OS);
+                }
+                if (surveyStation.SurveyTool.UseDEC_OH)
+                {
+                    ErrorSourceDEC_OH errorSourceDEC_OH = new ErrorSourceDEC_OH();
+                    errorSourceDEC_OH.Magnitude = (double)surveyStation.SurveyTool.DEC_OH;
+                    ErrorSources.Add(errorSourceDEC_OH);
+                }
+                if (surveyStation.SurveyTool.UseDEC_OI)
+                {
+                    ErrorSourceDEC_OI errorSourceDEC_OI = new ErrorSourceDEC_OI();
+                    errorSourceDEC_OI.Magnitude = (double)surveyStation.SurveyTool.DEC_OI;
+                    ErrorSources.Add(errorSourceDEC_OI);
+                }
+                if (surveyStation.SurveyTool.UseDECR)
+                {
+                    ErrorSourceDECR errorSourceDECR = new ErrorSourceDECR();
+                    errorSourceDECR.Magnitude = (double)surveyStation.SurveyTool.DECR;
+                    ErrorSources.Add(errorSourceDECR);
+                }
+                if (surveyStation.SurveyTool.UseDBH_U)
+                {
+                    ErrorSourceDBH_U errorSourceDBH_U = new ErrorSourceDBH_U();
+                    errorSourceDBH_U.Magnitude = (double)surveyStation.SurveyTool.DBH_U;
+                    errorSourceDBH_U.Dip = Dip;
+                    errorSourceDBH_U.BField = BField;
+                    ErrorSources.Add(errorSourceDBH_U);
+                }
+                if (surveyStation.SurveyTool.UseDBH_OS)
+                {
+                    ErrorSourceDBH_OS errorSourceDBH_OS = new ErrorSourceDBH_OS();
+                    errorSourceDBH_OS.Magnitude = (double)surveyStation.SurveyTool.DBH_OS;
+                    errorSourceDBH_OS.Dip = Dip;
+                    errorSourceDBH_OS.BField = BField;
+                    ErrorSources.Add(errorSourceDBH_OS);
+                }
+                if (surveyStation.SurveyTool.UseDBH_OH)
+                {
+                    ErrorSourceDBH_OH errorSourceDBH_OH = new ErrorSourceDBH_OH();
+                    errorSourceDBH_OH.Magnitude = (double)surveyStation.SurveyTool.DBH_OH;
+                    errorSourceDBH_OH.Dip = Dip;
+                    errorSourceDBH_OH.BField = BField;
+                    ErrorSources.Add(errorSourceDBH_OH);
+                }
+                if (surveyStation.SurveyTool.UseDBH_OI)
+                {
+                    ErrorSourceDBH_OI errorSourceDBH_OI = new ErrorSourceDBH_OI();
+                    errorSourceDBH_OI.Magnitude = (double)surveyStation.SurveyTool.DBH_OI;
+                    errorSourceDBH_OI.Dip = Dip;
+                    errorSourceDBH_OI.BField = BField;
+                    ErrorSources.Add(errorSourceDBH_OI);
+                }
+                if (surveyStation.SurveyTool.UseDBHR)
+                {
+                    ErrorSourceDBHR errorSourceDBHR = new ErrorSourceDBHR();
+                    errorSourceDBHR.Magnitude = (double)surveyStation.SurveyTool.DBHR;
+                    errorSourceDBHR.Dip = Dip;
+                    errorSourceDBHR.BField = BField;
+                    ErrorSources.Add(errorSourceDBHR);
+                }
+                if (surveyStation.SurveyTool.UseMFI)
+                {
+                    //ErrorSourceMFI errorSourceMFI = new ErrorSourceMFI();
+                    //UseMFI.Magnitude = (double)surveyStation.SurveyTool.MFI;
+                    //ErrorSources.Add(errorSourceMFI);
+                }
+                if (surveyStation.SurveyTool.UseMDI)
+                {
+                    //ErrorSourceMDI errorSourceMDI = new ErrorSourceMDI();
+                    //errorSourceMDI.Magnitude = (double)surveyStation.SurveyTool.MDI;
+                    //ErrorSources.Add(errorSourceMDI);
+                }
+                if (surveyStation.SurveyTool.UseAXYZ_XYB)
+                {
+                    ErrorSourceAXYZ_XYB errorSourceAXYZ_XYB = new ErrorSourceAXYZ_XYB();
+                    errorSourceAXYZ_XYB.Magnitude = (double)surveyStation.SurveyTool.AXYZ_XYB;
+                    errorSourceAXYZ_XYB.Gravity = Gravity;
+                    ErrorSources.Add(errorSourceAXYZ_XYB);
+                }
+                if (surveyStation.SurveyTool.UseAXYZ_ZB)
+                {
+                    ErrorSourceAXYZ_ZB errorSourceAXYZ_ZB = new ErrorSourceAXYZ_ZB();
+                    errorSourceAXYZ_ZB.Magnitude = (double)surveyStation.SurveyTool.AXYZ_ZB;
+                    errorSourceAXYZ_ZB.Gravity = Gravity;
+                    ErrorSources.Add(errorSourceAXYZ_ZB);
+                }
+                if (surveyStation.SurveyTool.UseAXYZ_SF)
+                {
+                    ErrorSourceAXYZ_SF errorSourceAXYZ_SF = new ErrorSourceAXYZ_SF();
+                    errorSourceAXYZ_SF.Magnitude = (double)surveyStation.SurveyTool.AXYZ_SF;
+                    errorSourceAXYZ_SF.Gravity = Gravity;
+                    ErrorSources.Add(errorSourceAXYZ_SF);
+                }
+                if (surveyStation.SurveyTool.UseAXYZ_MIS)
+                {
+                    ErrorSourceAXYZ_MIS errorSourceAXYZ_MIS = new ErrorSourceAXYZ_MIS();
+                    errorSourceAXYZ_MIS.Magnitude = (double)surveyStation.SurveyTool.AXYZ_MIS;
+                    errorSourceAXYZ_MIS.Gravity = Gravity;
+                    ErrorSources.Add(errorSourceAXYZ_MIS);
+                }
+                if (surveyStation.SurveyTool.UseAXY_B)
+                {
+                    ErrorSourceAXY_B errorSourceAXY_B = new ErrorSourceAXY_B();
+                    errorSourceAXY_B.Magnitude = (double)surveyStation.SurveyTool.AXY_B;
+                    errorSourceAXY_B.Gravity = Gravity;
+                    ErrorSources.Add(errorSourceAXY_B);
+                }
+                if (surveyStation.SurveyTool.UseAXY_SF)
+                {
+                    ErrorSourceAXY_SF errorSourceAXY_SF = new ErrorSourceAXY_SF();
+                    errorSourceAXY_SF.Magnitude = (double)surveyStation.SurveyTool.AXY_SF;
+                    errorSourceAXY_SF.Gravity = Gravity;
+                    ErrorSources.Add(errorSourceAXY_SF);
+                }
+                if (surveyStation.SurveyTool.UseAXY_MS)
+                {
+                    ErrorSourceAXY_MS errorSourceAXY_MS = new ErrorSourceAXY_MS();
+                    errorSourceAXY_MS.Magnitude = (double)surveyStation.SurveyTool.AXY_MS;
+                    ErrorSources.Add(errorSourceAXY_MS);
+                }
+                if (surveyStation.SurveyTool.UseAXY_GB)
+                {
+                    ErrorSourceAXY_GB errorSourceAXY_GB = new ErrorSourceAXY_GB();
+                    errorSourceAXY_GB.Magnitude = (double)surveyStation.SurveyTool.AXY_GB;
+                    errorSourceAXY_GB.Gravity = Gravity;
+                    ErrorSources.Add(errorSourceAXY_GB);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_XYB1)
+                {
+                    ErrorSourceGXYZ_XYB1 errorSourceGXYZ_XYB1 = new ErrorSourceGXYZ_XYB1();
+                    errorSourceGXYZ_XYB1.Magnitude = (double)surveyStation.SurveyTool.GXYZ_XYB1;
+                    errorSourceGXYZ_XYB1.EarthRotRate = earthRotRate;
+                    errorSourceGXYZ_XYB1.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXYZ_XYB1);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_XYB2)
+                {
+                    ErrorSourceGXYZ_XYB2 errorSourceGXYZ_XYB2 = new ErrorSourceGXYZ_XYB2();
+                    errorSourceGXYZ_XYB2.Magnitude = (double)surveyStation.SurveyTool.GXYZ_XYB2;
+                    errorSourceGXYZ_XYB2.EarthRotRate = earthRotRate;
+                    errorSourceGXYZ_XYB2.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXYZ_XYB2);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_XYRN)
+                {
+                    ErrorSourceGXYZ_XYRN errorSourceGXYZ_XYRN = new ErrorSourceGXYZ_XYRN();
+                    errorSourceGXYZ_XYRN.Magnitude = (double)surveyStation.SurveyTool.GXYZ_XYRN;
+                    errorSourceGXYZ_XYRN.EarthRotRate = earthRotRate;
+                    errorSourceGXYZ_XYRN.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXYZ_XYRN);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_XYG1)
+                {
+                    ErrorSourceGXYZ_XYG1 errorSourceGXYZ_XYG1 = new ErrorSourceGXYZ_XYG1();
+                    errorSourceGXYZ_XYG1.Magnitude = (double)surveyStation.SurveyTool.GXYZ_XYG1;
+                    errorSourceGXYZ_XYG1.EarthRotRate = earthRotRate;
+                    errorSourceGXYZ_XYG1.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXYZ_XYG1);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_XYG2)
+                {
+                    ErrorSourceGXYZ_XYG2 errorSourceGXYZ_XYG2 = new ErrorSourceGXYZ_XYG2();
+                    errorSourceGXYZ_XYG2.Magnitude = (double)surveyStation.SurveyTool.GXYZ_XYG2;
+                    errorSourceGXYZ_XYG2.EarthRotRate = earthRotRate;
+                    errorSourceGXYZ_XYG2.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXYZ_XYG2);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_XYG3)
+                {
+                    ErrorSourceGXYZ_XYG3 errorSourceGXYZ_XYG3 = new ErrorSourceGXYZ_XYG3();
+                    errorSourceGXYZ_XYG3.Magnitude = (double)surveyStation.SurveyTool.GXYZ_XYG3;
+                    errorSourceGXYZ_XYG3.EarthRotRate = earthRotRate;
+                    errorSourceGXYZ_XYG3.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXYZ_XYG3);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_XYG4)
+                {
+                    ErrorSourceGXYZ_XYG4 errorSourceGXYZ_XYG4 = new ErrorSourceGXYZ_XYG4();
+                    errorSourceGXYZ_XYG4.Magnitude = (double)surveyStation.SurveyTool.GXYZ_XYG4;
+                    errorSourceGXYZ_XYG4.EarthRotRate = earthRotRate;
+                    errorSourceGXYZ_XYG4.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXYZ_XYG4);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_ZB)
+                {
+                    ErrorSourceGXYZ_ZB errorSourceGXYZ_ZB = new ErrorSourceGXYZ_ZB();
+                    errorSourceGXYZ_ZB.Magnitude = (double)surveyStation.SurveyTool.GXYZ_ZB;
+                    errorSourceGXYZ_ZB.EarthRotRate = earthRotRate;
+                    errorSourceGXYZ_ZB.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXYZ_ZB);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_ZRN)
+                {
+                    ErrorSourceGXYZ_ZRN errorSourceGXYZ_ZRN = new ErrorSourceGXYZ_ZRN();
+                    errorSourceGXYZ_ZRN.Magnitude = (double)surveyStation.SurveyTool.GXYZ_ZRN;
+                    errorSourceGXYZ_ZRN.EarthRotRate = earthRotRate;
+                    errorSourceGXYZ_ZRN.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXYZ_ZRN);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_ZG1)
+                {
+                    ErrorSourceGXYZ_ZG1 errorSourceGXYZ_ZG1 = new ErrorSourceGXYZ_ZG1();
+                    errorSourceGXYZ_ZG1.Magnitude = (double)surveyStation.SurveyTool.GXYZ_ZG1;
+                    errorSourceGXYZ_ZG1.EarthRotRate = earthRotRate;
+                    errorSourceGXYZ_ZG1.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXYZ_ZG1);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_ZG2)
+                {
+                    ErrorSourceGXYZ_ZG2 errorSourceGXYZ_ZG2 = new ErrorSourceGXYZ_ZG2();
+                    errorSourceGXYZ_ZG2.Magnitude = (double)surveyStation.SurveyTool.GXYZ_ZG2;
+                    errorSourceGXYZ_ZG2.EarthRotRate = earthRotRate;
+                    errorSourceGXYZ_ZG2.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXYZ_ZG2);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_SF)
+                {
+                    ErrorSourceGXYZ_SF errorSourceGXYZ_SF = new ErrorSourceGXYZ_SF();
+                    errorSourceGXYZ_SF.Magnitude = (double)surveyStation.SurveyTool.GXYZ_SF;
+                    errorSourceGXYZ_SF.EarthRotRate = earthRotRate;
+                    errorSourceGXYZ_SF.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXYZ_SF);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_MIS)
+                {
+                    ErrorSourceGXYZ_MIS errorSourceGXYZ_MIS = new ErrorSourceGXYZ_MIS();
+                    errorSourceGXYZ_MIS.Magnitude = (double)surveyStation.SurveyTool.GXYZ_MIS;
+                    errorSourceGXYZ_MIS.EarthRotRate = earthRotRate;
+                    ErrorSources.Add(errorSourceGXYZ_MIS);
+                }
+                if (surveyStation.SurveyTool.UseGXY_B1)
+                {
+                    ErrorSourceGXY_B1 errorSourceGXY_B1 = new ErrorSourceGXY_B1();
+                    errorSourceGXY_B1.Magnitude = (double)surveyStation.SurveyTool.GXY_B1;
+                    errorSourceGXY_B1.EarthRotRate = earthRotRate;
+                    errorSourceGXY_B1.Latitude = Latitude;
+                    errorSourceGXY_B1.Convergence = Convergence;
+                    errorSourceGXY_B1.StartInclination = startInclination;
+                    errorSourceGXY_B1.EndInclination = endInclination;
+                    errorSourceGXY_B1.InitInclination = initInclination;
+                    ErrorSources.Add(errorSourceGXY_B1);
+                }
+                if (surveyStation.SurveyTool.UseGXY_B2)
+                {
+                    ErrorSourceGXY_B2 errorSourceGXY_B2 = new ErrorSourceGXY_B2();
+                    errorSourceGXY_B2.Magnitude = (double)surveyStation.SurveyTool.GXY_B2;
+                    errorSourceGXY_B2.EarthRotRate = earthRotRate;
+                    errorSourceGXY_B2.Latitude = Latitude;
+                    errorSourceGXY_B2.StartInclination = startInclination;
+                    errorSourceGXY_B2.EndInclination = endInclination;
+                    errorSourceGXY_B2.InitInclination = initInclination;
+                    ErrorSources.Add(errorSourceGXY_B2);
+                }
+                if (surveyStation.SurveyTool.UseGXY_RN)
+                {
+                    ErrorSourceGXY_RN errorSourceGXY_RN = new ErrorSourceGXY_RN();
+                    errorSourceGXY_RN.Magnitude = (double)surveyStation.SurveyTool.GXY_RN;
+                    errorSourceGXY_RN.EarthRotRate = earthRotRate;
+                    errorSourceGXY_RN.Latitude = Latitude;
+                    errorSourceGXY_RN.StartInclination = startInclination;
+                    errorSourceGXY_RN.EndInclination = endInclination;
+                    errorSourceGXY_RN.InitInclination = initInclination;
+                    ErrorSources.Add(errorSourceGXY_RN);
+                }
+                if (surveyStation.SurveyTool.UseGXY_G1)
+                {
+                    ErrorSourceGXY_G1 errorSourceGXY_G1 = new ErrorSourceGXY_G1();
+                    errorSourceGXY_G1.Magnitude = (double)surveyStation.SurveyTool.GXY_G1;
+                    errorSourceGXY_G1.EarthRotRate = earthRotRate;
+                    errorSourceGXY_G1.Latitude = Latitude;
+                    errorSourceGXY_G1.StartInclination = startInclination;
+                    errorSourceGXY_G1.EndInclination = endInclination;
+                    errorSourceGXY_G1.InitInclination = initInclination;
+                    ErrorSources.Add(errorSourceGXY_G1);
+                }
+                if (surveyStation.SurveyTool.UseGXY_G2)
+                {
+                    ErrorSourceGXY_G2 errorSourceGXY_G2 = new ErrorSourceGXY_G2();
+                    errorSourceGXY_G2.Magnitude = (double)surveyStation.SurveyTool.GXY_G2;
+                    errorSourceGXY_G2.EarthRotRate = earthRotRate;
+                    errorSourceGXY_G2.Latitude = Latitude;
+                    errorSourceGXY_G2.StartInclination = startInclination;
+                    errorSourceGXY_G2.EndInclination = endInclination;
+                    errorSourceGXY_G2.InitInclination = initInclination;
+                    ErrorSources.Add(errorSourceGXY_G2);
+                }
+                if (surveyStation.SurveyTool.UseGXY_G3)
+                {
+                    ErrorSourceGXY_G3 errorSourceGXY_G3 = new ErrorSourceGXY_G3();
+                    errorSourceGXY_G3.Magnitude = (double)surveyStation.SurveyTool.GXY_G3;
+                    errorSourceGXY_G3.EarthRotRate = earthRotRate;
+                    errorSourceGXY_G3.Latitude = Latitude;
+                    errorSourceGXY_G3.StartInclination = startInclination;
+                    errorSourceGXY_G3.EndInclination = endInclination;
+                    errorSourceGXY_G3.InitInclination = initInclination;
+                    ErrorSources.Add(errorSourceGXY_G3);
+                }
+                if (surveyStation.SurveyTool.UseGXY_G4)
+                {
+                    ErrorSourceGXY_G4 errorSourceGXY_G4 = new ErrorSourceGXY_G4();
+                    errorSourceGXY_G4.Magnitude = (double)surveyStation.SurveyTool.GXY_G4;
+                    errorSourceGXY_G4.EarthRotRate = earthRotRate;
+                    errorSourceGXY_G4.Latitude = Latitude;
+                    errorSourceGXY_G4.StartInclination = startInclination;
+                    errorSourceGXY_G4.EndInclination = endInclination;
+                    errorSourceGXY_G4.InitInclination = initInclination;
+                    ErrorSources.Add(errorSourceGXY_G4);
+                }
+                if (surveyStation.SurveyTool.UseGXY_SF)
+                {
+                    ErrorSourceGXY_SF errorSourceGXY_SF = new ErrorSourceGXY_SF();
+                    errorSourceGXY_SF.Magnitude = (double)surveyStation.SurveyTool.GXY_SF;
+                    errorSourceGXY_SF.EarthRotRate = earthRotRate;
+                    errorSourceGXY_SF.Latitude = Latitude;
+                    errorSourceGXY_SF.StartInclination = startInclination;
+                    errorSourceGXY_SF.EndInclination = endInclination;
+                    errorSourceGXY_SF.InitInclination = initInclination;
+                    ErrorSources.Add(errorSourceGXY_SF);
+                }
+                if (surveyStation.SurveyTool.UseGXY_MIS)
+                {
+                    ErrorSourceGXY_MIS errorSourceGXY_MIS = new ErrorSourceGXY_MIS();
+                    errorSourceGXY_MIS.Magnitude = (double)surveyStation.SurveyTool.GXY_MIS;
+                    errorSourceGXY_MIS.EarthRotRate = earthRotRate;
+                    errorSourceGXY_MIS.Latitude = Latitude;
+                    errorSourceGXY_MIS.StartInclination = startInclination;
+                    errorSourceGXY_MIS.EndInclination = endInclination;
+                    errorSourceGXY_MIS.InitInclination = initInclination;
+                    ErrorSources.Add(errorSourceGXY_MIS);
+                }
+                if (surveyStation.SurveyTool.UseEXT_REF )
+                {
+                    ErrorSourceEXT_REF errorSourceEXT_REF = new ErrorSourceEXT_REF();
+                    errorSourceEXT_REF.Magnitude = (double)surveyStation.SurveyTool.EXT_REF;
+                    ErrorSources.Add(errorSourceEXT_REF);
+                }
+                if (surveyStation.SurveyTool.UseEXT_TIE)
+                {
+                    ErrorSourceEXT_TIE errorSourceEXT_TIE = new ErrorSourceEXT_TIE();
+                    errorSourceEXT_TIE.Magnitude = (double)surveyStation.SurveyTool.EXT_TIE;
+                    ErrorSources.Add(errorSourceEXT_TIE);
+                }
+                if (surveyStation.SurveyTool.UseEXT_MIS)
+                {
+                    ErrorSourceEXT_MIS errorSourceEXT_MIS = new ErrorSourceEXT_MIS();
+                    errorSourceEXT_MIS.Magnitude = (double)surveyStation.SurveyTool.EXT_MIS;
+                    ErrorSources.Add(errorSourceEXT_MIS);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_GD)
+                {
+                    ErrorSourceGXYZ_GD errorSourceGXYZ_GD = new ErrorSourceGXYZ_GD();
+                    errorSourceGXYZ_GD.Magnitude = (double)surveyStation.SurveyTool.GXYZ_GD;
+                    ErrorSources.Add(errorSourceGXYZ_GD);
+                }
+                if (surveyStation.SurveyTool.UseGXYZ_RW)
+                {
+                    ErrorSourceGXYZ_RW errorSourceGXYZ_RW = new ErrorSourceGXYZ_RW();
+                    errorSourceGXYZ_RW.Magnitude = (double)surveyStation.SurveyTool.GXYZ_RW;
+                    ErrorSources.Add(errorSourceGXYZ_RW);
+                }
+                if (surveyStation.SurveyTool.UseGXY_GD)
+                {
+                    ErrorSourceGXY_GD errorSourceGXY_GD = new ErrorSourceGXY_GD();
+                    errorSourceGXY_GD.Magnitude = (double)surveyStation.SurveyTool.GXY_GD;
+                    errorSourceGXY_GD.StartInclination = startInclination; //NB!
+                    errorSourceGXY_GD.EndInclination = endInclination;
+                    errorSourceGXY_GD.InitInclination = initInclination;
+                    errorSourceGXY_GD.StartInclination = 17.0 * Math.PI / 180.0;
+                    ErrorSources.Add(errorSourceGXY_GD);
+                }
+                if (surveyStation.SurveyTool.UseGXY_RW)
+                {
+                    ErrorSourceGXY_RW errorSourceGXY_RW = new ErrorSourceGXY_RW();
+                    errorSourceGXY_RW.Magnitude = (double)surveyStation.SurveyTool.GXY_RW;
+                    errorSourceGXY_RW.StartInclination = 17.0 * Math.PI / 180.0;
+                    errorSourceGXY_RW.StartInclination = startInclination; //NB!
+                    errorSourceGXY_RW.EndInclination = endInclination;
+                    errorSourceGXY_RW.InitInclination = initInclination;
+                    errorSourceGXY_RW.StartInclination = 17.0 * Math.PI / 180.0;
+                    ErrorSources.Add(errorSourceGXY_RW);
+                }
+                if (surveyStation.SurveyTool.UseGZ_GD)
+                {
+                    ErrorSourceGZ_GD errorSourceGZ_GD = new ErrorSourceGZ_GD();
+                    errorSourceGZ_GD.Magnitude = (double)surveyStation.SurveyTool.GZ_GD;
+                    ErrorSources.Add(errorSourceGZ_GD);
+                }
+                if (surveyStation.SurveyTool.UseGZ_RW)
+                {
+                    ErrorSourceGZ_RW errorSourceGZ_RW = new ErrorSourceGZ_RW();
+                    errorSourceGZ_RW.Magnitude = (double)surveyStation.SurveyTool.GZ_RW;
+                    ErrorSources.Add(errorSourceGZ_RW);
+                }
+				#region keep until new cod veryfied
+				if (false &&GyroEx1)
+                {
+                    ErrorSources.Clear();
+                    ErrorSourceAXY_B errorSourceAXY_B = new ErrorSourceAXY_B();
+                    errorSourceAXY_B.Gravity = Gravity;
+                    ErrorSources.Add(errorSourceAXY_B);
+                    ErrorSourceAXY_SF errorSourceAXY_SF = new ErrorSourceAXY_SF();
+                    errorSourceAXY_SF.Gravity = Gravity;
+                    ErrorSources.Add(errorSourceAXY_SF);
+                    ErrorSourceAXY_MS errorSourceAXY_MS = new ErrorSourceAXY_MS();
+                    ErrorSources.Add(errorSourceAXY_MS);
+                    ErrorSourceAXY_GB errorSourceAXY_GB = new ErrorSourceAXY_GB();
+                    errorSourceAXY_GB.Gravity = Gravity;
+                    ErrorSources.Add(errorSourceAXY_GB);
+                    ErrorSourceGXY_B1 errorSourceGXY_B1 = new ErrorSourceGXY_B1();
+                    errorSourceGXY_B1.Latitude = Latitude;
+                    errorSourceGXY_B1.Convergence = Convergence;
+                    ErrorSources.Add(errorSourceGXY_B1);
+                    ErrorSourceGXY_B2 errorSourceGXY_B2 = new ErrorSourceGXY_B2();
+                    errorSourceGXY_B2.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXY_B2);
+                    ErrorSourceGXY_RN errorSourceGXY_RN = new ErrorSourceGXY_RN();
+                    errorSourceGXY_RN.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXY_RN);
+                    ErrorSourceGXY_G1 errorSourceGXY_G1 = new ErrorSourceGXY_G1();
+                    errorSourceGXY_G1.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXY_G1);
+                    ErrorSourceGXY_G2 errorSourceGXY_G2 = new ErrorSourceGXY_G2();
+                    errorSourceGXY_G2.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXY_G2);
+                    ErrorSourceGXY_G3 errorSourceGXY_G3 = new ErrorSourceGXY_G3();
+                    errorSourceGXY_G3.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXY_G3);
+                    ErrorSourceGXY_G4 errorSourceGXY_G4 = new ErrorSourceGXY_G4();
+                    errorSourceGXY_G4.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXY_G4);
+                    ErrorSourceGXY_SF errorSourceGXY_SF = new ErrorSourceGXY_SF();
+                    errorSourceGXY_SF.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXY_SF);
+                    ErrorSourceGXY_MIS errorSourceGXY_MIS = new ErrorSourceGXY_MIS();
+                    errorSourceGXY_MIS.Latitude = Latitude;
+                    ErrorSources.Add(errorSourceGXY_MIS);
+                    ErrorSourceXYM1 errorSourceXYM1 = new ErrorSourceXYM1();
+                    errorSourceXYM1.Magnitude = 0.1 * Math.PI / 180.0;
+                    ErrorSources.Add(errorSourceXYM1);
+                    ErrorSourceXYM2 errorSourceXYM2 = new ErrorSourceXYM2();
+                    errorSourceXYM2.Magnitude = 0.1 * Math.PI / 180.0;
+                    ErrorSources.Add(errorSourceXYM2);
+                    ErrorSourceXYM3 errorSourceXYM3 = new ErrorSourceXYM3();
+                    errorSourceXYM3.Magnitude = 0.2 * Math.PI / 180.0;
+                    ErrorSources.Add(errorSourceXYM3);
+                    ErrorSourceXYM4 errorSourceXYM4 = new ErrorSourceXYM4();
+                    errorSourceXYM4.Magnitude = 0.2 * Math.PI / 180.0;
+                    ErrorSources.Add(errorSourceXYM4);
+                    ErrorSourceSAG errorSourceSAG = new ErrorSourceSAG();
+                    errorSourceSAG.Magnitude = 0.1 * Math.PI / 180.0;
+                    ErrorSources.Add(errorSourceSAG);                    
+                    ErrorSourceDRFR errorSourceDRFR = new ErrorSourceDRFR();
+                    errorSourceDRFR.Magnitude = 0.5;
+                    ErrorSources.Add(errorSourceDRFR);
+                    ErrorSourceDRFS errorSourceDRFS = new ErrorSourceDRFS();
+                    errorSourceDRFS.Magnitude = 0.5;
+                    ErrorSources.Add(errorSourceDRFS);
+                    ErrorSourceDSFS errorSourceDSFS = new ErrorSourceDSFS();
+                    errorSourceDSFS.Magnitude = 0.001;
+                    ErrorSources.Add(errorSourceDSFS);
+                    ErrorSourceDSTG errorSourceDSTG = new ErrorSourceDSTG();
+                    errorSourceDSTG.Magnitude = 5.0E-7;
+                    ErrorSources.Add(errorSourceDSTG);
+
+                }
+
+                if (false && GyroEx2)
+                {
+                    ErrorSourceAXY_B errorSourceAXY_B = new ErrorSourceAXY_B();
+                    errorSourceAXY_B.Gravity = Gravity;
+                    ErrorSources.Add(errorSourceAXY_B);
+                    ErrorSourceAXY_SF errorSourceAXY_SF = new ErrorSourceAXY_SF();
+                    errorSourceAXY_SF.Gravity = Gravity;
+                    ErrorSources.Add(errorSourceAXY_SF);
+                    ErrorSourceAXY_MS errorSourceAXY_MS = new ErrorSourceAXY_MS();
+                    ErrorSources.Add(errorSourceAXY_MS);
+                    ErrorSourceAXY_GB errorSourceAXY_GB = new ErrorSourceAXY_GB();
+                    errorSourceAXY_GB.Gravity = Gravity;
+                    ErrorSources.Add(errorSourceAXY_GB);
+                    ErrorSourceEXT_REF errorSourceEXT_REF = new ErrorSourceEXT_REF();
+                    ErrorSources.Add(errorSourceEXT_REF);
+                    ErrorSourceEXT_TIE errorSourceEXT_TIE = new ErrorSourceEXT_TIE();
+                    ErrorSources.Add(errorSourceEXT_TIE);
+                    ErrorSourceEXT_MIS errorSourceEXT_MIS = new ErrorSourceEXT_MIS();
+                    ErrorSources.Add(errorSourceEXT_MIS);
+                    ErrorSourceGZ_GD errorSourceGZ_GD = new ErrorSourceGZ_GD();
+                    ErrorSources.Add(errorSourceGZ_GD);
+                    ErrorSourceGZ_RW errorSourceGZ_RW = new ErrorSourceGZ_RW();
+                    ErrorSources.Add(errorSourceGZ_RW);
+                    ErrorSourceXYM1 errorSourceXYM1 = new ErrorSourceXYM1();
+                    errorSourceXYM1.Magnitude = 0.1 * Math.PI / 180.0;
+                    ErrorSources.Add(errorSourceXYM1);
+                    ErrorSourceXYM2 errorSourceXYM2 = new ErrorSourceXYM2();
+                    errorSourceXYM2.Magnitude = 0.1 * Math.PI / 180.0;
+                    ErrorSources.Add(errorSourceXYM2);
+                    ErrorSourceXYM3 errorSourceXYM3 = new ErrorSourceXYM3();
+                    errorSourceXYM3.Magnitude = 0.2 * Math.PI / 180.0;
+                    ErrorSources.Add(errorSourceXYM3);
+                    ErrorSourceXYM4 errorSourceXYM4 = new ErrorSourceXYM4();
+                    errorSourceXYM4.Magnitude = 0.2 * Math.PI / 180.0;
+                    ErrorSources.Add(errorSourceXYM4);
+                    ErrorSourceSAG errorSourceSAG = new ErrorSourceSAG();
+                    errorSourceSAG.Magnitude = 0.1 * Math.PI / 180.0;
+                    ErrorSources.Add(errorSourceSAG);
+                    ErrorSourceDRFR errorSourceDRFR = new ErrorSourceDRFR();
+                    errorSourceDRFR.Magnitude = 0.5;
+                    ErrorSources.Add(errorSourceDRFR);
+                    ErrorSourceDRFS errorSourceDRFS = new ErrorSourceDRFS();
+                    errorSourceDRFS.Magnitude = 0.5;
+                    ErrorSources.Add(errorSourceDRFS);
+                    ErrorSourceDSFS errorSourceDSFS = new ErrorSourceDSFS();
+                    errorSourceDSFS.Magnitude = 0.001;
+                    ErrorSources.Add(errorSourceDSFS);
+                    ErrorSourceDSTG errorSourceDSTG = new ErrorSourceDSTG();
+                    errorSourceDSTG.Magnitude = 5.0E-7;
+                    ErrorSources.Add(errorSourceDSTG);
+
+                }
+                else if (false && ErrorIndices == null)
                 {
                     ErrorSourceDRFR errorSourceDRFR = new ErrorSourceDRFR();
                     ErrorSources.Add(errorSourceDRFR);
@@ -267,7 +1100,7 @@ namespace NORCE.Drilling.Trajectory
 					ErrorSourceXCLH errorSourceXCLH = new ErrorSourceXCLH();
 					ErrorSources.Add(errorSourceXCLH);
 				}
-                else
+                else if(false)
                 {
                     for (int i = 0; i > ErrorIndices.Length; i++)
                     {
@@ -498,6 +1331,7 @@ namespace NORCE.Drilling.Trajectory
 
                     }
                 }
+                #endregion
             }
             #endregion
             #region Calculations from previous survey station are used
@@ -690,27 +1524,124 @@ namespace NORCE.Drilling.Trajectory
                     sigmaerandom[i, j] = 0.0;
                 }
             }
-
+            bool allSystematic = false;
+            for(int e = 0;e< ISCWSAErrorDataTmp.Count;e++)
+			{
+                if(ISCWSAErrorDataTmp[e].IsInitialized)
+				{
+                    allSystematic = true;
+				}
+            }
             for (int i = 0; i < errorSources.Count; i++)
             {
+                bool isInitialized = ISCWSAErrorDataTmp[i].IsInitialized;
                 sigmaerandom = ISCWSAErrorDataTmp[i].SigmaErrorRandom;
                 bool singular = false;                
                
                 double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
-                double? depth = errorSources[i].FunctionDepth(surveyStation.MD, (double)surveyStation.Z); //Depth
+                double? depth = 0.0;
+                depth = errorSources[i].FunctionDepth(surveyStation.MD, (double)surveyStation.Z); //Depth
+                if (false && errorSources[i] is ErrorSourceDSFS)
+                {
+                    ErrorSourceDSFS ds = new ErrorSourceDSFS();
+                    depth = ds.FunctionDepthGyro(surveyStation.MD, (double)surveyStation.Z, (double)surveyStationPrev.MD, (double)surveyStation.Incl); //Depth
+                }
+                if (false && errorSources[i] is ErrorSourceDSTG)
+                {
+                    ErrorSourceDSTG ds = new ErrorSourceDSTG();
+                    depth = ds.FunctionDepthGyro(surveyStation.MD, (double)surveyStation.Z, (double)surveyStationPrev.MD, (double)surveyStation.Incl); //Depth
+                }
                 dpde[0] = (double)depth;
                 double? inclination = errorSources[i].FunctionInc((double)surveyStation.Incl, (double)surveyStation.Az); //Inclination
                 dpde[1] = (double)inclination;
+                
                 double? azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
+                double initializationDepth = ISCWSAErrorDataTmp[i].InitializationDepth;
+                double minDistance = 99999.0; //Minimum distance between initializations. NB! make configurable
+                if (errorSources[i].IsContinuous)
+                {
+                    double deltaD = (double)surveyStation.MD - (double)surveyStationPrev.MD;
+                    double c_gyro = 0.6; //Running speed. NB! make configurable
+                    
+                    if ((!isInitialized && surveyStation.Incl>errorSources[i].StartInclination) || (isInitialized && (surveyStation.MD- ISCWSAErrorDataTmp[i].InitializationDepth)> minDistance)) //NB! include initialization inclination code
+                    {
+                        isInitialized = true;
+                        ISCWSAErrorDataTmp[i].GyroH = 0.0;
+                        initializationDepth = surveyStation.MD;
+                    }
+                    double h = ISCWSAErrorDataTmp[i].GyroH;
+                    if (errorSources[i] is ErrorSourceGXYZ_GD)
+                    {
+                        ErrorSourceGXYZ_GD da = new ErrorSourceGXYZ_GD();
+                        da.StartInclination = errorSources[i].StartInclination;
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD);
+                    }
+                    if (errorSources[i] is ErrorSourceGXYZ_RW)
+                    {
+                        ErrorSourceGXYZ_RW da = new ErrorSourceGXYZ_RW();
+                        da.StartInclination = errorSources[i].StartInclination;
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD);
+                    }
+                    if (errorSources[i] is ErrorSourceGXY_GD)
+                    {
+                        ErrorSourceGXY_GD da = new ErrorSourceGXY_GD();
+                        da.StartInclination = errorSources[i].StartInclination;
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                    }
+                    if (errorSources[i] is ErrorSourceGXY_RW)
+                    {
+                        ErrorSourceGXY_RW da = new ErrorSourceGXY_RW();
+                        da.StartInclination = errorSources[i].StartInclination;
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                    }
+                    if (errorSources[i] is ErrorSourceGZ_GD)
+                    {
+                        ErrorSourceGZ_GD da = new ErrorSourceGZ_GD();
+                        da.StartInclination = errorSources[i].StartInclination;
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                    }
+                    if (errorSources[i] is ErrorSourceGZ_RW)
+                    {
+                        ErrorSourceGZ_RW da = new ErrorSourceGZ_RW();
+                        da.StartInclination = errorSources[i].StartInclination;
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                    }
+                    //ISCWSAErrorDataTmp[i].GyroH = h;
+                    azimuth = h;
+                    ISCWSAErrorDataTmp[i].IsInitialized = isInitialized;
+                }
+                if (IsStationary(errorSources[i]) && isInitialized && (surveyStation.MD - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)
+				{
+                    ISCWSAErrorDataTmp[i].GyroH = (double)azimuth;
+                    initializationDepth = surveyStation.MD;
+                }
+                if (IsStationary(errorSources[i]) && (isInitialized || (!isInitialized && surveyStation.Incl > errorSources[i].EndInclination)) )
+				{                    
+                    azimuth = ISCWSAErrorDataTmp[i].GyroH;
+                    if (!isInitialized)
+                    {
+                        if (errorSources[i] is ErrorSourceGXY_RN)
+                        {
+                            double noiseredFactor = 0.5; //NB!
+                            azimuth = noiseredFactor * ISCWSAErrorDataTmp[i].GyroH;
+                        }
+                        initializationDepth = surveyStation.MD;
+                    }
+                    ISCWSAErrorDataTmp[i].IsInitialized = true;
+                }
+               
+                
                 if (azimuth != null)
                 {
+                    ISCWSAErrorDataTmp[i].GyroH = (double)azimuth;
+                    ISCWSAErrorDataTmp[i].InitializationDepth = initializationDepth;
                     dpde[2] = (double)azimuth;
                 }
                 double magnitude = errorSources[i].Magnitude;
                 if (errorSources[i].SingularIssues && (depth == null || inclination == null || azimuth == null))
                 {
                     singular = true;
-                }
+                }                
                 double[] e = new double[3]; //the error due to the ith error source at the kth survey station in the lth survey leg
                 double[] eStar = new double[3]; //the error due to the ith error source at the kth survey stations in the lth survey leg, where k is the last survey of interest
                 if (c == 0)
@@ -802,7 +1733,7 @@ namespace NORCE.Drilling.Trajectory
                 }
 
                 double[,] CovarianceI = new double[3, 3];
-                if (errorSources[i].IsRandom)
+                if (errorSources[i].IsRandom && !allSystematic)
                 {
                     if (c == 0)
                     {
@@ -892,6 +1823,14 @@ namespace NORCE.Drilling.Trajectory
             return ISCWSAErrorDataTmp;
         }
 
+        private bool IsStationary(IErrorSource errorSource)
+		{
+            if (errorSource is ErrorSourceGXY_B1 || errorSource is ErrorSourceGXY_B2 || errorSource is ErrorSourceGXY_RN || errorSource is ErrorSourceGXY_G1 || errorSource is ErrorSourceGXY_G2 || errorSource is ErrorSourceGXY_G3 || errorSource is ErrorSourceGXY_G4 || errorSource is ErrorSourceGXY_SF || errorSource is ErrorSourceGXY_MIS)
+            {
+                return true;
+            }
+			else { return false; }
+		}
         #region Not in use
         ///// <summary>
         ///// Calculate Covariance matrix
@@ -1528,13 +2467,338 @@ namespace NORCE.Drilling.Trajectory
         bool IsRandom { get; }
         bool IsGlobal { get; }
         bool SingularIssues { get; }
+        bool IsContinuous { get; }
         double Magnitude { get; set; }
+        double StartInclination { get; set; } 
+        double EndInclination { get; set; } 
+        double InitInclination { get; set; }
         double? FunctionDepth(double md, double tvd);
         double? FunctionInc(double incl, double az);
         double? FunctionAz(double incl, double az);
         double FunctionSingularityNorth(double az);
         double FunctionSingularityEast(double az);
         double FunctionSingularityVert();
+    }
+    /// <summary>
+    /// Error due to the Misalignment: XY Misalignment 1 error source
+    /// </summary>
+    public class ErrorSourceXYM1 : IErrorSource
+    {
+        public ErrorSourceXYM1()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "XYM1"; }
+        }
+        public int Index
+        {
+            get { return 30; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; } = 50000;
+        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
+        public double Declination { get; set; }
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        public bool SingularIssues { get; } = false;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            double w12 = Math.Sin(incl); //NB! Make configurable
+            return w12;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0.0; //Azimuth
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the Misalignment: XY Misalignment 2 error source
+    /// </summary>
+    public class ErrorSourceXYM2 : IErrorSource
+    {
+        public ErrorSourceXYM2()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "XYM2"; }
+        }
+        public int Index
+        {
+            get { return 31; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; } = 50000;
+        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
+        public double Declination { get; set; }
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        public bool SingularIssues { get; } = false;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double w12 = Math.Sin(incl); //NB! Make configurable
+            //return -w12 / Math.Sin(incl); //Azimuth //NB! what about when incl=0?
+            return -1; //Azimuth
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the Misalignment: XY Misalignment 3 error source
+    /// </summary>
+    public class ErrorSourceXYM3 : IErrorSource
+    {
+        public ErrorSourceXYM3()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "XYM3"; }
+        }
+        public int Index
+        {
+            get { return 31; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; } = 50000;
+        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
+        public double Declination { get; set; }
+        public double Convergence = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        public bool SingularIssues { get; } = true;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            double w34 = Math.Cos(incl);//NB!  Make configurable
+            return w34 * Math.Cos(az+Convergence);
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            if (incl < 0.0001 * Math.PI / 180.0)
+            {
+                return null;
+
+            }
+            else
+            {
+                double w34 = Math.Cos(incl); //NB!  Make configurable
+                return -w34 * Math.Sin(az+Convergence) / Math.Sin(incl); ; //Azimuth //NB! Convergence
+            }
+        }
+        public double FunctionSingularityNorth(double az) { return 1; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the Misalignment: XY Misalignment 4 error source
+    /// </summary>
+    public class ErrorSourceXYM4 : IErrorSource
+    {
+        public ErrorSourceXYM4()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "XYM4"; }
+        }
+        public int Index
+        {
+            get { return 31; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; } = 50000;
+        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
+        public double Declination { get; set; }
+        public double Convergence = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        
+        public bool SingularIssues { get; } = true;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            double w34 = Math.Cos(incl); //NB!  Make configurable
+            return w34 * Math.Sin(az+Convergence);
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            if (incl < 0.0001 * Math.PI / 180.0)
+            {
+                return null;
+
+            }
+            else
+            {
+                double w34 = Math.Cos(incl); //NB!  Make configurable
+                return w34 * Math.Cos(az+Convergence) / Math.Sin(incl); //Azimuth
+            }
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 1; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to theVertical Sag error source
+    /// </summary>
+    public class ErrorSourceSAG : IErrorSource
+    {
+        public ErrorSourceSAG()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "SAG"; }
+        }
+        public int Index
+        {
+            get { return 31; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; } = 50000;
+        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
+        public double Declination { get; set; }
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        public bool SingularIssues { get; } = false;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return Math.Sin(incl);
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0.0; //Azimuth
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
     }
     /// <summary>
     /// Error due to the Depth: Depth Reference - Random error source
@@ -1565,6 +2829,10 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public bool SingularIssues { get; } = false;
         public double Latitude { get; set; }
         public double Gravity { get; set; }
@@ -1572,9 +2840,72 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.35;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public double? FunctionDepth(double md, double tvd)
         {
             return 1.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the Depth: Depth Reference - Systematic error source
+    /// </summary>
+    public class ErrorSourceDRFS : IErrorSource
+    {
+        public ErrorSourceDRFS()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "DRFS"; }
+        }
+        public int Index
+        {
+            get { return 1; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public bool SingularIssues { get; } = false;
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Magnitude { get; set; } = 0.5;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+       
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
         }
         public double? FunctionInc(double incl, double az)
         {
@@ -1617,16 +2948,29 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.00056;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
-            return md;
+            //return md-mdPrev; //NB! 
+			return md; //NB! 
+		}
+        public double? FunctionDepthGyro(double md, double tvd, double mdPrev, double incl)
+        {
+            return md - mdPrev; //NB! 
+            //return md; //NB! 
         }
         public double? FunctionInc(double incl, double az)
         {
@@ -1659,7 +3003,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public bool IsSystematic
         {
-            get { return false; }
+            get { return true; }
         }
         public bool IsRandom
         {
@@ -1669,16 +3013,29 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return true; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.00000025;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
-            return md * tvd;
+			return md * tvd;//NB!
+							//return (md*Math.Cos(incl) +tvd)*(md-mdPrev);
+		}
+        public double? FunctionDepthGyro(double md, double tvd, double mdPrev, double incl)
+        {
+            //return md * tvd;//NB!
+            return (md * Math.Cos(incl) + tvd) * (md - mdPrev);
         }
         public double? FunctionInc(double incl, double az)
         {
@@ -1692,6 +3049,331 @@ namespace NORCE.Drilling.Trajectory
         public double FunctionSingularityEast(double az) { return 0; }
         public double FunctionSingularityVert() { return 0; }
     }
+    /// <summary>
+    /// Error due to the Misalignment: XY Misalignment 3E error source
+    /// </summary>
+    public class ErrorSourceXYM3E : IErrorSource
+    {
+        // NB Singularity when vertical
+        public ErrorSourceXYM3E()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "XYM3L"; }
+        }
+        public int Index
+        {
+            get { return 32; }
+        }
+        public bool IsSystematic
+        {
+            get { return false; }
+        }
+        public bool IsRandom
+        {
+            get { return true; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; } = 50000;
+        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.3 * Math.PI / 180.0;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        public bool SingularIssues { get; } = true;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Abs(Math.Cos(incl)) * Math.Cos(AzT);
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            if (incl < 0.0001 * Math.PI / 180.0)
+            {
+                return null;
+            }
+            else
+            {
+                return -(Math.Abs(Math.Cos(incl)) * Math.Sin(AzT)) / Math.Sin(incl); //Azimuth
+            }
+        }
+        public double FunctionSingularityNorth(double az) { return 1; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the Misalignment: XY Misalignment 4E error source
+    /// </summary>
+    public class ErrorSourceXYM4E : IErrorSource
+    {
+        // NB Singularity when vertical
+        public ErrorSourceXYM4E()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "XYM4L"; }
+        }
+        public int Index
+        {
+            get { return 33; }
+        }
+        public bool IsSystematic
+        {
+            get { return false; }
+        }
+        public bool IsRandom
+        {
+            get { return true; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; } = 50000;
+        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.3 * Math.PI / 180.0;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        public bool SingularIssues { get; } = true;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            return Math.Abs(Math.Cos(incl)) * Math.Sin(AzT);
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double AzT = az + Convergence;
+            if (incl < 0.0001 * Math.PI / 180.0)
+            {
+                return null;
+            }
+            else
+            {
+                return (Math.Abs(Math.Cos(incl)) * Math.Cos(AzT)) / Math.Sin(incl); //Azimuth
+            }
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 1; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the MWD: Sag Enhanced error source
+    /// </summary>
+    public class ErrorSourceSAGE : IErrorSource
+    {
+        public ErrorSourceSAGE()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "SAGE"; }
+        }
+        public int Index
+        {
+            get { return 29; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; } = 50000;
+        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
+        public double Declination { get; set; }
+        public double Magnitude { get; set; } = 0.2 * Math.PI / 180.0;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        public bool SingularIssues { get; } = false;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            double sinI = System.Math.Sin(incl);
+            return Math.Pow(sinI, 0.25);
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0.0; //Azimuth
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the Depth: Long Course Length High Side XCL  error source
+    /// </summary>
+    public class ErrorSourceXCLH : IErrorSource
+    {
+        // NB Singularity when vertical
+        public ErrorSourceXCLH()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "XCLH"; }
+        }
+        public int Index
+        {
+            get { return 35; }
+        }
+        public bool IsSystematic
+        {
+            get { return false; }
+        }
+        public bool IsRandom
+        {
+            get { return true; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; } = 50000;
+        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.167;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        public bool SingularIssues { get; } = false;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the Depth: Long Course Length  Azimuth XCL error source
+    /// </summary>
+    public class ErrorSourceXCLA : IErrorSource
+    {
+        // NB Singularity when vertical
+        public ErrorSourceXCLA()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "XCLA"; }
+        }
+        public int Index
+        {
+            get { return 34; }
+        }
+        public bool IsSystematic
+        {
+            get { return false; }
+        }
+        public bool IsRandom
+        {
+            get { return true; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; } = 50000;
+        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.167;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        public bool SingularIssues { get; } = false;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+
+    //NB! XCLI1/XCLI2
+    
     /// <summary>
     /// Error due to the MWD TF Ind: X and Y Accelerometer Bias error source
     /// </summary>
@@ -1721,12 +3403,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.004;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double Gfield { get; set; } = 9.80665;
         public double? FunctionDepth(double md, double tvd)
@@ -1780,12 +3469,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.004;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
 
         public bool SingularIssues { get; } = true;
         public double Gfield { get; set; } = 9.80665;
@@ -1846,13 +3542,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.004;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double Gfield { get; set; } = 9.80665;
         public double? FunctionDepth(double md, double tvd)
@@ -1905,13 +3607,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.0005;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -1963,13 +3671,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.0005;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2021,13 +3735,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.0005;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2079,13 +3799,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.0005;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2137,13 +3863,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 70.0;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2195,13 +3927,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 70.0;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2253,13 +3991,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 70.0;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2311,13 +4055,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.0016;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2369,13 +4119,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.0016;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2427,13 +4183,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.0016;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2485,13 +4247,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.0016;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2514,6 +4282,73 @@ namespace NORCE.Drilling.Trajectory
         public double FunctionSingularityEast(double az) { return 0; }
         public double FunctionSingularityVert() { return 0; }
     }
+    /// <summary>
+    /// Error due to the MWD: Axial Interference - SinI.SinA error source
+    /// </summary>
+    public class ErrorSourceAMIL : IErrorSource
+    {
+        public ErrorSourceAMIL()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "AMIL"; }
+        }
+        public int Index
+        {
+            get { return 28; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; } = 50000;
+        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
+        public double Declination { get; set; }
+        public double Magnitude { get; set; } = 220.0;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        public bool SingularIssues { get; } = false;
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            double sinI = System.Math.Sin(incl);
+            double sinAm = System.Math.Sin(az - Declination);
+            double cosDip = System.Math.Cos(Dip);
+            return sinI * sinAm / (BField * cosDip); //Azimuth
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+
+    //NB! ABIXY-TI1/ABIXY-TI2/ABIZ
+    //NB! ASIXY-TI1/ASIXY-TI2/ASIXY-TI3/ASIZ
+    //NB! MBIXY-TI1/MBIXY-TI2/MBIZ
+    //NB! MSIXY-TI1/MSIXY-TI2/MSIXY-TI3/
     /// <summary>
     /// Error due to the MWD: Declination - Uncorrelated error source
     /// </summary>
@@ -2543,13 +4378,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return true; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.16 * Math.PI / 180.0;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2596,13 +4437,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return true; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.24 * Math.PI / 180.0;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2649,13 +4496,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return true; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.2 * Math.PI / 180.0;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2702,13 +4555,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return true; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.05 * Math.PI / 180.0;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2755,13 +4614,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; }
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2808,13 +4673,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return true; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 / Math.PI / 180.0;
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 2350.0 * Math.PI / 180.0;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2861,13 +4732,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return true; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 3359.0 * Math.PI / 180.0;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2914,13 +4791,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return true; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 2840.0 * Math.PI / 180.0;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -2967,13 +4850,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return true; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 356.0 * Math.PI / 180.0;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -3020,13 +4909,19 @@ namespace NORCE.Drilling.Trajectory
         {
             get { return false; }
         }
+        public bool IsContinuous
+        {
+            get { return false; }
+        }
         public double Latitude { get; set; }
         public double Gravity { get; set; }
         public double BField { get; set; } = 50000;
         public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
         public double Declination { get; set; }
         public double Magnitude { get; set; } = 3000.0 * Math.PI / 180.0;
-
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -3044,453 +4939,12 @@ namespace NORCE.Drilling.Trajectory
         public double FunctionSingularityEast(double az) { return 0; }
         public double FunctionSingularityVert() { return 0; }
     }
-    /// <summary>
-    /// Error due to the MWD: Axial Interference - SinI.SinA error source
-    /// </summary>
-    public class ErrorSourceAMIL : IErrorSource
-    {
-        public ErrorSourceAMIL()
-        {
-
-        }
-        public string ErrorCode
-        {
-            get { return "AMIL"; }
-        }
-        public int Index
-        {
-            get { return 28; }
-        }
-        public bool IsSystematic
-        {
-            get { return true; }
-        }
-        public bool IsRandom
-        {
-            get { return false; }
-        }
-        public bool IsGlobal
-        {
-            get { return false; }
-        }
-        public double Latitude { get; set; }
-        public double Gravity { get; set; }
-        public double BField { get; set; } = 50000;
-        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
-        public double Declination { get; set; }
-        public double Magnitude { get; set; } = 220.0;
-        public bool SingularIssues { get; } = false;
-        public double? FunctionDepth(double md, double tvd)
-        {
-            return 0.0;
-        }
-        public double? FunctionInc(double incl, double az)
-        {
-            return 0.0;
-        }
-        public double? FunctionAz(double incl, double az)
-        {
-            double sinI = System.Math.Sin(incl);
-            double sinAm = System.Math.Sin(az - Declination);
-            double cosDip = System.Math.Cos(Dip);
-            return sinI * sinAm / (BField * cosDip); //Azimuth
-        }
-        public double FunctionSingularityNorth(double az) { return 0; }
-        public double FunctionSingularityEast(double az) { return 0; }
-        public double FunctionSingularityVert() { return 0; }
-    }
-    /// <summary>
-    /// Error due to the MWD: Sag Enhanced error source
-    /// </summary>
-    public class ErrorSourceSAGE : IErrorSource
-    {
-        public ErrorSourceSAGE()
-        {
-
-        }
-        public string ErrorCode
-        {
-            get { return "SAGE"; }
-        }
-        public int Index
-        {
-            get { return 29; }
-        }
-        public bool IsSystematic
-        {
-            get { return true; }
-        }
-        public bool IsRandom
-        {
-            get { return false; }
-        }
-        public bool IsGlobal
-        {
-            get { return false; }
-        }
-        public double Latitude { get; set; }
-        public double Gravity { get; set; }
-        public double BField { get; set; } = 50000;
-        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
-        public double Declination { get; set; }
-        public double Magnitude { get; set; } = 0.2 * Math.PI / 180.0;
-        public bool SingularIssues { get; } = false;
-        public double? FunctionDepth(double md, double tvd)
-        {
-            return 0.0;
-        }
-        public double? FunctionInc(double incl, double az)
-        {
-            double sinI = System.Math.Sin(incl);
-            return Math.Pow(sinI, 0.25);
-        }
-        public double? FunctionAz(double incl, double az)
-        {
-            return 0.0; //Azimuth
-        }
-        public double FunctionSingularityNorth(double az) { return 0; }
-        public double FunctionSingularityEast(double az) { return 0; }
-        public double FunctionSingularityVert() { return 0; }
-    }
-    /// <summary>
-    /// Error due to the Misalignment: XY Misalignment 1 error source
-    /// </summary>
-    public class ErrorSourceXYM1 : IErrorSource
-    {
-        public ErrorSourceXYM1()
-        {
-
-        }
-        public string ErrorCode
-        {
-            get { return "XYM1"; }
-        }
-        public int Index
-        {
-            get { return 30; }
-        }
-        public bool IsSystematic
-        {
-            get { return true; }
-        }
-        public bool IsRandom
-        {
-            get { return false; }
-        }
-        public bool IsGlobal
-        {
-            get { return false; }
-        }
-        public double Latitude { get; set; }
-        public double Gravity { get; set; }
-        public double BField { get; set; } = 50000;
-        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
-        public double Declination { get; set; }
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0;
-        public bool SingularIssues { get; } = false;
-        public double? FunctionDepth(double md, double tvd)
-        {
-            return 0.0;
-        }
-        public double? FunctionInc(double incl, double az)
-        {
-            double sinI = System.Math.Sin(incl);
-            return Math.Abs(sinI);
-        }
-        public double? FunctionAz(double incl, double az)
-        {
-            return 0.0; //Azimuth
-        }
-        public double FunctionSingularityNorth(double az) { return 0; }
-        public double FunctionSingularityEast(double az) { return 0; }
-        public double FunctionSingularityVert() { return 0; }
-    }
-    /// <summary>
-    /// Error due to the Misalignment: XY Misalignment 2 error source
-    /// </summary>
-    public class ErrorSourceXYM2 : IErrorSource
-    {
-        public ErrorSourceXYM2()
-        {
-
-        }
-        public string ErrorCode
-        {
-            get { return "XYM2"; }
-        }
-        public int Index
-        {
-            get { return 31; }
-        }
-        public bool IsSystematic
-        {
-            get { return true; }
-        }
-        public bool IsRandom
-        {
-            get { return false; }
-        }
-        public bool IsGlobal
-        {
-            get { return false; }
-        }
-        public double Latitude { get; set; }
-        public double Gravity { get; set; }
-        public double BField { get; set; } = 50000;
-        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
-        public double Declination { get; set; }
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0;
-        public bool SingularIssues { get; } = false;
-        public double? FunctionDepth(double md, double tvd)
-        {
-            return 0.0;
-        }
-        public double? FunctionInc(double incl, double az)
-        {
-            return 0.0;
-        }
-        public double? FunctionAz(double incl, double az)
-        {
-            return -1; //Azimuth
-        }
-        public double FunctionSingularityNorth(double az) { return 0; }
-        public double FunctionSingularityEast(double az) { return 0; }
-        public double FunctionSingularityVert() { return 0; }
-    }
-    /// <summary>
-    /// Error due to the Misalignment: XY Misalignment 3 error source
-    /// </summary>
-    public class ErrorSourceXYM3E : IErrorSource
-    {
-        // NB Singularity when vertical
-        public ErrorSourceXYM3E()
-        {
-
-        }
-        public string ErrorCode
-        {
-            get { return "XYM3L"; }
-        }
-        public int Index
-        {
-            get { return 32; }
-        }
-        public bool IsSystematic
-        {
-            get { return false; }
-        }
-        public bool IsRandom
-        {
-            get { return true; }
-        }
-        public bool IsGlobal
-        {
-            get { return false; }
-        }
-        public double Latitude { get; set; }
-        public double Gravity { get; set; }
-        public double BField { get; set; } = 50000;
-        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
-        public double Declination { get; set; }
-        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.3 * Math.PI / 180.0;
-        public bool SingularIssues { get; } = true;
-        public double? FunctionDepth(double md, double tvd)
-        {
-            return 0.0;
-        }
-        public double? FunctionInc(double incl, double az)
-        {
-            double AzT = az + Convergence;
-            return Math.Abs(Math.Cos(incl)) * Math.Cos(AzT);
-        }
-        public double? FunctionAz(double incl, double az)
-        {
-            double AzT = az + Convergence;
-            if (incl < 0.0001 * Math.PI / 180.0)
-            {
-                return null;
-            }
-            else
-            {
-                return -(Math.Abs(Math.Cos(incl)) * Math.Sin(AzT)) / Math.Sin(incl); //Azimuth
-            }
-        }
-        public double FunctionSingularityNorth(double az) { return 1; }
-        public double FunctionSingularityEast(double az) { return 0; }
-        public double FunctionSingularityVert() { return 0; }
-    }
-    /// <summary>
-    /// Error due to the Misalignment: XY Misalignment 4 error source
-    /// </summary>
-    public class ErrorSourceXYM4E : IErrorSource
-    {
-        // NB Singularity when vertical
-        public ErrorSourceXYM4E()
-        {
-
-        }
-        public string ErrorCode
-        {
-            get { return "XYM4L"; }
-        }
-        public int Index
-        {
-            get { return 33; }
-        }
-        public bool IsSystematic
-        {
-            get { return false; }
-        }
-        public bool IsRandom
-        {
-            get { return true; }
-        }
-        public bool IsGlobal
-        {
-            get { return false; }
-        }
-        public double Latitude { get; set; }
-        public double Gravity { get; set; }
-        public double BField { get; set; } = 50000;
-        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
-        public double Declination { get; set; }
-        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.3 * Math.PI / 180.0;
-        public bool SingularIssues { get; } = true;
-        public double? FunctionDepth(double md, double tvd)
-        {
-            return 0.0;
-        }
-        public double? FunctionInc(double incl, double az)
-        {
-            double AzT = az + Convergence;
-            return Math.Abs(Math.Cos(incl)) * Math.Sin(AzT);
-        }
-        public double? FunctionAz(double incl, double az)
-        {
-            double AzT = az + Convergence;
-            if (incl < 0.0001 * Math.PI / 180.0)
-            {
-                return null;
-            }
-            else
-            {
-                return (Math.Abs(Math.Cos(incl)) * Math.Cos(AzT)) / Math.Sin(incl); //Azimuth
-            }
-        }
-        public double FunctionSingularityNorth(double az) { return 0; }
-        public double FunctionSingularityEast(double az) { return 1; }
-        public double FunctionSingularityVert() { return 0; }
-    }
-    /// <summary>
-    /// Error due to the Depth: Long Course Length  Azimuth XCL error source
-    /// </summary>
-    public class ErrorSourceXCLA : IErrorSource
-    {
-        // NB Singularity when vertical
-        public ErrorSourceXCLA()
-        {
-
-        }
-        public string ErrorCode
-        {
-            get { return "XCLA"; }
-        }
-        public int Index
-        {
-            get { return 34; }
-        }
-        public bool IsSystematic
-        {
-            get { return false; }
-        }
-        public bool IsRandom
-        {
-            get { return true; }
-        }
-        public bool IsGlobal
-        {
-            get { return false; }
-        }
-        public double Latitude { get; set; }
-        public double Gravity { get; set; }
-        public double BField { get; set; } = 50000;
-        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
-        public double Declination { get; set; }
-        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.167;
-        public bool SingularIssues { get; } = false;
-        public double? FunctionDepth(double md, double tvd)
-        {
-            return 0.0;
-        }
-        public double? FunctionInc(double incl, double az)
-        {          
-            return 0;
-        }
-        public double? FunctionAz(double incl, double az)
-        {           
-            return 0;
-        }
-        public double FunctionSingularityNorth(double az) { return 0; }
-        public double FunctionSingularityEast(double az) { return 0; }
-        public double FunctionSingularityVert() { return 0; }
-    }
-    /// <summary>
-    /// Error due to the Depth: Long Course Length High Side XCL  error source
-    /// </summary>
-    public class ErrorSourceXCLH : IErrorSource
-    {
-        // NB Singularity when vertical
-        public ErrorSourceXCLH()
-        {
-
-        }
-        public string ErrorCode
-        {
-            get { return "XCLH"; }
-        }
-        public int Index
-        {
-            get { return 35; }
-        }
-        public bool IsSystematic
-        {
-            get { return false; }
-        }
-        public bool IsRandom
-        {
-            get { return true; }
-        }
-        public bool IsGlobal
-        {
-            get { return false; }
-        }
-        public double Latitude { get; set; }
-        public double Gravity { get; set; }
-        public double BField { get; set; } = 50000;
-        public double Dip { get; set; } = 72.0 * Math.PI / 180.0;
-        public double Declination { get; set; }
-        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.167;
-        public bool SingularIssues { get; } = false;
-        public double? FunctionDepth(double md, double tvd)
-        {
-            return 0.0;
-        }
-        public double? FunctionInc(double incl, double az)
-        {
-            return 0;
-        }
-        public double? FunctionAz(double incl, double az)
-        {            
-            return 0;
-        }
-        public double FunctionSingularityNorth(double az) { return 0; }
-        public double FunctionSingularityEast(double az) { return 0; }
-        public double FunctionSingularityVert() { return 0; }
-    }
+     //NB! MFI
+     //NB! MDI
+    
+    
+    
+    
     #region Gyro Error Sources
     /// <summary>
     /// Error due to the 3-axis: xy accelerometer bias  error source
@@ -3523,7 +4977,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public bool IsContinuous
         {
-            get { return true; }
+            get { return false; }
         }
         public bool IsStationary
         {
@@ -3536,6 +4990,9 @@ namespace NORCE.Drilling.Trajectory
         public double Declination { get; set; }
         public double Convergence { get; set; }
         public double Magnitude { get; set; } = 0.005;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -3543,7 +5000,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionInc(double incl, double az)
         {
-            return Math.Cos(incl) * Gravity;
+            return Math.Cos(incl) / Gravity;
         }
         public double? FunctionAz(double incl, double az)
         {
@@ -3584,7 +5041,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public bool IsContinuous
         {
-            get { return true; }
+            get { return false; }
         }
         public bool IsStationary
         {
@@ -3597,6 +5054,9 @@ namespace NORCE.Drilling.Trajectory
         public double Declination { get; set; }
         public double Convergence { get; set; }
         public double Magnitude { get; set; } = 0.005;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -3604,7 +5064,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionInc(double incl, double az)
         {
-            return Math.Sin(incl) * Gravity;
+            return Math.Sin(incl) / Gravity;
         }
         public double? FunctionAz(double incl, double az)
         {
@@ -3645,7 +5105,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public bool IsContinuous
         {
-            get { return true; }
+            get { return false; }
         }
         public bool IsStationary
         {
@@ -3658,6 +5118,9 @@ namespace NORCE.Drilling.Trajectory
         public double Declination { get; set; }
         public double Convergence { get; set; }
         public double Magnitude { get; set; } = 0.0005;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -3706,7 +5169,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public bool IsContinuous
         {
-            get { return true; }
+            get { return false; }
         }
         public bool IsStationary
         {
@@ -3719,6 +5182,9 @@ namespace NORCE.Drilling.Trajectory
         public double Declination { get; set; }
         public double Convergence { get; set; }
         public double Magnitude { get; set; } = 0.05;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double? FunctionDepth(double md, double tvd)
         {
@@ -3767,7 +5233,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public bool IsContinuous
         {
-            get { return true; }
+            get { return false; }
         }
         public bool IsStationary
         {
@@ -3780,6 +5246,9 @@ namespace NORCE.Drilling.Trajectory
         public double Declination { get; set; }
         public double Convergence { get; set; }
         public double Magnitude { get; set; } = 0.005;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double kOperator { get; set; } = 1; // 1 or -1 depending on inclination
         public double CantAngle { get; set; }
@@ -3830,7 +5299,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public bool IsContinuous
         {
-            get { return true; }
+            get { return false; }
         }
         public bool IsStationary
         {
@@ -3843,6 +5312,9 @@ namespace NORCE.Drilling.Trajectory
         public double Declination { get; set; }
         public double Convergence { get; set; }
         public double Magnitude { get; set; } = 0.0005;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double kOperator { get; set; } = 1; // 1 or -1 depending on inclination
         public double CantAngle { get; set; }
@@ -3893,7 +5365,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public bool IsContinuous
         {
-            get { return true; }
+            get { return false; }
         }
         public bool IsStationary
         {
@@ -3905,7 +5377,10 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; }
-        public double Magnitude { get; set; } = 0.005;
+        public double Magnitude { get; set; } = 0.05 * Math.PI / 180.0; //NB! Check
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double kOperator { get; set; } = 1; // 1 or -1 depending on inclination
         public double CantAngle { get; set; }
@@ -3956,7 +5431,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public bool IsContinuous
         {
-            get { return true; }
+            get { return false; }
         }
         public bool IsStationary
         {
@@ -3969,6 +5444,9 @@ namespace NORCE.Drilling.Trajectory
         public double Declination { get; set; }
         public double Convergence { get; set; }
         public double Magnitude { get; set; } = 0.005;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double kOperator { get; set; } = 1; // 1 or -1 depending on inclination
         public double CantAngle { get; set; }
@@ -4031,9 +5509,13 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+      
         public double? FunctionDepth(double md, double tvd)
         {
             return 0.0;
@@ -4044,8 +5526,15 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            double AzT = az + Convergence;
-            return Math.Sin(AzT) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+            if (incl < EndInclination)
+            {
+                double AzT = az + Convergence;
+                return Math.Sin(AzT) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+            }
+			else
+			{
+                return 0.0;
+			}
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -4094,9 +5583,13 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+       
         public double? FunctionDepth(double md, double tvd)
         {
             return 0.0;
@@ -4107,8 +5600,15 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            double AzT = az + Convergence;
-            return Math.Cos(AzT) / (EarthRotRate * Math.Cos(Latitude));
+            if (incl < EndInclination)
+            {
+                double AzT = az + Convergence;
+                return Math.Cos(AzT) / (EarthRotRate * Math.Cos(Latitude));
+            }
+			else
+			{
+                return 0.0;
+			}
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -4157,10 +5657,14 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double NoiseRedFactor { get; set; } = 1;
+        
         public double? FunctionDepth(double md, double tvd)
         {
             return 0.0;
@@ -4171,8 +5675,15 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            double AzT = az + Convergence;
-            return Math.Sqrt(1-(Math.Sin(AzT) *Math.Sin(AzT)  * Math.Sin(incl) * Math.Sin(incl))) / (EarthRotRate * Math.Cos(Latitude));
+            if (incl < EndInclination)
+            {
+                double AzT = az + Convergence;
+                return Math.Sqrt(1 - (Math.Sin(AzT) * Math.Sin(AzT) * Math.Sin(incl) * Math.Sin(incl))) / (EarthRotRate * Math.Cos(Latitude));
+            }
+			else
+			{
+                return 0.0;
+			}
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -4221,9 +5732,13 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        
         public double? FunctionDepth(double md, double tvd)
         {
             return 0.0;
@@ -4233,9 +5748,15 @@ namespace NORCE.Drilling.Trajectory
             return 0.0;
         }
         public double? FunctionAz(double incl, double az)
-        {
-            double AzT = az + Convergence;
-            return Math.Cos(AzT) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
+        {if (incl < EndInclination)
+			{
+				double AzT = az + Convergence;
+				return Math.Cos(AzT) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
+			}
+			else
+			{
+				return 0.0;
+			}        
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -4284,9 +5805,13 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+       
         public double? FunctionDepth(double md, double tvd)
         {
             return 0.0;
@@ -4296,9 +5821,15 @@ namespace NORCE.Drilling.Trajectory
             return 0.0;
         }
         public double? FunctionAz(double incl, double az)
-        {
-            double AzT = az + Convergence;
-            return Math.Cos(AzT)* Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+        {if (incl < EndInclination)
+			{
+				double AzT = az + Convergence;
+				return Math.Cos(AzT) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+			}
+			else
+			{
+				return 0.0;
+			}        
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -4347,9 +5878,13 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        
         public double? FunctionDepth(double md, double tvd)
         {
             return 0.0;
@@ -4360,8 +5895,15 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            double AzT = az + Convergence;
-            return Math.Sin(AzT) * Math.Cos(incl) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+            if (incl < EndInclination)
+            {
+                double AzT = az + Convergence;
+                return Math.Sin(AzT) * Math.Cos(incl) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+            }
+			else
+			{
+                return 0.0;
+			}
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -4410,9 +5952,13 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        
         public double? FunctionDepth(double md, double tvd)
         {
             return 0.0;
@@ -4423,8 +5969,15 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            double AzT = az + Convergence;
-            return Math.Sin(AzT) * Math.Sin(incl) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+            if (incl < EndInclination)
+            {
+                double AzT = az + Convergence;
+                return Math.Sin(AzT) * Math.Sin(incl) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+            }
+            else
+            {
+                return 0.0;
+            }
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -4473,9 +6026,13 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+       
         public double? FunctionDepth(double md, double tvd)
         {
             return 0.0;
@@ -4486,8 +6043,15 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            double AzT = az + Convergence;
-            return Math.Sin(AzT) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
+            if (incl < EndInclination)
+            {
+                double AzT = az + Convergence;
+                return Math.Sin(AzT) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
+            }
+			else
+			{
+                return 0.0;
+			}
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -4536,9 +6100,13 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        
         public double? FunctionDepth(double md, double tvd)
         {
             return 0.0;
@@ -4549,8 +6117,16 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            double AzT = az + Convergence;
-            return Math.Sin(AzT) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
+            if (incl < EndInclination)
+            {
+                double AzT = az + Convergence;
+                return Math.Sin(AzT) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
+            }
+            else
+            {
+                return 0.0;
+            }
+
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -4599,7 +6175,10 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double? FunctionDepth(double md, double tvd)
@@ -4612,8 +6191,15 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            double AzT = az + Convergence;
-            return Math.Sin(AzT) * Math.Sin(incl) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
+            if (incl < EndInclination)
+            {
+                double AzT = az + Convergence;
+                return Math.Sin(AzT) * Math.Sin(incl) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
+            }
+			else
+			{
+                return 0.0;
+			}
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -4662,9 +6248,12 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
-        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]       
         public double? FunctionDepth(double md, double tvd)
         {
             return 0.0;
@@ -4675,8 +6264,15 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            double AzT = az + Convergence;
-            return Math.Sin(AzT) * Math.Sin(incl) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+            if (incl < EndInclination)
+            {
+                double AzT = az + Convergence;
+                return Math.Sin(AzT) * Math.Sin(incl) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
+            }
+            else
+            {
+                return 0.0;
+            }
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -4726,8 +6322,12 @@ namespace NORCE.Drilling.Trajectory
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
         public double Magnitude { get; set; } = 0.001;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+      
         public double? FunctionDepth(double md, double tvd)
         {
             return 0.0;
@@ -4738,8 +6338,15 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            double AzT = az + Convergence;
-            return Math.Tan(Latitude) * Math.Sin(AzT) * Math.Sin(incl) * Math.Cos(incl);
+            if (incl < EndInclination)
+            {
+                double AzT = az + Convergence;
+                return Math.Tan(Latitude) * Math.Sin(AzT) * Math.Sin(incl) * Math.Cos(incl);
+            }
+			else
+			{
+                return 0.0;
+			}
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -4789,6 +6396,9 @@ namespace NORCE.Drilling.Trajectory
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
         public double Magnitude { get; set; } = 0.05 * Math.PI / 180.0;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double? FunctionDepth(double md, double tvd)
@@ -4801,8 +6411,15 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            double AzT = az + Convergence;
-            return 1 /  Math.Cos(Latitude);
+            if (incl < EndInclination)
+            {
+                double AzT = az + Convergence;
+                return 1 / Math.Cos(Latitude);
+            }
+            else {
+                return 0.0;
+            }
+				
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -4851,9 +6468,12 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
-        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double EarthRotRate { get; set; } = 7.292115e-5; //7.292115e-5; //[rad/s]
         public double? FunctionDepth(double md, double tvd)
         {
             return 0.0;
@@ -4914,7 +6534,10 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double? FunctionDepth(double md, double tvd)
@@ -4977,7 +6600,10 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double NoiseRedFactor { get; set; } = 1;
@@ -4992,7 +6618,8 @@ namespace NORCE.Drilling.Trajectory
         public double? FunctionAz(double incl, double az)
         {
             double AzT = az + Convergence;
-            return NoiseRedFactor * Math.Sqrt((1 - Math.Cos(AzT) * Math.Cos(AzT) * Math.Sin(incl) * Math.Sin(incl)) / (EarthRotRate * Math.Cos(Latitude) * Math.Cos(incl)));
+            //return NoiseRedFactor * Math.Sqrt((1 - Math.Cos(AzT) * Math.Cos(AzT) * Math.Sin(incl) * Math.Sin(incl))) / (EarthRotRate * Math.Cos(Latitude) * Math.Cos(incl));
+            return Math.Sqrt((1 - Math.Cos(AzT) * Math.Cos(AzT) * Math.Sin(incl) * Math.Sin(incl))) / (EarthRotRate * Math.Cos(Latitude) * Math.Cos(incl));
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -5041,7 +6668,10 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double? FunctionDepth(double md, double tvd)
@@ -5104,7 +6734,10 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double? FunctionDepth(double md, double tvd)
@@ -5167,7 +6800,10 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double? FunctionDepth(double md, double tvd)
@@ -5230,7 +6866,10 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double? FunctionDepth(double md, double tvd)
@@ -5294,6 +6933,9 @@ namespace NORCE.Drilling.Trajectory
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
         public double Magnitude { get; set; } = 0.001;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double? FunctionDepth(double md, double tvd)
@@ -5357,6 +6999,9 @@ namespace NORCE.Drilling.Trajectory
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
         public double Magnitude { get; set; } = 0.05 * Math.PI / 180.0;
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double? FunctionDepth(double md, double tvd)
@@ -5419,7 +7064,10 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 5.0 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 5.0 * Math.PI / 180.0; //[rad]. 
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double? FunctionDepth(double md, double tvd)
@@ -5481,7 +7129,10 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.0 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.0 * Math.PI / 180.0; //[rad]. 
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double? FunctionDepth(double md, double tvd)
@@ -5543,7 +7194,10 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.0 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.0 * Math.PI / 180.0; //[rad].
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double? FunctionDepth(double md, double tvd)
@@ -5556,7 +7210,14 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            return 1.0 / Math.Sin(incl);
+            if (Magnitude > 0) //NB!
+            {
+                return 1.0 / Math.Sin(incl);
+            }
+			else
+			{
+                return 0;
+			}
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -5605,7 +7266,10 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
         public bool SingularIssues { get; } = false;
         public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
         public double? FunctionDepth(double md, double tvd)
@@ -5618,7 +7282,371 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            return 1.0;
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az, double h, double c, double deltaD)
+        {
+            return h + deltaD / c;
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis, continuous: xyz gyro random walk error source
+    /// </summary>
+    public class ErrorSourceGXYZ_RW : IErrorSource
+    {
+        public ErrorSourceGXYZ_RW()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXYZ_RW"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return true; }
+        }
+        public bool IsStationary
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / Math.Sqrt(3600); //[rad/sqrt(h)]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az, double h, double c, double deltaD)
+        {
+            return Math.Sqrt((h * h) + deltaD / c);
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis, continuous: xy gyro drift error source
+    /// </summary>
+    public class ErrorSourceGXY_GD : IErrorSource
+    {
+        public ErrorSourceGXY_GD()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXY_GD"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return true; }
+        }
+        public bool IsStationary
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+       
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az, double h, double c, double deltaD, double inclPrev)
+        {
+            if (incl > StartInclination)
+            {
+                return h + ((1 / Math.Sin((inclPrev + incl) / 2)) * deltaD / c);
+            }
+			else
+			{
+                return 0.0;
+			}
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the 3-axis, continuous: xy gyro random walk error source
+    /// </summary>
+    public class ErrorSourceGXY_RW : IErrorSource
+    {
+        public ErrorSourceGXY_RW()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXY_RW"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return true; }
+        }
+        public bool IsStationary
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / Math.Sqrt(3600); //[rad/sqrt(h)]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az, double h, double c, double deltaD, double inclPrev)
+        {
+            if (incl > StartInclination)
+            {
+                return Math.Sqrt((h * h) + ((1 / (Math.Sin((inclPrev + incl) / 2) * Math.Sin((inclPrev + incl) / 2))) * deltaD / c));
+            }
+			else
+			{
+                return 0.0;
+			}
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the z-axis, continuous: z gyro drift error source
+    /// </summary>
+    public class ErrorSourceGZ_GD : IErrorSource
+    {
+        public ErrorSourceGZ_GD()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GXY_GD"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return true; }
+        }
+        public bool IsStationary
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 1.0 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az, double h, double c, double deltaD, double inclPrev)
+        {
+            return h + ((1 / Math.Cos((inclPrev + incl) / 2)) * deltaD / c);
+        }
+        public double FunctionSingularityNorth(double az) { return 0; }
+        public double FunctionSingularityEast(double az) { return 0; }
+        public double FunctionSingularityVert() { return 0; }
+    }
+    /// <summary>
+    /// Error due to the z-axis, continuous: z gyro random walk error source
+    /// </summary>
+    public class ErrorSourceGZ_RW : IErrorSource
+    {
+        public ErrorSourceGZ_RW()
+        {
+
+        }
+        public string ErrorCode
+        {
+            get { return "GZ_RW"; }
+        }
+        public int Index
+        {
+            get { return 53; }
+        }
+        public bool IsSystematic
+        {
+            get { return true; }
+        }
+        public bool IsRandom
+        {
+            get { return false; }
+        }
+        public bool IsGlobal
+        {
+            get { return false; }
+        }
+        public bool IsContinuous
+        {
+            get { return true; }
+        }
+        public bool IsStationary
+        {
+            get { return false; }
+        }
+        public double Latitude { get; set; }
+        public double Gravity { get; set; }
+        public double BField { get; set; }
+        public double Dip { get; set; }
+        public double Declination { get; set; }
+        public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
+        public double Magnitude { get; set; } = 1 * Math.PI / 180.0 / Math.Sqrt(3600); //[rad/sqrt(h)]. NB! convert to seconds??
+        public double StartInclination { get; set; } = 0; //[rad]
+        public double EndInclination { get; set; } = 0; //[rad]
+        public double InitInclination { get; set; } = 0; //[rad]
+        public bool SingularIssues { get; } = false;
+        public double EarthRotRate { get; set; } = 7.292115e-5; //[rad/s]
+        public double? FunctionDepth(double md, double tvd)
+        {
+            return 0.0;
+        }
+        public double? FunctionInc(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az)
+        {
+            return 0.0;
+        }
+        public double? FunctionAz(double incl, double az, double h, double c, double deltaD, double inclPrev)
+        {
+            return Math.Sqrt((h * h) + ((1 / (Math.Cos((inclPrev + incl) / 2) * Math.Cos((inclPrev + incl) / 2))) * deltaD / c));
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -5633,5 +7661,8 @@ namespace NORCE.Drilling.Trajectory
         public double[,] Covariance { get; set; }
         public double[] ErrorSum { get; set; }
         public double[,] SigmaErrorRandom { get; set; }
+        public double GyroH { get; set; }
+        public bool IsInitialized = false;
+        public double InitializationDepth = 0.0;
     }
 }

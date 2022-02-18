@@ -18,7 +18,7 @@ namespace TestApp
             string homeDirectory = ".." + Path.DirectorySeparatorChar + ".." + Path.DirectorySeparatorChar+ ".." + Path.DirectorySeparatorChar;
             string directory = @homeDirectory ;
             string file="";
-            int wellcase = 1;
+            int wellcase =1;
             if (wellcase == 1)
             {
                 file = directory + "iscwsa-1.txt";
@@ -33,6 +33,7 @@ namespace TestApp
             }
             using (StreamReader r = new StreamReader(file))
             {
+                SurveyStation stPrev = new SurveyStation();
                 while (!r.EndOfStream)
                 {
                     char[] sep = { '\t' };
@@ -52,10 +53,73 @@ namespace TestApp
                         //ok = NORCE.General.Std.Numeric.TryParse(words[4], out X);
                         double Y = 0.0;
                         //ok = NORCE.General.Std.Numeric.TryParse(words[5], out Y);
+                        if (false && surveyList.Count > 0)
+                        {
+                            double azIncr = (az * Math.PI / 180.0 - (double)stPrev.Az) / 3;
+                            double inclIncr = (incl * Math.PI / 180.0 - (double)stPrev.Incl) / 3;
+                            double mdIncr = (md - (double)stPrev.MD) / 3;
+                            double tvdIncr = (tvd - (double)stPrev.Z) / 3;
+                            for (int i = 0; i < 2; i++)
+                            {
+                                SurveyStation stInt = new SurveyStation();
+                                double azInt = (double)stPrev.Az + azIncr * (i + 1);
+                                double inclInt = (double)stPrev.Incl + inclIncr * (i + 1);
+                                double mdInt = (double)stPrev.MD + mdIncr * (i + 1);
+                                double tvdInt = (double)stPrev.Z + tvdIncr * (i + 1);
+                                stInt.Az = azInt;
+                                stInt.Incl = inclInt;
+                                stInt.MD = mdInt;
+                                stInt.Z = tvdInt;
+                                stInt.X = X;
+                                stInt.Y = Y;
+                                ISCWSA_MWDSurveyStationUncertainty iscwsat = new ISCWSA_MWDSurveyStationUncertainty();
+                                if (wellcase == 1)
+                                {
+                                    iscwsat.Gravity = 9.80665;
+                                    iscwsat.BField = 50000;
+                                    iscwsat.Dip = 72 * Math.PI / 180.0;
+                                    iscwsat.Declination = -4 * Math.PI / 180.0;
+                                    iscwsat.Convergence = 0.0;
+                                    iscwsat.Latitude = 60 * Math.PI / 180.0;
+                                }
+                                else if (wellcase == 2)
+                                {
+                                    iscwsat.Gravity = 9.80665;
+                                    iscwsat.BField = 48000;
+                                    iscwsat.Dip = 58 * Math.PI / 180.0;
+                                    iscwsat.Declination = 2 * Math.PI / 180.0;
+                                    iscwsat.Convergence = 0.0;
+                                    iscwsat.Latitude = 28 * Math.PI / 180.0;
+                                }
+                                else if (wellcase == 3)
+                                {
+                                    iscwsat.Gravity = 9.80665;
+                                    iscwsat.BField = 61000;
+                                    iscwsat.Dip = -70 * Math.PI / 180.0;
+                                    iscwsat.Declination = 13 * Math.PI / 180.0;
+                                    iscwsat.Convergence = 0.0;
+                                    iscwsat.Latitude = -40 * Math.PI / 180.0;
+                                }
+                                //SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSA_MWD_Rev5_OWSG);
+                                //SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample1);
+                                SurveyInstrument surveyToolt = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample1);
+                                //WdWSurveyStationUncertainty wdw = new WdWSurveyStationUncertainty();
+                                //                  SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.WdWGoodMag);
+                                stInt.SurveyTool = surveyToolt;
+                                //st.Uncertainty = wdw;
+                                stInt.Uncertainty = iscwsat;
+                                surveyList.Add(stInt);
+                            }
+                        }
                         st.Az = az * Math.PI / 180.0;
                         st.Incl = incl * Math.PI / 180.0; ;
                         st.X = X;
                         st.Y = Y;
+                        if(wellcase == 2)
+						{
+                            tvd = tvd * 0.3048;
+                            md = md * 0.3048;
+                        }
                         st.Z = tvd;
                         st.MD = md;
 						ISCWSA_MWDSurveyStationUncertainty iscwsa = new ISCWSA_MWDSurveyStationUncertainty();
@@ -66,6 +130,7 @@ namespace TestApp
                             iscwsa.Dip = 72 * Math.PI / 180.0;
                             iscwsa.Declination = -4 * Math.PI / 180.0;
                             iscwsa.Convergence = 0.0;
+                            iscwsa.Latitude = 60 * Math.PI / 180.0;
                         }
                         else if (wellcase == 2)
                         {
@@ -74,6 +139,7 @@ namespace TestApp
                             iscwsa.Dip = 58 * Math.PI / 180.0;
                             iscwsa.Declination = 2 * Math.PI / 180.0;
                             iscwsa.Convergence = 0.0;
+                            iscwsa.Latitude = 28 * Math.PI / 180.0;
                         }
                         else if (wellcase == 3)
                         {
@@ -82,14 +148,18 @@ namespace TestApp
                             iscwsa.Dip = -70 * Math.PI / 180.0;
                             iscwsa.Declination = 13 * Math.PI / 180.0;
                             iscwsa.Convergence = 0.0;
+                            iscwsa.Latitude = -40 * Math.PI / 180.0;
                         }
-                        SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSA_MWD_Rev5_OWSG);
-						//WdWSurveyStationUncertainty wdw = new WdWSurveyStationUncertainty();
-      //                  SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.WdWGoodMag);
+						//SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSA_MWD_Rev5_OWSG);
+						//SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample1);
+                        SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample3);
+                        //WdWSurveyStationUncertainty wdw = new WdWSurveyStationUncertainty();
+                        //                  SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.WdWGoodMag);
                         st.SurveyTool = surveyTool;
                         //st.Uncertainty = wdw;
                         st.Uncertainty = iscwsa;
                         surveyList.Add(st);
+                        stPrev = st;
                     }
                 }
             }
