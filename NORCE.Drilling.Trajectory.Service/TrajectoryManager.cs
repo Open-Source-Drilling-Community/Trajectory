@@ -438,7 +438,7 @@ namespace NORCE.Drilling.Trajectory.Service
 									//st.Uncertainty = wdwun;
 									surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.ISCWSA_MWD_Rev5_OWSG);
                                     st.SurveyTool = surveyTool;
-                                    ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
+                                    ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                     st.Uncertainty = iscwsaun;
                                     if (st.MD < 0 && st.Z < 0)
                                     {

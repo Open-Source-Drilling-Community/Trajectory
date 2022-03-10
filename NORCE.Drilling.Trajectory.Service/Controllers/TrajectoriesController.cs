@@ -162,14 +162,15 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
                                     st.Uncertainty = wdwun;
                                 }
-								else if(st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWC_MWD_Rev5) 
+								else if(st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWC || st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWC_MWD_Rev5
+                                    || st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWSA_Gyro_Ex1) 
                                 {
-                                    ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
+                                    ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                     st.Uncertainty = iscwsaun;
                                 }
                                 else
                                 {
-                                    ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
+                                    ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                     st.Uncertainty = iscwsaun;
                                 }
                                 sl.Add(st);
@@ -226,12 +227,12 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     }
                                     else if (st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWC_MWD_Rev5)
                                     {
-                                        ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
+                                        ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                         st.Uncertainty = iscwsaun;
                                     }
                                     else
                                     {
-                                        ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
+                                        ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                         st.Uncertainty = iscwsaun;
                                     }                                   
                                     sl.Add(st);
@@ -279,12 +280,12 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     }
                                     else if (st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWC_MWD_Rev5)
                                     {
-                                        ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
+                                        ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                         st.Uncertainty = iscwsaun;
                                     }
                                     else
                                     {
-                                        ISCWSA_MWDSurveyStationUncertainty iscwsaun = new ISCWSA_MWDSurveyStationUncertainty();
+                                        ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                         st.Uncertainty = iscwsaun;
                                     }
                                     sl.Add(st);

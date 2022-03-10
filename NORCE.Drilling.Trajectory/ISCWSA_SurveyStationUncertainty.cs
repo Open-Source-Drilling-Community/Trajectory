@@ -7,7 +7,7 @@ using NORCE.Drilling.SurveyInstrument.Model;
 
 namespace NORCE.Drilling.Trajectory
 {
-    public class ISCWSA_MWDSurveyStationUncertainty : SurveyStationUncertainty
+    public class ISCWSA_SurveyStationUncertainty : SurveyStationUncertainty
     {
         private double[,] P_ = new double[3, 3];
         /// <summary>
@@ -47,12 +47,14 @@ namespace NORCE.Drilling.Trajectory
         /// </summary>
         public List<ISCWSAErrorData> ISCWSAErrorDataTmp { get; set; } = null;
 
-        
+        private bool continuousMode_ = false;
+
+        private bool initialize_ = false;
 
         /// <summary>
         /// Default constructor
         /// </summary>
-        public ISCWSA_MWDSurveyStationUncertainty()
+        public ISCWSA_SurveyStationUncertainty()
         {
             for (int i = 0; i < Covariance.RowCount; i++)
             {
@@ -74,7 +76,7 @@ namespace NORCE.Drilling.Trajectory
         /// Copy constructor
         /// </summary>
         /// <param name="source"></param>
-        public ISCWSA_MWDSurveyStationUncertainty(ISCWSA_MWDSurveyStationUncertainty source)
+        public ISCWSA_SurveyStationUncertainty(ISCWSA_SurveyStationUncertainty source)
         {
             if (source != null)
             {
@@ -119,7 +121,7 @@ namespace NORCE.Drilling.Trajectory
         /// 
         /// </summary>
         /// <param name="surveyTool"></param>
-        public ISCWSA_MWDSurveyStationUncertainty(SurveyInstrument.Model.SurveyInstrument surveyTool)
+        public ISCWSA_SurveyStationUncertainty(SurveyInstrument.Model.SurveyInstrument surveyTool)
         {
             //SurveyTool = surveyTool;
             for (int i = 0; i < Covariance.RowCount; i++)
@@ -149,20 +151,68 @@ namespace NORCE.Drilling.Trajectory
 			#region Define error sources
 			if (ErrorSources == null)
             {
-                //NB!
-                double startInclination = 0.0 * Math.PI / 180.0;
-                double endInclination = 17.0 * Math.PI / 180.0;
+                //NB! Make this Configurable
+
+                double startInclinationSta = 0.0 * Math.PI / 180.0;
+                double startInclination = 17.0 * Math.PI / 180.0;
+                double endInclinationSta = 150.0 * Math.PI / 180.0;
+                double endInclination = 150.0 * Math.PI / 180.0;
                 double initInclination = 17.0 * Math.PI / 180.0;
+                double startInclinationZ = 0.0 * Math.PI / 180.0; ;
+                double endInclinationZ = 0.0 * Math.PI / 180.0;
+                double cantAngle = 0.0;
+                double kOperator = 1;
+                
                 if (surveyStation.SurveyTool.ModelType is SurveyInstrumentModelType.ISCWSA_Gyro_Ex2)
 				{
-
-				}
+                    startInclinationSta = 0.0 * Math.PI / 180.0;
+                    startInclinationZ = 0.0 * Math.PI / 180.0;
+                    endInclinationSta = 17.0 * Math.PI / 180.0;
+                    endInclinationZ = 150.0 * Math.PI / 180.0;
+                    initInclination = 0.0 * Math.PI / 180.0;
+                }
+                if (surveyStation.SurveyTool.ModelType is SurveyInstrumentModelType.ISCWSA_Gyro_Ex3)
+                {
+                    startInclinationSta = 0.0 * Math.PI / 180.0;
+                    startInclination = 17.0 * Math.PI / 180.0;
+                    endInclinationSta = 17.0 * Math.PI / 180.0;
+                    endInclination = 150.0 * Math.PI / 180.0;
+                    initInclination = 17.0 * Math.PI / 180.0;
+                }
+                if (surveyStation.SurveyTool.ModelType is SurveyInstrumentModelType.ISCWSA_Gyro_Ex4)
+                {
+                    startInclinationSta = 0.0 * Math.PI / 180.0;
+                    startInclination = 17.0 * Math.PI / 180.0;
+                    endInclinationSta = 0.0 * Math.PI / 180.0;
+                    endInclination = 150.0 * Math.PI / 180.0;
+                    initInclination = 3.0 * Math.PI / 180.0;
+                    startInclinationZ = 0.0 * Math.PI / 180.0; ;
+                    endInclinationZ = 17.0 * Math.PI / 180.0;
+                    cantAngle = 17.0 * Math.PI / 180.0;
+                    kOperator = 0;
+                }
+                if (surveyStation.SurveyTool.ModelType is SurveyInstrumentModelType.ISCWSA_Gyro_Ex5)
+                {
+                    startInclinationSta = 0.0 * Math.PI / 180.0;
+                    startInclination = 0.0 * Math.PI / 180.0;
+                    endInclinationSta = 0.0 * Math.PI / 180.0;
+                    endInclination = 150.0 * Math.PI / 180.0;
+                    initInclination = -1 * Math.PI / 180.0;
+                }
+                if (surveyStation.SurveyTool.ModelType is SurveyInstrumentModelType.ISCWSA_Gyro_Ex6)
+                {
+                    startInclinationSta = 0.0 * Math.PI / 180.0;
+                    startInclination = 0.0 * Math.PI / 180.0;
+                    endInclinationSta = 150.0 * Math.PI / 180.0;
+                    endInclination = 150.0 * Math.PI / 180.0;
+                    initInclination = -1 * Math.PI / 180.0;
+                }
 
                 //Use all error sources
                 ErrorSources = new List<IErrorSource>();
                 bool GyroEx1 = true;
                 bool GyroEx2 = false;
-                if(this is ISCWSA_MWDSurveyStationUncertainty)
+                if(this is ISCWSA_SurveyStationUncertainty)
                 { }
                 double earthRotRate = 7.2921159e-5; //7.367e-5; //7.27e-5;//7.292115e-5; //[rad/s]
                 if (surveyStation.SurveyTool.UseXYM1)
@@ -565,6 +615,8 @@ namespace NORCE.Drilling.Trajectory
                     ErrorSourceAXY_B errorSourceAXY_B = new ErrorSourceAXY_B();
                     errorSourceAXY_B.Magnitude = (double)surveyStation.SurveyTool.AXY_B;
                     errorSourceAXY_B.Gravity = Gravity;
+                    errorSourceAXY_B.CantAngle = cantAngle;
+                    errorSourceAXY_B.kOperator = kOperator;
                     ErrorSources.Add(errorSourceAXY_B);
                 }
                 if (surveyStation.SurveyTool.UseAXY_SF)
@@ -572,6 +624,8 @@ namespace NORCE.Drilling.Trajectory
                     ErrorSourceAXY_SF errorSourceAXY_SF = new ErrorSourceAXY_SF();
                     errorSourceAXY_SF.Magnitude = (double)surveyStation.SurveyTool.AXY_SF;
                     errorSourceAXY_SF.Gravity = Gravity;
+                    errorSourceAXY_SF.CantAngle = cantAngle;
+                    errorSourceAXY_SF.kOperator = kOperator;
                     ErrorSources.Add(errorSourceAXY_SF);
                 }
                 if (surveyStation.SurveyTool.UseAXY_MS)
@@ -585,6 +639,8 @@ namespace NORCE.Drilling.Trajectory
                     ErrorSourceAXY_GB errorSourceAXY_GB = new ErrorSourceAXY_GB();
                     errorSourceAXY_GB.Magnitude = (double)surveyStation.SurveyTool.AXY_GB;
                     errorSourceAXY_GB.Gravity = Gravity;
+                    errorSourceAXY_GB.CantAngle = cantAngle;
+                    errorSourceAXY_GB.kOperator = kOperator;
                     ErrorSources.Add(errorSourceAXY_GB);
                 }
                 if (surveyStation.SurveyTool.UseGXYZ_XYB1)
@@ -593,6 +649,9 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXYZ_XYB1.Magnitude = (double)surveyStation.SurveyTool.GXYZ_XYB1;
                     errorSourceGXYZ_XYB1.EarthRotRate = earthRotRate;
                     errorSourceGXYZ_XYB1.Latitude = Latitude;
+                    errorSourceGXYZ_XYB1.StartInclination = startInclinationSta;
+                    errorSourceGXYZ_XYB1.EndInclination = endInclinationSta;
+                    errorSourceGXYZ_XYB1.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_XYB1);
                 }
                 if (surveyStation.SurveyTool.UseGXYZ_XYB2)
@@ -601,6 +660,9 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXYZ_XYB2.Magnitude = (double)surveyStation.SurveyTool.GXYZ_XYB2;
                     errorSourceGXYZ_XYB2.EarthRotRate = earthRotRate;
                     errorSourceGXYZ_XYB2.Latitude = Latitude;
+                    errorSourceGXYZ_XYB2.StartInclination = startInclinationSta;
+                    errorSourceGXYZ_XYB2.EndInclination = endInclinationSta;
+                    errorSourceGXYZ_XYB2.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_XYB2);
                 }
                 if (surveyStation.SurveyTool.UseGXYZ_XYRN)
@@ -609,6 +671,9 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXYZ_XYRN.Magnitude = (double)surveyStation.SurveyTool.GXYZ_XYRN;
                     errorSourceGXYZ_XYRN.EarthRotRate = earthRotRate;
                     errorSourceGXYZ_XYRN.Latitude = Latitude;
+                    errorSourceGXYZ_XYRN.StartInclination = startInclinationSta;
+                    errorSourceGXYZ_XYRN.EndInclination = endInclinationSta;
+                    errorSourceGXYZ_XYRN.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_XYRN);
                 }
                 if (surveyStation.SurveyTool.UseGXYZ_XYG1)
@@ -617,6 +682,9 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXYZ_XYG1.Magnitude = (double)surveyStation.SurveyTool.GXYZ_XYG1;
                     errorSourceGXYZ_XYG1.EarthRotRate = earthRotRate;
                     errorSourceGXYZ_XYG1.Latitude = Latitude;
+                    errorSourceGXYZ_XYG1.StartInclination = startInclinationSta;
+                    errorSourceGXYZ_XYG1.EndInclination = endInclinationSta;
+                    errorSourceGXYZ_XYG1.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_XYG1);
                 }
                 if (surveyStation.SurveyTool.UseGXYZ_XYG2)
@@ -625,6 +693,9 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXYZ_XYG2.Magnitude = (double)surveyStation.SurveyTool.GXYZ_XYG2;
                     errorSourceGXYZ_XYG2.EarthRotRate = earthRotRate;
                     errorSourceGXYZ_XYG2.Latitude = Latitude;
+                    errorSourceGXYZ_XYG2.StartInclination = startInclinationSta;
+                    errorSourceGXYZ_XYG2.EndInclination = endInclinationSta;
+                    errorSourceGXYZ_XYG2.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_XYG2);
                 }
                 if (surveyStation.SurveyTool.UseGXYZ_XYG3)
@@ -633,6 +704,9 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXYZ_XYG3.Magnitude = (double)surveyStation.SurveyTool.GXYZ_XYG3;
                     errorSourceGXYZ_XYG3.EarthRotRate = earthRotRate;
                     errorSourceGXYZ_XYG3.Latitude = Latitude;
+                    errorSourceGXYZ_XYG3.StartInclination = startInclinationSta;
+                    errorSourceGXYZ_XYG3.EndInclination = endInclinationSta;
+                    errorSourceGXYZ_XYG3.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_XYG3);
                 }
                 if (surveyStation.SurveyTool.UseGXYZ_XYG4)
@@ -641,6 +715,9 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXYZ_XYG4.Magnitude = (double)surveyStation.SurveyTool.GXYZ_XYG4;
                     errorSourceGXYZ_XYG4.EarthRotRate = earthRotRate;
                     errorSourceGXYZ_XYG4.Latitude = Latitude;
+                    errorSourceGXYZ_XYG4.StartInclination = startInclinationSta;
+                    errorSourceGXYZ_XYG4.EndInclination = endInclinationSta;
+                    errorSourceGXYZ_XYG4.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_XYG4);
                 }
                 if (surveyStation.SurveyTool.UseGXYZ_ZB)
@@ -649,6 +726,9 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXYZ_ZB.Magnitude = (double)surveyStation.SurveyTool.GXYZ_ZB;
                     errorSourceGXYZ_ZB.EarthRotRate = earthRotRate;
                     errorSourceGXYZ_ZB.Latitude = Latitude;
+                    errorSourceGXYZ_ZB.StartInclination = startInclinationSta;
+                    errorSourceGXYZ_ZB.EndInclination = endInclinationSta;
+                    errorSourceGXYZ_ZB.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_ZB);
                 }
                 if (surveyStation.SurveyTool.UseGXYZ_ZRN)
@@ -657,6 +737,9 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXYZ_ZRN.Magnitude = (double)surveyStation.SurveyTool.GXYZ_ZRN;
                     errorSourceGXYZ_ZRN.EarthRotRate = earthRotRate;
                     errorSourceGXYZ_ZRN.Latitude = Latitude;
+                    errorSourceGXYZ_ZRN.StartInclination = startInclinationSta;
+                    errorSourceGXYZ_ZRN.EndInclination = endInclinationSta;
+                    errorSourceGXYZ_ZRN.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_ZRN);
                 }
                 if (surveyStation.SurveyTool.UseGXYZ_ZG1)
@@ -665,6 +748,9 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXYZ_ZG1.Magnitude = (double)surveyStation.SurveyTool.GXYZ_ZG1;
                     errorSourceGXYZ_ZG1.EarthRotRate = earthRotRate;
                     errorSourceGXYZ_ZG1.Latitude = Latitude;
+                    errorSourceGXYZ_ZG1.StartInclination = startInclinationSta;
+                    errorSourceGXYZ_ZG1.EndInclination = endInclinationSta;
+                    errorSourceGXYZ_ZG1.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_ZG1);
                 }
                 if (surveyStation.SurveyTool.UseGXYZ_ZG2)
@@ -673,6 +759,9 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXYZ_ZG2.Magnitude = (double)surveyStation.SurveyTool.GXYZ_ZG2;
                     errorSourceGXYZ_ZG2.EarthRotRate = earthRotRate;
                     errorSourceGXYZ_ZG2.Latitude = Latitude;
+                    errorSourceGXYZ_ZG2.StartInclination = startInclinationSta;
+                    errorSourceGXYZ_ZG2.EndInclination = endInclinationSta;
+                    errorSourceGXYZ_ZG2.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_ZG2);
                 }
                 if (surveyStation.SurveyTool.UseGXYZ_SF)
@@ -681,6 +770,9 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXYZ_SF.Magnitude = (double)surveyStation.SurveyTool.GXYZ_SF;
                     errorSourceGXYZ_SF.EarthRotRate = earthRotRate;
                     errorSourceGXYZ_SF.Latitude = Latitude;
+                    errorSourceGXYZ_SF.StartInclination = startInclinationSta;
+                    errorSourceGXYZ_SF.EndInclination = endInclinationSta;
+                    errorSourceGXYZ_SF.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_SF);
                 }
                 if (surveyStation.SurveyTool.UseGXYZ_MIS)
@@ -688,6 +780,9 @@ namespace NORCE.Drilling.Trajectory
                     ErrorSourceGXYZ_MIS errorSourceGXYZ_MIS = new ErrorSourceGXYZ_MIS();
                     errorSourceGXYZ_MIS.Magnitude = (double)surveyStation.SurveyTool.GXYZ_MIS;
                     errorSourceGXYZ_MIS.EarthRotRate = earthRotRate;
+                    errorSourceGXYZ_MIS.StartInclination = startInclinationSta;
+                    errorSourceGXYZ_MIS.EndInclination = endInclinationSta;
+                    errorSourceGXYZ_MIS.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_MIS);
                 }
                 if (surveyStation.SurveyTool.UseGXY_B1)
@@ -697,8 +792,8 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXY_B1.EarthRotRate = earthRotRate;
                     errorSourceGXY_B1.Latitude = Latitude;
                     errorSourceGXY_B1.Convergence = Convergence;
-                    errorSourceGXY_B1.StartInclination = startInclination;
-                    errorSourceGXY_B1.EndInclination = endInclination;
+                    errorSourceGXY_B1.StartInclination = startInclinationSta;
+                    errorSourceGXY_B1.EndInclination = endInclinationSta;
                     errorSourceGXY_B1.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXY_B1);
                 }
@@ -708,8 +803,8 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXY_B2.Magnitude = (double)surveyStation.SurveyTool.GXY_B2;
                     errorSourceGXY_B2.EarthRotRate = earthRotRate;
                     errorSourceGXY_B2.Latitude = Latitude;
-                    errorSourceGXY_B2.StartInclination = startInclination;
-                    errorSourceGXY_B2.EndInclination = endInclination;
+                    errorSourceGXY_B2.StartInclination = startInclinationSta;
+                    errorSourceGXY_B2.EndInclination = endInclinationSta;
                     errorSourceGXY_B2.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXY_B2);
                 }
@@ -719,8 +814,8 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXY_RN.Magnitude = (double)surveyStation.SurveyTool.GXY_RN;
                     errorSourceGXY_RN.EarthRotRate = earthRotRate;
                     errorSourceGXY_RN.Latitude = Latitude;
-                    errorSourceGXY_RN.StartInclination = startInclination;
-                    errorSourceGXY_RN.EndInclination = endInclination;
+                    errorSourceGXY_RN.StartInclination = startInclinationSta;
+                    errorSourceGXY_RN.EndInclination = endInclinationSta;
                     errorSourceGXY_RN.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXY_RN);
                 }
@@ -730,8 +825,8 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXY_G1.Magnitude = (double)surveyStation.SurveyTool.GXY_G1;
                     errorSourceGXY_G1.EarthRotRate = earthRotRate;
                     errorSourceGXY_G1.Latitude = Latitude;
-                    errorSourceGXY_G1.StartInclination = startInclination;
-                    errorSourceGXY_G1.EndInclination = endInclination;
+                    errorSourceGXY_G1.StartInclination = startInclinationSta;
+                    errorSourceGXY_G1.EndInclination = endInclinationSta;
                     errorSourceGXY_G1.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXY_G1);
                 }
@@ -741,8 +836,8 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXY_G2.Magnitude = (double)surveyStation.SurveyTool.GXY_G2;
                     errorSourceGXY_G2.EarthRotRate = earthRotRate;
                     errorSourceGXY_G2.Latitude = Latitude;
-                    errorSourceGXY_G2.StartInclination = startInclination;
-                    errorSourceGXY_G2.EndInclination = endInclination;
+                    errorSourceGXY_G2.StartInclination = startInclinationSta;
+                    errorSourceGXY_G2.EndInclination = endInclinationSta;
                     errorSourceGXY_G2.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXY_G2);
                 }
@@ -752,8 +847,8 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXY_G3.Magnitude = (double)surveyStation.SurveyTool.GXY_G3;
                     errorSourceGXY_G3.EarthRotRate = earthRotRate;
                     errorSourceGXY_G3.Latitude = Latitude;
-                    errorSourceGXY_G3.StartInclination = startInclination;
-                    errorSourceGXY_G3.EndInclination = endInclination;
+                    errorSourceGXY_G3.StartInclination = startInclinationSta;
+                    errorSourceGXY_G3.EndInclination = endInclinationSta;
                     errorSourceGXY_G3.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXY_G3);
                 }
@@ -763,8 +858,8 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXY_G4.Magnitude = (double)surveyStation.SurveyTool.GXY_G4;
                     errorSourceGXY_G4.EarthRotRate = earthRotRate;
                     errorSourceGXY_G4.Latitude = Latitude;
-                    errorSourceGXY_G4.StartInclination = startInclination;
-                    errorSourceGXY_G4.EndInclination = endInclination;
+                    errorSourceGXY_G4.StartInclination = startInclinationSta;
+                    errorSourceGXY_G4.EndInclination = endInclinationSta;
                     errorSourceGXY_G4.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXY_G4);
                 }
@@ -774,8 +869,8 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXY_SF.Magnitude = (double)surveyStation.SurveyTool.GXY_SF;
                     errorSourceGXY_SF.EarthRotRate = earthRotRate;
                     errorSourceGXY_SF.Latitude = Latitude;
-                    errorSourceGXY_SF.StartInclination = startInclination;
-                    errorSourceGXY_SF.EndInclination = endInclination;
+                    errorSourceGXY_SF.StartInclination = startInclinationSta;
+                    errorSourceGXY_SF.EndInclination = endInclinationSta;
                     errorSourceGXY_SF.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXY_SF);
                 }
@@ -785,8 +880,8 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXY_MIS.Magnitude = (double)surveyStation.SurveyTool.GXY_MIS;
                     errorSourceGXY_MIS.EarthRotRate = earthRotRate;
                     errorSourceGXY_MIS.Latitude = Latitude;
-                    errorSourceGXY_MIS.StartInclination = startInclination;
-                    errorSourceGXY_MIS.EndInclination = endInclination;
+                    errorSourceGXY_MIS.StartInclination = startInclinationSta;
+                    errorSourceGXY_MIS.EndInclination = endInclinationSta;
                     errorSourceGXY_MIS.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXY_MIS);
                 }
@@ -812,12 +907,18 @@ namespace NORCE.Drilling.Trajectory
                 {
                     ErrorSourceGXYZ_GD errorSourceGXYZ_GD = new ErrorSourceGXYZ_GD();
                     errorSourceGXYZ_GD.Magnitude = (double)surveyStation.SurveyTool.GXYZ_GD;
+                    errorSourceGXYZ_GD.StartInclination = startInclination; //NB!
+                    errorSourceGXYZ_GD.EndInclination = endInclination;
+                    //errorSourceGXYZ_GD.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_GD);
                 }
                 if (surveyStation.SurveyTool.UseGXYZ_RW)
                 {
                     ErrorSourceGXYZ_RW errorSourceGXYZ_RW = new ErrorSourceGXYZ_RW();
                     errorSourceGXYZ_RW.Magnitude = (double)surveyStation.SurveyTool.GXYZ_RW;
+                    errorSourceGXYZ_RW.StartInclination = startInclination; //NB!
+                    errorSourceGXYZ_RW.EndInclination = endInclination;
+                    //errorSourceGXYZ_RW.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXYZ_RW);
                 }
                 if (surveyStation.SurveyTool.UseGXY_GD)
@@ -826,34 +927,37 @@ namespace NORCE.Drilling.Trajectory
                     errorSourceGXY_GD.Magnitude = (double)surveyStation.SurveyTool.GXY_GD;
                     errorSourceGXY_GD.StartInclination = startInclination; //NB!
                     errorSourceGXY_GD.EndInclination = endInclination;
-                    errorSourceGXY_GD.InitInclination = initInclination;
-                    errorSourceGXY_GD.StartInclination = 17.0 * Math.PI / 180.0;
+                    //errorSourceGXY_GD.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXY_GD);
                 }
                 if (surveyStation.SurveyTool.UseGXY_RW)
                 {
                     ErrorSourceGXY_RW errorSourceGXY_RW = new ErrorSourceGXY_RW();
                     errorSourceGXY_RW.Magnitude = (double)surveyStation.SurveyTool.GXY_RW;
-                    errorSourceGXY_RW.StartInclination = 17.0 * Math.PI / 180.0;
                     errorSourceGXY_RW.StartInclination = startInclination; //NB!
                     errorSourceGXY_RW.EndInclination = endInclination;
-                    errorSourceGXY_RW.InitInclination = initInclination;
-                    errorSourceGXY_RW.StartInclination = 17.0 * Math.PI / 180.0;
+                    //errorSourceGXY_RW.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGXY_RW);
                 }
                 if (surveyStation.SurveyTool.UseGZ_GD)
                 {
                     ErrorSourceGZ_GD errorSourceGZ_GD = new ErrorSourceGZ_GD();
                     errorSourceGZ_GD.Magnitude = (double)surveyStation.SurveyTool.GZ_GD;
+                    errorSourceGZ_GD.StartInclination = startInclinationZ; //NB!
+                    errorSourceGZ_GD.EndInclination = endInclinationZ;
+                    //errorSourceGZ_GD.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGZ_GD);
                 }
                 if (surveyStation.SurveyTool.UseGZ_RW)
                 {
                     ErrorSourceGZ_RW errorSourceGZ_RW = new ErrorSourceGZ_RW();
                     errorSourceGZ_RW.Magnitude = (double)surveyStation.SurveyTool.GZ_RW;
+                    errorSourceGZ_RW.StartInclination = startInclinationZ; //NB!
+                    errorSourceGZ_RW.EndInclination = endInclinationZ;
+                    //errorSourceGZ_RW.InitInclination = initInclination;
                     ErrorSources.Add(errorSourceGZ_RW);
                 }
-				#region keep until new cod veryfied
+				#region keep until new code veryfied
 				if (false &&GyroEx1)
                 {
                     ErrorSources.Clear();
@@ -1557,81 +1661,137 @@ namespace NORCE.Drilling.Trajectory
                 
                 double? azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
                 double initializationDepth = ISCWSAErrorDataTmp[i].InitializationDepth;
-                double minDistance = 99999.0; //Minimum distance between initializations. NB! make configurable
+                double minDistance = 999999;// 99999.0; //Minimum distance between initializations. NB! make configurable
+                bool reInitialize = ReInitialize((double)surveyStation.Incl, (double)surveyStationPrev.Incl, errorSources, surveyStation.MD - ISCWSAErrorDataTmp[i].InitializationDepth, minDistance);
                 if (errorSources[i].IsContinuous)
                 {
                     double deltaD = (double)surveyStation.MD - (double)surveyStationPrev.MD;
                     double c_gyro = 0.6; //Running speed. NB! make configurable
-                    
-                    if ((!isInitialized && surveyStation.Incl>errorSources[i].StartInclination) || (isInitialized && (surveyStation.MD- ISCWSAErrorDataTmp[i].InitializationDepth)> minDistance)) //NB! include initialization inclination code
+                    if ((isInitialized && (surveyStation.Incl < errorSources[i].StartInclination || surveyStation.Incl > errorSources[i].EndInclination))) //NB! include initialization inclination code
+                    {
+						isInitialized = false;            //New            
+					}
+					if ((!isInitialized && surveyStation.Incl>=errorSources[i].StartInclination && surveyStation.Incl <= errorSources[i].EndInclination) || (isInitialized && (surveyStation.MD- ISCWSAErrorDataTmp[i].InitializationDepth)> minDistance)) //NB! include initialization inclination code
                     {
                         isInitialized = true;
                         ISCWSAErrorDataTmp[i].GyroH = 0.0;
                         initializationDepth = surveyStation.MD;
                     }
+                    if( false && reInitialize) //New
+					{
+                        ISCWSAErrorDataTmp[i].GyroH = 0.0;
+                        initializationDepth = surveyStation.MD;
+                    }
+                    
                     double h = ISCWSAErrorDataTmp[i].GyroH;
                     if (errorSources[i] is ErrorSourceGXYZ_GD)
                     {
                         ErrorSourceGXYZ_GD da = new ErrorSourceGXYZ_GD();
                         da.StartInclination = errorSources[i].StartInclination;
+                        da.EndInclination = errorSources[i].EndInclination;
                         h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD);
                     }
                     if (errorSources[i] is ErrorSourceGXYZ_RW)
                     {
                         ErrorSourceGXYZ_RW da = new ErrorSourceGXYZ_RW();
                         da.StartInclination = errorSources[i].StartInclination;
+                        da.EndInclination = errorSources[i].EndInclination;
                         h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD);
                     }
                     if (errorSources[i] is ErrorSourceGXY_GD)
                     {
                         ErrorSourceGXY_GD da = new ErrorSourceGXY_GD();
                         da.StartInclination = errorSources[i].StartInclination;
+                        da.EndInclination = errorSources[i].EndInclination;
                         h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                        if (h == 0 && ISCWSAErrorDataTmp[i].GyroH!=0)
+                        {
+                            h = ISCWSAErrorDataTmp[i].GyroH;
+                        }
                     }
                     if (errorSources[i] is ErrorSourceGXY_RW)
                     {
                         ErrorSourceGXY_RW da = new ErrorSourceGXY_RW();
                         da.StartInclination = errorSources[i].StartInclination;
+                        da.EndInclination = errorSources[i].EndInclination;
                         h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                        if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
+                        {
+                            h = ISCWSAErrorDataTmp[i].GyroH;
+                        }
                     }
                     if (errorSources[i] is ErrorSourceGZ_GD)
                     {
                         ErrorSourceGZ_GD da = new ErrorSourceGZ_GD();
                         da.StartInclination = errorSources[i].StartInclination;
+                        da.EndInclination = errorSources[i].EndInclination;
                         h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                        if(h==0 && ISCWSAErrorDataTmp[i].GyroH != 0)
+						{
+                            h = ISCWSAErrorDataTmp[i].GyroH;
+                        }
                     }
                     if (errorSources[i] is ErrorSourceGZ_RW)
                     {
                         ErrorSourceGZ_RW da = new ErrorSourceGZ_RW();
                         da.StartInclination = errorSources[i].StartInclination;
+                        da.EndInclination = errorSources[i].EndInclination;
                         h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                        if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
+                        {
+                            h = ISCWSAErrorDataTmp[i].GyroH;
+                        }
                     }
                     //ISCWSAErrorDataTmp[i].GyroH = h;
                     azimuth = h;
                     ISCWSAErrorDataTmp[i].IsInitialized = isInitialized;
                 }
+                continuousMode_ = IsContinuousMode(errorSources, (double)surveyStation.Incl);
+                if (IsStationary(errorSources[i]) && (isInitialized && surveyStation.Incl < errorSources[i].EndInclination)) //NB! include initialization inclination code
+                {
+                    isInitialized = false;
+                }
                 if (IsStationary(errorSources[i]) && isInitialized && (surveyStation.MD - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)
 				{
+                    azimuth = errorSources[i].FunctionAz((double)errorSources[i].InitInclination, (double)surveyStation.Az); //Azimuth NB! Unsure
                     ISCWSAErrorDataTmp[i].GyroH = (double)azimuth;
                     initializationDepth = surveyStation.MD;
                 }
-                if (IsStationary(errorSources[i]) && (isInitialized || (!isInitialized && surveyStation.Incl > errorSources[i].EndInclination)) )
-				{                    
-                    azimuth = ISCWSAErrorDataTmp[i].GyroH;
-                    if (!isInitialized)
+                if (IsStationary(errorSources[i]) && (isInitialized || (!isInitialized && surveyStation.Incl > errorSources[i].EndInclination) || continuousMode_) )
+				{
+                    if(false &&reInitialize) //New
+					{						
+						azimuth = errorSources[i].FunctionAz(errorSources[i].InitInclination, (double)surveyStation.Az); //Azimuth
+                        //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
+                        initializationDepth = surveyStation.MD;
+                    }
+                    //if (false && errorSources[i].InitInclination < 0 && !isInitialized) //New
+                    //{
+                    //    //double tmp = errorSources[i].EndInclination;
+                    //    //errorSources[i].EndInclination = 1.0;
+                    //    //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
+                    //    //errorSources[i].EndInclination = tmp;
+                    //}
+                    else
                     {
-                        if (errorSources[i] is ErrorSourceGXY_RN)
+                        azimuth = ISCWSAErrorDataTmp[i].GyroH;
+                    }
+                    if (!isInitialized  && (surveyStation.Incl > errorSources[i].EndInclination|| errorSources[i].InitInclination < 0))
+                    {
+                        if (errorSources[i] is ErrorSourceGXY_RN || errorSources[i] is ErrorSourceGXYZ_XYRN)
                         {
-                            double noiseredFactor = 0.5; //NB!
-                            azimuth = noiseredFactor * ISCWSAErrorDataTmp[i].GyroH;
+                            double noiseredFactor = 1.0;// 0.5; //NB! Configurable
+                            azimuth = noiseredFactor * azimuth;// noiseredFactor * ISCWSAErrorDataTmp[i].GyroH;
                         }
                         initializationDepth = surveyStation.MD;
                     }
+                    isInitialized = true;
                     ISCWSAErrorDataTmp[i].IsInitialized = true;
                 }
-               
-                
-                if (azimuth != null)
+				ISCWSAErrorDataTmp[i].IsInitialized = isInitialized;//New
+
+
+				if (azimuth != null)
                 {
                     ISCWSAErrorDataTmp[i].GyroH = (double)azimuth;
                     ISCWSAErrorDataTmp[i].InitializationDepth = initializationDepth;
@@ -1825,12 +1985,44 @@ namespace NORCE.Drilling.Trajectory
 
         private bool IsStationary(IErrorSource errorSource)
 		{
-            if (errorSource is ErrorSourceGXY_B1 || errorSource is ErrorSourceGXY_B2 || errorSource is ErrorSourceGXY_RN || errorSource is ErrorSourceGXY_G1 || errorSource is ErrorSourceGXY_G2 || errorSource is ErrorSourceGXY_G3 || errorSource is ErrorSourceGXY_G4 || errorSource is ErrorSourceGXY_SF || errorSource is ErrorSourceGXY_MIS)
+            if (errorSource is ErrorSourceGXY_B1 || errorSource is ErrorSourceGXY_B2 || errorSource is ErrorSourceGXY_RN || errorSource is ErrorSourceGXY_G1 || errorSource is ErrorSourceGXY_G2 || errorSource is ErrorSourceGXY_G3 || errorSource is ErrorSourceGXY_G4 || errorSource is ErrorSourceGXY_SF || errorSource is ErrorSourceGXY_MIS ||
+                errorSource is ErrorSourceGXYZ_XYB1 || errorSource is ErrorSourceGXYZ_XYB2 || errorSource is ErrorSourceGXYZ_XYRN || errorSource is ErrorSourceGXYZ_XYG1 || errorSource is ErrorSourceGXYZ_XYG2 || errorSource is ErrorSourceGXYZ_XYG3 || errorSource is ErrorSourceGXYZ_XYG4 ||
+                errorSource is ErrorSourceGXYZ_ZB || errorSource is ErrorSourceGXYZ_ZRN || errorSource is ErrorSourceGXYZ_ZG1 || errorSource is ErrorSourceGXYZ_ZG2 ||
+                errorSource is ErrorSourceGXYZ_SF || errorSource is ErrorSourceGXYZ_MIS)
             {
                 return true;
             }
 			else { return false; }
 		}
+
+        private bool IsContinuousMode(List<IErrorSource> errorSources, double incl)
+		{
+            bool isContinuous = false;
+            for(int i=0;i<ISCWSAErrorDataTmp.Count;i++)
+			{
+                if (ISCWSAErrorDataTmp[i].IsInitialized && errorSources[i].IsContinuous)
+				{
+					isContinuous = true;
+				}
+                if (errorSources[i].IsContinuous && incl >= errorSources[i].StartInclination) //New
+                {
+					//isContinuous = true;
+				}
+            }
+            return isContinuous;
+		}
+        private bool ReInitialize(double incl, double inclPrev, List<IErrorSource> errorSources, double dist, double minDist)
+        {
+            bool reInitialize = false;
+            for (int i = 0; i < errorSources.Count; i++)
+            {
+                if ((IsStationary(errorSources[i]) && incl <= errorSources[i].InitInclination && inclPrev > errorSources[i].InitInclination) || dist > minDist)
+                {
+                    reInitialize = true;
+                }
+            }
+            return reInitialize;
+        }
         #region Not in use
         ///// <summary>
         ///// Calculate Covariance matrix
@@ -2650,7 +2842,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionInc(double incl, double az)
         {
-            double w34 = Math.Cos(incl);//NB!  Make configurable
+            double w34 = Math.Abs(Math.Cos(incl));//NB!  Make configurable New
             return w34 * Math.Cos(az+Convergence);
         }
         public double? FunctionAz(double incl, double az)
@@ -2662,7 +2854,7 @@ namespace NORCE.Drilling.Trajectory
             }
             else
             {
-                double w34 = Math.Cos(incl); //NB!  Make configurable
+                double w34 = Math.Abs(Math.Cos(incl)); //NB!  Make configurable New
                 return -w34 * Math.Sin(az+Convergence) / Math.Sin(incl); ; //Azimuth //NB! Convergence
             }
         }
@@ -2721,7 +2913,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionInc(double incl, double az)
         {
-            double w34 = Math.Cos(incl); //NB!  Make configurable
+            double w34 = Math.Abs(Math.Cos(incl)); //NB!  Make configurable New
             return w34 * Math.Sin(az+Convergence);
         }
         public double? FunctionAz(double incl, double az)
@@ -2733,7 +2925,7 @@ namespace NORCE.Drilling.Trajectory
             }
             else
             {
-                double w34 = Math.Cos(incl); //NB!  Make configurable
+                double w34 = Math.Abs(Math.Cos(incl)); //NB!  Make configurable New
                 return w34 * Math.Cos(az+Convergence) / Math.Sin(incl); //Azimuth
             }
         }
@@ -5258,7 +5450,12 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionInc(double incl, double az)
         {
-            return 1 / (Gravity * Math.Cos(incl - kOperator * CantAngle));
+            double k = 1;
+            if (kOperator == 0 && incl > 90.0 * Math.PI / 180.0)
+            {
+                k = -1;
+            }
+            return 1 / (Gravity * Math.Cos(incl - k * CantAngle));
         }
         public double? FunctionAz(double incl, double az)
         {
@@ -5324,7 +5521,12 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionInc(double incl, double az)
         {
-            return Math.Tan(incl - kOperator * CantAngle);
+            double k = 1;
+            if (kOperator == 0 && incl > 90.0 * Math.PI / 180.0)
+            {
+                k = -1;
+            }
+            return Math.Tan(incl - k * CantAngle);
         }
         public double? FunctionAz(double incl, double az)
         {
@@ -5456,7 +5658,12 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionInc(double incl, double az)
         {
-            return Math.Tan(incl - kOperator * CantAngle) / Gravity;
+            double k = 1;
+            if (kOperator == 0 && incl > 90.0 * Math.PI / 180.0)
+            {
+                k = -1;
+            }
+            return Math.Tan(incl - k * CantAngle) / Gravity;
         }
         public double? FunctionAz(double incl, double az)
         {
@@ -5509,7 +5716,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/s]. 
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -5526,7 +5733,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            if (incl < EndInclination)
+            if (true || incl < EndInclination)
             {
                 double AzT = az + Convergence;
                 return Math.Sin(AzT) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
@@ -5583,7 +5790,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -5600,7 +5807,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            if (incl < EndInclination)
+            if (true || incl < EndInclination)
             {
                 double AzT = az + Convergence;
                 return Math.Cos(AzT) / (EarthRotRate * Math.Cos(Latitude));
@@ -5657,7 +5864,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -5675,7 +5882,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            if (incl < EndInclination)
+            if (true || incl < EndInclination)
             {
                 double AzT = az + Convergence;
                 return Math.Sqrt(1 - (Math.Sin(AzT) * Math.Sin(AzT) * Math.Sin(incl) * Math.Sin(incl))) / (EarthRotRate * Math.Cos(Latitude));
@@ -5732,7 +5939,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -5748,7 +5955,7 @@ namespace NORCE.Drilling.Trajectory
             return 0.0;
         }
         public double? FunctionAz(double incl, double az)
-        {if (incl < EndInclination)
+        {if (true || incl < EndInclination)
 			{
 				double AzT = az + Convergence;
 				return Math.Cos(AzT) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
@@ -5805,7 +6012,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -5821,7 +6028,7 @@ namespace NORCE.Drilling.Trajectory
             return 0.0;
         }
         public double? FunctionAz(double incl, double az)
-        {if (incl < EndInclination)
+        {if (true || incl < EndInclination)
 			{
 				double AzT = az + Convergence;
 				return Math.Cos(AzT) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
@@ -5878,7 +6085,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -5895,7 +6102,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            if (incl < EndInclination)
+            if (true || incl < EndInclination)
             {
                 double AzT = az + Convergence;
                 return Math.Sin(AzT) * Math.Cos(incl) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
@@ -5952,7 +6159,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -5969,7 +6176,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            if (incl < EndInclination)
+            if (true || incl < EndInclination)
             {
                 double AzT = az + Convergence;
                 return Math.Sin(AzT) * Math.Sin(incl) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
@@ -6026,7 +6233,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -6043,7 +6250,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            if (incl < EndInclination)
+            if (true || incl < EndInclination)
             {
                 double AzT = az + Convergence;
                 return Math.Sin(AzT) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
@@ -6100,7 +6307,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -6117,7 +6324,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            if (incl < EndInclination)
+            if (true || incl < EndInclination)
             {
                 double AzT = az + Convergence;
                 return Math.Sin(AzT) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
@@ -6175,7 +6382,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -6191,7 +6398,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            if (incl < EndInclination)
+            if (true || incl < EndInclination)
             {
                 double AzT = az + Convergence;
                 return Math.Sin(AzT) * Math.Sin(incl) * Math.Sin(incl) / (EarthRotRate * Math.Cos(Latitude));
@@ -6248,7 +6455,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -6264,7 +6471,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            if (incl < EndInclination)
+            if (true || incl < EndInclination)
             {
                 double AzT = az + Convergence;
                 return Math.Sin(AzT) * Math.Sin(incl) * Math.Cos(incl) / (EarthRotRate * Math.Cos(Latitude));
@@ -6338,7 +6545,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            if (incl < EndInclination)
+            if (true || incl < EndInclination)
             {
                 double AzT = az + Convergence;
                 return Math.Tan(Latitude) * Math.Sin(AzT) * Math.Sin(incl) * Math.Cos(incl);
@@ -6411,7 +6618,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az)
         {
-            if (incl < EndInclination)
+            if (true || incl < EndInclination)
             {
                 double AzT = az + Convergence;
                 return 1 / Math.Cos(Latitude);
@@ -6468,7 +6675,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -6534,7 +6741,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -6600,7 +6807,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.1 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -6618,9 +6825,9 @@ namespace NORCE.Drilling.Trajectory
         public double? FunctionAz(double incl, double az)
         {
             double AzT = az + Convergence;
-            //return NoiseRedFactor * Math.Sqrt((1 - Math.Cos(AzT) * Math.Cos(AzT) * Math.Sin(incl) * Math.Sin(incl))) / (EarthRotRate * Math.Cos(Latitude) * Math.Cos(incl));
-            return Math.Sqrt((1 - Math.Cos(AzT) * Math.Cos(AzT) * Math.Sin(incl) * Math.Sin(incl))) / (EarthRotRate * Math.Cos(Latitude) * Math.Cos(incl));
-        }
+			//return NoiseRedFactor * Math.Sqrt((1 - Math.Cos(AzT) * Math.Cos(AzT) * Math.Sin(incl) * Math.Sin(incl))) / (EarthRotRate * Math.Cos(Latitude) * Math.Cos(incl));
+			return Math.Sqrt((1 - Math.Cos(AzT) * Math.Cos(AzT) * Math.Sin(incl) * Math.Sin(incl))) / (EarthRotRate * Math.Cos(Latitude) * Math.Cos(incl));
+		}
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
         public double FunctionSingularityVert() { return 0; }
@@ -6668,7 +6875,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -6734,7 +6941,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -6800,7 +7007,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -6866,7 +7073,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -7266,7 +7473,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -7286,7 +7493,14 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az, double h, double c, double deltaD)
         {
-            return h + deltaD / c;
+            if (incl >= StartInclination && incl < EndInclination)
+            {
+                return h + deltaD / c;
+            }
+			else
+			{
+                return 0.0;
+			}
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -7335,7 +7549,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / Math.Sqrt(3600); //[rad/sqrt(h)]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / Math.Sqrt(3600); //[rad/sqrt(s)]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -7355,7 +7569,14 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az, double h, double c, double deltaD)
         {
-            return Math.Sqrt((h * h) + deltaD / c);
+            if (incl >= StartInclination && incl < EndInclination)
+            {
+                return Math.Sqrt((h * h) + deltaD / c);
+            }
+			else 
+            { 
+                return 0.0;
+            }
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -7404,7 +7625,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -7425,7 +7646,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az, double h, double c, double deltaD, double inclPrev)
         {
-            if (incl > StartInclination)
+            if (incl >= StartInclination && incl < EndInclination)
             {
                 return h + ((1 / Math.Sin((inclPrev + incl) / 2)) * deltaD / c);
             }
@@ -7481,7 +7702,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / Math.Sqrt(3600); //[rad/sqrt(h)]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 0.5 * Math.PI / 180.0 / Math.Sqrt(3600); //[rad/sqrt(s)]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -7501,7 +7722,7 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az, double h, double c, double deltaD, double inclPrev)
         {
-            if (incl > StartInclination)
+            if (incl >= StartInclination && incl < EndInclination)
             {
                 return Math.Sqrt((h * h) + ((1 / (Math.Sin((inclPrev + incl) / 2) * Math.Sin((inclPrev + incl) / 2))) * deltaD / c));
             }
@@ -7557,7 +7778,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 1.0 * Math.PI / 180.0 / 3600; //[rad/h]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 1.0 * Math.PI / 180.0 / 3600; //[rad/s]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -7577,7 +7798,14 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az, double h, double c, double deltaD, double inclPrev)
         {
-            return h + ((1 / Math.Cos((inclPrev + incl) / 2)) * deltaD / c);
+            if (incl >= StartInclination && incl < EndInclination)
+            {
+                return h + ((1 / Math.Cos((inclPrev + incl) / 2)) * deltaD / c);
+            }
+			else
+			{
+                return 0.0;
+			}
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }
@@ -7626,7 +7854,7 @@ namespace NORCE.Drilling.Trajectory
         public double Dip { get; set; }
         public double Declination { get; set; }
         public double Convergence { get; set; } = 0.0 * Math.PI / 180.0;
-        public double Magnitude { get; set; } = 1 * Math.PI / 180.0 / Math.Sqrt(3600); //[rad/sqrt(h)]. NB! convert to seconds??
+        public double Magnitude { get; set; } = 1 * Math.PI / 180.0 / Math.Sqrt(3600); //[rad/sqrt(s)]
         public double StartInclination { get; set; } = 0; //[rad]
         public double EndInclination { get; set; } = 0; //[rad]
         public double InitInclination { get; set; } = 0; //[rad]
@@ -7646,7 +7874,14 @@ namespace NORCE.Drilling.Trajectory
         }
         public double? FunctionAz(double incl, double az, double h, double c, double deltaD, double inclPrev)
         {
-            return Math.Sqrt((h * h) + ((1 / (Math.Cos((inclPrev + incl) / 2) * Math.Cos((inclPrev + incl) / 2))) * deltaD / c));
+            if (incl >= StartInclination && incl < EndInclination)
+            {
+                return Math.Sqrt((h * h) + ((1 / (Math.Cos((inclPrev + incl) / 2) * Math.Cos((inclPrev + incl) / 2))) * deltaD / c));
+            }
+            else
+            {
+                return 0.0;
+            }
         }
         public double FunctionSingularityNorth(double az) { return 0; }
         public double FunctionSingularityEast(double az) { return 0; }

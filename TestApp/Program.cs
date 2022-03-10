@@ -18,7 +18,7 @@ namespace TestApp
             string homeDirectory = ".." + Path.DirectorySeparatorChar + ".." + Path.DirectorySeparatorChar+ ".." + Path.DirectorySeparatorChar;
             string directory = @homeDirectory ;
             string file="";
-            int wellcase =1;
+            int wellcase = 3;
             if (wellcase == 1)
             {
                 file = directory + "iscwsa-1.txt";
@@ -72,7 +72,7 @@ namespace TestApp
                                 stInt.Z = tvdInt;
                                 stInt.X = X;
                                 stInt.Y = Y;
-                                ISCWSA_MWDSurveyStationUncertainty iscwsat = new ISCWSA_MWDSurveyStationUncertainty();
+                                ISCWSA_SurveyStationUncertainty iscwsat = new ISCWSA_SurveyStationUncertainty();
                                 if (wellcase == 1)
                                 {
                                     iscwsat.Gravity = 9.80665;
@@ -100,9 +100,9 @@ namespace TestApp
                                     iscwsat.Convergence = 0.0;
                                     iscwsat.Latitude = -40 * Math.PI / 180.0;
                                 }
-                                //SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSA_MWD_Rev5_OWSG);
-                                //SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample1);
-                                SurveyInstrument surveyToolt = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample1);
+								SurveyInstrument surveyToolt = new SurveyInstrument(SurveyInstrument.ISCWSA_MWD_Rev5_OWSG);
+								//SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample1);
+								//SurveyInstrument surveyToolt = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample1);
                                 //WdWSurveyStationUncertainty wdw = new WdWSurveyStationUncertainty();
                                 //                  SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.WdWGoodMag);
                                 stInt.SurveyTool = surveyToolt;
@@ -122,7 +122,7 @@ namespace TestApp
                         }
                         st.Z = tvd;
                         st.MD = md;
-						ISCWSA_MWDSurveyStationUncertainty iscwsa = new ISCWSA_MWDSurveyStationUncertainty();
+						ISCWSA_SurveyStationUncertainty iscwsa = new ISCWSA_SurveyStationUncertainty();
                         if (wellcase == 1)
                         {
                             iscwsa.Gravity = 9.80665;
@@ -151,8 +151,9 @@ namespace TestApp
                             iscwsa.Latitude = -40 * Math.PI / 180.0;
                         }
 						//SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSA_MWD_Rev5_OWSG);
-						//SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample1);
-                        SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample3);
+						//SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample2);
+						//SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample3);
+                        SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample4);
                         //WdWSurveyStationUncertainty wdw = new WdWSurveyStationUncertainty();
                         //                  SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.WdWGoodMag);
                         st.SurveyTool = surveyTool;
@@ -167,6 +168,16 @@ namespace TestApp
             if (surveyList != null)
             {                
                 surveyList.GetUncertaintyEnvelope(0.95, 1);
+                //Print results to file
+                string[] lines = new string[surveyList.Count];
+                for (int i = 0; i < surveyList.Count; i++)
+                {
+                    var cov = surveyList[i].Uncertainty.Covariance;
+                    lines[i] = surveyList[i].MD + ";" + cov[0, 0].ToString() + ";" + cov[1, 1].ToString() + ";" + cov[2, 2].ToString() + ";" + cov[0, 1].ToString()
+                        + ";" + cov[0, 2].ToString() + ";" + cov[1, 2].ToString(); 
+
+                }
+                File.WriteAllLines("ISCWSACovarianceResults.txt", lines);
             }
         }
 	}
