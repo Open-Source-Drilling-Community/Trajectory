@@ -126,7 +126,7 @@ else
 			{
 				//initialTrajectoryIDs = await LoadTrajectoryIDs("http://host.docker.internal:" + NORCE.Drilling.Trajectory.WebApp.Client.Configuration.InternalTrajectoryHTTPPortNumber + "/");
 			}
-			if (initialTrajectoryIDs != null)
+			if (initialTrajectoryIDs == null)
 			{
 				initialTrajectoryIDs = await LoadTrajectoryIDs("http://localhost:" + NORCE.Drilling.Trajectory.WebApp.Client.Configuration.InternalTrajectoryHTTPPortNumber + "/");
 			}
