@@ -177,7 +177,8 @@ namespace NORCE.Drilling.Trajectory
                 }
                 if (!ok)
                 {
-                    Console.WriteLine("problem");
+                    bool okCheck = false;
+                    //Console.WriteLine("problem");
                 }
 
                 // verification H = P*L*Pt
@@ -237,7 +238,8 @@ namespace NORCE.Drilling.Trajectory
                 }
                 if (!ok)
                 {
-                    Console.WriteLine("problem H");
+                    bool okCheck = false;
+                    //Console.WriteLine("problem H");
                 }
             }
 

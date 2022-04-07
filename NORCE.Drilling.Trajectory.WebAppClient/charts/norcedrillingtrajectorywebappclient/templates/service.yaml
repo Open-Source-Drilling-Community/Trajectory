@@ -1,0 +1,19 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ template "norcedrillingtrajectorywebappclient.fullname" . }}
+  labels:
+    app: {{ template "norcedrillingtrajectorywebappclient.name" . }}
+    chart: {{ template "norcedrillingtrajectorywebappclient.chart" . }}
+    release: {{ .Release.Name }}
+    heritage: {{ .Release.Service }}
+spec:
+  type: {{ .Values.service.type }}
+  ports:
+    - port: {{ .Values.service.port }}
+      targetPort: http
+      protocol: TCP
+      name: http
+  selector:
+    app: {{ template "norcedrillingtrajectorywebappclient.name" . }}
+    release: {{ .Release.Name }}

@@ -79,7 +79,6 @@ namespace NORCE.Drilling.Trajectory.Service
                     @"CREATE TABLE Trajectory (" +
                     "ID integer primary key, " +
                     "Name text, " +
-                    "TimeStamp real, " +
                     "DataSet text " +
                    ")";
                 try

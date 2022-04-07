@@ -878,9 +878,11 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
     
         ISCWSA_Gyro_Ex3 = 5,
     
-        ISCWSA_Gyro_Ex5 = 6,
+        ISCWSA_Gyro_Ex4 = 6,
     
-        ISCWSA_Gyro_Ex6 = 7,
+        ISCWSA_Gyro_Ex5 = 7,
+    
+        ISCWSA_Gyro_Ex6 = 8,
     
     }
     

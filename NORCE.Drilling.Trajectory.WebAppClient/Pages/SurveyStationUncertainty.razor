@@ -1,4 +1,4 @@
-﻿@page "/Trajectory/webapp/SurveyStationUncertainty"
+﻿@page "/SurveyStationUncertainty"
 @using System.Text;
 @using NORCE.Drilling.Trajectory.WebApp.Client
 @using NORCE.Drilling.Trajectory.ModelClientShared;
@@ -93,164 +93,164 @@ else
 }
 
 @code {
-    private HttpClient httpTrajectory;
-    private List<bool> IsTrajectoryDisplayHidden;
-    private List<bool> IsTrajectoryInputHidden;
-    private List<bool> IsResultDisplayHidden;
-    private List<bool> IsResultInputHidden;
-    private bool IsTableResultHidden;
-    private List<bool> IsTrajectoryCalculateButtonHidden;
-    private List<NORCE.Drilling.Trajectory.ModelClientShared.Trajectory> trajectories;
-    private List<NORCE.Drilling.Trajectory.ModelClientShared.SurveyStation> surveyStations;
-    private List<List<double>> listRadius = new List<List<double>>();
+	private HttpClient httpTrajectory;
+	private List<bool> IsTrajectoryDisplayHidden;
+	private List<bool> IsTrajectoryInputHidden;
+	private List<bool> IsResultDisplayHidden;
+	private List<bool> IsResultInputHidden;
+	private bool IsTableResultHidden;
+	private List<bool> IsTrajectoryCalculateButtonHidden;
+	private List<NORCE.Drilling.Trajectory.ModelClientShared.Trajectory> trajectories;
+	private List<NORCE.Drilling.Trajectory.ModelClientShared.SurveyStation> surveyStations;
+	private List<List<double>> listRadius = new List<List<double>>();
 
 
-    private string trajectoryName;
+	private string trajectoryName;
 
 
-    private NORCE.Drilling.Trajectory.ModelClientShared.Trajectory editedTrajectory;
+	private NORCE.Drilling.Trajectory.ModelClientShared.Trajectory editedTrajectory;
 
-    protected override async Task OnInitializedAsync()
-    {
-        try
-        {
+	protected override async Task OnInitializedAsync()
+	{
+		try
+		{
 
-            if (editedTrajectory == null)
-            {
-                editedTrajectory = new NORCE.Drilling.Trajectory.ModelClientShared.Trajectory();
-                editedTrajectory.ID = -1;
-            }
+			if (editedTrajectory == null)
+			{
+				editedTrajectory = new NORCE.Drilling.Trajectory.ModelClientShared.Trajectory();
+				editedTrajectory.ID = -1;
+			}
 
+			int[] initialTrajectoryIDs = await LoadTrajectoryIDs(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.TrajectoryHostURL);
+			if (initialTrajectoryIDs == null)
+			{
+				//initialTrajectoryIDs = await LoadTrajectoryIDs("http://host.docker.internal:" + NORCE.Drilling.Trajectory.WebApp.Client.Configuration.InternalTrajectoryHTTPPortNumber + "/");
+			}
+			if (initialTrajectoryIDs != null)
+			{
+				initialTrajectoryIDs = await LoadTrajectoryIDs("http://localhost:" + NORCE.Drilling.Trajectory.WebApp.Client.Configuration.InternalTrajectoryHTTPPortNumber + "/");
+			}
+			if (initialTrajectoryIDs == null)
+			{
+				initialTrajectoryIDs = await LoadTrajectoryIDs("https://localhost:44369/");
+			}
+			
 
-            int[] initialTrajectoryIDs = await LoadTrajectoryIDs("https://app.DigiWells.no/");
-            if (initialTrajectoryIDs == null)
-            {
-                initialTrajectoryIDs = await LoadTrajectoryIDs("http://host.docker.internal:10002/");
-            }
-            if (initialTrajectoryIDs == null)
-            {
-                initialTrajectoryIDs = await LoadTrajectoryIDs("http://localhost:10002/");
-            }
-            if (initialTrajectoryIDs == null)
-            {
-                initialTrajectoryIDs = await LoadTrajectoryIDs("https://localhost:44369/");
-            }
+			if (IsResultInputHidden == null)
+			{
+				IsResultInputHidden = new List<bool>();
+			}
+			if (IsResultDisplayHidden == null)
+			{
+				IsResultDisplayHidden = new List<bool>();
+			}
 
-            if (IsResultInputHidden == null)
-            {
-                IsResultInputHidden = new List<bool>();
-            }
-            if (IsResultDisplayHidden == null)
-            {
-                IsResultDisplayHidden = new List<bool>();
-            }
-
-            if (initialTrajectoryIDs != null)
-            {
-                trajectories = new List<NORCE.Drilling.Trajectory.ModelClientShared.Trajectory>();
-                IsTrajectoryDisplayHidden = new List<bool>();
-                IsTrajectoryInputHidden = new List<bool>();
-                IsTrajectoryCalculateButtonHidden = new List<bool>();
-
-
-                for (int i = 0; i < initialTrajectoryIDs.Length; i++)
-                {
-                    var a = await httpTrajectory.GetAsync("Trajectories/" + initialTrajectoryIDs[i].ToString());
-                    if (a.IsSuccessStatusCode && a.Content != null)
-                    {
-                        string str = await a.Content.ReadAsStringAsync();
-                        if (!string.IsNullOrEmpty(str))
-                        {
-                            ModelClientShared.Trajectory trajectory = Newtonsoft.Json.JsonConvert.DeserializeObject<ModelClientShared.Trajectory>(str);
-                            if (trajectory != null)
-                            {
-                                trajectories.Add(trajectory);
-                                if (trajectory.SurveyList != null)
-
-                                    IsTrajectoryDisplayHidden.Add(false);
-                                IsTrajectoryInputHidden.Add(true);
-                                IsTrajectoryCalculateButtonHidden.Add(false);
-
-                            }
-                        }
-                    }
-                }
+			if (initialTrajectoryIDs != null)
+			{
+				trajectories = new List<NORCE.Drilling.Trajectory.ModelClientShared.Trajectory>();
+				IsTrajectoryDisplayHidden = new List<bool>();
+				IsTrajectoryInputHidden = new List<bool>();
+				IsTrajectoryCalculateButtonHidden = new List<bool>();
 
 
-            }
+				for (int i = 0; i < initialTrajectoryIDs.Length; i++)
+				{
+					var a = await httpTrajectory.GetAsync("Trajectories/" + initialTrajectoryIDs[i].ToString());
+					if (a.IsSuccessStatusCode && a.Content != null)
+					{
+						string str = await a.Content.ReadAsStringAsync();
+						if (!string.IsNullOrEmpty(str))
+						{
+							ModelClientShared.Trajectory trajectory = Newtonsoft.Json.JsonConvert.DeserializeObject<ModelClientShared.Trajectory>(str);
+							if (trajectory != null)
+							{
+								trajectories.Add(trajectory);
+								if (trajectory.SurveyList != null)
 
-        }
-        catch (Exception e)
-        {
-            System.Console.WriteLine(e.Message);
-        }
-    }
+									IsTrajectoryDisplayHidden.Add(false);
+								IsTrajectoryInputHidden.Add(true);
+								IsTrajectoryCalculateButtonHidden.Add(false);
 
-    private async Task<int[]> LoadTrajectoryIDs(string host)
-    {
-        int[] initialTrajectoryIDs = null;
-        try
-        {
-            httpTrajectory = new HttpClient();
-            httpTrajectory.BaseAddress = new Uri(host + "Trajectory/api/");
-            httpTrajectory.DefaultRequestHeaders.Accept.Clear();
-            httpTrajectory.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
-            var a = await httpTrajectory.GetAsync("Trajectories");
-            if (a.IsSuccessStatusCode)
-            {
-                string str = await a.Content.ReadAsStringAsync();
-                if (!string.IsNullOrEmpty(str))
-                {
-                    initialTrajectoryIDs = Newtonsoft.Json.JsonConvert.DeserializeObject<int[]>(str);
-                }
-            }
-        }
-        catch (Exception e)
-        {
-            httpTrajectory = null;
-            initialTrajectoryIDs = null;
-        }
-        return initialTrajectoryIDs;
-    }
-
-    private async void Calculate(int idx)
-    {
-        if (trajectories != null && idx >= 0 && idx < trajectories.Count && trajectories[idx].ID >= 0)
-        {
-
-            string req = "Trajectories/" + trajectories[idx].ID.ToString();
-            string s = "Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1";
-            //var b = await httpTrajectory.GetAsync("Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1" + "/" + "1");
-            var a = await httpTrajectory.GetAsync(s);
-            Trajectory traj = new Trajectory();
-            if (a.IsSuccessStatusCode)
-            {
-                string str = await a.Content.ReadAsStringAsync();
-                if (!string.IsNullOrEmpty(str))
-                {
-                    //traj = Newtonsoft.Json.JsonConvert.DeserializeObject<Trajectory>(str);
-                    List<List<double>> list = Newtonsoft.Json.JsonConvert.DeserializeObject<List<List<double>>>(str);
-                    listRadius = list;
-                    IsResultDisplayHidden.Clear();
-                    for(int i=0;i< listRadius.Count;i++)
-                    {
-                        IsResultDisplayHidden.Add(false);
-                    }
-                }
-            }
+							}
+						}
+					}
+				}
 
 
-            for (int i = 0; i < IsTrajectoryDisplayHidden.Count; i++)
-            {
-                IsTrajectoryDisplayHidden[i] = false;
-                IsTrajectoryInputHidden[i] = true;
-            }
-            if (a.IsSuccessStatusCode)
-            {
-                await OnInitializedAsync();
-                await InvokeAsync(() => { StateHasChanged(); });
-            }
-        }
-    }
+			}
+
+		}
+		catch (Exception e)
+		{
+			System.Console.WriteLine(e.Message);
+		}
+	}
+
+	private async Task<int[]> LoadTrajectoryIDs(string host)
+	{
+		int[] initialTrajectoryIDs = null;
+		try
+		{
+			httpTrajectory = new HttpClient();
+			httpTrajectory.BaseAddress = new Uri(host + "Trajectory/api/");
+			httpTrajectory.DefaultRequestHeaders.Accept.Clear();
+			httpTrajectory.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+			var a = await httpTrajectory.GetAsync("Trajectories");
+			if (a.IsSuccessStatusCode)
+			{
+				string str = await a.Content.ReadAsStringAsync();
+				if (!string.IsNullOrEmpty(str))
+				{
+					initialTrajectoryIDs = Newtonsoft.Json.JsonConvert.DeserializeObject<int[]>(str);
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			httpTrajectory = null;
+			initialTrajectoryIDs = null;
+		}
+		return initialTrajectoryIDs;
+	}
+
+	private async void Calculate(int idx)
+	{
+		if (trajectories != null && idx >= 0 && idx < trajectories.Count && trajectories[idx].ID >= 0)
+		{
+
+			string req = "Trajectories/" + trajectories[idx].ID.ToString();
+			string s = "Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1";
+			//var b = await httpTrajectory.GetAsync("Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1" + "/" + "1");
+			var a = await httpTrajectory.GetAsync(s);
+			Trajectory traj = new Trajectory();
+			if (a.IsSuccessStatusCode)
+			{
+				string str = await a.Content.ReadAsStringAsync();
+				if (!string.IsNullOrEmpty(str))
+				{
+					//traj = Newtonsoft.Json.JsonConvert.DeserializeObject<Trajectory>(str);
+					List<List<double>> list = Newtonsoft.Json.JsonConvert.DeserializeObject<List<List<double>>>(str);
+					listRadius = list;
+					IsResultDisplayHidden.Clear();
+					for(int i=0;i< listRadius.Count;i++)
+					{
+						IsResultDisplayHidden.Add(false);
+					}
+				}
+			}
+
+
+			for (int i = 0; i < IsTrajectoryDisplayHidden.Count; i++)
+			{
+				IsTrajectoryDisplayHidden[i] = false;
+				IsTrajectoryInputHidden[i] = true;
+			}
+			if (a.IsSuccessStatusCode)
+			{
+				await OnInitializedAsync();
+				await InvokeAsync(() => { StateHasChanged(); });
+			}
+		}
+	}
 }

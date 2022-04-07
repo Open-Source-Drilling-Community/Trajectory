@@ -236,10 +236,9 @@ namespace NORCE.Drilling.Trajectory.Service
                             string json = JsonSerializer.Serialize<Model.Trajectory>(trajectory);
                             bool ok = !json.Contains('\'');
                             var command = SQLConnectionManager.Instance.Connection.CreateCommand();
-                            command.CommandText = @"INSERT INTO Trajectory (ID, Name, TimeStamp, DataSet) VALUES (" +
+                            command.CommandText = @"INSERT INTO Trajectory (ID, Name, DataSet) VALUES (" +
                                 + trajectory.ID + ", " +
                                 "'" + trajectory.Name + "'" + ", " +
-                                "'" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "'" + ", " + 
                                 "'" + json + "'" + ")";
                             int count = command.ExecuteNonQuery();
                             result = count == 1;
@@ -324,7 +323,6 @@ namespace NORCE.Drilling.Trajectory.Service
                             var command = SQLConnectionManager.Instance.Connection.CreateCommand();
                             command.CommandText = @"UPDATE Trajectory SET " +
                                 "Name =  " + "'" + updatedTrajectory.Name + "'" + ", " +
-                                "TimeStamp = " + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + ", " +
                                 "DataSet = " + "'" + json + "'" + " " +
                                 "WHERE ID = " + trajectoryID;
                             int count = command.ExecuteNonQuery();
@@ -384,6 +382,7 @@ namespace NORCE.Drilling.Trajectory.Service
         /// </summary>
         private void FillDefault()
         {
+            
             if (Count <= 0)
             {
                 string homeDirectory = ".." + Path.DirectorySeparatorChar + "home";
@@ -430,13 +429,13 @@ namespace NORCE.Drilling.Trajectory.Service
                                     st.Z = tvd - rotaryTableElevation_Ullrigg;
                                     st.MD = md - rotaryTableElevation_Ullrigg;
 
-                                    var surveyToolll = LoadSurveyTool(1);
+                                    //var surveyToolll = LoadSurveyTool(1);
 
 									//surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
 									//st.SurveyTool = surveyTool;
 									//WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
 									//st.Uncertainty = wdwun;
-									surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.ISCWSA_MWD_Rev5_OWSG);
+									surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
                                     st.SurveyTool = surveyTool;
                                     ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                     st.Uncertainty = iscwsaun;
@@ -461,10 +460,11 @@ namespace NORCE.Drilling.Trajectory.Service
                             }
                             trajectory.SurveyList = sl;
                             trajectory.SurveyList.ListOfSurveys = sl.ListOfSurveys;
-                            trajectory.SurveyList.GetUncertaintyEnvelope(0.95, 1);
-                            trajectory.Name = file.Substring(18).Split('.')[0].Split('-')[0] + "-Trajectory";
+							trajectory.SurveyList.GetUncertaintyEnvelope(0.95, 1);
+							trajectory.Name = file.Substring(18).Split('.')[0].Split('-')[0] + "-Trajectory";
                             trajectory.Description = trajectory.Name + " at Ullrigg";
                             trajectory.ID = random_.Next();
+                            //trajectory.WellboreID = 123456789;
                             Add(trajectory);
                         }
                     }

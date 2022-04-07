@@ -1552,6 +1552,7 @@
         "ISCWSA_Gyro_Ex1",
         "ISCWSA_Gyro_Ex2",
         "ISCWSA_Gyro_Ex3",
+        "ISCWSA_Gyro_Ex4",
         "ISCWSA_Gyro_Ex5",
         "ISCWSA_Gyro_Ex6"
       ],
@@ -1563,7 +1564,8 @@
         4,
         5,
         6,
-        7
+        7,
+        8
       ]
     },
     "CurvilinearPoint3D": {

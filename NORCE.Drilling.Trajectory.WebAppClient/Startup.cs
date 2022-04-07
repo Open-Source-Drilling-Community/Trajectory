@@ -32,6 +32,20 @@ namespace NORCE.Drilling.Trajectory.WebApp.Client
         // This method gets called by the runtime. Use this method to configure the HTTP request pipeline.
         public void Configure(IApplicationBuilder app, IWebHostEnvironment env)
         {
+            app.UseForwardedHeaders();
+            // This needs to match with what is defined in "charts/<helm-chart-name>/templates/values.yaml ingress.Path
+            app.UsePathBase("/Trajectory/webapp");
+
+            if (!String.IsNullOrEmpty(Configuration["TrajectoryHostURL"]))
+			NORCE.Drilling.Trajectory.WebApp.Client.Configuration.TrajectoryHostURL = Configuration["TrajectoryHostURL"];
+            NORCE.Drilling.Trajectory.WebApp.Client.Configuration.WellBoreHostURL = Configuration["WellBoreHostURL"];
+            NORCE.Drilling.Trajectory.WebApp.Client.Configuration.WellHostURL = Configuration["WellHostURL"];
+            NORCE.Drilling.Trajectory.WebApp.Client.Configuration.FieldHostURL = Configuration["FieldHostURL"];
+            NORCE.Drilling.Trajectory.WebApp.Client.Configuration.ClusterHostURL = Configuration["ClusterHostURL"];
+            NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyInstrumentHostURL = Configuration["SurveyInstrumentHostURL"];
+            NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyProgramHostURL = Configuration["SurveyProgramHostURL"];
+
+
             if (env.IsDevelopment())
             {
                 app.UseDeveloperExceptionPage();
@@ -43,14 +57,14 @@ namespace NORCE.Drilling.Trajectory.WebApp.Client
                 app.UseHsts();
             }
 
-            app.UseHttpsRedirection();
+            //app.UseHttpsRedirection();
             app.UseStaticFiles();
 
             app.UseRouting();
             app.UseEndpoints(endpoints =>
             {
                 endpoints.MapBlazorHub();
-                endpoints.MapFallbackToPage("/Trajectory/webapp/{*page}", "/_Host");
+                endpoints.MapFallbackToPage("/_Host");
             });
         }
     }

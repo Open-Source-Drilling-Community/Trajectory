@@ -56,6 +56,12 @@ tableTrajectory {
     width: 30%;
 }
 
+.tableSurveyProgram {
+    table-layout: fixed;
+}
+.SurveyProgramCheckBox {
+    width: 40%;
+}
 .tableSurveyList {
     table-layout: fixed;
 }
