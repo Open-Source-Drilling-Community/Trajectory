@@ -12,7 +12,7 @@
     <PackageReference Include="NORCE.General.Coordinates" Version="1.0.0" />
     <PackageReference Include="NORCE.General.Math" Version="1.0.7" />
     <PackageReference Include="NORCE.General.Octree" Version="1.0.7" />
-    <PackageReference Include="NORCE.General.Std" Version="1.0.0" />
+    <PackageReference Include="NORCE.General.Std" Version="1.0.1" />
   </ItemGroup>
 
 </Project>
