@@ -1,0 +1,153 @@
+﻿<PlotlyChart @bind-Config="config" @bind-Layout="layout" @bind-Data="data" @ref="chart" />
+
+@code {
+    [Parameter]
+    public List<object> XValues { get; set; }
+
+    [Parameter]
+    public List<object> YValues { get; set; }
+
+    [Parameter]
+    public List<object> ZValues { get; set; }
+
+    [Parameter]
+    public string ValuesName { get; set; }
+
+    [Parameter]
+    public string ProjValuesName { get; set; }
+
+    [Parameter]
+    public List<object> XMarkerValues { get; set; }
+
+    [Parameter]
+    public List<object> YMarkerValues { get; set; }
+
+    [Parameter]
+    public List<object> ZMarkerValues { get; set; }
+
+    [Parameter]
+    public string MarkerValuesName { get; set; }
+
+    [Parameter]
+    public List<object> XLeaseValues{ get; set; }
+
+    [Parameter]
+    public List<object> YLeaseValues { get; set; }
+
+    [Parameter]
+    public string LeaseLineName { get; set; }
+
+    [Parameter]
+    public int PlotHeight { get; set; }
+
+    [Parameter]
+    public int PlotWidth { get; set; }
+
+    [Parameter]
+    public string PlotTitle { get; set; }
+
+    [Parameter]
+    public string XAxisTitle { get; set; }
+
+    [Parameter]
+    public string YAxisTitle { get; set; }
+
+    [Parameter]
+    public string ZAxisTitle { get; set; }
+
+    [Parameter]
+    public bool ZAxisIsReversed { get; set; }
+
+    private PlotlyChart chart;
+    private Config config = new Config() { Responsive = true };
+    private Layout layout = new Layout
+    {
+        Title = new Plotly.Blazor.LayoutLib.Title { Text = "" },
+        Scene = new List<Scene>
+        {
+            new Scene
+            {
+                XAxis = new Plotly.Blazor.LayoutLib.SceneLib.XAxis { Title = new Plotly.Blazor.LayoutLib.SceneLib.XAxisLib.Title { Text = "" }},
+                YAxis = new Plotly.Blazor.LayoutLib.SceneLib.YAxis { Title = new Plotly.Blazor.LayoutLib.SceneLib.YAxisLib.Title { Text = "" }},
+                ZAxis = new Plotly.Blazor.LayoutLib.SceneLib.ZAxis { Title = new Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.Title { Text = "" }}
+            }
+        }
+    };
+
+    // Using of the interface IList is important for the event callback!
+    private IList<ITrace> data = new List<ITrace>();
+
+    public async Task Plot()
+    {
+        //Update layout of the plot
+        if (layout != null && PlotTitle != null && XAxisTitle != null && YAxisTitle != null && ZAxisTitle != null)
+        {
+            layout.Height = PlotHeight;
+            layout.Width = PlotWidth;
+            layout.Title.Text = PlotTitle;
+            layout.Scene.ElementAt(0).XAxis.Title.Text = XAxisTitle;
+            layout.Scene.ElementAt(0).YAxis.Title.Text = YAxisTitle;
+            layout.Scene.ElementAt(0).ZAxis.Title.Text = ZAxisTitle;
+            if (ZAxisIsReversed)
+                layout.Scene.ElementAt(0).ZAxis.AutoRange = Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.AutoRangeEnum.Reversed;
+            //Remove existing traces
+            await chart.Clear();
+            //Upate the whole chart (Relayout() only updates the layout)
+            await chart.React();
+        }
+        //Plot leaseline
+        if (XLeaseValues != null && XLeaseValues.Any() && YLeaseValues != null && YLeaseValues.Any())
+        {
+            List<object> ZeroValues = new List<object>();
+            for (int i = 0; i < XLeaseValues.Count; ++i)
+                ZeroValues.Add(0);
+            await chart.AddTrace(new Scatter3D
+            {
+                Name = LeaseLineName,
+                Mode = Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Lines,
+                X = XLeaseValues,
+                Y = YLeaseValues,
+                Z = ZeroValues
+            });
+        }
+        //Plot 3D interpolated curve
+        if (XValues != null && XValues.Any() && YValues != null && YValues.Any() && ZValues != null && ZValues.Any())
+        {
+            await chart.AddTrace(new Scatter3D
+            {
+                Name = ValuesName,
+                Mode = Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Lines,
+                X = XValues,
+                Y = YValues,
+                Z = ZValues
+            });
+        }
+        //Plot 3D calculated marker curve
+        if (XMarkerValues != null && XMarkerValues.Any() && YMarkerValues != null && YMarkerValues.Any())
+        {
+            await chart.AddTrace(new Scatter3D
+            {
+                Name = MarkerValuesName,
+                Mode = Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Markers,
+                X = XMarkerValues,
+                Y = YMarkerValues,
+                Z = ZMarkerValues
+            });
+        }
+        //Plot Z projection of the interpolated curve
+        if (XValues != null && XValues.Any() && YValues != null && YValues.Any())
+        {
+            List<object> ZeroValues = new List<object>();
+            for (int i = 0; i < XValues.Count; ++i)
+                ZeroValues.Add(0);
+            await chart.AddTrace(new Scatter3D
+            {
+                Name = ProjValuesName,
+                Mode = Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Lines,
+                X = XValues,
+                Y = YValues,
+                Z = ZeroValues
+            });
+        }
+    }
+}

@@ -16,21 +16,26 @@
     <link href="Trajectory/webapp/css/site.css" rel="stylesheet" />
 </head>
 <body>
-    <app>
-        <component type="typeof(App)" render-mode="ServerPrerendered" />
-    </app>
+	<app>
+		<component type="typeof(App)" render-mode="ServerPrerendered" />
+	</app>
 
-    <div id="blazor-error-ui">
-        <environment include="Staging,Production">
-            An error has occurred. This application may no longer respond until reloaded.
-        </environment>
-        <environment include="Development">
-            An unhandled exception has occurred. See browser dev tools for details.
-        </environment>
-        <a href="" class="reload">Reload</a>
-        <a class="dismiss">🗙</a>
-    </div>
+	<div id="blazor-error-ui">
+		<environment include="Staging,Production">
+			An error has occurred. This application may no longer respond until reloaded.
+		</environment>
+		<environment include="Development">
+			An unhandled exception has occurred. See browser dev tools for details.
+		</environment>
+		<a href="" class="reload">Reload</a>
+		<a class="dismiss">🗙</a>
+	</div>
 
-    <script src="_framework/blazor.server.js"></script>
+	<script src="_framework/blazor.server.js"></script>
+
+	<!-- Import the plotly.js library -->
+	<script src="_content/Plotly.Blazor/plotly-latest.min.js" type="text/javascript"></script>
+	<!-- Import the plotly.js interop functions -->
+	<script src="_content/Plotly.Blazor/plotly-interop.js" type="text/javascript"></script>
 </body>
 </html>

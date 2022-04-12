@@ -57,7 +57,40 @@ else
 			</tr>
 		</tfoot>-->
 	</table>
-
+	<div>
+		<table class="table" hidden="@IsTableResultHidden">
+			<thead></thead>
+			<tbody>
+				<tr>
+					<td>
+						@if (trajectories != null)
+						{
+							<Scatter3DPlot XValues="@interpSectionsX"
+										   YValues="@interpSectionsY"
+										   ZValues="@interpSectionsZ"
+										   ValuesName="Interpolated"
+										   XMarkerValues="@calcSectionsX"
+										   YMarkerValues="@calcSectionsY"
+										   ZMarkerValues="@calcSectionsZ"
+										   MarkerValuesName="Calculated"
+										   PlotHeight="800"
+										   PlotWidth="800"
+										   PlotTitle="t"
+										   XAxisTitle="North (m)"
+										   YAxisTitle="East (m)"
+										   ZAxisTitle="TVD (m)"
+										   ZAxisIsReversed="@false"
+										   @ref="@trajectory3DPlot"></Scatter3DPlot>
+						}
+					</td>
+					<td>
+					</td>
+				</tr>
+			</tbody>
+			<tfoot></tfoot>
+		</table>
+		
+	</div>
 	<h2 hidden="@IsTableResultHidden">Ellipse Radiuses @trajectoryName</h2>
 
 	<table class="table" hidden="@IsTableResultHidden">
@@ -90,6 +123,7 @@ else
 			}
 		</tbody>
 	</table>
+
 }
 
 @code {
@@ -103,12 +137,22 @@ else
 	private List<NORCE.Drilling.Trajectory.ModelClientShared.Trajectory> trajectories;
 	private List<NORCE.Drilling.Trajectory.ModelClientShared.SurveyStation> surveyStations;
 	private List<List<double>> listRadius = new List<List<double>>();
+	private int currentIndex = 0;
 
 
 	private string trajectoryName;
 
 
 	private NORCE.Drilling.Trajectory.ModelClientShared.Trajectory editedTrajectory;
+
+	Scatter3DPlot trajectory3DPlot = new Scatter3DPlot();
+	List<object> interpSectionsX = new List<object>();
+	List<object> interpSectionsY = new List<object>();
+	List<object> interpSectionsZ = new List<object>();
+	List<object> interpSectionsVSect = new List<object>();
+	List<object> calcSectionsX = new List<object>();
+	List<object> calcSectionsY = new List<object>();
+	List<object> calcSectionsZ = new List<object>();
 
 	protected override async Task OnInitializedAsync()
 	{
@@ -134,7 +178,7 @@ else
 			{
 				initialTrajectoryIDs = await LoadTrajectoryIDs("https://localhost:44369/");
 			}
-			
+
 
 			if (IsResultInputHidden == null)
 			{
@@ -175,7 +219,10 @@ else
 						}
 					}
 				}
-
+				if (listRadius.Count > 0)
+				{
+					PlotResults();
+				}
 
 			}
 
@@ -216,11 +263,12 @@ else
 
 	private async void Calculate(int idx)
 	{
+		currentIndex = idx;
 		if (trajectories != null && idx >= 0 && idx < trajectories.Count && trajectories[idx].ID >= 0)
 		{
 
 			string req = "Trajectories/" + trajectories[idx].ID.ToString();
-			string s = "Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1";
+			string s = "Trajectories/" + trajectories[idx].ID.ToString() + "/" + "0.95";
 			//var b = await httpTrajectory.GetAsync("Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1" + "/" + "1");
 			var a = await httpTrajectory.GetAsync(s);
 			Trajectory traj = new Trajectory();
@@ -233,13 +281,51 @@ else
 					List<List<double>> list = Newtonsoft.Json.JsonConvert.DeserializeObject<List<List<double>>>(str);
 					listRadius = list;
 					IsResultDisplayHidden.Clear();
-					for(int i=0;i< listRadius.Count;i++)
+					for (int i = 0; i < listRadius.Count; i++)
 					{
 						IsResultDisplayHidden.Add(false);
 					}
 				}
+				IsTableResultHidden = false;
 			}
 
+			calcSectionsX.Clear();
+			calcSectionsY.Clear();
+			calcSectionsZ.Clear();
+			var b = await httpTrajectory.GetAsync("Trajectories/" + trajectories[idx].ID.ToString() + "/" + "0.95" + "/" + "1");
+			if (b.IsSuccessStatusCode)
+			{
+				string str = await b.Content.ReadAsStringAsync();
+				if (!string.IsNullOrEmpty(str))
+				{
+					//traj = Newtonsoft.Json.JsonConvert.DeserializeObject<Trajectory>(str);
+					var listOfEnvelopes = Newtonsoft.Json.JsonConvert.DeserializeObject<List<UncertaintyEnvelopeEllipse>>(str);
+					for(int i=0;i< listOfEnvelopes.Count;i++)
+					{
+						for (int j = 0; j < listOfEnvelopes[i].EllipseCoordinates.Count; j++)
+						{
+							//Generate the calculated marker curve
+							//CurvilinearPoint3D point = null;
+							//point = listOfEnvelopes[i].EllipseCoordinates.ElementAt(j).X;
+							calcSectionsX.Add(listOfEnvelopes[i].EllipseCoordinates.ElementAt(j).X);
+							calcSectionsY.Add(listOfEnvelopes[i].EllipseCoordinates.ElementAt(j).Y);
+							calcSectionsZ.Add(listOfEnvelopes[i].EllipseCoordinates.ElementAt(j).Z);
+						}
+					}
+				}
+			}
+			////Generate the calculated marker curve
+
+			//for (int i = 0; i < trajectories[currentIndex].SurveyList.Count; ++i)
+			//{
+			//	int sectionIdx = System.Math.Max(0, i - 1);
+			//	CurvilinearPoint3D point = null;
+			//	point = trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i);
+			//	calcSectionsX.Add(point.X);
+			//	calcSectionsY.Add(point.Y);
+			//	calcSectionsZ.Add(point.Z);
+
+			//}
 
 			for (int i = 0; i < IsTrajectoryDisplayHidden.Count; i++)
 			{
@@ -252,5 +338,64 @@ else
 				await InvokeAsync(() => { StateHasChanged(); });
 			}
 		}
+	}
+
+	private async void PlotResults()
+	{
+		// update scatter plot
+		interpSectionsX.Clear();
+		interpSectionsY.Clear();
+		interpSectionsZ.Clear();
+		interpSectionsVSect.Clear();
+		//calcSectionsX.Clear();
+		//calcSectionsY.Clear();
+		//calcSectionsZ.Clear();
+
+		//Generate the interpolated curve
+		CurvilinearPoint3D prevPoint = null;
+		double vSect = 0.0;
+		for (int i = 0; i < trajectories[currentIndex].SurveyList.Count; ++i)
+		{
+			CurvilinearPoint3D point = null;
+			point = trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i);
+			double x = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).X;
+			double y = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).Y;
+			double z = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).Z;
+
+
+
+			interpSectionsX.Add(point.X);
+			interpSectionsY.Add(point.Y);
+			interpSectionsZ.Add(point.Z);
+			//vSect += System.Math.Sqrt(System.Math.Pow((double)(point.X - prevPoint.X), 2.0) + System.Math.Pow((double)(point.Y - prevPoint.Y), 2.0));
+			//interpSectionsVSect.Add(vSect);
+			prevPoint = point;
+
+		}
+
+
+		////Generate the calculated marker curve
+		//prevPoint = null;
+		//vSect = 0.0;
+		//for (int i = 0; i < trajectories[currentIndex].SurveyList.Count; ++i)
+		//{
+		//	int sectionIdx = System.Math.Max(0, i - 1);
+
+
+		//	CurvilinearPoint3D point = null;
+		//	point = trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i);
+		//	calcSectionsX.Add(point.X);
+		//	calcSectionsY.Add(point.Y);
+		//	calcSectionsZ.Add(point.Z);
+		//	//vSect += System.Math.Sqrt(System.Math.Pow((double)(point.X - prevPoint.X), 2.0) + System.Math.Pow((double)(point.Y - prevPoint.Y), 2.0));
+		//	prevPoint = point;
+
+		//}
+		//trajectory3DPlot.PlotTitle = "t";
+		//trajectory3DPlot.XMarkerValues = calcSectionsX;
+		//trajectory3DPlot.YMarkerValues = calcSectionsY;
+		//trajectory3DPlot.ZMarkerValues = calcSectionsZ;
+		//trajectory3DPlot.MarkerValuesName = "X";
+		await trajectory3DPlot.Plot();
 	}
 }

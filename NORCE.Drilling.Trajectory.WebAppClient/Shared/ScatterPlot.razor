@@ -1,0 +1,124 @@
+﻿<PlotlyChart @bind-Config="config" @bind-Layout="layout" @bind-Data="data" @ref="chart" />
+
+@code {
+    [Parameter]
+    public List<object> XValues { get; set; }
+
+    [Parameter]
+    public List<object> YValues { get; set; }
+
+    [Parameter]
+    public string ValuesName { get; set; }
+
+    [Parameter]
+    public List<object> XMarkerValues { get; set; }
+
+    [Parameter]
+    public List<object> YMarkerValues { get; set; }
+
+    [Parameter]
+    public string MarkerValuesName { get; set; }
+
+    [Parameter]
+    public List<object> XLeaseValues { get; set; }
+
+    [Parameter]
+    public List<object> YLeaseValues { get; set; }
+
+    [Parameter]
+    public string LeaseLineName { get; set; }
+
+    [Parameter]
+    public int PlotHeight { get; set; }
+
+    [Parameter]
+    public int PlotWidth { get; set; }
+
+    [Parameter]
+    public string PlotTitle { get; set; }
+
+    [Parameter]
+    public string XAxisTitle { get; set; }
+
+    [Parameter]
+    public string YAxisTitle { get; set; }
+
+    [Parameter]
+    public bool YAxisIsReversed { get; set; }
+
+    private PlotlyChart chart;
+    private Config config = new Config() { Responsive = true };
+    private Layout layout = new Layout
+    {
+        Title = new Plotly.Blazor.LayoutLib.Title { Text = "" },
+        XAxis = new List<XAxis>
+{
+            new XAxis
+            {
+                Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "" }
+            }
+        },
+        YAxis = new List<YAxis>
+{
+            new YAxis
+            {
+                Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "" }
+            }
+        }
+    };
+
+    // Using of the interface IList is important for the event callback!
+    private IList<ITrace> data = new List<ITrace>();
+
+    public async Task Plot()
+    {
+        //Update layout of the plot
+        if (layout != null && PlotTitle != null && XAxisTitle != null && YAxisTitle != null)
+        {
+            layout.Height = PlotHeight;
+            layout.Width = PlotWidth;
+            layout.Title.Text = PlotTitle;
+            layout.XAxis.ElementAt(0).Title.Text = XAxisTitle;
+            layout.YAxis.ElementAt(0).Title.Text = YAxisTitle;
+            if (YAxisIsReversed)
+                layout.YAxis.ElementAt(0).AutoRange = Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.Reversed;
+            //Remove existing traces
+            await chart.Clear();
+            //Upate the whole chart (Relayout() only updates the layout)
+            await chart.React();
+        }
+        //Plot leaseline
+        if (XLeaseValues != null && XLeaseValues.Any() && YLeaseValues != null && YLeaseValues.Any())
+        {
+            await chart.AddTrace(new Scatter
+            {
+                Name = LeaseLineName,
+                Mode = ModeFlag.Lines,
+                X = XLeaseValues,
+                Y = YLeaseValues
+            });
+        }
+        //Plot interpolated curve
+        if (XValues != null && XValues.Any() && YValues != null && YValues.Any())
+        {
+            await chart.AddTrace(new Scatter
+            {
+                Name = ValuesName,
+                Mode = ModeFlag.Lines,
+                X = XValues,
+                Y = YValues
+            });
+        }
+        //Plot calculated marker curve
+        if (XMarkerValues != null && XMarkerValues.Any() && YMarkerValues != null && YMarkerValues.Any())
+        {
+            await chart.AddTrace(new Scatter
+            {
+                Name = MarkerValuesName,
+                Mode = ModeFlag.Markers,
+                X = XMarkerValues,
+                Y = YMarkerValues
+            });
+        }
+    }
+}
