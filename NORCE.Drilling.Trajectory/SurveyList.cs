@@ -287,12 +287,38 @@ namespace NORCE.Drilling.Trajectory
                         _surveyList[i].SurveyTool = surveyTool;
                         _surveyList[i].Uncertainty = wdwun;
                     }
-                    if (((_useWdwCovariance == _surveyList[i].Uncertainty is WdWSurveyStationUncertainty && i > 0) || (_surveyList.Count>1 && _surveyList[i].Uncertainty.Covariance[0,0]==null )) )
+                    //if (((_useWdwCovariance == _surveyList[i].Uncertainty is WdWSurveyStationUncertainty && i > 0) || (_surveyList.Count>1 && _surveyList[i].Uncertainty.Covariance[0,0]==null )) )
+                    //{
+                    //    WdWSurveyStationUncertainty wdwSurveyStatoinUncertainty = (WdWSurveyStationUncertainty)_surveyList[i].Uncertainty;
+                    //    A = wdwSurveyStatoinUncertainty.CalculateCovariances(_surveyList[i], _surveyList[i - 1], A);
+                    //}
+                    //if (((_surveyList[i].Uncertainty is ISCWSA_SurveyStationUncertainty && i > 0) || (_surveyList.Count > 1 && _surveyList[i].Uncertainty.Covariance[0, 0] == null)))
+                    //{
+                    //    ISCWSA_SurveyStationUncertainty ISCWSASurveyStatoinUncertainty = (ISCWSA_SurveyStationUncertainty)_surveyList[i].Uncertainty;
+                    //    if (i == _surveyList.Count - 1)
+                    //    {
+                    //        SurveyStation surveyStationNext = new SurveyStation();
+                    //        surveyStationNext.X = 0.0;
+                    //        surveyStationNext.Y = 0.0;
+                    //        surveyStationNext.Incl = 0.0;
+                    //        surveyStationNext.Az = 0.0;
+                    //        surveyStationNext.MD = 0.0;
+                    //        ISCWSASurveyStatoinUncertainty.CalculateCovariance(_surveyList[i], _surveyList[i - 1], surveyStationNext, ISCWSAErrorDataTmp, i);
+                    //    }
+                    //    else
+                    //    {
+                    //        ISCWSASurveyStatoinUncertainty.CalculateCovariance(_surveyList[i], _surveyList[i - 1], _surveyList[i + 1], ISCWSAErrorDataTmp, i);
+                    //    }
+
+                    //    ISCWSAErrorDataTmp = ISCWSASurveyStatoinUncertainty.ISCWSAErrorDataTmp;
+                    //}
+                    //Always calculate new Covariances
+                    if ((_useWdwCovariance == _surveyList[i].Uncertainty is WdWSurveyStationUncertainty && i > 0))
                     {
                         WdWSurveyStationUncertainty wdwSurveyStatoinUncertainty = (WdWSurveyStationUncertainty)_surveyList[i].Uncertainty;
                         A = wdwSurveyStatoinUncertainty.CalculateCovariances(_surveyList[i], _surveyList[i - 1], A);
                     }
-                    if (((_surveyList[i].Uncertainty is ISCWSA_SurveyStationUncertainty && i > 0) || (_surveyList.Count > 1 && _surveyList[i].Uncertainty.Covariance[0, 0] == null)))
+                    if ((_surveyList[i].Uncertainty is ISCWSA_SurveyStationUncertainty && i > 0))
                     {
                         ISCWSA_SurveyStationUncertainty ISCWSASurveyStatoinUncertainty = (ISCWSA_SurveyStationUncertainty)_surveyList[i].Uncertainty;
                         if (i == _surveyList.Count - 1)
@@ -309,7 +335,7 @@ namespace NORCE.Drilling.Trajectory
                         {
                             ISCWSASurveyStatoinUncertainty.CalculateCovariance(_surveyList[i], _surveyList[i - 1], _surveyList[i + 1], ISCWSAErrorDataTmp, i);
                         }
-                        
+
                         ISCWSAErrorDataTmp = ISCWSASurveyStatoinUncertainty.ISCWSAErrorDataTmp;
                     }
                     _surveyList[i].Uncertainty.Calculate(_surveyList[i], confidenceFactor, scalingFactor);

@@ -143,7 +143,7 @@
 			});
 		}
 
-		if (XValuesList==null || XValuesList.Count <= 0)
+		if (XValuesList == null || XValuesList.Count <= 0)
 		{
 			//Plot 3D surface
 			if (XValues != null && XValues.Any() && YValues != null && YValues.Any() && ZValues != null && ZValues.Any())
@@ -173,7 +173,7 @@
 		else
 		{
 			//Plot 3D surface
-			if (XValuesList != null && XValuesList.Count>0 && XValuesList[0].Any() && YValuesList != null && YValuesList.Count > 0 && YValuesList[0].Any()
+			if (XValuesList != null && XValuesList.Count > 0 && XValuesList[0].Any() && YValuesList != null && YValuesList.Count > 0 && YValuesList[0].Any()
 				&& ZValuesList != null && ZValuesList.Count > 0 && ZValuesList[0].Any())
 			{
 				for (int i = 0; i < XValuesList.Count; i++)
@@ -211,5 +211,4 @@
 		}
 
 	}
-}
 }

@@ -594,6 +594,7 @@ else
 					<td>
 						<button class="btn btn-primary" hidden="@IsTrajectoryEditButtonHidden[i]" @onclick="@(() => Edit(local))">Edit</button>
 						<button class="btn btn-primary" hidden="@IsTrajectoryDeleteButtonHidden[i]" @onclick="@(() => Delete(local))">Delete</button>
+						<button class="btn btn-primary" hidden="@IsTrajectoryEditButtonHidden[i]" @onclick="@(() => Copy(local))">Copy</button>
 						<button class="btn btn-primary" hidden="@IsTrajectoryUpdateButtonHidden[i]" @onclick="@(() => Update(local))">Update</button>
 						<button class="btn btn-primary" hidden="@IsTrajectoryCancelButtonHidden[i]" @onclick="@(() => Cancel(local))">Cancel</button>
 					</td>
@@ -1348,9 +1349,12 @@ else
 	{
 		try
 		{
-			surveyProgramBoolvalues = new List<bool>();
-			surveyProgramBoolvalues.Add(false);
-			surveyProgramBoolvalues.Add(false);
+			if (surveyProgramBoolvalues == null)
+			{
+				surveyProgramBoolvalues = new List<bool>();
+				surveyProgramBoolvalues.Add(false);
+				surveyProgramBoolvalues.Add(false);
+			}
 			if (editedTrajectory == null)
 			{
 				editedTrajectory = new NORCE.Drilling.Trajectory.ModelClientShared.Trajectory();
@@ -2502,7 +2506,7 @@ else
 
 		ModelClientShared.Trajectory newTrajectory = new ModelClientShared.Trajectory();
 		editedTrajectory.Copy(newTrajectory);
-		Cancel();
+		//Cancel();
 		StringContent content = new StringContent(newTrajectory.GetJson(), Encoding.UTF8, "application/json");
 
 		var a = await httpTrajectory.PostAsync("Trajectories", content);
@@ -2527,6 +2531,23 @@ else
 		editedWellName = null;
 		editedWellBoreName = null;
 	}
+
+	private async void Copy(int idx)
+	{
+		ModelClientShared.Trajectory trajectoryCopy = new ModelClientShared.Trajectory();
+		trajectories[idx].Copy(trajectoryCopy);
+		trajectoryCopy.Name = trajectoryCopy.Name + "Copy";
+		trajectoryCopy.ID = -1;
+		StringContent content = new StringContent(trajectoryCopy.GetJson(), Encoding.UTF8, "application/json");
+
+		var a = await httpTrajectory.PostAsync("Trajectories", content);
+		if (a.IsSuccessStatusCode)
+		{
+			await OnInitializedAsync();
+			await InvokeAsync(() => { StateHasChanged(); });
+		}
+	}
+
 }
 
 

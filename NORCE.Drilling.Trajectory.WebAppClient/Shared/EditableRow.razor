@@ -1,0 +1,28 @@
+﻿<tr>
+	<CascadingValue Name="IsRowEditing" Value="@Editing">
+
+		@ChildContent
+
+		<td class="row-buttons">
+			<button class="btn btn-light edit" @onclick="@(() => Editing = true)" hidden="@Editing">Edit</button>
+			@*<button class="btn btn-danger delete" @onclick="@(()=>Delete.InvokeAsync())" hidden="@Editing">Delete</button>
+			<button class="btn btn-light update" @onclick="@(()=>Update.InvokeAsync())" hidden="@(!Editing)">Update</button>*@
+			<button class="btn btn-light cancel" @onclick="@(() => Editing = false)" hidden="@(!Editing)">Cancel</button>
+		</td>
+	</CascadingValue>
+</tr>
+
+
+@code {
+	[Parameter]
+	public RenderFragment ChildContent { get; set; }
+
+	[Parameter]
+	public bool Editing { get; set; } = false;
+
+	[Parameter]
+	public EventCallback Update { get; set; }
+
+	[Parameter]
+	public EventCallback Delete { get; set; }
+}

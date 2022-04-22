@@ -10,7 +10,7 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
     {
 
         /// <summary>
-        /// copy everything except the ID
+        /// copy everything
         /// </summary>
         /// <param name="dest"></param>
         /// <returns></returns>

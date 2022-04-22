@@ -19,7 +19,7 @@ Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NORCE.Drilling.Trajectory.W
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "NORCE.Drilling.Trajectory", "NORCE.Drilling.Trajectory\NORCE.Drilling.Trajectory.csproj", "{13B77C4B-87B6-4AC5-84BF-0D0B4DAE523C}"
 EndProject
-Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "TestApp", "TestApp\TestApp.csproj", "{3E56E212-D92C-4920-A3E4-4693949E3116}"
+Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "TestApp", "TestApp\TestApp.csproj", "{3E56E212-D92C-4920-A3E4-4693949E3116}"
 EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution

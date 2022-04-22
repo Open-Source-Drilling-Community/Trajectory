@@ -11,7 +11,7 @@ ADD ./NORCE_CA.cer /usr/local/share/ca-certificates/foo.crt
 RUN chmod 644 /usr/local/share/ca-certificates/foo.crt && update-ca-certificates
 
 WORKDIR /src
-COPY ["NORCE.Drilling.TargetAxis.ModelClientShared/NORCE.Drilling.TargetAxis.ModelClientShared.csproj", "NORCE.Drilling.TargetAxis.ModelClientShared/"]
+COPY ["NORCE.Drilling.Trajectory.ModelClientShared/NORCE.Drilling.Trajectory.ModelClientShared.csproj", "NORCE.Drilling.Trajectory.ModelClientShared/"]
 COPY ["NORCE.Drilling.Trajectory.WebAppClient/NORCE.Drilling.Trajectory.WebApp.Client.csproj", "NORCE.Drilling.Trajectory.WebAppClient/"]
 COPY ./nuget.config .
 RUN dotnet restore "NORCE.Drilling.Trajectory.WebAppClient/NORCE.Drilling.Trajectory.WebApp.Client.csproj"

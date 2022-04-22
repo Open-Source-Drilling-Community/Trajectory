@@ -42,17 +42,30 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                 {
                     for(int i=0;i< surveyList.ListOfSurveys.Count;i++)
 					{
+                        if (surveyList.ListOfSurveys[i].SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.WolffDeWardt)
+                        {
+                            WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                            surveyList.ListOfSurveys[i].Uncertainty = wdwun;
+                        }
+                        else
+                        {
+                            ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
+                            surveyList.ListOfSurveys[i].Uncertainty = iscwsaun;
+                        }
                         //Not able to deserialize matrix yet. Adding values to covatiance matrix
-                        if (surveyList.ListOfSurveys[i].Uncertainty!=null && surveyList.ListOfSurveys[i].Uncertainty.Covariance!=null)
-                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 0] = surveyList.ListOfSurveys[i].Uncertainty.C11;
-                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 1] = surveyList.ListOfSurveys[i].Uncertainty.C12;
-                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 2] = surveyList.ListOfSurveys[i].Uncertainty.C13;
-                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 0] = surveyList.ListOfSurveys[i].Uncertainty.C21;
-                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 1] = surveyList.ListOfSurveys[i].Uncertainty.C22;
-                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 2] = surveyList.ListOfSurveys[i].Uncertainty.C23;
-                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 0] = surveyList.ListOfSurveys[i].Uncertainty.C31;
-                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 1] = surveyList.ListOfSurveys[i].Uncertainty.C32;
-                        surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 2] = surveyList.ListOfSurveys[i].Uncertainty.C33;
+                        if (surveyList.ListOfSurveys[i].Uncertainty != null && surveyList.ListOfSurveys[i].Uncertainty.Covariance != null &&
+                            surveyList.ListOfSurveys[i].Uncertainty.C11 != null)
+                        {
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 0] = surveyList.ListOfSurveys[i].Uncertainty.C11;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 1] = surveyList.ListOfSurveys[i].Uncertainty.C12;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 2] = surveyList.ListOfSurveys[i].Uncertainty.C13;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 0] = surveyList.ListOfSurveys[i].Uncertainty.C21;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 1] = surveyList.ListOfSurveys[i].Uncertainty.C22;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 2] = surveyList.ListOfSurveys[i].Uncertainty.C23;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 0] = surveyList.ListOfSurveys[i].Uncertainty.C31;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 1] = surveyList.ListOfSurveys[i].Uncertainty.C32;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 2] = surveyList.ListOfSurveys[i].Uncertainty.C33;
+                        }
 
                     }   
                     if(surveyList.EllipseVerticesPhi == 0.0)
@@ -69,7 +82,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                     {
                         surveyList.MaxDistanceCoordinate = 3;
 
-                    }
+                    }                    
                     if (surveyList.MaxDistanceEllipse == 0.0)
                     {
                         surveyList.MaxDistanceEllipse = 3;
@@ -78,6 +91,72 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                     surveyList.GetUncertaintyEnvelope(confidenceFactor, scalingFactor);
                 }
             }            
+            return surveyList.UncertaintyEnvelope;
+        }
+
+        // GET api/trajectories/id/MaXDistanceEllipses
+        [HttpGet("{id}/{confidenceFactor}/{scalingFactor}/{maxDistanceEllipse}")]
+        public List<UncertaintyEnvelopeEllipse> Get(int id, double confidenceFactor, double scalingFactor, double maxDistanceEllipse)
+        {
+            Model.Trajectory trajectory = TrajectoryManager.Instance.Get(id);
+            SurveyList surveyList = new SurveyList();
+            if (trajectory.SurveyList != null)
+            {
+                surveyList = trajectory.SurveyList;
+                if (surveyList.ListOfSurveys != null)
+                {
+                    for (int i = 0; i < surveyList.ListOfSurveys.Count; i++)
+                    {
+                        if (surveyList.ListOfSurveys[i].SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.WolffDeWardt)
+                        {
+                            WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                            surveyList.ListOfSurveys[i].Uncertainty = wdwun;
+                        }
+                        else
+                        {
+                            ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
+                            surveyList.ListOfSurveys[i].Uncertainty = iscwsaun;
+                        }
+                        //Not able to deserialize matrix yet. Adding values to covatiance matrix
+                        if (surveyList.ListOfSurveys[i].Uncertainty != null && surveyList.ListOfSurveys[i].Uncertainty.Covariance != null &&
+                            surveyList.ListOfSurveys[i].Uncertainty.C11 != null)
+                        {
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 0] = surveyList.ListOfSurveys[i].Uncertainty.C11;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 1] = surveyList.ListOfSurveys[i].Uncertainty.C12;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[0, 2] = surveyList.ListOfSurveys[i].Uncertainty.C13;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 0] = surveyList.ListOfSurveys[i].Uncertainty.C21;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 1] = surveyList.ListOfSurveys[i].Uncertainty.C22;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[1, 2] = surveyList.ListOfSurveys[i].Uncertainty.C23;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 0] = surveyList.ListOfSurveys[i].Uncertainty.C31;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 1] = surveyList.ListOfSurveys[i].Uncertainty.C32;
+                            surveyList.ListOfSurveys[i].Uncertainty.Covariance[2, 2] = surveyList.ListOfSurveys[i].Uncertainty.C33;
+                        }
+
+                    }
+                    if (surveyList.EllipseVerticesPhi == 0.0)
+                    {
+                        surveyList.EllipseVerticesPhi = 32;
+
+                    }
+                    if (surveyList.IntermediateEllipseNumbers == 0.0)
+                    {
+                        surveyList.IntermediateEllipseNumbers = 6;
+
+                    }
+                    if (surveyList.MaxDistanceCoordinate == 0.0)
+                    {
+                        surveyList.MaxDistanceCoordinate = 3;
+
+                    }
+                    surveyList.MaxDistanceEllipse = maxDistanceEllipse;
+                    if (surveyList.MaxDistanceEllipse == 0.0)
+                    {
+                        surveyList.MaxDistanceEllipse = 3;
+
+                    }
+                    surveyList.GetUncertaintyEnvelope(confidenceFactor, scalingFactor);
+                }
+            }
             return surveyList.UncertaintyEnvelope;
         }
 
@@ -93,7 +172,17 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                 if (surveyList.ListOfSurveys != null)                   
                 {
                     for(int i=0;i< surveyList.ListOfSurveys.Count;i++)
-					{
+					{                       
+                        if (surveyList.ListOfSurveys[i].SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.WolffDeWardt)
+                        {
+                            WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
+                            surveyList.ListOfSurveys[i].Uncertainty = wdwun;
+                        }
+                        else
+                        {
+                            ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
+                            surveyList.ListOfSurveys[i].Uncertainty = iscwsaun;
+                        }
                         //Not able to deserialize matrix yet. Adding values to covatiance matrix
                         if (surveyList.ListOfSurveys[i].Uncertainty != null && surveyList.ListOfSurveys[i].Uncertainty.Covariance != null &&
                             surveyList.ListOfSurveys[i].Uncertainty.C11 !=null)

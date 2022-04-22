@@ -13,12 +13,16 @@
 else
 {
 	<h2>Trajectory List</h2>
+
 	<table class="table">
 		<thead>
 			<tr>
 				<th>Name</th>
 				<th>Description</th>
+				<th>Confidence Level</th>
 				<th></th>
+				<th></th>
+				<th class="SurveyProgramCheckBox">Compare</th>
 			</tr>
 		</thead>
 		<tbody>
@@ -27,77 +31,79 @@ else
 				var local = i;
 				<tr>
 					<td>
-						<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].Name</span>
-						@*<input class="text" type="text" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.Name" />*@
+						<span class="label" >@trajectories[i].Name</span>
 					</td>
 					<td>
-						<span class="label" hidden="@IsTrajectoryDisplayHidden[i]">@trajectories[i].Description</span>
-						@*<input class="text" type="text" hidden="@IsTrajectoryInputHidden[i]" @bind="@updatedTrajectory.Description" />*@
+						<span class="label" >@trajectories[i].Description</span>
+					</td>
+					<td>					
+						<span class="label" hidden="@IsConfidenceLevelDisplayHidden[i]">@confidenceLevels[i]</span>
+						<input class="text" type="text" hidden="@IsConfidenceLevelInputHidden[i]" @bind="@updatedConfidenceLevel" />
+					</td>
+					<td>
+						<button class="btn btn-primary" hidden="@IsConfidenceLevelEditButtonHidden[i]" @onclick="@(() => EditConfidenceLevel(local))">Edit Confidence Level</button>
+						<button class="btn btn-primary" hidden="@IsConfidenceLevelUpdateButtonHidden[i]" @onclick="@(() => UpdateConfidenceLevel(local))">Update Confidence Level</button>
+					</td>
+					<td>
+						<button class="btn btn-primary" @onclick="@(() => Calculate(local))">Calculate</button>
 					</td>
 
 					<td>
-						<button class="btn btn-primary" hidden="@IsTrajectoryCalculateButtonHidden[i]" @onclick="@(() => Calculate(local))">Calculate</button>
-
+						<input type="checkbox" @bind="@trajectoryCompareChBoxvalues[local]" />
 					</td>
 				</tr>
 			}
 		</tbody>
-		<!--<tfoot>
-			<tr>
-				<td>
-					<input class="text" type="text" hidden="@IsTrajectoryAddInput" @bind="@editedTrajectory.Name" />
-				</td>
-				<td>
-					<input class="text" type="text" hidden="@IsTrajectoryAddInput" @bind="@editedTrajectory.Description" />
-				</td>
-				<td>-->
-		@*<button class="btn btn-primary" hidden="@IsTrajectoryAddInput" @onclick="Add">Add</button>
-			<button class="btn btn-primary" hidden="@IsTrajectoryAddInput" @onclick="Cancel">Cancel</button>*@
-		<!--</td>
-			</tr>
-		</tfoot>-->
-	</table>
-	<div>
-		<table class="table" hidden="@IsTableResultHidden">
-			<thead></thead>
-			<tbody>
-				<tr>
-					<td>
-						@if (trajectories != null)
-						{
-							<Scatter3DPlot XValues="@interpSectionsX"
-										   YValues="@interpSectionsY"
-										   ZValues="@interpSectionsZ"
-										   ValuesName="Interpolated"
-										   XMarkerValues="@calcSectionsX"
-										   YMarkerValues="@calcSectionsY"
-										   ZMarkerValues="@calcSectionsZ"
-										   MarkerValuesName="Calculated"
-										   PlotHeight="800"
-										   PlotWidth="800"
-										   PlotTitle="t"
-										   XAxisTitle="North (m)"
-										   YAxisTitle="East (m)"
-										   ZAxisTitle="TVD (m)"
-										   ZAxisIsReversed="@false"
-										   @ref="@trajectory3DPlot"></Scatter3DPlot>
-						}
-					</td>
-					<td>
-					</td>
-				</tr>
-			</tbody>
-			<tfoot></tfoot>
-		</table>
 		
-	</div>
+	</table>
+	<table class="table" hidden="@IsTableResultHidden">
+		<thead></thead>
+		<tbody>
+			<tr>				
+				<td>
+					<Mesh3DPlots XValuesLine="@interpSectionsX"
+								 YValuesLine="@interpSectionsY"
+								 ZValuesLine="@interpSectionsZ"
+								 ValuesNameLine="Trajectory"
+								 XValues="@calcSectionsX"
+								 YValues="@calcSectionsY"
+								 ZValues="@calcSectionsZ"
+								 ValuesName="Envelope"
+								 XValues2="@calcSectionsX2"
+								 YValues2="@calcSectionsY2"
+								 ZValues2="@calcSectionsZ2"
+								 ValuesName2="Envelope2"
+								 XValuesList="@calcSectionsXList"
+								 YValuesList="@calcSectionsYList"
+								 ZValuesList="@calcSectionsZList"
+								 ValuesListColor="blue"
+								 ValuesNameList="Ellipses of Uncertianty"
+								 XValuesList2="@calcSectionsXList2"
+								 YValuesList2="@calcSectionsYList2"
+								 ZValuesList2="@calcSectionsZList2"
+								 ValuesListColor2="red"
+								 ValuesNameList2="Ellipses of Uncertianty Comp"
+								 PlotHeight="800"
+								 PlotWidth="800"
+								 PlotTitle="Wellbore Position Uncertainty"
+								 XAxisTitle="North (m)"
+								 YAxisTitle="East (m)"
+								 ZAxisTitle="TVD (m)"
+								 ZAxisIsReversed="@true"
+								 @ref="@trajectorySurface3DPlot"></Mesh3DPlots>
+				</td>
+			</tr>
+		</tbody>
+	</table>
 	<h2 hidden="@IsTableResultHidden">Ellipse Radiuses @trajectoryName</h2>
 
 	<table class="table" hidden="@IsTableResultHidden">
 		<thead>
 			<tr>
-				<th>R1</th>
-				<th>R2</th>
+				<th>R1 @trajectoryName</th>
+				<th>R2 @trajectoryName</th>
+				<th>R1 @trajectoryName2</th>
+				<th>R2 @trajectoryName2</th>
 				<th></th>
 			</tr>
 		</thead>
@@ -105,17 +111,31 @@ else
 			@for (int i = 0; i < listRadius.Count; i++)
 			{
 				List<double> list = listRadius[i];
+				List<double> list2 = new List<double>();
+				if (listRadius2 != null && listRadius2.Count > i)
+				{
+					list2 = listRadius2[i];
+				}
 				if (list[0] != null)
 				{
-
 					<tr>
 						<td>
-							<span class="label" hidden="@IsResultDisplayHidden[i]">@list[0]</span>
-							@*<input class="text" type="text" hidden="@IsResultInputHidden[i]" @bind="@list[0]" />*@
+							<span class="label" hidden="@IsResultDisplayHidden[i]">@list[0]</span>							
 						</td>
 						<td>
-							<span class="label" hidden="@IsResultDisplayHidden[i]">@list[1]</span>
-							@*<input class="text" type="text" hidden="@IsResultInputHidden[i]" @bind="@list[1]" />*@
+							<span class="label" hidden="@IsResultDisplayHidden[i]">@list[1]</span>							
+						</td>
+						<td>
+							@if (list2 != null && list2.Count > 0)
+							{
+								<span class="label" hidden="@IsResultDisplayHidden[i]">@list2[0]</span>								
+							}
+						</td>
+						<td>
+							@if (list2 != null && list2.Count > 0)
+							{
+								<span class="label" hidden="@IsResultDisplayHidden[i]">@list2[1]</span>							
+							}
 						</td>
 
 					</tr>
@@ -128,24 +148,24 @@ else
 
 @code {
 	private HttpClient httpTrajectory;
-	private List<bool> IsTrajectoryDisplayHidden;
-	private List<bool> IsTrajectoryInputHidden;
 	private List<bool> IsResultDisplayHidden;
 	private List<bool> IsResultInputHidden;
+	private List<bool> IsConfidenceLevelInputHidden;
+	private List<bool> IsConfidenceLevelDisplayHidden;
+	private List<bool> IsConfidenceLevelEditButtonHidden;
+	private List<bool> IsConfidenceLevelUpdateButtonHidden;
 	private bool IsTableResultHidden;
-	private List<bool> IsTrajectoryCalculateButtonHidden;
+	private bool IsTableResultHidden2;
 	private List<NORCE.Drilling.Trajectory.ModelClientShared.Trajectory> trajectories;
-	private List<NORCE.Drilling.Trajectory.ModelClientShared.SurveyStation> surveyStations;
+	private List<double> confidenceLevels;
+	private double updatedConfidenceLevel;
+	bool isInitialized = false;
 	private List<List<double>> listRadius = new List<List<double>>();
+	private List<List<double>> listRadius2 = new List<List<double>>();
 	private int currentIndex = 0;
-
-
 	private string trajectoryName;
-
-
-	private NORCE.Drilling.Trajectory.ModelClientShared.Trajectory editedTrajectory;
-
-	Scatter3DPlot trajectory3DPlot = new Scatter3DPlot();
+	private string trajectoryName2;
+	Mesh3DPlots trajectorySurface3DPlot = new Mesh3DPlots();
 	List<object> interpSectionsX = new List<object>();
 	List<object> interpSectionsY = new List<object>();
 	List<object> interpSectionsZ = new List<object>();
@@ -153,18 +173,21 @@ else
 	List<object> calcSectionsX = new List<object>();
 	List<object> calcSectionsY = new List<object>();
 	List<object> calcSectionsZ = new List<object>();
+	List<object> calcSectionsX2 = new List<object>();
+	List<object> calcSectionsY2 = new List<object>();
+	List<object> calcSectionsZ2 = new List<object>();
+	List<List<object>> calcSectionsXList = new List<List<object>>();
+	List<List<object>> calcSectionsYList = new List<List<object>>();
+	List<List<object>> calcSectionsZList = new List<List<object>>();
+	List<List<object>> calcSectionsXList2 = new List<List<object>>();
+	List<List<object>> calcSectionsYList2 = new List<List<object>>();
+	List<List<object>> calcSectionsZList2 = new List<List<object>>();
+	public List<bool> trajectoryCompareChBoxvalues { get; set; }
 
 	protected override async Task OnInitializedAsync()
 	{
 		try
-		{
-
-			if (editedTrajectory == null)
-			{
-				editedTrajectory = new NORCE.Drilling.Trajectory.ModelClientShared.Trajectory();
-				editedTrajectory.ID = -1;
-			}
-
+		{					
 			int[] initialTrajectoryIDs = await LoadTrajectoryIDs(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.TrajectoryHostURL);
 			if (initialTrajectoryIDs == null)
 			{
@@ -178,7 +201,15 @@ else
 			{
 				initialTrajectoryIDs = await LoadTrajectoryIDs("https://localhost:44369/");
 			}
+			if (trajectoryCompareChBoxvalues == null && initialTrajectoryIDs != null)
+			{
+				trajectoryCompareChBoxvalues = new List<bool>();
+				for (int i = 0; i < initialTrajectoryIDs.Length; i++)
+				{
+					trajectoryCompareChBoxvalues.Add(false);
 
+				}
+			}
 
 			if (IsResultInputHidden == null)
 			{
@@ -192,10 +223,10 @@ else
 			if (initialTrajectoryIDs != null)
 			{
 				trajectories = new List<NORCE.Drilling.Trajectory.ModelClientShared.Trajectory>();
-				IsTrajectoryDisplayHidden = new List<bool>();
-				IsTrajectoryInputHidden = new List<bool>();
-				IsTrajectoryCalculateButtonHidden = new List<bool>();
-
+				IsConfidenceLevelDisplayHidden = new List<bool>();
+				IsConfidenceLevelInputHidden = new List<bool>();
+				IsConfidenceLevelEditButtonHidden = new List<bool>();
+				IsConfidenceLevelUpdateButtonHidden = new List<bool>();
 
 				for (int i = 0; i < initialTrajectoryIDs.Length; i++)
 				{
@@ -210,15 +241,21 @@ else
 							{
 								trajectories.Add(trajectory);
 								if (trajectory.SurveyList != null)
+								
+								IsConfidenceLevelDisplayHidden.Add(false);
+								IsConfidenceLevelInputHidden.Add(true);
+								IsConfidenceLevelEditButtonHidden.Add(false);
+								IsConfidenceLevelUpdateButtonHidden.Add(true);
 
-									IsTrajectoryDisplayHidden.Add(false);
-								IsTrajectoryInputHidden.Add(true);
-								IsTrajectoryCalculateButtonHidden.Add(false);
-
+								if (!isInitialized)
+								{
+									confidenceLevels.Add(0.95);
+								}
 							}
 						}
 					}
 				}
+				isInitialized = true;
 				if (listRadius.Count > 0)
 				{
 					PlotResults();
@@ -261,15 +298,46 @@ else
 		return initialTrajectoryIDs;
 	}
 
+	private void EditConfidenceLevel(int idx)
+	{
+
+		updatedConfidenceLevel = confidenceLevels[idx];
+		for (int i = 0; i < IsConfidenceLevelDisplayHidden.Count; i++)
+		{
+			if (i == idx)
+			{
+				IsConfidenceLevelDisplayHidden[i] = true;
+				IsConfidenceLevelInputHidden[i] = false;
+				IsConfidenceLevelEditButtonHidden[i] = true;
+				IsConfidenceLevelUpdateButtonHidden[i] = false;				
+			}
+			else
+			{
+				IsConfidenceLevelDisplayHidden[i] = false;				
+			}
+		}
+	}
+
+	private void UpdateConfidenceLevel(int idx)
+	{
+
+		confidenceLevels[idx] = updatedConfidenceLevel;
+		for (int i = 0; i < IsConfidenceLevelDisplayHidden.Count; i++)
+		{
+			IsConfidenceLevelDisplayHidden[i] = false;
+			IsConfidenceLevelInputHidden[i] = true;
+			IsConfidenceLevelEditButtonHidden[i] = false;
+			IsConfidenceLevelUpdateButtonHidden[i] = true;			
+		}
+	}
 	private async void Calculate(int idx)
 	{
-		currentIndex = idx;
+		currentIndex = idx;		
+		double confidenceLevel = confidenceLevels[idx];		
 		if (trajectories != null && idx >= 0 && idx < trajectories.Count && trajectories[idx].ID >= 0)
 		{
-
-			string req = "Trajectories/" + trajectories[idx].ID.ToString();
+			trajectoryName = trajectories[idx].Name;
 			string s = "Trajectories/" + trajectories[idx].ID.ToString() + "/" + "0.95";
-			//var b = await httpTrajectory.GetAsync("Trajectories/" + trajectories[idx].ID.ToString() + "/" + "1" + "/" + "1");
 			var a = await httpTrajectory.GetAsync(s);
 			Trajectory traj = new Trajectory();
 			if (a.IsSuccessStatusCode)
@@ -292,46 +360,85 @@ else
 			calcSectionsX.Clear();
 			calcSectionsY.Clear();
 			calcSectionsZ.Clear();
-			var b = await httpTrajectory.GetAsync("Trajectories/" + trajectories[idx].ID.ToString() + "/" + "0.95" + "/" + "1");
+
+			calcSectionsXList.Clear();
+			calcSectionsYList.Clear();
+			calcSectionsZList.Clear();
+			var b = await httpTrajectory.GetAsync("Trajectories/" + trajectories[idx].ID.ToString() + "/" + "0.95" + "/" + "1" + "/" + "10");
 			if (b.IsSuccessStatusCode)
 			{
 				string str = await b.Content.ReadAsStringAsync();
 				if (!string.IsNullOrEmpty(str))
-				{
-					//traj = Newtonsoft.Json.JsonConvert.DeserializeObject<Trajectory>(str);
-					var listOfEnvelopes = Newtonsoft.Json.JsonConvert.DeserializeObject<List<UncertaintyEnvelopeEllipse>>(str);
-					for(int i=0;i< listOfEnvelopes.Count;i++)
+				{					
+					var listOfEnvelopes = Newtonsoft.Json.JsonConvert.DeserializeObject<List<UncertaintyEnvelopeEllipse>>(str);					
+					for (int i = 0; i < listOfEnvelopes.Count; i++)
 					{
+						calcSectionsXList.Add(new List<object>());
+						calcSectionsYList.Add(new List<object>());
+						calcSectionsZList.Add(new List<object>());
 						for (int j = 0; j < listOfEnvelopes[i].EllipseCoordinates.Count; j++)
-						{
-							//Generate the calculated marker curve
-							//CurvilinearPoint3D point = null;
-							//point = listOfEnvelopes[i].EllipseCoordinates.ElementAt(j).X;
+						{							
 							calcSectionsX.Add(listOfEnvelopes[i].EllipseCoordinates.ElementAt(j).X);
 							calcSectionsY.Add(listOfEnvelopes[i].EllipseCoordinates.ElementAt(j).Y);
 							calcSectionsZ.Add(listOfEnvelopes[i].EllipseCoordinates.ElementAt(j).Z);
+							calcSectionsXList[i].Add(listOfEnvelopes[i].EllipseCoordinates.ElementAt(j).X);
+							calcSectionsYList[i].Add(listOfEnvelopes[i].EllipseCoordinates.ElementAt(j).Y);
+							calcSectionsZList[i].Add(listOfEnvelopes[i].EllipseCoordinates.ElementAt(j).Z);
 						}
 					}
 				}
 			}
-			////Generate the calculated marker curve
 
-			//for (int i = 0; i < trajectories[currentIndex].SurveyList.Count; ++i)
-			//{
-			//	int sectionIdx = System.Math.Max(0, i - 1);
-			//	CurvilinearPoint3D point = null;
-			//	point = trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i);
-			//	calcSectionsX.Add(point.X);
-			//	calcSectionsY.Add(point.Y);
-			//	calcSectionsZ.Add(point.Z);
-
-			//}
-
-			for (int i = 0; i < IsTrajectoryDisplayHidden.Count; i++)
+			for (int i = 0; i < trajectoryCompareChBoxvalues.Count; i++)
 			{
-				IsTrajectoryDisplayHidden[i] = false;
-				IsTrajectoryInputHidden[i] = true;
+				bool ch = trajectoryCompareChBoxvalues[i];
+				if (ch)
+				{
+					calcSectionsX2.Clear();
+					calcSectionsY2.Clear();
+					calcSectionsZ2.Clear();
+					var c = await httpTrajectory.GetAsync("Trajectories/" + trajectories[i].ID.ToString() + "/" + "0.95" + "/" + "1" + "/" + "10");
+					if (c.IsSuccessStatusCode)
+					{
+						string str = await c.Content.ReadAsStringAsync();
+						if (!string.IsNullOrEmpty(str))
+						{							
+							var listOfEnvelopes = Newtonsoft.Json.JsonConvert.DeserializeObject<List<UncertaintyEnvelopeEllipse>>(str);
+							for (int j = 0; j < listOfEnvelopes.Count; j++)
+							{
+								calcSectionsXList2.Add(new List<object>());
+								calcSectionsYList2.Add(new List<object>());
+								calcSectionsZList2.Add(new List<object>());
+								for (int k = 0; k < listOfEnvelopes[j].EllipseCoordinates.Count; k++)
+								{									
+									calcSectionsX2.Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).X);
+									calcSectionsY2.Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Y);
+									calcSectionsZ2.Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Z);
+									calcSectionsXList2[j].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).X);
+									calcSectionsYList2[j].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Y);
+									calcSectionsZList2[j].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Z);
+								}
+							}
+						}
+
+					}
+
+					trajectoryName2 = trajectories[i].Name;
+					string q = "Trajectories/" + trajectories[i].ID.ToString() + "/" + "0.95";
+					var r = await httpTrajectory.GetAsync(q);
+					if (r.IsSuccessStatusCode)
+					{
+						string str = await r.Content.ReadAsStringAsync();
+						if (!string.IsNullOrEmpty(str))
+						{
+							List<List<double>> list = Newtonsoft.Json.JsonConvert.DeserializeObject<List<List<double>>>(str);
+							listRadius2 = list;
+						}
+						IsTableResultHidden2 = false;
+					}
+				}
 			}
+			
 			if (a.IsSuccessStatusCode)
 			{
 				await OnInitializedAsync();
@@ -341,19 +448,13 @@ else
 	}
 
 	private async void PlotResults()
-	{
-		// update scatter plot
+	{		
 		interpSectionsX.Clear();
 		interpSectionsY.Clear();
 		interpSectionsZ.Clear();
 		interpSectionsVSect.Clear();
-		//calcSectionsX.Clear();
-		//calcSectionsY.Clear();
-		//calcSectionsZ.Clear();
-
-		//Generate the interpolated curve
+		
 		CurvilinearPoint3D prevPoint = null;
-		double vSect = 0.0;
 		for (int i = 0; i < trajectories[currentIndex].SurveyList.Count; ++i)
 		{
 			CurvilinearPoint3D point = null;
@@ -361,41 +462,12 @@ else
 			double x = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).X;
 			double y = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).Y;
 			double z = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).Z;
-
-
-
 			interpSectionsX.Add(point.X);
 			interpSectionsY.Add(point.Y);
-			interpSectionsZ.Add(point.Z);
-			//vSect += System.Math.Sqrt(System.Math.Pow((double)(point.X - prevPoint.X), 2.0) + System.Math.Pow((double)(point.Y - prevPoint.Y), 2.0));
-			//interpSectionsVSect.Add(vSect);
+			interpSectionsZ.Add(point.Z);			
 			prevPoint = point;
 
 		}
-
-
-		////Generate the calculated marker curve
-		//prevPoint = null;
-		//vSect = 0.0;
-		//for (int i = 0; i < trajectories[currentIndex].SurveyList.Count; ++i)
-		//{
-		//	int sectionIdx = System.Math.Max(0, i - 1);
-
-
-		//	CurvilinearPoint3D point = null;
-		//	point = trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i);
-		//	calcSectionsX.Add(point.X);
-		//	calcSectionsY.Add(point.Y);
-		//	calcSectionsZ.Add(point.Z);
-		//	//vSect += System.Math.Sqrt(System.Math.Pow((double)(point.X - prevPoint.X), 2.0) + System.Math.Pow((double)(point.Y - prevPoint.Y), 2.0));
-		//	prevPoint = point;
-
-		//}
-		//trajectory3DPlot.PlotTitle = "t";
-		//trajectory3DPlot.XMarkerValues = calcSectionsX;
-		//trajectory3DPlot.YMarkerValues = calcSectionsY;
-		//trajectory3DPlot.ZMarkerValues = calcSectionsZ;
-		//trajectory3DPlot.MarkerValuesName = "X";
-		await trajectory3DPlot.Plot();
+		await trajectorySurface3DPlot.Plot();
 	}
 }
