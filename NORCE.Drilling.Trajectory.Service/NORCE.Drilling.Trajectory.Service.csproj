@@ -17,7 +17,10 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.4.10" />
     <PackageReference Include="Microsoft.VisualStudio.Azure.Kubernetes.Tools.Targets" Version="1.1.0" />
     <PackageReference Include="Newtonsoft.Json" Version="13.0.1" />
+    <PackageReference Include="NORCE.Drilling.Cluster.ModelClientShared" Version="1.0.5" />
     <PackageReference Include="NORCE.Drilling.SurveyInstrument.Model" Version="1.0.17" />
+    <PackageReference Include="NORCE.Drilling.Well.ModelClientShared" Version="1.0.2" />
+    <PackageReference Include="NORCE.Drilling.WellBore.ModelClientShared" Version="1.0.1" />
     <PackageReference Include="System.Data.SQLite.Core" Version="1.0.115.5" />
   </ItemGroup>
 
