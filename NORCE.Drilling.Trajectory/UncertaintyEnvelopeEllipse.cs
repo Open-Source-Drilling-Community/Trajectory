@@ -33,7 +33,14 @@ namespace NORCE.Drilling.Trajectory
         /// Azimuth associated with survey station
         /// </summary>
         public double? Azimuth { get; set; }
-
+        /// <summary>
+        /// Longitude in WGS84 associated with the survey station
+        /// </summary>
+        public double? LongitudeWGS84 { get; set; }
+        /// <summary>
+        /// Latitude in WGS84 associated with the survey station
+        /// </summary>
+        public double? LatitudeWGS84 { get; set; }
         /// <summary>
         /// Ellipse radiuses of uncertainty envelope associated with survey station
         /// </summary>

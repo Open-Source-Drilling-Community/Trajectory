@@ -1226,16 +1226,16 @@ else
 				var local = i;
 				<tr>
 					<td>
-						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].MD</span>
-						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.MD" />
+						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].MdWGS84</span>
+						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.MdWGS84" />
 					</td>
 					<td>
 						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].Incl</span>
 						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.Incl" />
 					</td>
 					<td>
-						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].Az</span>
-						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.Az" />
+						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].AzWGS84</span>
+						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.AzWGS84" />
 					</td>
 					<td>
 						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].SurveyTool.Name</span>
@@ -1367,9 +1367,9 @@ else
 			if (updatedSurveyStation == null)
 			{
 				updatedSurveyStation = new SurveyStation();
-				updatedSurveyStation.MD = 0.0;
+				updatedSurveyStation.MdWGS84 = 0.0;
 				updatedSurveyStation.Incl = 0.0;
-				updatedSurveyStation.Az = 0.0;
+				updatedSurveyStation.AzWGS84 = 0.0;
 				updatedSurveyStation.SurveyTool = new SurveyInstrument();
 			}
 			if (surveyStations == null)
@@ -1473,7 +1473,7 @@ else
 					//SurveyStation surveyStation = new SurveyStation();
 					//surveyStation.MD = 0.0;
 					//surveyStation.Incl = 0.0;
-					//surveyStation.Az = 0.0;
+					//surveyStation.AzWGS84 = 0.0;
 					//surveyStations.Add(surveyStation);
 					//IsSurveyStationDisplayHidden.Add(false);
 					//IsSurveyStationInputHidden.Add(true);
@@ -1746,7 +1746,7 @@ else
 				SurveyProgram.ModelClientShared.SurveyRun run = surveyProgram.SurveyRunsList.ElementAt(i);
 				for (int j = 0; j < surveyStations.Count; j++)
 				{
-					if (surveyStations[j].MD >= run.StartMD && surveyStations[j].MD <= run.FinalMD)
+					if (surveyStations[j].MdWGS84 >= run.StartMD && surveyStations[j].MdWGS84 <= run.FinalMD)
 					{
 						surveyStations[j].SurveyTool = new SurveyInstrument();
 						surveyStations[j].SurveyTool.Name = run.SurveyInstrument.Name;
@@ -2262,12 +2262,12 @@ else
 					for (int i = 0; i < extraSurveyStationCount; i++)
 					{
 						SurveyStation st = new SurveyStation();
-						st.MD = MDi;
-						st.Az = 0.0;
+						st.MdWGS84 = MDi;
+						st.AzWGS84 = 0.0;
 						st.Incl = 0.0;
-						st.X = 0.0;
-						st.Y = 0.0;
-						st.Z = MDi;
+						st.NorthOfWellHead = 0.0;
+						st.EastOfWellHead = 0.0;
+						st.TvdWGS84 = MDi;
 						surveyStations.Add(st);
 						IsSurveyStationDisplayHidden.Add(false);
 						IsSurveyStationInputHidden.Add(true);
@@ -2341,9 +2341,9 @@ else
 		if (surveyStations != null && idx >= 0 && idx < surveyStations.Count)
 		{
 			surveyStations[idx].Abscissa = null;
-			surveyStations[idx].MD = 0;
+			surveyStations[idx].MdWGS84 = 0;
 			surveyStations[idx].Incl = 0;
-			surveyStations[idx].Az = 0;
+			surveyStations[idx].AzWGS84 = 0;
 		}
 	}
 
@@ -2366,7 +2366,7 @@ else
 			{
 				for (int i = 0; i < surveyStations.Count; i++)
 				{
-					if (!string.IsNullOrEmpty(surveyStations[i].MD.ToString()))
+					if (!string.IsNullOrEmpty(surveyStations[i].MdWGS84.ToString()))
 					{
 						SurveyStation surveyStation = new SurveyStation();
 						surveyStation = surveyStations[i];
@@ -2433,7 +2433,7 @@ else
 		}
 		//updatedSurveyStation.MD = 0;
 		//updatedSurveyStation.Incl = 0;
-		//updatedSurveyStation.Az = 0;
+		//updatedSurveyStation.AzWGS84 = 0;
 		for (int i = 0; i < IsSurveyStationDisplayHidden.Count; i++)
 		{
 			IsSurveyStationDisplayHidden[i] = false;
@@ -2473,9 +2473,9 @@ else
 	private void CancelSurveyStation(int idx)
 	{
 		updatedSurveyStation.Abscissa = null;
-		updatedSurveyStation.MD = 0;
+		updatedSurveyStation.MdWGS84 = 0;
 		updatedSurveyStation.Incl = 0;
-		updatedSurveyStation.Az = 0;
+		updatedSurveyStation.AzWGS84 = 0;
 		for (int i = 0; i < IsSurveyStationDisplayHidden.Count; i++)
 		{
 			IsSurveyStationDisplayHidden[i] = false;

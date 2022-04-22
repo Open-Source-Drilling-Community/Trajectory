@@ -155,8 +155,26 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v13.0.0.0)")]
     public partial class SurveyStation : CurvilinearPoint3D
     {
-        [Newtonsoft.Json.JsonProperty("MD", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double MD { get; set; }
+        [Newtonsoft.Json.JsonProperty("MdWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? MdWGS84 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("TvdWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? TvdWGS84 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("NorthOfWellHead", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? NorthOfWellHead { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("EastOfWellHead", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? EastOfWellHead { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("AzWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? AzWGS84 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("LatitudeWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? LatitudeWGS84 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("LongitudeWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? LongitudeWGS84 { get; set; }
     
         [Newtonsoft.Json.JsonProperty("Uncertainty", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public SurveyStationUncertainty Uncertainty { get; set; }

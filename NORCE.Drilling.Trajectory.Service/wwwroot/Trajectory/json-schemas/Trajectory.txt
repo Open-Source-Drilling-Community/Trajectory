@@ -325,8 +325,53 @@
           "type": "object",
           "additionalProperties": false,
           "properties": {
-            "MD": {
-              "type": "number",
+            "MdWGS84": {
+              "type": [
+                "null",
+                "number"
+              ],
+              "format": "double"
+            },
+            "TvdWGS84": {
+              "type": [
+                "null",
+                "number"
+              ],
+              "format": "double"
+            },
+            "NorthOfWellHead": {
+              "type": [
+                "null",
+                "number"
+              ],
+              "format": "double"
+            },
+            "EastOfWellHead": {
+              "type": [
+                "null",
+                "number"
+              ],
+              "format": "double"
+            },
+            "AzWGS84": {
+              "type": [
+                "null",
+                "number"
+              ],
+              "format": "double"
+            },
+            "LatitudeWGS84": {
+              "type": [
+                "null",
+                "number"
+              ],
+              "format": "double"
+            },
+            "LongitudeWGS84": {
+              "type": [
+                "null",
+                "number"
+              ],
               "format": "double"
             },
             "Uncertainty": {

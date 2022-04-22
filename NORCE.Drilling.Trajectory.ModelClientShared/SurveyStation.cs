@@ -18,12 +18,12 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
         {
             if (dest != null)
             {
-                dest.Az = Az;
+                dest.AzWGS84 = AzWGS84;
                 dest.Incl = Incl;
-                dest.MD = MD;
-                dest.X = X;
-                dest.Y = Y;
-                dest.Z = Z;
+                dest.MdWGS84 = MdWGS84;
+                dest.NorthOfWellHead = NorthOfWellHead;
+                dest.EastOfWellHead = EastOfWellHead;
+                dest.TvdWGS84 = TvdWGS84;
                 dest.SurveyTool = SurveyTool;
                 return true;
             }

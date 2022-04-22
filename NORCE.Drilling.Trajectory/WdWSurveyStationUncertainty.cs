@@ -115,21 +115,21 @@ namespace NORCE.Drilling.Trajectory
             {
                 double sinI = System.Math.Sin((double)surveyStation.Incl);
                 double cosI = System.Math.Cos((double)surveyStation.Incl);
-                double sinA = System.Math.Sin((double)surveyStation.Az);
-                double cosA = System.Math.Cos((double)surveyStation.Az);
-                double deltaSk = surveyStation.MD - previousStation.MD;
-                //double Vk = (double)surveyStation.Z;
-                //double Nk = (double)surveyStation.X;
-                //double Ek = (double)surveyStation.Y;
+                double sinA = System.Math.Sin((double)surveyStation.AzWGS84);
+                double cosA = System.Math.Cos((double)surveyStation.AzWGS84);
+                double deltaSk = (double)surveyStation.MdWGS84 - (double)previousStation.MdWGS84;
+                //double Vk = (double)surveyStation.TvdWGS84;
+                //double Nk = (double)surveyStation.NorthOfWellHead ;
+                //double Ek = (double)surveyStation.EastOfWellHead;
                 double deltaC10 = surveyStation.SurveyTool.ReferenceError!=null ? (double)surveyStation.SurveyTool.ReferenceError : 0;
                 double deltaC20 = surveyStation.SurveyTool.DrillStringMag != null ? (double)surveyStation.SurveyTool.DrillStringMag : 0;
                 double deltaC30 = surveyStation.SurveyTool.GyroCompassError != null ? (double)surveyStation.SurveyTool.GyroCompassError : 0;
                 double deltaIt0 = surveyStation.SurveyTool.TrueInclination != null ? (double)surveyStation.SurveyTool.TrueInclination : 0;
                 double deltaIm = surveyStation.SurveyTool.Misalignment != null ? (double)surveyStation.SurveyTool.Misalignment : 0;
                 double epsilon = surveyStation.SurveyTool.RelDepthError != null ? (double)surveyStation.SurveyTool.RelDepthError : 0;
-                double deltaZ = (double)surveyStation.Z - (double)previousStation.Z;
-                double deltaX = (double)surveyStation.X - (double)previousStation.X;
-                double deltaY = (double)surveyStation.Y - (double)previousStation.Y;
+                double deltaZ = (double)surveyStation.TvdWGS84 - (double)previousStation.TvdWGS84;
+                double deltaX = (double)surveyStation.NorthOfWellHead  - (double)previousStation.NorthOfWellHead ;
+                double deltaY = (double)surveyStation.EastOfWellHead - (double)previousStation.EastOfWellHead;
 
                 if ((Numeric.EQ(cosI, 0.0) && Numeric.IsDefined(deltaC30) && !Numeric.EQ(deltaC30, 0.0)) || Numeric.IsUndefined(A[0, 0]))
                 {

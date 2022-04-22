@@ -55,23 +55,23 @@ namespace TestApp
                         //ok = NORCE.General.Std.Numeric.TryParse(words[5], out Y);
                         if (false && surveyList.Count > 0)
                         {
-                            double azIncr = (az * Math.PI / 180.0 - (double)stPrev.Az) / 3;
+                            double azIncr = (az * Math.PI / 180.0 - (double)stPrev.AzWGS84) / 3;
                             double inclIncr = (incl * Math.PI / 180.0 - (double)stPrev.Incl) / 3;
-                            double mdIncr = (md - (double)stPrev.MD) / 3;
-                            double tvdIncr = (tvd - (double)stPrev.Z) / 3;
+                            double mdIncr = (md - (double)stPrev.MdWGS84) / 3;
+                            double tvdIncr = (tvd - (double)stPrev.TvdWGS84) / 3;
                             for (int i = 0; i < 2; i++)
                             {
                                 SurveyStation stInt = new SurveyStation();
-                                double azInt = (double)stPrev.Az + azIncr * (i + 1);
+                                double azInt = (double)stPrev.AzWGS84 + azIncr * (i + 1);
                                 double inclInt = (double)stPrev.Incl + inclIncr * (i + 1);
-                                double mdInt = (double)stPrev.MD + mdIncr * (i + 1);
-                                double tvdInt = (double)stPrev.Z + tvdIncr * (i + 1);
-                                stInt.Az = azInt;
+                                double mdInt = (double)stPrev.MdWGS84 + mdIncr * (i + 1);
+                                double tvdInt = (double)stPrev.TvdWGS84 + tvdIncr * (i + 1);
+                                stInt.AzWGS84 = azInt;
                                 stInt.Incl = inclInt;
-                                stInt.MD = mdInt;
-                                stInt.Z = tvdInt;
-                                stInt.X = X;
-                                stInt.Y = Y;
+                                stInt.MdWGS84 = mdInt;
+                                stInt.TvdWGS84 = tvdInt;
+                                stInt.NorthOfWellHead  = X;
+                                stInt.EastOfWellHead = Y;
                                 ISCWSA_SurveyStationUncertainty iscwsat = new ISCWSA_SurveyStationUncertainty();
                                 if (wellcase == 1)
                                 {
@@ -111,17 +111,17 @@ namespace TestApp
                                 surveyList.Add(stInt);
                             }
                         }
-                        st.Az = az * Math.PI / 180.0;
+                        st.AzWGS84 = az * Math.PI / 180.0;
                         st.Incl = incl * Math.PI / 180.0; ;
-                        st.X = X;
-                        st.Y = Y;
+                        st.NorthOfWellHead  = X;
+                        st.EastOfWellHead = Y;
                         if(wellcase == 2)
 						{
                             tvd = tvd * 0.3048;
                             md = md * 0.3048;
                         }
-                        st.Z = tvd;
-                        st.MD = md;
+                        st.TvdWGS84 = tvd;
+                        st.MdWGS84 = md;
 						ISCWSA_SurveyStationUncertainty iscwsa = new ISCWSA_SurveyStationUncertainty();
                         if (wellcase == 1)
                         {
@@ -173,7 +173,7 @@ namespace TestApp
                 for (int i = 0; i < surveyList.Count; i++)
                 {
                     var cov = surveyList[i].Uncertainty.Covariance;
-                    lines[i] = surveyList[i].MD + ";" + cov[0, 0].ToString() + ";" + cov[1, 1].ToString() + ";" + cov[2, 2].ToString() + ";" + cov[0, 1].ToString()
+                    lines[i] = surveyList[i].MdWGS84 + ";" + cov[0, 0].ToString() + ";" + cov[1, 1].ToString() + ";" + cov[2, 2].ToString() + ";" + cov[0, 1].ToString()
                         + ";" + cov[0, 2].ToString() + ";" + cov[1, 2].ToString(); 
 
                 }

@@ -422,12 +422,12 @@ namespace NORCE.Drilling.Trajectory.Service
                                     ok = NORCE.General.Std.Numeric.TryParse(words[4], out X);
                                     double Y = 0.0;
                                     ok = NORCE.General.Std.Numeric.TryParse(words[5], out Y);
-                                    st.Az = az * Math.PI / 180.0;
+                                    st.AzWGS84 = az * Math.PI / 180.0;
                                     st.Incl = incl * Math.PI / 180.0; ;
-                                    st.X = X;
-                                    st.Y = Y;
-                                    st.Z = tvd - rotaryTableElevation_Ullrigg;
-                                    st.MD = md - rotaryTableElevation_Ullrigg;
+                                    st.NorthOfWellHead = X;
+                                    st.EastOfWellHead = Y;
+                                    st.TvdWGS84 = tvd - rotaryTableElevation_Ullrigg;
+                                    st.MdWGS84 = md - rotaryTableElevation_Ullrigg;
 
                                     //var surveyToolll = LoadSurveyTool(1);
 
@@ -439,7 +439,7 @@ namespace NORCE.Drilling.Trajectory.Service
                                     st.SurveyTool = surveyTool;
                                     ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                     st.Uncertainty = iscwsaun;
-                                    if (st.MD < 0 && st.Z < 0)
+                                    if (st.MdWGS84 < 0 && st.TvdWGS84 < 0)
                                     {
                                         if (startingPointAdded)
                                         {
@@ -447,8 +447,8 @@ namespace NORCE.Drilling.Trajectory.Service
                                         }
                                         else
                                         {
-                                            st.MD = 0;
-                                            st.Z = 0;
+                                            st.MdWGS84 = 0;
+                                            st.TvdWGS84 = 0;
                                             startingPointAdded = true;
                                         }
                                     }
@@ -524,10 +524,10 @@ namespace NORCE.Drilling.Trajectory.Service
                             //    SurveyStation s = new SurveyStation();
                             //    s.MD = ss.MD;
                             //    s.Incl = ss.Incl;
-                            //    s.Az = ss.Az;
-                            //    s.X = ss.X;
-                            //    s.Y = ss.Y;
-                            //    s.Z = ss.Z;
+                            //    s.AzWGS84 = ss.AzWGS84;
+                            //    s.NorthOfWellHead  = ss.NorthOfWellHead ;
+                            //    s.EastOfWellHead = ss.EastOfWellHead;
+                            //    s.TvdWGS84 = ss.TvdWGS84;
                             //    s.Abscissa = ss.Abscissa;
 
                             //    // The WdW uncertainty is default in the methods we use here. If others should be used, we have to translate them from the shared object

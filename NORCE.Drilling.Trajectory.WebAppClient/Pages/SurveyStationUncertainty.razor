@@ -157,7 +157,7 @@ else
 	private bool IsTableResultHidden;
 	private bool IsTableResultHidden2;
 	private List<NORCE.Drilling.Trajectory.ModelClientShared.Trajectory> trajectories;
-	private List<double> confidenceLevels;
+	private List<double> confidenceLevels = new List<double>();
 	private double updatedConfidenceLevel;
 	bool isInitialized = false;
 	private List<List<double>> listRadius = new List<List<double>>();
@@ -459,10 +459,10 @@ else
 		{
 			CurvilinearPoint3D point = null;
 			point = trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i);
-			double x = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).X;
-			double y = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).Y;
+			double x = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).NorthOfWellHead ;
+			double y = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).EastOfWellHead;
 			double z = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).Z;
-			interpSectionsX.Add(point.X);
+			interpSectionsX.Add(point.X );
 			interpSectionsY.Add(point.Y);
 			interpSectionsZ.Add(point.Z);			
 			prevPoint = point;

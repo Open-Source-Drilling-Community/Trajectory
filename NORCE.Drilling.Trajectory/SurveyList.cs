@@ -90,7 +90,7 @@ namespace NORCE.Drilling.Trajectory
             {
                 for (int i = 0; i < _surveyList.Count - 1; i++)
                 {
-                    var deltaMD = _surveyList[i + 1].MD - _surveyList[i].MD;
+                    var deltaMD = _surveyList[i + 1].MdWGS84 - _surveyList[i].MdWGS84;
                     if (Numeric.IsDefined(deltaMD) && (minDeltaMD == null || Numeric.LT(deltaMD, minDeltaMD)))
                     {
                         minDeltaMD = deltaMD;
@@ -110,7 +110,7 @@ namespace NORCE.Drilling.Trajectory
             {
                 for (int i = 0; i < _surveyList.Count - 1; i++)
                 {
-                    var deltaMD = _surveyList[i + 1].MD - _surveyList[i].MD;
+                    var deltaMD = _surveyList[i + 1].MdWGS84 - _surveyList[i].MdWGS84;
                     if (Numeric.IsDefined(deltaMD) && (maxDeltaMD == null || Numeric.GT(deltaMD, maxDeltaMD)))
                     {
                         maxDeltaMD = deltaMD;
@@ -238,11 +238,11 @@ namespace NORCE.Drilling.Trajectory
                 bool ok = true;
                 if (minTVD != null && maxTVD != null)
                 {
-                    ok = Numeric.GE(_surveyList[i].Z, minTVD) && Numeric.LE(_surveyList[i].Z, maxTVD);
+                    ok = Numeric.GE(_surveyList[i].TvdWGS84, minTVD) && Numeric.LE(_surveyList[i].TvdWGS84, maxTVD);
                     // We should also inculde the surveys just outside the tvd range to be able to fill the whole requested range
                     if (!ok && i < _surveyList.Count - 1)
                     {
-                        if (Numeric.GE(_surveyList[i + 1].Z, minTVD) && Numeric.LE(_surveyList[i + 1].Z, maxTVD))
+                        if (Numeric.GE(_surveyList[i + 1].TvdWGS84, minTVD) && Numeric.LE(_surveyList[i + 1].TvdWGS84, maxTVD))
                         {
                             // Next survey is ok, then we should also add the current
                             ok = true;
@@ -250,7 +250,7 @@ namespace NORCE.Drilling.Trajectory
                     }
                     if (!ok)
                     {
-                        if (i > 0 && Numeric.GE(_surveyList[i - 1].Z, minTVD) && Numeric.LE(_surveyList[i - 1].Z, maxTVD))
+                        if (i > 0 && Numeric.GE(_surveyList[i - 1].TvdWGS84, minTVD) && Numeric.LE(_surveyList[i - 1].TvdWGS84, maxTVD))
                         {
                             // Previous survey was ok, then we should also add the current
                             ok = true;
@@ -259,11 +259,11 @@ namespace NORCE.Drilling.Trajectory
                 }
                 else if (minMD != null && maxMD != null)
                 {
-                    ok = Numeric.GE(_surveyList[i].MD, minMD) && Numeric.LE(_surveyList[i].MD, maxMD);
+                    ok = Numeric.GE(_surveyList[i].MdWGS84, minMD) && Numeric.LE(_surveyList[i].MdWGS84, maxMD);
                     // We should also inculde the surveys just outside the tvd range to be able to fill the whole requested range
                     if (!ok && i < _surveyList.Count - 1)
                     {
-                        if (Numeric.GE(_surveyList[i + 1].MD, minMD) && Numeric.LE(_surveyList[i + 1].MD, maxMD))
+                        if (Numeric.GE(_surveyList[i + 1].MdWGS84, minMD) && Numeric.LE(_surveyList[i + 1].MdWGS84, maxMD))
                         {
                             // Next survey is ok, then we should also add the current
                             ok = true;
@@ -271,7 +271,7 @@ namespace NORCE.Drilling.Trajectory
                     }
                     if (!ok)
                     {
-                        if (i > 0 && Numeric.GE(_surveyList[i - 1].MD, minMD) && Numeric.LE(_surveyList[i - 1].MD, maxMD))
+                        if (i > 0 && Numeric.GE(_surveyList[i - 1].MdWGS84, minMD) && Numeric.LE(_surveyList[i - 1].MdWGS84, maxMD))
                         {
                             // Previous survey was ok, then we should also add the current
                             ok = true;
@@ -298,10 +298,10 @@ namespace NORCE.Drilling.Trajectory
                     //    if (i == _surveyList.Count - 1)
                     //    {
                     //        SurveyStation surveyStationNext = new SurveyStation();
-                    //        surveyStationNext.X = 0.0;
-                    //        surveyStationNext.Y = 0.0;
+                    //        surveyStationNext.NorthOfWellHead  = 0.0;
+                    //        surveyStationNext.EastOfWellHead = 0.0;
                     //        surveyStationNext.Incl = 0.0;
-                    //        surveyStationNext.Az = 0.0;
+                    //        surveyStationNext.AzWGS84 = 0.0;
                     //        surveyStationNext.MD = 0.0;
                     //        ISCWSASurveyStatoinUncertainty.CalculateCovariance(_surveyList[i], _surveyList[i - 1], surveyStationNext, ISCWSAErrorDataTmp, i);
                     //    }
@@ -324,11 +324,11 @@ namespace NORCE.Drilling.Trajectory
                         if (i == _surveyList.Count - 1)
                         {
                             SurveyStation surveyStationNext = new SurveyStation();
-                            surveyStationNext.X = 0.0;
-                            surveyStationNext.Y = 0.0;
+                            surveyStationNext.NorthOfWellHead  = 0.0;
+                            surveyStationNext.EastOfWellHead = 0.0;
                             surveyStationNext.Incl = 0.0;
-                            surveyStationNext.Az = 0.0;
-                            surveyStationNext.MD = 0.0;
+                            surveyStationNext.AzWGS84 = 0.0;
+                            surveyStationNext.MdWGS84 = 0.0;
                             ISCWSASurveyStatoinUncertainty.CalculateCovariance(_surveyList[i], _surveyList[i - 1], surveyStationNext, ISCWSAErrorDataTmp, i);
                         }
                         else
@@ -355,15 +355,17 @@ namespace NORCE.Drilling.Trajectory
                 
                 Vector2D ellipseRadius = surveyList[i].Uncertainty.EllipseRadius;
                 Vector2D ellipseRadiusNext = surveyList[i + 1].Uncertainty.EllipseRadius;
-                double distance = surveyList[i + 1].MD - surveyList[i].MD;
+                double distance = (double)surveyList[i + 1].MdWGS84 - (double)surveyList[i].MdWGS84;
                 _intermediateEllipseNumbers = (int)(distance / MaxDistanceEllipse);
 
-                uncertaintyEnvelopeEllipse.Azimuth = surveyList[i].Az;
+                uncertaintyEnvelopeEllipse.Azimuth = surveyList[i].AzWGS84;
                 uncertaintyEnvelopeEllipse.Inclination = surveyList[i].Incl;
-                uncertaintyEnvelopeEllipse.X = surveyList[i].X;
-                uncertaintyEnvelopeEllipse.Y = surveyList[i].Y;
-                uncertaintyEnvelopeEllipse.Z = surveyList[i].Z;
-                uncertaintyEnvelopeEllipse.MD = surveyList[i].MD;
+                uncertaintyEnvelopeEllipse.X = surveyList[i].NorthOfWellHead;
+                uncertaintyEnvelopeEllipse.Y = surveyList[i].EastOfWellHead;
+                uncertaintyEnvelopeEllipse.Z = surveyList[i].TvdWGS84;
+                uncertaintyEnvelopeEllipse.MD = surveyList[i].MdWGS84;
+                uncertaintyEnvelopeEllipse.LatitudeWGS84 = surveyList[i].LatitudeWGS84;
+                uncertaintyEnvelopeEllipse.LongitudeWGS84 = surveyList[i].LongitudeWGS84;
                 uncertaintyEnvelopeEllipse.EllipseRadius = ellipseRadius;
                 uncertaintyEnvelopeEllipse.PerpendicularDirection = surveyList[i].Uncertainty.PerpendicularDirection;
                 List<Point3D> ellipseCoordinates = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipse);
@@ -395,20 +397,20 @@ namespace NORCE.Drilling.Trajectory
                     ellipseR[0] = ellipseRadius[0] + (double)n * (ellipseRadiusNext[0] - ellipseRadius[0]) / (double)_intermediateEllipseNumbers;
                     ellipseR[1] = ellipseRadius[1] + (double)n * (ellipseRadiusNext[1] - ellipseRadius[1]) / (double)_intermediateEllipseNumbers;
                     double inclination = ((double)surveyList[i].Incl + (double)n * ((double)surveyList[i + 1].Incl - (double)surveyList[i].Incl) / (double)_intermediateEllipseNumbers);
-                    double azimuth = ((double)surveyList[i].Az + (double)n * ((double)surveyList[i + 1].Az - (double)surveyList[i].Az) / (double)_intermediateEllipseNumbers);
-                    double north = (double)surveyList[i].X + (double)n * ((double)surveyList[i + 1].X - (double)surveyList[i].X) / (double)_intermediateEllipseNumbers;
-                    double east = (double)surveyList[i].Y + (double)n * ((double)surveyList[i + 1].Y - (double)surveyList[i].Y) / (double)_intermediateEllipseNumbers;
-                    double tvd = (double)surveyList[i].Z + (double)n * ((double)surveyList[i + 1].Z - (double)surveyList[i].Z) / (double)_intermediateEllipseNumbers;
-                    double md = (double)surveyList[i].MD + (double)n * ((double)surveyList[i + 1].MD - (double)surveyList[i].MD) / (double)_intermediateEllipseNumbers;
+                    double azimuth = ((double)surveyList[i].AzWGS84 + (double)n * ((double)surveyList[i + 1].AzWGS84 - (double)surveyList[i].AzWGS84) / (double)_intermediateEllipseNumbers);
+                    double north = (double)surveyList[i].NorthOfWellHead  + (double)n * ((double)surveyList[i + 1].NorthOfWellHead  - (double)surveyList[i].NorthOfWellHead ) / (double)_intermediateEllipseNumbers;
+                    double east = (double)surveyList[i].EastOfWellHead + (double)n * ((double)surveyList[i + 1].EastOfWellHead - (double)surveyList[i].EastOfWellHead) / (double)_intermediateEllipseNumbers;
+                    double tvd = (double)surveyList[i].TvdWGS84 + (double)n * ((double)surveyList[i + 1].TvdWGS84 - (double)surveyList[i].TvdWGS84) / (double)_intermediateEllipseNumbers;
+                    double md = (double)surveyList[i].MdWGS84 + (double)n * ((double)surveyList[i + 1].MdWGS84 - (double)surveyList[i].MdWGS84) / (double)_intermediateEllipseNumbers;
                     double perpendicularDirection = surveyList[i].Uncertainty.PerpendicularDirection + (double)n * (surveyList[i + 1].Uncertainty.PerpendicularDirection - surveyList[i + 1].Uncertainty.PerpendicularDirection) / (double)_intermediateEllipseNumbers;
 
                     //ellipseR[0] = ellipseRadius[0] + (double)_intermediateEllipseNumbers * (ellipseRadiusNext[0] - ellipseRadius[0]) / (double)_intermediateEllipseNumbers;
                     //ellipseR[1] = ellipseRadius[1] + (double)_intermediateEllipseNumbers * (ellipseRadiusNext[1] - ellipseRadius[1]) / (double)_intermediateEllipseNumbers;
                     ////double inclination = ((double)surveyList[i].Incl + (double)_intermediateEllipseNumbers * ((double)surveyList[i + 1].Incl - (double)surveyList[i].Incl) / (double)_intermediateEllipseNumbers);
-                    ////double azimuth = ((double)surveyList[i].Az + (double)_intermediateEllipseNumbers * ((double)surveyList[i + 1].Az - (double)surveyList[i].Az) / (double)_intermediateEllipseNumbers);
-                    ////double north = (double)surveyList[i].X + (double)_intermediateEllipseNumbers * ((double)surveyList[i + 1].X - (double)surveyList[i].X) / (double)_intermediateEllipseNumbers;
-                    ////double east = (double)surveyList[i].Y + (double)_intermediateEllipseNumbers * ((double)surveyList[i + 1].Y - (double)surveyList[i].Y) / (double)_intermediateEllipseNumbers;
-                    ////double tvd = (double)surveyList[i].Z + (double)_intermediateEllipseNumbers * ((double)surveyList[i + 1].Z - (double)surveyList[i].Z) / (double)_intermediateEllipseNumbers;
+                    ////double azimuth = ((double)surveyList[i].AzWGS84 + (double)_intermediateEllipseNumbers * ((double)surveyList[i + 1].AzWGS84 - (double)surveyList[i].AzWGS84) / (double)_intermediateEllipseNumbers);
+                    ////double north = (double)surveyList[i].NorthOfWellHead  + (double)_intermediateEllipseNumbers * ((double)surveyList[i + 1].NorthOfWellHead  - (double)surveyList[i].NorthOfWellHead ) / (double)_intermediateEllipseNumbers;
+                    ////double east = (double)surveyList[i].EastOfWellHead + (double)_intermediateEllipseNumbers * ((double)surveyList[i + 1].EastOfWellHead - (double)surveyList[i].EastOfWellHead) / (double)_intermediateEllipseNumbers;
+                    ////double tvd = (double)surveyList[i].TvdWGS84 + (double)_intermediateEllipseNumbers * ((double)surveyList[i + 1].TvdWGS84 - (double)surveyList[i].TvdWGS84) / (double)_intermediateEllipseNumbers;
                     ////double md = (double)surveyList[i].MD + (double)_intermediateEllipseNumbers * ((double)surveyList[i + 1].MD - (double)surveyList[i].MD) / (double)_intermediateEllipseNumbers;
                     //double perpendicularDirection = surveyList[i].Uncertainty.PerpendicularDirection + (double)_intermediateEllipseNumbers * (surveyList[i + 1].Uncertainty.PerpendicularDirection - surveyList[i + 1].Uncertainty.PerpendicularDirection) / (double)_intermediateEllipseNumbers;
 
@@ -459,12 +461,12 @@ namespace NORCE.Drilling.Trajectory
                     //Vector2D ellipseRadius = new Vector2D();
                     ellipseRadius = surveyList[surveyList.Count - 1].Uncertainty.EllipseRadius;
 
-                    uncertaintyEnvelopeEllipse.Azimuth = surveyList[surveyList.Count - 1].Az;
+                    uncertaintyEnvelopeEllipse.Azimuth = surveyList[surveyList.Count - 1].AzWGS84;
                     uncertaintyEnvelopeEllipse.Inclination = surveyList[surveyList.Count - 1].Incl;
-                    uncertaintyEnvelopeEllipse.X = surveyList[surveyList.Count - 1].X;
-                    uncertaintyEnvelopeEllipse.Y = surveyList[surveyList.Count - 1].Y;
-                    uncertaintyEnvelopeEllipse.Z = surveyList[surveyList.Count - 1].Z;
-                    uncertaintyEnvelopeEllipse.MD = surveyList[surveyList.Count - 1].MD;
+                    uncertaintyEnvelopeEllipse.X = surveyList[surveyList.Count - 1].NorthOfWellHead ;
+                    uncertaintyEnvelopeEllipse.Y = surveyList[surveyList.Count - 1].EastOfWellHead;
+                    uncertaintyEnvelopeEllipse.Z = surveyList[surveyList.Count - 1].TvdWGS84;
+                    uncertaintyEnvelopeEllipse.MD = surveyList[surveyList.Count - 1].MdWGS84;
                     uncertaintyEnvelopeEllipse.EllipseRadius = ellipseRadius;
 
                     uncertaintyEnvelopeEllipse.PerpendicularDirection = surveyList[surveyList.Count - 1].Uncertainty.PerpendicularDirection;
@@ -541,14 +543,14 @@ namespace NORCE.Drilling.Trajectory
                 ellipseRadius = _surveyList[i].Uncertainty.EllipseRadius;
                 Vector2D ellipseRadiusNext = new Vector2D();
                 ellipseRadiusNext = _surveyList[i + 1].Uncertainty.EllipseRadius;
-                double distance = _surveyList[i + 1].MD - _surveyList[i].MD;
+                double distance = (double)_surveyList[i + 1].MdWGS84 - (double)_surveyList[i].MdWGS84;
 
-                uncertaintyEnvelopeEllipse.Azimuth = _surveyList[i].Az;
+                uncertaintyEnvelopeEllipse.Azimuth = _surveyList[i].AzWGS84;
                 uncertaintyEnvelopeEllipse.Inclination = _surveyList[i].Incl;
-                uncertaintyEnvelopeEllipse.X = _surveyList[i].X;
-                uncertaintyEnvelopeEllipse.Y = _surveyList[i].Y;
-                uncertaintyEnvelopeEllipse.Z = _surveyList[i].Z;
-                uncertaintyEnvelopeEllipse.MD = _surveyList[i].MD;
+                uncertaintyEnvelopeEllipse.X = _surveyList[i].NorthOfWellHead ;
+                uncertaintyEnvelopeEllipse.Y = _surveyList[i].EastOfWellHead;
+                uncertaintyEnvelopeEllipse.Z = _surveyList[i].TvdWGS84;
+                uncertaintyEnvelopeEllipse.MD = _surveyList[i].MdWGS84;
                 uncertaintyEnvelopeEllipse.EllipseRadius = ellipseRadius;
                 List<Point3D> ellipseCoordinates = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipse);
                 uncertaintyEnvelopeEllipse.EllipseCoordinates = ellipseCoordinates;
@@ -565,17 +567,17 @@ namespace NORCE.Drilling.Trajectory
                     ellipseR[1] = ellipseRadius[1] + (double)n * (ellipseRadiusNext[1] - ellipseRadius[1]) / (double)intermediateEllipseNumbers;
 
                     double inclination = ((double)_surveyList[i].Incl + (double)n * ((double)_surveyList[i + 1].Incl - (double)_surveyList[i].Incl) / (double)intermediateEllipseNumbers);
-                    double azimuth = ((double)_surveyList[i].Az + (double)n * ((double)_surveyList[i + 1].Az - (double)_surveyList[i].Az) / (double)intermediateEllipseNumbers);
-                    double north = (double)_surveyList[i].X + (double)n * ((double)_surveyList[i + 1].X - (double)_surveyList[i].X) / (double)intermediateEllipseNumbers;
-                    double east = (double)_surveyList[i].Y + (double)n * ((double)_surveyList[i + 1].Y - (double)_surveyList[i].Y) / (double)intermediateEllipseNumbers;
-                    double tvd = (double)_surveyList[i].Z + (double)n * ((double)_surveyList[i + 1].Z - (double)_surveyList[i].Z) / (double)intermediateEllipseNumbers;
-                    double md = (double)_surveyList[i].MD + (double)n * ((double)_surveyList[i + 1].MD - (double)_surveyList[i].MD) / (double)intermediateEllipseNumbers;
+                    double azimuth = ((double)_surveyList[i].AzWGS84 + (double)n * ((double)_surveyList[i + 1].AzWGS84 - (double)_surveyList[i].AzWGS84) / (double)intermediateEllipseNumbers);
+                    double north = (double)_surveyList[i].NorthOfWellHead  + (double)n * ((double)_surveyList[i + 1].NorthOfWellHead  - (double)_surveyList[i].NorthOfWellHead ) / (double)intermediateEllipseNumbers;
+                    double east = (double)_surveyList[i].EastOfWellHead + (double)n * ((double)_surveyList[i + 1].EastOfWellHead - (double)_surveyList[i].EastOfWellHead) / (double)intermediateEllipseNumbers;
+                    double tvd = (double)_surveyList[i].TvdWGS84 + (double)n * ((double)_surveyList[i + 1].TvdWGS84 - (double)_surveyList[i].TvdWGS84) / (double)intermediateEllipseNumbers;
+                    double md = (double)_surveyList[i].MdWGS84 + (double)n * ((double)_surveyList[i + 1].MdWGS84 - (double)_surveyList[i].MdWGS84) / (double)intermediateEllipseNumbers;
                     double perpendicularDirection = _surveyList[i].Uncertainty.PerpendicularDirection + (double)n * (_surveyList[i + 1].Uncertainty.PerpendicularDirection - _surveyList[i + 1].Uncertainty.PerpendicularDirection) / (double)intermediateEllipseNumbers;
 
                     UncertaintyEnvelopeEllipse uncertaintyEnvelopeEllipseInter = new UncertaintyEnvelopeEllipse();
                     uncertaintyEnvelopeEllipseInter.Azimuth = azimuth;
                     uncertaintyEnvelopeEllipseInter.Inclination = inclination;
-                    uncertaintyEnvelopeEllipseInter.X = north;
+                    uncertaintyEnvelopeEllipseInter.X  = north;
                     uncertaintyEnvelopeEllipseInter.Y = east;
                     uncertaintyEnvelopeEllipseInter.Z = tvd;
                     uncertaintyEnvelopeEllipseInter.MD = md;
@@ -594,12 +596,12 @@ namespace NORCE.Drilling.Trajectory
                     //Vector2D ellipseRadius = new Vector2D();
                     ellipseRadius = _surveyList[_surveyList.Count - 1].Uncertainty.EllipseRadius;
 
-                    uncertaintyEnvelopeEllipse.Azimuth = _surveyList[_surveyList.Count - 1].Az;
+                    uncertaintyEnvelopeEllipse.Azimuth = _surveyList[_surveyList.Count - 1].AzWGS84;
                     uncertaintyEnvelopeEllipse.Inclination = _surveyList[_surveyList.Count - 1].Incl;
-                    uncertaintyEnvelopeEllipse.X = _surveyList[_surveyList.Count - 1].X;
-                    uncertaintyEnvelopeEllipse.Y = _surveyList[_surveyList.Count - 1].Y;
-                    uncertaintyEnvelopeEllipse.Z = _surveyList[_surveyList.Count - 1].Z;
-                    uncertaintyEnvelopeEllipse.MD = _surveyList[_surveyList.Count - 1].MD;
+                    uncertaintyEnvelopeEllipse.X = _surveyList[_surveyList.Count - 1].NorthOfWellHead ;
+                    uncertaintyEnvelopeEllipse.Y = _surveyList[_surveyList.Count - 1].EastOfWellHead;
+                    uncertaintyEnvelopeEllipse.Z = _surveyList[_surveyList.Count - 1].TvdWGS84;
+                    uncertaintyEnvelopeEllipse.MD = _surveyList[_surveyList.Count - 1].MdWGS84;
                     uncertaintyEnvelopeEllipse.EllipseRadius = ellipseRadius;
                     ellipseCoordinates = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipse);
                     uncertaintyEnvelopeEllipse.EllipseCoordinates = ellipseCoordinates;
@@ -639,12 +641,12 @@ namespace NORCE.Drilling.Trajectory
                 double distance = 0;// MD - MD;
                 double _intermediateEllipseNumbers = 10;
 
-                uncertaintyEnvelopeEllipse.Azimuth = surveyStation.Az;
+                uncertaintyEnvelopeEllipse.Azimuth = surveyStation.AzWGS84;
                 uncertaintyEnvelopeEllipse.Inclination = surveyStation.Incl;
-                uncertaintyEnvelopeEllipse.X = surveyStation.X;
-                uncertaintyEnvelopeEllipse.Y = surveyStation.Y;
-                uncertaintyEnvelopeEllipse.Z = surveyStation.Z;
-                uncertaintyEnvelopeEllipse.MD = surveyStation.MD;
+                uncertaintyEnvelopeEllipse.X = surveyStation.NorthOfWellHead ;
+                uncertaintyEnvelopeEllipse.Y = surveyStation.EastOfWellHead;
+                uncertaintyEnvelopeEllipse.Z = surveyStation.TvdWGS84;
+                uncertaintyEnvelopeEllipse.MD = (double)surveyStation.MdWGS84;
                 uncertaintyEnvelopeEllipse.EllipseRadius = ellipseRadius;
                 uncertaintyEnvelopeEllipse.PerpendicularDirection = surveyStation.Uncertainty.PerpendicularDirection;
                 List<Point3D> ellipseCoordinates = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipse, 0, ref xMinEllipse, ref xMaxEllipse, ref yMinEllipse, ref yMaxEllipse, ref zMinEllipse, ref zMaxEllipse);
@@ -668,12 +670,12 @@ namespace NORCE.Drilling.Trajectory
                 {
                     z -= zAdd;                   
                     UncertaintyEnvelopeEllipse uncertaintyEnvelopeEllipseInter = new UncertaintyEnvelopeEllipse();
-                    uncertaintyEnvelopeEllipseInter.Azimuth = surveyStation.Az;
+                    uncertaintyEnvelopeEllipseInter.Azimuth = surveyStation.AzWGS84;
                     uncertaintyEnvelopeEllipseInter.Inclination = surveyStation.Incl;
-                    uncertaintyEnvelopeEllipseInter.X = surveyStation.X;
-                    uncertaintyEnvelopeEllipseInter.Y = surveyStation.Y;
-                    uncertaintyEnvelopeEllipseInter.Z = surveyStation.Z;
-                    uncertaintyEnvelopeEllipseInter.MD = surveyStation.MD;
+                    uncertaintyEnvelopeEllipseInter.X = surveyStation.NorthOfWellHead ;
+                    uncertaintyEnvelopeEllipseInter.Y = surveyStation.EastOfWellHead;
+                    uncertaintyEnvelopeEllipseInter.Z = surveyStation.TvdWGS84;
+                    uncertaintyEnvelopeEllipseInter.MD = (double)surveyStation.MdWGS84;
                     uncertaintyEnvelopeEllipseInter.EllipseRadius = ellipseRadius;
                     uncertaintyEnvelopeEllipseInter.PerpendicularDirection = surveyStation.Uncertainty.PerpendicularDirection;
                     List<Point3D> ellipseCoordinatesInter = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipseInter, z, ref xMinEllipse, ref xMaxEllipse, ref yMinEllipse, ref yMaxEllipse, ref zMinEllipse, ref zMaxEllipse);
@@ -689,7 +691,7 @@ namespace NORCE.Drilling.Trajectory
                     {
                         increasingY = true;
                     }
-                    if (zMinPrev == zMinEllipse || surveyStation.Incl > Numeric.PI / 2 || Numeric.EQ(surveyStation.Az, Numeric.PI, 0.01))
+                    if (zMinPrev == zMinEllipse || surveyStation.Incl > Numeric.PI / 2 || Numeric.EQ(surveyStation.AzWGS84, Numeric.PI, 0.01))
                     {
                         stop = true;
                     }
@@ -702,12 +704,12 @@ namespace NORCE.Drilling.Trajectory
                     {
                         z -= zAdd;
                         UncertaintyEnvelopeEllipse uncertaintyEnvelopeEllipseInter = new UncertaintyEnvelopeEllipse();
-                        uncertaintyEnvelopeEllipseInter.Azimuth = surveyStation.Az;
+                        uncertaintyEnvelopeEllipseInter.Azimuth = surveyStation.AzWGS84;
                         uncertaintyEnvelopeEllipseInter.Inclination = surveyStation.Incl;
-                        uncertaintyEnvelopeEllipseInter.X = surveyStation.X;
-                        uncertaintyEnvelopeEllipseInter.Y = surveyStation.Y;
-                        uncertaintyEnvelopeEllipseInter.Z = surveyStation.Z;
-                        uncertaintyEnvelopeEllipseInter.MD = surveyStation.MD;
+                        uncertaintyEnvelopeEllipseInter.X = surveyStation.NorthOfWellHead ;
+                        uncertaintyEnvelopeEllipseInter.Y = surveyStation.EastOfWellHead;
+                        uncertaintyEnvelopeEllipseInter.Z = surveyStation.TvdWGS84;
+                        uncertaintyEnvelopeEllipseInter.MD = (double)surveyStation.MdWGS84;
                         uncertaintyEnvelopeEllipseInter.EllipseRadius = ellipseRadius;
                         uncertaintyEnvelopeEllipseInter.PerpendicularDirection = surveyStation.Uncertainty.PerpendicularDirection;
                         List<Point3D> ellipseCoordinatesInter = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipseInter, z, ref xMinEllipse, ref xMaxEllipse, ref yMinEllipse, ref yMaxEllipse, ref zMinEllipse, ref zMaxEllipse);
@@ -720,12 +722,12 @@ namespace NORCE.Drilling.Trajectory
                     {
                         z += zAdd;
                         UncertaintyEnvelopeEllipse uncertaintyEnvelopeEllipseInter = new UncertaintyEnvelopeEllipse();
-                        uncertaintyEnvelopeEllipseInter.Azimuth = surveyStation.Az;
+                        uncertaintyEnvelopeEllipseInter.Azimuth = surveyStation.AzWGS84;
                         uncertaintyEnvelopeEllipseInter.Inclination = surveyStation.Incl;
-                        uncertaintyEnvelopeEllipseInter.X = surveyStation.X;
-                        uncertaintyEnvelopeEllipseInter.Y = surveyStation.Y;
-                        uncertaintyEnvelopeEllipseInter.Z = surveyStation.Z;
-                        uncertaintyEnvelopeEllipseInter.MD = surveyStation.MD;
+                        uncertaintyEnvelopeEllipseInter.X = surveyStation.NorthOfWellHead ;
+                        uncertaintyEnvelopeEllipseInter.Y = surveyStation.EastOfWellHead;
+                        uncertaintyEnvelopeEllipseInter.Z = surveyStation.TvdWGS84;
+                        uncertaintyEnvelopeEllipseInter.MD = (double)surveyStation.MdWGS84;
                         uncertaintyEnvelopeEllipseInter.EllipseRadius = ellipseRadius;
                         uncertaintyEnvelopeEllipseInter.PerpendicularDirection = surveyStation.Uncertainty.PerpendicularDirection;
                         List<Point3D> ellipseCoordinatesInter = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipseInter, z, ref xMinEllipse, ref xMaxEllipse, ref yMinEllipse, ref yMaxEllipse, ref zMinEllipse, ref zMaxEllipse);
@@ -786,12 +788,12 @@ namespace NORCE.Drilling.Trajectory
                 //zMax = tt;
             }
             //add bias and survey position
-            xMin += (double)surveyStation.X;
-            yMin += (double)surveyStation.Y;
-            zMin += (double)surveyStation.Z;
-            xMax += (double)surveyStation.X;
-            yMax += (double)surveyStation.Y;
-            zMax += (double)surveyStation.Z;
+            xMin += (double)surveyStation.NorthOfWellHead ;
+            yMin += (double)surveyStation.EastOfWellHead;
+            zMin += (double)surveyStation.TvdWGS84;
+            xMax += (double)surveyStation.NorthOfWellHead ;
+            yMax += (double)surveyStation.EastOfWellHead;
+            zMax += (double)surveyStation.TvdWGS84;
 
             double ellipseVerticesPhi_ = 32;
             double ellipseVerticesTheta_ = 32;
@@ -811,9 +813,9 @@ namespace NORCE.Drilling.Trajectory
                         double yEllipsoid = (double)surveyStation.Uncertainty.EigenVectors[1, 0] * UEllipsoid + (double)surveyStation.Uncertainty.EigenVectors[1, 1] * VEllipsoid + (double)surveyStation.Uncertainty.EigenVectors[1, 2] * WEllipsoid;
                         double zEllipsoid = (double)surveyStation.Uncertainty.EigenVectors[2, 0] * UEllipsoid + (double)surveyStation.Uncertainty.EigenVectors[2, 1] * VEllipsoid + (double)surveyStation.Uncertainty.EigenVectors[2, 2] * WEllipsoid;
 
-                        xEllipsoid += (double)surveyStation.X;
-                        yEllipsoid += (double)surveyStation.Y;
-                        zEllipsoid += (double)surveyStation.Z;
+                        xEllipsoid += (double)surveyStation.NorthOfWellHead ;
+                        yEllipsoid += (double)surveyStation.EastOfWellHead;
+                        zEllipsoid += (double)surveyStation.TvdWGS84;
 
                         if (xEllipsoid < xMin)
                         {
@@ -847,9 +849,9 @@ namespace NORCE.Drilling.Trajectory
                         //double yNEH = (double)H[1, 0] * xCyl + (double)H[1, 1] * yCyl + (double)H[1, 2] * zCyl;
                         //double zNEH = (double)H[2, 0] * xCyl + (double)H[2, 1] * yCyl + (double)H[2, 2] * zCyl;
 
-                        //xNEH += (double)surveys[i].X;
-                        //yNEH += (double)surveys[i].Y;
-                        //zNEH += (double)surveys[i].Z;
+                        //xNEH += (double)surveys[i].NorthOfWellHead ;
+                        //yNEH += (double)surveys[i].EastOfWellHead;
+                        //zNEH += (double)surveys[i].TvdWGS84;
                         //var pEll = new System.Windows.Media.Media3D.Point3D(xNEH - _minNorth, yNEH - _minEast, -zNEH - _minTVD);
                         //pointsEll.Add(pEll);
 

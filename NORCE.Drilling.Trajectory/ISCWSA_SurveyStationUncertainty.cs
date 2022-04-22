@@ -1510,13 +1510,13 @@ namespace NORCE.Drilling.Trajectory
             {
                 double sinI = System.Math.Sin((double)surveyStation.Incl);
                 double cosI = System.Math.Cos((double)surveyStation.Incl);
-                double sinA = System.Math.Sin((double)surveyStation.Az);
-                double cosA = System.Math.Cos((double)surveyStation.Az);
+                double sinA = System.Math.Sin((double)surveyStation.AzWGS84);
+                double cosA = System.Math.Cos((double)surveyStation.AzWGS84);
                 double sinIp = System.Math.Sin((double)previousStation.Incl);
                 double cosIp = System.Math.Cos((double)previousStation.Incl);
-                double sinAp = System.Math.Sin((double)previousStation.Az);
-                double cosAp = System.Math.Cos((double)previousStation.Az);
-                double deltaSk = surveyStation.MD - previousStation.MD;
+                double sinAp = System.Math.Sin((double)previousStation.AzWGS84);
+                double cosAp = System.Math.Cos((double)previousStation.AzWGS84);
+                double deltaSk = (double)(double)surveyStation.MdWGS84 - (double)previousStation.MdWGS84;
                 drk_dDepth[0] = 0.5 * (sinIp * cosAp + sinI * cosA);
                 drk_dDepth[1] = 0.5 * (sinIp * sinAp + sinI * sinA);
                 drk_dDepth[2] = 0.5 * (cosIp + cosI);
@@ -1567,13 +1567,13 @@ namespace NORCE.Drilling.Trajectory
             {
                 double sinI = System.Math.Sin((double)surveyStation.Incl);
                 double cosI = System.Math.Cos((double)surveyStation.Incl);
-                double sinA = System.Math.Sin((double)surveyStation.Az);
-                double cosA = System.Math.Cos((double)surveyStation.Az);
+                double sinA = System.Math.Sin((double)surveyStation.AzWGS84);
+                double cosA = System.Math.Cos((double)surveyStation.AzWGS84);
                 double sinIn = System.Math.Sin((double)nextStation.Incl);
                 double cosIn = System.Math.Cos((double)nextStation.Incl);
-                double sinAn = System.Math.Sin((double)nextStation.Az);
-                double cosAn = System.Math.Cos((double)nextStation.Az);
-                double deltaSk = nextStation.MD - surveyStation.MD;
+                double sinAn = System.Math.Sin((double)nextStation.AzWGS84);
+                double cosAn = System.Math.Cos((double)nextStation.AzWGS84);
+                double deltaSk = (double)nextStation.MdWGS84 - (double)(double)surveyStation.MdWGS84;
                 drk_dDepth[0] = -0.5 * (sinI * cosA + sinIn * cosAn);
                 drk_dDepth[1] = -0.5 * (sinI * sinA + sinIn * sinAn);
                 if (st == 0)
@@ -1644,43 +1644,43 @@ namespace NORCE.Drilling.Trajectory
 
                 double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
                 double? depth = 0.0;
-                depth = errorSources[i].FunctionDepth(surveyStation.MD, (double)surveyStation.Z); //Depth
+                depth = errorSources[i].FunctionDepth((double)(double)surveyStation.MdWGS84, (double)surveyStation.TvdWGS84); //Depth
                 if (false && errorSources[i] is ErrorSourceDSFS)
                 {
                     ErrorSourceDSFS ds = new ErrorSourceDSFS();
-                    depth = ds.FunctionDepthGyro(surveyStation.MD, (double)surveyStation.Z, (double)surveyStationPrev.MD, (double)surveyStation.Incl); //Depth
+                    depth = ds.FunctionDepthGyro((double)(double)surveyStation.MdWGS84, (double)surveyStation.TvdWGS84, (double)surveyStationPrev.MdWGS84, (double)surveyStation.Incl); //Depth
                 }
                 if (false && errorSources[i] is ErrorSourceDSTG)
                 {
                     ErrorSourceDSTG ds = new ErrorSourceDSTG();
-                    depth = ds.FunctionDepthGyro(surveyStation.MD, (double)surveyStation.Z, (double)surveyStationPrev.MD, (double)surveyStation.Incl); //Depth
+                    depth = ds.FunctionDepthGyro((double)(double)surveyStation.MdWGS84, (double)surveyStation.TvdWGS84, (double)surveyStationPrev.MdWGS84, (double)surveyStation.Incl); //Depth
                 }
                 dpde[0] = (double)depth;
-                double? inclination = errorSources[i].FunctionInc((double)surveyStation.Incl, (double)surveyStation.Az); //Inclination
+                double? inclination = errorSources[i].FunctionInc((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Inclination
                 dpde[1] = (double)inclination;
 
-                double? azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
+                double? azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Azimuth
                 double initializationDepth = ISCWSAErrorDataTmp[i].InitializationDepth;
                 double minDistance = 999999;// 99999.0; //Minimum distance between initializations. NB! make configurable
-                bool reInitialize = ReInitialize((double)surveyStation.Incl, (double)surveyStationPrev.Incl, errorSources, surveyStation.MD - ISCWSAErrorDataTmp[i].InitializationDepth, minDistance);
+                bool reInitialize = ReInitialize((double)surveyStation.Incl, (double)surveyStationPrev.Incl, errorSources, (double)(double)surveyStation.MdWGS84 - ISCWSAErrorDataTmp[i].InitializationDepth, minDistance);
                 if (errorSources[i].IsContinuous)
                 {
-                    double deltaD = (double)surveyStation.MD - (double)surveyStationPrev.MD;
+                    double deltaD = (double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84;
                     double c_gyro = 0.6; //Running speed. NB! make configurable
                     if ((isInitialized && (surveyStation.Incl < errorSources[i].StartInclination || surveyStation.Incl > errorSources[i].EndInclination))) //NB! include initialization inclination code
                     {
                         //isInitialized = false;            //New            
                     }
-                    if ((!isInitialized && surveyStation.Incl >= errorSources[i].StartInclination && surveyStation.Incl <= errorSources[i].EndInclination) || (isInitialized && (surveyStation.MD - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)) //NB! include initialization inclination code
+                    if ((!isInitialized && surveyStation.Incl >= errorSources[i].StartInclination && surveyStation.Incl <= errorSources[i].EndInclination) || (isInitialized && ((double)surveyStation.MdWGS84 - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)) //NB! include initialization inclination code
                     {
                         isInitialized = true;
                         ISCWSAErrorDataTmp[i].GyroH = 0.0;
-                        initializationDepth = surveyStation.MD;
+                        initializationDepth = (double)(double)surveyStation.MdWGS84;
                     }
                     if (false && reInitialize) //New
                     {
                         ISCWSAErrorDataTmp[i].GyroH = 0.0;
-                        initializationDepth = surveyStation.MD;
+                        initializationDepth = (double)(double)surveyStation.MdWGS84;
                     }
 
                     double h = ISCWSAErrorDataTmp[i].GyroH;
@@ -1689,21 +1689,21 @@ namespace NORCE.Drilling.Trajectory
                         ErrorSourceGXYZ_GD da = new ErrorSourceGXYZ_GD();
                         da.StartInclination = errorSources[i].StartInclination;
                         da.EndInclination = errorSources[i].EndInclination;
-                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD);
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD);
                     }
                     if (errorSources[i] is ErrorSourceGXYZ_RW)
                     {
                         ErrorSourceGXYZ_RW da = new ErrorSourceGXYZ_RW();
                         da.StartInclination = errorSources[i].StartInclination;
                         da.EndInclination = errorSources[i].EndInclination;
-                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD);
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD);
                     }
                     if (errorSources[i] is ErrorSourceGXY_GD)
                     {
                         ErrorSourceGXY_GD da = new ErrorSourceGXY_GD();
                         da.StartInclination = errorSources[i].StartInclination;
                         da.EndInclination = errorSources[i].EndInclination;
-                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                         if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
                         {
                             h = ISCWSAErrorDataTmp[i].GyroH;
@@ -1714,7 +1714,7 @@ namespace NORCE.Drilling.Trajectory
                         ErrorSourceGXY_RW da = new ErrorSourceGXY_RW();
                         da.StartInclination = errorSources[i].StartInclination;
                         da.EndInclination = errorSources[i].EndInclination;
-                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                         if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
                         {
                             h = ISCWSAErrorDataTmp[i].GyroH;
@@ -1725,7 +1725,7 @@ namespace NORCE.Drilling.Trajectory
                         ErrorSourceGZ_GD da = new ErrorSourceGZ_GD();
                         da.StartInclination = errorSources[i].StartInclination;
                         da.EndInclination = errorSources[i].EndInclination;
-                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                         if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
                         {
                             h = ISCWSAErrorDataTmp[i].GyroH;
@@ -1736,7 +1736,7 @@ namespace NORCE.Drilling.Trajectory
                         ErrorSourceGZ_RW da = new ErrorSourceGZ_RW();
                         da.StartInclination = errorSources[i].StartInclination;
                         da.EndInclination = errorSources[i].EndInclination;
-                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                         if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
                         {
                             h = ISCWSAErrorDataTmp[i].GyroH;
@@ -1751,25 +1751,25 @@ namespace NORCE.Drilling.Trajectory
                 {
                     isInitialized = false;
                 }
-                if (IsStationary(errorSources[i]) && isInitialized && (surveyStation.MD - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)
+                if (IsStationary(errorSources[i]) && isInitialized && ((double)surveyStation.MdWGS84 - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)
                 {
-                    azimuth = errorSources[i].FunctionAz((double)errorSources[i].InitInclination, (double)surveyStation.Az); //Azimuth NB! Unsure
+                    azimuth = errorSources[i].FunctionAz((double)errorSources[i].InitInclination, (double)surveyStation.AzWGS84); //Azimuth NB! Unsure
                     ISCWSAErrorDataTmp[i].GyroH = (double)azimuth;
-                    initializationDepth = surveyStation.MD;
+                    initializationDepth = (double)(double)surveyStation.MdWGS84;
                 }
                 if (IsStationary(errorSources[i]) && (isInitialized || (!isInitialized && surveyStation.Incl > errorSources[i].EndInclination) || continuousMode_))
                 {
                     if (false && reInitialize) //New
                     {
-                        azimuth = errorSources[i].FunctionAz(errorSources[i].InitInclination, (double)surveyStation.Az); //Azimuth
-                        //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
-                        initializationDepth = surveyStation.MD;
+                        azimuth = errorSources[i].FunctionAz(errorSources[i].InitInclination, (double)surveyStation.AzWGS84); //Azimuth
+                        //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Azimuth
+                        initializationDepth = (double)(double)surveyStation.MdWGS84;
                     }
                     //if (false && errorSources[i].InitInclination < 0 && !isInitialized) //New
                     //{
                     //    //double tmp = errorSources[i].EndInclination;
                     //    //errorSources[i].EndInclination = 1.0;
-                    //    //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
+                    //    //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Azimuth
                     //    //errorSources[i].EndInclination = tmp;
                     //}
                     else
@@ -1783,7 +1783,7 @@ namespace NORCE.Drilling.Trajectory
                             double noiseredFactor = 0.5;// 0.5; //NB! Configurable
                             azimuth = noiseredFactor * azimuth;// noiseredFactor * ISCWSAErrorDataTmp[i].GyroH;
                         }
-                        initializationDepth = surveyStation.MD;
+                        initializationDepth = (double)(double)surveyStation.MdWGS84;
                     }
                     isInitialized = true;
                     ISCWSAErrorDataTmp[i].IsInitialized = true;
@@ -1817,8 +1817,8 @@ namespace NORCE.Drilling.Trajectory
                 {
                     if (errorSources[i] is ErrorSourceXCLA)
                     {
-                        double azT = (double)surveyStation.Az + Convergence;
-                        double azTPrev = (double)surveyStationPrev.Az + Convergence;
+                        double azT = (double)surveyStation.AzWGS84 + Convergence;
+                        double azTPrev = (double)surveyStationPrev.AzWGS84 + Convergence;
                         double mod = (azT - azTPrev + Math.PI) % (2 * Math.PI);
                         double val1 = mod - Math.PI;
                         double val2 = 0;
@@ -1828,8 +1828,8 @@ namespace NORCE.Drilling.Trajectory
                         }
                         double val3 = Math.Abs(Math.Sin((double)surveyStation.Incl) * val2);
                         double defaultTortuosity = 0.000572615; //[rad/m]
-                        double val4 = Math.Max(val3, defaultTortuosity * (surveyStation.MD - surveyStationPrev.MD));
-                        double val5 = magnitude * (surveyStation.MD - surveyStationPrev.MD) * val4;
+                        double val4 = Math.Max(val3, defaultTortuosity * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84));
+                        double val5 = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * val4;
                         e[0] = val5 * (-Math.Sin(azT));
                         e[1] = val5 * (Math.Cos(azT));
                         e[2] = 0.0;
@@ -1839,8 +1839,8 @@ namespace NORCE.Drilling.Trajectory
                     }
                     else if (errorSources[i] is ErrorSourceXCLH)
                     {
-                        double azT = (double)surveyStation.Az + Convergence;
-                        double azTPrev = (double)surveyStationPrev.Az + Convergence;
+                        double azT = (double)surveyStation.AzWGS84 + Convergence;
+                        double azTPrev = (double)surveyStationPrev.AzWGS84 + Convergence;
                         //=Model!$W$37*(Wellpath!$K4-Wellpath!$K3)*MAX(ABS(Wellpath!$L4-Wellpath!$L3);Model!$B$24*(Wellpath!$K4-Wellpath!$K3))*COS(Wellpath!$L4)*COS(Wellpath!$M4)
                         double mod = (azT - azTPrev + Math.PI) % (2 * Math.PI);
                         double val1 = mod - Math.PI;
@@ -1851,8 +1851,8 @@ namespace NORCE.Drilling.Trajectory
                         }
                         double val3 = Math.Abs((double)surveyStation.Incl - (double)surveyStationPrev.Incl);
                         double defaultTortuosity = 0.000572615; //[rad/m]
-                        double val4 = Math.Max(val3, defaultTortuosity * (surveyStation.MD - surveyStationPrev.MD));
-                        double val5 = magnitude * (surveyStation.MD - surveyStationPrev.MD) * val4;
+                        double val4 = Math.Max(val3, defaultTortuosity * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84));
+                        double val5 = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * val4;
                         e[0] = val5 * Math.Cos((double)surveyStation.Incl) * Math.Cos(azT);
                         e[1] = val5 * Math.Cos((double)surveyStation.Incl) * Math.Sin(azT);
                         e[2] = val5 * (-Math.Sin((double)surveyStation.Incl));
@@ -1864,20 +1864,20 @@ namespace NORCE.Drilling.Trajectory
                     {
                         if (c == 1)
                         {
-                            e[0] = magnitude * (surveyStationNext.MD + surveyStation.MD - 2 * surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            e[1] = magnitude * (surveyStationNext.MD + surveyStation.MD - 2 * surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            e[0] = magnitude * ((double)surveyStationNext.MdWGS84 + (double)(double)surveyStation.MdWGS84 - 2 * (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            e[1] = magnitude * ((double)surveyStationNext.MdWGS84 + (double)(double)surveyStation.MdWGS84 - 2 * (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             e[2] = 0.0;
-                            eStar[0] = magnitude * (surveyStation.MD - surveyStationPrev.MD) * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            eStar[1] = magnitude * (surveyStation.MD - surveyStationPrev.MD) * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            eStar[0] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            eStar[1] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             eStar[2] = 0.0;
                         }
                         else
                         {
-                            e[0] = magnitude * (surveyStationNext.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            e[1] = magnitude * (surveyStationNext.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            e[0] = magnitude * ((double)surveyStationNext.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            e[1] = magnitude * ((double)surveyStationNext.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             e[2] = 0.0;
-                            eStar[0] = magnitude * (surveyStation.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            eStar[1] = magnitude * (surveyStation.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            eStar[0] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            eStar[1] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             eStar[2] = 0.0;
                         }
                     }
@@ -2018,36 +2018,36 @@ namespace NORCE.Drilling.Trajectory
 
                 double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
                 double? depth = 0.0;
-                depth = errorSources[i].FunctionDepth(surveyStation.MD, (double)surveyStation.Z); //Depth
+                depth = errorSources[i].FunctionDepth((double)(double)surveyStation.MdWGS84, (double)surveyStation.TvdWGS84); //Depth
                 if (false && errorSources[i] is ErrorSourceDSFS)
                 {
                     ErrorSourceDSFS ds = new ErrorSourceDSFS();
-                    depth = ds.FunctionDepthGyro(surveyStation.MD, (double)surveyStation.Z, (double)surveyStationPrev.MD, (double)surveyStation.Incl); //Depth
+                    depth = ds.FunctionDepthGyro((double)(double)surveyStation.MdWGS84, (double)surveyStation.TvdWGS84, (double)surveyStationPrev.MdWGS84, (double)surveyStation.Incl); //Depth
                 }
                 if (false && errorSources[i] is ErrorSourceDSTG)
                 {
                     ErrorSourceDSTG ds = new ErrorSourceDSTG();
-                    depth = ds.FunctionDepthGyro(surveyStation.MD, (double)surveyStation.Z, (double)surveyStationPrev.MD, (double)surveyStation.Incl); //Depth
+                    depth = ds.FunctionDepthGyro((double)(double)surveyStation.MdWGS84, (double)surveyStation.TvdWGS84, (double)surveyStationPrev.MdWGS84, (double)surveyStation.Incl); //Depth
                 }
                 dpde[0] = (double)depth;
-                double? inclination = errorSources[i].FunctionInc((double)surveyStation.Incl, (double)surveyStation.Az); //Inclination
+                double? inclination = errorSources[i].FunctionInc((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Inclination
                 dpde[1] = (double)inclination;
 
-                double? azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
+                double? azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Azimuth
                 double initializationDepth = ISCWSAErrorDataTmp[i].InitializationDepth;
                 double minDistance = 999999;// 99999.0; //Minimum distance between initializations. NB! make configurable
-                bool reInitialize = ReInitialize((double)surveyStation.Incl, (double)surveyStationPrev.Incl, errorSources, surveyStation.MD - ISCWSAErrorDataTmp[i].InitializationDepth, minDistance);
+                bool reInitialize = ReInitialize((double)surveyStation.Incl, (double)surveyStationPrev.Incl, errorSources, (double)surveyStation.MdWGS84 - ISCWSAErrorDataTmp[i].InitializationDepth, minDistance);
                 if (errorSources[i].IsContinuous)
                 {
-                    double deltaD = (double)surveyStation.MD - (double)surveyStationPrev.MD;
+                    double deltaD = (double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84;
                     double c_gyro = 0.6; //Running speed. NB! make configurable
                     double h = ISCWSAErrorDataTmp[i].GyroH;
                     
-                    if ((!isInitialized && surveyStation.Incl >= errorSources[i].StartInclination && surveyStation.Incl <= errorSources[i].EndInclination) || (isInitialized && (surveyStation.MD - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)) //NB! include initialization inclination code
+                    if ((!isInitialized && surveyStation.Incl >= errorSources[i].StartInclination && surveyStation.Incl <= errorSources[i].EndInclination) || (isInitialized && ((double)surveyStation.MdWGS84 - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)) //NB! include initialization inclination code
                     {
                         isInitialized = true;
                         ISCWSAErrorDataTmp[i].GyroH = 0.0;
-                        initializationDepth = surveyStation.MD;
+                        initializationDepth = (double)surveyStation.MdWGS84;
                         h = ISCWSAErrorDataTmp[i].GyroH;
                     }
                     //if ((isInitialized && (surveyStation.Incl < errorSources[i].StartInclination || surveyStation.Incl > errorSources[i].EndInclination))) //NB! include initialization inclination code
@@ -2068,21 +2068,21 @@ namespace NORCE.Drilling.Trajectory
                             ErrorSourceGXYZ_GD da = new ErrorSourceGXYZ_GD();
                             da.StartInclination = errorSources[i].StartInclination;
                             da.EndInclination = errorSources[i].EndInclination;
-                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD);
+                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD);
                         }
                         if (errorSources[i] is ErrorSourceGXYZ_RW)
                         {
                             ErrorSourceGXYZ_RW da = new ErrorSourceGXYZ_RW();
                             da.StartInclination = errorSources[i].StartInclination;
                             da.EndInclination = errorSources[i].EndInclination;
-                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD);
+                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD);
                         }
                         if (errorSources[i] is ErrorSourceGXY_GD)
                         {
                             ErrorSourceGXY_GD da = new ErrorSourceGXY_GD();
                             da.StartInclination = errorSources[i].StartInclination;
                             da.EndInclination = errorSources[i].EndInclination;
-                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                             if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
                             {
                                 h = ISCWSAErrorDataTmp[i].GyroH;
@@ -2093,7 +2093,7 @@ namespace NORCE.Drilling.Trajectory
                             ErrorSourceGXY_RW da = new ErrorSourceGXY_RW();
                             da.StartInclination = errorSources[i].StartInclination;
                             da.EndInclination = errorSources[i].EndInclination;
-                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                             if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
                             {
                                 h = ISCWSAErrorDataTmp[i].GyroH;
@@ -2104,7 +2104,7 @@ namespace NORCE.Drilling.Trajectory
                             ErrorSourceGZ_GD da = new ErrorSourceGZ_GD();
                             da.StartInclination = errorSources[i].StartInclination;
                             da.EndInclination = errorSources[i].EndInclination;
-                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                             if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
                             {
                                 h = ISCWSAErrorDataTmp[i].GyroH;
@@ -2115,7 +2115,7 @@ namespace NORCE.Drilling.Trajectory
                             ErrorSourceGZ_RW da = new ErrorSourceGZ_RW();
                             da.StartInclination = errorSources[i].StartInclination;
                             da.EndInclination = errorSources[i].EndInclination;
-                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                             if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
                             {
                                 h = ISCWSAErrorDataTmp[i].GyroH;
@@ -2131,25 +2131,25 @@ namespace NORCE.Drilling.Trajectory
                 {
                     //isInitialized = false;
                 }
-                if (IsStationary(errorSources[i]) && isInitialized && (surveyStation.MD - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)
+                if (IsStationary(errorSources[i]) && isInitialized && ((double)surveyStation.MdWGS84 - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)
                 {
-                    azimuth = errorSources[i].FunctionAz((double)errorSources[i].InitInclination, (double)surveyStation.Az); //Azimuth NB! Unsure
+                    azimuth = errorSources[i].FunctionAz((double)errorSources[i].InitInclination, (double)surveyStation.AzWGS84); //Azimuth NB! Unsure
                     ISCWSAErrorDataTmp[i].GyroH = (double)azimuth;
-                    initializationDepth = surveyStation.MD;
+                    initializationDepth = (double)(double)surveyStation.MdWGS84;
                 }
                 if (IsStationary(errorSources[i]) && (isInitialized|| (!isInitialized && surveyStation.Incl > errorSources[i].EndInclination) || continuousMode_))
                 {
                     if (false && reInitialize) //New
                     {
-                        azimuth = errorSources[i].FunctionAz(errorSources[i].InitInclination, (double)surveyStation.Az); //Azimuth
-                        //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
-                        initializationDepth = surveyStation.MD;
+                        azimuth = errorSources[i].FunctionAz(errorSources[i].InitInclination, (double)surveyStation.AzWGS84); //Azimuth
+                        //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Azimuth
+                        initializationDepth = (double)(double)surveyStation.MdWGS84;
                     }
                     //if (false && errorSources[i].InitInclination < 0 && !isInitialized) //New
                     //{
                     //    //double tmp = errorSources[i].EndInclination;
                     //    //errorSources[i].EndInclination = 1.0;
-                    //    //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
+                    //    //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Azimuth
                     //    //errorSources[i].EndInclination = tmp;
                     //}
                     else
@@ -2158,18 +2158,18 @@ namespace NORCE.Drilling.Trajectory
                     }
                     if (!isInitialized && (surveyStation.Incl< errorSources[i].InitInclination || surveyStation.Incl > errorSources[i].EndInclination || errorSources[i].InitInclination < 0))
                     {
-                        //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth NB! Unsure
+                        //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Azimuth NB! Unsure
                         //azimuth = ISCWSAErrorDataTmp[i].GyroH + (azimuth- ISCWSAErrorDataTmp[i].GyroH)/2;
                         if (errorSources[i].InitInclination > 0)
                         {
-							azimuth = errorSources[i].FunctionAz((double)errorSources[i].InitInclination, (double)surveyStation.Az); //Azimuth NB! Unsure
+							azimuth = errorSources[i].FunctionAz((double)errorSources[i].InitInclination, (double)surveyStation.AzWGS84); //Azimuth NB! Unsure
 						}
                         if (errorSources[i] is ErrorSourceGXY_RN || errorSources[i] is ErrorSourceGXYZ_XYRN)
                         {
                             double noiseredFactor = 1;// 0.5; //NB! Configurable
                             azimuth = noiseredFactor * azimuth;// noiseredFactor * ISCWSAErrorDataTmp[i].GyroH;
                         }
-                        initializationDepth = surveyStation.MD;
+                        initializationDepth = (double)surveyStation.MdWGS84;
                     }
                     isInitialized = true;
                     ISCWSAErrorDataTmp[i].IsInitialized = true;
@@ -2203,8 +2203,8 @@ namespace NORCE.Drilling.Trajectory
                 {
                     if (errorSources[i] is ErrorSourceXCLA)
                     {
-                        double azT = (double)surveyStation.Az + Convergence;
-                        double azTPrev = (double)surveyStationPrev.Az + Convergence;
+                        double azT = (double)surveyStation.AzWGS84 + Convergence;
+                        double azTPrev = (double)surveyStationPrev.AzWGS84 + Convergence;
                         double mod = (azT - azTPrev + Math.PI) % (2 * Math.PI);
                         double val1 = mod - Math.PI;
                         double val2 = 0;
@@ -2214,8 +2214,8 @@ namespace NORCE.Drilling.Trajectory
                         }
                         double val3 = Math.Abs(Math.Sin((double)surveyStation.Incl) * val2);
                         double defaultTortuosity = 0.000572615; //[rad/m]
-                        double val4 = Math.Max(val3, defaultTortuosity * (surveyStation.MD - surveyStationPrev.MD));
-                        double val5 = magnitude * (surveyStation.MD - surveyStationPrev.MD) * val4;
+                        double val4 = Math.Max(val3, defaultTortuosity * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84));
+                        double val5 = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * val4;
                         e[0] = val5 * (-Math.Sin(azT));
                         e[1] = val5 * (Math.Cos(azT));
                         e[2] = 0.0;
@@ -2225,8 +2225,8 @@ namespace NORCE.Drilling.Trajectory
                     }
                     else if (errorSources[i] is ErrorSourceXCLH)
                     {
-                        double azT = (double)surveyStation.Az + Convergence;
-                        double azTPrev = (double)surveyStationPrev.Az + Convergence;
+                        double azT = (double)surveyStation.AzWGS84 + Convergence;
+                        double azTPrev = (double)surveyStationPrev.AzWGS84 + Convergence;
                         //=Model!$W$37*(Wellpath!$K4-Wellpath!$K3)*MAX(ABS(Wellpath!$L4-Wellpath!$L3);Model!$B$24*(Wellpath!$K4-Wellpath!$K3))*COS(Wellpath!$L4)*COS(Wellpath!$M4)
                         double mod = (azT - azTPrev + Math.PI) % (2 * Math.PI);
                         double val1 = mod - Math.PI;
@@ -2237,8 +2237,8 @@ namespace NORCE.Drilling.Trajectory
                         }
                         double val3 = Math.Abs((double)surveyStation.Incl - (double)surveyStationPrev.Incl);
                         double defaultTortuosity = 0.000572615; //[rad/m]
-                        double val4 = Math.Max(val3, defaultTortuosity * (surveyStation.MD - surveyStationPrev.MD));
-                        double val5 = magnitude * (surveyStation.MD - surveyStationPrev.MD) * val4;
+                        double val4 = Math.Max(val3, defaultTortuosity * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84));
+                        double val5 = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * val4;
                         e[0] = val5 * Math.Cos((double)surveyStation.Incl) * Math.Cos(azT);
                         e[1] = val5 * Math.Cos((double)surveyStation.Incl) * Math.Sin(azT);
                         e[2] = val5 * (-Math.Sin((double)surveyStation.Incl));
@@ -2250,20 +2250,20 @@ namespace NORCE.Drilling.Trajectory
                     {
                         if (c == 1)
                         {
-                            e[0] = magnitude * (surveyStationNext.MD + surveyStation.MD - 2 * surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            e[1] = magnitude * (surveyStationNext.MD + surveyStation.MD - 2 * surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            e[0] = magnitude * ((double)surveyStationNext.MdWGS84 + (double)(double)surveyStation.MdWGS84 - 2 * (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            e[1] = magnitude * ((double)surveyStationNext.MdWGS84 + (double)(double)surveyStation.MdWGS84 - 2 * (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             e[2] = 0.0;
-                            eStar[0] = magnitude * (surveyStation.MD - surveyStationPrev.MD) * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            eStar[1] = magnitude * (surveyStation.MD - surveyStationPrev.MD) * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            eStar[0] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            eStar[1] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             eStar[2] = 0.0;
                         }
                         else
                         {
-                            e[0] = magnitude * (surveyStationNext.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            e[1] = magnitude * (surveyStationNext.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            e[0] = magnitude * ((double)surveyStationNext.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            e[1] = magnitude * ((double)surveyStationNext.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             e[2] = 0.0;
-                            eStar[0] = magnitude * (surveyStation.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            eStar[1] = magnitude * (surveyStation.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            eStar[0] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            eStar[1] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             eStar[2] = 0.0;
                         }
                     }
@@ -2404,39 +2404,39 @@ namespace NORCE.Drilling.Trajectory
 
                 double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
                 double? depth = 0.0;
-                depth = errorSources[i].FunctionDepth(surveyStation.MD, (double)surveyStation.Z); //Depth
+                depth = errorSources[i].FunctionDepth((double)(double)surveyStation.MdWGS84, (double)surveyStation.TvdWGS84); //Depth
                 if (false && errorSources[i] is ErrorSourceDSFS)
                 {
                     ErrorSourceDSFS ds = new ErrorSourceDSFS();
-                    depth = ds.FunctionDepthGyro(surveyStation.MD, (double)surveyStation.Z, (double)surveyStationPrev.MD, (double)surveyStation.Incl); //Depth
+                    depth = ds.FunctionDepthGyro((double)(double)surveyStation.MdWGS84, (double)surveyStation.TvdWGS84, (double)surveyStationPrev.MdWGS84, (double)surveyStation.Incl); //Depth
                 }
                 if (false && errorSources[i] is ErrorSourceDSTG)
                 {
                     ErrorSourceDSTG ds = new ErrorSourceDSTG();
-                    depth = ds.FunctionDepthGyro(surveyStation.MD, (double)surveyStation.Z, (double)surveyStationPrev.MD, (double)surveyStation.Incl); //Depth
+                    depth = ds.FunctionDepthGyro((double)(double)surveyStation.MdWGS84, (double)surveyStation.TvdWGS84, (double)surveyStationPrev.MdWGS84, (double)surveyStation.Incl); //Depth
                 }
                 dpde[0] = (double)depth;
-                double? inclination = errorSources[i].FunctionInc((double)surveyStation.Incl, (double)surveyStation.Az); //Inclination
+                double? inclination = errorSources[i].FunctionInc((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Inclination
                 dpde[1] = (double)inclination;
 
-                double? azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
+                double? azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Azimuth
                 double initializationDepth = ISCWSAErrorDataTmp[i].InitializationDepth;
                 double minDistance = 999999;// 99999.0; //Minimum distance between initializations. NB! make configurable
-                bool reInitialize = ReInitialize((double)surveyStation.Incl, (double)surveyStationPrev.Incl, errorSources, surveyStation.MD - ISCWSAErrorDataTmp[i].InitializationDepth, minDistance);
+                bool reInitialize = ReInitialize((double)surveyStation.Incl, (double)surveyStationPrev.Incl, errorSources, (double)surveyStation.MdWGS84 - ISCWSAErrorDataTmp[i].InitializationDepth, minDistance);
                 if (errorSources[i].IsContinuous)
                 {
-                    double deltaD = (double)surveyStation.MD - (double)surveyStationPrev.MD;
+                    double deltaD = (double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84;
                     double c_gyro = 0.6; //Running speed. NB! make configurable
                     double h = ISCWSAErrorDataTmp[i].GyroH;
                     if ((isInitialized && (surveyStation.Incl < errorSources[i].StartInclination || surveyStation.Incl > errorSources[i].EndInclination))) //NB! include initialization inclination code
                     {
                         isInitialized = false;            //New            
                     }
-                    if ((!isInitialized && surveyStation.Incl >= errorSources[i].StartInclination && surveyStation.Incl <= errorSources[i].EndInclination) || (isInitialized && (surveyStation.MD - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)) //NB! include initialization inclination code
+                    if ((!isInitialized && surveyStation.Incl >= errorSources[i].StartInclination && surveyStation.Incl <= errorSources[i].EndInclination) || (isInitialized && ((double)surveyStation.MdWGS84 - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)) //NB! include initialization inclination code
                     {
                         isInitialized = true;
                         ISCWSAErrorDataTmp[i].GyroH = 0.0;
-                        initializationDepth = surveyStation.MD;
+                        initializationDepth = (double)surveyStation.MdWGS84;
                         h = ISCWSAErrorDataTmp[i].GyroH;
                     }
                     else
@@ -2449,21 +2449,21 @@ namespace NORCE.Drilling.Trajectory
                             ErrorSourceGXYZ_GD da = new ErrorSourceGXYZ_GD();
                             da.StartInclination = errorSources[i].StartInclination;
                             da.EndInclination = errorSources[i].EndInclination;
-                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD);
+                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD);
                         }
                         if (errorSources[i] is ErrorSourceGXYZ_RW)
                         {
                             ErrorSourceGXYZ_RW da = new ErrorSourceGXYZ_RW();
                             da.StartInclination = errorSources[i].StartInclination;
                             da.EndInclination = errorSources[i].EndInclination;
-                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD);
+                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD);
                         }
                         if (errorSources[i] is ErrorSourceGXY_GD)
                         {
                             ErrorSourceGXY_GD da = new ErrorSourceGXY_GD();
                             da.StartInclination = errorSources[i].StartInclination;
                             da.EndInclination = errorSources[i].EndInclination;
-                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                             if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
                             {
                                 h = ISCWSAErrorDataTmp[i].GyroH;
@@ -2474,7 +2474,7 @@ namespace NORCE.Drilling.Trajectory
                             ErrorSourceGXY_RW da = new ErrorSourceGXY_RW();
                             da.StartInclination = errorSources[i].StartInclination;
                             da.EndInclination = errorSources[i].EndInclination;
-                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                             if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
                             {
                                 h = ISCWSAErrorDataTmp[i].GyroH;
@@ -2485,7 +2485,7 @@ namespace NORCE.Drilling.Trajectory
                             ErrorSourceGZ_GD da = new ErrorSourceGZ_GD();
                             da.StartInclination = errorSources[i].StartInclination;
                             da.EndInclination = errorSources[i].EndInclination;
-                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                             if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
                             {
                                 h = ISCWSAErrorDataTmp[i].GyroH;
@@ -2496,7 +2496,7 @@ namespace NORCE.Drilling.Trajectory
                             ErrorSourceGZ_RW da = new ErrorSourceGZ_RW();
                             da.StartInclination = errorSources[i].StartInclination;
                             da.EndInclination = errorSources[i].EndInclination;
-                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                            h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                             if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
                             {
                                 h = ISCWSAErrorDataTmp[i].GyroH;
@@ -2512,25 +2512,25 @@ namespace NORCE.Drilling.Trajectory
                 {
                     isInitialized = false;
                 }
-                if (IsStationary(errorSources[i]) && isInitialized && (surveyStation.MD - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)
+                if (IsStationary(errorSources[i]) && isInitialized && ((double)surveyStation.MdWGS84 - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)
                 {
-                    azimuth = errorSources[i].FunctionAz((double)errorSources[i].InitInclination, (double)surveyStation.Az); //Azimuth NB! Unsure
+                    azimuth = errorSources[i].FunctionAz((double)errorSources[i].InitInclination, (double)surveyStation.AzWGS84); //Azimuth NB! Unsure
                     ISCWSAErrorDataTmp[i].GyroH = (double)azimuth;
-                    initializationDepth = surveyStation.MD;
+                    initializationDepth = (double)surveyStation.MdWGS84;
                 }
                 if (IsStationary(errorSources[i]) && (isInitialized || (!isInitialized && surveyStation.Incl > errorSources[i].EndInclination) || continuousMode_))
                 {
                     if (false && reInitialize) //New
                     {
-                        azimuth = errorSources[i].FunctionAz(errorSources[i].InitInclination, (double)surveyStation.Az); //Azimuth
-                        //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
-                        initializationDepth = surveyStation.MD;
+                        azimuth = errorSources[i].FunctionAz(errorSources[i].InitInclination, (double)surveyStation.AzWGS84); //Azimuth
+                        //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Azimuth
+                        initializationDepth = (double)surveyStation.MdWGS84;
                     }
                     //if (false && errorSources[i].InitInclination < 0 && !isInitialized) //New
                     //{
                     //    //double tmp = errorSources[i].EndInclination;
                     //    //errorSources[i].EndInclination = 1.0;
-                    //    //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
+                    //    //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Azimuth
                     //    //errorSources[i].EndInclination = tmp;
                     //}
                     else
@@ -2539,15 +2539,15 @@ namespace NORCE.Drilling.Trajectory
                     }
                     if (!isInitialized && (surveyStation.Incl > errorSources[i].EndInclination || errorSources[i].InitInclination < 0))
                     {
-                        //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth NB! Unsure
+                        //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Azimuth NB! Unsure
                         //azimuth = ISCWSAErrorDataTmp[i].GyroH + (azimuth- ISCWSAErrorDataTmp[i].GyroH)/2;
-                        azimuth = errorSources[i].FunctionAz((double)errorSources[i].InitInclination, (double)surveyStation.Az); //Azimuth NB! Unsure
+                        azimuth = errorSources[i].FunctionAz((double)errorSources[i].InitInclination, (double)surveyStation.AzWGS84); //Azimuth NB! Unsure
                         if (errorSources[i] is ErrorSourceGXY_RN || errorSources[i] is ErrorSourceGXYZ_XYRN)
                         {
                             double noiseredFactor = 1;// 0.5; //NB! Configurable
                             azimuth = noiseredFactor * azimuth;// noiseredFactor * ISCWSAErrorDataTmp[i].GyroH;
                         }
-                        initializationDepth = surveyStation.MD;
+                        initializationDepth = (double)surveyStation.MdWGS84;
                     }
                     isInitialized = true;
                     ISCWSAErrorDataTmp[i].IsInitialized = true;
@@ -2581,8 +2581,8 @@ namespace NORCE.Drilling.Trajectory
                 {
                     if (errorSources[i] is ErrorSourceXCLA)
                     {
-                        double azT = (double)surveyStation.Az + Convergence;
-                        double azTPrev = (double)surveyStationPrev.Az + Convergence;
+                        double azT = (double)surveyStation.AzWGS84 + Convergence;
+                        double azTPrev = (double)surveyStationPrev.AzWGS84 + Convergence;
                         double mod = (azT - azTPrev + Math.PI) % (2 * Math.PI);
                         double val1 = mod - Math.PI;
                         double val2 = 0;
@@ -2592,8 +2592,8 @@ namespace NORCE.Drilling.Trajectory
                         }
                         double val3 = Math.Abs(Math.Sin((double)surveyStation.Incl) * val2);
                         double defaultTortuosity = 0.000572615; //[rad/m]
-                        double val4 = Math.Max(val3, defaultTortuosity * (surveyStation.MD - surveyStationPrev.MD));
-                        double val5 = magnitude * (surveyStation.MD - surveyStationPrev.MD) * val4;
+                        double val4 = Math.Max(val3, defaultTortuosity * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84));
+                        double val5 = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * val4;
                         e[0] = val5 * (-Math.Sin(azT));
                         e[1] = val5 * (Math.Cos(azT));
                         e[2] = 0.0;
@@ -2603,8 +2603,8 @@ namespace NORCE.Drilling.Trajectory
                     }
                     else if (errorSources[i] is ErrorSourceXCLH)
                     {
-                        double azT = (double)surveyStation.Az + Convergence;
-                        double azTPrev = (double)surveyStationPrev.Az + Convergence;
+                        double azT = (double)surveyStation.AzWGS84 + Convergence;
+                        double azTPrev = (double)surveyStationPrev.AzWGS84 + Convergence;
                         //=Model!$W$37*(Wellpath!$K4-Wellpath!$K3)*MAX(ABS(Wellpath!$L4-Wellpath!$L3);Model!$B$24*(Wellpath!$K4-Wellpath!$K3))*COS(Wellpath!$L4)*COS(Wellpath!$M4)
                         double mod = (azT - azTPrev + Math.PI) % (2 * Math.PI);
                         double val1 = mod - Math.PI;
@@ -2615,8 +2615,8 @@ namespace NORCE.Drilling.Trajectory
                         }
                         double val3 = Math.Abs((double)surveyStation.Incl - (double)surveyStationPrev.Incl);
                         double defaultTortuosity = 0.000572615; //[rad/m]
-                        double val4 = Math.Max(val3, defaultTortuosity * (surveyStation.MD - surveyStationPrev.MD));
-                        double val5 = magnitude * (surveyStation.MD - surveyStationPrev.MD) * val4;
+                        double val4 = Math.Max(val3, defaultTortuosity * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84));
+                        double val5 = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * val4;
                         e[0] = val5 * Math.Cos((double)surveyStation.Incl) * Math.Cos(azT);
                         e[1] = val5 * Math.Cos((double)surveyStation.Incl) * Math.Sin(azT);
                         e[2] = val5 * (-Math.Sin((double)surveyStation.Incl));
@@ -2628,20 +2628,20 @@ namespace NORCE.Drilling.Trajectory
                     {
                         if (c == 1)
                         {
-                            e[0] = magnitude * (surveyStationNext.MD + surveyStation.MD - 2 * surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            e[1] = magnitude * (surveyStationNext.MD + surveyStation.MD - 2 * surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            e[0] = magnitude * ((double)surveyStationNext.MdWGS84 + (double)(double)surveyStation.MdWGS84 - 2 * (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            e[1] = magnitude * ((double)surveyStationNext.MdWGS84 + (double)(double)surveyStation.MdWGS84 - 2 * (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             e[2] = 0.0;
-                            eStar[0] = magnitude * (surveyStation.MD - surveyStationPrev.MD) * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            eStar[1] = magnitude * (surveyStation.MD - surveyStationPrev.MD) * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            eStar[0] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            eStar[1] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             eStar[2] = 0.0;
                         }
                         else
                         {
-                            e[0] = magnitude * (surveyStationNext.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            e[1] = magnitude * (surveyStationNext.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            e[0] = magnitude * ((double)surveyStationNext.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            e[1] = magnitude * ((double)surveyStationNext.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             e[2] = 0.0;
-                            eStar[0] = magnitude * (surveyStation.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            eStar[1] = magnitude * (surveyStation.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            eStar[0] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            eStar[1] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             eStar[2] = 0.0;
                         }
                     }
@@ -2782,43 +2782,43 @@ namespace NORCE.Drilling.Trajectory
                
                 double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
                 double? depth = 0.0;
-                depth = errorSources[i].FunctionDepth(surveyStation.MD, (double)surveyStation.Z); //Depth
+                depth = errorSources[i].FunctionDepth((double)surveyStation.MdWGS84, (double)surveyStation.TvdWGS84); //Depth
                 if (false && errorSources[i] is ErrorSourceDSFS)
                 {
                     ErrorSourceDSFS ds = new ErrorSourceDSFS();
-                    depth = ds.FunctionDepthGyro(surveyStation.MD, (double)surveyStation.Z, (double)surveyStationPrev.MD, (double)surveyStation.Incl); //Depth
+                    depth = ds.FunctionDepthGyro((double)surveyStation.MdWGS84, (double)surveyStation.TvdWGS84, (double)surveyStationPrev.MdWGS84, (double)surveyStation.Incl); //Depth
                 }
                 if (false && errorSources[i] is ErrorSourceDSTG)
                 {
                     ErrorSourceDSTG ds = new ErrorSourceDSTG();
-                    depth = ds.FunctionDepthGyro(surveyStation.MD, (double)surveyStation.Z, (double)surveyStationPrev.MD, (double)surveyStation.Incl); //Depth
+                    depth = ds.FunctionDepthGyro((double)surveyStation.MdWGS84, (double)surveyStation.TvdWGS84, (double)surveyStationPrev.MdWGS84, (double)surveyStation.Incl); //Depth
                 }
                 dpde[0] = (double)depth;
-                double? inclination = errorSources[i].FunctionInc((double)surveyStation.Incl, (double)surveyStation.Az); //Inclination
+                double? inclination = errorSources[i].FunctionInc((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Inclination
                 dpde[1] = (double)inclination;
                 
-                double? azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
+                double? azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Azimuth
                 double initializationDepth = ISCWSAErrorDataTmp[i].InitializationDepth;
                 double minDistance = 999999;// 99999.0; //Minimum distance between initializations. NB! make configurable
-                bool reInitialize = ReInitialize((double)surveyStation.Incl, (double)surveyStationPrev.Incl, errorSources, surveyStation.MD - ISCWSAErrorDataTmp[i].InitializationDepth, minDistance);
+                bool reInitialize = ReInitialize((double)surveyStation.Incl, (double)surveyStationPrev.Incl, errorSources, (double)surveyStation.MdWGS84 - ISCWSAErrorDataTmp[i].InitializationDepth, minDistance);
                 if (errorSources[i].IsContinuous)
                 {
-                    double deltaD = (double)surveyStation.MD - (double)surveyStationPrev.MD;
+                    double deltaD = (double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84;
                     double c_gyro = 0.6; //Running speed. NB! make configurable
                     if ((isInitialized && (surveyStation.Incl < errorSources[i].StartInclination || surveyStation.Incl > errorSources[i].EndInclination))) //NB! include initialization inclination code
                     {
 						isInitialized = false;            //New            
 					}
-					if ((!isInitialized && surveyStation.Incl>=errorSources[i].StartInclination && surveyStation.Incl <= errorSources[i].EndInclination) || (isInitialized && (surveyStation.MD- ISCWSAErrorDataTmp[i].InitializationDepth)> minDistance)) //NB! include initialization inclination code
+					if ((!isInitialized && surveyStation.Incl>=errorSources[i].StartInclination && surveyStation.Incl <= errorSources[i].EndInclination) || (isInitialized && ((double)surveyStation.MdWGS84- ISCWSAErrorDataTmp[i].InitializationDepth)> minDistance)) //NB! include initialization inclination code
                     {
                         isInitialized = true;
                         ISCWSAErrorDataTmp[i].GyroH = 0.0;
-                        initializationDepth = surveyStation.MD;
+                        initializationDepth = (double)(double)surveyStation.MdWGS84;
                     }
                     if( false && reInitialize) //New
 					{
                         ISCWSAErrorDataTmp[i].GyroH = 0.0;
-                        initializationDepth = surveyStation.MD;
+                        initializationDepth = (double)(double)surveyStation.MdWGS84;
                     }
                     
                     double h = ISCWSAErrorDataTmp[i].GyroH;
@@ -2827,21 +2827,21 @@ namespace NORCE.Drilling.Trajectory
                         ErrorSourceGXYZ_GD da = new ErrorSourceGXYZ_GD();
                         da.StartInclination = errorSources[i].StartInclination;
                         da.EndInclination = errorSources[i].EndInclination;
-                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD);
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD);
                     }
                     if (errorSources[i] is ErrorSourceGXYZ_RW)
                     {
                         ErrorSourceGXYZ_RW da = new ErrorSourceGXYZ_RW();
                         da.StartInclination = errorSources[i].StartInclination;
                         da.EndInclination = errorSources[i].EndInclination;
-                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD);
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD);
                     }
                     if (errorSources[i] is ErrorSourceGXY_GD)
                     {
                         ErrorSourceGXY_GD da = new ErrorSourceGXY_GD();
                         da.StartInclination = errorSources[i].StartInclination;
                         da.EndInclination = errorSources[i].EndInclination;
-                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                         if (h == 0 && ISCWSAErrorDataTmp[i].GyroH!=0)
                         {
                             h = ISCWSAErrorDataTmp[i].GyroH;
@@ -2852,7 +2852,7 @@ namespace NORCE.Drilling.Trajectory
                         ErrorSourceGXY_RW da = new ErrorSourceGXY_RW();
                         da.StartInclination = errorSources[i].StartInclination;
                         da.EndInclination = errorSources[i].EndInclination;
-                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                         if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
                         {
                             h = ISCWSAErrorDataTmp[i].GyroH;
@@ -2863,7 +2863,7 @@ namespace NORCE.Drilling.Trajectory
                         ErrorSourceGZ_GD da = new ErrorSourceGZ_GD();
                         da.StartInclination = errorSources[i].StartInclination;
                         da.EndInclination = errorSources[i].EndInclination;
-                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                         if(h==0 && ISCWSAErrorDataTmp[i].GyroH != 0)
 						{
                             h = ISCWSAErrorDataTmp[i].GyroH;
@@ -2874,7 +2874,7 @@ namespace NORCE.Drilling.Trajectory
                         ErrorSourceGZ_RW da = new ErrorSourceGZ_RW();
                         da.StartInclination = errorSources[i].StartInclination;
                         da.EndInclination = errorSources[i].EndInclination;
-                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
+                        h = (double)da.FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84, h, c_gyro, deltaD, (double)surveyStationPrev.Incl);
                         if (h == 0 && ISCWSAErrorDataTmp[i].GyroH != 0)
                         {
                             h = ISCWSAErrorDataTmp[i].GyroH;
@@ -2889,25 +2889,25 @@ namespace NORCE.Drilling.Trajectory
                 {
                     isInitialized = false;
                 }
-                if (IsStationary(errorSources[i]) && isInitialized && (surveyStation.MD - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)
+                if (IsStationary(errorSources[i]) && isInitialized && ((double)surveyStation.MdWGS84 - ISCWSAErrorDataTmp[i].InitializationDepth) > minDistance)
 				{
-                    azimuth = errorSources[i].FunctionAz((double)errorSources[i].InitInclination, (double)surveyStation.Az); //Azimuth NB! Unsure
+                    azimuth = errorSources[i].FunctionAz((double)errorSources[i].InitInclination, (double)surveyStation.AzWGS84); //Azimuth NB! Unsure
                     ISCWSAErrorDataTmp[i].GyroH = (double)azimuth;
-                    initializationDepth = surveyStation.MD;
+                    initializationDepth = (double)surveyStation.MdWGS84;
                 }
                 if (IsStationary(errorSources[i]) && (isInitialized || (!isInitialized && surveyStation.Incl > errorSources[i].EndInclination) || continuousMode_) )
 				{
                     if(false &&reInitialize) //New
 					{						
-						azimuth = errorSources[i].FunctionAz(errorSources[i].InitInclination, (double)surveyStation.Az); //Azimuth
-                        //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
-                        initializationDepth = surveyStation.MD;
+						azimuth = errorSources[i].FunctionAz(errorSources[i].InitInclination, (double)surveyStation.AzWGS84); //Azimuth
+                        //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Azimuth
+                        initializationDepth = (double)surveyStation.MdWGS84;
                     }
                     //if (false && errorSources[i].InitInclination < 0 && !isInitialized) //New
                     //{
                     //    //double tmp = errorSources[i].EndInclination;
                     //    //errorSources[i].EndInclination = 1.0;
-                    //    //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
+                    //    //azimuth = errorSources[i].FunctionAz((double)surveyStation.Incl, (double)surveyStation.AzWGS84); //Azimuth
                     //    //errorSources[i].EndInclination = tmp;
                     //}
                     else
@@ -2921,7 +2921,7 @@ namespace NORCE.Drilling.Trajectory
                             double noiseredFactor = 1;// 0.5; //NB! Configurable
                             azimuth = noiseredFactor * azimuth;// noiseredFactor * ISCWSAErrorDataTmp[i].GyroH;
                         }
-                        initializationDepth = surveyStation.MD;
+                        initializationDepth = (double)surveyStation.MdWGS84;
                     }
                     isInitialized = true;
                     ISCWSAErrorDataTmp[i].IsInitialized = true;
@@ -2955,8 +2955,8 @@ namespace NORCE.Drilling.Trajectory
                 {
                     if(errorSources[i] is ErrorSourceXCLA)
 					{
-                        double azT = (double)surveyStation.Az + Convergence;
-                        double azTPrev = (double)surveyStationPrev.Az + Convergence;
+                        double azT = (double)surveyStation.AzWGS84 + Convergence;
+                        double azTPrev = (double)surveyStationPrev.AzWGS84 + Convergence;
                         double mod = (azT - azTPrev + Math.PI) % (2 * Math.PI);
                         double val1 = mod - Math.PI;
                         double val2 = 0;
@@ -2966,8 +2966,8 @@ namespace NORCE.Drilling.Trajectory
 						}
                         double val3 = Math.Abs(Math.Sin((double)surveyStation.Incl)*val2);
                         double defaultTortuosity = 0.000572615; //[rad/m]
-                        double val4 = Math.Max(val3, defaultTortuosity * (surveyStation.MD - surveyStationPrev.MD));
-                        double val5 = magnitude * (surveyStation.MD - surveyStationPrev.MD) * val4;
+                        double val4 = Math.Max(val3, defaultTortuosity * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84));
+                        double val5 = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * val4;
                         e[0] = val5 * (-Math.Sin(azT)); 
                         e[1] = val5 * (Math.Cos(azT));
                         e[2] = 0.0;
@@ -2977,8 +2977,8 @@ namespace NORCE.Drilling.Trajectory
                     }
                     else if (errorSources[i] is ErrorSourceXCLH)
                     {
-                        double azT = (double)surveyStation.Az + Convergence;
-                        double azTPrev = (double)surveyStationPrev.Az + Convergence;
+                        double azT = (double)surveyStation.AzWGS84 + Convergence;
+                        double azTPrev = (double)surveyStationPrev.AzWGS84 + Convergence;
                         //=Model!$W$37*(Wellpath!$K4-Wellpath!$K3)*MAX(ABS(Wellpath!$L4-Wellpath!$L3);Model!$B$24*(Wellpath!$K4-Wellpath!$K3))*COS(Wellpath!$L4)*COS(Wellpath!$M4)
                         double mod = (azT - azTPrev + Math.PI) % (2 * Math.PI);
                         double val1 = mod - Math.PI;
@@ -2989,8 +2989,8 @@ namespace NORCE.Drilling.Trajectory
                         }
                         double val3 = Math.Abs((double)surveyStation.Incl- (double)surveyStationPrev.Incl);
                         double defaultTortuosity = 0.000572615; //[rad/m]
-                        double val4 = Math.Max(val3, defaultTortuosity * (surveyStation.MD - surveyStationPrev.MD));
-                        double val5 = magnitude * (surveyStation.MD - surveyStationPrev.MD) * val4;
+                        double val4 = Math.Max(val3, defaultTortuosity * ((double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84));
+                        double val5 = magnitude * ((double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * val4;
                         e[0] = val5 * Math.Cos((double)surveyStation.Incl) * Math.Cos(azT);
                         e[1] = val5 * Math.Cos((double)surveyStation.Incl) * Math.Sin(azT);
                         e[2] = val5 * (-Math.Sin((double)surveyStation.Incl));
@@ -3002,20 +3002,20 @@ namespace NORCE.Drilling.Trajectory
                     {
                         if (c == 1)
                         {
-                            e[0] = magnitude * (surveyStationNext.MD + surveyStation.MD - 2 * surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            e[1] = magnitude * (surveyStationNext.MD + surveyStation.MD - 2 * surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            e[0] = magnitude * ((double)surveyStationNext.MdWGS84 + (double)(double)surveyStation.MdWGS84 - 2 * (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            e[1] = magnitude * ((double)surveyStationNext.MdWGS84 + (double)(double)surveyStation.MdWGS84 - 2 * (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             e[2] = 0.0;
-                            eStar[0] = magnitude * (surveyStation.MD - surveyStationPrev.MD) * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            eStar[1] = magnitude * (surveyStation.MD - surveyStationPrev.MD) * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            eStar[0] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            eStar[1] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             eStar[2] = 0.0;
                         }
                         else
                         {
-                            e[0] = magnitude * (surveyStationNext.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            e[1] = magnitude * (surveyStationNext.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            e[0] = magnitude * ((double)surveyStationNext.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            e[1] = magnitude * ((double)surveyStationNext.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             e[2] = 0.0;
-                            eStar[0] = magnitude * (surveyStation.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.Az);
-                            eStar[1] = magnitude * (surveyStation.MD - surveyStationPrev.MD) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.Az);
+                            eStar[0] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityNorth((double)surveyStation.AzWGS84);
+                            eStar[1] = magnitude * ((double)(double)surveyStation.MdWGS84 - (double)surveyStationPrev.MdWGS84) / 2 * errorSources[i].FunctionSingularityEast((double)surveyStation.AzWGS84);
                             eStar[2] = 0.0;
                         }
                     }
@@ -3160,630 +3160,7 @@ namespace NORCE.Drilling.Trajectory
                 }
             }
             return reInitialize;
-        }
-        #region Not in use
-        ///// <summary>
-        ///// Calculate Covariance matrix
-        ///// </summary>
-        ///// <param name="surveyStation"></param>
-        ///// <param name="previousStation"></param>
-        ///// <returns></returns>
-        //public void CalculateCovariances(SurveyList surveyList)
-        //{
-        //    List<double[,]> drdps = new List<double[,]>();
-        //    List<double[,]> drdpNexts = new List<double[,]>();
-        //    ISCWSA_MWDSurveyStationUncertainty iscwsaSurveyStatoinUncertainty = (ISCWSA_MWDSurveyStationUncertainty)surveyList[0].Uncertainty;
-        //    if (surveyList.Count > 1)
-        //    {
-        //        for (int i = 0; i < surveyList.Count; i++)
-        //        {
-
-
-
-        //            double[,] drdp = new double[3, 3];
-        //            if (i == 0)
-        //            {
-        //                for (int j = 0; j < 3; j++)
-        //                {
-        //                    for (int k = 0; k < 3; k++)
-        //                    {
-        //                        drdp[j, k] = 0.0;
-        //                    }
-        //                }
-        //            }
-        //            else
-        //            {
-        //                drdp = CalculateDisplacementMatrix(surveyList[i], surveyList[i - 1], i);
-        //            }
-        //            drdps.Add(drdp);
-        //            double[,] drdpNext = new double[3, 3];
-        //            if (i < surveyList.Count - 1)
-        //            {
-        //                drdpNext = CalculateDisplacemenNexttMatrix(surveyList[i], surveyList[i + 1], i);
-        //            }
-        //            else
-        //            {
-        //                SurveyStation surveySt = new SurveyStation();
-        //                surveySt.X = 0.0;
-        //                surveySt.Y = 0.0;
-        //                surveySt.Incl = 0.0;
-        //                surveySt.Az = 0.0;
-        //                drdpNext = CalculateDisplacemenNexttMatrix(surveyList[i], surveySt, i);
-        //            }
-        //            drdpNexts.Add(drdpNext);
-        //        }
-        //    }
-        //    for (int i = 0; i < surveyList.Count; i++)
-        //    {
-        //        for (int j = 0; j < 3; j++)
-        //        {
-        //            for (int k = 0; k < 3; k++)
-        //            {
-        //                surveyList[i].Uncertainty.Covariance[j, k] = 0.0;
-        //            }
-        //        }
-        //    }
-
-        //    if (ErrorIndices != null)
-        //    {
-
-        //    }
-        //    else
-        //    {
-        //        ErrorSourceDRFR errorSourceDRFR = new ErrorSourceDRFR();
-        //        CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceDRFR);
-        //        ErrorSourceDSFS errorSourceDSFS = new ErrorSourceDSFS();
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDSFS);
-        //        ErrorSourceDSTG errorSourceDSTG = new ErrorSourceDSTG();
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDSTG);
-        //        ErrorSourceABXY_TI1S errorSourceABXY_TI1S = new ErrorSourceABXY_TI1S();
-        //        errorSourceABXY_TI1S.Dip = Dip;
-        //        errorSourceABXY_TI1S.Gravity = Gravity;
-        //        errorSourceABXY_TI1S.Declination = Declination;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceABXY_TI1S);
-        //        ErrorSourceABXY_TI2S errorSourceABXY_TI2S = new ErrorSourceABXY_TI2S();
-        //        errorSourceABXY_TI2S.Dip = Dip;
-        //        errorSourceABXY_TI2S.Gravity = Gravity;
-        //        errorSourceABXY_TI2S.Declination = Declination;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceABXY_TI2S);
-        //        ErrorSourceABZ errorSourceABZ = new ErrorSourceABZ();
-        //        errorSourceABZ.Dip = Dip;
-        //        errorSourceABZ.Gravity = Gravity;
-        //        errorSourceABZ.Declination = Declination;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceABZ);
-        //        ErrorSourceASXY_TI1S errorSourceASXY_TI1S = new ErrorSourceASXY_TI1S();
-        //        errorSourceASXY_TI1S.Dip = Dip;
-        //        errorSourceASXY_TI1S.Declination = Declination;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceASXY_TI1S);
-        //        ErrorSourceASXY_TI2S errorSourceASXY_TI2S = new ErrorSourceASXY_TI2S();
-        //        errorSourceASXY_TI2S.Dip = Dip;
-        //        errorSourceASXY_TI2S.Declination = Declination;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceASXY_TI2S);
-        //        ErrorSourceASXY_TI3S errorSourceASXY_TI3S = new ErrorSourceASXY_TI3S();
-        //        errorSourceASXY_TI3S.Dip = Dip;
-        //        errorSourceASXY_TI3S.Declination = Declination;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceASXY_TI3S);
-        //        ErrorSourceASZ errorSourceASZ = new ErrorSourceASZ();
-        //        errorSourceASZ.Dip = Dip;
-        //        errorSourceASZ.Declination = Declination;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceASZ);
-        //        ErrorSourceMBXY_TI1 errorSourceMBXY_TI1 = new ErrorSourceMBXY_TI1();
-        //        errorSourceMBXY_TI1.Dip = Dip;
-        //        errorSourceMBXY_TI1.Declination = Declination;
-        //        errorSourceMBXY_TI1.BField = BField;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMBXY_TI1);
-        //        ErrorSourceMBXY_TI2 ErrorSourceMBXY_TI2 = new ErrorSourceMBXY_TI2();
-        //        ErrorSourceMBXY_TI2.Dip = Dip;
-        //        ErrorSourceMBXY_TI2.Declination = Declination;
-        //        ErrorSourceMBXY_TI2.BField = BField;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, ErrorSourceMBXY_TI2);
-        //        ErrorSourceMBZ errorSourceMBZ = new ErrorSourceMBZ();
-        //        errorSourceMBZ.Dip = Dip;
-        //        errorSourceMBZ.Declination = Declination;
-        //        errorSourceMBZ.BField = BField;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMBZ);
-        //        ErrorSourceMSXY_TI1 errorSourceMSXY_TI1 = new ErrorSourceMSXY_TI1();
-        //        errorSourceMSXY_TI1.Dip = Dip;
-        //        errorSourceMSXY_TI1.Declination = Declination;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMSXY_TI1);
-        //        ErrorSourceMSXY_TI2 errorSourceMSXY_TI2 = new ErrorSourceMSXY_TI2();
-        //        errorSourceMSXY_TI2.Dip = Dip;
-        //        errorSourceMSXY_TI2.Declination = Declination;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMSXY_TI2);
-        //        ErrorSourceMSXY_TI3 errorSourceMSXY_TI3 = new ErrorSourceMSXY_TI3();
-        //        errorSourceMSXY_TI3.Dip = Dip;
-        //        errorSourceMSXY_TI3.Declination = Declination;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMSXY_TI3);
-        //        ErrorSourceMSZ errorSourceMSZ = new ErrorSourceMSZ();
-        //        errorSourceMSZ.Dip = Dip;
-        //        errorSourceMSZ.Declination = Declination;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceMSZ);
-        //        ErrorSourceDEC_U errorSourceDEC_U = new ErrorSourceDEC_U();
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDEC_U);
-        //        ErrorSourceDEC_OS errorSourceDEC_OS = new ErrorSourceDEC_OS();
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDEC_OS);
-        //        ErrorSourceDEC_OH errorSourceDEC_OH = new ErrorSourceDEC_OH();
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDEC_OH);
-        //        ErrorSourceDEC_OI errorSourceDEC_OI = new ErrorSourceDEC_OI();
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDEC_OI);
-        //        ErrorSourceDECR errorSourceDECR = new ErrorSourceDECR();
-        //        CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceDECR);
-        //        ErrorSourceDBH_U errorSourceDBH_U = new ErrorSourceDBH_U();
-        //        errorSourceDBH_U.Dip = Dip;
-        //        errorSourceDBH_U.BField = BField;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDBH_U);
-        //        ErrorSourceDBH_OS errorSourceDBH_OS = new ErrorSourceDBH_OS();
-        //        errorSourceDBH_OS.Dip = Dip;
-        //        errorSourceDBH_OS.BField = BField;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDBH_OS);
-        //        ErrorSourceDBH_OH errorSourceDBH_OH = new ErrorSourceDBH_OH();
-        //        errorSourceDBH_OH.Dip = Dip;
-        //        errorSourceDBH_OH.BField = BField;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDBH_OH);
-        //        ErrorSourceDBH_OI errorSourceDBH_OI = new ErrorSourceDBH_OI();
-        //        errorSourceDBH_OI.Dip = Dip;
-        //        errorSourceDBH_OI.BField = BField;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceDBH_OI);
-        //        ErrorSourceDBHR errorSourceDBHR = new ErrorSourceDBHR();
-        //        errorSourceDBHR.Dip = Dip;
-        //        errorSourceDBHR.BField = BField;
-        //        CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceDBHR);
-        //        ErrorSourceAMIL errorSourceAMIL = new ErrorSourceAMIL();
-        //        errorSourceAMIL.Dip = Dip;
-        //        errorSourceAMIL.BField = BField;
-        //        errorSourceAMIL.Declination = Declination;
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceAMIL);
-        //        ErrorSourceSAGE errorSourceSAGE = new ErrorSourceSAGE();
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceSAGE);
-        //        ErrorSourceXYM1 errorSourceXYM1 = new ErrorSourceXYM1();
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceXYM1);
-        //        ErrorSourceXYM2 errorSourceXYM2 = new ErrorSourceXYM2();
-        //        CalculateSystematicCovariance(surveyList, drdps, drdpNexts, errorSourceXYM2);
-        //        ErrorSourceXYM3E errorSourceXYM3 = new ErrorSourceXYM3E();
-        //        errorSourceXYM3.Convergence = Convergence;
-        //        CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceXYM3);
-        //        ErrorSourceXYM4E errorSourceXYM4 = new ErrorSourceXYM4E();
-        //        errorSourceXYM4.Convergence = Convergence;
-        //        CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceXYM4);
-        //        //ErrorSourceXCL errorSourceXCL = new ErrorSourceXCL();
-        //        //CalculateRandomCovariance(surveyList, drdps, drdpNexts, errorSourceXCL);
-        //    }
-
-        //}
-        ///// <summary>
-        ///// Error due to the DRFR error source at the kth survey station in the lth survey leg
-        ///// </summary>
-        ///// <param name="surveyStation"></param>
-        ///// <param name="nextStation"></param>
-        ///// <returns></returns>
-        //public double[,] CalculateRandomCovariance(SurveyList surveyStations, List<double[,]> drdps, List<double[,]> drdpNexts, IErrorSource errorSource)
-        //{
-        //    //ref https://www.iscwsa.net/error-model-documentation/
-        //    double[,] sigmaerandom = new double[3, 3];
-
-        //    for (int i = 0; i < sigmaerandom.GetLength(0); i++)
-        //    {
-        //        for (int j = 0; j < sigmaerandom.GetLength(1); j++)
-        //        {
-        //            sigmaerandom[i, j] = 0.0;
-        //        }
-        //    }
-
-        //    for (int i = 0; i < surveyStations.Count; i++)
-        //    {
-        //        bool singular = false;
-        //        SurveyStation surveyStation = surveyStations[i];
-        //        double[,] drdp = drdps[i];
-        //        double[,] drdpNext = drdpNexts[i];
-        //        double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
-        //        double? depth = errorSource.FunctionDepth(surveyStation.MD, (double)surveyStation.Z); //Depth
-        //        dpde[0] = (double)depth;
-        //        double? inclination = errorSource.FunctionInc((double)surveyStation.Incl, (double)surveyStation.Az); //Inclination
-        //        dpde[1] = (double)inclination;
-        //        double? azimuth = errorSource.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
-        //        if (azimuth != null)
-        //        {
-        //            dpde[2] = (double)azimuth;
-        //        }
-        //        double magnitude = errorSource.Magnitude;
-        //        if (errorSource.SingularIssues && (depth == null || inclination == null || azimuth == null))
-        //        {
-        //            singular = true;
-        //        }
-        //        double[] e = new double[3]; //the error due to the ith error source at the kth survey station in the lth survey leg
-        //        double[] eStar = new double[3]; //the error due to the ith error source at the kth survey stations in the lth survey leg, where k is the last survey of interest
-        //        if (i == 0)
-        //        {
-        //            e[0] = 0;
-        //            e[1] = 0;
-        //            e[2] = 0;
-        //            eStar[0] = 0;
-        //            eStar[1] = 0;
-        //            eStar[2] = 0;
-        //        }
-        //        else
-        //        {
-        //            if (errorSource.SingularIssues && singular)
-        //            {
-        //                if (i == 1)
-        //                {
-        //                    e[0] = magnitude * (surveyStations[i + 1].MD + surveyStations[i].MD - 2 * surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-        //                    e[1] = magnitude * (surveyStations[i + 1].MD + surveyStations[i].MD - 2 * surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-        //                    e[2] = 0.0;
-        //                    eStar[0] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-        //                    eStar[1] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-        //                    eStar[2] = 0.0;
-        //                }
-        //                else
-        //                {
-        //                    e[0] = magnitude * (surveyStations[i + 1].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-        //                    e[1] = magnitude * (surveyStations[i + 1].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-        //                    e[2] = 0.0;
-        //                    eStar[0] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-        //                    eStar[1] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-        //                    eStar[2] = 0.0;
-        //                }
-        //            }
-        //            else
-        //            {
-        //                e[0] = magnitude * ((drdp[0, 0] + drdpNext[0, 0]) * dpde[0] + (drdp[0, 1] + drdpNext[0, 1]) * dpde[1] + (drdp[0, 2] + drdpNext[0, 2]) * dpde[2]);
-        //                e[1] = magnitude * ((drdp[1, 0] + drdpNext[1, 0]) * dpde[0] + (drdp[1, 1] + drdpNext[1, 1]) * dpde[1] + (drdp[1, 2] + drdpNext[1, 2]) * dpde[2]);
-        //                e[2] = magnitude * ((drdp[2, 0] + drdpNext[2, 0]) * dpde[0] + (drdp[2, 1] + drdpNext[2, 1]) * dpde[1] + (drdp[2, 2] + drdpNext[2, 2]) * dpde[2]);
-        //                eStar[0] = magnitude * ((drdp[0, 0]) * dpde[0] + (drdp[0, 1]) * dpde[1] + (drdp[0, 2]) * dpde[2]);
-        //                eStar[1] = magnitude * ((drdp[1, 0]) * dpde[0] + (drdp[1, 1]) * dpde[1] + (drdp[1, 2]) * dpde[2]);
-        //                eStar[2] = magnitude * ((drdp[2, 0]) * dpde[0] + (drdp[2, 1]) * dpde[1] + (drdp[2, 2]) * dpde[2]);
-        //            }
-        //        }
-
-        //        double[,] CovarianceRan = new double[3, 3];
-        //        if (i == 0)
-        //        {
-        //            CovarianceRan[0, 0] = eStar[0] * eStar[0];
-        //            CovarianceRan[1, 1] = eStar[1] * eStar[1];
-        //            CovarianceRan[2, 2] = eStar[2] * eStar[2];
-        //            CovarianceRan[1, 0] = eStar[0] * eStar[1];
-        //            CovarianceRan[0, 1] = CovarianceRan[1, 0];
-        //            CovarianceRan[2, 0] = eStar[0] * eStar[2];
-        //            CovarianceRan[0, 2] = CovarianceRan[2, 0];
-        //            CovarianceRan[1, 2] = eStar[1] * eStar[2];
-        //            CovarianceRan[2, 1] = CovarianceRan[2, 1];
-        //        }
-        //        else
-        //        {
-        //            CovarianceRan[0, 0] = sigmaerandom[0, 0] + eStar[0] * eStar[0];
-        //            CovarianceRan[1, 1] = sigmaerandom[1, 1] + eStar[1] * eStar[1];
-        //            CovarianceRan[2, 2] = sigmaerandom[2, 2] + eStar[2] * eStar[2];
-        //            CovarianceRan[1, 0] = eStar[0] * eStar[1] + sigmaerandom[1, 0];
-        //            CovarianceRan[0, 1] = CovarianceRan[1, 0];
-        //            CovarianceRan[2, 0] = eStar[0] * eStar[2] + sigmaerandom[2, 0];
-        //            CovarianceRan[0, 2] = CovarianceRan[2, 0];
-        //            CovarianceRan[1, 2] = eStar[1] * eStar[2] + sigmaerandom[1, 2];
-        //            CovarianceRan[2, 1] = CovarianceRan[1, 2];
-        //        }
-        //        for (int j = 0; j < 3; j++)
-        //        {
-        //            for (int k = 0; k < 3; k++)
-        //            {
-        //                surveyStations[i].Uncertainty.Covariance[j, k] += CovarianceRan[j, k];
-        //            }
-        //        }
-        //        sigmaerandom[0, 0] = e[0] * e[0] + sigmaerandom[0, 0];
-        //        sigmaerandom[1, 1] = e[1] * e[1] + sigmaerandom[1, 1];
-        //        sigmaerandom[2, 2] = e[2] * e[2] + sigmaerandom[2, 2];
-        //        sigmaerandom[1, 0] = e[0] * e[1] + sigmaerandom[1, 0];
-        //        sigmaerandom[0, 1] = sigmaerandom[1, 0];
-        //        sigmaerandom[2, 0] = e[0] * e[2] + sigmaerandom[2, 0];
-        //        sigmaerandom[0, 2] = sigmaerandom[2, 0];
-        //        sigmaerandom[1, 2] = e[1] * e[2] + sigmaerandom[1, 2];
-        //        sigmaerandom[2, 1] = sigmaerandom[1, 2];
-
-        //    }
-        //    return null;
-        //}
-
-        ///// <summary>
-        ///// Error due to the Systematic error source at the kth survey station in the lth survey leg
-        ///// </summary>
-        ///// <param name="surveyStation"></param>
-        ///// <param name="nextStation"></param>
-        ///// <returns></returns>
-        //public double[,] CalculateSystematicCovariance(SurveyList surveyStations, List<double[,]> drdps, List<double[,]> drdpNexts, IErrorSource errorSource)
-        //{
-        //    //ref https://www.iscwsa.net/error-model-documentation/
-        //    List<double[]> eAll = new List<double[]>();
-        //    List<double[]> eStarAll = new List<double[]>();
-        //    double eNSum = 0.0;
-        //    double eESum = 0.0;
-        //    double eVSum = 0.0;
-        //    for (int i = 0; i < surveyStations.Count; i++)
-        //    {
-        //        bool singular = false;
-        //        double[] sigmaesystematic = new double[3];
-        //        SurveyStation surveyStation = surveyStations[i];
-        //        double[,] drdp = drdps[i];
-        //        double[,] drdpNext = drdpNexts[i];
-        //        double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
-        //        double? depth = errorSource.FunctionDepth(surveyStation.MD, (double)surveyStation.Z); //Depth
-        //        dpde[0] = (double)depth;
-        //        double? inclination = errorSource.FunctionInc((double)surveyStation.Incl, (double)surveyStation.Az); //Inclination
-        //        dpde[1] = (double)inclination;
-        //        double? azimuth = errorSource.FunctionAz((double)surveyStation.Incl, (double)surveyStation.Az); //Azimuth
-        //        if (azimuth != null)
-        //        {
-        //            dpde[2] = (double)azimuth;
-        //        }
-        //        double magnitude = errorSource.Magnitude;// (double)surveyInstrument.MSZ;
-        //        if (errorSource.SingularIssues && (depth == null || inclination == null || azimuth == null))
-        //        {
-        //            singular = true;
-        //        }
-        //        double[] e = new double[3]; //the error due to the ith error source at the kth survey station in the lth survey leg
-        //        double[] eStar = new double[3]; //the error due to the ith error source at the kth survey stations in the lth survey leg, where k is the last survey of interest
-        //        if (i == 0)
-        //        {
-        //            e[0] = 0;
-        //            e[1] = 0;
-        //            e[2] = 0;
-        //            eStar[0] = 0;
-        //            eStar[1] = 0;
-        //            eStar[2] = 0;
-        //        }
-        //        else
-        //        {
-        //            if (errorSource.SingularIssues && singular)
-        //            {
-        //                if (i == 1)
-        //                {
-        //                    e[0] = magnitude * (surveyStations[i + 1].MD + surveyStations[i].MD - 2 * surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-        //                    e[1] = magnitude * (surveyStations[i + 1].MD + surveyStations[i].MD - 2 * surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-        //                    e[2] = 0.0;
-        //                    eStar[0] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-        //                    eStar[1] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-        //                    eStar[2] = 0.0;
-        //                }
-        //                else
-        //                {
-        //                    e[0] = magnitude * (surveyStations[i + 1].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-        //                    e[1] = magnitude * (surveyStations[i + 1].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-        //                    e[2] = 0.0;
-        //                    eStar[0] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityNorth((double)surveyStation.Az);
-        //                    eStar[1] = magnitude * (surveyStations[i].MD - surveyStations[i - 1].MD) / 2 * errorSource.FunctionSingularityEast((double)surveyStation.Az);
-        //                    eStar[2] = 0.0;
-        //                }
-        //            }
-        //            else
-        //            {
-        //                e[0] = magnitude * ((drdp[0, 0] + drdpNext[0, 0]) * dpde[0] + (drdp[0, 1] + drdpNext[0, 1]) * dpde[1] + (drdp[0, 2] + drdpNext[0, 2]) * dpde[2]);
-        //                e[1] = magnitude * ((drdp[1, 0] + drdpNext[1, 0]) * dpde[0] + (drdp[1, 1] + drdpNext[1, 1]) * dpde[1] + (drdp[1, 2] + drdpNext[1, 2]) * dpde[2]);
-        //                e[2] = magnitude * ((drdp[2, 0] + drdpNext[2, 0]) * dpde[0] + (drdp[2, 1] + drdpNext[2, 1]) * dpde[1] + (drdp[2, 2] + drdpNext[2, 2]) * dpde[2]);
-        //                eStar[0] = magnitude * ((drdp[0, 0]) * dpde[0] + (drdp[0, 1]) * dpde[1] + (drdp[0, 2]) * dpde[2]);
-        //                eStar[1] = magnitude * ((drdp[1, 0]) * dpde[0] + (drdp[1, 1]) * dpde[1] + (drdp[1, 2]) * dpde[2]);
-        //                eStar[2] = magnitude * ((drdp[2, 0]) * dpde[0] + (drdp[2, 1]) * dpde[1] + (drdp[2, 2]) * dpde[2]);
-        //            }
-
-        //        }
-
-        //        sigmaesystematic[0] = eNSum + eStar[0];
-        //        sigmaesystematic[1] = eESum + eStar[1];
-        //        sigmaesystematic[2] = eVSum + eStar[2];
-
-        //        double[,] CovarianceSys = new double[3, 3];
-        //        if (i == 0)
-        //        {
-        //            CovarianceSys[0, 0] = eStar[0] * eStar[0];
-        //            CovarianceSys[1, 1] = eStar[1] * eStar[1];
-        //            CovarianceSys[2, 2] = eStar[2] * eStar[2];
-        //            CovarianceSys[1, 0] = eStar[0] * eStar[1];
-        //            CovarianceSys[0, 1] = CovarianceSys[1, 0];
-        //            CovarianceSys[2, 0] = eStar[0] * eStar[2];
-        //            CovarianceSys[0, 2] = CovarianceSys[2, 0];
-        //            CovarianceSys[1, 2] = eStar[1] * eStar[2];
-        //            CovarianceSys[2, 1] = CovarianceSys[2, 1];
-        //        }
-        //        else
-        //        {
-        //            CovarianceSys[0, 0] = sigmaesystematic[0] * sigmaesystematic[0];
-        //            CovarianceSys[1, 1] = sigmaesystematic[1] * sigmaesystematic[1];
-        //            CovarianceSys[2, 2] = sigmaesystematic[2] * sigmaesystematic[2];
-        //            CovarianceSys[1, 0] = sigmaesystematic[1] * sigmaesystematic[0];
-        //            CovarianceSys[0, 1] = CovarianceSys[1, 0];
-        //            CovarianceSys[2, 0] = sigmaesystematic[2] * sigmaesystematic[0];
-        //            CovarianceSys[0, 2] = CovarianceSys[2, 0];
-        //            CovarianceSys[1, 2] = sigmaesystematic[1] * sigmaesystematic[2];
-        //            CovarianceSys[2, 1] = CovarianceSys[1, 2];
-        //        }
-        //        for (int j = 0; j < 3; j++)
-        //        {
-        //            for (int k = 0; k < 3; k++)
-        //            {
-        //                Covariance[j, k] += CovarianceSys[j, k];
-        //            }
-        //        }
-        //        eAll.Add(e);
-        //        eStarAll.Add(eStar);
-        //        eNSum += e[0];
-        //        eESum += e[1];
-        //        eVSum += e[2];
-        //    }
-        //    return null;
-        //}
-        ///// <summary>
-        ///// Error due to the DRFR error source at the kth survey station in the lth survey leg
-        ///// </summary>
-        ///// <param name="surveyStation"></param>
-        ///// <param name="nextStation"></param>
-        ///// <returns></returns>
-        //public double[,] CalculateCovarianceDRFR(double[,] drdp, double[,] drdpNext, SurveyInstrument.Model.SurveyInstrument surveyInstrument, double[,] sigmaerandom, int st)
-        //{
-        //    //ref https://www.iscwsa.net/error-model-documentation/
-        //    double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
-        //    dpde[0] = 1; //Depth
-        //    dpde[1] = 0; //Inclination
-        //    dpde[2] = 0; //Azimuth
-        //    double magnitude = (double)surveyInstrument.DRFR;
-        //    double[] e = new double[3]; //the error due to the ith error source at the kth survey station in the lth survey leg
-        //    double[] eStar = new double[3]; //the error due to the ith error source at the kth survey stations in the lth survey leg, where k is the last survey of interest
-        //    if (st == 0)
-        //    {
-        //        e[0] = 0;
-        //        e[1] = 0;
-        //        e[2] = 0;
-        //        eStar[0] = 0;
-        //        eStar[1] = 0;
-        //        eStar[2] = 0;
-        //    }
-        //    else
-        //    {
-        //        e[0] = magnitude * ((drdp[0, 0] + drdpNext[0, 0]) * dpde[0] + (drdp[0, 1] + drdpNext[0, 1]) * dpde[1] + (drdp[0, 2] + drdpNext[0, 2]) * dpde[2]);
-        //        e[1] = magnitude * ((drdp[1, 0] + drdpNext[1, 0]) * dpde[0] + (drdp[1, 1] + drdpNext[1, 1]) * dpde[1] + (drdp[1, 2] + drdpNext[1, 2]) * dpde[2]);
-        //        e[2] = magnitude * ((drdp[2, 0] + drdpNext[2, 0]) * dpde[0] + (drdp[2, 1] + drdpNext[2, 1]) * dpde[1] + (drdp[2, 2] + drdpNext[2, 2]) * dpde[2]);
-        //        eStar[0] = magnitude * ((drdp[0, 0]) * dpde[0] + (drdp[0, 1]) * dpde[1] + (drdp[0, 2]) * dpde[2]);
-        //        eStar[1] = magnitude * ((drdp[1, 0]) * dpde[0] + (drdp[1, 1]) * dpde[1] + (drdp[1, 2]) * dpde[2]);
-        //        eStar[2] = magnitude * ((drdp[2, 0]) * dpde[0] + (drdp[2, 1]) * dpde[1] + (drdp[2, 2]) * dpde[2]);
-        //    }
-
-
-        //    double[,] CovarianceDRFR = new double[3, 3];
-        //    if (st == 0)
-        //    {
-        //        CovarianceDRFR[0, 0] = eStar[0] * eStar[0];
-        //        CovarianceDRFR[1, 1] = eStar[1] * eStar[1];
-        //        CovarianceDRFR[2, 2] = eStar[2] * eStar[2];
-        //        CovarianceDRFR[1, 0] = eStar[0] * eStar[1];
-        //        CovarianceDRFR[0, 1] = CovarianceDRFR[1, 0];
-        //        CovarianceDRFR[2, 0] = eStar[0] * eStar[2];
-        //        CovarianceDRFR[0, 2] = CovarianceDRFR[2, 0];
-        //        CovarianceDRFR[1, 2] = eStar[1] * eStar[2];
-        //        CovarianceDRFR[2, 1] = CovarianceDRFR[2, 1];
-        //    }
-        //    else
-        //    {
-        //        CovarianceDRFR[0, 0] = sigmaerandom[0, 0] + eStar[0] * eStar[0];
-        //        CovarianceDRFR[1, 1] = sigmaerandom[1, 1] + eStar[1] * eStar[1];
-        //        CovarianceDRFR[2, 2] = sigmaerandom[2, 2] + eStar[2] * eStar[2];
-        //        CovarianceDRFR[1, 0] = eStar[0] * eStar[1] + sigmaerandom[1, 0];
-        //        CovarianceDRFR[0, 1] = CovarianceDRFR[1, 0];
-        //        CovarianceDRFR[2, 0] = eStar[0] * eStar[2] + sigmaerandom[2, 0];
-        //        CovarianceDRFR[0, 2] = CovarianceDRFR[2, 0];
-        //        CovarianceDRFR[1, 2] = eStar[1] * eStar[2] + sigmaerandom[1, 2];
-        //        CovarianceDRFR[2, 1] = CovarianceDRFR[1, 2];
-        //    }
-        //    for (int j = 0; j < 3; j++)
-        //    {
-        //        for (int k = 0; k < 3; k++)
-        //        {
-        //            Covariance[j, k] += CovarianceDRFR[j, k];
-        //        }
-        //    }
-        //    sigmaerandom[0, 0] = e[0] * e[0] + sigmaerandom[0, 0];
-        //    sigmaerandom[1, 1] = e[1] * e[1] + sigmaerandom[1, 1];
-        //    sigmaerandom[2, 2] = e[2] * e[2] + sigmaerandom[2, 2];
-        //    sigmaerandom[1, 0] = e[0] * e[1] + sigmaerandom[1, 0];
-        //    sigmaerandom[0, 1] = sigmaerandom[1, 0];
-        //    sigmaerandom[2, 0] = e[0] * e[2] + sigmaerandom[2, 0];
-        //    sigmaerandom[0, 2] = sigmaerandom[2, 0];
-        //    sigmaerandom[1, 2] = e[1] * e[2] + sigmaerandom[1, 2];
-        //    sigmaerandom[2, 1] = sigmaerandom[1, 2];
-
-        //    return sigmaerandom;
-        //}
-        ///// <summary>
-        ///// Error due to the MWD: Z-Magnetometer Scale Factor error source at the kth survey station in the lth survey leg
-        ///// </summary>
-        ///// <param name="surveyStation"></param>
-        ///// <param name="nextStation"></param>
-        ///// <returns></returns>
-        //public double[,] CalculateCovarianceMSZ(SurveyList surveyStations, List<double[,]> drdps, List<double[,]> drdpNexts, SurveyInstrument.Model.SurveyInstrument surveyInstrument)
-        //{
-        //    //ref https://www.iscwsa.net/error-model-documentation/
-        //    List<double[]> eAll = new List<double[]>();
-        //    List<double[]> eStarAll = new List<double[]>();
-        //    double eNSum = 0.0;
-        //    double eESum = 0.0;
-        //    double eVSum = 0.0;
-        //    for (int i = 0; i < surveyStations.Count; i++)
-        //    {
-        //        double[] sigmaesystematic = new double[3];
-        //        SurveyStation surveyStation = surveyStations[i];
-        //        double[,] drdp = drdps[i];
-        //        double[,] drdpNext = drdpNexts[i];
-        //        double sinI = System.Math.Sin((double)surveyStation.Incl);
-        //        double cosI = System.Math.Cos((double)surveyStation.Incl);
-        //        double sinAm = System.Math.Sin((double)surveyStation.Az - Declination);
-        //        double cosAm = System.Math.Cos((double)surveyStation.Az - Declination);
-        //        double tanDip = System.Math.Tan(Dip);
-        //        double[] dpde = new double[3]; //weighting function – the effect of the ith error source on the survey measurement vector
-        //        dpde[0] = 0; //Depth
-        //        dpde[1] = 0; //Inclination
-        //        dpde[2] = -(sinI * cosAm + tanDip * cosI) * sinI * sinAm; //Azimuth
-        //        double magnitude = (double)surveyInstrument.MSZ;
-        //        double[] e = new double[3]; //the error due to the ith error source at the kth survey station in the lth survey leg
-        //        double[] eStar = new double[3]; //the error due to the ith error source at the kth survey stations in the lth survey leg, where k is the last survey of interest
-        //        if (i == 0)
-        //        {
-        //            e[0] = 0;
-        //            e[1] = 0;
-        //            e[2] = 0;
-        //            eStar[0] = 0;
-        //            eStar[1] = 0;
-        //            eStar[2] = 0;
-        //        }
-        //        else
-        //        {
-        //            e[0] = magnitude * ((drdp[0, 0] + drdpNext[0, 0]) * dpde[0] + (drdp[0, 1] + drdpNext[0, 1]) * dpde[1] + (drdp[0, 2] + drdpNext[0, 2]) * dpde[2]);
-        //            e[1] = magnitude * ((drdp[1, 0] + drdpNext[1, 0]) * dpde[0] + (drdp[1, 1] + drdpNext[1, 1]) * dpde[1] + (drdp[1, 2] + drdpNext[1, 2]) * dpde[2]);
-        //            e[2] = magnitude * ((drdp[2, 0] + drdpNext[2, 0]) * dpde[0] + (drdp[2, 1] + drdpNext[2, 1]) * dpde[1] + (drdp[2, 2] + drdpNext[2, 2]) * dpde[2]);
-        //            eStar[0] = magnitude * ((drdp[0, 0]) * dpde[0] + (drdp[0, 1]) * dpde[1] + (drdp[0, 2]) * dpde[2]);
-        //            eStar[1] = magnitude * ((drdp[1, 0]) * dpde[0] + (drdp[1, 1]) * dpde[1] + (drdp[1, 2]) * dpde[2]);
-        //            eStar[2] = magnitude * ((drdp[2, 0]) * dpde[0] + (drdp[2, 1]) * dpde[1] + (drdp[2, 2]) * dpde[2]);
-        //        }
-
-        //        sigmaesystematic[0] = eNSum + eStar[0];
-        //        sigmaesystematic[1] = eESum + eStar[1];
-        //        sigmaesystematic[2] = eVSum + eStar[2];
-
-        //        double[,] CovarianceMSZ = new double[3, 3];
-        //        if (i == 0)
-        //        {
-        //            CovarianceMSZ[0, 0] = eStar[0] * eStar[0];
-        //            CovarianceMSZ[1, 1] = eStar[1] * eStar[1];
-        //            CovarianceMSZ[2, 2] = eStar[2] * eStar[2];
-        //            CovarianceMSZ[1, 0] = eStar[0] * eStar[1];
-        //            CovarianceMSZ[0, 1] = CovarianceMSZ[1, 0];
-        //            CovarianceMSZ[2, 0] = eStar[0] * eStar[2];
-        //            CovarianceMSZ[0, 2] = CovarianceMSZ[2, 0];
-        //            CovarianceMSZ[1, 2] = eStar[1] * eStar[2];
-        //            CovarianceMSZ[2, 1] = CovarianceMSZ[2, 1];
-        //        }
-        //        else
-        //        {
-        //            CovarianceMSZ[0, 0] = sigmaesystematic[0] * sigmaesystematic[0];
-        //            CovarianceMSZ[1, 1] = sigmaesystematic[1] * sigmaesystematic[1];
-        //            CovarianceMSZ[2, 2] = sigmaesystematic[2] * sigmaesystematic[2];
-        //            CovarianceMSZ[1, 0] = sigmaesystematic[1] * sigmaesystematic[0];
-        //            CovarianceMSZ[0, 1] = CovarianceMSZ[1, 0];
-        //            CovarianceMSZ[2, 0] = sigmaesystematic[2] * sigmaesystematic[0];
-        //            CovarianceMSZ[0, 2] = CovarianceMSZ[2, 0];
-        //            CovarianceMSZ[1, 2] = sigmaesystematic[1] * sigmaesystematic[2];
-        //            CovarianceMSZ[2, 1] = CovarianceMSZ[1, 2];
-        //        }
-        //        for (int j = 0; j < 3; j++)
-        //        {
-        //            for (int k = 0; k < 3; k++)
-        //            {
-        //                Covariance[j, k] += CovarianceMSZ[j, k];
-        //            }
-        //        }
-        //        eAll.Add(e);
-        //        eStarAll.Add(eStar);
-        //        eNSum += e[0];
-        //        eESum += e[1];
-        //        eVSum += e[2];
-        //    }
-
-        //    return null;
-        //}
-        #endregion
+        }       
     }
 
     public interface IErrorSource

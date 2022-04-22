@@ -247,8 +247,8 @@ namespace NORCE.Drilling.Trajectory
             double[,] A = new double[3, 3];
             double sinI = System.Math.Sin((double)surveyStation.Incl);
             double cosI = System.Math.Cos((double)surveyStation.Incl);
-            double sinA = System.Math.Sin((double)surveyStation.Az);
-            double cosA = System.Math.Cos((double)surveyStation.Az);
+            double sinA = System.Math.Sin((double)surveyStation.AzWGS84);
+            double cosA = System.Math.Cos((double)surveyStation.AzWGS84);
 
             double kScale = 1; //Scaling factor of error ellipsoid
             kScale = System.Math.Sqrt(chiSquare);
@@ -400,24 +400,24 @@ namespace NORCE.Drilling.Trajectory
                 double TrueInclination = 1.0 * Numeric.PI / 180.0;
                 double ReferenceError = 1.5 * Numeric.PI / 180.0;
                 double DrillStringMagnetisation = 5.0 * Numeric.PI / 180.0;
-          double GyroCompassError = Numeric.UNDEF_DOUBLE;
+                double GyroCompassError = Numeric.UNDEF_DOUBLE;
                 double sinI = System.Math.Sin((double)surveyStation.Incl);
                 double cosI = System.Math.Cos((double)surveyStation.Incl);
-                double sinA = System.Math.Sin((double)surveyStation.Az);
-                double cosA = System.Math.Cos((double)surveyStation.Az);
-                double deltaSk = surveyStation.MD - previousStation.MD;
-                double Vk = (double)surveyStation.Z;
-                double Nk = (double)surveyStation.X;
-                double Ek = (double)surveyStation.Y;
+                double sinA = System.Math.Sin((double)surveyStation.AzWGS84);
+                double cosA = System.Math.Cos((double)surveyStation.AzWGS84);
+                double deltaSk = (double)surveyStation.MdWGS84 - (double)previousStation.MdWGS84;
+                double Vk = (double)surveyStation.TvdWGS84;
+                double Nk = (double)surveyStation.NorthOfWellHead ;
+                double Ek = (double)surveyStation.EastOfWellHead;
                 double deltaC10 = (Numeric.IsDefined(ReferenceError)) ? ReferenceError : 0;
                 double deltaC20 = (Numeric.IsDefined(DrillStringMagnetisation)) ? DrillStringMagnetisation : 0;
                 double deltaC30 = (Numeric.IsDefined(GyroCompassError)) ? GyroCompassError : 0;
                 double deltaIt0 = (Numeric.IsDefined(TrueInclination)) ? TrueInclination : 0;
                 double deltaIm = (Numeric.IsDefined(Misalignment)) ?Misalignment : 0;
                 double epsilon = (Numeric.IsDefined(RelativeDepthError)) ? RelativeDepthError : 0;
-                double deltaZ = (double)surveyStation.Z - (double)previousStation.Z;
-                double deltaX = (double)surveyStation.X - (double)previousStation.X;
-                double deltaY = (double)surveyStation.Y - (double)previousStation.Y;
+                double deltaZ = (double)surveyStation.TvdWGS84 - (double)previousStation.TvdWGS84;
+                double deltaX = (double)surveyStation.NorthOfWellHead  - (double)previousStation.NorthOfWellHead ;
+                double deltaY = (double)surveyStation.EastOfWellHead - (double)previousStation.EastOfWellHead;
 
                 if ((Numeric.EQ(cosI, 0.0) && Numeric.IsDefined(deltaC30) && !Numeric.EQ(deltaC30, 0.0)) || Numeric.IsUndefined(A[0, 0]))
                 {

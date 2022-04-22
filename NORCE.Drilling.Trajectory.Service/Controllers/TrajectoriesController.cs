@@ -244,18 +244,18 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                             {
                                 SurveyStation st = new SurveyStation();
                                 double? incl = value.SurveyList.ListOfSurveys[i].Incl;
-                                double? az = value.SurveyList.ListOfSurveys[i].Az;
-                                double? md = value.SurveyList.ListOfSurveys[i].MD;
-                                double? tvd = value.SurveyList.ListOfSurveys[i].Z;
-                                double? X = value.SurveyList.ListOfSurveys[i].X;
-                                double? Y = value.SurveyList.ListOfSurveys[i].Y;
-                                double? Z = value.SurveyList.ListOfSurveys[i].Z;
-                                st.Az = az;
+                                double? az = value.SurveyList.ListOfSurveys[i].AzWGS84;
+                                double? md = value.SurveyList.ListOfSurveys[i].MdWGS84;
+                                double? tvd = value.SurveyList.ListOfSurveys[i].TvdWGS84;
+                                double? X = value.SurveyList.ListOfSurveys[i].NorthOfWellHead ;
+                                double? Y = value.SurveyList.ListOfSurveys[i].EastOfWellHead;
+                                double? Z = value.SurveyList.ListOfSurveys[i].TvdWGS84;
+                                st.AzWGS84 = az;
                                 st.Incl = incl;
-                                st.X = X;
-                                st.Y = Y;
-                                st.Z = tvd;
-                                st.MD = (double)md;
+                                st.NorthOfWellHead  = X;
+                                st.EastOfWellHead = Y;
+                                st.TvdWGS84 = tvd;
+                                st.MdWGS84 = (double)md;
                                 //NB: Need to update when more uncertaintymodels are available and SurveyTools included
 
                                 //SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
@@ -338,18 +338,18 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                 {
                                     SurveyStation st = new SurveyStation();
                                     double? incl = value.SurveyList.ListOfSurveys[i].Incl;
-                                    double? az = value.SurveyList.ListOfSurveys[i].Az;
-                                    double? md = value.SurveyList.ListOfSurveys[i].MD;
-                                    double? tvd = value.SurveyList.ListOfSurveys[i].Z;
-                                    double? X = value.SurveyList.ListOfSurveys[i].X;
-                                    double? Y = value.SurveyList.ListOfSurveys[i].Y;
-                                    double? Z = value.SurveyList.ListOfSurveys[i].Z;
-                                    st.Az = az;
+                                    double? az = value.SurveyList.ListOfSurveys[i].AzWGS84;
+                                    double? md = value.SurveyList.ListOfSurveys[i].MdWGS84;
+                                    double? tvd = value.SurveyList.ListOfSurveys[i].TvdWGS84;
+                                    double? X = value.SurveyList.ListOfSurveys[i].NorthOfWellHead ;
+                                    double? Y = value.SurveyList.ListOfSurveys[i].EastOfWellHead;
+                                    double? Z = value.SurveyList.ListOfSurveys[i].TvdWGS84;
+                                    st.AzWGS84 = az;
                                     st.Incl = incl;
-                                    st.X = X;
-                                    st.Y = Y;
-                                    st.Z = tvd;
-                                    st.MD = (double)md;
+                                    st.NorthOfWellHead  = X;
+                                    st.EastOfWellHead = Y;
+                                    st.TvdWGS84 = tvd;
+                                    st.MdWGS84 = (double)md;
                                     //SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
                                     st.SurveyTool = value.SurveyList.ListOfSurveys[i].SurveyTool;
                                     if (st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.WolffDeWardt)
@@ -421,18 +421,18 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                 {
                                     SurveyStation st = new SurveyStation();
                                     double? incl = value.SurveyList.ListOfSurveys[i].Incl;
-                                    double? az = value.SurveyList.ListOfSurveys[i].Az;
-                                    double? md = value.SurveyList.ListOfSurveys[i].MD;
-                                    double? tvd = value.SurveyList.ListOfSurveys[i].Z;
-                                    double? X = value.SurveyList.ListOfSurveys[i].X;
-                                    double? Y = value.SurveyList.ListOfSurveys[i].Y;
-                                    double? Z = value.SurveyList.ListOfSurveys[i].Z;
-                                    st.Az = az;
+                                    double? az = value.SurveyList.ListOfSurveys[i].AzWGS84;
+                                    double? md = value.SurveyList.ListOfSurveys[i].MdWGS84;
+                                    double? tvd = value.SurveyList.ListOfSurveys[i].TvdWGS84;
+                                    double? X = value.SurveyList.ListOfSurveys[i].NorthOfWellHead ;
+                                    double? Y = value.SurveyList.ListOfSurveys[i].EastOfWellHead;
+                                    double? Z = value.SurveyList.ListOfSurveys[i].TvdWGS84;
+                                    st.AzWGS84 = az;
                                     st.Incl = incl;
-                                    st.X = X;
-                                    st.Y = Y;
-                                    st.Z = tvd;
-                                    st.MD = (double)md;
+                                    st.NorthOfWellHead  = X;
+                                    st.EastOfWellHead = Y;
+                                    st.TvdWGS84 = tvd;
+                                    st.MdWGS84 = (double)md;
                                     st.SurveyTool = value.SurveyList.ListOfSurveys[i].SurveyTool;
                                     if (st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.WolffDeWardt)
                                     {
