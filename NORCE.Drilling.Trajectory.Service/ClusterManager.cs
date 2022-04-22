@@ -241,7 +241,12 @@ namespace NORCE.Drilling.Trajectory.Service
                                     }
                                     else if (clusterCoordinates != null)
                                     {
-                                        clusterCoordinates = (List<Cluster.ModelClientShared.ClusterCoordinate>)result.ClusterCoordinates;
+                                        clusterCoordinates.Clear();
+                                        foreach (Cluster.ModelClientShared.ClusterCoordinate coord in result.ClusterCoordinates)
+                                        {
+                                            clusterCoordinates.Add(coord);
+                                        }
+                                        //clusterCoordinates = (List<Cluster.ModelClientShared.ClusterCoordinate>)result.ClusterCoordinates;
                                     }
                                     return true;
                                 }
