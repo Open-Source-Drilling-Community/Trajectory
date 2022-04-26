@@ -237,6 +237,20 @@
           ],
           "format": "double"
         },
+        "LongitudeWGS84": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "LatitudeWGS84": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
         "EllipseRadius": {
           "oneOf": [
             {
@@ -257,7 +271,7 @@
             "null"
           ],
           "items": {
-            "$ref": "#/definitions/Point3D"
+            "$ref": "#/definitions/GlobalCoordinatePoint3D"
           }
         },
         "EllipseAreaCoordinates": {
@@ -266,7 +280,7 @@
             "null"
           ],
           "items": {
-            "$ref": "#/definitions/Point3D"
+            "$ref": "#/definitions/GlobalCoordinatePoint3D"
           }
         }
       }
@@ -295,28 +309,7 @@
         }
       }
     },
-    "UTMCoordinate": {
-      "type": "object",
-      "additionalProperties": false,
-      "properties": {
-        "X": {
-          "type": "number",
-          "format": "double"
-        },
-        "Y": {
-          "type": "number",
-          "format": "double"
-        },
-        "Zone": {
-          "type": "integer",
-          "format": "int32"
-        },
-        "ZoneIsNorth": {
-          "type": "boolean"
-        }
-      }
-    },
-    "SurveyStation": {
+    "GlobalCoordinatePoint3D": {
       "allOf": [
         {
           "$ref": "#/definitions/CurvilinearPoint3D"
@@ -373,7 +366,75 @@
                 "number"
               ],
               "format": "double"
+            }
+          }
+        }
+      ]
+    },
+    "CurvilinearPoint3D": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/Point3D"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "Abscissa": {
+              "type": [
+                "null",
+                "number"
+              ],
+              "format": "double"
             },
+            "Incl": {
+              "type": [
+                "null",
+                "number"
+              ],
+              "format": "double"
+            },
+            "Az": {
+              "type": [
+                "null",
+                "number"
+              ],
+              "format": "double"
+            }
+          }
+        }
+      ]
+    },
+    "UTMCoordinate": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "X": {
+          "type": "number",
+          "format": "double"
+        },
+        "Y": {
+          "type": "number",
+          "format": "double"
+        },
+        "Zone": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "ZoneIsNorth": {
+          "type": "boolean"
+        }
+      }
+    },
+    "SurveyStation": {
+      "allOf": [
+        {
+          "$ref": "#/definitions/GlobalCoordinatePoint3D"
+        },
+        {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
             "Uncertainty": {
               "oneOf": [
                 {
@@ -1611,40 +1672,6 @@
         6,
         7,
         8
-      ]
-    },
-    "CurvilinearPoint3D": {
-      "allOf": [
-        {
-          "$ref": "#/definitions/Point3D"
-        },
-        {
-          "type": "object",
-          "additionalProperties": false,
-          "properties": {
-            "Abscissa": {
-              "type": [
-                "null",
-                "number"
-              ],
-              "format": "double"
-            },
-            "Incl": {
-              "type": [
-                "null",
-                "number"
-              ],
-              "format": "double"
-            },
-            "Az": {
-              "type": [
-                "null",
-                "number"
-              ],
-              "format": "double"
-            }
-          }
-        }
       ]
     }
   }

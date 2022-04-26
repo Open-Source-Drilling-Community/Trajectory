@@ -6,6 +6,7 @@ using NORCE.General.Std;
 using NORCE.General.Coordinates;
 using NORCE.General.Octree;
 using NORCE.Drilling.SurveyInstrument.Model;
+using NORCE.Drilling.Well.Model;
 
 
 namespace NORCE.Drilling.Trajectory
@@ -220,7 +221,12 @@ namespace NORCE.Drilling.Trajectory
             return GetUncertaintyEnvelope(confidenceFactor, scalingFactor, null, null, null, null, null, calculateEllipseAreaCoordinates);
         }
 
-        private List<UncertaintyEnvelopeEllipse> GetUncertaintyEnvelope(double confidenceFactor, double scalingFactor = 1.0, double? minTVD = null, double? maxTVD = null, double? minMD = null, double? maxMD = null, int? maxEllipsesCount = null, bool calculateEllipseAreaCoordinates = false)
+        public List<UncertaintyEnvelopeEllipse> GetUncertaintyEnvelope(double confidenceFactor, double scalingFactor, Well.Model.Well well, Cluster.Model.Cluster cluster)
+        {
+            return GetUncertaintyEnvelope(confidenceFactor, scalingFactor, null, null, null, null, null, false, well, cluster);
+        }
+
+        private List<UncertaintyEnvelopeEllipse> GetUncertaintyEnvelope(double confidenceFactor, double scalingFactor = 1.0, double? minTVD = null, double? maxTVD = null, double? minMD = null, double? maxMD = null, int? maxEllipsesCount = null, bool calculateEllipseAreaCoordinates = false, Well.Model.Well well = null, Cluster.Model.Cluster cluster = null)
         { 
             double[,] A = new double[6, 3];
             for (int i = 0; i < A.GetLength(0); i++)
@@ -368,11 +374,36 @@ namespace NORCE.Drilling.Trajectory
                 uncertaintyEnvelopeEllipse.LongitudeWGS84 = surveyList[i].LongitudeWGS84;
                 uncertaintyEnvelopeEllipse.EllipseRadius = ellipseRadius;
                 uncertaintyEnvelopeEllipse.PerpendicularDirection = surveyList[i].Uncertainty.PerpendicularDirection;
-                List<Point3D> ellipseCoordinates = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipse);
+                List<GlobalCoordinatePoint3D> ellipseCoordinates = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipse);
+
+                if (cluster != null && well != null && cluster.Slots != null && !string.IsNullOrEmpty(well.SlotID))
+                {
+
+                    Well.Model.WellCoordinateConversionSet conversionSet = new Well.Model.WellCoordinateConversionSet();
+                    conversionSet.Cluster = cluster;
+                    conversionSet.Well = well;
+
+                    conversionSet.Field = cluster.Field;
+
+                    foreach (GlobalCoordinatePoint3D gc in ellipseCoordinates)
+                    {
+                        WellCoordinate coordinate = new WellCoordinate();
+                        coordinate.NorthOfWellHead = gc.NorthOfWellHead;
+                        coordinate.EastOfWellHead = gc.EastOfWellHead;
+                        coordinate.TVDWGS84 = gc.TvdWGS84;
+                        conversionSet.WellCoordinates.Add(coordinate);
+                    }
+                    conversionSet.Calculate();
+                    for (int j = 0; j < ellipseCoordinates.Count; j++)
+                    {
+                        ellipseCoordinates[j].LatitudeWGS84 = conversionSet.WellCoordinates[j].LatitudeWGS84;
+                        ellipseCoordinates[j].LongitudeWGS84 = conversionSet.WellCoordinates[j].LongitudeWGS84;
+                    }
+                }
                 uncertaintyEnvelopeEllipse.EllipseCoordinates = ellipseCoordinates;
                 if (calculateEllipseAreaCoordinates)
                 {
-                    List<Point3D> ellipseAreaCoordinates = GetUncertaintyEllipseAreaCoordinates(uncertaintyEnvelopeEllipse);
+                    List<GlobalCoordinatePoint3D> ellipseAreaCoordinates = GetUncertaintyEllipseAreaCoordinates(uncertaintyEnvelopeEllipse);
                     uncertaintyEnvelopeEllipse.EllipseAreaCoordinates = ellipseAreaCoordinates;
                 }
                 bool ok = true;
@@ -435,11 +466,11 @@ namespace NORCE.Drilling.Trajectory
                     }
                     if (ok)
                     {
-                        List<Point3D> ellipseCoordinatesInter = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipseInter);
+                        List<GlobalCoordinatePoint3D> ellipseCoordinatesInter = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipseInter);
                         uncertaintyEnvelopeEllipseInter.EllipseCoordinates = ellipseCoordinatesInter;
                         if (calculateEllipseAreaCoordinates)
                         {
-                            List<Point3D> ellipseAreaCoordinatesInter = GetUncertaintyEllipseAreaCoordinates(uncertaintyEnvelopeEllipseInter);
+                            List<GlobalCoordinatePoint3D> ellipseAreaCoordinatesInter = GetUncertaintyEllipseAreaCoordinates(uncertaintyEnvelopeEllipseInter);
                             uncertaintyEnvelopeEllipseInter.EllipseAreaCoordinates = ellipseAreaCoordinatesInter;
                         }
                         uncertaintyEnvelope.Add(uncertaintyEnvelopeEllipseInter);
@@ -487,7 +518,7 @@ namespace NORCE.Drilling.Trajectory
                         uncertaintyEnvelopeEllipse.EllipseCoordinates = ellipseCoordinates;
                         if (calculateEllipseAreaCoordinates)
                         {
-                            List<Point3D> ellipseAreaCoordinates = GetUncertaintyEllipseAreaCoordinates(uncertaintyEnvelopeEllipse);
+                            List<GlobalCoordinatePoint3D> ellipseAreaCoordinates = GetUncertaintyEllipseAreaCoordinates(uncertaintyEnvelopeEllipse);
                             uncertaintyEnvelopeEllipse.EllipseAreaCoordinates = ellipseAreaCoordinates;
                         }
                         uncertaintyEnvelope.Add(uncertaintyEnvelopeEllipse);
@@ -552,7 +583,7 @@ namespace NORCE.Drilling.Trajectory
                 uncertaintyEnvelopeEllipse.Z = _surveyList[i].TvdWGS84;
                 uncertaintyEnvelopeEllipse.MD = _surveyList[i].MdWGS84;
                 uncertaintyEnvelopeEllipse.EllipseRadius = ellipseRadius;
-                List<Point3D> ellipseCoordinates = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipse);
+                List<GlobalCoordinatePoint3D> ellipseCoordinates = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipse);
                 uncertaintyEnvelopeEllipse.EllipseCoordinates = ellipseCoordinates;
                 uncertaintyEnvelope.Add(uncertaintyEnvelopeEllipse);
 
@@ -585,7 +616,7 @@ namespace NORCE.Drilling.Trajectory
 
                     uncertaintyEnvelopeEllipseInter.PerpendicularDirection = perpendicularDirection;
 
-                    List<Point3D> ellipseCoordinatesInter = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipseInter);
+                    List<GlobalCoordinatePoint3D> ellipseCoordinatesInter = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipseInter);
                     uncertaintyEnvelopeEllipseInter.EllipseCoordinates = ellipseCoordinatesInter;
                     uncertaintyEnvelope.Add(uncertaintyEnvelopeEllipseInter);
                 }
@@ -649,7 +680,7 @@ namespace NORCE.Drilling.Trajectory
                 uncertaintyEnvelopeEllipse.MD = (double)surveyStation.MdWGS84;
                 uncertaintyEnvelopeEllipse.EllipseRadius = ellipseRadius;
                 uncertaintyEnvelopeEllipse.PerpendicularDirection = surveyStation.Uncertainty.PerpendicularDirection;
-                List<Point3D> ellipseCoordinates = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipse, 0, ref xMinEllipse, ref xMaxEllipse, ref yMinEllipse, ref yMaxEllipse, ref zMinEllipse, ref zMaxEllipse);
+                List<GlobalCoordinatePoint3D> ellipseCoordinates = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipse, 0, ref xMinEllipse, ref xMaxEllipse, ref yMinEllipse, ref yMaxEllipse, ref zMinEllipse, ref zMaxEllipse);
                 uncertaintyEnvelopeEllipse.EllipseCoordinates = ellipseCoordinates;
                 uncertaintyEnvelope.Add(uncertaintyEnvelopeEllipse);                
 
@@ -678,7 +709,7 @@ namespace NORCE.Drilling.Trajectory
                     uncertaintyEnvelopeEllipseInter.MD = (double)surveyStation.MdWGS84;
                     uncertaintyEnvelopeEllipseInter.EllipseRadius = ellipseRadius;
                     uncertaintyEnvelopeEllipseInter.PerpendicularDirection = surveyStation.Uncertainty.PerpendicularDirection;
-                    List<Point3D> ellipseCoordinatesInter = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipseInter, z, ref xMinEllipse, ref xMaxEllipse, ref yMinEllipse, ref yMaxEllipse, ref zMinEllipse, ref zMaxEllipse);
+                    List<GlobalCoordinatePoint3D> ellipseCoordinatesInter = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipseInter, z, ref xMinEllipse, ref xMaxEllipse, ref yMinEllipse, ref yMaxEllipse, ref zMinEllipse, ref zMaxEllipse);
                     if (zMinPrev < zMinEllipse)
                     {
                         increasingZ = true;
@@ -712,7 +743,7 @@ namespace NORCE.Drilling.Trajectory
                         uncertaintyEnvelopeEllipseInter.MD = (double)surveyStation.MdWGS84;
                         uncertaintyEnvelopeEllipseInter.EllipseRadius = ellipseRadius;
                         uncertaintyEnvelopeEllipseInter.PerpendicularDirection = surveyStation.Uncertainty.PerpendicularDirection;
-                        List<Point3D> ellipseCoordinatesInter = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipseInter, z, ref xMinEllipse, ref xMaxEllipse, ref yMinEllipse, ref yMaxEllipse, ref zMinEllipse, ref zMaxEllipse);
+                        List<GlobalCoordinatePoint3D> ellipseCoordinatesInter = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipseInter, z, ref xMinEllipse, ref xMaxEllipse, ref yMinEllipse, ref yMaxEllipse, ref zMinEllipse, ref zMaxEllipse);
                         uncertaintyEnvelopeEllipseInter.EllipseCoordinates = ellipseCoordinatesInter;
                         uncertaintyEnvelope.Insert(0, uncertaintyEnvelopeEllipseInter);
                     }
@@ -730,7 +761,7 @@ namespace NORCE.Drilling.Trajectory
                         uncertaintyEnvelopeEllipseInter.MD = (double)surveyStation.MdWGS84;
                         uncertaintyEnvelopeEllipseInter.EllipseRadius = ellipseRadius;
                         uncertaintyEnvelopeEllipseInter.PerpendicularDirection = surveyStation.Uncertainty.PerpendicularDirection;
-                        List<Point3D> ellipseCoordinatesInter = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipseInter, z, ref xMinEllipse, ref xMaxEllipse, ref yMinEllipse, ref yMaxEllipse, ref zMinEllipse, ref zMaxEllipse);
+                        List<GlobalCoordinatePoint3D> ellipseCoordinatesInter = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipseInter, z, ref xMinEllipse, ref xMaxEllipse, ref yMinEllipse, ref yMaxEllipse, ref zMinEllipse, ref zMaxEllipse);
                         uncertaintyEnvelopeEllipseInter.EllipseCoordinates = ellipseCoordinatesInter;
                         uncertaintyEnvelope.Add(uncertaintyEnvelopeEllipseInter);
 
@@ -860,9 +891,9 @@ namespace NORCE.Drilling.Trajectory
             }
         }
 
-        private List<Point3D> GetUncertaintyEllipseCoordinates(UncertaintyEnvelopeEllipse uncertaintyEnvelopeEllipse, double z, ref double xMin, ref double xMax, ref double yMin, ref double yMax, ref double zMin, ref double zMax)
+        private List<GlobalCoordinatePoint3D> GetUncertaintyEllipseCoordinates(UncertaintyEnvelopeEllipse uncertaintyEnvelopeEllipse, double z, ref double xMin, ref double xMax, ref double yMin, ref double yMax, ref double zMin, ref double zMax)
         {
-            List<Point3D> ellipseCoordinates = new List<Point3D>();
+            List<GlobalCoordinatePoint3D> ellipseCoordinates = new List<GlobalCoordinatePoint3D>();
 
             double sinI = System.Math.Sin((double)uncertaintyEnvelopeEllipse.Inclination);
             double cosI = System.Math.Cos((double)uncertaintyEnvelopeEllipse.Inclination);
@@ -903,7 +934,7 @@ namespace NORCE.Drilling.Trajectory
                         xNEH += (double)uncertaintyEnvelopeEllipse.X;
                         yNEH += (double)uncertaintyEnvelopeEllipse.Y;
                         zNEH += (double)uncertaintyEnvelopeEllipse.Z;
-                        Point3D point = new Point3D(xNEH, yNEH, zNEH);
+                        GlobalCoordinatePoint3D point = new GlobalCoordinatePoint3D(xNEH, yNEH, zNEH);
                         ellipseCoordinates.Add(point);
                     }
                 }
@@ -946,7 +977,7 @@ namespace NORCE.Drilling.Trajectory
                         xNEH += (double)uncertaintyEnvelopeEllipse.X;
                         yNEH += (double)uncertaintyEnvelopeEllipse.Y;
                         zNEH += (double)uncertaintyEnvelopeEllipse.Z;
-                        Point3D point = new Point3D(xNEH, yNEH, zNEH);
+                        GlobalCoordinatePoint3D point = new GlobalCoordinatePoint3D(xNEH, yNEH, zNEH);
                         ellipseCoordinates.Add(point);
                         if (xNEH < xMin) xMin = xNEH;
                         if (xNEH > xMax) xMax = xNEH;
@@ -984,9 +1015,9 @@ namespace NORCE.Drilling.Trajectory
 
             return ellipseCoordinates;
         }
-        private List<Point3D> GetUncertaintyEllipseCoordinates(UncertaintyEnvelopeEllipse uncertaintyEnvelopeEllipse)
+        private List<GlobalCoordinatePoint3D> GetUncertaintyEllipseCoordinates(UncertaintyEnvelopeEllipse uncertaintyEnvelopeEllipse)
         {
-            List<Point3D> ellipseCoordinates = new List<Point3D>();
+            List<GlobalCoordinatePoint3D> ellipseCoordinates = new List<GlobalCoordinatePoint3D>();
 
             double sinI = System.Math.Sin((double)uncertaintyEnvelopeEllipse.Inclination);
             double cosI = System.Math.Cos((double)uncertaintyEnvelopeEllipse.Inclination);
@@ -1027,7 +1058,7 @@ namespace NORCE.Drilling.Trajectory
                         xNEH += (double)uncertaintyEnvelopeEllipse.X;
                         yNEH += (double)uncertaintyEnvelopeEllipse.Y;
                         zNEH += (double)uncertaintyEnvelopeEllipse.Z;
-                        Point3D point = new Point3D(xNEH, yNEH, zNEH);
+                        GlobalCoordinatePoint3D point = new GlobalCoordinatePoint3D(xNEH, yNEH, zNEH);
                         ellipseCoordinates.Add(point);
                     }
                 }
@@ -1070,7 +1101,7 @@ namespace NORCE.Drilling.Trajectory
                         xNEH += (double)uncertaintyEnvelopeEllipse.X;
                         yNEH += (double)uncertaintyEnvelopeEllipse.Y;
                         zNEH += (double)uncertaintyEnvelopeEllipse.Z;
-                        Point3D point = new Point3D(xNEH, yNEH, zNEH);
+                        GlobalCoordinatePoint3D point = new GlobalCoordinatePoint3D(xNEH, yNEH, zNEH);
                         if(phi==0)
 						{
                             pointx.Add(point);
@@ -1156,9 +1187,9 @@ namespace NORCE.Drilling.Trajectory
                 A[2, 2] = 1;
             }            
         }
-        private List<Point3D> GetUncertaintyEllipseAreaCoordinates(UncertaintyEnvelopeEllipse uncertaintyEnvelopeEllipse)
+        private List<GlobalCoordinatePoint3D> GetUncertaintyEllipseAreaCoordinates(UncertaintyEnvelopeEllipse uncertaintyEnvelopeEllipse)
         {
-            List<Point3D> ellipseAreaCoordinates = new List<Point3D>();
+            List<GlobalCoordinatePoint3D> ellipseAreaCoordinates = new List<GlobalCoordinatePoint3D>();
             /*
             UncertaintyEnvelopeEllipse ellipse = new UncertaintyEnvelopeEllipse();
             ellipse.Azimuth = uncertaintyEnvelopeEllipse.Azimuth;

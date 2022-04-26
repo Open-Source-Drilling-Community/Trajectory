@@ -49,11 +49,11 @@ namespace NORCE.Drilling.Trajectory
         /// <summary>
         /// Ellipse N, E, TVD coordinates of uncertainty envelope associated with survey station
         /// </summary>
-        public List<Point3D> EllipseCoordinates { get; set; }
+        public List<GlobalCoordinatePoint3D> EllipseCoordinates { get; set; }
         /// <summary>
         /// Ellipse N, E, TVD coordinates of area covered by a uncertainty ellipse of the uncertainty envelope associated with survey station
         /// </summary>
-        public List<Point3D> EllipseAreaCoordinates { get; set; }
+        public List<GlobalCoordinatePoint3D> EllipseAreaCoordinates { get; set; }
 
         /// <summary>
         /// default constructor

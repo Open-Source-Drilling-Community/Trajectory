@@ -104,6 +104,12 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
         [Newtonsoft.Json.JsonProperty("Azimuth", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public double? Azimuth { get; set; }
     
+        [Newtonsoft.Json.JsonProperty("LongitudeWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? LongitudeWGS84 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("LatitudeWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? LatitudeWGS84 { get; set; }
+    
         [Newtonsoft.Json.JsonProperty("EllipseRadius", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public Vector2D EllipseRadius { get; set; }
     
@@ -111,10 +117,10 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
         public double PerpendicularDirection { get; set; }
     
         [Newtonsoft.Json.JsonProperty("EllipseCoordinates", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public System.Collections.Generic.ICollection<Point3D> EllipseCoordinates { get; set; }
+        public System.Collections.Generic.ICollection<GlobalCoordinatePoint3D> EllipseCoordinates { get; set; }
     
         [Newtonsoft.Json.JsonProperty("EllipseAreaCoordinates", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public System.Collections.Generic.ICollection<Point3D> EllipseAreaCoordinates { get; set; }
+        public System.Collections.Generic.ICollection<GlobalCoordinatePoint3D> EllipseAreaCoordinates { get; set; }
     
     
     }
@@ -130,6 +136,48 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
     
         [Newtonsoft.Json.JsonProperty("Dim", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int Dim { get; set; }
+    
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v13.0.0.0)")]
+    public partial class GlobalCoordinatePoint3D : CurvilinearPoint3D
+    {
+        [Newtonsoft.Json.JsonProperty("MdWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? MdWGS84 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("TvdWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? TvdWGS84 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("NorthOfWellHead", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? NorthOfWellHead { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("EastOfWellHead", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? EastOfWellHead { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("AzWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? AzWGS84 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("LatitudeWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? LatitudeWGS84 { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("LongitudeWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? LongitudeWGS84 { get; set; }
+    
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v13.0.0.0)")]
+    public partial class CurvilinearPoint3D : Point3D
+    {
+        [Newtonsoft.Json.JsonProperty("Abscissa", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? Abscissa { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Incl", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? Incl { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Az", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? Az { get; set; }
     
     
     }
@@ -153,29 +201,8 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
     }
     
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v13.0.0.0)")]
-    public partial class SurveyStation : CurvilinearPoint3D
+    public partial class SurveyStation : GlobalCoordinatePoint3D
     {
-        [Newtonsoft.Json.JsonProperty("MdWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? MdWGS84 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("TvdWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? TvdWGS84 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("NorthOfWellHead", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? NorthOfWellHead { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("EastOfWellHead", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? EastOfWellHead { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("AzWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? AzWGS84 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("LatitudeWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? LatitudeWGS84 { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("LongitudeWGS84", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? LongitudeWGS84 { get; set; }
-    
         [Newtonsoft.Json.JsonProperty("Uncertainty", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public SurveyStationUncertainty Uncertainty { get; set; }
     
@@ -901,21 +928,6 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
         ISCWSA_Gyro_Ex5 = 7,
     
         ISCWSA_Gyro_Ex6 = 8,
-    
-    }
-    
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v13.0.0.0)")]
-    public partial class CurvilinearPoint3D : Point3D
-    {
-        [Newtonsoft.Json.JsonProperty("Abscissa", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? Abscissa { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("Incl", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? Incl { get; set; }
-    
-        [Newtonsoft.Json.JsonProperty("Az", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
-        public double? Az { get; set; }
-    
     
     }
     
