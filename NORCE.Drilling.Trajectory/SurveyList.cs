@@ -375,31 +375,6 @@ namespace NORCE.Drilling.Trajectory
                 uncertaintyEnvelopeEllipse.EllipseRadius = ellipseRadius;
                 uncertaintyEnvelopeEllipse.PerpendicularDirection = surveyList[i].Uncertainty.PerpendicularDirection;
                 List<GlobalCoordinatePoint3D> ellipseCoordinates = GetUncertaintyEllipseCoordinates(uncertaintyEnvelopeEllipse);
-
-                if (cluster != null && well != null && cluster.Slots != null && !string.IsNullOrEmpty(well.SlotID))
-                {
-
-                    Well.Model.WellCoordinateConversionSet conversionSet = new Well.Model.WellCoordinateConversionSet();
-                    conversionSet.Cluster = cluster;
-                    conversionSet.Well = well;
-
-                    conversionSet.Field = cluster.Field;
-
-                    foreach (GlobalCoordinatePoint3D gc in ellipseCoordinates)
-                    {
-                        WellCoordinate coordinate = new WellCoordinate();
-                        coordinate.NorthOfWellHead = gc.NorthOfWellHead;
-                        coordinate.EastOfWellHead = gc.EastOfWellHead;
-                        coordinate.TVDWGS84 = gc.TvdWGS84;
-                        conversionSet.WellCoordinates.Add(coordinate);
-                    }
-                    conversionSet.Calculate();
-                    for (int j = 0; j < ellipseCoordinates.Count; j++)
-                    {
-                        ellipseCoordinates[j].LatitudeWGS84 = conversionSet.WellCoordinates[j].LatitudeWGS84;
-                        ellipseCoordinates[j].LongitudeWGS84 = conversionSet.WellCoordinates[j].LongitudeWGS84;
-                    }
-                }
                 uncertaintyEnvelopeEllipse.EllipseCoordinates = ellipseCoordinates;
                 if (calculateEllipseAreaCoordinates)
                 {
@@ -526,6 +501,40 @@ namespace NORCE.Drilling.Trajectory
 
                 }
             }
+            if (cluster != null && well != null && cluster.Slots != null && !string.IsNullOrEmpty(well.SlotID))
+            {
+
+                Well.Model.WellCoordinateConversionSet conversionSet = new Well.Model.WellCoordinateConversionSet();
+                conversionSet.Field = cluster.Field;
+                conversionSet.Cluster = cluster;
+                conversionSet.Well = well;
+
+                foreach (UncertaintyEnvelopeEllipse ellipse in uncertaintyEnvelope)
+                {
+                    foreach (GlobalCoordinatePoint3D gc in ellipse.EllipseCoordinates)
+                    {
+                        WellCoordinate coordinate = new WellCoordinate();
+                        coordinate.NorthOfWellHead = gc.NorthOfWellHead;
+                        coordinate.EastOfWellHead = gc.EastOfWellHead;
+                        coordinate.TVDWGS84 = gc.TvdWGS84;
+                        conversionSet.WellCoordinates.Add(coordinate);
+                    }
+                }
+                conversionSet.Calculate();
+
+                int index = 0;
+                for (int i = 0; i < uncertaintyEnvelope.Count; i++)
+                {
+                    index += i * uncertaintyEnvelope[i].EllipseCoordinates.Count;
+                    for (int j = 0; j < uncertaintyEnvelope[i].EllipseCoordinates.Count; j++)
+                    {
+                        uncertaintyEnvelope[i].EllipseCoordinates[j].LatitudeWGS84 = conversionSet.WellCoordinates[index + j].LatitudeWGS84;
+                        uncertaintyEnvelope[i].EllipseCoordinates[j].LongitudeWGS84 = conversionSet.WellCoordinates[index + j].LongitudeWGS84;
+                        uncertaintyEnvelope[i].EllipseCoordinates[j].TvdWGS84 = conversionSet.WellCoordinates[index + j].TVDWGS84; // This one is not required, but in case we mess up somewhere, it is better that all points are consistent
+                    }
+                }
+            }
+
             UncertaintyEnvelope = uncertaintyEnvelope;
             return uncertaintyEnvelope;
         }

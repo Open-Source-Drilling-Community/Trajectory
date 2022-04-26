@@ -4,7 +4,7 @@
     <TargetFramework>netcoreapp3.1</TargetFramework>
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
     <Authors>NORCE</Authors>
-    <Version>1.0.8</Version>
+    <Version>1.0.10</Version>
   </PropertyGroup>
 
   <ItemGroup>
