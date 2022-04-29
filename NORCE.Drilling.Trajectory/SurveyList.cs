@@ -504,10 +504,11 @@ namespace NORCE.Drilling.Trajectory
             if (cluster != null && well != null && cluster.Slots != null && !string.IsNullOrEmpty(well.SlotID))
             {
 
-                Well.Model.WellCoordinateConversionSet conversionSet = new Well.Model.WellCoordinateConversionSet();
+                WellCoordinateConversionSet conversionSet = new WellCoordinateConversionSet();
                 conversionSet.Field = cluster.Field;
                 conversionSet.Cluster = cluster;
                 conversionSet.Well = well;
+                conversionSet.WellCoordinates = new List<WellCoordinate>();
 
                 foreach (UncertaintyEnvelopeEllipse ellipse in uncertaintyEnvelope)
                 {
@@ -525,7 +526,7 @@ namespace NORCE.Drilling.Trajectory
                 int index = 0;
                 for (int i = 0; i < uncertaintyEnvelope.Count; i++)
                 {
-                    index += i * uncertaintyEnvelope[i].EllipseCoordinates.Count;
+                    index = i * uncertaintyEnvelope[i].EllipseCoordinates.Count;
                     for (int j = 0; j < uncertaintyEnvelope[i].EllipseCoordinates.Count; j++)
                     {
                         uncertaintyEnvelope[i].EllipseCoordinates[j].LatitudeWGS84 = conversionSet.WellCoordinates[index + j].LatitudeWGS84;

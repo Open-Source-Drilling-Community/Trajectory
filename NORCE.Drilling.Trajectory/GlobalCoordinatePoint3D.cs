@@ -19,9 +19,11 @@ namespace NORCE.Drilling.Trajectory
         /// <param name="x"></param>
         /// <param name="y"></param>
         /// <param name="z"></param>
-        public GlobalCoordinatePoint3D(double x, double y, double z) : base(x,y,z)
+        public GlobalCoordinatePoint3D(double x, double y, double z)
         {
-           
+            X = x;
+            Y = y;
+            Z = z;
         }
         /// <summary>
         ///  accessor to the MD with respect to WGS84 Coordinates
