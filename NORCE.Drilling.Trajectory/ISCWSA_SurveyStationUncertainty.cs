@@ -4,6 +4,8 @@ using System.Text;
 using NORCE.General.Std;
 using NORCE.General.Math;
 using NORCE.Drilling.SurveyInstrument.Model;
+using NORCE.General.GeoMagneticField;
+using NORCE.Drilling.Geodetic.Model;
 
 namespace NORCE.Drilling.Trajectory
 {
@@ -162,7 +164,44 @@ namespace NORCE.Drilling.Trajectory
                 double endInclinationZ = 0.0 * Math.PI / 180.0;
                 double cantAngle = 0.0;
                 double kOperator = 1;
+
+                double latitude = Numeric.UNDEF_DOUBLE;
+                double longitude = Numeric.UNDEF_DOUBLE;
+                double radius = Numeric.UNDEF_DOUBLE;
+                GeodeticDatum geodeticDatum = new GeodeticDatum();
+                geodeticDatum.Spheroid = Spheroid.WGS84;
+                geodeticDatum.DeltaX = 0.0;
+                geodeticDatum.DeltaY = 0.0;
+                geodeticDatum.DeltaZ = 0.0;
+                geodeticDatum.RotationX = 0.0;
+                geodeticDatum.RotationY = 0.0;
+                geodeticDatum.RotationZ = 0.0;
+                geodeticDatum.ScaleFactor = 1;
                 
+                geodeticDatum.ToGeocentric((double)surveyStation.LatitudeWGS84, (double)surveyStation.LongitudeWGS84, (double)surveyStation.TvdWGS84,
+                    out latitude, out longitude, out radius);
+                DateTime date = DateTime.Now;
+                double declination = Numeric.UNDEF_DOUBLE;
+                double inclination = Numeric.UNDEF_DOUBLE;
+                double hStrength = Numeric.UNDEF_DOUBLE;
+                double tStrength = Numeric.UNDEF_DOUBLE;
+                GeoMagneticFieldModel igrf = GeoMagneticFieldModel.IGRF;
+                igrf.GeoMagnetism(date, latitude, longitude, radius,
+                                 out declination, out inclination,
+                                 out hStrength, out tStrength);
+                if (Numeric.IsDefined(inclination))
+                {
+                    Dip = inclination;
+                }
+                if (Numeric.IsDefined(declination))
+                {
+                    Declination = declination;
+                }
+                if (Numeric.IsDefined(tStrength))
+                {
+                    BField = tStrength;
+                }
+
                 if (surveyStation.SurveyTool.ModelType is SurveyInstrumentModelType.ISCWSA_Gyro_Ex2)
 				{
                     startInclinationSta = 0.0 * Math.PI / 180.0;

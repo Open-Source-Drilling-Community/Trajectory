@@ -25,6 +25,9 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
                 dest.EastOfWellHead = EastOfWellHead;
                 dest.TvdWGS84 = TvdWGS84;
                 dest.SurveyTool = SurveyTool;
+                dest.Az = Az;
+                dest.LatitudeWGS84 = LatitudeWGS84;
+                dest.LongitudeWGS84 = LongitudeWGS84;
                 return true;
             }
             else

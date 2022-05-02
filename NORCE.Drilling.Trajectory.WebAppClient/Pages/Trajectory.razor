@@ -1649,7 +1649,7 @@ else
 				//if (NORCE.Drilling.Trajectory.WebApp.Client.ConfigurationManager.Instance.Configuration != null &&
 				//    !string.IsNullOrEmpty(NORCE.Drilling.Trajectory.WebApp.Client.ConfigurationManager.Instance.Configuration.HostURL))
 				{
-					tempSurveyProgram = await LoadSurveyPrograms(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyProgramHostURL);
+					//tempSurveyProgram = await LoadSurveyPrograms(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyProgramHostURL);
 				}
 				if (tempSurveyProgram == null)
 				{
@@ -2194,22 +2194,26 @@ else
 				NORCE.Drilling.Cluster.ModelClientShared.Cluster updatedCluster = clusters[wells[wellBores[updatedTrajectory.WellboreID].WellID].ClusterID];
 				NORCE.Drilling.SurveyProgram.ModelClientShared.SurveyProgram updatedSurveyProgram = null;
 				surveyProgram = null;
-				if (surveyPrograms.TryGetValue(updatedTrajectory.WellboreID, out updatedSurveyProgram))
+				if (surveyProgram != null)
 				{
-					updatedSurveyProgram = surveyPrograms[updatedTrajectory.WellboreID];
-				}
-				if (updatedSurveyProgram != null)
-				{
-					surveyProgram = surveyPrograms[updatedTrajectory.WellboreID];
-					if (updatedSurveyProgram.SurveyRunsList != null && updatedSurveyProgram.SurveyRunsList.Count > 0)
-					{
-						surveyProgramBoolvalues.Clear();
-						for (int i = 0; i < updatedSurveyProgram.SurveyRunsList.Count; i++)
-						{
-							surveyProgramBoolvalues.Add(false);
-						}
-					}
+					if (surveyPrograms.TryGetValue(updatedTrajectory.WellboreID, out updatedSurveyProgram))
 
+					{
+						updatedSurveyProgram = surveyPrograms[updatedTrajectory.WellboreID];
+					}
+					if (updatedSurveyProgram != null)
+					{
+						surveyProgram = surveyPrograms[updatedTrajectory.WellboreID];
+						if (updatedSurveyProgram.SurveyRunsList != null && updatedSurveyProgram.SurveyRunsList.Count > 0)
+						{
+							surveyProgramBoolvalues.Clear();
+							for (int i = 0; i < updatedSurveyProgram.SurveyRunsList.Count; i++)
+							{
+								surveyProgramBoolvalues.Add(false);
+							}
+						}
+
+					}
 				}
 				if (updatedCluster != null)
 				{

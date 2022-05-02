@@ -256,6 +256,8 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                 st.EastOfWellHead = Y;
                                 st.TvdWGS84 = tvd;
                                 st.MdWGS84 = (double)md;
+                                st.LatitudeWGS84 = value.SurveyList.ListOfSurveys[i].LatitudeWGS84;
+                                st.LongitudeWGS84 = value.SurveyList.ListOfSurveys[i].LongitudeWGS84;
                                 //NB: Need to update when more uncertaintymodels are available and SurveyTools included
 
                                 //SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
@@ -350,6 +352,8 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     st.EastOfWellHead = Y;
                                     st.TvdWGS84 = tvd;
                                     st.MdWGS84 = (double)md;
+                                    st.LatitudeWGS84 = value.SurveyList.ListOfSurveys[i].LatitudeWGS84;
+                                    st.LongitudeWGS84 = value.SurveyList.ListOfSurveys[i].LongitudeWGS84;
                                     //SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
                                     st.SurveyTool = value.SurveyList.ListOfSurveys[i].SurveyTool;
                                     if (st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.WolffDeWardt)
@@ -433,6 +437,8 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     st.EastOfWellHead = Y;
                                     st.TvdWGS84 = tvd;
                                     st.MdWGS84 = (double)md;
+                                    st.LatitudeWGS84 = value.SurveyList.ListOfSurveys[i].LatitudeWGS84;
+                                    st.LongitudeWGS84 = value.SurveyList.ListOfSurveys[i].LongitudeWGS84;
                                     st.SurveyTool = value.SurveyList.ListOfSurveys[i].SurveyTool;
                                     if (st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.WolffDeWardt)
                                     {

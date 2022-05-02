@@ -187,8 +187,9 @@ else
 	protected override async Task OnInitializedAsync()
 	{
 		try
-		{					
-			int[] initialTrajectoryIDs = await LoadTrajectoryIDs(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.TrajectoryHostURL);
+		{
+			int[] initialTrajectoryIDs = null;
+			//int[] initialTrajectoryIDs = await LoadTrajectoryIDs(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.TrajectoryHostURL);
 			if (initialTrajectoryIDs == null)
 			{
 				//initialTrajectoryIDs = await LoadTrajectoryIDs("http://host.docker.internal:" + NORCE.Drilling.Trajectory.WebApp.Client.Configuration.InternalTrajectoryHTTPPortNumber + "/");
@@ -241,8 +242,8 @@ else
 							{
 								trajectories.Add(trajectory);
 								if (trajectory.SurveyList != null)
-								
-								IsConfidenceLevelDisplayHidden.Add(false);
+
+									IsConfidenceLevelDisplayHidden.Add(false);
 								IsConfidenceLevelInputHidden.Add(true);
 								IsConfidenceLevelEditButtonHidden.Add(false);
 								IsConfidenceLevelUpdateButtonHidden.Add(true);
@@ -309,11 +310,11 @@ else
 				IsConfidenceLevelDisplayHidden[i] = true;
 				IsConfidenceLevelInputHidden[i] = false;
 				IsConfidenceLevelEditButtonHidden[i] = true;
-				IsConfidenceLevelUpdateButtonHidden[i] = false;				
+				IsConfidenceLevelUpdateButtonHidden[i] = false;
 			}
 			else
 			{
-				IsConfidenceLevelDisplayHidden[i] = false;				
+				IsConfidenceLevelDisplayHidden[i] = false;
 			}
 		}
 	}
@@ -327,13 +328,13 @@ else
 			IsConfidenceLevelDisplayHidden[i] = false;
 			IsConfidenceLevelInputHidden[i] = true;
 			IsConfidenceLevelEditButtonHidden[i] = false;
-			IsConfidenceLevelUpdateButtonHidden[i] = true;			
+			IsConfidenceLevelUpdateButtonHidden[i] = true;
 		}
 	}
 	private async void Calculate(int idx)
 	{
-		currentIndex = idx;		
-		double confidenceLevel = confidenceLevels[idx];		
+		currentIndex = idx;
+		double confidenceLevel = confidenceLevels[idx];
 		if (trajectories != null && idx >= 0 && idx < trajectories.Count && trajectories[idx].ID >= 0)
 		{
 			trajectoryName = trajectories[idx].Name;
@@ -369,15 +370,15 @@ else
 			{
 				string str = await b.Content.ReadAsStringAsync();
 				if (!string.IsNullOrEmpty(str))
-				{					
-					var listOfEnvelopes = Newtonsoft.Json.JsonConvert.DeserializeObject<List<UncertaintyEnvelopeEllipse>>(str);					
+				{
+					var listOfEnvelopes = Newtonsoft.Json.JsonConvert.DeserializeObject<List<UncertaintyEnvelopeEllipse>>(str);
 					for (int i = 0; i < listOfEnvelopes.Count; i++)
 					{
 						calcSectionsXList.Add(new List<object>());
 						calcSectionsYList.Add(new List<object>());
 						calcSectionsZList.Add(new List<object>());
 						for (int j = 0; j < listOfEnvelopes[i].EllipseCoordinates.Count; j++)
-						{							
+						{
 							calcSectionsX.Add(listOfEnvelopes[i].EllipseCoordinates.ElementAt(j).X);
 							calcSectionsY.Add(listOfEnvelopes[i].EllipseCoordinates.ElementAt(j).Y);
 							calcSectionsZ.Add(listOfEnvelopes[i].EllipseCoordinates.ElementAt(j).Z);
@@ -402,7 +403,7 @@ else
 					{
 						string str = await c.Content.ReadAsStringAsync();
 						if (!string.IsNullOrEmpty(str))
-						{							
+						{
 							var listOfEnvelopes = Newtonsoft.Json.JsonConvert.DeserializeObject<List<UncertaintyEnvelopeEllipse>>(str);
 							for (int j = 0; j < listOfEnvelopes.Count; j++)
 							{
@@ -410,7 +411,7 @@ else
 								calcSectionsYList2.Add(new List<object>());
 								calcSectionsZList2.Add(new List<object>());
 								for (int k = 0; k < listOfEnvelopes[j].EllipseCoordinates.Count; k++)
-								{									
+								{
 									calcSectionsX2.Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).X);
 									calcSectionsY2.Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Y);
 									calcSectionsZ2.Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Z);
@@ -438,7 +439,7 @@ else
 					}
 				}
 			}
-			
+
 			if (a.IsSuccessStatusCode)
 			{
 				await OnInitializedAsync();
@@ -448,12 +449,12 @@ else
 	}
 
 	private async void PlotResults()
-	{		
+	{
 		interpSectionsX.Clear();
 		interpSectionsY.Clear();
 		interpSectionsZ.Clear();
 		interpSectionsVSect.Clear();
-		
+
 		CurvilinearPoint3D prevPoint = null;
 		for (int i = 0; i < trajectories[currentIndex].SurveyList.Count; ++i)
 		{
@@ -464,7 +465,7 @@ else
 			double z = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).Z;
 			interpSectionsX.Add(point.X );
 			interpSectionsY.Add(point.Y);
-			interpSectionsZ.Add(point.Z);			
+			interpSectionsZ.Add(point.Z);
 			prevPoint = point;
 
 		}

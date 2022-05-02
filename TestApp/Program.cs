@@ -73,6 +73,9 @@ namespace TestApp
                                 stInt.NorthOfWellHead  = X;
                                 stInt.EastOfWellHead = Y;
                                 ISCWSA_SurveyStationUncertainty iscwsat = new ISCWSA_SurveyStationUncertainty();
+                                //GeoMagnetism(DateTime date, double latitude, double longitude, double radius,
+                                // out double declination, out double inclination,
+                                // out double hStrength, out double tStrength)
                                 if (wellcase == 1)
                                 {
                                     iscwsat.Gravity = 9.80665;
