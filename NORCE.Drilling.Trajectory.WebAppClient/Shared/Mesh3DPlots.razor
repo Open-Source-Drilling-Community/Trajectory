@@ -13,6 +13,17 @@
 
 	[Parameter]
 	public string ValuesNameLine { get; set; }
+	[Parameter]
+	public List<object> XValuesLine2 { get; set; }
+
+	[Parameter]
+	public List<object> YValuesLine2 { get; set; }
+
+	[Parameter]
+	public List<object> ZValuesLine2 { get; set; }
+
+	[Parameter]
+	public string ValuesNameLine2 { get; set; }
 
 	[Parameter]
 	public List<object> XValues { get; set; }
@@ -69,6 +80,29 @@
 	[Parameter]
 	public string ValuesNameList2 { get; set; }
 
+	[Parameter]
+	public List<List<object>> XValuesCompare { get; set; }
+
+	[Parameter]
+	public List<List<object>> YValuesCompare { get; set; }
+
+	[Parameter]
+	public List<List<object>> ZValuesCompare { get; set; }
+
+	[Parameter]
+	public List<List<List<object>>> XValuesListCompare { get; set; }
+
+	[Parameter]
+	public List<List<List<object>>> YValuesListCompare { get; set; }
+
+	[Parameter]
+	public List<List<List<object>>> ZValuesListCompare { get; set; }
+
+	[Parameter]
+	public List<string> ValuesListColorCompare { get; set; }
+
+	[Parameter]
+	public string ValuesNameListCompare { get; set; }
 	[Parameter]
 	public int PlotHeight { get; set; }
 
@@ -142,6 +176,18 @@
 				Z = ZValuesLine
 			});
 		}
+		//Plot 3D interpolated curve
+		if (XValuesLine2 != null && XValuesLine2.Any() && YValuesLine2 != null && YValuesLine2.Any() && ZValuesLine2 != null && ZValuesLine2.Any())
+		{
+			await chart.AddTrace(new Scatter3D
+			{
+				Name = ValuesNameLine2,
+				Mode = Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Lines,
+				X = XValuesLine2,
+				Y = YValuesLine2,
+				Z = ZValuesLine2
+			});
+		}
 
 		if (XValuesList == null || XValuesList.Count <= 0)
 		{
@@ -154,21 +200,40 @@
 					X = XValues,
 					Y = YValues,
 					Z = ZValues,
-					AlphaHull = -1
+					AlphaHull = 5,
+					Opacity = new System.Decimal(0.4)
 				});
 			}
 
 			//Plot 3D surface
-			if (XValues2 != null && XValues2.Any() && YValues2 != null && YValues2.Any() && ZValues2 != null && ZValues2.Any())
+			if (XValuesCompare != null && XValuesCompare.Count > 0 && XValuesCompare[0].Any() && YValuesCompare != null && YValuesCompare.Count > 0 && YValuesCompare[0].Any()
+				&& ZValuesCompare != null && ZValuesCompare.Count > 0 && ZValuesCompare[0].Any())
 			{
-				await chart.AddTrace(new Plotly.Blazor.Traces.Mesh3D
+				for (int i = 0; i < XValuesCompare.Count; i++)
 				{
-					Name = ValuesName2,
-					X = XValues2,
-					Y = YValues2,
-					Z = ZValues2
-				});
+					await chart.AddTrace(new Plotly.Blazor.Traces.Mesh3D
+					{
+						Name = ValuesNameListCompare,
+						X = XValuesCompare[i],
+						Y = YValuesCompare[i],
+						Z = ZValuesCompare[i],
+						AlphaHull = 5,
+						Color = ValuesListColorCompare[i],
+						Opacity = new System.Decimal(0.4)
+					});
+				}
 			}
+
+			//if (XValues2 != null && XValues2.Any() && YValues2 != null && YValues2.Any() && ZValues2 != null && ZValues2.Any())
+			//{
+			//	await chart.AddTrace(new Plotly.Blazor.Traces.Mesh3D
+			//	{
+			//		Name = ValuesName2,
+			//		X = XValues2,
+			//		Y = YValues2,
+			//		Z = ZValues2
+			//	});
+			//}
 		}
 		else
 		{
@@ -205,6 +270,26 @@
 						Color = ValuesListColor2,
 						Opacity = new System.Decimal(0.4)
 					});
+				}
+			}
+			if (XValuesListCompare != null && XValuesListCompare.Count > 0 && XValuesListCompare[0].Any() && YValuesListCompare != null && YValuesListCompare.Count > 0 && YValuesListCompare[0].Any()
+				&& ZValuesListCompare != null && ZValuesListCompare.Count > 0 && ZValuesListCompare[0].Any())
+			{
+				for (int c = 0; c < XValuesListCompare.Count; c++)
+				{
+					for (int i = 0; i < XValuesListCompare[c].Count; i++)
+					{
+						await chart.AddTrace(new Plotly.Blazor.Traces.Mesh3D
+						{
+							Name = ValuesNameListCompare,
+							X = XValuesListCompare[c][i],
+							Y = YValuesListCompare[c][i],
+							Z = ZValuesListCompare[c][i],
+							AlphaHull = -1,
+							Color = ValuesListColorCompare[c],
+							Opacity = new System.Decimal(0.4)
+						});
+					}
 				}
 			}
 

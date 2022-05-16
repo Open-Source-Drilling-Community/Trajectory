@@ -6,10 +6,6 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <PackageReference Include="NORCE.Drilling.SurveyInstrument.Model" Version="1.0.17" />
-  </ItemGroup>
-
-  <ItemGroup>
     <ProjectReference Include="..\NORCE.Drilling.Trajectory\NORCE.Drilling.Trajectory.csproj" />
   </ItemGroup>
 

@@ -647,6 +647,30 @@
       "type": "object",
       "additionalProperties": false,
       "properties": {
+        "Dip": {
+          "type": "number",
+          "format": "double"
+        },
+        "Declination": {
+          "type": "number",
+          "format": "double"
+        },
+        "Gravity": {
+          "type": "number",
+          "format": "double"
+        },
+        "BField": {
+          "type": "number",
+          "format": "double"
+        },
+        "Convergence": {
+          "type": "number",
+          "format": "double"
+        },
+        "Latitude": {
+          "type": "number",
+          "format": "double"
+        },
         "ID": {
           "type": "integer",
           "format": "int32"
@@ -662,6 +686,171 @@
             "null",
             "string"
           ]
+        },
+        "DefaultListt": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/SurveyInstrument"
+          }
+        },
+        "ErrorSourcesHolder": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/ErrorSource"
+          }
+        },
+        "GyroRunningSpeed": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "StatGyroXYZStartInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "StatGyroXYZEndInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "StatGyroXYZInitInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "StatGyroXYStartInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "StatGyroXYEndInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "StatGyroXYInitInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ContGyroXYZStartInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ContGyroXYZEndInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ContGyroXYZInitInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ContGyroXYStartInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ContGyroXYEndInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ContGyroXYInitInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ContGyroZStartInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ContGyroZEndInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ContGyroZInitInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "ExtRefInitInc": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "GyroCantAngle": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "GyroSwitching": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "GyroMinDist": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
+        },
+        "GyroNoiseRed": {
+          "type": [
+            "null",
+            "number"
+          ],
+          "format": "double"
         },
         "UseRelDepthError": {
           "type": "boolean"
@@ -1643,8 +1832,161 @@
         "UseGZ_RW": {
           "type": "boolean"
         },
+        "ErrorSources": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/IErrorSource"
+          }
+        },
+        "ErrorSourcesAll": {
+          "type": [
+            "array",
+            "null"
+          ],
+          "items": {
+            "$ref": "#/definitions/ErrorSource"
+          }
+        },
         "ModelType": {
           "$ref": "#/definitions/SurveyInstrumentModelType"
+        }
+      }
+    },
+    "ErrorSource": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "ErrorCode": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Index": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "IsSystematic": {
+          "type": "boolean"
+        },
+        "IsRandom": {
+          "type": "boolean"
+        },
+        "IsGlobal": {
+          "type": "boolean"
+        },
+        "SingularIssues": {
+          "type": "boolean"
+        },
+        "IsContinuous": {
+          "type": "boolean"
+        },
+        "Magnitude": {
+          "type": "number",
+          "format": "double"
+        },
+        "Latitude": {
+          "type": "number",
+          "format": "double"
+        },
+        "Gravity": {
+          "type": "number",
+          "format": "double"
+        },
+        "BField": {
+          "type": "number",
+          "format": "double"
+        },
+        "Dip": {
+          "type": "number",
+          "format": "double"
+        },
+        "Declination": {
+          "type": "number",
+          "format": "double"
+        },
+        "StartInclination": {
+          "type": "number",
+          "format": "double"
+        },
+        "EndInclination": {
+          "type": "number",
+          "format": "double"
+        },
+        "InitInclination": {
+          "type": "number",
+          "format": "double"
+        }
+      }
+    },
+    "IErrorSource": {
+      "type": "object",
+      "x-abstract": true,
+      "additionalProperties": false,
+      "properties": {
+        "ErrorCode": {
+          "type": [
+            "null",
+            "string"
+          ]
+        },
+        "Index": {
+          "type": "integer",
+          "format": "int32"
+        },
+        "IsSystematic": {
+          "type": "boolean"
+        },
+        "IsRandom": {
+          "type": "boolean"
+        },
+        "IsGlobal": {
+          "type": "boolean"
+        },
+        "SingularIssues": {
+          "type": "boolean"
+        },
+        "IsContinuous": {
+          "type": "boolean"
+        },
+        "Magnitude": {
+          "type": "number",
+          "format": "double"
+        },
+        "Latitude": {
+          "type": "number",
+          "format": "double"
+        },
+        "Gravity": {
+          "type": "number",
+          "format": "double"
+        },
+        "BField": {
+          "type": "number",
+          "format": "double"
+        },
+        "Dip": {
+          "type": "number",
+          "format": "double"
+        },
+        "Declination": {
+          "type": "number",
+          "format": "double"
+        },
+        "StartInclination": {
+          "type": "number",
+          "format": "double"
+        },
+        "EndInclination": {
+          "type": "number",
+          "format": "double"
+        },
+        "InitInclination": {
+          "type": "number",
+          "format": "double"
         }
       }
     },
@@ -1653,25 +1995,13 @@
       "description": "",
       "x-enumNames": [
         "WolffDeWardt",
-        "ISCWC",
-        "ISCWC_MWD_Rev5",
-        "ISCWSA_Gyro_Ex1",
-        "ISCWSA_Gyro_Ex2",
-        "ISCWSA_Gyro_Ex3",
-        "ISCWSA_Gyro_Ex4",
-        "ISCWSA_Gyro_Ex5",
-        "ISCWSA_Gyro_Ex6"
+        "MWD_ISCWSA",
+        "Gyro_ISCWSA"
       ],
       "enum": [
         0,
         1,
-        2,
-        3,
-        4,
-        5,
-        6,
-        7,
-        8
+        2
       ]
     }
   }

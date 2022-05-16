@@ -10,13 +10,16 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.EntityFrameworkCore.SqlServer" Version="5.0.8" />
     <PackageReference Include="NORCE.Drilling.Geodetic.Model" Version="1.0.2" />
-    <PackageReference Include="NORCE.Drilling.SurveyInstrument.Model" Version="1.0.17" />
     <PackageReference Include="NORCE.Drilling.Well.Model" Version="1.0.1" />
     <PackageReference Include="NORCE.General.Coordinates" Version="1.0.0" />
     <PackageReference Include="NORCE.General.GeoMagneticField" Version="1.0.1" />
     <PackageReference Include="NORCE.General.Math" Version="1.0.7" />
     <PackageReference Include="NORCE.General.Octree" Version="1.0.7" />
     <PackageReference Include="NORCE.General.Std" Version="1.0.1" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\SurveyInstrument\NORCE.Drilling.SurveyInstrument.Model\NORCE.Drilling.SurveyInstrument.Model.csproj" />
   </ItemGroup>
 
 </Project>

@@ -59,8 +59,8 @@ else
 	<table class="table" hidden="@IsTableResultHidden">
 		<thead></thead>
 		<tbody>
-			<tr>				
-				<td>
+			<tr>
+				@*<td>
 					<Mesh3DPlots XValuesLine="@interpSectionsX"
 								 YValuesLine="@interpSectionsY"
 								 ZValuesLine="@interpSectionsZ"
@@ -83,6 +83,37 @@ else
 								 ZValuesList2="@calcSectionsZList2"
 								 ValuesListColor2="red"
 								 ValuesNameList2="Ellipses of Uncertianty Comp"
+								 XValuesListCompare="@calcSectionsXListCompare"
+								 YValuesListCompare="@calcSectionsYListCompare"
+								 ZValuesListCompare="@calcSectionsZListCompare"
+								 ValuesListColorCompare="@valueListColorComapre"
+								 ValuesNameListCompare="Ellipses of Uncertianty Comp"
+								 PlotHeight="800"
+								 PlotWidth="800"
+								 PlotTitle="Wellbore Position Uncertainty"
+								 XAxisTitle="North (m)"
+								 YAxisTitle="East (m)"
+								 ZAxisTitle="TVD (m)"
+								 ZAxisIsReversed="@true"
+								 @ref="@trajectorySurface3DPlot"></Mesh3DPlots>
+				</td>*@
+				<td>
+					<Mesh3DPlots XValuesLine="@interpSectionsX"
+								 YValuesLine="@interpSectionsY"
+								 ZValuesLine="@interpSectionsZ"
+								 ValuesNameLine="Trajectory"
+								 XValues="@calcSectionsX"
+								 YValues="@calcSectionsY"
+								 ZValues="@calcSectionsZ"
+								 ValuesName="Envelope"
+								 XValues2="@calcSectionsX2"
+								 YValues2="@calcSectionsY2"
+								 ZValues2="@calcSectionsZ2"
+								 ValuesName2="Envelope2"
+								 XValuesCompare="@calcSectionsXCompare"
+								 YValuesCompare="@calcSectionsYCompare"
+								 ZValuesCompare="@calcSectionsZCompare"
+								 ValuesListColorCompare="@valueListColorCompare"
 								 PlotHeight="800"
 								 PlotWidth="800"
 								 PlotTitle="Wellbore Position Uncertainty"
@@ -169,6 +200,9 @@ else
 	List<object> interpSectionsX = new List<object>();
 	List<object> interpSectionsY = new List<object>();
 	List<object> interpSectionsZ = new List<object>();
+	List<object> interpSectionsX2 = new List<object>();
+	List<object> interpSectionsY2 = new List<object>();
+	List<object> interpSectionsZ2 = new List<object>();
 	List<object> interpSectionsVSect = new List<object>();
 	List<object> calcSectionsX = new List<object>();
 	List<object> calcSectionsY = new List<object>();
@@ -176,12 +210,19 @@ else
 	List<object> calcSectionsX2 = new List<object>();
 	List<object> calcSectionsY2 = new List<object>();
 	List<object> calcSectionsZ2 = new List<object>();
+	List<List<object>> calcSectionsXCompare = new List<List<object>>();
+	List<List<object>> calcSectionsYCompare = new List<List<object>>();
+	List<List<object>> calcSectionsZCompare = new List<List<object>>();
 	List<List<object>> calcSectionsXList = new List<List<object>>();
 	List<List<object>> calcSectionsYList = new List<List<object>>();
 	List<List<object>> calcSectionsZList = new List<List<object>>();
 	List<List<object>> calcSectionsXList2 = new List<List<object>>();
 	List<List<object>> calcSectionsYList2 = new List<List<object>>();
 	List<List<object>> calcSectionsZList2 = new List<List<object>>();
+	List<List<List<object>>> calcSectionsXListCompare = new List<List<List<object>>>();
+	List<List<List<object>>> calcSectionsYListCompare = new List<List<List<object>>>();
+	List<List<List<object>>> calcSectionsZListCompare = new List<List<List<object>>>();
+	List<string> valueListColorCompare = new List<string>();
 	public List<bool> trajectoryCompareChBoxvalues { get; set; }
 
 	protected override async Task OnInitializedAsync()
@@ -389,41 +430,17 @@ else
 					}
 				}
 			}
-
+			calcSectionsXListCompare.Clear();
+			calcSectionsYListCompare.Clear();
+			calcSectionsZListCompare.Clear();
+			calcSectionsXCompare.Clear();
+			calcSectionsYCompare.Clear();
+			calcSectionsZCompare.Clear();
 			for (int i = 0; i < trajectoryCompareChBoxvalues.Count; i++)
 			{
 				bool ch = trajectoryCompareChBoxvalues[i];
 				if (ch)
 				{
-					calcSectionsX2.Clear();
-					calcSectionsY2.Clear();
-					calcSectionsZ2.Clear();
-					var c = await httpTrajectory.GetAsync("Trajectories/" + trajectories[i].ID.ToString() + "/" + "0.95" + "/" + "1" + "/" + "10");
-					if (c.IsSuccessStatusCode)
-					{
-						string str = await c.Content.ReadAsStringAsync();
-						if (!string.IsNullOrEmpty(str))
-						{
-							var listOfEnvelopes = Newtonsoft.Json.JsonConvert.DeserializeObject<List<UncertaintyEnvelopeEllipse>>(str);
-							for (int j = 0; j < listOfEnvelopes.Count; j++)
-							{
-								calcSectionsXList2.Add(new List<object>());
-								calcSectionsYList2.Add(new List<object>());
-								calcSectionsZList2.Add(new List<object>());
-								for (int k = 0; k < listOfEnvelopes[j].EllipseCoordinates.Count; k++)
-								{
-									calcSectionsX2.Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).X);
-									calcSectionsY2.Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Y);
-									calcSectionsZ2.Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Z);
-									calcSectionsXList2[j].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).X);
-									calcSectionsYList2[j].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Y);
-									calcSectionsZList2[j].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Z);
-								}
-							}
-						}
-
-					}
-
 					trajectoryName2 = trajectories[i].Name;
 					string q = "Trajectories/" + trajectories[i].ID.ToString() + "/" + "0.95";
 					var r = await httpTrajectory.GetAsync(q);
@@ -436,6 +453,60 @@ else
 							listRadius2 = list;
 						}
 						IsTableResultHidden2 = false;
+					}
+
+					calcSectionsX2.Clear();
+					calcSectionsY2.Clear();
+					calcSectionsZ2.Clear();
+
+					//valueListColorComapre = new List<string> { "green", "orange", "black" };
+					valueListColorCompare = new List<string> { "salmon", "sandybrown",
+				"seagreen", "seashell", "sienna", "silver", "skyblue",
+				"slateblue", "slategray", "slategrey", "springgreen",
+				"steelblue","tan", "teal","thistle", "tomato", "turquoise",
+				"violet"};
+
+					var c = await httpTrajectory.GetAsync("Trajectories/" + trajectories[i].ID.ToString() + "/" + "0.95" + "/" + "1" + "/" + "10");
+					if (c.IsSuccessStatusCode)
+					{
+						string str = await c.Content.ReadAsStringAsync();
+						if (!string.IsNullOrEmpty(str))
+						{
+							calcSectionsXListCompare.Add(new List<List<object>>());
+							calcSectionsYListCompare.Add(new List<List<object>>());
+							calcSectionsZListCompare.Add(new List<List<object>>());
+
+							calcSectionsXCompare.Add(new List<object>());
+							calcSectionsYCompare.Add(new List<object>());
+							calcSectionsZCompare.Add(new List<object>());
+
+							var listOfEnvelopes = Newtonsoft.Json.JsonConvert.DeserializeObject<List<UncertaintyEnvelopeEllipse>>(str);
+							for (int j = 0; j < listOfEnvelopes.Count; j++)
+							{
+								calcSectionsXList2.Add(new List<object>());
+								calcSectionsYList2.Add(new List<object>());
+								calcSectionsZList2.Add(new List<object>());
+								calcSectionsXListCompare[calcSectionsXListCompare.Count-1].Add(new List<object>());
+								calcSectionsYListCompare[calcSectionsXListCompare.Count - 1].Add(new List<object>());
+								calcSectionsZListCompare[calcSectionsXListCompare.Count - 1].Add(new List<object>());
+								for (int k = 0; k < listOfEnvelopes[j].EllipseCoordinates.Count; k++)
+								{
+									calcSectionsX2.Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).X);
+									calcSectionsY2.Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Y);
+									calcSectionsZ2.Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Z);
+									calcSectionsXCompare[calcSectionsXListCompare.Count - 1].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).X);
+									calcSectionsYCompare[calcSectionsXListCompare.Count - 1].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Y);
+									calcSectionsZCompare[calcSectionsXListCompare.Count - 1].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Z);
+									//calcSectionsXList2[j].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).X);
+									//calcSectionsYList2[j].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Y);
+									//calcSectionsZList2[j].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Z);
+									calcSectionsXListCompare[calcSectionsXListCompare.Count - 1][j].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).X);
+									calcSectionsYListCompare[calcSectionsXListCompare.Count - 1][j].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Y);
+									calcSectionsZListCompare[calcSectionsXListCompare.Count - 1][j].Add(listOfEnvelopes[j].EllipseCoordinates.ElementAt(k).Z);
+								}
+							}
+						}
+
 					}
 				}
 			}
@@ -454,21 +525,46 @@ else
 		interpSectionsY.Clear();
 		interpSectionsZ.Clear();
 		interpSectionsVSect.Clear();
+		interpSectionsX2.Clear();
+		interpSectionsY2.Clear();
+		interpSectionsZ2.Clear();
 
 		CurvilinearPoint3D prevPoint = null;
 		for (int i = 0; i < trajectories[currentIndex].SurveyList.Count; ++i)
 		{
 			CurvilinearPoint3D point = null;
 			point = trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i);
-			double x = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).NorthOfWellHead ;
+			double x = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).NorthOfWellHead;
 			double y = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).EastOfWellHead;
 			double z = (double)trajectories[currentIndex].SurveyList.ListOfSurveys.ElementAt(i).Z;
-			interpSectionsX.Add(point.X );
+			interpSectionsX.Add(point.X);
 			interpSectionsY.Add(point.Y);
 			interpSectionsZ.Add(point.Z);
 			prevPoint = point;
 
 		}
+
+		for (int id = 0; id < trajectoryCompareChBoxvalues.Count; id++)
+		{
+			bool ch = trajectoryCompareChBoxvalues[id];
+			if (ch)
+			{
+				for (int i = 0; i < trajectories[id].SurveyList.Count; ++i)
+				{
+					CurvilinearPoint3D point = null;
+					point = trajectories[id].SurveyList.ListOfSurveys.ElementAt(i);
+					double x = (double)trajectories[id].SurveyList.ListOfSurveys.ElementAt(i).NorthOfWellHead;
+					double y = (double)trajectories[id].SurveyList.ListOfSurveys.ElementAt(i).EastOfWellHead;
+					double z = (double)trajectories[id].SurveyList.ListOfSurveys.ElementAt(i).Z;
+					interpSectionsX2.Add(point.X);
+					interpSectionsY2.Add(point.Y);
+					interpSectionsZ2.Add(point.Z);
+					prevPoint = point;
+
+				}
+			}
+		}
 		await trajectorySurface3DPlot.Plot();
 	}
+
 }

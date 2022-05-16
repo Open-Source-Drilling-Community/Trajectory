@@ -76,38 +76,40 @@ namespace TestApp
                                 //GeoMagnetism(DateTime date, double latitude, double longitude, double radius,
                                 // out double declination, out double inclination,
                                 // out double hStrength, out double tStrength)
+
+                                SurveyInstrument surveyToolt = new SurveyInstrument(SurveyInstrument.ISCWSA_MWD_Rev5_OWSG);
+                                //SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample1);
+                                //SurveyInstrument surveyToolt = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample1);
+                                //WdWSurveyStationUncertainty wdw = new WdWSurveyStationUncertainty();
+                                //                  SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.WdWGoodMag);
                                 if (wellcase == 1)
                                 {
-                                    iscwsat.Gravity = 9.80665;
-                                    iscwsat.BField = 50000;
-                                    iscwsat.Dip = 72 * Math.PI / 180.0;
-                                    iscwsat.Declination = -4 * Math.PI / 180.0;
+                                    surveyToolt.Gravity = 9.80665;
+                                    surveyToolt.BField = 50000;
+                                    surveyToolt.Dip = 72 * Math.PI / 180.0;
+                                    surveyToolt.Declination = -4 * Math.PI / 180.0;
                                     iscwsat.Convergence = 0.0;
                                     iscwsat.Latitude = 60 * Math.PI / 180.0;
                                 }
                                 else if (wellcase == 2)
                                 {
-                                    iscwsat.Gravity = 9.80665;
-                                    iscwsat.BField = 48000;
-                                    iscwsat.Dip = 58 * Math.PI / 180.0;
-                                    iscwsat.Declination = 2 * Math.PI / 180.0;
+                                    surveyToolt.Gravity = 9.80665;
+                                    surveyToolt.BField = 48000;
+                                    surveyToolt.Dip = 58 * Math.PI / 180.0;
+                                    surveyToolt.Declination = 2 * Math.PI / 180.0;
                                     iscwsat.Convergence = 0.0;
                                     iscwsat.Latitude = 28 * Math.PI / 180.0;
                                 }
                                 else if (wellcase == 3)
                                 {
-                                    iscwsat.Gravity = 9.80665;
-                                    iscwsat.BField = 61000;
-                                    iscwsat.Dip = -70 * Math.PI / 180.0;
-                                    iscwsat.Declination = 13 * Math.PI / 180.0;
+                                    surveyToolt.Gravity = 9.80665;
+                                    surveyToolt.BField = 61000;
+                                    surveyToolt.Dip = -70 * Math.PI / 180.0;
+                                    surveyToolt.Declination = 13 * Math.PI / 180.0;
                                     iscwsat.Convergence = 0.0;
                                     iscwsat.Latitude = -40 * Math.PI / 180.0;
                                 }
-								SurveyInstrument surveyToolt = new SurveyInstrument(SurveyInstrument.ISCWSA_MWD_Rev5_OWSG);
-								//SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample1);
-								//SurveyInstrument surveyToolt = new SurveyInstrument(SurveyInstrument.ISCWSAGyroExample1);
-                                //WdWSurveyStationUncertainty wdw = new WdWSurveyStationUncertainty();
-                                //                  SurveyInstrument surveyTool = new SurveyInstrument(SurveyInstrument.WdWGoodMag);
+								
                                 stInt.SurveyTool = surveyToolt;
                                 //st.Uncertainty = wdw;
                                 stInt.Uncertainty = iscwsat;
@@ -127,29 +129,17 @@ namespace TestApp
                         st.MdWGS84 = md;
 						ISCWSA_SurveyStationUncertainty iscwsa = new ISCWSA_SurveyStationUncertainty();
                         if (wellcase == 1)
-                        {
-                            iscwsa.Gravity = 9.80665;
-                            iscwsa.BField = 50000;
-                            iscwsa.Dip = 72 * Math.PI / 180.0;
-                            iscwsa.Declination = -4 * Math.PI / 180.0;
+                        {                            
                             iscwsa.Convergence = 0.0;
                             iscwsa.Latitude = 60 * Math.PI / 180.0;
                         }
                         else if (wellcase == 2)
-                        {
-                            iscwsa.Gravity = 9.80665;
-                            iscwsa.BField = 48000;
-                            iscwsa.Dip = 58 * Math.PI / 180.0;
-                            iscwsa.Declination = 2 * Math.PI / 180.0;
+                        {                           
                             iscwsa.Convergence = 0.0;
                             iscwsa.Latitude = 28 * Math.PI / 180.0;
                         }
                         else if (wellcase == 3)
-                        {
-                            iscwsa.Gravity = 9.80665;
-                            iscwsa.BField = 61000;
-                            iscwsa.Dip = -70 * Math.PI / 180.0;
-                            iscwsa.Declination = 13 * Math.PI / 180.0;
+                        {                           
                             iscwsa.Convergence = 0.0;
                             iscwsa.Latitude = -40 * Math.PI / 180.0;
                         }

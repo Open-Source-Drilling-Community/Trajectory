@@ -305,6 +305,24 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v13.0.0.0)")]
     public partial class SurveyInstrument 
     {
+        [Newtonsoft.Json.JsonProperty("Dip", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Dip { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Declination", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Declination { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Gravity", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Gravity { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("BField", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double BField { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Convergence", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Convergence { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Latitude", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Latitude { get; set; }
+    
         [Newtonsoft.Json.JsonProperty("ID", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public int ID { get; set; }
     
@@ -313,6 +331,75 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
     
         [Newtonsoft.Json.JsonProperty("Description", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public string Description { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("DefaultListt", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.Collections.Generic.ICollection<SurveyInstrument> DefaultListt { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ErrorSourcesHolder", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.Collections.Generic.ICollection<ErrorSource> ErrorSourcesHolder { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GyroRunningSpeed", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GyroRunningSpeed { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("StatGyroXYZStartInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? StatGyroXYZStartInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("StatGyroXYZEndInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? StatGyroXYZEndInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("StatGyroXYZInitInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? StatGyroXYZInitInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("StatGyroXYStartInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? StatGyroXYStartInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("StatGyroXYEndInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? StatGyroXYEndInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("StatGyroXYInitInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? StatGyroXYInitInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ContGyroXYZStartInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ContGyroXYZStartInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ContGyroXYZEndInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ContGyroXYZEndInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ContGyroXYZInitInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ContGyroXYZInitInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ContGyroXYStartInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ContGyroXYStartInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ContGyroXYEndInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ContGyroXYEndInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ContGyroXYInitInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ContGyroXYInitInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ContGyroZStartInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ContGyroZStartInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ContGyroZEndInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ContGyroZEndInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ContGyroZInitInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ContGyroZInitInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ExtRefInitInc", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? ExtRefInitInc { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GyroCantAngle", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GyroCantAngle { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GyroSwitching", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GyroSwitching { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GyroMinDist", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GyroMinDist { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("GyroNoiseRed", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double? GyroNoiseRed { get; set; }
     
         [Newtonsoft.Json.JsonProperty("UseRelDepthError", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public bool UseRelDepthError { get; set; }
@@ -902,8 +989,122 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
         [Newtonsoft.Json.JsonProperty("UseGZ_RW", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public bool UseGZ_RW { get; set; }
     
+        [Newtonsoft.Json.JsonProperty("ErrorSources", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.Collections.Generic.ICollection<IErrorSource> ErrorSources { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("ErrorSourcesAll", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public System.Collections.Generic.ICollection<ErrorSource> ErrorSourcesAll { get; set; }
+    
         [Newtonsoft.Json.JsonProperty("ModelType", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
         public SurveyInstrumentModelType ModelType { get; set; }
+    
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v13.0.0.0)")]
+    public partial class ErrorSource 
+    {
+        [Newtonsoft.Json.JsonProperty("ErrorCode", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string ErrorCode { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Index", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public int Index { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("IsSystematic", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsSystematic { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("IsRandom", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsRandom { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("IsGlobal", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsGlobal { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("SingularIssues", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool SingularIssues { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("IsContinuous", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsContinuous { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Magnitude", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Magnitude { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Latitude", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Latitude { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Gravity", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Gravity { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("BField", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double BField { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Dip", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Dip { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Declination", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Declination { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("StartInclination", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double StartInclination { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("EndInclination", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double EndInclination { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("InitInclination", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double InitInclination { get; set; }
+    
+    
+    }
+    
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "10.5.2.0 (Newtonsoft.Json v13.0.0.0)")]
+    public abstract partial class IErrorSource 
+    {
+        [Newtonsoft.Json.JsonProperty("ErrorCode", Required = Newtonsoft.Json.Required.Default, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public string ErrorCode { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Index", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public int Index { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("IsSystematic", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsSystematic { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("IsRandom", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsRandom { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("IsGlobal", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsGlobal { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("SingularIssues", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool SingularIssues { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("IsContinuous", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public bool IsContinuous { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Magnitude", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Magnitude { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Latitude", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Latitude { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Gravity", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Gravity { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("BField", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double BField { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Dip", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Dip { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("Declination", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double Declination { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("StartInclination", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double StartInclination { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("EndInclination", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double EndInclination { get; set; }
+    
+        [Newtonsoft.Json.JsonProperty("InitInclination", Required = Newtonsoft.Json.Required.DisallowNull, NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore)]
+        public double InitInclination { get; set; }
     
     
     }
@@ -913,21 +1114,9 @@ namespace NORCE.Drilling.Trajectory.ModelClientShared
     {
         WolffDeWardt = 0,
     
-        ISCWC = 1,
+        MWD_ISCWSA = 1,
     
-        ISCWC_MWD_Rev5 = 2,
-    
-        ISCWSA_Gyro_Ex1 = 3,
-    
-        ISCWSA_Gyro_Ex2 = 4,
-    
-        ISCWSA_Gyro_Ex3 = 5,
-    
-        ISCWSA_Gyro_Ex4 = 6,
-    
-        ISCWSA_Gyro_Ex5 = 7,
-    
-        ISCWSA_Gyro_Ex6 = 8,
+        Gyro_ISCWSA = 2,
     
     }
     

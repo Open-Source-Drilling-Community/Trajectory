@@ -169,6 +169,7 @@ namespace NORCE.Drilling.Trajectory.Service
             return ids;
         }
 
+       
         public Model.Trajectory Get(int trajectoryID)
         {
             if (trajectoryID > 0)
@@ -191,6 +192,21 @@ namespace NORCE.Drilling.Trajectory.Service
                                     {
                                         try
                                         {
+                                            //JsonSerializer.Deserialize(json);
+                                            trajectory = JsonSerializer.Deserialize<Model.Trajectory>(json);
+                                            //trajectory  = Newtonsoft.Json.JsonConvert.DeserializeObject<Model.Trajectory>(json, new Newtonsoft.Json.JsonSerializerSettings
+                                            //{
+                                            //    TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Auto,
+                                            //    NullValueHandling = Newtonsoft.Json.NullValueHandling.Ignore,
+                                            //});
+                                            ////var settings = new Newtonsoft.Json.JsonSerializerSettings { Newtonsoft.Json.TypeNameHandling = Newtonsoft.Json.TypeNameHandling.Auto };
+
+                                            ////var json = Newtonsoft.Json.JsonConvert.SerializeObject(obj, typeof(ObjType), settings);
+
+                                            ////var deserializedObj = JsonConvert.DeserializeObject<ObjType>(json, settings);
+                                            //trajectory = Newtonsoft.Json.JsonConvert.DeserializeObject<Model.Trajectory>(json);
+
+
                                             trajectory = JsonSerializer.Deserialize<Model.Trajectory>(json);
                                             if (trajectory.ID != trajectoryID)
                                             {
@@ -217,7 +233,18 @@ namespace NORCE.Drilling.Trajectory.Service
                 return null;
             }
         }
- 
+        //public class AbstractConverter<TReal, TAbstract>
+        //   : Json where TReal : TAbstract
+        //{
+        //    public override Boolean CanConvert(Type objectType)
+        //        => objectType == typeof(TAbstract);
+
+        //    public override Object ReadJson(JsonReader reader, Type type, Object value, JsonSerializer jser)
+        //        => jser.Deserialize<TReal>(reader);
+
+        //    public override void WriteJson(JsonWriter writer, Object value, JsonSerializer jser)
+        //        => jser.Serialize(writer, value);
+        //}
         public bool Add(Model.Trajectory trajectory)
         {
             bool result = false;
@@ -233,7 +260,9 @@ namespace NORCE.Drilling.Trajectory.Service
                     {
                         try
                         {
-                            string json = JsonSerializer.Serialize<Model.Trajectory>(trajectory);
+                            //string json = Newtonsoft.Json.JsonConvert.SerializeObject(trajectory);
+                            string json = JsonSerializer.Serialize(trajectory);
+                            //string json = JsonSerializer.Serialize<Model.Trajectory>(trajectory);
                             bool ok = !json.Contains('\'');
                             var command = SQLConnectionManager.Instance.Connection.CreateCommand();
                             command.CommandText = @"INSERT INTO Trajectory (ID, Name, DataSet) VALUES (" +
@@ -261,6 +290,7 @@ namespace NORCE.Drilling.Trajectory.Service
             return result;
         }
 
+        
         public bool Remove(Model.Trajectory trajectory)
         {
             bool result = false;
@@ -317,8 +347,9 @@ namespace NORCE.Drilling.Trajectory.Service
                     {
                         try
                         {
-                            string json = JsonSerializer.Serialize<Model.Trajectory>(updatedTrajectory);
-                            bool ok = !json.Contains('\'');
+							//string json = Newtonsoft.Json.JsonConvert.SerializeObject(updatedTrajectory);
+							string json = JsonSerializer.Serialize<Model.Trajectory>(updatedTrajectory);
+							bool ok = !json.Contains('\'');
 
                             var command = SQLConnectionManager.Instance.Connection.CreateCommand();
                             command.CommandText = @"UPDATE Trajectory SET " +
@@ -487,8 +518,8 @@ namespace NORCE.Drilling.Trajectory.Service
                                     st.TvdWGS84 = tvd - rotaryTableElevation_Ullrigg + wellHeadTVDWGS84;
                                     st.MdWGS84 = md - rotaryTableElevation_Ullrigg + wellHeadTVDWGS84;
 
-									surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.WdWGoodMag);
-                                    st.SurveyTool = surveyTool;
+									//surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.ISCWSAGyroExample1);
+                                    st.SurveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.ISCWSAGyroExample1);
                                     ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                     st.Uncertainty = iscwsaun;
                                     if (st.MdWGS84 < wellHeadTVDWGS84 && st.TvdWGS84 < wellHeadTVDWGS84)
@@ -527,7 +558,9 @@ namespace NORCE.Drilling.Trajectory.Service
 
                             trajectory.SurveyList = sl;
                             trajectory.SurveyList.ListOfSurveys = sl.ListOfSurveys;
-							trajectory.SurveyList.GetUncertaintyEnvelope(0.95, 1);
+
+
+                            trajectory.SurveyList.GetUncertaintyEnvelope(0.95, 1);
                             Add(trajectory);
                         }
                     }
@@ -535,141 +568,179 @@ namespace NORCE.Drilling.Trajectory.Service
             }
         }
 
-        public async Task<SurveyInstrument.Model.SurveyInstrument> LoadSurveyTool(int id)
+        //public async Task<SurveyInstrument.Model.SurveyInstrument> LoadSurveyTool(int id)
+        //{
+        //    SurveyInstrument.Model.SurveyInstrument surveyList = await LoadSurveyTool("https://app.DigiWells.no/", id);
+        //    if (surveyList == null)
+        //    {
+        //        surveyList = await LoadSurveyTool("http://host.docker.internal:10002/", id);
+        //    }
+        //    if (surveyList == null)
+        //    {
+        //        // Running in Docker via VS
+        //        surveyList = await LoadSurveyTool("https://localhost:44369/", id);
+        //    }
+        //    if (surveyList == null)
+        //    {
+        //        // Running both services in VS without Docker
+        //        surveyList = await LoadSurveyTool("https://localhost:10001/", id);
+        //    }
+        //    if (surveyList == null)
+        //    {
+        //        // Running both services in VS without Docker
+        //        surveyList = await LoadSurveyTool("http://localhost:50002/", id);
+        //    }
+        //    return surveyList;
+        //}
+
+        //public async Task<SurveyInstrument.Model.SurveyInstrument> LoadSurveyTool(string host, int id)
+        //{
+        //    HttpClient httpTrajectory;
+        //    SurveyInstrument.Model.SurveyInstrument trajectory = null;
+        //    try
+        //    {
+        //        httpTrajectory = new HttpClient();
+        //        httpTrajectory.BaseAddress = new Uri(host + "SurveyInstrument/api/");
+        //        httpTrajectory.DefaultRequestHeaders.Accept.Clear();
+        //        httpTrajectory.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+        //        var a = await httpTrajectory.GetAsync("SurveyInstruments");
+        //        if (a.IsSuccessStatusCode)
+        //        {
+        //            string str = await a.Content.ReadAsStringAsync();
+        //            if (!string.IsNullOrEmpty(str))
+        //            {
+        //                SurveyInstrument.Model.SurveyInstrument trajectoryShared = Newtonsoft.Json.JsonConvert.DeserializeObject<SurveyInstrument.Model.SurveyInstrument>(str);
+        //                if (trajectoryShared != null && trajectoryShared.Name != null )
+        //                {
+        //                    // Convert trajectoryShared to a SurveyList
+        //                    //trajectory = new SurveyList();
+        //                    //foreach (Trajectory.ModelClientShared.SurveyStation ss in trajectoryShared.SurveyList.ListOfSurveys)
+        //                    //{
+        //                    //    SurveyStation s = new SurveyStation();
+        //                    //    s.MD = ss.MD;
+        //                    //    s.Incl = ss.Incl;
+        //                    //    s.AzWGS84 = ss.AzWGS84;
+        //                    //    s.NorthOfWellHead  = ss.NorthOfWellHead ;
+        //                    //    s.EastOfWellHead = ss.EastOfWellHead;
+        //                    //    s.TvdWGS84 = ss.TvdWGS84;
+        //                    //    s.Abscissa = ss.Abscissa;
+
+        //                    //    // The WdW uncertainty is default in the methods we use here. If others should be used, we have to translate them from the shared object
+        //                    //    //s.Uncertainty = new Trajectory.WdWSurveyStationUncertainty();
+
+        //                    //    trajectory.ListOfSurveys.Add(s);
+        //                    //}
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        httpTrajectory = null;
+        //        trajectory = null;
+        //    }
+        //    return trajectory;
+        //}
+        //private void GetSurveyTool()
+        //{
+        //    using (HttpClient client = new HttpClient())
+        //    {
+        //        client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+
+        //        var response = client.GetAsync("http://localhost:50002/SurveyInstrument/api/surveyInstruments").Result;
+
+        //        string content = response.Content.ReadAsStringAsync().Result;
+        //        Console.WriteLine(content);
+        //        Console.ReadLine();
+        //    }
+        //}
+
+        //private SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument();
+        //HttpClient httpSurveyInstrument;
+        //private async void GetSurveyTool2()
+        //{
+        //    //SurveyInstrument.Model.SurveyInstrument surveyInstrument = new SurveyInstrument.Model.SurveyInstrument();
+        //    string host = "http://localhost:50002/";
+        //    int[] initialSurveyInstrumentIDs = null;
+        //    List<string> initialSurveyInstruments = null;
+        //    try
+        //    {
+        //        httpSurveyInstrument = new HttpClient();
+        //        httpSurveyInstrument.BaseAddress = new Uri(host + "SurveyInstrument/api/");
+        //        httpSurveyInstrument.DefaultRequestHeaders.Accept.Clear();
+        //        httpSurveyInstrument.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+        //        var a = await httpSurveyInstrument.GetAsync("SurveyInstruments");
+        //        if (a.IsSuccessStatusCode)
+        //        {
+        //            string str = await a.Content.ReadAsStringAsync();
+        //            if (!string.IsNullOrEmpty(str))
+        //            {
+        //                initialSurveyInstrumentIDs = Newtonsoft.Json.JsonConvert.DeserializeObject<int[]>(str);
+        //                for (int i = 0; i < initialSurveyInstrumentIDs.Length; i++)
+        //                {
+        //                    var b = await httpSurveyInstrument.GetAsync("SurveyInstruments/" + initialSurveyInstrumentIDs[i].ToString());
+        //                    if (b.IsSuccessStatusCode && a.Content != null)
+        //                    {
+        //                        str = await b.Content.ReadAsStringAsync();
+        //                        if (!string.IsNullOrEmpty(str))
+        //                        {
+        //                            surveyTool = Newtonsoft.Json.JsonConvert.DeserializeObject<SurveyInstrument.Model.SurveyInstrument>(str);
+        //                            if (surveyTool != null)
+        //                            {
+        //                                initialSurveyInstruments.Add(surveyTool.Name);
+        //                            }
+        //                        }
+        //                    }
+        //                }
+        //            }
+        //        }
+        //    }
+        //    catch (Exception e)
+        //    {
+        //        httpSurveyInstrument = null;
+        //        initialSurveyInstruments = null;
+        //    }            
+        //}
+    }
+
+    //public class ThingConverter : JsonConverter<IErrorSource>
+    //{
+    //    public override IErrorSource Read(
+    //        ref Utf8JsonReader reader,
+    //        Type typeToConvert,
+    //        JsonSerializerOptions options)
+    //    {
+    //        throw new NotImplementedException();
+    //    }
+
+    //    public override void Write(
+    //        Utf8JsonWriter writer,
+    //        IErrorSource value,
+    //        JsonSerializerOptions options)
+    //    {
+    //        switch (value)
+    //        {
+    //            case null:
+    //                JsonSerializer.Serialize(writer, (IErrorSource)null, options);
+    //                break;
+    //            default:
+    //                {
+    //                    var type = value.GetType();
+    //                    JsonSerializer.Serialize(writer, value, type, options);
+    //                    break;
+    //                }
+    //        }
+    //    }
+    //}
+    [AttributeUsage(AttributeTargets.Interface, AllowMultiple = false)]
+    public class JsonInterfaceConverterAttribute : System.Text.Json.Serialization.JsonConverterAttribute
+    {
+        public JsonInterfaceConverterAttribute(Type converterType)
+            : base(converterType)
         {
-            SurveyInstrument.Model.SurveyInstrument surveyList = await LoadSurveyTool("https://app.DigiWells.no/", id);
-            if (surveyList == null)
-            {
-                surveyList = await LoadSurveyTool("http://host.docker.internal:10002/", id);
-            }
-            if (surveyList == null)
-            {
-                // Running in Docker via VS
-                surveyList = await LoadSurveyTool("https://localhost:44369/", id);
-            }
-            if (surveyList == null)
-            {
-                // Running both services in VS without Docker
-                surveyList = await LoadSurveyTool("https://localhost:10001/", id);
-            }
-            if (surveyList == null)
-            {
-                // Running both services in VS without Docker
-                surveyList = await LoadSurveyTool("http://localhost:50002/", id);
-            }
-            return surveyList;
-        }
-
-        public async Task<SurveyInstrument.Model.SurveyInstrument> LoadSurveyTool(string host, int id)
-        {
-            HttpClient httpTrajectory;
-            SurveyInstrument.Model.SurveyInstrument trajectory = null;
-            try
-            {
-                httpTrajectory = new HttpClient();
-                httpTrajectory.BaseAddress = new Uri(host + "SurveyInstrument/api/");
-                httpTrajectory.DefaultRequestHeaders.Accept.Clear();
-                httpTrajectory.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
-                var a = await httpTrajectory.GetAsync("SurveyInstruments");
-                if (a.IsSuccessStatusCode)
-                {
-                    string str = await a.Content.ReadAsStringAsync();
-                    if (!string.IsNullOrEmpty(str))
-                    {
-                        SurveyInstrument.Model.SurveyInstrument trajectoryShared = Newtonsoft.Json.JsonConvert.DeserializeObject<SurveyInstrument.Model.SurveyInstrument>(str);
-                        if (trajectoryShared != null && trajectoryShared.Name != null )
-                        {
-                            // Convert trajectoryShared to a SurveyList
-                            //trajectory = new SurveyList();
-                            //foreach (Trajectory.ModelClientShared.SurveyStation ss in trajectoryShared.SurveyList.ListOfSurveys)
-                            //{
-                            //    SurveyStation s = new SurveyStation();
-                            //    s.MD = ss.MD;
-                            //    s.Incl = ss.Incl;
-                            //    s.AzWGS84 = ss.AzWGS84;
-                            //    s.NorthOfWellHead  = ss.NorthOfWellHead ;
-                            //    s.EastOfWellHead = ss.EastOfWellHead;
-                            //    s.TvdWGS84 = ss.TvdWGS84;
-                            //    s.Abscissa = ss.Abscissa;
-
-                            //    // The WdW uncertainty is default in the methods we use here. If others should be used, we have to translate them from the shared object
-                            //    //s.Uncertainty = new Trajectory.WdWSurveyStationUncertainty();
-
-                            //    trajectory.ListOfSurveys.Add(s);
-                            //}
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                httpTrajectory = null;
-                trajectory = null;
-            }
-            return trajectory;
-        }
-        private void GetSurveyTool()
-        {
-            using (HttpClient client = new HttpClient())
-            {
-                client.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
-
-                var response = client.GetAsync("http://localhost:50002/SurveyInstrument/api/surveyInstruments").Result;
-
-                string content = response.Content.ReadAsStringAsync().Result;
-                Console.WriteLine(content);
-                Console.ReadLine();
-            }
-        }
-
-        private SurveyInstrument.Model.SurveyInstrument surveyTool = new SurveyInstrument.Model.SurveyInstrument();
-        HttpClient httpSurveyInstrument;
-        private async void GetSurveyTool2()
-        {
-            //SurveyInstrument.Model.SurveyInstrument surveyInstrument = new SurveyInstrument.Model.SurveyInstrument();
-            string host = "http://localhost:50002/";
-            int[] initialSurveyInstrumentIDs = null;
-            List<string> initialSurveyInstruments = null;
-            try
-            {
-                httpSurveyInstrument = new HttpClient();
-                httpSurveyInstrument.BaseAddress = new Uri(host + "SurveyInstrument/api/");
-                httpSurveyInstrument.DefaultRequestHeaders.Accept.Clear();
-                httpSurveyInstrument.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
-
-                var a = await httpSurveyInstrument.GetAsync("SurveyInstruments");
-                if (a.IsSuccessStatusCode)
-                {
-                    string str = await a.Content.ReadAsStringAsync();
-                    if (!string.IsNullOrEmpty(str))
-                    {
-                        initialSurveyInstrumentIDs = Newtonsoft.Json.JsonConvert.DeserializeObject<int[]>(str);
-                        for (int i = 0; i < initialSurveyInstrumentIDs.Length; i++)
-                        {
-                            var b = await httpSurveyInstrument.GetAsync("SurveyInstruments/" + initialSurveyInstrumentIDs[i].ToString());
-                            if (b.IsSuccessStatusCode && a.Content != null)
-                            {
-                                str = await b.Content.ReadAsStringAsync();
-                                if (!string.IsNullOrEmpty(str))
-                                {
-                                    surveyTool = Newtonsoft.Json.JsonConvert.DeserializeObject<SurveyInstrument.Model.SurveyInstrument>(str);
-                                    if (surveyTool != null)
-                                    {
-                                        initialSurveyInstruments.Add(surveyTool.Name);
-                                    }
-                                }
-                            }
-                        }
-                    }
-                }
-            }
-            catch (Exception e)
-            {
-                httpSurveyInstrument = null;
-                initialSurveyInstruments = null;
-            }            
         }
     }
 }

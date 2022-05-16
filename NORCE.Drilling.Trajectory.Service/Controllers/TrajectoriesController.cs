@@ -224,23 +224,23 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                     {
                         if (value.SurveyList.ListOfSurveys != null && value.SurveyList.ListOfSurveys.Count > 0)
                         {
-                            for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
-                            {
-                                SurveyInstrument.Model.SurveyInstrument surveyInstrument = new SurveyInstrument.Model.SurveyInstrument();
-                                string name = value.SurveyList.ListOfSurveys[i].SurveyTool.Name;
-                                foreach (SurveyInstrument.Model.SurveyInstrument si in SurveyInstrument.Model.SurveyInstrument.DefaultList)
-                                {
-                                    if (si.Name == name)
-                                    {
-                                        surveyInstrument = new SurveyInstrument.Model.SurveyInstrument(si);
-                                        value.SurveyList.ListOfSurveys[i].SurveyTool = surveyInstrument;
-                                        break;
-                                    }
-                                }
-                            }
+                            //for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
+                            //{
+                            //    SurveyInstrument.Model.SurveyInstrument surveyInstrument = new SurveyInstrument.Model.SurveyInstrument();
+                            //    string name = value.SurveyList.ListOfSurveys[i].SurveyTool.Name;
+                            //    foreach (SurveyInstrument.Model.SurveyInstrument si in SurveyInstrument.Model.SurveyInstrument.DefaultList)
+                            //    {
+                            //        if (si.Name == name)
+                            //        {
+                            //            surveyInstrument = new SurveyInstrument.Model.SurveyInstrument(si);
+                            //            value.SurveyList.ListOfSurveys[i].SurveyTool = surveyInstrument;
+                            //            break;
+                            //        }
+                            //    }
+                            //}
                             SurveyList sl = new SurveyList();
-                            value.SurveyList.CalculateMinimumCurvatureMethod();
-                            for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
+							value.SurveyList.CalculateMinimumCurvatureMethod();
+							for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
                             {
                                 SurveyStation st = new SurveyStation();
                                 double? incl = value.SurveyList.ListOfSurveys[i].Incl;
@@ -266,17 +266,12 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                 {
                                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
                                     st.Uncertainty = wdwun;
-                                }
-                                else if (st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWC || st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWC_MWD_Rev5
-                                    || st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWSA_Gyro_Ex1)
-                                {
-                                    ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
-                                    st.Uncertainty = iscwsaun;
-                                }
+                                }                                
                                 else
                                 {
                                     ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                     st.Uncertainty = iscwsaun;
+                                    st.SurveyTool.FillErrorSources();
                                 }
                                 sl.Add(st);
                             }
@@ -305,37 +300,34 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                         {
                             for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
                             {
-                                SurveyInstrument.Model.SurveyInstrument surveyInstrument = new SurveyInstrument.Model.SurveyInstrument();
-                                string name = value.SurveyList.ListOfSurveys[i].SurveyTool.Name;
-                                foreach (SurveyInstrument.Model.SurveyInstrument si in SurveyInstrument.Model.SurveyInstrument.DefaultList)
-                                {
-                                    if (si.Name == name)
-                                    {
-                                        surveyInstrument = new SurveyInstrument.Model.SurveyInstrument(si);
-                                        value.SurveyList.ListOfSurveys[i].SurveyTool = surveyInstrument;
-                                        break;
-                                    }
-                                }                                
+                                
+                                    //SurveyInstrument.Model.SurveyInstrument surveyInstrument = new SurveyInstrument.Model.SurveyInstrument();
+                                    //string name = value.SurveyList.ListOfSurveys[i].SurveyTool.Name;
+                                    //foreach (SurveyInstrument.Model.SurveyInstrument si in SurveyInstrument.Model.SurveyInstrument.DefaultList)
+                                    //{
+                                    //    if (si.Name == name)
+                                    //    {
+                                    //        surveyInstrument = new SurveyInstrument.Model.SurveyInstrument(si);
+                                    //        value.SurveyList.ListOfSurveys[i].SurveyTool = surveyInstrument;
+                                    //        break;
+                                    //    }
+                                    //}                                
                                 if (value.SurveyList.ListOfSurveys[i].SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.WolffDeWardt)
                                 {
                                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
                                     value.SurveyList.ListOfSurveys[i].Uncertainty = wdwun;
                                 }
-                                else if (value.SurveyList.ListOfSurveys[i].SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWC_MWD_Rev5)
-                                {
-                                    ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
-                                    value.SurveyList.ListOfSurveys[i].Uncertainty = iscwsaun;
-                                }
                                 else
                                 {
                                     ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                     value.SurveyList.ListOfSurveys[i].Uncertainty = iscwsaun;
+                                    value.SurveyList.ListOfSurveys[i].SurveyTool.FillErrorSources();
                                 }
                             }
                             if (value.SurveyList.ListOfSurveys[0].Uncertainty == null || value.SurveyList.ListOfSurveys[0].Uncertainty.C11 == null)
                             {
-                                value.SurveyList.CalculateMinimumCurvatureMethod();
-                                SurveyList sl = new SurveyList();
+								value.SurveyList.CalculateMinimumCurvatureMethod();
+								SurveyList sl = new SurveyList();
                                 for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
                                 {
                                     SurveyStation st = new SurveyStation();
@@ -360,16 +352,12 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                     {
                                         WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
                                         st.Uncertainty = wdwun;
-                                    }
-                                    else if (st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWC_MWD_Rev5)
-                                    {
-                                        ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
-                                        st.Uncertainty = iscwsaun;
-                                    }
+                                    }                                   
                                     else
                                     {
                                         ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                         st.Uncertainty = iscwsaun;
+                                        st.SurveyTool.FillErrorSources();
                                     }
                                     sl.Add(st);
                                 }
@@ -390,31 +378,27 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                         {
                             for (int i = 0; i < value.SurveyList.ListOfSurveys.Count; i++)
                             {
-                                SurveyInstrument.Model.SurveyInstrument surveyInstrument = new SurveyInstrument.Model.SurveyInstrument();
-                                string name = value.SurveyList.ListOfSurveys[i].SurveyTool.Name;
-                                foreach (SurveyInstrument.Model.SurveyInstrument si in SurveyInstrument.Model.SurveyInstrument.DefaultList)
-                                {
-                                    if (si.Name == name)
-                                    {
-                                        surveyInstrument = new SurveyInstrument.Model.SurveyInstrument(si);
-                                        value.SurveyList.ListOfSurveys[i].SurveyTool = surveyInstrument;
-                                        break;
-                                    }
-                                }
+                                //SurveyInstrument.Model.SurveyInstrument surveyInstrument = new SurveyInstrument.Model.SurveyInstrument();
+                                //string name = value.SurveyList.ListOfSurveys[i].SurveyTool.Name;
+                                //foreach (SurveyInstrument.Model.SurveyInstrument si in SurveyInstrument.Model.SurveyInstrument.DefaultList)
+                                //{
+                                //    if (si.Name == name)
+                                //    {
+                                //        surveyInstrument = new SurveyInstrument.Model.SurveyInstrument(si);
+                                //        value.SurveyList.ListOfSurveys[i].SurveyTool = surveyInstrument;
+                                //        break;
+                                //    }
+                                //}
                                 if (value.SurveyList.ListOfSurveys[i].SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.WolffDeWardt)
                                 {
                                     WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
                                     value.SurveyList.ListOfSurveys[i].Uncertainty = wdwun;
-                                }
-                                else if (value.SurveyList.ListOfSurveys[i].SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWC_MWD_Rev5)
-                                {
-                                    ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
-                                    value.SurveyList.ListOfSurveys[i].Uncertainty = iscwsaun;
-                                }
+                                }                                
                                 else
                                 {
                                     ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                     value.SurveyList.ListOfSurveys[i].Uncertainty = iscwsaun;
+                                    value.SurveyList.ListOfSurveys[i].SurveyTool.FillErrorSources();
                                 }
                             }
                             if (value.SurveyList.ListOfSurveys[0].Uncertainty == null || value.SurveyList.ListOfSurveys[0].Uncertainty.C11 == null)
@@ -445,15 +429,11 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                                         WdWSurveyStationUncertainty wdwun = new WdWSurveyStationUncertainty();
                                         st.Uncertainty = wdwun;
                                     }
-                                    else if (st.SurveyTool.ModelType == SurveyInstrument.Model.SurveyInstrumentModelType.ISCWC_MWD_Rev5)
-                                    {
-                                        ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
-                                        st.Uncertainty = iscwsaun;
-                                    }
                                     else
                                     {
                                         ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
                                         st.Uncertainty = iscwsaun;
+                                        st.SurveyTool.FillErrorSources();
                                     }
                                     sl.Add(st);
                                 }

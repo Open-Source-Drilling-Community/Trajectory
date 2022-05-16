@@ -1240,11 +1240,18 @@ else
 					<td>
 						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].SurveyTool.Name</span>
 						<select class="form-control selectpicker" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.SurveyTool.Name">
-							@if (surveyInstrumentNames != null)
-							{
-								@foreach (string surveyInstrumentName in surveyInstrumentNames)
+							@*@if (surveyInstrumentNames != null)
 								{
-									<option>@surveyInstrumentName</option>
+									@foreach (string surveyInstrumentName in surveyInstrumentNames)
+									{
+										<option>@surveyInstrumentName</option>
+									}
+								}*@
+							@if (surveyInstruments != null)
+							{
+								@foreach (ModelClientShared.SurveyInstrument surveyInstrument in surveyInstruments.Values)
+								{
+									<option>@surveyInstrument.Name</option>
 								}
 							}
 						</select>
@@ -1324,7 +1331,7 @@ else
 	private List<NORCE.Drilling.Trajectory.ModelClientShared.SurveyStation> surveyStations;
 	private List<string> surveyInstrumentNames = new List<string>();
 	private int[] surveyInstrumentIDs;
-	private Dictionary<int, NORCE.Drilling.SurveyInstrument.ModelClientShared.SurveyInstrument> surveyInstruments = null;
+	private Dictionary<int, ModelClientShared.SurveyInstrument> surveyInstruments = null;
 	private Dictionary<int, NORCE.Drilling.SurveyProgram.ModelClientShared.SurveyProgram> surveyPrograms;
 	private NORCE.Drilling.SurveyProgram.ModelClientShared.SurveyProgram surveyProgram;
 
@@ -1680,12 +1687,12 @@ else
 			}
 			#endregion
 			#region surveyInstrumentNames
-			surveyInstrumentNames = await LoadSurveyInstrumentNames(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyInstrumentHostURL);
+			//surveyInstrumentNames = await LoadSurveyInstrumentNames(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyInstrumentHostURL);
 			if (surveyInstrumentNames == null)
 			{
 				//surveyInstrumentNames = await LoadSurveyInstrumentNames("http://host.docker.internal:" + NORCE.Drilling.Trajectory.WebApp.Client.Configuration.InternalHTTPPortNumberSurveyInstrument + "/");
 			}
-			if (surveyInstrumentNames == null)
+			if (surveyInstrumentNames == null || surveyInstrumentNames.Count <= 0)
 			{
 				surveyInstrumentNames = await LoadSurveyInstrumentNames("http://localhost:" + NORCE.Drilling.Trajectory.WebApp.Client.Configuration.InternalHTTPPortNumberSurveyInstrument + "/");
 			}
@@ -1701,7 +1708,7 @@ else
 			}
 			#endregion surveyInstrumentNames
 			#region surveyInstrumentIDs
-			surveyInstrumentIDs = await LoadSurveyToolIDs(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyInstrumentHostURL);
+			//surveyInstrumentIDs = await LoadSurveyToolIDs(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyInstrumentHostURL);
 			if (surveyInstrumentIDs == null)
 			{
 				//surveyInstrumentIDs = await LoadSurveyToolIDs("http://host.docker.internal:" + NORCE.Drilling.Trajectory.WebApp.Client.Configuration.InternalHTTPPortNumberSurveyInstrument + "/");
@@ -1716,7 +1723,7 @@ else
 			}
 			#endregion surveyInstrumentIDs
 			#region surveyInstruments
-			surveyInstruments = await LoadSurveyInstruments(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyInstrumentHostURL);
+			//surveyInstruments = await LoadSurveyInstruments(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyInstrumentHostURL);
 			if (surveyInstruments == null)
 			{
 				//surveyInstruments = await LoadSurveyInstruments("http://host.docker.internal:" + NORCE.Drilling.Trajectory.WebApp.Client.Configuration.InternalHTTPPortNumberSurveyInstrument + "/");
@@ -1749,9 +1756,19 @@ else
 				{
 					if (surveyStations[j].MdWGS84 >= run.StartMD && surveyStations[j].MdWGS84 <= run.FinalMD)
 					{
-						surveyStations[j].SurveyTool = new SurveyInstrument();
-						surveyStations[j].SurveyTool.Name = run.SurveyInstrument.Name;
-						surveyStations[j].SurveyTool.ModelType = (SurveyInstrumentModelType)run.SurveyInstrument.ModelType;
+						foreach (ModelClientShared.SurveyInstrument surveyInstrument in surveyInstruments.Values)
+						{
+							if (run.SurveyInstrument.Name == surveyInstrument.Name)
+							{
+								surveyStations[j].SurveyTool = new SurveyInstrument();
+								surveyStations[j].SurveyTool = surveyInstrument;
+								//surveyInstrument.Copy(updatedSurveyStation.SurveyTool);
+
+							}
+						}
+						//surveyStations[j].SurveyTool = new SurveyInstrument();
+						//surveyStations[j].SurveyTool.Name = run.SurveyInstrument.Name;
+						//surveyStations[j].SurveyTool.ModelType = (SurveyInstrumentModelType)run.SurveyInstrument.ModelType;
 					}
 				}
 			}
@@ -1860,7 +1877,56 @@ else
 		return initialSurveyInstrumentNames;
 	}
 
-	private async Task<Dictionary<int, NORCE.Drilling.SurveyInstrument.ModelClientShared.SurveyInstrument>> LoadSurveyInstruments(string host)
+	private async Task<Dictionary<int, ModelClientShared.SurveyInstrument>> LoadSurveyInstruments(string host)
+	{
+		Dictionary<int, ModelClientShared.SurveyInstrument> initialSurveyInstruments = null;
+		try
+		{
+			httpSurveyInstrument = new HttpClient();
+			httpSurveyInstrument.BaseAddress = new Uri(host + "SurveyInstrument/api/");
+			httpSurveyInstrument.DefaultRequestHeaders.Accept.Clear();
+			httpSurveyInstrument.DefaultRequestHeaders.Accept.Add(new System.Net.Http.Headers.MediaTypeWithQualityHeaderValue("application/json"));
+
+			var a = await httpSurveyInstrument.GetAsync("SurveyInstruments");
+			if (a.IsSuccessStatusCode)
+			{
+				string str = await a.Content.ReadAsStringAsync();
+				if (!string.IsNullOrEmpty(str))
+				{
+					int[] initialSurveyInstrumentIDs = Newtonsoft.Json.JsonConvert.DeserializeObject<int[]>(str);
+					if (initialSurveyInstrumentIDs != null && initialSurveyInstrumentIDs.Length > 0)
+					{
+						initialSurveyInstruments = new Dictionary<int, ModelClientShared.SurveyInstrument>();
+						for (int i = 0; i < initialSurveyInstrumentIDs.Length; i++)
+						{
+							int id = initialSurveyInstrumentIDs[i];
+							a = await httpSurveyInstrument.GetAsync("SurveyInstruments/" + id);
+							if (a.IsSuccessStatusCode)
+							{
+								str = await a.Content.ReadAsStringAsync();
+								if (!string.IsNullOrEmpty(str))
+								{
+									ModelClientShared.SurveyInstrument downloadedSurveyInstrument = Newtonsoft.Json.JsonConvert.DeserializeObject<ModelClientShared.SurveyInstrument>(str);
+									if (downloadedSurveyInstrument != null && !string.IsNullOrEmpty(downloadedSurveyInstrument.Name))
+									{
+										initialSurveyInstruments.Add(id, downloadedSurveyInstrument);
+									}
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		catch (Exception e)
+		{
+			httpSurveyInstrument = null;
+			initialSurveyInstruments = null;
+		}
+		return initialSurveyInstruments;
+	}
+
+	private async Task<Dictionary<int, NORCE.Drilling.SurveyInstrument.ModelClientShared.SurveyInstrument>> LoadSurveyInstrumentsTrue(string host)
 	{
 		Dictionary<int, NORCE.Drilling.SurveyInstrument.ModelClientShared.SurveyInstrument> initialSurveyInstruments = null;
 		try
@@ -2194,7 +2260,7 @@ else
 				NORCE.Drilling.Cluster.ModelClientShared.Cluster updatedCluster = clusters[wells[wellBores[updatedTrajectory.WellboreID].WellID].ClusterID];
 				NORCE.Drilling.SurveyProgram.ModelClientShared.SurveyProgram updatedSurveyProgram = null;
 				surveyProgram = null;
-				if (surveyProgram != null)
+				if (surveyPrograms != null)
 				{
 					if (surveyPrograms.TryGetValue(updatedTrajectory.WellboreID, out updatedSurveyProgram))
 
@@ -2430,6 +2496,15 @@ else
 
 	private void UpdateSurveyStation(int idx)
 	{
+		foreach (ModelClientShared.SurveyInstrument surveyInstrument in surveyInstruments.Values)
+		{
+			if(updatedSurveyStation.SurveyTool.Name== surveyInstrument.Name)
+			{
+				updatedSurveyStation.SurveyTool = surveyInstrument;
+				//surveyInstrument.Copy(updatedSurveyStation.SurveyTool);
+
+			}
+		}
 
 
 		if (surveyStations != null && idx >= 0 && idx < surveyStations.Count)
