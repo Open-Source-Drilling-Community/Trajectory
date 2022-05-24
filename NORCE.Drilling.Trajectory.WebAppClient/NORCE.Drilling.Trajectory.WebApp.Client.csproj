@@ -23,4 +23,8 @@
     <ProjectReference Include="..\NORCE.Drilling.Trajectory.ModelClientShared\NORCE.Drilling.Trajectory.ModelClientShared.csproj" />
   </ItemGroup>
 
+  <ItemGroup>
+    <Folder Include="charts\" />
+  </ItemGroup>
+
 </Project>

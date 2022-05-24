@@ -1420,8 +1420,8 @@ else
 			IsTableSurveyListHidden = true;
 
 			#region Trajectories
-			int[] initialTrajectoryIDs = null;
-			//int[] initialTrajectoryIDs = await LoadTrajectoryIDs(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.TrajectoryHostURL);
+			//int[] initialTrajectoryIDs = null;
+			int[] initialTrajectoryIDs = await LoadTrajectoryIDs(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.TrajectoryHostURL);
 			if (initialTrajectoryIDs == null)
 			{
 				//initialTrajectoryIDs = await LoadTrajectoryIDs("http://host.docker.internal:" + NORCE.Drilling.Trajectory.WebApp.Client.Configuration.InternalTrajectoryHTTPPortNumber + "/");
@@ -1656,7 +1656,7 @@ else
 				//if (NORCE.Drilling.Trajectory.WebApp.Client.ConfigurationManager.Instance.Configuration != null &&
 				//    !string.IsNullOrEmpty(NORCE.Drilling.Trajectory.WebApp.Client.ConfigurationManager.Instance.Configuration.HostURL))
 				{
-					//tempSurveyProgram = await LoadSurveyPrograms(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyProgramHostURL);
+					tempSurveyProgram = await LoadSurveyPrograms(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyProgramHostURL);
 				}
 				if (tempSurveyProgram == null)
 				{
@@ -1687,7 +1687,7 @@ else
 			}
 			#endregion
 			#region surveyInstrumentNames
-			//surveyInstrumentNames = await LoadSurveyInstrumentNames(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyInstrumentHostURL);
+			surveyInstrumentNames = await LoadSurveyInstrumentNames(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyInstrumentHostURL);
 			if (surveyInstrumentNames == null)
 			{
 				//surveyInstrumentNames = await LoadSurveyInstrumentNames("http://host.docker.internal:" + NORCE.Drilling.Trajectory.WebApp.Client.Configuration.InternalHTTPPortNumberSurveyInstrument + "/");
@@ -1708,7 +1708,7 @@ else
 			}
 			#endregion surveyInstrumentNames
 			#region surveyInstrumentIDs
-			//surveyInstrumentIDs = await LoadSurveyToolIDs(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyInstrumentHostURL);
+			surveyInstrumentIDs = await LoadSurveyToolIDs(NORCE.Drilling.Trajectory.WebApp.Client.Configuration.SurveyInstrumentHostURL);
 			if (surveyInstrumentIDs == null)
 			{
 				//surveyInstrumentIDs = await LoadSurveyToolIDs("http://host.docker.internal:" + NORCE.Drilling.Trajectory.WebApp.Client.Configuration.InternalHTTPPortNumberSurveyInstrument + "/");

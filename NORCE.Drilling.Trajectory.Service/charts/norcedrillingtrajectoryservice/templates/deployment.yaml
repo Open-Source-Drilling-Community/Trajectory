@@ -1,38 +1,43 @@
 apiVersion: apps/v1
 kind: Deployment
 metadata:
-  name: {{ template "norcedrillingtrajectoryservice.fullname" . }}
+  name: {{ include "norcedrillingtrajectoryservice.fullname" . }}
   labels:
-    app: {{ template "norcedrillingtrajectoryservice.name" . }}
-    chart: {{ template "norcedrillingtrajectoryservice.chart" . }}
-    draft: {{ .Values.draft | default "draft-app" }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "norcedrillingtrajectoryservice.labels" . | nindent 4 }}
 spec:
-  revisionHistoryLimit: 0
+  {{- if not .Values.autoscaling.enabled }}
   replicas: {{ .Values.replicaCount }}
+  {{- end }}
   selector:
     matchLabels:
-      app: {{ template "norcedrillingtrajectoryservice.name" . }}
-      release: {{ .Release.Name }}
+      {{- include "norcedrillingtrajectoryservice.selectorLabels" . | nindent 6 }}
   template:
     metadata:
-      labels:
-        app: {{ template "norcedrillingtrajectoryservice.name" . }}
-        draft: {{ .Values.draft | default "draft-app" }}
-        release: {{ .Release.Name }}
+      {{- with .Values.podAnnotations }}
       annotations:
-        buildID: {{ .Values.buildID | default "" | quote }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      labels:
+        {{- include "norcedrillingtrajectoryservice.selectorLabels" . | nindent 8 }}
     spec:
+      {{- with .Values.imagePullSecrets }}
+      imagePullSecrets:
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      serviceAccountName: {{ include "norcedrillingtrajectoryservice.serviceAccountName" . }}
+      securityContext:
+        {{- toYaml .Values.podSecurityContext | nindent 8 }}
       containers:
         - name: {{ .Chart.Name }}
-          image: "{{ .Values.image.repository }}:{{ .Values.image.tag }}"
+          securityContext:
+            {{- toYaml .Values.securityContext | nindent 12 }}
+          image: "{{ .Values.image.repository }}:{{ .Values.image.tag | default .Chart.AppVersion }}"
           imagePullPolicy: {{ .Values.image.pullPolicy }}
           ports:
             - name: http
-              containerPort: {{ .Values.deployment.containerPort }}
+              containerPort: 80
               protocol: TCP
-          {{- if .Values.probes.enabled }}
+          {{- if .Values.probes.enabled}}
           livenessProbe:
             httpGet:
               path: /
@@ -41,33 +46,25 @@ spec:
             httpGet:
               path: /
               port: http
-          {{- end }}
-          env:
-            {{- $root := . }}
-            {{- range $ref, $values := .Values.secrets }}
-            {{- range $key, $value := $values }}
-            - name: {{ $ref }}_{{ $key }}
-              valueFrom:
-                secretKeyRef:
-                  name: {{ template "norcedrillingtrajectoryservice.fullname" $root }}-{{ $ref | lower }}
-                  key: {{ $key }}
-            {{- end }}
-            {{- end }}
+          {{- end}}
           resources:
-{{ toYaml .Values.resources | indent 12 }}          
-    {{- with .Values.imagePullSecrets }}
-      imagePullSecrets:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.nodeSelector }}
+            {{- toYaml .Values.resources | nindent 12 }}
+          volumeMounts:
+          - mountPath: /home/
+            name: trajectorydb
+      volumes:
+      - name: trajectorydb
+        persistentVolumeClaim:
+          claimName: trajectory-claim
+      {{- with .Values.nodeSelector }}
       nodeSelector:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.affinity }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.affinity }}
       affinity:
-{{ toYaml . | indent 8 }}
-    {{- end }}
-    {{- with .Values.tolerations }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}
+      {{- with .Values.tolerations }}
       tolerations:
-{{ toYaml . | indent 8 }}
-    {{- end }}
+        {{- toYaml . | nindent 8 }}
+      {{- end }}

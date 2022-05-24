@@ -1,12 +1,9 @@
 apiVersion: v1
 kind: Service
 metadata:
-  name: {{ template "norcedrillingtrajectorywebappclient.fullname" . }}
+  name: {{ include "norcedrillingtrajectorywebappclient.fullname" . }}
   labels:
-    app: {{ template "norcedrillingtrajectorywebappclient.name" . }}
-    chart: {{ template "norcedrillingtrajectorywebappclient.chart" . }}
-    release: {{ .Release.Name }}
-    heritage: {{ .Release.Service }}
+    {{- include "norcedrillingtrajectorywebappclient.labels" . | nindent 4 }}
 spec:
   type: {{ .Values.service.type }}
   ports:
@@ -15,5 +12,4 @@ spec:
       protocol: TCP
       name: http
   selector:
-    app: {{ template "norcedrillingtrajectorywebappclient.name" . }}
-    release: {{ .Release.Name }}
+    {{- include "norcedrillingtrajectorywebappclient.selectorLabels" . | nindent 4 }}

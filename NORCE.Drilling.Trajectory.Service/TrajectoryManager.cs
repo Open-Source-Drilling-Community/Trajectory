@@ -414,158 +414,158 @@ namespace NORCE.Drilling.Trajectory.Service
         private void FillDefault()
         {
             
-            if (Count <= 0)
-            {
-                string homeDirectory = ".." + Path.DirectorySeparatorChar + "home";
-                string directory = @homeDirectory + Path.DirectorySeparatorChar + "Wellbores";
-                // The trajectories MD/TVD should be relative to the slot/cluster since different rigs with different RTE's can operate the same wellbore
-                double rotaryTableElevation_Ullrigg = 8.78;
+         //   if (Count <= 0)
+         //   {
+         //       string homeDirectory = ".." + Path.DirectorySeparatorChar + "home";
+         //       string directory = @homeDirectory + Path.DirectorySeparatorChar + "Wellbores";
+         //       // The trajectories MD/TVD should be relative to the slot/cluster since different rigs with different RTE's can operate the same wellbore
+         //       double rotaryTableElevation_Ullrigg = 8.78;
 
-                if (Directory.Exists(directory))
-                {
-                    Model.Trajectory trajectory = new Model.Trajectory();
-                    trajectory.SurveyList = new SurveyList();
-                    trajectory.SurveyList.Surveys = new List<SurveyStation>();
-                    string[] files = Directory.GetFiles(directory);
-                    foreach (string file in files)
-                    {
-                        //The Ullrigg coordinates are relative to the cluster reference, so we need to pick up the correct slot to be able to find the NorthOfWellHead/EastOfWellHead
-                        trajectory.Name = file.Substring(18).Split('.')[0].Split('-')[0] + "-Trajectory";
-                        trajectory.Description = trajectory.Name + " at Ullrigg";
-                        trajectory.ID = random_.Next();
+         //       if (Directory.Exists(directory))
+         //       {
+         //           Model.Trajectory trajectory = new Model.Trajectory();
+         //           trajectory.SurveyList = new SurveyList();
+         //           trajectory.SurveyList.Surveys = new List<SurveyStation>();
+         //           string[] files = Directory.GetFiles(directory);
+         //           foreach (string file in files)
+         //           {
+         //               //The Ullrigg coordinates are relative to the cluster reference, so we need to pick up the correct slot to be able to find the NorthOfWellHead/EastOfWellHead
+         //               trajectory.Name = file.Substring(18).Split('.')[0].Split('-')[0] + "-Trajectory";
+         //               trajectory.Description = trajectory.Name + " at Ullrigg";
+         //               trajectory.ID = random_.Next();
 
-                        var a = WellBoreManager.Instance.LoadWellBores();
-                        a.Wait();
-                        Dictionary<int, WellBore.ModelClientShared.WellBore> wellbores = a.Result;
-                        foreach (int key in wellbores.Keys)
-                        {
-                            if (trajectory.Name.Contains(wellbores[key].Name))
-                            {
-                                trajectory.WellboreID = wellbores[key].ID;
-                                break;
-                            }
-                        }
+         //               var a = WellBoreManager.Instance.LoadWellBores();
+         //               a.Wait();
+         //               Dictionary<int, WellBore.ModelClientShared.WellBore> wellbores = a.Result;
+         //               foreach (int key in wellbores.Keys)
+         //               {
+         //                   if (trajectory.Name.Contains(wellbores[key].Name))
+         //                   {
+         //                       trajectory.WellboreID = wellbores[key].ID;
+         //                       break;
+         //                   }
+         //               }
 
-                        var b = WellBoreManager.Instance.LoadWellBore(trajectory.WellboreID);
-                        b.Wait();
-                        WellBore.ModelClientShared.WellBore wb = b.Result;
-                        int wellID = wb.WellID;
-                        var c = WellManager.Instance.LoadWell(wellID);
-                        c.Wait();
-                        Well.ModelClientShared.Well w = c.Result;
-                        int clusterID = w.ClusterID;
-                        string slotID = w.SlotID;
-                        var d = ClusterManager.Instance.LoadCluster(clusterID);
-                        d.Wait();
-                        Cluster.ModelClientShared.Cluster cluster = d.Result;
-                        double? northOfClusterReference = 0;
-                        double? eastOfClusterReference = 0;
-                        double? wellHeadTVDWGS84 = 0;
-                        double? gridConversion = 0;
-                        double? deltaTVD = 0;
-                        if (cluster != null)
-                        {
-                            // The Ullrigg trajectories are relative to the same cluster reference point, therefore we should not use the slot coordinates.
-                            Cluster.ModelClientShared.ClusterCoordinate cc = cluster.ClusterReference;
-                            var e = ClusterManager.Instance.Calculate(cc, cluster);
-                            e.Wait();
+         //               var b = WellBoreManager.Instance.LoadWellBore(trajectory.WellboreID);
+         //               b.Wait();
+         //               WellBore.ModelClientShared.WellBore wb = b.Result;
+         //               int wellID = wb.WellID;
+         //               var c = WellManager.Instance.LoadWell(wellID);
+         //               c.Wait();
+         //               Well.ModelClientShared.Well w = c.Result;
+         //               int clusterID = w.ClusterID;
+         //               string slotID = w.SlotID;
+         //               var d = ClusterManager.Instance.LoadCluster(clusterID);
+         //               d.Wait();
+         //               Cluster.ModelClientShared.Cluster cluster = d.Result;
+         //               double? northOfClusterReference = 0;
+         //               double? eastOfClusterReference = 0;
+         //               double? wellHeadTVDWGS84 = 0;
+         //               double? gridConversion = 0;
+         //               double? deltaTVD = 0;
+         //               if (cluster != null)
+         //               {
+         //                   // The Ullrigg trajectories are relative to the same cluster reference point, therefore we should not use the slot coordinates.
+         //                   Cluster.ModelClientShared.ClusterCoordinate cc = cluster.ClusterReference;
+         //                   var e = ClusterManager.Instance.Calculate(cc, cluster);
+         //                   e.Wait();
 
-                            Cluster.ModelClientShared.Slot slot = cluster.GetSlot(slotID);
-                            if (slot != null)
-                            {
-                                Cluster.ModelClientShared.ClusterCoordinate sc = slot.SlotCoordinateWGS84;
-                                var f = ClusterManager.Instance.Calculate(sc, cluster);
-                                f.Wait();
-                                northOfClusterReference = sc.NorthOfClusterReference;
-                                eastOfClusterReference = sc.EastOfClusterReference;
-                                wellHeadTVDWGS84 = sc.TVDWGS84;
-                                deltaTVD = sc.TVDDatum - sc.TVDWGS84;
-                            }
-                            gridConversion = cc.GridConvergenceDatum; // Used to correct from AzGrid (in the files) to AzTrueNorth
-                            var clusterReferenceLatitudeWGS84 = cc.LatitudeWGS84;
-                            var clusterReferenceLongitudeWGS84 = cc.LongitudeWGS84;
-                        }
+         //                   Cluster.ModelClientShared.Slot slot = cluster.GetSlot(slotID);
+         //                   if (slot != null)
+         //                   {
+         //                       Cluster.ModelClientShared.ClusterCoordinate sc = slot.SlotCoordinateWGS84;
+         //                       var f = ClusterManager.Instance.Calculate(sc, cluster);
+         //                       f.Wait();
+         //                       northOfClusterReference = sc.NorthOfClusterReference;
+         //                       eastOfClusterReference = sc.EastOfClusterReference;
+         //                       wellHeadTVDWGS84 = sc.TVDWGS84;
+         //                       deltaTVD = sc.TVDDatum - sc.TVDWGS84;
+         //                   }
+         //                   gridConversion = cc.GridConvergenceDatum; // Used to correct from AzGrid (in the files) to AzTrueNorth
+         //                   var clusterReferenceLatitudeWGS84 = cc.LatitudeWGS84;
+         //                   var clusterReferenceLongitudeWGS84 = cc.LongitudeWGS84;
+         //               }
 
-                        using (StreamReader r = new StreamReader(file))
-                        {
-                            SurveyList sl = new SurveyList();
-                            //CultureInfo culture = CultureInfo.InvariantCulture;
-                            bool startingPointAdded = false;
-                            List<Cluster.ModelClientShared.ClusterCoordinate> clusterCoordinates = new List<Cluster.ModelClientShared.ClusterCoordinate>();
-                            while (!r.EndOfStream)
-                            {
-                                char[] sep = { '\t' };
-                                string[] words = r.ReadLine().Split(sep);
-                                if (words.Length > 1)
-                                {
-                                    SurveyStation st = new SurveyStation();
-                                    double md = 0.0;
-                                    bool ok = NORCE.General.Std.Numeric.TryParse(words[0], out md);
-                                    double incl = 0.0;
-                                    ok = NORCE.General.Std.Numeric.TryParse(words[1], out incl);
-                                    double az = 0.0;
-                                    ok = NORCE.General.Std.Numeric.TryParse(words[2], out az);
-                                    double tvd = 0.0;
-                                    ok = NORCE.General.Std.Numeric.TryParse(words[3], out tvd);
-                                    double X = 0.0;
-                                    ok = NORCE.General.Std.Numeric.TryParse(words[4], out X);
-                                    double Y = 0.0;
-                                    ok = NORCE.General.Std.Numeric.TryParse(words[5], out Y);
-                                    st.AzWGS84 = az * Math.PI / 180.0 - gridConversion;
-                                    st.Incl = incl * Math.PI / 180.0;
-                                    st.NorthOfWellHead = X - northOfClusterReference;
-                                    st.EastOfWellHead = Y - eastOfClusterReference;
-                                    st.TvdWGS84 = tvd - rotaryTableElevation_Ullrigg + wellHeadTVDWGS84;
-                                    st.MdWGS84 = md - rotaryTableElevation_Ullrigg + wellHeadTVDWGS84;
+         //               using (StreamReader r = new StreamReader(file))
+         //               {
+         //                   SurveyList sl = new SurveyList();
+         //                   //CultureInfo culture = CultureInfo.InvariantCulture;
+         //                   bool startingPointAdded = false;
+         //                   List<Cluster.ModelClientShared.ClusterCoordinate> clusterCoordinates = new List<Cluster.ModelClientShared.ClusterCoordinate>();
+         //                   while (!r.EndOfStream)
+         //                   {
+         //                       char[] sep = { '\t' };
+         //                       string[] words = r.ReadLine().Split(sep);
+         //                       if (words.Length > 1)
+         //                       {
+         //                           SurveyStation st = new SurveyStation();
+         //                           double md = 0.0;
+         //                           bool ok = NORCE.General.Std.Numeric.TryParse(words[0], out md);
+         //                           double incl = 0.0;
+         //                           ok = NORCE.General.Std.Numeric.TryParse(words[1], out incl);
+         //                           double az = 0.0;
+         //                           ok = NORCE.General.Std.Numeric.TryParse(words[2], out az);
+         //                           double tvd = 0.0;
+         //                           ok = NORCE.General.Std.Numeric.TryParse(words[3], out tvd);
+         //                           double X = 0.0;
+         //                           ok = NORCE.General.Std.Numeric.TryParse(words[4], out X);
+         //                           double Y = 0.0;
+         //                           ok = NORCE.General.Std.Numeric.TryParse(words[5], out Y);
+         //                           st.AzWGS84 = az * Math.PI / 180.0 - gridConversion;
+         //                           st.Incl = incl * Math.PI / 180.0;
+         //                           st.NorthOfWellHead = X - northOfClusterReference;
+         //                           st.EastOfWellHead = Y - eastOfClusterReference;
+         //                           st.TvdWGS84 = tvd - rotaryTableElevation_Ullrigg + wellHeadTVDWGS84;
+         //                           st.MdWGS84 = md - rotaryTableElevation_Ullrigg + wellHeadTVDWGS84;
 
-									//surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.ISCWSAGyroExample1);
-                                    st.SurveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.ISCWSAGyroExample1);
-                                    ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
-                                    st.Uncertainty = iscwsaun;
-                                    if (st.MdWGS84 < wellHeadTVDWGS84 && st.TvdWGS84 < wellHeadTVDWGS84)
-                                    {
-                                        if (startingPointAdded)
-                                        {
-                                            st = null;
-                                        }
-                                        else
-                                        {
-                                            st.MdWGS84 = wellHeadTVDWGS84;
-                                            st.TvdWGS84 = wellHeadTVDWGS84;
-                                            startingPointAdded = true;
-                                        }
-                                    }
-                                    if (st != null)
-                                    {
-                                        sl.Add(st);
-                                        Cluster.ModelClientShared.ClusterCoordinate cc = new Cluster.ModelClientShared.ClusterCoordinate();
-                                        cc.NorthOfClusterReference = X;
-                                        cc.EastOfClusterReference = Y;
-                                        cc.TVDDatum = st.TvdWGS84 + deltaTVD;
-                                        clusterCoordinates.Add(cc);
-                                    }
-                                }
-                            }
+									////surveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.ISCWSAGyroExample1);
+         //                           st.SurveyTool = new SurveyInstrument.Model.SurveyInstrument(SurveyInstrument.Model.SurveyInstrument.ISCWSAGyroExample1);
+         //                           ISCWSA_SurveyStationUncertainty iscwsaun = new ISCWSA_SurveyStationUncertainty();
+         //                           st.Uncertainty = iscwsaun;
+         //                           if (st.MdWGS84 < wellHeadTVDWGS84 && st.TvdWGS84 < wellHeadTVDWGS84)
+         //                           {
+         //                               if (startingPointAdded)
+         //                               {
+         //                                   st = null;
+         //                               }
+         //                               else
+         //                               {
+         //                                   st.MdWGS84 = wellHeadTVDWGS84;
+         //                                   st.TvdWGS84 = wellHeadTVDWGS84;
+         //                                   startingPointAdded = true;
+         //                               }
+         //                           }
+         //                           if (st != null)
+         //                           {
+         //                               sl.Add(st);
+         //                               Cluster.ModelClientShared.ClusterCoordinate cc = new Cluster.ModelClientShared.ClusterCoordinate();
+         //                               cc.NorthOfClusterReference = X;
+         //                               cc.EastOfClusterReference = Y;
+         //                               cc.TVDDatum = st.TvdWGS84 + deltaTVD;
+         //                               clusterCoordinates.Add(cc);
+         //                           }
+         //                       }
+         //                   }
 
-                            var g = ClusterManager.Instance.Calculate(new Cluster.ModelClientShared.ClusterCoordinate(), cluster, clusterCoordinates);
-                            g.Wait();
+         //                   var g = ClusterManager.Instance.Calculate(new Cluster.ModelClientShared.ClusterCoordinate(), cluster, clusterCoordinates);
+         //                   g.Wait();
 
-                            for (int i = 0; i < sl.Count; i++)
-                            {
-                                sl[i].LatitudeWGS84 = clusterCoordinates[i].LatitudeWGS84;
-                                sl[i].LongitudeWGS84 = clusterCoordinates[i].LongitudeWGS84;
-                            }
+         //                   for (int i = 0; i < sl.Count; i++)
+         //                   {
+         //                       sl[i].LatitudeWGS84 = clusterCoordinates[i].LatitudeWGS84;
+         //                       sl[i].LongitudeWGS84 = clusterCoordinates[i].LongitudeWGS84;
+         //                   }
 
-                            trajectory.SurveyList = sl;
-                            trajectory.SurveyList.ListOfSurveys = sl.ListOfSurveys;
+         //                   trajectory.SurveyList = sl;
+         //                   trajectory.SurveyList.ListOfSurveys = sl.ListOfSurveys;
 
 
-                            trajectory.SurveyList.GetUncertaintyEnvelope(0.95, 1);
-                            Add(trajectory);
-                        }
-                    }
-                }
-            }
+         //                   trajectory.SurveyList.GetUncertaintyEnvelope(0.95, 1);
+         //                   Add(trajectory);
+         //               }
+         //           }
+         //       }
+         //   }
         }
 
         //public async Task<SurveyInstrument.Model.SurveyInstrument> LoadSurveyTool(int id)
