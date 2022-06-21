@@ -1,0 +1,8 @@
+﻿apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ .Release.Name }}-configmap
+data:
+  proxy-connect-timeout: "100s"
+  proxy-read-timeout: "100s"
+  client-max-body-size: "7m"

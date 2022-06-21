@@ -31,12 +31,12 @@ else
 				var local = i;
 				<tr>
 					<td>
-						<span class="label" >@trajectories[i].Name</span>
+						<span class="label">@trajectories[i].Name</span>
 					</td>
 					<td>
-						<span class="label" >@trajectories[i].Description</span>
+						<span class="label">@trajectories[i].Description</span>
 					</td>
-					<td>					
+					<td>
 						<span class="label" hidden="@IsConfidenceLevelDisplayHidden[i]">@confidenceLevels[i]</span>
 						<input class="text" type="text" hidden="@IsConfidenceLevelInputHidden[i]" @bind="@updatedConfidenceLevel" />
 					</td>
@@ -54,49 +54,49 @@ else
 				</tr>
 			}
 		</tbody>
-		
+
 	</table>
 	<table class="table" hidden="@IsTableResultHidden">
 		<thead></thead>
 		<tbody>
 			<tr>
 				@*<td>
-					<Mesh3DPlots XValuesLine="@interpSectionsX"
-								 YValuesLine="@interpSectionsY"
-								 ZValuesLine="@interpSectionsZ"
-								 ValuesNameLine="Trajectory"
-								 XValues="@calcSectionsX"
-								 YValues="@calcSectionsY"
-								 ZValues="@calcSectionsZ"
-								 ValuesName="Envelope"
-								 XValues2="@calcSectionsX2"
-								 YValues2="@calcSectionsY2"
-								 ZValues2="@calcSectionsZ2"
-								 ValuesName2="Envelope2"
-								 XValuesList="@calcSectionsXList"
-								 YValuesList="@calcSectionsYList"
-								 ZValuesList="@calcSectionsZList"
-								 ValuesListColor="blue"
-								 ValuesNameList="Ellipses of Uncertianty"
-								 XValuesList2="@calcSectionsXList2"
-								 YValuesList2="@calcSectionsYList2"
-								 ZValuesList2="@calcSectionsZList2"
-								 ValuesListColor2="red"
-								 ValuesNameList2="Ellipses of Uncertianty Comp"
-								 XValuesListCompare="@calcSectionsXListCompare"
-								 YValuesListCompare="@calcSectionsYListCompare"
-								 ZValuesListCompare="@calcSectionsZListCompare"
-								 ValuesListColorCompare="@valueListColorComapre"
-								 ValuesNameListCompare="Ellipses of Uncertianty Comp"
-								 PlotHeight="800"
-								 PlotWidth="800"
-								 PlotTitle="Wellbore Position Uncertainty"
-								 XAxisTitle="North (m)"
-								 YAxisTitle="East (m)"
-								 ZAxisTitle="TVD (m)"
-								 ZAxisIsReversed="@true"
-								 @ref="@trajectorySurface3DPlot"></Mesh3DPlots>
-				</td>*@
+						<Mesh3DPlots XValuesLine="@interpSectionsX"
+									 YValuesLine="@interpSectionsY"
+									 ZValuesLine="@interpSectionsZ"
+									 ValuesNameLine="Trajectory"
+									 XValues="@calcSectionsX"
+									 YValues="@calcSectionsY"
+									 ZValues="@calcSectionsZ"
+									 ValuesName="Envelope"
+									 XValues2="@calcSectionsX2"
+									 YValues2="@calcSectionsY2"
+									 ZValues2="@calcSectionsZ2"
+									 ValuesName2="Envelope2"
+									 XValuesList="@calcSectionsXList"
+									 YValuesList="@calcSectionsYList"
+									 ZValuesList="@calcSectionsZList"
+									 ValuesListColor="blue"
+									 ValuesNameList="Ellipses of Uncertianty"
+									 XValuesList2="@calcSectionsXList2"
+									 YValuesList2="@calcSectionsYList2"
+									 ZValuesList2="@calcSectionsZList2"
+									 ValuesListColor2="red"
+									 ValuesNameList2="Ellipses of Uncertianty Comp"
+									 XValuesListCompare="@calcSectionsXListCompare"
+									 YValuesListCompare="@calcSectionsYListCompare"
+									 ZValuesListCompare="@calcSectionsZListCompare"
+									 ValuesListColorCompare="@valueListColorComapre"
+									 ValuesNameListCompare="Ellipses of Uncertianty Comp"
+									 PlotHeight="800"
+									 PlotWidth="800"
+									 PlotTitle="Wellbore Position Uncertainty"
+									 XAxisTitle="North (m)"
+									 YAxisTitle="East (m)"
+									 ZAxisTitle="TVD (m)"
+									 ZAxisIsReversed="@true"
+									 @ref="@trajectorySurface3DPlot"></Mesh3DPlots>
+					</td>*@
 				<td>
 					<Mesh3DPlots XValuesLine="@interpSectionsX"
 								 YValuesLine="@interpSectionsY"
@@ -127,57 +127,76 @@ else
 		</tbody>
 	</table>
 	<h2 hidden="@IsTableResultHidden">Ellipse Radiuses @trajectoryName</h2>
-
-	<table class="table" hidden="@IsTableResultHidden">
-		<thead>
-			<tr>
-				<th>R1 @trajectoryName</th>
-				<th>R2 @trajectoryName</th>
-				<th>R1 @trajectoryName2</th>
-				<th>R2 @trajectoryName2</th>
-				<th></th>
-			</tr>
-		</thead>
-		<tbody>
-			@for (int i = 0; i < listRadius.Count; i++)
-			{
-				List<double> list = listRadius[i];
-				List<double> list2 = new List<double>();
-				if (listRadius2 != null && listRadius2.Count > i)
+	<UnitAndReferenceChoiceTag @ref="unitChoiceSetComponent">
+		<table class="table" hidden="@IsTableResultHidden">
+			<thead>
+				<tr>
+					<th>R1 @trajectoryName</th>
+					<th>R2 @trajectoryName</th>
+					<th>R1 @trajectoryName2</th>
+					<th>R2 @trajectoryName2</th>
+					<th></th>
+				</tr>
+				<tr>
+					<td>
+						<SpanUnitLabel QuantityName="Depth" />
+					</td>
+					<td>
+						<SpanUnitLabel QuantityName="Depth" />
+					</td>
+					<td>
+						<SpanUnitLabel QuantityName="Depth" />
+					</td>
+					<td>
+						<SpanUnitLabel QuantityName="Depth" />
+					</td>
+					<td>
+					</td>
+				</tr>
+			</thead>
+			<tbody>
+				@for (int i = 0; i < listRadius.Count; i++)
 				{
-					list2 = listRadius2[i];
-				}
-				if (list[0] != null)
-				{
-					<tr>
-						<td>
-							<span class="label" hidden="@IsResultDisplayHidden[i]">@list[0]</span>							
-						</td>
-						<td>
-							<span class="label" hidden="@IsResultDisplayHidden[i]">@list[1]</span>							
-						</td>
-						<td>
-							@if (list2 != null && list2.Count > 0)
-							{
-								<span class="label" hidden="@IsResultDisplayHidden[i]">@list2[0]</span>								
-							}
-						</td>
-						<td>
-							@if (list2 != null && list2.Count > 0)
-							{
-								<span class="label" hidden="@IsResultDisplayHidden[i]">@list2[1]</span>							
-							}
-						</td>
+					List<double> list = listRadius[i];
+					List<double> list2 = new List<double>();
+					if (listRadius2 != null && listRadius2.Count > i)
+					{
+						list2 = listRadius2[i];
+					}
+					if (list[0] != null)
+					{
+						<tr>
+							<td>
+								<SpanWithUnit QuantityName="Depth" SIValue="@list[0]" />
+							</td>
+							<td>
+								<SpanWithUnit QuantityName="Depth" SIValue="@list[1]" />
+							</td>
+							<td>
+								@if (list2 != null && list2.Count > 0)
+								{
+								<SpanWithUnit QuantityName="Depth" SIValue="@list2[0]" />
+								}
+							</td>
+							<td>
+								@if (list2 != null && list2.Count > 0)
+								{
+								<SpanWithUnit QuantityName="Depth" SIValue="@list2[1]" />
+								}
+							</td>
 
-					</tr>
+						</tr>
+					}
 				}
-			}
-		</tbody>
-	</table>
+			</tbody>
+		</table>		
+	</UnitAndReferenceChoiceTag>
 
 }
 
 @code {
+	private OSDC.UnitConversion.DrillingRazorComponents.UnitAndReferenceChoiceTag unitChoiceSetComponent = new UnitAndReferenceChoiceTag();
+
 	private HttpClient httpTrajectory;
 	private List<bool> IsResultDisplayHidden;
 	private List<bool> IsResultInputHidden;
@@ -486,7 +505,7 @@ else
 								calcSectionsXList2.Add(new List<object>());
 								calcSectionsYList2.Add(new List<object>());
 								calcSectionsZList2.Add(new List<object>());
-								calcSectionsXListCompare[calcSectionsXListCompare.Count-1].Add(new List<object>());
+								calcSectionsXListCompare[calcSectionsXListCompare.Count - 1].Add(new List<object>());
 								calcSectionsYListCompare[calcSectionsXListCompare.Count - 1].Add(new List<object>());
 								calcSectionsZListCompare[calcSectionsXListCompare.Count - 1].Add(new List<object>());
 								for (int k = 0; k < listOfEnvelopes[j].EllipseCoordinates.Count; k++)

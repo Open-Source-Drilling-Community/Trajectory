@@ -5,6 +5,7 @@ namespace NORCE.Drilling.Trajectory.Service
 {
     public class Configuration
     {
+
         public string HostURL { get; set; } = "https://app.DigiWells.no/";
         public string DockerHostURL { get; set; } = "http://host.docker.internal:";
         public string LocalHostURL { get; set; } = "http://localhost:";

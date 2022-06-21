@@ -1,4 +1,4 @@
-﻿@page "/Trajectory"
+﻿@page "/TrajectoryOld"
 @using System.Text;
 @using NORCE.Drilling.Trajectory.WebApp.Client
 @using NORCE.Drilling.Trajectory.ModelClientShared;
@@ -1161,6 +1161,8 @@ else
 	</table>
 
 	<h4 hidden="@IsTableSurveyListHidden">Survey Program Selector for @trajectoryName</h4>
+
+
 	@if (surveyProgram != null && surveyProgram.SurveyRunsList != null)
 	{
 		<table>
@@ -1206,13 +1208,148 @@ else
 	else
 	{
 		<h5 hidden="@IsTableSurveyListHidden">No Survey Program for  @trajectoryName in the database</h5>
-	}	
+	}
+	<h3 hidden="@IsTableSurveyListHidden">Survey List Editor for @trajectoryName</h3>
+	<table class="tableSurveyList" hidden="@IsTableSurveyListHidden">
+		<thead>
+			<tr>
+				<th class="MD">MD</th>
+				<th class="Inclination">Inclination</th>
+				<th class="Azimuth">Azimuth</th>
+				<th class="SurveyInstrument">Survey Instrument</th>
+				<th class="SurveyListRowButtons"></th>
+			</tr>
+		</thead>
+		<tbody>
+			@for (int i = 0; i < surveyStations.Count; i++)
+			{
+				var local = i;
+				<tr>
+					<td>
+						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].MdWGS84</span>
+						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.MdWGS84" />
+					</td>
+					<td>
+						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].Incl</span>
+						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.Incl" />
+					</td>
+					<td>
+						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].AzWGS84</span>
+						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.AzWGS84" />
+					</td>
+					<td>
+						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].SurveyTool.Name</span>
+						<select class="form-control selectpicker" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.SurveyTool.Name">
+							@if (surveyInstruments != null)
+							{
+								@foreach (ModelClientShared.SurveyInstrument surveyInstrument in surveyInstruments.Values)
+								{
+									<option>@surveyInstrument.Name</option>
+								}
+							}
+						</select>
+					</td>
+					<td>
+						<button class="btn btn-primary" hidden="@IsSurveyStationEditButtonHidden[i]" @onclick="@(() => EditSurveyStation(local))">Edit</button>
+						<button class="btn btn-primary" hidden="@IsSurveyStationDeleteButtonHidden[i]" @onclick="@(() => DeleteSurveyStation(local))">Delete</button>
+						<button class="btn btn-primary" hidden="@IsSurveyStationUpdateButtonHidden[i]" @onclick="@(() => UpdateSurveyStation(local))">Update</button>
+						<button class="btn btn-primary" hidden="@IsSurveyStationCancelButtonHidden[i]" @onclick="@(() => CancelSurveyStation(local))">Cancel</button>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
 
-	<h3 hidden = "@IsTableSurveyListHidden" > Survey List Editor for @trajectoryName</h3>
-	if (!IsTableSurveyListHidden && updatedTrajectory != null && updatedTrajectory.SurveyList != null && updatedTrajectory.SurveyList.ListOfSurveys != null)
+	<h3 hidden="@IsTableSurveyListHidden">Survey List Editor for @trajectoryName</h3>
+
+	<table>
+		<tbody>
+		<td>
+			<select @bind="@TrajectoryImportMDUnitChoice">
+				@foreach (string choice in DepthUnitChoices)
+				{
+					<option>@choice</option>
+				}
+			</select>
+		</td>
+
+		<td>
+			<select @bind="@TrajectoryImportInclUnitChoice">
+				@foreach (string choice in PlaneAngleUnitChoices)
+				{
+					<option>@choice</option>
+				}
+			</select>
+		</td>
+
+
+		<td>
+			<select @bind="@TrajectoryImportAzUnitChoice">
+				@foreach (string choice in PlaneAngleUnitChoices)
+				{
+					<option>@choice</option>
+				}
+			</select>
+		</td>
+
+		</tbody>
+	</table>
+
+	<table class="tableSurveyList" hidden="@IsTableSurveyListHidden">
+		<thead>
+			<tr>
+				<th class="MD">MD</th>
+				<th class="Inclination">Inclination</th>
+				<th class="Azimuth">Azimuth</th>
+				<th class="SurveyInstrument">Survey Instrument</th>
+				<th class="SurveyListRowButtons"></th>
+			</tr>
+		</thead>
+		<tbody>
+			@for (int i = 0; i < surveyStations.Count; i++)
+			{
+				var local = i;
+				<tr>
+					<td>
+						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].MdWGS84</span>
+						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.MdWGS84" />
+					</td>
+					<td>
+						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].Incl</span>
+						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.Incl" />
+					</td>
+					<td>
+						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].AzWGS84</span>
+						<input class="text" type="text" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.AzWGS84" />
+					</td>
+					<td>
+						<span class="label" hidden="@IsSurveyStationDisplayHidden[i]">@surveyStations[i].SurveyTool.Name</span>
+						<select class="form-control selectpicker" hidden="@IsSurveyStationInputHidden[i]" @bind="@updatedSurveyStation.SurveyTool.Name">
+							@if (surveyInstruments != null)
+							{
+								@foreach (ModelClientShared.SurveyInstrument surveyInstrument in surveyInstruments.Values)
+								{
+									<option>@surveyInstrument.Name</option>
+								}
+							}
+						</select>
+					</td>
+					<td>
+						<button class="btn btn-primary" hidden="@IsSurveyStationEditButtonHidden[i]" @onclick="@(() => EditSurveyStation(local))">Edit</button>
+						<button class="btn btn-primary" hidden="@IsSurveyStationDeleteButtonHidden[i]" @onclick="@(() => DeleteSurveyStation(local))">Delete</button>
+						<button class="btn btn-primary" hidden="@IsSurveyStationUpdateButtonHidden[i]" @onclick="@(() => UpdateSurveyStation(local))">Update</button>
+						<button class="btn btn-primary" hidden="@IsSurveyStationCancelButtonHidden[i]" @onclick="@(() => CancelSurveyStation(local))">Cancel</button>
+					</td>
+				</tr>
+			}
+		</tbody>
+	</table>
+
+	if (updatedTrajectory != null && updatedTrajectory.SurveyList != null && updatedTrajectory.SurveyList.ListOfSurveys != null)
 	{
 	<UnitAndReferenceChoiceTag @ref="unitChoiceSetComponent">
-		<TrajectoryTable  Trajectory="@updatedTrajectory" SurveyInstrumentNames="surveyInstrumentNames" />
+
+		<TrajectoryTable Trajectory="@updatedTrajectory" SurveyInstrumentNames="surveyInstrumentNames" />
 	</UnitAndReferenceChoiceTag>
 	}
 }
@@ -1616,36 +1753,20 @@ else
 			if (ch)
 			{
 				SurveyProgram.ModelClientShared.SurveyRun run = surveyProgram.SurveyRunsList.ElementAt(i);
-				foreach(SurveyStation station in updatedTrajectory.SurveyList.ListOfSurveys)
+				for (int j = 0; j < surveyStations.Count; j++)
 				{
-					if ((station.MdWGS84 >= run.StartMD || (run.StartMD <= 0 && station.MdWGS84 < 0)) && station.MdWGS84 <= run.FinalMD)
+					if (surveyStations[j].MdWGS84 >= run.StartMD && surveyStations[j].MdWGS84 <= run.FinalMD)
 					{
 						foreach (ModelClientShared.SurveyInstrument surveyInstrument in surveyInstruments.Values)
 						{
 							if (run.SurveyInstrument.Name == surveyInstrument.Name)
 							{
-								station.SurveyTool = new SurveyInstrument();
-								station.SurveyTool = surveyInstrument;
+								surveyStations[j].SurveyTool = new SurveyInstrument();
+								surveyStations[j].SurveyTool = surveyInstrument;
 							}
 						}
 					}
-
 				}
-
-				//for (int j = 0; j < surveyStations.Count; j++)
-				//{
-				//	if ((surveyStations[j].MdWGS84 >= run.StartMD || (run.StartMD<=0 && surveyStations[j].MdWGS84<0))  && surveyStations[j].MdWGS84 <= run.FinalMD)
-				//	{
-				//		foreach (ModelClientShared.SurveyInstrument surveyInstrument in surveyInstruments.Values)
-				//		{
-				//			if (run.SurveyInstrument.Name == surveyInstrument.Name)
-				//			{
-				//				surveyStations[j].SurveyTool = new SurveyInstrument();
-				//				surveyStations[j].SurveyTool = surveyInstrument;
-				//			}
-				//		}
-				//	}
-				//}
 			}
 		}
 
@@ -2294,33 +2415,33 @@ else
 		if (trajectories != null && idx >= 0 && idx < trajectories.Count && trajectories[idx].ID >= 0)
 		{
 			#region transfer edited surveyStations in trajectory
-			//if (updatedTrajectory.SurveyList == null)
-			//{
-			//	updatedTrajectory.SurveyList = new SurveyList();
-			//}
-			//if (updatedTrajectory.SurveyList.Surveys == null)
-			//{
-			//	updatedTrajectory.SurveyList.Surveys = new List<SurveyStation>();
+			if (updatedTrajectory.SurveyList == null)
+			{
+				updatedTrajectory.SurveyList = new SurveyList();
+			}
+			if (updatedTrajectory.SurveyList.Surveys == null)
+			{
+				updatedTrajectory.SurveyList.Surveys = new List<SurveyStation>();
 
-			//}
-			//updatedTrajectory.SurveyList.Surveys.Clear();
-			//if (surveyStations != null)
-			//{
-			//	for (int i = 0; i < surveyStations.Count; i++)
-			//	{
-			//		if (!string.IsNullOrEmpty(surveyStations[i].MdWGS84.ToString()))
-			//		{
-			//			SurveyStation surveyStation = new SurveyStation();
-			//			surveyStation = surveyStations[i];
-			//			surveyStation.MdWGS84 = depthQuantity.ToSI((double)surveyStation.MdWGS84, TrajectoryImportMDUnitChoice);
-			//			surveyStation.Incl = planeAngleQuantity.ToSI((double)surveyStation.Incl, TrajectoryImportInclUnitChoice);
-			//			surveyStation.AzWGS84 = planeAngleQuantity.ToSI((double)surveyStation.AzWGS84, TrajectoryImportAzUnitChoice);
-			//			surveyStation.Uncertainty = surveyStations[i].Uncertainty;
-			//			updatedTrajectory.SurveyList.Surveys.Add(surveyStation);
-			//		}
-			//	}
-			//	updatedTrajectory.SurveyList.ListOfSurveys = surveyStations;
-			//}
+			}
+			updatedTrajectory.SurveyList.Surveys.Clear();
+			if (surveyStations != null)
+			{
+				for (int i = 0; i < surveyStations.Count; i++)
+				{
+					if (!string.IsNullOrEmpty(surveyStations[i].MdWGS84.ToString()))
+					{
+						SurveyStation surveyStation = new SurveyStation();
+						surveyStation = surveyStations[i];
+						surveyStation.MdWGS84 = depthQuantity.ToSI((double)surveyStation.MdWGS84, TrajectoryImportMDUnitChoice);
+						surveyStation.Incl = planeAngleQuantity.ToSI((double)surveyStation.Incl, TrajectoryImportInclUnitChoice);
+						surveyStation.AzWGS84 = planeAngleQuantity.ToSI((double)surveyStation.AzWGS84, TrajectoryImportAzUnitChoice);
+						surveyStation.Uncertainty = surveyStations[i].Uncertainty;
+						updatedTrajectory.SurveyList.Surveys.Add(surveyStation);
+					}
+				}
+				updatedTrajectory.SurveyList.ListOfSurveys = surveyStations;
+			}
 			#endregion end transfer edited surveyStations
 
 			#region update WellboreID
