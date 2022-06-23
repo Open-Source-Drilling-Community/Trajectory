@@ -47,29 +47,29 @@
 			</td>
 		</tr>
     </thead>
-    <tbody>
-        @foreach (SurveyStation station in Trajectory.SurveyList.ListOfSurveys)
-        {
-            <tr>
-                <td style="text-align: left">
-                    <InputWithUnit QuantityName="Depth" SIValue="@((double)station.MdWGS84)" />
-                </td>
-                <td style="text-align: left">
-                    <InputWithUnit QuantityName="DrillingPlaneAngle" SIValue="@((double)station.Incl)" />
-                </td>
-                <td style="text-align: left">
-                    <InputWithUnit QuantityName="DrillingPlaneAngle" SIValue="@((double)station.AzWGS84)" />
-                </td>
-                <td style="text-align: left">
-                    <InputWithUnit QuantityName="Depth" SIValue="@((double)station.TvdWGS84)" />
-                </td>
-                <td style="text-align: left">
-                    <InputWithUnit QuantityName="Position" SIValue="@((double)station.NorthOfWellHead)" />
-                </td>
-                <td style="text-align: left">
-                    <InputWithUnit QuantityName="Position" SIValue="@((double)station.EastOfWellHead)" />
-                </td>   
-				<td>					
+	<tbody>
+		@*@foreach (SurveyStation station in Trajectory.SurveyList.ListOfSurveys)
+		{
+			<tr>
+				<td style="text-align: left">
+					<InputWithUnit QuantityName="Depth" SIValue="@((double)station.MdWGS84)" SIValueChanged="@((value) => @UpdateMD( value, local))"/>
+				</td>
+				<td style="text-align: left">
+					<InputWithUnit QuantityName="DrillingPlaneAngle" SIValue="@((double)station.Incl)" />
+				</td>
+				<td style="text-align: left">
+					<InputWithUnit QuantityName="DrillingPlaneAngle" SIValue="@((double)station.AzWGS84)" />
+				</td>
+				<td style="text-align: left">
+					<InputWithUnit QuantityName="Depth" SIValue="@((double)station.TvdWGS84)" />
+				</td>
+				<td style="text-align: left">
+					<InputWithUnit QuantityName="Position" SIValue="@((double)station.NorthOfWellHead)" />
+				</td>
+				<td style="text-align: left">
+					<InputWithUnit QuantityName="Position" SIValue="@((double)station.EastOfWellHead)" />
+				</td>
+				<td>
 					<select class="form-control selectpicker" @bind="@station.SurveyTool.Name">
 						@if (SurveyInstrumentNames != null)
 						{
@@ -80,9 +80,44 @@
 						}
 					</select>
 				</td>
-            </tr>
-        }
-    </tbody>
+			</tr>
+		}*@
+		@for (int i =0; i<Trajectory.SurveyList.ListOfSurveys.Count;i++)
+		{
+			var local = i;
+			<tr>
+				<td style="text-align: left">
+					<InputWithUnit QuantityName="Depth" SIValue="@((double)Trajectory.SurveyList.ListOfSurveys.ElementAt(i).MdWGS84)" SIValueChanged="@((value) => @UpdateMD( value, local))" />
+				</td>
+				<td style="text-align: left">
+					<InputWithUnit QuantityName="DrillingPlaneAngle" SIValue="@((double)Trajectory.SurveyList.ListOfSurveys.ElementAt(i).Incl)" SIValueChanged="@((value) => @UpdateIncl( value, local))"/>
+				</td>
+				<td style="text-align: left">
+					<InputWithUnit QuantityName="DrillingPlaneAngle" SIValue="@((double)Trajectory.SurveyList.ListOfSurveys.ElementAt(i).AzWGS84)" SIValueChanged="@((value) => @UpdateAz( value, local))"/>
+				</td>
+				<td style="text-align: left">
+					<InputWithUnit QuantityName="Depth" SIValue="@((double)Trajectory.SurveyList.ListOfSurveys.ElementAt(i).TvdWGS84)" SIValueChanged="@((value) => @UpdateTVD( value, local))"/>
+				</td>
+				<td style="text-align: left">
+					<InputWithUnit QuantityName="Position" SIValue="@((double)Trajectory.SurveyList.ListOfSurveys.ElementAt(i).NorthOfWellHead)"SIValueChanged="@((value) => @UpdateNorth( value, local))" />
+				</td>
+				<td style="text-align: left">
+					<InputWithUnit QuantityName="Position" SIValue="@((double)Trajectory.SurveyList.ListOfSurveys.ElementAt(i).EastOfWellHead)" SIValueChanged="@((value) => @UpdateEast( value, local))"/>
+				</td>
+				<td>
+					<select class="form-control selectpicker" @bind="@Trajectory.SurveyList.ListOfSurveys.ElementAt(i).SurveyTool.Name">
+						@if (SurveyInstrumentNames != null)
+						{
+							@foreach (string surveyInstrument in SurveyInstrumentNames)
+							{
+								<option>@surveyInstrument</option>
+							}
+						}
+					</select>
+				</td>
+			</tr>
+		}
+	</tbody>
 </table>
 
 @code {
@@ -91,5 +126,28 @@
 	[Parameter]
 	public List<string> SurveyInstrumentNames { get; set; }
 
-
+	private async Task UpdateMD(double val, int idx)
+	{
+		Trajectory.SurveyList.ListOfSurveys.ElementAt(idx).MdWGS84 = val;
+	}
+	private async Task UpdateIncl(double val, int idx)
+	{
+		Trajectory.SurveyList.ListOfSurveys.ElementAt(idx).Incl= val;
+	}
+	private async Task UpdateAz(double val, int idx)
+	{
+		Trajectory.SurveyList.ListOfSurveys.ElementAt(idx).AzWGS84 = val;
+	}
+	private async Task UpdateTVD(double val, int idx)
+	{
+		Trajectory.SurveyList.ListOfSurveys.ElementAt(idx).TvdWGS84 = val;
+	}
+	private async Task UpdateNorth(double val, int idx)
+	{
+		Trajectory.SurveyList.ListOfSurveys.ElementAt(idx).NorthOfWellHead = val;
+	}
+	private async Task UpdateEast(double val, int idx)
+	{
+		Trajectory.SurveyList.ListOfSurveys.ElementAt(idx).EastOfWellHead = val;
+	}
 }
