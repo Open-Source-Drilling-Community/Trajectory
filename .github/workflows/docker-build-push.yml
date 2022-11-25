@@ -19,7 +19,7 @@ jobs:
       run: docker build --file "${{ github.workspace }}/NORCE.Drilling.Trajectory.Service/dockerfile" --tag digiwells/norcedrillingtrajectoryservice:stable --build-arg "NORCE_NUGET_USER=${{ secrets.NORCE_NUGET_USER }}" --build-arg "NORCE_NUGET_APIKEY=${{ secrets.NORCE_NUGET_APIKEY }}" .
 
     - name: Build WebApp Docker image
-      run: docker build --file "${{ github.workspace }}/NORCE.Drilling.Trajectory.WebApp.Client/Dockerfile" --tag digiwells/norcedrillingtrajectorywebappclient:stable --build-arg "NORCE_NUGET_USER=${{ secrets.NORCE_NUGET_USER }}" --build-arg "NORCE_NUGET_APIKEY=${{ secrets.NORCE_NUGET_APIKEY }}" .
+      run: docker build --file "${{ github.workspace }}/NORCE.Drilling.Trajectory.WebAppClient/Dockerfile" --tag digiwells/norcedrillingtrajectorywebappclient:stable --build-arg "NORCE_NUGET_USER=${{ secrets.NORCE_NUGET_USER }}" --build-arg "NORCE_NUGET_APIKEY=${{ secrets.NORCE_NUGET_APIKEY }}" .
 
     - name: Login to DockerHub
       run: docker login -u="${{ secrets.DOCKERHUB_USERNAME }}" -p="${{ secrets.DOCKERHUB_PASSWORD }}"
