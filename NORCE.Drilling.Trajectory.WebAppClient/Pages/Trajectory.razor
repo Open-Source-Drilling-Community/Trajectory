@@ -1435,7 +1435,10 @@ else
 					var trajectoriesOrdered = tempTrajectories.OrderBy(x => x.Name);
 					foreach (NORCE.Drilling.Trajectory.ModelClientShared.Trajectory t in trajectoriesOrdered)
 					{
-						trajectories.Add(t);
+						if (t != null && t.WellboreID > 0)
+						{
+							trajectories.Add(t);
+						}
 					}
 				}
 			}
