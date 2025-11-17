@@ -14,17 +14,18 @@ jobs:
     steps:
     - name: Check out code
       uses: actions/checkout@v2
-      
-    - name: Build Service Docker image
-      run: docker build --file "${{ github.workspace }}/NORCE.Drilling.Trajectory.Service/dockerfile" --tag digiwells/norcedrillingtrajectoryservice:stable --build-arg "NORCE_NUGET_USER=${{ secrets.NORCE_NUGET_USER }}" --build-arg "NORCE_NUGET_APIKEY=${{ secrets.NORCE_NUGET_APIKEY }}" .
-
-    - name: Build WebApp Docker image
-      run: docker build --file "${{ github.workspace }}/NORCE.Drilling.Trajectory.WebAppClient/Dockerfile" --tag digiwells/norcedrillingtrajectorywebappclient:stable --build-arg "NORCE_NUGET_USER=${{ secrets.NORCE_NUGET_USER }}" --build-arg "NORCE_NUGET_APIKEY=${{ secrets.NORCE_NUGET_APIKEY }}" .
 
     - name: Login to DockerHub
       run: docker login -u="${{ secrets.DOCKERHUB_USERNAME }}" -p="${{ secrets.DOCKERHUB_PASSWORD }}"
-        
-    - name: Push images to DockerHub
-      run: |
-        docker push digiwells/norcedrillingtrajectoryservice:stable
-        docker push digiwells/norcedrillingtrajectorywebappclient:stable
+      
+    - name: Build Service Docker image
+      run: docker build --file "${{ github.workspace }}/Service/Dockerfile" --tag digiwells/norcedrillingtrajectoryservice:stable .
+
+    - name: Push Docker image for Service to DockerHub
+      run: docker push digiwells/norcedrillingtrajectoryservice:stable
+
+    #- name: Build WebApp Docker image
+    #  run: docker build --file "${{ github.workspace }}/WebApp/Dockerfile" --tag digiwells/norcedrillingtrajectorywebappclient:stable .
+
+    #- name: Push Docker image for WebApp to DockerHub
+    #  run: docker push digiwells/norcedrillingtrajectorywebappclient:stable

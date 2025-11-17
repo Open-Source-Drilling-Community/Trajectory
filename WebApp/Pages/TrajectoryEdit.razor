@@ -1,0 +1,262 @@
+﻿@* @implements IUnitAwareComponent
+@inject ILogger<TrajectoryEdit> logger
+@inject ISnackbar Snackbar
+
+<MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Trajectory</MudText>
+<MudContainer Class="d-flex flex-row mt-4 mb-4">
+    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="Update">Update</MudButton>
+    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Primary" OnClick="Compute">Compute</MudButton>
+    <MudButton Class="me-1" Variant="Variant.Filled" OnClick="Cancel">Cancel</MudButton>
+</MudContainer>
+
+<MudExpansionPanels Class="mt-4 mb-4">
+    <MudExpansionPanel Text="General">
+        <MudGrid>
+            <MudItem xs="4">
+                <MudTextField @bind-Value="@name" Label="Name" Variant="Variant.Filled"></MudTextField>
+            </MudItem>
+            <MudItem xs="4">
+                <MudTextField @bind-Value="@descr" Label="Description" Variant="Variant.Filled"></MudTextField>
+            </MudItem>
+        </MudGrid>
+    </MudExpansionPanel>
+    <MudExpansionPanel Text="@DataUtils.TrajectorySurveyStationListLabel">
+        @if (CurrentTrajectory != null && Parent != null)
+        {
+            <MudDataGrid T="SurveyStation" MultiSelection="true" Items="@availableSurveyStationHashSet" SortMode="SortMode.Multiple" Filterable="true" QuickFilter="@_surveyStationFilter"
+                         Hideable="false" ReadOnly="false" EditMode="DataGridEditMode.Form" EditTrigger="DataGridEditTrigger.Manual"
+                         SelectedItems="@selectedSurveyStationHashSet">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6"></MudText>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="_surveyStationSearchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                                  AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
+                </ToolBarContent>
+                <Columns>
+                    <SelectColumn T="SurveyStation" />
+                    <PropertyColumn Property="x => x.Name" Title="@DataUtils.SurveyStationNameLabel" Sortable="true" Filterable="true" />
+                    <PropertyColumn Property="x => x.Type" Title="@DataUtils.SurveyStationTypeLabel" Sortable="true" Filterable="true" />
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="SurveyStation" />
+                </PagerContent>
+            </MudDataGrid>
+        }
+    </MudExpansionPanel>
+    <MudExpansionPanel Text="View data (generated from output)">
+        <MudGrid>
+            <MudItem xs="2">
+                @if (CurrentTrajectory != null && Parent != null)
+                {
+                    <MudField Label="@DataUtils.TrajectoryOutputParamLabel" Variant="Variant.Filled" Adornment="Adornment.End" AdornmentText="@Parent.GetUnitLabel(DataUtils.TrajectoryOutputParamQty)">
+                        @Parent.FromSI(CurrentTrajectory.OutputParam, DataUtils.TrajectoryOutputParamQty, false)
+                    </MudField>
+                }
+            </MudItem>
+            <MudItem xs="10">
+                <ScatterPlot NameList="@nameList" ModeFlagList="@modeFlagList" ColorList="@colorList"
+                             XValuesList="@xValuesList" YValuesList="@yValuesList"
+                             YAxisReversed="@false" AspectRatio="-1" PlotHeight="500" PlotWidth="500"
+                             PlotTitle="" XAxisTitle="@(DataUtils.OutputXValuesTitle + ", " + DataUtils.OutputXValuesQty)" YAxisTitle="@(DataUtils.OutputYValuesTitle + ", " + DataUtils.OutputYValuesQty)"
+                             XUnit="@DataUtils.OutputXValuesQty" YUnit="@DataUtils.OutputYValuesQty"
+                             @ref="@trajectoryPlot">
+                </ScatterPlot>
+            </MudItem>
+        </MudGrid>
+    </MudExpansionPanel>
+</MudExpansionPanels>
+@code {
+    [CascadingParameter]
+    private MudUnitAndReferenceChoiceTag? Parent { get; set; }
+
+    [Parameter]
+    public Trajectory? CurrentTrajectory { get; set; }
+
+    [Parameter]
+    public List<SurveyStation?>? AvailableSurveyStationList { get; set; }
+
+    [Parameter]
+    public Action? OnUpdate { get; set; }
+
+    // Local variables used to retrieve user-defined parameters
+    private HashSet<SurveyStation> availableSurveyStationHashSet = new();
+    private HashSet<SurveyStation> selectedSurveyStationHashSet = new();
+    private string? name;
+    private string? descr;
+
+    // Plot variables
+    string[] colorScale = { "black", "blue", "grey", "red", "orange", "green", "yellow", "pink", "brown", "purple" };
+    ScatterPlot trajectoryPlot = new ScatterPlot();
+    List<string> nameList = new List<string>(); //name of each curve in the list to plot
+    List<int> modeFlagList = new List<int>(); //modeFlag of each curve in the list to plot (1 = lines; 2 = markers)
+    List<string> colorList = new List<string>(); //color of each curve in the list of curves to plot
+    List<List<object>> xValuesList = new List<List<object>>(); // list of x values for the list of curves to plot
+    List<List<object>> yValuesList = new List<List<object>>(); // list of y values for the list of curves to plot
+
+    // Labels
+    private string? inputParamUnitLabel = null;
+
+    // UI related variables
+    private string? _surveyStationSearchString;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (Parent == null)
+                throw new ArgumentNullException(nameof(Parent), "TargetEdit page must exist within a MudUnitAndReferenceChoiceTag");
+            Parent.Add(this);
+            ManageUnits();
+
+            if (CurrentTrajectory != null && CurrentTrajectory.MetaInfo != null)
+            {
+                name = CurrentTrajectory.Name;
+                descr = CurrentTrajectory.Description;
+                if (AvailableSurveyStationList != null)
+                {
+                    availableSurveyStationHashSet.Clear();
+                    selectedSurveyStationHashSet.Clear();
+                    foreach (SurveyStation data in AvailableSurveyStationList)
+                    {
+                        if (CurrentTrajectory.SurveyStationList != null)
+                        {
+                            foreach (SurveyStation d in CurrentTrajectory.SurveyStationList)
+                            {
+                                if (d.MetaInfo.ID == data.MetaInfo.ID)
+                                    selectedSurveyStationHashSet.Add(data);
+                            }
+                        }
+                        availableSurveyStationHashSet.Add(data);
+                    }
+                }
+                else
+                {
+                    logger.LogError("SurveyStationList is null or empty, please select one");
+                    Snackbar.Add("SurveyStationList is null or empty, please select one", Severity.Error);
+                }
+            }
+            else
+            {
+                logger.LogError("Current Trajectory is null or badly formed");
+                Snackbar.Add("Current Trajectory is null or badly formed", Severity.Error);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem on Trajectory initialization");
+            Snackbar.Add("Problem on Trajectory initialization", Severity.Error);
+        }
+        await InvokeAsync(() => { StateHasChanged(); });
+    }
+
+    public void ManageUnits()
+    {
+
+    }
+
+    private async Task Update()
+    {
+        if (selectedSurveyStationHashSet.Any())
+        {
+            try
+            {
+                if (CurrentTrajectory != null && CurrentTrajectory.MetaInfo != null)
+                {
+                    List<SurveyStation> tempList = [];
+                    foreach (SurveyStation data in selectedSurveyStationHashSet)
+                        tempList.Add(data);
+                    Trajectory trajectory = new()
+                        {
+                            MetaInfo = CurrentTrajectory.MetaInfo,
+                            Name = name,
+                            Description = descr,
+                            CreationDate = CurrentTrajectory.CreationDate,
+                            LastModificationDate = DateTimeOffset.UtcNow,
+                            SurveyStationList = tempList
+                        };
+                    await APIUtils.ClientTrajectory.PutTrajectoryByIdAsync(CurrentTrajectory.MetaInfo.ID, trajectory);
+                    logger.LogInformation("Updated the Trajectory successfully");
+                    Snackbar.Add("Updated the Trajectory successfully", Severity.Success);
+                }
+                else
+                {
+                    logger.LogWarning("Problem while updating the Trajectory");
+                    Snackbar.Add("Problem while updating the Trajectory", Severity.Warning);
+                }
+            }
+            catch (ApiException ex)
+            {
+                logger.LogError(ex, "Problem while updating the Trajectory");
+                Snackbar.Add("Problem while updating the Trajectory", Severity.Warning);
+            }
+            UpdatePlots();
+        }
+        else
+        {
+            logger.LogWarning("No SurveyStation selected for the current Trajectory");
+            Snackbar.Add("No SurveyStation selected for the current Trajectory", Severity.Warning);
+        }
+    }
+
+    private async Task Compute()
+    {
+        await Update();
+        if (selectedSurveyStationHashSet.Any())
+        {
+            OnUpdate?.Invoke();
+        }
+        else
+        {
+            logger.LogWarning("No SurveyStation selected for the current Trajectory");
+            Snackbar.Add("No SurveyStation selected for the current Trajectory", Severity.Warning);
+        }
+    }
+
+    private void Cancel()
+    {
+        OnUpdate?.Invoke();
+    }
+
+    private void UpdatePlots()
+    {
+        if (CurrentTrajectory != null)
+        {
+            //each list below is designed to contain N curves: in this case, we only plot 1 curve, corresponding to 1 trajectory
+            nameList.Clear();
+            modeFlagList.Clear();
+            colorList.Clear();
+            xValuesList.Clear();
+            yValuesList.Clear();
+
+            List<object> xValues = new List<object>();
+            List<object> yValues = new List<object>();
+
+            double value = CurrentTrajectory.OutputParam ?? 1;
+
+            for (int i = 0; i < 100; ++i)
+            {
+                xValues.Add(i);
+                yValues.Add(value * i);
+            }
+            xValuesList.Add(xValues);
+            yValuesList.Add(yValues);
+            nameList.Add($"{CurrentTrajectory.Name}");
+            modeFlagList.Add(1); //1 to 3
+            colorList.Add(colorScale[0]);
+
+            //plot curves
+            trajectoryPlot.Plot();
+        }
+    }
+
+    //Quick filter - filter gobally across multiple columns with the same input
+    private Func<SurveyStation, bool> _surveyStationFilter => x =>
+    {
+        if (string.IsNullOrWhiteSpace(_surveyStationSearchString))
+            return true;
+        if ($"{x.Name}".Contains(_surveyStationSearchString))
+            return true;
+
+        return false;
+    };
+} *@
