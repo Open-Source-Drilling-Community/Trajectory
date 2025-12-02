@@ -18,14 +18,10 @@ namespace ServiceTest
         [OneTimeSetUp]
         public void OneTimeSetUp()
         {
-            var handler = new HttpClientHandler
-            {
-                ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; } // temporary workaround for testing purposes: bypass certificate validation (not recommended for production environments due to security risks)
-            };
-            httpClient = new HttpClient(handler)
-            {
-                BaseAddress = new Uri(host + "Trajectory/api/")
-            };
+            var handler = new HttpClientHandler();
+            handler.ServerCertificateCustomValidationCallback = (message, cert, chain, errors) => { return true; }; // temporary workaround for testing purposes: bypass certificate validation (not recommended for production environments due to security risks)
+            httpClient = new HttpClient(handler);
+            httpClient.BaseAddress = new Uri(host + "Trajectory/api/");
             httpClient.DefaultRequestHeaders.Accept.Clear();
             httpClient.DefaultRequestHeaders.Accept.Add(new MediaTypeWithQualityHeaderValue("application/json"));
             nSwagClient = new Client(httpClient.BaseAddress.ToString(), httpClient);
@@ -35,7 +31,9 @@ namespace ServiceTest
         public async Task Test_Trajectory_GET()
         {
             #region post a Trajectory
+            // Create instance of Trajectory
             Trajectory trajectory = PseudoConstructors.ConstructTrajectory();
+            trajectory.MDStep = 10;
             trajectory.SurveyStationList = ConstructSurveyStationList();
             //Extract metainfo
             MetaInfo metaInfo = trajectory.MetaInfo;
@@ -163,12 +161,11 @@ namespace ServiceTest
         public async Task Test_Trajectory_POST()
         {
             #region trying to post an empty guid
+            // Create instance of trajectory
             Trajectory trajectory = PseudoConstructors.ConstructTrajectory();
+            trajectory.MDStep = 10;
             trajectory.MetaInfo.ID = Guid.Empty;
             trajectory.SurveyStationList = ConstructSurveyStationList();
-            //Extract metainfo
-            MetaInfo metaInfo = trajectory.MetaInfo;
-            Guid guid = metaInfo.ID;
             Trajectory? trajectory2 = null;
             try
             {
@@ -191,10 +188,11 @@ namespace ServiceTest
             Assert.That(trajectory2, Is.Null);
             #endregion
 
-            #region post some corrupted data
-            guid = Guid.NewGuid(); // fixing the empty guid issue
-            metaInfo = new() { ID = guid };
+            #region post some corrupted data with valid guid
+            Guid guid = Guid.NewGuid(); // fixing the empty guid issue
+            MetaInfo metaInfo = new() { ID = guid };
             trajectory.MetaInfo = metaInfo;
+            trajectory.MDStep = 10;
             trajectory.SurveyStationList = ConstructCorruptedSurveyStationList(); // introducing a corrupted input data issue
             trajectory2 = null;
             try
@@ -208,8 +206,11 @@ namespace ServiceTest
             }
             #endregion
 
-            #region posting a new data in a valid state
-            trajectory.SurveyStationList = ConstructSurveyStationList(); // fixing the corrupted input data issue
+            #region posting valid data with valid guid
+            metaInfo = new() { ID = guid };
+            trajectory.MetaInfo = metaInfo;
+            trajectory.MDStep = 10;
+            trajectory.SurveyStationList = ConstructSurveyStationList();
             try
             {
                 await nSwagClient.PostTrajectoryAsync(trajectory);
@@ -274,9 +275,10 @@ namespace ServiceTest
         public async Task Test_Trajectory_PUT()
         {
             #region posting a new ID
+            // Create instance of trajectory
             Trajectory trajectory = PseudoConstructors.ConstructTrajectory();
+            trajectory.MDStep = 10;
             trajectory.SurveyStationList = ConstructSurveyStationList();
-
             //Extract metainfo
             MetaInfo metaInfo = trajectory.MetaInfo;
             Guid guid = metaInfo.ID;
@@ -355,8 +357,10 @@ namespace ServiceTest
         public async Task Test_Trajectory_DELETE()
         {
             #region posting a new ID
-            // Create instance of surveyStation
+            // Create instance of trajectory
             Trajectory trajectory = PseudoConstructors.ConstructTrajectory();
+            trajectory.MDStep = 10;
+            trajectory.SurveyStationList = ConstructSurveyStationList();
             //Extract metainfo
             MetaInfo metaInfo = trajectory.MetaInfo;
             Guid guid = metaInfo.ID;
@@ -415,28 +419,28 @@ namespace ServiceTest
         private static List<SurveyStation> ConstructSurveyStationList()
         {
             string jsonString =
-                            "[{ \"Abscissa\": 0.0, \"Azimuth\": 0.000000, \"Inclination\": 0.000000, \"X\": 0.0, \"Y\": 0.0, \"Z\":0.0 }, " + // first survey station is complete
-                            "{ \"Abscissa\": 90.0, \"Azimuth\": 3.051883, \"Inclination\": 0.056374 }, " +
-                            "{ \"Abscissa\": 109.0, \"Azimuth\": 2.923426, \"Inclination\": 0.111701 }, " + // at least 3 survey stations are needed to complete the survey
-                            "{ \"Abscissa\": 160.0, \"Azimuth\": 2.894806, \"Inclination\": 0.237486 }, " +
-                            "{ \"Abscissa\": 216.0, \"Azimuth\": 3.078990, \"Inclination\": 0.314985 }, " +
-                            "{ \"Abscissa\": 243.0, \"Azimuth\": 2.971742, \"Inclination\": 0.315332 }, " +
-                            "{ \"Abscissa\": 316.0, \"Azimuth\": 3.054304, \"Inclination\": 0.381440 }, " +
-                            "{ \"Abscissa\": 347.0, \"Azimuth\": 3.063636, \"Inclination\": 0.388621 }, " +
-                            "{ \"Abscissa\": 404.0, \"Azimuth\": 3.002276, \"Inclination\": 0.570171 }, " +
-                            "{ \"Abscissa\": 470.0, \"Azimuth\": 2.938753, \"Inclination\": 0.732573 }, " +
-                            "{ \"Abscissa\": 519.2, \"Azimuth\": 2.997911, \"Inclination\": 0.776672 }, " +
-                            "{ \"Abscissa\": 546.8, \"Azimuth\": 3.007962, \"Inclination\": 0.783520 }, " +
-                            "{ \"Abscissa\": 602.7, \"Azimuth\": 2.979085, \"Inclination\": 0.830482 }, " +
-                            "{ \"Abscissa\": 659.4, \"Azimuth\": 2.962783, \"Inclination\": 0.932835 }, " +
-                            "{ \"Abscissa\": 716.7, \"Azimuth\": 3.002276, \"Inclination\": 1.056256 }, " +
-                            "{ \"Abscissa\": 745.2, \"Azimuth\": 3.024437, \"Inclination\": 1.125621 }, " +
-                            "{ \"Abscissa\": 805.4, \"Azimuth\": 3.064820, \"Inclination\": 1.284859 }, " +
-                            "{ \"Abscissa\": 859.2, \"Azimuth\": 3.103693, \"Inclination\": 1.331733 }, " +
-                            "{ \"Abscissa\": 910.7, \"Azimuth\": 3.146106, \"Inclination\": 1.411521 }, " +
-                            "{ \"Abscissa\": 958.4, \"Azimuth\": 3.157970, \"Inclination\": 1.415886 }, " +
-                            "{ \"Abscissa\": 1006.7, \"Azimuth\": 3.159725, \"Inclination\": 1.402615 }, " +
-                            "{ \"Abscissa\": 1016.3, \"Azimuth\": 3.163219, \"Inclination\": 1.402615 }]";
+                            "[{ \"MD\": 0.0, \"Azimuth\": 0.000000, \"Inclination\": 0.000000, \"RiemannianNorth\": 0.0, \"RiemannianEast\": 0.0, \"TVD\":0.0 }, " + // first survey station is complete
+                            "{ \"MD\": 90.0, \"Azimuth\": 3.051883, \"Inclination\": 0.056374 }, " +
+                            "{ \"MD\": 109.0, \"Azimuth\": 2.923426, \"Inclination\": 0.111701 }, " + // at least 3 survey stations are needed to complete the survey
+                            "{ \"MD\": 160.0, \"Azimuth\": 2.894806, \"Inclination\": 0.237486 }, " +
+                            "{ \"MD\": 216.0, \"Azimuth\": 3.078990, \"Inclination\": 0.314985 }, " +
+                            "{ \"MD\": 243.0, \"Azimuth\": 2.971742, \"Inclination\": 0.315332 }, " +
+                            "{ \"MD\": 316.0, \"Azimuth\": 3.054304, \"Inclination\": 0.381440 }, " +
+                            "{ \"MD\": 347.0, \"Azimuth\": 3.063636, \"Inclination\": 0.388621 }, " +
+                            "{ \"MD\": 404.0, \"Azimuth\": 3.002276, \"Inclination\": 0.570171 }, " +
+                            "{ \"MD\": 470.0, \"Azimuth\": 2.938753, \"Inclination\": 0.732573 }, " +
+                            "{ \"MD\": 519.2, \"Azimuth\": 2.997911, \"Inclination\": 0.776672 }, " +
+                            "{ \"MD\": 546.8, \"Azimuth\": 3.007962, \"Inclination\": 0.783520 }, " +
+                            "{ \"MD\": 602.7, \"Azimuth\": 2.979085, \"Inclination\": 0.830482 }, " +
+                            "{ \"MD\": 659.4, \"Azimuth\": 2.962783, \"Inclination\": 0.932835 }, " +
+                            "{ \"MD\": 716.7, \"Azimuth\": 3.002276, \"Inclination\": 1.056256 }, " +
+                            "{ \"MD\": 745.2, \"Azimuth\": 3.024437, \"Inclination\": 1.125621 }, " +
+                            "{ \"MD\": 805.4, \"Azimuth\": 3.064820, \"Inclination\": 1.284859 }, " +
+                            "{ \"MD\": 859.2, \"Azimuth\": 3.103693, \"Inclination\": 1.331733 }, " +
+                            "{ \"MD\": 910.7, \"Azimuth\": 3.146106, \"Inclination\": 1.411521 }, " +
+                            "{ \"MD\": 958.4, \"Azimuth\": 3.157970, \"Inclination\": 1.415886 }, " +
+                            "{ \"MD\": 1006.7, \"Azimuth\": 3.159725, \"Inclination\": 1.402615 }, " +
+                            "{ \"MD\": 1016.3, \"Azimuth\": 3.163219, \"Inclination\": 1.402615 }]";
             List<SurveyStation> surveyStationList = [];
             var list = JsonSerializer.Deserialize<List<SurveyStation>>(jsonString, JsonSettings.Options);
             if (list is { })
@@ -444,12 +448,12 @@ namespace ServiceTest
                 foreach (var station in list)
                 {
                     SurveyStation surveyStation = PseudoConstructors.ConstructSurveyStation();
-                    surveyStation.Abscissa = station.Abscissa;
+                    surveyStation.MD = station.MD;
                     surveyStation.Azimuth = station.Azimuth;
                     surveyStation.Inclination = station.Inclination;
-                    surveyStation.X = station.X;
-                    surveyStation.Y = station.Y;
-                    surveyStation.Z = station.Z;
+                    surveyStation.RiemannianNorth = station.RiemannianNorth;
+                    surveyStation.RiemannianEast = station.RiemannianEast;
+                    surveyStation.TVD = station.TVD;
                     surveyStationList.Add(surveyStation);
                 }
             }
@@ -459,28 +463,28 @@ namespace ServiceTest
         private static List<SurveyStation> ConstructCorruptedSurveyStationList()
         {
             string jsonString =
-                            "{ \"Abscissa\": 0.0, \"Azimuth\": 0.000000, \"Inclination\": 0.000000 }, " + // first survey station should be complete
-                            "{ \"Abscissa\": 90.0, \"Azimuth\": 3.051883, \"Inclination\": 0.056374 }, " +
-                            "{ \"Abscissa\": 109.0, \"Azimuth\": 2.923426, \"Inclination\": 0.111701 }, " +
-                            "{ \"Abscissa\": 160.0, \"Azimuth\": 2.894806, \"Inclination\": 0.237486 }, " +
-                            "{ \"Abscissa\": 216.0, \"Azimuth\": 3.078990, \"Inclination\": 0.314985 }, " +
-                            "{ \"Abscissa\": 243.0, \"Azimuth\": 2.971742, \"Inclination\": 0.315332 }, " +
-                            "{ \"Abscissa\": 316.0, \"Azimuth\": 3.054304, \"Inclination\": 0.381440 }, " +
-                            "{ \"Abscissa\": 347.0, \"Azimuth\": 3.063636, \"Inclination\": 0.388621 }, " +
-                            "{ \"Abscissa\": 404.0, \"Azimuth\": 3.002276, \"Inclination\": 0.570171 }, " +
-                            "{ \"Abscissa\": 470.0, \"Azimuth\": 2.938753, \"Inclination\": 0.732573 }, " +
-                            "{ \"Abscissa\": 519.2, \"Azimuth\": 2.997911, \"Inclination\": 0.776672 }, " +
-                            "{ \"Abscissa\": 546.8, \"Azimuth\": 3.007962, \"Inclination\": 0.783520 }, " +
-                            "{ \"Abscissa\": 602.7, \"Azimuth\": 2.979085, \"Inclination\": 0.830482 }, " +
-                            "{ \"Abscissa\": 659.4, \"Azimuth\": 2.962783, \"Inclination\": 0.932835 }, " +
-                            "{ \"Abscissa\": 716.7, \"Azimuth\": 3.002276, \"Inclination\": 1.056256 }, " +
-                            "{ \"Abscissa\": 745.2, \"Azimuth\": 3.024437, \"Inclination\": 1.125621 }, " +
-                            "{ \"Abscissa\": 805.4, \"Azimuth\": 3.064820, \"Inclination\": 1.284859 }, " +
-                            "{ \"Abscissa\": 859.2, \"Azimuth\": 3.103693, \"Inclination\": 1.331733 }, " +
-                            "{ \"Abscissa\": 910.7, \"Azimuth\": 3.146106, \"Inclination\": 1.411521 }, " +
-                            "{ \"Abscissa\": 958.4, \"Azimuth\": 3.157970, \"Inclination\": 1.415886 }, " +
-                            "{ \"Abscissa\": 1006.7, \"Azimuth\": 3.159725, \"Inclination\": 1.402615 }, " +
-                            "{ \"Abscissa\": 1016.3, \"Azimuth\": 3.163219, \"Inclination\": 1.402615 }";
+                            "[{ \"MD\": 0.0, \"Azimuth\": 0.000000, \"Inclination\": 0.000000 }, " + // first survey station should be complete
+                            "{ \"MD\": 90.0, \"Azimuth\": 3.051883, \"Inclination\": 0.056374 }, " +
+                            "{ \"MD\": 109.0, \"Azimuth\": 2.923426, \"Inclination\": 0.111701 }, " +
+                            "{ \"MD\": 160.0, \"Azimuth\": 2.894806, \"Inclination\": 0.237486 }, " +
+                            "{ \"MD\": 216.0, \"Azimuth\": 3.078990, \"Inclination\": 0.314985 }, " +
+                            "{ \"MD\": 243.0, \"Azimuth\": 2.971742, \"Inclination\": 0.315332 }, " +
+                            "{ \"MD\": 316.0, \"Azimuth\": 3.054304, \"Inclination\": 0.381440 }, " +
+                            "{ \"MD\": 347.0, \"Azimuth\": 3.063636, \"Inclination\": 0.388621 }, " +
+                            "{ \"MD\": 404.0, \"Azimuth\": 3.002276, \"Inclination\": 0.570171 }, " +
+                            "{ \"MD\": 470.0, \"Azimuth\": 2.938753, \"Inclination\": 0.732573 }, " +
+                            "{ \"MD\": 519.2, \"Azimuth\": 2.997911, \"Inclination\": 0.776672 }, " +
+                            "{ \"MD\": 546.8, \"Azimuth\": 3.007962, \"Inclination\": 0.783520 }, " +
+                            "{ \"MD\": 602.7, \"Azimuth\": 2.979085, \"Inclination\": 0.830482 }, " +
+                            "{ \"MD\": 659.4, \"Azimuth\": 2.962783, \"Inclination\": 0.932835 }, " +
+                            "{ \"MD\": 716.7, \"Azimuth\": 3.002276, \"Inclination\": 1.056256 }, " +
+                            "{ \"MD\": 745.2, \"Azimuth\": 3.024437, \"Inclination\": 1.125621 }, " +
+                            "{ \"MD\": 805.4, \"Azimuth\": 3.064820, \"Inclination\": 1.284859 }, " +
+                            "{ \"MD\": 859.2, \"Azimuth\": 3.103693, \"Inclination\": 1.331733 }, " +
+                            "{ \"MD\": 910.7, \"Azimuth\": 3.146106, \"Inclination\": 1.411521 }, " +
+                            "{ \"MD\": 958.4, \"Azimuth\": 3.157970, \"Inclination\": 1.415886 }, " +
+                            "{ \"MD\": 1006.7, \"Azimuth\": 3.159725, \"Inclination\": 1.402615 }, " +
+                            "{ \"MD\": 1016.3, \"Azimuth\": 3.163219, \"Inclination\": 1.402615 }]";
             List<SurveyStation> surveyStationList = [];
             var list = JsonSerializer.Deserialize<List<SurveyStation>>(jsonString, JsonSettings.Options);
             if (list is { })
@@ -491,9 +495,9 @@ namespace ServiceTest
                     surveyStation.Abscissa = station.Abscissa;
                     surveyStation.Azimuth = station.Azimuth;
                     surveyStation.Inclination = station.Inclination;
-                    surveyStation.X = station.X;
-                    surveyStation.Y = station.Y;
-                    surveyStation.Z = station.Z;
+                    surveyStation.RiemannianNorth = station.RiemannianNorth;
+                    surveyStation.RiemannianEast = station.RiemannianEast;
+                    surveyStation.TVD = station.TVD;
                     surveyStationList.Add(surveyStation);
                 }
             }
