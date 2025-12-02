@@ -8,8 +8,8 @@ namespace ServiceTest
     public class Tests
     {
         // testing outside Visual Studio requires using http port (https faces authentication issues both in console and on github)
-        //private static string host = "http://localhost:8080/";
-        private static string host = "https://localhost:5001/";
+        private static string host = "http://localhost:8080/";
+        //private static string host = "https://localhost:5001/";
         //private static string host = "https://localhost:44368/";
         //private static string host = "http://localhost:54949/";
         private static HttpClient httpClient;

@@ -216,7 +216,6 @@ class Program
                     {
                         writer.WriteLine(code);
                     }
-                    success = false;
                     PrettyPrint(PRETTY_STRING, "");
                     Console.ForegroundColor = ConsoleColor.Green;
                     Console.WriteLine("\t\x1b[1m ✓ - C# client and base classes have been generated successfully! \x1b[0m");
