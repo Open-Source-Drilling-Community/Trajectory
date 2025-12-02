@@ -7,16 +7,16 @@
 		<Nullable>enable</Nullable>
 		<Authors>Energy Modelling and Automation group</Authors>
 		<Company>NORCE</Company>
-		<Title>Auto-generation of the API of the Trajectory microservice (distributed shared model approach)</Title>
+		<Title>Management of API dependencies of the Model project (distributed shared model approach)</Title>
 	</PropertyGroup>
 
 	<ItemGroup>
 		<PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.28" />
 		<PackageReference Include="NSwag.CodeGeneration.CSharp" Version="14.6.2" />
-		<PackageReference Include="Microsoft.CodeAnalysis.CSharp" Version="4.12.0-1.final" />
 	</ItemGroup>
+
 	<ItemGroup>
-		<Compile Remove="PseudoConstructorsWriter.cs" />
+		<Folder Include="json-schemas\" />
 	</ItemGroup>
 
 </Project>

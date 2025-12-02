@@ -34,12 +34,14 @@ namespace NORCE.Drilling.Trajectory.Model
         /// the ID of the wellbore associated to the trajectory
         /// </summary>
         public Guid WellBoreID { get; set; }
+
         /// <summary>
         /// default constructor required for parsing the data model as a json file
         /// </summary>
         public TrajectoryLight() : base()
         {
         }
+
         /// <summary>
         /// base constructor
         /// </summary>

@@ -49,7 +49,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         ///     - records are removed if LastModificationDate is null or older that DateTimeOffset.UtcNow-CleaningInterval
         ///     - CreationDate is not inspected
         /// </summary>
-        /// <returns>true if older SurveyStation were successfully deleted</returns>
+        /// <returns>true if older SurveyPoint were successfully deleted</returns>
         private bool CleanDatabase(string dataTable)
         {
             var connection = _connectionManager.GetConnection();
@@ -74,7 +74,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 }
                 catch (SqliteException ex)
                 {
-                    _logger.LogError(ex, "Impossible to clean old SurveyStation from {table}", dataTable);
+                    _logger.LogError(ex, "Impossible to clean old SurveyPoint from {table}", dataTable);
                 }
             }
             else

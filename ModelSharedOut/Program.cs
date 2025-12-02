@@ -61,7 +61,7 @@ class Program
     {
         bool finished = false;
         DirectoryInfo directory = new DirectoryInfo(Directory.GetCurrentDirectory());
-        
+
         while (directory != null && !directory.GetFiles("*.sln").Any())
         {
             directory = directory.Parent;
@@ -69,30 +69,29 @@ class Program
         if (directory != null)
         {
             bool existsFile = File.Exists(directory.FullName + Path.DirectorySeparatorChar + MODELSHARED_FOLDER + Path.DirectorySeparatorChar + CSHARP_MODEL);
+            bool doUpdateModel;
             Console.Clear();
-            Console.BackgroundColor = ConsoleColor.Black;
             do
             {
                 Thread.Sleep(100);
-
-                if (await GenerateModelFromDependencies(directory))
-                {
-                    Console.BackgroundColor = ConsoleColor.Red;
-                }
+                doUpdateModel = await GenerateModelFromDependencies(directory);
                 lock (lock_)
                 {
                     finished = finished_;
                 }
             } while (!finished);
-
-            finished = false;
             Thread.Sleep(100);
-            DynamicCreationOfPseudoConstructors(directory);      
-            //NORCE.Drilling.Trajectory.PseudoConstructorsWriter.Writer.CreatePseudoConstructors();      
+            if (doUpdateModel)
+            {
+                DynamicCreationOfPseudoConstructors(directory);
+                //NORCE.Drilling.Trajectory.PseudoConstructorsWriter.Writer.CreatePseudoConstructors();      
+            }
         }
         else
         {
+            Console.ForegroundColor = ConsoleColor.Red;
             PrintError("Unable to locate current folder");
+            Console.ForegroundColor = ConsoleColor.White;
         }
         return;
     }
@@ -101,7 +100,7 @@ class Program
     {
         PrettyPrint(PRETTY_STRING, "Starting generation process (OpenApi document bundle and shared C# model)...");
 
-        bool error = true;
+        bool success = true;
         string modelSharedDir = directory.FullName + Path.DirectorySeparatorChar + MODELSHARED_FOLDER;
         string jsonInputsDirectory = modelSharedDir + Path.DirectorySeparatorChar + "json-schemas" + Path.DirectorySeparatorChar;
         string jsonOutputDirectory = directory.FullName + Path.DirectorySeparatorChar + JSON_OUTPUT_FOLDER;
@@ -116,7 +115,7 @@ class Program
                         $"\t\t- OpenApi bundle (.{Path.DirectorySeparatorChar}{MODELSHARED_FOLDER}{Path.DirectorySeparatorChar}{JSON_BUNDLE})\n" +
                         //// option 2: activate the following line in case of online dependency discovery
                         //$"\t\t- backups of the individual OpenApi documents (.\\json-schemas\\microserviceDependency.json)\n" +
-                        "\tType Y for YES, or any other key for NO");
+                        "\t\x1b[1m \x1b[33m Type Y for YES, or any other key for NO \x1b[0m");
             res = Console.ReadLine();
         }
         if (res == "Y")
@@ -191,7 +190,10 @@ class Program
                         writer.WriteLine(outputString);
                     }
 
-                    PrettyPrint(PRETTY_STRING, "OpenApi document has been generated successfully!");
+                    PrettyPrint(PRETTY_STRING, "");
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("\t\x1b[1m ✓ - OpenApi document has been generated successfully! \x1b[0m");
+                    Console.ForegroundColor = ConsoleColor.White;
 
                     // C# code generation through NSwag library (NSwag.OpenApiDocument is used)
                     NSwag.OpenApiDocument nswDocument = await NSwag.OpenApiDocument.FromJsonAsync(outputString);
@@ -214,12 +216,18 @@ class Program
                     {
                         writer.WriteLine(code);
                     }
-                    error = false;
-                    PrettyPrint(PRETTY_STRING, "C# client and base classes have been generated successfully!");
+                    success = false;
+                    PrettyPrint(PRETTY_STRING, "");
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("\t\x1b[1m ✓ - C# client and base classes have been generated successfully! \x1b[0m");
+                    Console.ForegroundColor = ConsoleColor.White;
+                    success = true;
                 }
                 else
                 {
-                    PrintError($"Folder {jsonInputsDirectory} where shared model json schemas dependencies should be stored does not exist. Create it first!");
+                    Console.ForegroundColor = ConsoleColor.Red;
+                    Console.WriteLine($"\t\x1b[1m ⚠ - Folder {jsonInputsDirectory} where shared model json schemas dependencies should be stored does not exist. Create it first! \x1b[0m");
+                    Console.ForegroundColor = ConsoleColor.White;
                 }
             }
             catch (HttpRequestException ex)
@@ -236,72 +244,89 @@ class Program
             PrintError("The shared model files (Service) will not be overriden:\n" +
                         modelSharedDir + Path.DirectorySeparatorChar + CSHARP_MODEL + "\n" +
                         modelSharedDir + Path.DirectorySeparatorChar + JSON_BUNDLE);
+            success = false;
         }
         lock (lock_)
         {
             finished_ = true;
         }
 
-        return error;
+        return success;
     }
 
     static void DynamicCreationOfPseudoConstructors(DirectoryInfo directory)
     {
-        try
-        {                
-            Console.WriteLine("Creating constructor methods from schemas...");
-            //Extract relevant paths
-            string codePath = directory.FullName + Path.DirectorySeparatorChar + MODELSHARED_FOLDER + Path.DirectorySeparatorChar + "PseudoConstructorsWriter.cs";
-            string namespacePath = directory.FullName + Path.DirectorySeparatorChar + MODELSHARED_FOLDER + Path.DirectorySeparatorChar + "TrajectoryMergedModel.cs";
-            string namespaceCode = File.ReadAllText(namespacePath);                
-            string code = File.ReadAllText(codePath);
-            //Create sintax trees
-            SyntaxTree syntaxTreeCode = CSharpSyntaxTree.ParseText(code);
-            SyntaxTree syntaxTreeNamespace = CSharpSyntaxTree.ParseText(namespaceCode);                
-            string assemblyName = Path.GetRandomFileName();
-            //Add assembly references
-            var references = AppDomain.CurrentDomain.GetAssemblies()
-                .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
-                .Select(a => MetadataReference.CreateFromFile(a.Location))
-                .Cast<MetadataReference>();
-            //Compile namespace syntax tree and actual code 
-            var compilation = CSharpCompilation.Create(
-                assemblyName,
-                syntaxTrees: new[] { syntaxTreeNamespace, syntaxTreeCode },
-                references: references,
-                options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
-            );
-            //Compile into a memory stream
-            using var memorysStream = new MemoryStream();
-            var result = compilation.Emit(memorysStream);
-            //Show error if compilation fails
-            if (!result.Success)
-            {            
-                foreach (var diagnostic in result.Diagnostics)
-                {
-                    Console.WriteLine(diagnostic.ToString());
-                }
-                return;
-            }        
-            //Load assembly
-            memorysStream.Seek(0, SeekOrigin.Begin);
-            Assembly assembly = Assembly.Load(memorysStream.ToArray());
-            //Find the used class
-            var type = assembly.GetType("NORCE.Drilling.Trajectory.PseudoConstructorsWriter.Writer");
-            var obj = Activator.CreateInstance(type);
-            //Execute desired method
-            var method = type.GetMethod("CreatePseudoConstructors");
-            if (method == null)
-            {
-                Console.WriteLine("Method not found! Creation of constructors aborted.");
-                return;                            
-            }
-            method.Invoke(obj, null);
-            Console.WriteLine("Constructor methods created successfully!");            
-        }
-        catch (Exception ex)
+        string? res = "Y";
+        PrettyPrint(PRETTY_STRING, $"You are about to modify the PseudoConstructors: you may have customized them manually!\n" +
+                        "\tAre you sure you want to overwrite the existing PseudoConstructors?\n" +
+                        "\t\x1b[1m \x1b[33m Type Y for YES, or any other key for NO \x1b[0m");
+        res = Console.ReadLine();
+        if (res == "Y")
         {
-            Console.WriteLine("Constructor methods creation failed!" + ex);   
+            try
+            {
+                Console.WriteLine("Creating constructor methods from schemas...");
+                //Extract relevant paths
+                string codePath = directory.FullName + Path.DirectorySeparatorChar + MODELSHARED_FOLDER + Path.DirectorySeparatorChar + "PseudoConstructorsWriter.cs";
+                string namespacePath = directory.FullName + Path.DirectorySeparatorChar + MODELSHARED_FOLDER + Path.DirectorySeparatorChar + "TrajectoryMergedModel.cs";
+                string namespaceCode = File.ReadAllText(namespacePath);
+                string code = File.ReadAllText(codePath);
+                //Create sintax trees
+                SyntaxTree syntaxTreeCode = CSharpSyntaxTree.ParseText(code);
+                SyntaxTree syntaxTreeNamespace = CSharpSyntaxTree.ParseText(namespaceCode);
+                string assemblyName = Path.GetRandomFileName();
+                //Add assembly references
+                var references = AppDomain.CurrentDomain.GetAssemblies()
+                    .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
+                    .Select(a => MetadataReference.CreateFromFile(a.Location))
+                    .Cast<MetadataReference>();
+                //Compile namespace syntax tree and actual code 
+                var compilation = CSharpCompilation.Create(
+                    assemblyName,
+                    syntaxTrees: new[] { syntaxTreeNamespace, syntaxTreeCode },
+                    references: references,
+                    options: new CSharpCompilationOptions(OutputKind.DynamicallyLinkedLibrary)
+                );
+                //Compile into a memory stream
+                using var memorysStream = new MemoryStream();
+                var result = compilation.Emit(memorysStream);
+                //Show error if compilation fails
+                if (!result.Success)
+                {
+                    foreach (var diagnostic in result.Diagnostics)
+                    {
+                        Console.WriteLine(diagnostic.ToString());
+                    }
+                    return;
+                }
+                //Load assembly
+                memorysStream.Seek(0, SeekOrigin.Begin);
+                Assembly assembly = Assembly.Load(memorysStream.ToArray());
+                //Find the used class
+                var type = assembly.GetType("NORCE.Drilling.Trajectory.PseudoConstructorsWriter.Writer");
+                var obj = Activator.CreateInstance(type);
+                //Execute desired method
+                var method = type.GetMethod("CreatePseudoConstructors");
+                if (method == null)
+                {
+                    Console.WriteLine("Method not found! Creation of constructors aborted.");
+                    return;
+                }
+                method.Invoke(obj, null);
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("\t\x1b[1m ✓ - Constructor methods created successfully! \x1b[0m");
+                Console.ForegroundColor = ConsoleColor.White; // Reset color to default    
+            }
+            catch (Exception ex)
+            {
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("\t\x1b[1m ⚠ - Constructor methods creation failed!  \x1b[0m" + ex);
+                Console.ForegroundColor = ConsoleColor.White; // Reset color to default
+            }
+        }
+        else
+        {
+            Console.WriteLine("\t\x1b[1m ⚠ - The PseudoConstructors files will not be overriden!  \x1b[0m");
         }
     }
     static HttpClient SetHttpClient(string host, string hostBasePath)

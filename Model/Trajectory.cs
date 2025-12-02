@@ -3,8 +3,8 @@ using OSDC.DotnetLibraries.General.Common;
 using System.Collections.Generic;
 
 namespace NORCE.Drilling.Trajectory.Model
-{
-    public class Trajectory : TrajectoryLight
+{   
+    public class Trajectory : TrajectoryLight 
     {
         public List<SurveyStation>? SurveyStationList { get; set; }
         /// <summary>

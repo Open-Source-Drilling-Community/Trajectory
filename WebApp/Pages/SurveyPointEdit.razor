@@ -1,0 +1,99 @@
+﻿@inject ILogger<MudInputWithUnitAdornment> logger
+@inject ISnackbar Snackbar
+
+
+<MudPaper Class="my-2 mx-2 py-2 my-2" Style="@($"background:{DataUtils.FLOATING_COLOUR};")">
+    <MudPaper Class="my-1 mx-1 py-1 my-1">
+        <MudToolBar>
+            <MudText Typo="Typo.h5" Class="mx-2 px-2">Edit SurveyPoint</MudText>
+            <MudButton StartIcon="@Icons.Material.Filled.SaveAs" Variant="Variant.Filled" IconColor="Color.Primary" OnClick="SaveAsSurveyPoint">Save new</MudButton>
+            @if (SurveyPointId != null)
+            {
+                <MudButton StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" IconColor="Color.Primary" OnClick="SaveSurveyPoint">Save</MudButton>
+            }
+            <MudSpacer />
+            <MudButton StartIcon="@Icons.Material.Filled.Close" Variant="Variant.Filled" IconColor="Color.Error" OnClick="SendMessage">Close</MudButton>                
+        </MudToolBar>
+        <MudDivider Class="py-1 my-1"/>
+        <MudForm @ref="form" Class="mx-2 my-2">
+            <MudTextField @bind-Value="currentSurveyPoint.Name" Label="Name" Required="true" For="@(() => currentSurveyPoint.Name)" />
+            <MudTextField @bind-Value="currentSurveyPoint.Description" Label="Description" For="@(() => currentSurveyPoint.Description)" />
+        </MudForm>
+    </MudPaper>
+</MudPaper>
+
+@code{
+     [CascadingParameter]
+    private MudUnitAndReferenceChoiceTag? Parent { get; set; }
+    [Parameter]
+    public Guid? SurveyPointId { get; set; }
+    [Parameter]
+    public EventCallback ValueChanged {get; set;}    
+
+
+    private SurveyPoint currentSurveyPoint = PseudoConstructors.ConstructSurveyPoint();
+    private MudForm form;
+
+    protected override async Task OnInitializedAsync()
+    {
+        if (SurveyPointId != null)
+        {
+            currentSurveyPoint = await APIUtils.ClientTrajectory.GetSurveyPointByIdAsync(SurveyPointId.Value);
+        }
+        await InvokeAsync(() => { StateHasChanged(); });
+    }
+
+    //Send message to parent component
+    private async Task SendMessage()
+    {
+        await ValueChanged.InvokeAsync();
+    }  
+    //Add/Edit panel controls
+    private async Task SaveSurveyPoint()
+    {
+        try
+        {
+            if (SurveyPointId != null)
+            {
+                await APIUtils.ClientTrajectory.PutSurveyPointByIdAsync((Guid) SurveyPointId, currentSurveyPoint);
+                Snackbar.Add("SurveyPoint updated successfully", Severity.Success);
+                await SendMessage();
+            }
+            else
+            {
+                Snackbar.Add("SurveyPoint not found for edition", Severity.Success);
+            }
+
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error saving SurveyPoint");
+            Snackbar.Add("Error saving SurveyPoint: " + ex.Message, Severity.Warning);
+        }
+    }
+    private async Task SaveAsSurveyPoint()
+    {
+        try
+        {
+            if (SurveyPointId != null)
+            {
+                await APIUtils.ClientTrajectory.PostSurveyPointAsync(currentSurveyPoint);
+                Snackbar.Add("SurveyPoint updated successfully", Severity.Success);
+                await SendMessage();
+            }
+            else
+            {
+                Snackbar.Add("SurveyPoint not found for edition", Severity.Success);
+            }
+
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error saving SurveyPoint");
+            Snackbar.Add("Error saving SurveyPoint: " + ex.Message, Severity.Warning);
+        }
+    }      
+
+    //Update unit system
+    private void ManageUnits(){}        
+}

@@ -39,7 +39,7 @@ namespace NORCE.Drilling.Trajectory.ModelShared
 					},
 				InterpolatedTrajectory = new List<SurveyPoint>
 					{
-						ConstructSurveyPoint(), 
+						ConstructSurveyPoint(),
 					},
 				MDStep = 0.0, 
 			};

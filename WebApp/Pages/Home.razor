@@ -1,0 +1,52 @@
+@page "/Home"
+<MudText Class="mx-4 px-4 ym-4 pm-4" Typo="Typo.h2">Home</MudText>  
+<MudDivider Class="mb-4 pb-4"/>
+<MudText Class="mx-4 px-4 ym-4 pm-4" Typo="Typo.h5">Introduction</MudText>
+<MudText Class="mx-6 px-6 ym-4 pm-4" Typo="Typo.body1">
+
+</MudText>
+
+<MudDivider Class="my-4 py-4"/>
+<MudText Class="mx-4 px-4 ym-4 pm-4" Typo="Typo.h5">Data Input</MudText>
+<MudText Class="mx-6 px-6 ym-4 pm-4" Typo="Typo.body1">
+</MudText>
+
+ <MudStack Spacing="2" Class="my-4 py-4">
+    <MudButton Class="shades-text text-white"
+        Variant="Variant.Filled"
+        Style="@($"background:{HideColors(showAddTutorial)};")"
+        OnClick="ShowHideAddTutorial">@(showAddTutorial ? "Hide add table tutorial" : "Show add table tutorial")        
+    </MudButton>
+    @* Add a video using the webm format*@
+    <MudCollapse Expanded="showAddTutorial">                
+        <center>
+            <video width="960" height="540" autoplay loop muted>
+                <source src="videos/dummyvideo.webm" type="video/webm">
+                Your browser does not support the video tag.
+            </video>
+        </center>
+    </MudCollapse>
+</MudStack>
+
+
+@code{
+    private bool showAddTutorial = true;
+    private bool showUploadTutorial = true;
+    private bool showViewTutorial = true;
+
+    private void ShowHideAddTutorial()
+    {
+        showAddTutorial = !showAddTutorial;
+    } 
+    private string HideColors(bool expandBool)
+    {
+        if (expandBool)
+        {
+            return Colors.Indigo.Lighten1;
+        }
+        else
+        {
+            return Colors.Indigo.Darken4;            
+        }
+    }
+}

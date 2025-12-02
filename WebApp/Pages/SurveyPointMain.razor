@@ -1,5 +1,5 @@
-﻿@page "/Trajectory"
-@inject ILogger<TrajectoryMain> logger
+﻿@page "/SurveyPoint"
+@inject ILogger<SurveyPointMain> logger
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 <MudUnitAndReferenceChoiceTag HttpHost=@APIUtils.HostNameUnitConversion
@@ -7,61 +7,60 @@
                               HttpController="UnitSystem/"
                               UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
                               UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName">
-    @if (trajectoryList == null)
+    @if (surveyPointList == null)
     {
         <p><em>Loading...</em></p>
     }
     else
     {
         <div hidden="@isHiddenMainPanel">
-            <MudDataGrid T="Trajectory" MultiSelection="true" Items="@trajectoryList" SelectedItemsChanged="@SelectedItemsChanged"
+            <MudDataGrid T="SurveyPoint" MultiSelection="true" Items="@surveyPointList" SelectedItemsChanged="@SelectedItemsChanged"
                          EditMode="DataGridEditMode.Cell"
                          Hover="true" 
-                         SortMode="SortMode.Multiple" QuickFilter="@_trajectoryFilter" Filterable="false"
+                         SortMode="SortMode.Multiple" QuickFilter="@_surveyPointFilter" Filterable="false"
                          ReadOnly="false" ColumnResizeMode="ResizeMode.Column" Elevation="0">
                 <ToolBarContent>
-                    <MudText Typo="Typo.h6">Trajectory</MudText>
-                    <MudButton OnClick="@AddTrajectory" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
-                    <MudButton OnClick="@DeleteSelectedTrajectory" Color="@Color.Error" Class="add-item-btn">Delete</MudButton>
+                    <MudText Typo="Typo.h6">SurveyPoint</MudText>
+                    <MudButton OnClick="@AddSurveyPoint" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
+                    <MudButton OnClick="@DeleteSelectedSurveyPoint" Color="@Color.Error" Class="add-item-btn">Delete</MudButton>
                     <MudSpacer />
                     <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
                                   AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </ToolBarContent>
                 <Columns>
-                    <SelectColumn T="Trajectory" />
-                    <PropertyColumn Property="x => x.Name" Title="Trajectory" CellStyle="width: 30%;" Sortable="true" Editable="false" />
+                    <SelectColumn T="SurveyPoint" />
+                    <PropertyColumn Property="x => x.Name" Title="SurveyPoint" CellStyle="width: 30%;" Sortable="true" Editable="false" />
                     <PropertyColumn Property="x => x.Description" Title="Description" CellStyle="width: 40%;" Sortable="true" Editable="false" />
                     <TemplateColumn CellStyle="width: 25%;">
                         <EditTemplate>
-                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="(() => EditTrajectory(context.Item.MetaInfo.ID))" />                                                
-                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteTrajectory(context.Item.MetaInfo.ID))" />
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="(() => EditSurveyPoint(context.Item.MetaInfo.ID))" />                                                
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteSurveyPoint(context.Item.MetaInfo.ID))" />
                         </EditTemplate>
                     </TemplateColumn>
                 </Columns>
                 <PagerContent>
-                    <MudDataGridPager T="Trajectory" />
+                    <MudDataGridPager T="SurveyPoint" />
                 </PagerContent>
             </MudDataGrid>
         </div>
     }
     @if (isHiddenMainPanel && (!isHiddenEditPanel))
     {
-        <TrajectoryEdit TrajectoryId="@trajectoryIdBeingEdited"  ValueChanged="HandleEditPanelClosed" />
+        <SurveyPointEdit SurveyPointId="@surveyPointIdBeingEdited"  ValueChanged="HandleEditPanelClosed" />
     }
 </MudUnitAndReferenceChoiceTag>
 
 @code {
-    // Trajectory related variables
-    private List<Trajectory> trajectoryList = new();
-    private List<Trajectory> selectedTrajectoryList = new();
-    private Trajectory? currentTrajectory;
-    private List<object?>? inputDataList = new(); // container used to pass input data to the TrajectoryEdit razor component without specifying content types (required by µservice Template)
+    // SurveyPoint related variables
+    private List<SurveyPoint> surveyPointList = new();
+    private List<SurveyPoint> selectedSurveyPointList = new();
+    private SurveyPoint? currentSurveyPoint;
+    private List<object?>? inputDataList = new(); // container used to pass input data to the SurveyPointEdit razor component without specifying content types (required by µservice Template)
                                                   // SurveyPoint related variables
-    private List<SurveyPoint>? surveyPointList;
     // UI related variables
     public bool isHiddenMainPanel;
     public bool isHiddenEditPanel;
-    private Guid? trajectoryIdBeingEdited;
+    private Guid? surveyPointIdBeingEdited;
     private string? _searchString;
 
     protected override async Task OnInitializedAsync()
@@ -71,49 +70,27 @@
             // Show main panel
             isHiddenMainPanel = false;
             isHiddenEditPanel = true;
-            currentTrajectory = null;
+            currentSurveyPoint = null;
 
             // Starting all loading tasks asynchronously
             logger.LogInformation("Trying to load list of SurveyPoint from client: " + APIUtils.HttpClientTrajectory);
             var surveyPointTask = APIUtils.ClientTrajectory.GetAllSurveyPointAsync();
-            logger.LogInformation("Trying to load list of Trajectory from client: " + APIUtils.HostNameTrajectory);
-            var trajectoryTask = APIUtils.ClientTrajectory.GetAllTrajectoryAsync();
 
-            List<Task> loadingTaskList = new List<Task> { trajectoryTask };
+            List<Task> loadingTaskList = new List<Task> { surveyPointTask };
             loadingTaskList.Add(surveyPointTask);
 
             // Awaiting tasks and retrieve results as they become available
             while (loadingTaskList.Count > 0)
             {
                 Task finishedTask = await Task.WhenAny(loadingTaskList);
-                if (finishedTask == trajectoryTask)
-                {
-                    try
-                    {
-                        trajectoryList = (List<Trajectory>)await trajectoryTask; // awaiting the finished task allows to retrieve its result and throw exception if needed
-                        if (trajectoryList != null)
-                        {
-                            trajectoryList.Sort((t1, t2) => t1.Name.CompareTo(t2.Name));
-                        }
-                        else
-                        {
-                            logger.LogWarning("Returned list of Trajectory were null on initialization");
-                            Snackbar.Add("Returned list of Trajectory were null on initialization", Severity.Warning);
-                        }
-                    }
-                    catch (ApiException ex)
-                    {
-                        logger.LogError(ex, "Impossible to load Trajectory from client");
-                    }
-                }
-                else if (finishedTask == surveyPointTask)
+                if (finishedTask == surveyPointTask)
                 {
                     try
                     {
                         surveyPointList = (List<SurveyPoint>)await surveyPointTask; // awaiting the finished task allows to retrieve its result and throw exception if needed
                         if (surveyPointList != null)
                         {
-                            surveyPointList.Sort((f1, f2) => f1.Name.CompareTo(f2.Name));
+                            surveyPointList.Sort((t1, t2) => t1.Name.CompareTo(t2.Name));
                         }
                         else
                         {
@@ -125,35 +102,35 @@
                     {
                         logger.LogError(ex, "Impossible to load SurveyPoint from client");
                     }
-                }
+                }             
                 loadingTaskList.Remove(finishedTask);
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Problem Trajectory initialization");
+            logger.LogError(ex, "Problem SurveyPoint initialization");
         }
         await InvokeAsync(() => { StateHasChanged(); });
     }
 
-    private async Task AddTrajectory()
+    private async Task AddSurveyPoint()
     {
         isHiddenMainPanel = true;
         isHiddenEditPanel = false;
-        trajectoryIdBeingEdited = null;
+        surveyPointIdBeingEdited = null;
     }
 
-    private async Task EditTrajectory(Guid id)
+    private async Task EditSurveyPoint(Guid id)
     {
         isHiddenMainPanel = true;
         isHiddenEditPanel = false;
-        trajectoryIdBeingEdited = id;
+        surveyPointIdBeingEdited = id;
     }
     private async Task HandleEditPanelClosed()
     {
         isHiddenMainPanel = false;
         isHiddenEditPanel = true;
-        trajectoryIdBeingEdited = null;
+        surveyPointIdBeingEdited = null;
         await OnInitializedAsync();
     }
 
@@ -177,46 +154,46 @@
             return (!result.Canceled);
         }
     }
-    private async Task DeleteTrajectory(Guid id)
+    private async Task DeleteSurveyPoint(Guid id)
     {
         try
         {
             if (await ConfirmDeletion())
             {
-                await APIUtils.ClientTrajectory.DeleteTrajectoryByIdAsync(id);
+                await APIUtils.ClientTrajectory.DeleteSurveyPointByIdAsync(id);
                 await OnInitializedAsync();
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Impossible to delete Trajectory");
+            logger.LogError(ex, "Impossible to delete SurveyPoint");
         }
     }
     
 
-    private async Task DeleteSelectedTrajectory()
+    private async Task DeleteSelectedSurveyPoint()
     {
         try
         {
             if (await ConfirmDeletion())
             {
-                foreach (Trajectory trajectory in selectedTrajectoryList)
+                foreach (SurveyPoint surveyPoint in selectedSurveyPointList)
                 {
-                    await APIUtils.ClientTrajectory.DeleteTrajectoryByIdAsync(trajectory.MetaInfo.ID);
+                    await APIUtils.ClientTrajectory.DeleteSurveyPointByIdAsync(surveyPoint.MetaInfo.ID);
                 }
                 await OnInitializedAsync();
             }
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Impossible to delete all Trajectory");
+            logger.LogError(ex, "Impossible to delete all SurveyPoint");
         }
 
     }
 
     //Quick filter - filter gobally across multiple columns with the same input
-    private Func<Trajectory, bool>
-    _trajectoryFilter => x =>
+    private Func<SurveyPoint, bool>
+    _surveyPointFilter => x =>
     {
         if (string.IsNullOrWhiteSpace(_searchString))
             return true;
@@ -227,25 +204,25 @@
     };
     
     //Events
-    private void StartedEditingItem(Trajectory item)
+    private void StartedEditingItem(SurveyPoint item)
     {
         //Activating Edit event capture with parameter StartedEditingItem="@StartedEditingItem" in MudDataGrid; arguments are specified in OnClick="@context.Actions.StartedEditingItem(...)"
     }
 
-    private void CancelledEditingItem(Trajectory item)
+    private void CancelledEditingItem(SurveyPoint item)
     {
         //Activating Cancel event capture with parameter CancelledEditingItem = "@CancelledEditingItem" in MudDataGrid; arguments are specified in OnClick="@context.Actions.CancelledEditingItem(...)"
     }
 
-    private void CommittedItemChanges(Trajectory item)
+    private void CommittedItemChanges(SurveyPoint item)
     {
         //Activating Commit event capture with parameter CommittedItemChanges = "@CommittedItemChanges" in MudDataGrid; arguments are specified in OnClick="@context.Actions.CommittedEditingItem(...)"
     }
 
-    void SelectedItemsChanged(HashSet<Trajectory>
+    void SelectedItemsChanged(HashSet<SurveyPoint>
         items)
     {
-        selectedTrajectoryList.Clear();
-        selectedTrajectoryList.InsertRange(0, items);
+        selectedSurveyPointList.Clear();
+        selectedSurveyPointList.InsertRange(0, items);
     }
 }

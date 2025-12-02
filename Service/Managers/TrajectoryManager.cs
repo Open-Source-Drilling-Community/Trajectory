@@ -4,9 +4,11 @@ using Microsoft.Extensions.Logging;
 using OSDC.DotnetLibraries.General.DataManagement;
 using Microsoft.Data.Sqlite;
 using System.Text.Json;
+using NORCE.Drilling.Trajectory.Model;
 
 namespace NORCE.Drilling.Trajectory.Service.Managers
 {
+
     /// <summary>
     /// A manager for Trajectory. The manager implements the singleton pattern as defined by 
     /// Gamma, Erich, et al. "Design patterns: Abstraction and reuse of object-oriented design." 
@@ -120,6 +122,17 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             return count >= 1;
         }
 
+        private static Model.TrajectoryLight CreateDataLightInstance(Model.Trajectory trajectory)
+        {
+            return new Model.TrajectoryLight()
+                {
+                    MetaInfo = trajectory.MetaInfo,
+                    Name = trajectory.Name,
+                    Description = trajectory.Description,
+                    CreationDate = trajectory.CreationDate,
+                    LastModificationDate = trajectory.LastModificationDate
+                };
+        }
         /// <summary>
         /// Returns the list of Guid of all Trajectory present in the microservice database 
         /// </summary>
@@ -290,7 +303,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             if (connection != null)
             {
                 var command = connection.CreateCommand();
-                command.CommandText = "SELECT MetaInfo, Name, Description, CreationDate, LastModificationDate FROM TrajectoryTable";
+                command.CommandText = "SELECT MetaInfo, TrajectoryLight FROM TrajectoryTable";
                 try
                 {
                     using var reader = command.ExecuteReader();
@@ -298,21 +311,11 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     {
                         string metaInfoStr = reader.GetString(0);
                         MetaInfo? metaInfo = JsonSerializer.Deserialize<MetaInfo>(metaInfoStr, JsonSettings.Options);
-                        string name = reader.GetString(1);
-                        string descr = reader.GetString(2);
-                        // make sure DateTimeOffset are properly instantiated when stored values are null (and parsed as empty string)
-                        DateTimeOffset? creationDate = null;
-                        if (DateTimeOffset.TryParse(reader.GetString(3), out DateTimeOffset cDate))
-                            creationDate = cDate;
-                        DateTimeOffset? lastModificationDate = null;
-                        if (DateTimeOffset.TryParse(reader.GetString(4), out DateTimeOffset lDate))
-                            lastModificationDate = lDate;
-                        trajectoryLightList.Add(new Model.TrajectoryLight(
-                                metaInfo,
-                                string.IsNullOrEmpty(name) ? null : name,
-                                string.IsNullOrEmpty(descr) ? null : descr,
-                                creationDate,
-                                lastModificationDate));
+                        Model.TrajectoryLight? trajectoryLight = JsonSerializer.Deserialize<Model.TrajectoryLight>(reader.GetString(1), JsonSettings.Options);
+                        if (trajectoryLight != null)
+                        {
+                            trajectoryLightList.Add(trajectoryLight);                            
+                        }
                     }
                     _logger.LogInformation("Returning the list of existing TrajectoryLight from TrajectoryTable");
                     return trajectoryLightList;
@@ -359,6 +362,10 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                         {
                             //add the Trajectory to the TrajectoryTable
                             string metaInfo = JsonSerializer.Serialize(trajectory.MetaInfo, JsonSettings.Options);
+                      
+                            Model.TrajectoryLight trajectoryLight = CreateDataLightInstance(trajectory);
+                            string dataLight = JsonSerializer.Serialize(trajectoryLight, JsonSettings.Options);                           
+
                             string? cDate = null;
                             if (trajectory.CreationDate != null)
                                 cDate = ((DateTimeOffset)trajectory.CreationDate).ToString(SqlConnectionManager.DATE_TIME_FORMAT);
@@ -366,20 +373,19 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                             if (trajectory.LastModificationDate != null)
                                 lDate = ((DateTimeOffset)trajectory.LastModificationDate).ToString(SqlConnectionManager.DATE_TIME_FORMAT);
                             string data = JsonSerializer.Serialize(trajectory, JsonSettings.Options);
+                            
                             var command = connection.CreateCommand();
                             command.CommandText = "INSERT INTO TrajectoryTable (" +
                                 "ID, " +
                                 "MetaInfo, " +
-                                "Name, " +
-                                "Description, " +
+                                "TrajectoryLight, " +                                
                                 "CreationDate, " +
                                 "LastModificationDate, " +
                                 "Trajectory" +
                                 ") VALUES (" +
                                 $"'{trajectory.MetaInfo.ID}', " +
                                 $"'{metaInfo}', " +
-                                $"'{trajectory.Name}', " +
-                                $"'{trajectory.Description}', " +
+                                $"'{dataLight}', " +
                                 $"'{cDate}', " +
                                 $"'{lDate}', " +
                                 $"'{data}'" +
@@ -452,6 +458,8 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     try
                     {
                         string metaInfo = JsonSerializer.Serialize(trajectory.MetaInfo, JsonSettings.Options);
+                        Model.TrajectoryLight trajectoryLight = CreateDataLightInstance(trajectory);
+                        string dataLight = JsonSerializer.Serialize(trajectoryLight, JsonSettings.Options);                           
                         string? cDate = null;
                         if (trajectory.CreationDate != null)
                             cDate = ((DateTimeOffset)trajectory.CreationDate).ToString(SqlConnectionManager.DATE_TIME_FORMAT);
@@ -461,8 +469,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                         var command = connection.CreateCommand();
                         command.CommandText = $"UPDATE TrajectoryTable SET " +
                             $"MetaInfo = '{metaInfo}', " +
-                            $"Name = '{trajectory.Name}', " +
-                            $"Description = '{trajectory.Description}', " +
+                            $"TrajectoryLight = '{dataLight}', " +                              
                             $"CreationDate = '{cDate}', " +
                             $"LastModificationDate = '{lDate}', " +
                             $"Trajectory = '{data}' " +

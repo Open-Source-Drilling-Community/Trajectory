@@ -47,11 +47,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 { "TrajectoryTable", new string[] {
                     "ID text primary key",
                     "MetaInfo text",
-                    // beginning of list of fields used only when light weight concept is implemented
-                    "Name text",
-                    "Description text",
-                    "WellboreID",
-                    // end of list of fields used only when light weight concept is implemented
+                    "TrajectoryLight text",
                     "CreationDate text",
                     "LastModificationDate text",
                     "Trajectory text" }

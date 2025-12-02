@@ -1,20 +1,20 @@
-using System;
+﻿using System;
 using System.IO;
 using System.Text;
 using System.Linq;
 using System.Reflection;
 using NORCE.Drilling.Trajectory.ModelShared;
- 
+
 namespace NORCE.Drilling.Trajectory.PseudoConstructorsWriter
-    {
+{
     class Writer
-    {     
-        private static readonly string NAMESPACE = "NORCE.Drilling.Trajectory.ModelShared";    
+    {
+        private static readonly string NAMESPACE = "NORCE.Drilling.Trajectory.ModelShared";
         private static readonly string PSEUDO_CTOR = "PseudoConstructors.cs";
         private static readonly string MODELSHARED_FOLDER = "ModelSharedOut";
-        private static string fullPath = ""; 
+        private static string fullPath = "";
         private static string IDENTATION = "\n\t\t\t\t";
-        private static string ICOLLECTION_FULL_NAME = "System.Collections.Generic.ICollection`1[";                      
+        private static string ICOLLECTION_FULL_NAME = "System.Collections.Generic.ICollection`1[";
         private static string? dictionaryKey;
         private static string? dictionaryValue;
         private static bool isFromNamespace = false;
@@ -25,15 +25,15 @@ namespace NORCE.Drilling.Trajectory.PseudoConstructorsWriter
                 return propertyInfo.PropertyType.AssemblyQualifiedName.Split(ICOLLECTION_FULL_NAME).Length - 1;
             else
                 return 0;
-        }        
+        }
         private static string ReturnBaseType(Type type)
         {
-            if (type.GenericTypeArguments.Length > 0)        
-                return ReturnBaseType(type.GenericTypeArguments[0]);        
-            else if (type.Namespace!.Contains("System"))
+            if (type.GenericTypeArguments.Length > 0)
+                return ReturnBaseType(type.GenericTypeArguments[0]);
+            else if (type.IsPrimitive || type.Name == "String")
                 return type.Name.ToLower();
-            else      
-                return type.Name;                      
+            else
+                return type.Name;
         }
         private static string ReturnFullType(Type type)
         {
@@ -41,25 +41,27 @@ namespace NORCE.Drilling.Trajectory.PseudoConstructorsWriter
             {
                 //If it is a list, create a list stack in the type
                 if (type.Name == "ICollection`1")
-                    return "List<" + ReturnFullType(type.GenericTypeArguments[0]) + ">";        
+                    return "List<" + ReturnFullType(type.GenericTypeArguments[0]) + ">";
                 else if (type.Name == "Nullable`1")
                     return ReturnFullType(type.GenericTypeArguments[0]) + "?";
                 else if (type.Name == "IDictionary`2")
                 {
-                    dictionaryKey = ReturnFullType(type.GenericTypeArguments[0]); 
-                    dictionaryValue = ReturnFullType(type.GenericTypeArguments[1]);                     
-                    return $"Dictionary<{dictionaryKey},{dictionaryValue}>";      
+                    dictionaryKey = ReturnFullType(type.GenericTypeArguments[0]);
+                    dictionaryValue = ReturnFullType(type.GenericTypeArguments[1]);
+                    return $"Dictionary<{dictionaryKey},{dictionaryValue}>";
                 }
                 else
                     return ReturnFullType(type.GenericTypeArguments[0]);
             }
             else
             {
-                if (type.Namespace!.Contains("System"))
+                if (type.IsPrimitive || type.Name == "String")
+                {
                     return type.Name.ToLower();
-                else      
-                    return type.Name;      
-            }        
+                }
+                else
+                    return type.Name;
+            }
         }
         public static bool ChangeICollectionToList(DirectoryInfo directory)
         {
@@ -75,12 +77,14 @@ namespace NORCE.Drilling.Trajectory.PseudoConstructorsWriter
                 string listString = "List";
                 string updatedMergedModel = fileContent.Replace(iCollectionString, listString);
                 File.WriteAllText(filePath, updatedMergedModel);
-                Console.WriteLine("Update of MergedModel namespace succeeded.");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("✓ Update of MergedModel namespace succeeded!");
+                Console.ForegroundColor = ConsoleColor.White;
                 success = true;
-            }    
+            }
             catch (Exception e)
             {
-                Console.WriteLine("Update of MergedModel namespace failed.");
+                Console.WriteLine("\t\x1b[1m\x1b[31m ⚠ - Update of MergedModel namespace failed.  \x1b[0m");
             }
 
             return success;
@@ -94,19 +98,24 @@ namespace NORCE.Drilling.Trajectory.PseudoConstructorsWriter
                 // which is a call to their respective constructor.     
                 defaultValue = $"Construct{propBaseName}(),";
             }
-            
-            //Simple values                                   
-            if (propTypeName.Contains('?')) 
+
+            //Simple values  
+            if (propBaseName.Contains("DateTimeOffset"))
+            {
+                // Date & time are always set to "now"
+                defaultValue = "DateTimeOffset.UtcNow,";
+            }
+            else if (propTypeName.Contains('?'))
             {
                 //  Nullables are set to null.
                 //if this is not desired, this  
                 //'else if' should be commented
-                defaultValue = $"null, ";   
+                defaultValue = $"null, ";
             }
             else if (propBaseName == "double")
             {
                 // doubles are set to 0.0
-                defaultValue = "0.0, ";  
+                defaultValue = "0.0, ";
             }
             else if (propBaseName == "string")
             {
@@ -114,78 +123,88 @@ namespace NORCE.Drilling.Trajectory.PseudoConstructorsWriter
                 defaultValue = "\"\",";
             }
             //int does not descriminate int64, int32, int16...
-            else if (propBaseName.Contains("int")) 
+            else if (propBaseName == "int64" || propBaseName == "int32" || propBaseName == "int16" || propBaseName == "int8" || propBaseName == "int")
             {
                 //  Set int to 0
-                defaultValue = "0, ";  
+                defaultValue = "0, ";
             }
-            else if (propBaseName.Contains("boolean")) 
+            else if (propBaseName.Contains("boolean"))
             {
                 // Set booleans to "false"
-                defaultValue = "false, ";  
+                defaultValue = "false, ";
+            }
+            else if (propBaseName == "guid")
+            {
+                // Guid are set to "new Guid()"
+                defaultValue = "new Guid(),";
+            }
+            else if (propBaseName == "datetime")
+            {
+                // Date & time are always set to "now"
+                defaultValue = "DateTime.UtcNow,";
             }
             else if (!isFromNamespace)
             {
                 // default default value
-                defaultValue = $"new {propBaseName}(),";   
+                defaultValue = $"new {propBaseName}(),";
             }
-     
+
             return defaultValue;
         }
         public static string CreateMetaInfoConstructor()
         {
-            string code =   
+            string code =
                 "\n\t\tpublic static MetaInfo ConstructMetaInfo()" +
-                "\n\t\t\t{" +                            
+                "\n\t\t\t{" +
                 "\n\t\t\t\treturn new MetaInfo " +
                 "\n\t\t\t\t{" +
                 "\n\t\t\t\t\tID = Guid.NewGuid()," +
                 "\n\t\t\t\t\tHttpHostName = \"https://dev.digiwells.no/\"," +
                 "\n\t\t\t\t\tHttpHostBasePath = \"Trajectory/api/\"," +
-                "\n\t\t\t\t\tHttpEndPoint = \"Trajectory/\"," +                                                                                                                
+                "\n\t\t\t\t\tHttpEndPoint = \"Trajectory/\"," +
                 "\n\t\t\t\t};" +
-                "\n\t\t\t}";  
+                "\n\t\t\t}";
 
 
-            code += "\n"+   
+            code += "\n" +
                 "\n\t\tpublic static MetaInfo ConstructMetaInfo(Guid id)" +
-                "\n\t\t\t{" +                            
+                "\n\t\t\t{" +
                 "\n\t\t\t\treturn new MetaInfo " +
                 "\n\t\t\t\t{" +
                 "\n\t\t\t\t\tID = id," +
                 "\n\t\t\t\t\tHttpHostName = \"https://dev.digiwells.no/\"," +
                 "\n\t\t\t\t\tHttpHostBasePath = \"Trajectory/api/\"," +
-                "\n\t\t\t\t\tHttpEndPoint = \"Trajectory/\"," +                                                                                                                
+                "\n\t\t\t\t\tHttpEndPoint = \"Trajectory/\"," +
                 "\n\t\t\t\t};" +
-                "\n\t\t\t}";                                       
-                            
-            return code ;
+                "\n\t\t\t}";
+
+            return code;
         }
         public static bool CreatePseudoConstructors()
-        {     
+        {
 
             try
-            {  
+            {
                 DirectoryInfo directory = new DirectoryInfo(Directory.GetCurrentDirectory());
                 //Loop until solution        
                 while (directory != null && !directory.GetFiles("*.sln").Any())
                 {
                     directory = directory.Parent;
                 }
-                fullPath = directory.ToString() + Path.DirectorySeparatorChar + MODELSHARED_FOLDER + Path.DirectorySeparatorChar;                          
+                fullPath = directory.ToString() + Path.DirectorySeparatorChar + MODELSHARED_FOLDER + Path.DirectorySeparatorChar;
                 //Get current file
                 //Change merged model ICollection instances to List
                 bool formatedMergedModel = ChangeICollectionToList(directory);
                 //Get all classes from current assembly
                 var classes = from t in Assembly.GetExecutingAssembly().GetTypes()
                               where t.IsClass && t.Namespace == NAMESPACE
-                              select t;        
+                              select t;
                 classes = classes.ToList();
                 //Start main code header by creating the class and namespace
                 string pseudoConstructorsText = "namespace " + NAMESPACE + "\n{\n\tpublic class PseudoConstructors\n\t{";
                 pseudoConstructorsText += CreateMetaInfoConstructor();
                 foreach (var q in classes)
-                {                
+                {
                     //  Classes with exceptions in here are either not relevant
                     //or are residual from the methods generated from the schema.
                     if (q.Name != "Client" &&
@@ -203,7 +222,7 @@ namespace NORCE.Drilling.Trajectory.PseudoConstructorsWriter
                         foreach (var p in q.GetProperties())
                         {
                             if (p.Name != "AdditionalProperties")
-                            {                                                                             
+                            {
                                 //Get the namespce of the properties
                                 isFromNamespace = (p.ToString()!.Contains(NAMESPACE));
                                 //Check if it is an enum
@@ -217,9 +236,9 @@ namespace NORCE.Drilling.Trajectory.PseudoConstructorsWriter
                                 //Get "full" type (e.g.: "List<double?>")
                                 string propTypeName = ReturnFullType(p.PropertyType);
                                 //Get base type (e.g.: "double")                            
-                                string propBaseName = ReturnBaseType(p.PropertyType);                           
+                                string propBaseName = ReturnBaseType(p.PropertyType);
                                 //Number of stacks of the list (e.g.: listStacks = 2 if p is a List<List<double>>)
-                                int listStacks = CollectionStacks(p);                                                                                                    
+                                int listStacks = CollectionStacks(p);
                                 //Handle ENUMs
                                 if (isEnum)
                                 {
@@ -227,35 +246,8 @@ namespace NORCE.Drilling.Trajectory.PseudoConstructorsWriter
                                     defaultValueString = $"({propTypeName})0,";
                                 }
                                 else
-                                {                  
-                                    //Date & time are always set to "now"
-                                    if(propBaseName == "datetimeoffset")
-                                    {
-                                        defaultValueString = "DateTimeOffset.UtcNow,";
-                                    }
-                                    //else if (isFromNamespace)//Check if it belongs no the namespace
-                                    //{                                    
-                                    //    //  Custom properties have default value ConstructMyClass()
-                                    //    // which is a call to their respective constructor.                                  
-                                    //    defaultValueString = $"Construct{propBaseName}(),";
-                                    //}
-                                    else if (propTypeName == "guid") //Check if it is a Guid
-                                    {                                    
-                                        // If so, check if it belongs to MetaInfo. All MetaInfo will be initialized
-                                        // with non-Empty guids for safety. All other, will be empty, which should
-                                        // be handled by the client.
-                                        if (q.Name == "MetaInfo")
-                                        {
-                                            //If so, creates a non-empty guid
-                                            defaultValueString = "Guid.NewGuid(),";
-                                        }
-                                        else
-                                        {
-                                            //Otherwise, creates a guid with 0s
-                                            defaultValueString = "new Guid(),";
-                                        }
-                                    }                         
-                                    else if (p.PropertyType.ToString() == "System.String")
+                                {
+                                    if (p.PropertyType.ToString() == "System.String")
                                     {
                                         //If it is a reference type, it is assumed to be a 
                                         //string and a default name is used.
@@ -264,23 +256,23 @@ namespace NORCE.Drilling.Trajectory.PseudoConstructorsWriter
                                     else if (propTypeName.Contains("Dictionary"))
                                     {
 
-                                        string keyDefaultValue = CreateDefaultSystemValue((string) dictionaryKey, (string) dictionaryKey).Replace(",","");
-                                        string valueDefaultValue = CreateDefaultSystemValue((string) dictionaryValue, (string) dictionaryValue).Replace(",","");
-                                        
+                                        string keyDefaultValue = CreateDefaultSystemValue((string)dictionaryKey, (string)dictionaryKey).Replace(",", "");
+                                        string valueDefaultValue = CreateDefaultSystemValue((string)dictionaryValue, (string)dictionaryValue).Replace(",", "");
+
                                         defaultValueString = $"new {propTypeName}" +
                                         "\n\t\t\t\t\t{"
-                                        +"\n\t\t\t\t\t\t{ " + $"{keyDefaultValue}, {valueDefaultValue}" + " }"
-                                        +"\n\t\t\t\t\t},"
-                                        ;   
+                                        + "\n\t\t\t\t\t\t{ " + $"{keyDefaultValue}, {valueDefaultValue}" + " }"
+                                        + "\n\t\t\t\t\t},"
+                                        ;
                                     }
                                     else
                                     {
                                         defaultValueString = CreateDefaultSystemValue(propBaseName, propTypeName);
-                                    }                                 
+                                    }
                                 }//Close 'IF isEnum{} ELSE{}' section 
                                 //Special treatment in case of collections/lists
                                 if (listStacks > 0)
-                                {   
+                                {
                                     //Create identation for a list constructors, e.g.:
                                     // List<List<var>> myVar = new List<List<var>>
                                     //      {
@@ -296,9 +288,9 @@ namespace NORCE.Drilling.Trajectory.PseudoConstructorsWriter
                                     }
                                     identationList = IDENTATION + identationList;
                                     //Radical is the "left side" of the constructor 
-                                    string listRadical = $"List<{propBaseName}>";  
+                                    string listRadical = $"List<{propBaseName}>";
                                     //listInnerInitializer contains the the code that is contained within the "{ }", e.g.: { new List<double> { new double()} }                      
-                                    string listInnerInitializer = listRadical + identationList + "{" + identationList + "\t" + defaultValueString +  identationList + "}";
+                                    string listInnerInitializer = listRadical + identationList + "{" + identationList + "\t" + defaultValueString + identationList + "}";
                                     for (int i = listStacks - 1; i > 0; i--)
                                     {
                                         //Handle identation
@@ -308,9 +300,9 @@ namespace NORCE.Drilling.Trajectory.PseudoConstructorsWriter
                                             identationList = identationList + "\t";
                                         }
                                         identationList = IDENTATION + identationList;
-                                        listRadical = $"List<{listRadical}>";   
+                                        listRadical = $"List<{listRadical}>";
                                         listInnerInitializer = listRadical + identationList + "{" + identationList + "\tnew " + listInnerInitializer + identationList + "}";
-                                    }                                                                                                     
+                                    }
                                     propertiesText += propertyName + "new " + listInnerInitializer + ",";
                                 }
                                 //Else, create an empty instance of the property
@@ -330,14 +322,18 @@ namespace NORCE.Drilling.Trajectory.PseudoConstructorsWriter
                 //Close pseudo constructor class & namespace
                 pseudoConstructorsText += "\n\t}\n}";
                 //Create path to save
-                Console.WriteLine("PseudoConstuctors.cs file generated successfully!");
+                Console.ForegroundColor = ConsoleColor.Green;
+                Console.WriteLine("\t\x1b[1m ✓ - PseudoConstuctors.cs file generated successfully! \x1b[0m");
+                Console.ForegroundColor = ConsoleColor.White; // Reset color to default
                 //Dynamic implementation seems to work better with relative paths
-                File.WriteAllText(fullPath + PSEUDO_CTOR, pseudoConstructorsText);                
+                File.WriteAllText(fullPath + PSEUDO_CTOR, pseudoConstructorsText);
                 return true;
             }//Close TRY
             catch (Exception e)
             {
-                Console.WriteLine("PseudoConstuctors.cs generation failed! " + e);            
+                Console.ForegroundColor = ConsoleColor.Red;
+                Console.WriteLine("\t\x1b[1m ⚠ - PseudoConstuctors.cs generation failed!  \x1b[0m" + e);
+                Console.ForegroundColor = ConsoleColor.White; // Reset color to default
                 return false;
             }//Close CATCH
         }
