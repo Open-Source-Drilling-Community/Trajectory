@@ -30,6 +30,11 @@ namespace NORCE.Drilling.Trajectory.Model
         public bool Calculate()
         {
             bool success = false;
+            if (SurveyStationList is { Count: <= 2 })
+                System.Console.WriteLine("not enough survey stations");
+            if (!SurveyPoint.CompleteSurvey(SurveyStationList))
+                System.Console.WriteLine("incomplete survey");
+
             if (SurveyStationList is { Count: > 2 } &&
                 Numeric.IsDefined(MDStep) &&
                 Numeric.GT(MDStep, 0) &&

@@ -18,11 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="OSDC.DotnetLibraries.Drilling.Surveying" Version="1.1.0" />
-	  <PackageReference Include="OSDC.DotnetLibraries.General.Common" Version="1.1.0" />
-	  <PackageReference Include="OSDC.DotnetLibraries.General.DataManagement" Version="2.1.0" />
-	  <PackageReference Include="OSDC.DotnetLibraries.General.Math" Version="1.2.0" />
-	  <PackageReference Include="OSDC.DotnetLibraries.General.Statistics" Version="3.2.0" />
+	  <ProjectReference Include="..\..\..\OSDC\DotNetLibraries\OSDC.DotnetLibraries.General\OSDC.DotnetLibraries.Drilling.Surveying\OSDC.DotnetLibraries.Drilling.Surveying.csproj" />
 	</ItemGroup>
 
 </Project>
