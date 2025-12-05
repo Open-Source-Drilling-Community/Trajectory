@@ -14,9 +14,9 @@
     else
     {
         <div hidden="@isHiddenMainPanel">
-            <MudDataGrid T="Trajectory" MultiSelection="true" Items="@trajectoryList" SelectedItemsChanged="@SelectedItemsChanged"
-                         EditMode="DataGridEditMode.Cell"
-                         Hover="true" 
+            <MudDataGrid T="TrajectoryLight" MultiSelection="true" Items="@trajectoryList" SelectedItemsChanged="@SelectedItemsChanged"
+                         EditMode="DataGridEditMode.Form"
+                         Hover="true" RowClick="@RowClicked"
                          SortMode="SortMode.Multiple" QuickFilter="@_trajectoryFilter" Filterable="false"
                          ReadOnly="false" ColumnResizeMode="ResizeMode.Column" Elevation="0">
                 <ToolBarContent>
@@ -28,36 +28,36 @@
                                   AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
                 </ToolBarContent>
                 <Columns>
-                    <SelectColumn T="Trajectory" />
+                    <SelectColumn T="TrajectoryLight" />
                     <PropertyColumn Property="x => x.Name" Title="Trajectory" CellStyle="width: 30%;" Sortable="true" Editable="false" />
                     <PropertyColumn Property="x => x.Description" Title="Description" CellStyle="width: 40%;" Sortable="true" Editable="false" />
-                    <TemplateColumn CellStyle="width: 25%;">
-                        <EditTemplate>
-                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Edit" OnClick="(() => EditTrajectory(context.Item.MetaInfo.ID))" />                                                
+                    <PropertyColumn Property="x => GetWellBoreNameFromID(x.WellBoreID)" Title="WellBore" Sortable="true"/>
+                    <TemplateColumn CellClass="d-flex justify-end">
+                        <CellTemplate>
                             <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteTrajectory(context.Item.MetaInfo.ID))" />
-                        </EditTemplate>
+                        </CellTemplate>
                     </TemplateColumn>
                 </Columns>
                 <PagerContent>
-                    <MudDataGridPager T="Trajectory" />
+                    <MudDataGridPager T="TrajectoryLight" />
                 </PagerContent>
             </MudDataGrid>
         </div>
     }
     @if (isHiddenMainPanel && (!isHiddenEditPanel))
     {
-        <TrajectoryEdit TrajectoryId="@trajectoryIdBeingEdited"  ValueChanged="HandleEditPanelClosed" />
+        <TrajectoryEdit TrajectoryId="@trajectoryIdBeingEdited" WellBoreList="@wellBoreList" ValueChanged="HandleEditPanelClosed" />
     }
 </MudUnitAndReferenceChoiceTag>
 
 @code {
-    // Trajectory related variables
-    private List<Trajectory> trajectoryList = new();
-    private List<Trajectory> selectedTrajectoryList = new();
-    private Trajectory? currentTrajectory;
+    // Trajectory-related variables
+    private List<TrajectoryLight> trajectoryList = new();
+    private List<TrajectoryLight> selectedTrajectoryList = new();
+    private TrajectoryLight? currentTrajectory;
     private List<object?>? inputDataList = new(); // container used to pass input data to the TrajectoryEdit razor component without specifying content types (required by µservice Template)
-                                                  // SurveyPoint related variables
-    private List<SurveyPoint>? surveyPointList;
+                                                  // Other variables
+    private List<WellBore>? wellBoreList;
     // UI related variables
     public bool isHiddenMainPanel;
     public bool isHiddenEditPanel;
@@ -74,13 +74,12 @@
             currentTrajectory = null;
 
             // Starting all loading tasks asynchronously
-            logger.LogInformation("Trying to load list of SurveyPoint from client: " + APIUtils.HttpClientTrajectory);
-            var surveyPointTask = APIUtils.ClientTrajectory.GetAllSurveyPointAsync();
-            logger.LogInformation("Trying to load list of Trajectory from client: " + APIUtils.HostNameTrajectory);
-            var trajectoryTask = APIUtils.ClientTrajectory.GetAllTrajectoryAsync();
+            logger.LogInformation("Trying to load list of wellbores from client: " + APIUtils.HttpClientWellBore);
+            var wellBoreTask = APIUtils.ClientWellBore.GetAllWellBoreAsync();
+            logger.LogInformation("Trying to load list of trajectories from client: " + APIUtils.HostNameTrajectory);
+            var trajectoryTask = APIUtils.ClientTrajectory.GetAllTrajectoryLightAsync();
 
-            List<Task> loadingTaskList = new List<Task> { trajectoryTask };
-            loadingTaskList.Add(surveyPointTask);
+            List<Task> loadingTaskList = [trajectoryTask, wellBoreTask];
 
             // Awaiting tasks and retrieve results as they become available
             while (loadingTaskList.Count > 0)
@@ -90,7 +89,7 @@
                 {
                     try
                     {
-                        trajectoryList = (List<Trajectory>)await trajectoryTask; // awaiting the finished task allows to retrieve its result and throw exception if needed
+                        trajectoryList = (List<TrajectoryLight>)await trajectoryTask; // awaiting the finished task allows to retrieve its result and throw exception if needed
                         if (trajectoryList != null)
                         {
                             trajectoryList.Sort((t1, t2) => t1.Name.CompareTo(t2.Name));
@@ -106,24 +105,24 @@
                         logger.LogError(ex, "Impossible to load Trajectory from client");
                     }
                 }
-                else if (finishedTask == surveyPointTask)
+                else if (finishedTask == wellBoreTask)
                 {
                     try
                     {
-                        surveyPointList = (List<SurveyPoint>)await surveyPointTask; // awaiting the finished task allows to retrieve its result and throw exception if needed
-                        if (surveyPointList != null)
+                        wellBoreList = (List<WellBore>)await wellBoreTask; // awaiting the finished task allows to retrieve its result and throw exception if needed
+                        if (wellBoreList != null)
                         {
-                            surveyPointList.Sort((f1, f2) => f1.Name.CompareTo(f2.Name));
+                            wellBoreList.Sort((f1, f2) => f1.Name.CompareTo(f2.Name));
                         }
                         else
                         {
-                            logger.LogWarning("Returned list of SurveyPoint were null on initialization");
-                            Snackbar.Add("Returned list of SurveyPoint were null on initialization", Severity.Warning);
+                            logger.LogWarning("Returned list of WellBore were null on initialization");
+                            Snackbar.Add("Returned list of WellBore were null on initialization", Severity.Warning);
                         }
                     }
                     catch (ApiException ex)
                     {
-                        logger.LogError(ex, "Impossible to load SurveyPoint from client");
+                        logger.LogError(ex, "Impossible to load WellBore from client");
                     }
                 }
                 loadingTaskList.Remove(finishedTask);
@@ -159,12 +158,12 @@
 
     private async Task<bool> ConfirmDeletion()
     {
-        var options = new DialogOptions 
-        { 
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.Small,
-            FullWidth = true    
-        };
+        var options = new DialogOptions
+            {
+                CloseOnEscapeKey = true,
+                MaxWidth = MaxWidth.Small,
+                FullWidth = true
+            };
         var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", options);
         var result = await dialog.Result;
         StateHasChanged();
@@ -192,7 +191,7 @@
             logger.LogError(ex, "Impossible to delete Trajectory");
         }
     }
-    
+
 
     private async Task DeleteSelectedTrajectory()
     {
@@ -200,7 +199,7 @@
         {
             if (await ConfirmDeletion())
             {
-                foreach (Trajectory trajectory in selectedTrajectoryList)
+                foreach (TrajectoryLight trajectory in selectedTrajectoryList)
                 {
                     await APIUtils.ClientTrajectory.DeleteTrajectoryByIdAsync(trajectory.MetaInfo.ID);
                 }
@@ -215,7 +214,7 @@
     }
 
     //Quick filter - filter gobally across multiple columns with the same input
-    private Func<Trajectory, bool>
+    private Func<TrajectoryLight, bool>
     _trajectoryFilter => x =>
     {
         if (string.IsNullOrWhiteSpace(_searchString))
@@ -225,27 +224,50 @@
 
         return false;
     };
-    
+
     //Events
-    private void StartedEditingItem(Trajectory item)
+    private void StartedEditingItem(TrajectoryLight item)
     {
         //Activating Edit event capture with parameter StartedEditingItem="@StartedEditingItem" in MudDataGrid; arguments are specified in OnClick="@context.Actions.StartedEditingItem(...)"
     }
 
-    private void CancelledEditingItem(Trajectory item)
+    private void CancelledEditingItem(TrajectoryLight item)
     {
         //Activating Cancel event capture with parameter CancelledEditingItem = "@CancelledEditingItem" in MudDataGrid; arguments are specified in OnClick="@context.Actions.CancelledEditingItem(...)"
     }
 
-    private void CommittedItemChanges(Trajectory item)
+    private void CommittedItemChanges(TrajectoryLight item)
     {
         //Activating Commit event capture with parameter CommittedItemChanges = "@CommittedItemChanges" in MudDataGrid; arguments are specified in OnClick="@context.Actions.CommittedEditingItem(...)"
     }
 
-    void SelectedItemsChanged(HashSet<Trajectory>
+    void SelectedItemsChanged(HashSet<TrajectoryLight>
         items)
     {
         selectedTrajectoryList.Clear();
         selectedTrajectoryList.InsertRange(0, items);
+    }
+
+    private async Task RowClicked(DataGridRowClickEventArgs<TrajectoryLight> args)
+    {
+        await EditTrajectory(args.Item.MetaInfo.ID);
+    }
+
+    public string GetWellBoreNameFromID(Guid id)
+    {
+        if (id != Guid.Empty && wellBoreList != null && wellBoreList.Count > 0)
+        {
+            try
+            {
+                WellBore wb = wellBoreList.Find(x => x.MetaInfo.ID.Equals(id));
+                if (wb != null && wb.MetaInfo != null)
+                    return wb.Name;
+            }
+            catch (ArgumentNullException ex)
+            {
+                logger.LogWarning(ex, "Impossible to retrieve the WellBore of given ID");
+            }
+        }
+        return "NA";
     }
 }

@@ -130,7 +130,8 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     Name = trajectory.Name,
                     Description = trajectory.Description,
                     CreationDate = trajectory.CreationDate,
-                    LastModificationDate = trajectory.LastModificationDate
+                    LastModificationDate = trajectory.LastModificationDate,
+                    WellBoreID = trajectory.WellBoreID
                 };
         }
         /// <summary>

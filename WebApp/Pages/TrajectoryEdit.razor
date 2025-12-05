@@ -1,44 +1,191 @@
-﻿@inject ILogger<MudInputWithUnitAdornment> logger
+﻿@inject ILogger<TrajectoryEdit> logger
 @inject ISnackbar Snackbar
 
 
 <MudPaper Class="my-2 mx-2 py-2 my-2" Style="@($"background:{DataUtils.FLOATING_COLOUR};")">
-    <MudPaper Class="my-1 mx-1 py-1 my-1">
+    <MudPaper Class="mx-2 px-2 my-2 py-2">
         <MudToolBar>
             <MudText Typo="Typo.h6" Class="mx-2 px-2">Edit Trajectory</MudText>
-            <MudButton StartIcon="@Icons.Material.Filled.SaveAs" Variant="Variant.Filled" IconColor="Color.Primary" OnClick="SaveAsTrajectory">Save new</MudButton>
-            @if (TrajectoryId != null)
-            {
-                <MudButton StartIcon="@Icons.Material.Filled.Save" Variant="Variant.Filled" IconColor="Color.Primary" OnClick="SaveTrajectory">Save</MudButton>
-            }
             <MudSpacer />
-            <MudButton StartIcon="@Icons.Material.Filled.Close" Variant="Variant.Filled" IconColor="Color.Error" OnClick="SendMessage">Close</MudButton>                
+            <MudSpacer />
+            <MudButton StartIcon="@Icons.Material.Outlined.SaveAs" IconColor="Color.Primary" OnClick="SaveAsTrajectory">Save as new</MudButton>
+            @if (TrajectoryId is { })
+            {
+                <MudButton StartIcon="@Icons.Material.Outlined.Save" IconColor="Color.Primary" OnClick="SaveTrajectory">Save</MudButton>
+            }
+            <MudButton StartIcon="@Icons.Material.Outlined.Close" IconColor="Color.Error" OnClick="SendMessage">Close</MudButton>
         </MudToolBar>
-        <MudDivider Class="py-1 my-1"/>
-        <MudForm @ref="form" Class="mx-2 my-2">
-            <MudTextField @bind-Value="currentTrajectory.Name" Label="Name" Required="true" For="@(() => currentTrajectory.Name)" />
-            <MudTextField @bind-Value="currentTrajectory.Description" Label="Description" For="@(() => currentTrajectory.Description)" />
-        </MudForm>
     </MudPaper>
+    @if (currentTrajectory is { } traj)
+    {
+        <MudPaper Class="mx-2 px-2 my-2 py-2">
+            <MudGrid>
+                <MudItem xs="3">
+                    <MudTextField @bind-Value="traj.Name" Label="Name" Required="true" For="@(() => traj.Name)" ShrinkLabel />
+                </MudItem>
+                <MudItem xs="4">
+                    <MudTextField @bind-Value="traj.Description" Label="Description" For="@(() => traj.Description)" ShrinkLabel />
+                </MudItem>
+                <MudItem xs="3">
+                    <MudSelect Label="WellBore" T="Guid" Value="@traj.WellBoreID" ValueChanged="@((val) => UpdateWellBoreSelection(val))" ShrinkLabel>
+                        @if (WellBoreList is { Count: > 0 } wbList)
+                        {
+                            @foreach (WellBore wb in wbList)
+                            {
+                                <MudSelectItem Value="@wb.MetaInfo.ID">
+                                    @wb.Name
+                                </MudSelectItem>
+                            }
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="2">
+                    <MudInputWithUnitAdornment QuantityLabel="Depth" QuantityName="DepthDrilling"
+                                               SIValue="@traj.MDStep"
+                                               SIValueChanged="@(val => traj.MDStep = val)" />
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+        <MudPaper Class="mx-2 px-2 my-2 py-2">
+            @if (traj.SurveyStationList is { } ssList)
+            {
+                <MudToolBar>
+                    <MudText Typo="Typo.h6">Survey stations</MudText>
+                    <MudSpacer />
+                    <MudButton OnClick="(() => ExpandButton.ExpandPanel(ssExpandPanelButton))"
+                               StartIcon="@ssExpandPanelButton.PanelIcon"
+                               Class="add-item-btn">
+                        @ssExpandPanelButton.PanelText
+                    </MudButton>
+                    <MudSpacer />
+                    <MudButton OnClick="@AddSurveyStation" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
+                    <MudButton OnClick="@DeleteSurveyStations" Color="@Color.Error" Class="add-item-btn">Delete</MudButton>
+                </MudToolBar>
+                <MudCollapse Expanded="ssExpandPanelButton.IsExpanded">
+                    <MudTable Items="@ssList" MultiSelection="true" T="SurveyStation" @bind-SelectedItems="selectedSurveyStations" Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true">
+                        <HeaderContent>
+                            <MudTHeadRow IsCheckable="true">
+                                <MudTh>Measured Depth [@Parent.GetUnitLabel("DepthDrilling")]</MudTh>
+                                <MudTh>Inclination [@Parent.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                                <MudTh>Azimuth [@Parent.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                                <MudTh /><MudTh /><MudTh />
+                            </MudTHeadRow>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Measured Depth">
+                                <MudInputWithUnit QuantityName="DepthDrilling"
+                                                  SIValueNullable="@context.MD"
+                                                  SIValueNullableChanged="@(val => context.MD = val)" />
+                            </MudTd>
+                            <MudTd DataLabel="Inclination">
+                                <MudInputWithUnit QuantityName="PlaneAngleDrilling"
+                                                  SIValueNullable="@context.Inclination"
+                                                  SIValueNullableChanged="@(val => context.Inclination = val)" />
+                            </MudTd>
+                            <MudTd DataLabel="Azimuth">
+                                <MudInputWithUnit QuantityName="PlaneAngleDrilling"
+                                                  SIValueNullable="@context.Azimuth"
+                                                  SIValueNullableChanged="@(val => context.Azimuth = val)" />
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudCollapse>
+            }
+            else
+            {
+                <MudText>No survey stations</MudText>
+            }
+        </MudPaper>
+        <MudPaper Class="mx-2 px-2 my-2 py-2">
+            @if (traj.InterpolatedTrajectory is { } spList)
+            {
+                <MudToolBar>
+                    <MudText Typo="Typo.h6">Interpolated trajectory</MudText>
+                    <MudSpacer />
+                    <MudButton OnClick="(() => ExpandButton.ExpandPanel(spExpandPanelButton))"
+                               StartIcon="@spExpandPanelButton.PanelIcon"
+                               Class="add-item-btn">
+                        @spExpandPanelButton.PanelText
+                    </MudButton>
+                    <MudSpacer />
+                </MudToolBar>
+                @if (spExpandPanelButton.IsExpanded)
+                {
+                    <MudCollapse Expanded="spExpandPanelButton.IsExpanded">
+                        <MudTable Items="@spList" T="SurveyPoint" Height="400px" FixedHeader="true" Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true">
+                            <HeaderContent>
+                                <MudTHeadRow>
+                                    <MudTh>Measured Depth [@Parent.GetUnitLabel("DepthDrilling")]</MudTh>
+                                    <MudTh>Inclination [@Parent.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                                    <MudTh>Azimuth [@Parent.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                                    <MudTh>Riemannian North [@Parent.GetUnitLabel("LengthStandard")]</MudTh>
+                                    <MudTh>Riemannian East [@Parent.GetUnitLabel("LengthStandard")]</MudTh>
+                                    <MudTh>TVD [@Parent.GetUnitLabel("DepthDrilling")]</MudTh>
+                                </MudTHeadRow>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Measured Depth">
+                                    <MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.MD"/>
+                                </MudTd>
+                                <MudTd DataLabel="Inclination">
+                                    <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Inclination"/>
+                                </MudTd>
+                                <MudTd DataLabel="Azimuth">
+                                    <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Azimuth"/>
+                                </MudTd>
+                                <MudTd DataLabel="Riemannian North">
+                                    <MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.RiemannianNorth" />
+                                </MudTd>
+                                <MudTd DataLabel="Riemannian East">
+                                    <MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.RiemannianEast"/>
+                                </MudTd>
+                                <MudTd DataLabel="TVD">
+                                    <MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.TVD"/>
+                                </MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudCollapse>
+                }
+            }
+            else
+            {
+                <MudText>No interpolated trajectory</MudText>
+            }
+        </MudPaper>
+    }
 </MudPaper>
 
-@code{
-     [CascadingParameter]
+@code {
+    [CascadingParameter]
     private MudUnitAndReferenceChoiceTag? Parent { get; set; }
     [Parameter]
     public Guid? TrajectoryId { get; set; }
     [Parameter]
-    public EventCallback ValueChanged {get; set;}    
-
+    public List<WellBore>? WellBoreList { get; set; }
+    [Parameter]
+    public EventCallback ValueChanged { get; set; }
 
     private Trajectory currentTrajectory = PseudoConstructors.ConstructTrajectory();
-    private MudForm form;
+    private HashSet<SurveyStation> selectedSurveyStations = new();
+    private ExpandButton ssExpandPanelButton = new();
+    private ExpandButton spExpandPanelButton = new(false);
 
     protected override async Task OnInitializedAsync()
     {
-        if (TrajectoryId != null)
+        try
         {
-            currentTrajectory = await APIUtils.ClientTrajectory.GetTrajectoryByIdAsync(TrajectoryId.Value);
+            if (TrajectoryId != null)
+            {
+                currentTrajectory = await APIUtils.ClientTrajectory.GetTrajectoryByIdAsync(TrajectoryId.Value);
+            }
+            else
+            {
+                InitializeTrajectory(currentTrajectory);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem while loading the selected Trajectory");
         }
         await InvokeAsync(() => { StateHasChanged(); });
     }
@@ -47,7 +194,7 @@
     private async Task SendMessage()
     {
         await ValueChanged.InvokeAsync();
-    }  
+    }
     //Add/Edit panel controls
     private async Task SaveTrajectory()
     {
@@ -55,9 +202,17 @@
         {
             if (TrajectoryId != null)
             {
-                await APIUtils.ClientTrajectory.PutTrajectoryByIdAsync((Guid) TrajectoryId, currentTrajectory);
-                Snackbar.Add("Trajectory updated successfully", Severity.Success);
-                await SendMessage();
+                if (IsValidTrajectory(currentTrajectory))
+                {
+                    currentTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
+                    await APIUtils.ClientTrajectory.PutTrajectoryByIdAsync((Guid)TrajectoryId, currentTrajectory);
+                    Snackbar.Add("Trajectory updated successfully", Severity.Success);
+                    await SendMessage();
+                }
+                else
+                {
+                    Snackbar.Add("Trajectory badly configured (at least 3 survey stations with valid coordinates)", Severity.Success);
+                }
             }
             else
             {
@@ -75,25 +230,69 @@
     {
         try
         {
-            if (TrajectoryId != null)
+            if (IsValidTrajectory(currentTrajectory))
             {
+                currentTrajectory.MetaInfo.ID = Guid.NewGuid();
+                currentTrajectory.CreationDate = DateTimeOffset.UtcNow;
+                currentTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
                 await APIUtils.ClientTrajectory.PostTrajectoryAsync(currentTrajectory);
-                Snackbar.Add("Trajectory updated successfully", Severity.Success);
+                Snackbar.Add("TplParentData updated successfully", Severity.Success);
                 await SendMessage();
             }
             else
             {
-                Snackbar.Add("Trajectory not found for edition", Severity.Success);
+                Snackbar.Add("Trajectory badly configured (at least 3 survey stations with valid coordinates)", Severity.Success);
             }
-
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Error saving Trajectory");
             Snackbar.Add("Error saving Trajectory: " + ex.Message, Severity.Warning);
         }
-    }      
+    }
+    private void UpdateWellBoreSelection(Guid wellBoreId)
+    {
+        currentTrajectory.WellBoreID = wellBoreId;
+    }
+    private void AddSurveyStation()
+    {
+        double? lastMD = 0.0;
+        if (currentTrajectory.SurveyStationList.Count > 0)
+            lastMD = currentTrajectory.SurveyStationList.Last().MD;
+        currentTrajectory.SurveyStationList.Add(new SurveyStation() { MD = lastMD + 10 * currentTrajectory.MDStep, Inclination = 0, Azimuth = 0 });
+    }
+    private void DeleteSurveyStation(SurveyStation station)
+    {
+        currentTrajectory.SurveyStationList.Remove(station);
+    }
+    void DeleteSurveyStations()
+    {
+        foreach (SurveyStation point in selectedSurveyStations)
+        {
+            DeleteSurveyStation(point);
+        }
+    }
+    private bool IsValidTrajectory(Trajectory traj)
+    {
+        bool success = false;
+        if (traj.MDStep > 0.0 && traj.SurveyStationList is { Count: > 2 } ssList)
+        {
+            success = true;
+            foreach (var ss in ssList)
+                success &= ss.MD is { } && ss.Inclination is { } && ss.Azimuth is { };
+        }
+        return success;
+    }
+    private void InitializeTrajectory(Trajectory traj)
+    {
+        if (traj.MDStep == 0.0)
+            traj.MDStep = 10.0;
+        traj.SurveyStationList.Clear();
+        traj.SurveyStationList.Add(new SurveyStation() { MD = 0, Inclination = 0, Azimuth = 0, RiemannianNorth = 0, RiemannianEast = 0, TVD = 0 });
+        traj.SurveyStationList.Add(new SurveyStation() { MD = 10 * traj.MDStep, Inclination = 0, Azimuth = 0 });
+        traj.SurveyStationList.Add(new SurveyStation() { MD = 20 * traj.MDStep, Inclination = 0, Azimuth = 0 });
+    }
 
     //Update unit system
-    private void ManageUnits(){}        
+    private void ManageUnits() { }
 }

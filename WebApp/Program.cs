@@ -26,6 +26,8 @@ app.UsePathBase("/Trajectory/webapp");
 
 if (!String.IsNullOrEmpty(builder.Configuration["TrajectoryHostURL"]))
     NORCE.Drilling.Trajectory.WebApp.Configuration.TrajectoryHostURL = builder.Configuration["TrajectoryHostURL"];
+if (!String.IsNullOrEmpty(builder.Configuration["WellBoreHostURL"]))
+    NORCE.Drilling.Trajectory.WebApp.Configuration.WellBoreHostURL = builder.Configuration["WellBoreHostURL"];
 if (!String.IsNullOrEmpty(builder.Configuration["UnitConversionHostURL"]))
     NORCE.Drilling.Trajectory.WebApp.Configuration.UnitConversionHostURL = builder.Configuration["UnitConversionHostURL"];
 
