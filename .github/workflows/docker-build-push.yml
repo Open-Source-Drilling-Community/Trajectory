@@ -24,8 +24,8 @@ jobs:
     - name: Push Docker image for Service to DockerHub
       run: docker push digiwells/norcedrillingtrajectoryservice:stable
 
-    #- name: Build WebApp Docker image
-    #  run: docker build --file "${{ github.workspace }}/WebApp/Dockerfile" --tag digiwells/norcedrillingtrajectorywebappclient:stable .
+    - name: Build WebApp Docker image
+      run: docker build --file "${{ github.workspace }}/WebApp/Dockerfile" --tag digiwells/norcedrillingtrajectorywebappclient:stable .
 
-    #- name: Push Docker image for WebApp to DockerHub
-    #  run: docker push digiwells/norcedrillingtrajectorywebappclient:stable
+    - name: Push Docker image for WebApp to DockerHub
+      run: docker push digiwells/norcedrillingtrajectorywebappclient:stable
