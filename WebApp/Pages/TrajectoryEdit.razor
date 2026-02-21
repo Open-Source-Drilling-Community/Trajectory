@@ -1,7 +1,6 @@
 ﻿@inject ILogger<TrajectoryEdit> logger
 @inject ISnackbar Snackbar
 
-
 <MudPaper Class="my-2 mx-2 py-2 my-2" Style="@($"background:{DataUtils.FLOATING_COLOUR};")">
     <MudPaper Class="mx-2 px-2 my-2 py-2">
         <MudToolBar>
@@ -125,22 +124,22 @@
                             </HeaderContent>
                             <RowTemplate>
                                 <MudTd DataLabel="Measured Depth">
-                                    <MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.MD"/>
+                                    <MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.MD" />
                                 </MudTd>
                                 <MudTd DataLabel="Inclination">
-                                    <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Inclination"/>
+                                    <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Inclination" />
                                 </MudTd>
                                 <MudTd DataLabel="Azimuth">
-                                    <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Azimuth"/>
+                                    <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Azimuth" />
                                 </MudTd>
                                 <MudTd DataLabel="Riemannian North">
                                     <MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.RiemannianNorth" />
                                 </MudTd>
                                 <MudTd DataLabel="Riemannian East">
-                                    <MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.RiemannianEast"/>
+                                    <MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.RiemannianEast" />
                                 </MudTd>
                                 <MudTd DataLabel="TVD">
-                                    <MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.TVD"/>
+                                    <MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.TVD" />
                                 </MudTd>
                             </RowTemplate>
                         </MudTable>
@@ -150,6 +149,56 @@
             else
             {
                 <MudText>No interpolated trajectory</MudText>
+            }
+        </MudPaper>
+        <MudPaper Class="mx-2 px-2 my-2 py-2">
+            @if (traj.SurveyStationList is { } ssList && traj.InterpolatedTrajectory is { } spList)
+            {
+                <MudToolBar>
+                    <MudText Typo="Typo.h6">Plot</MudText>
+                    <MudSpacer />
+                    <MudButton OnClick="(() => ExpandButton.ExpandPanel(plotExpandPanelButton))"
+                               StartIcon="@plotExpandPanelButton.PanelIcon"
+                               Class="add-item-btn">
+                        @plotExpandPanelButton.PanelText
+                    </MudButton>
+                    <MudSpacer />
+                </MudToolBar>
+                @if (plotExpandPanelButton.IsExpanded)
+                {
+                    <MudCollapse Expanded="plotExpandPanelButton.IsExpanded">
+                        <MudGrid Justify="Justify.Center">
+                            <MudItem xs="4">
+                                <Scatter3DPlot NameList="@nameList" ModeFlagList="@modeFlagList" ColorList="@colorList"
+                                               XValuesList="@northValuesList" YValuesList="@eastValuesList" ZValuesList="@TVDValuesList"
+                                               YAxisReversed="@true" ZAxisReversed="@true" PlotHeight="500" PlotWidth="500"
+                                               PlotTitle="" XAxisTitle="North" YAxisTitle="East" ZAxisTitle="TVD"
+                                               XUnit="LengthStandard" YUnit="LengthStandard" ZUnit="DepthDrilling">
+                                </Scatter3DPlot>
+                            </MudItem>
+                            @*                             <MudItem xs="4">
+                <ScatterPlot NameList="@nameList" ModeFlagList="@modeFlagList" ColorList="@colorList"
+                XValuesList="@vSectValuesList" YValuesList="@TVDValuesList"
+                YAxisReversed="@true" AspectRatio="-1" PlotHeight="500" PlotWidth="500"
+                PlotTitle="" XAxisTitle="Vertical Section" YAxisTitle="TVD" XUnit="LengthStandard" YUnit="DepthDrilling"
+                @ref="@verticProjPlot">
+                </ScatterPlot>
+                </MudItem>
+                <MudItem xs="4">
+                <ScatterPlot NameList="@nameList" ModeFlagList="@modeFlagList" ColorList="@colorList"
+                XValuesList="@eastValuesList" YValuesList="@northValuesList"
+                YAxisReversed="@false" AspectRatio="-1" PlotHeight="500" PlotWidth="500"
+                PlotTitle="" XAxisTitle="East" YAxisTitle="North" XUnit="LengthStandard" YUnit="LengthStandard"
+                @ref="@horizProjPlot">
+                </ScatterPlot>
+                </MudItem> *@
+                        </MudGrid>
+                    </MudCollapse>
+                }
+            }
+            else
+            {
+                <MudText>Either no survey stations or interpolated trajectory</MudText>
             }
         </MudPaper>
     }
@@ -169,6 +218,20 @@
     private HashSet<SurveyStation> selectedSurveyStations = new();
     private ExpandButton ssExpandPanelButton = new();
     private ExpandButton spExpandPanelButton = new(false);
+    private ExpandButton plotExpandPanelButton = new(false);
+
+    //Plot variables
+    string[] colorScale = { "black", "blue", "grey", "red", "orange", "green", "yellow", "pink", "brown", "purple" };
+    // ScatterPlot verticProjPlot = new ScatterPlot();
+    // ScatterPlot horizProjPlot = new ScatterPlot();
+    // Scatter3DPlot threeDimPlot = new Scatter3DPlot();
+    List<string> nameList = new List<string>(); //name of each curve in the list to plot
+    List<int> modeFlagList = new List<int>(); //modeFlag of each curve in the list to plot (1 = lines; 2 = markers)
+    List<string> colorList = new List<string>(); //color of each curve in the list of curves to plot
+    List<List<object>> northValuesList = new List<List<object>>(); //North values for the list of curves to plot
+    List<List<object>> eastValuesList = new List<List<object>>(); //East values for the list of curves to plot
+    List<List<object>> TVDValuesList = new List<List<object>>(); //TVD values for the list of curves to plot
+                                                                 // List<List<object>> vSectValuesList = new List<List<object>>(); //vSectValues (Vertical Section) for the list of curves to plot
 
     protected override async Task OnInitializedAsync()
     {
@@ -188,6 +251,8 @@
             logger.LogError(ex, "Problem while loading the selected Trajectory");
         }
         await InvokeAsync(() => { StateHasChanged(); });
+        //Plot is updated at each reload of the Single Page Application to make sure the chart is not disposed
+        UpdatePlots();
     }
 
     //Send message to parent component
@@ -295,4 +360,21 @@
 
     //Update unit system
     private void ManageUnits() { }
+
+    private void UpdatePlots()
+    {
+        DataUtils.UpdatePlots(
+            nameList,
+            modeFlagList,
+            colorList,
+            northValuesList,
+            eastValuesList,
+            TVDValuesList,
+            [currentTrajectory]
+        );
+        //plot curves
+        // verticProjPlot.Plot();
+        // horizProjPlot.Plot();
+        // threeDimPlot.PlotAsync();
+    }
 }

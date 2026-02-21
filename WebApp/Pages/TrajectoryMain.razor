@@ -31,7 +31,7 @@
                     <SelectColumn T="TrajectoryLight" />
                     <PropertyColumn Property="x => x.Name" Title="Trajectory" CellStyle="width: 30%;" Sortable="true" Editable="false" />
                     <PropertyColumn Property="x => x.Description" Title="Description" CellStyle="width: 40%;" Sortable="true" Editable="false" />
-                    <PropertyColumn Property="x => GetWellBoreNameFromID(x.WellBoreID)" Title="WellBore" Sortable="true"/>
+                    <PropertyColumn Property="x => GetWellBoreNameFromID(x.WellBoreID)" Title="WellBore" Sortable="true" />
                     <TemplateColumn CellClass="d-flex justify-end">
                         <CellTemplate>
                             <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteTrajectory(context.Item.MetaInfo.ID))" />

@@ -1,0 +1,304 @@
+﻿@implements IUnitAwareComponent
+@implements IDisposable
+
+<PlotlyChart Config="config" Layout="layout" Data="data" @ref="chart" />
+
+@code {
+    [CascadingParameter] private MudUnitAndReferenceChoiceTag Parent { get; set; }
+
+    [Parameter] public string XUnit { get; set; }
+    [Parameter] public string YUnit { get; set; }
+    [Parameter] public string ZUnit { get; set; }
+
+    [Parameter] public List<string> NameList { get; set; }
+    [Parameter] public List<int> ModeFlagList { get; set; }   // 1=lines, 2=markers, 3=lines+markers
+    [Parameter] public List<string> ColorList { get; set; }
+
+    [Parameter] public List<List<object>> XValuesList { get; set; }
+    [Parameter] public List<List<object>> YValuesList { get; set; }
+    [Parameter] public List<List<object>> ZValuesList { get; set; }
+
+    [Parameter] public int PlotHeight { get; set; }
+    [Parameter] public int PlotWidth { get; set; }
+    [Parameter] public string PlotTitle { get; set; }
+    [Parameter] public string XAxisTitle { get; set; }
+    [Parameter] public string YAxisTitle { get; set; }
+    [Parameter] public string ZAxisTitle { get; set; }
+    [Parameter] public bool ZAxisReversed { get; set; }
+    [Parameter] public bool YAxisReversed { get; set; }
+
+    // ---- Helpers ----
+
+    // Try to convert various numeric types to double for unit conversion and plotting, although common usage of ScatterPlot3D will pass double or double?
+    static bool TryGetDouble(object v, out double d)
+    {
+        switch (v)
+        {
+            case double dd: d = dd; return true;
+            case float ff: d = ff; return true;
+            case decimal mm: d = (double)mm; return true;
+            case int ii: d = ii; return true;
+            default: d = default; return false; // case null when double? is passed, is handled here
+        }
+    }
+
+    // Map from simple int mode flags to Plotly.Blazor's ModeFlag enum
+    static Plotly.Blazor.Traces.Scatter3DLib.ModeFlag MapMode(int m) => m switch
+    {
+        1 => Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Lines,
+        2 => Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Markers,
+        3 => Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Lines | Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Markers,
+        _ => Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Lines
+    };
+
+    // ---- State ----
+    
+    private PlotlyChart chart; // IMPORTANT: do not new() this chart as was the case in the pasr; @ref assigns it after render!
+    private bool _plotlyReady;
+    private bool _disposed;
+
+    // Readonly properties for PlotlyChart: since our chart is controlled directly (chart.Clear(), chart.AddTrace(), ...), we don't need two-way binding via @bind-Data, @bind-Layout, @bind-Config.
+    private readonly IList<ITrace> data = new List<ITrace>(); // PlotlyChart uses this list; must be instantiated and not replaced to avoid breaking the reference from PlotlyChart.
+    private readonly Config config = new() { Responsive = true };
+    private readonly Layout layout = new()
+    {
+        Title = new Plotly.Blazor.LayoutLib.Title { Text = "" },
+        Scene = new List<Scene>
+        {
+            new Scene
+            {
+                XAxis = new Plotly.Blazor.LayoutLib.SceneLib.XAxis
+                {
+                    Title = new Plotly.Blazor.LayoutLib.SceneLib.XAxisLib.Title { Text = "" }
+                },
+                YAxis = new Plotly.Blazor.LayoutLib.SceneLib.YAxis
+                {
+                    Title = new Plotly.Blazor.LayoutLib.SceneLib.YAxisLib.Title { Text = "" }
+                },
+                ZAxis = new Plotly.Blazor.LayoutLib.SceneLib.ZAxis
+                {
+                    Title = new Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.Title { Text = "" }
+                }
+            }
+        }
+    };
+
+    
+    // ---- Lifecycle ----
+
+    protected override void OnInitialized()
+    {
+        base.OnInitialized();
+
+        if (Parent == null)
+            throw new ArgumentNullException(nameof(Parent), "ScatterPlot3D must exist within a UnitAndReferenceChoiceTag");
+
+        Parent.Add(this);
+        ManageUnits();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _plotlyReady = true;
+            await PlotAsync(); // first safe render/update
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        // Whenever parameters change, replot (but only after Plotly is ready)
+        await PlotAsync();
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
+    }
+
+    // ---- IUnitAwareComponent ----
+
+    public void ManageUnits()
+    {
+        // Parent notifies unit changes; ensure we replot on UI thread
+        _ = InvokeAsync(async () => await PlotAsync());
+    }
+
+    // ---- Plot orchestration ----
+
+    private async Task PlotAsync()
+    {
+        if (_disposed) return;
+
+        // Layout can be updated before ready; contrary to trace operations, which must wait for ready
+        ManageLayout();
+
+        if (!_plotlyReady || chart == null) return;
+
+        await ManageTracesAsync();
+
+        // React() is usually the cleanest "apply everything" call if available in your Plotly.Blazor version.
+        // If you do not have React(), remove this and keep Relayout/AddTrace usage.
+        try
+        {
+            await chart.React();
+        }
+        catch
+        {
+            // Ignore if React() isn't available / throws during transient render states
+        }
+
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task ManageTracesAsync()
+    {
+        if (_disposed) return;
+        if (!_plotlyReady || chart == null) return;
+
+        if (XValuesList == null || YValuesList == null || ZValuesList == null) return;
+        if (!XValuesList.Any() || !YValuesList.Any() || !ZValuesList.Any()) return;
+
+        // Clear can throw if Plotly JS side not fully initialized (timing/circuit reconnect)
+        try
+        {
+            await chart.Clear();
+        }
+        catch (NullReferenceException)
+        {
+            return;
+        }
+
+        int nTraces = new[] { XValuesList.Count, YValuesList.Count, ZValuesList.Count }.Min();
+
+        for (int i = 0; i < nTraces; i++)
+        {
+            var xOut = new List<object>();
+            var yOut = new List<object>();
+            var zOut = new List<object>();
+
+            foreach (var x in XValuesList[i])
+                if (TryGetDouble(x, out var xd))
+                {
+                    var X = Parent.FromSI((double?)xd, XUnit);
+                    if (X.HasValue) xOut.Add(X.Value);
+                }
+
+            foreach (var y in YValuesList[i])
+                if (TryGetDouble(y, out var yd))
+                {
+                    var Y = Parent.FromSI((double?)yd, YUnit);
+                    if (Y.HasValue) yOut.Add(Y.Value);
+                }
+
+            foreach (var z in ZValuesList[i])
+                if (TryGetDouble(z, out var zd))
+                {
+                    var Z = Parent.FromSI((double?)zd, ZUnit);
+                    if (Z.HasValue) zOut.Add(Z.Value);
+                }
+
+            int n = xOut.Count;
+            if (n == 0 || yOut.Count != n || zOut.Count != n) continue;
+
+            string name = (NameList != null && i < NameList.Count) ? NameList[i] : $"trace_{i}";
+
+            int modeInt = (ModeFlagList != null && i < ModeFlagList.Count) ? ModeFlagList[i] : 1;
+            var mode = MapMode(modeInt);
+
+            bool wantsMarkers = (mode & Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Markers) != 0;
+            bool wantsLines = (mode & Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Lines) != 0;
+
+            // Marker config only when markers requested
+            Plotly.Blazor.Traces.Scatter3DLib.Marker? marker = null;
+            if (wantsMarkers)
+            {
+                marker = (ColorList != null && i < ColorList.Count)
+                    ? new Plotly.Blazor.Traces.Scatter3DLib.Marker { Color = ColorList[i] }
+                    : new Plotly.Blazor.Traces.Scatter3DLib.Marker { AutoColorScale = true };
+            }
+
+            // Line config only when lines requested
+            Plotly.Blazor.Traces.Scatter3DLib.Line? line = null;
+            if (wantsLines)
+            {
+                line = (ColorList != null && i < ColorList.Count)
+                    ? new Plotly.Blazor.Traces.Scatter3DLib.Line { Color = ColorList[i], Width = 3 }
+                    : new Plotly.Blazor.Traces.Scatter3DLib.Line { Width = 3 };
+            }
+
+            var trace = new Scatter3D
+            {
+                Name = name,
+                Mode = mode,
+                X = xOut,
+                Y = yOut,
+                Z = zOut
+            };
+
+            if (wantsMarkers && marker != null) trace.Marker = marker;
+            if (wantsLines && line != null) trace.Line = line;
+
+            await chart.AddTrace(trace);
+
+            // Small delay optional; usually not needed once async is correct
+            // await Task.Delay(1);
+        }
+    }
+
+    private void ManageLayout()
+    {
+        if (layout == null) return;
+        if (Parent == null) return;
+
+        string xUnitLabel = Parent.GetUnitLabel(XUnit);
+        string yUnitLabel = Parent.GetUnitLabel(YUnit);
+        string zUnitLabel = Parent.GetUnitLabel(ZUnit);
+
+        xUnitLabel = xUnitLabel != null ? $" ({xUnitLabel})" : "";
+        yUnitLabel = yUnitLabel != null ? $" ({yUnitLabel})" : "";
+        zUnitLabel = zUnitLabel != null ? $" ({zUnitLabel})" : "";
+
+        layout.Height = PlotHeight;
+        layout.Width = PlotWidth;
+        layout.Title.Text = PlotTitle ?? "";
+
+        for (int i = 0; i < layout.Scene.Count; ++i)
+        {
+            var scene = layout.Scene[i];
+
+            scene.XAxis.Title.Text = (XAxisTitle ?? "") + xUnitLabel;
+            scene.XAxis.AutoRange = Plotly.Blazor.LayoutLib.SceneLib.XAxisLib.AutoRangeEnum.True;
+            scene.XAxis.RangeMode = Plotly.Blazor.LayoutLib.SceneLib.XAxisLib.RangeModeEnum.Normal;
+
+            scene.YAxis.Title.Text = (YAxisTitle ?? "") + yUnitLabel;
+            scene.YAxis.RangeMode = Plotly.Blazor.LayoutLib.SceneLib.YAxisLib.RangeModeEnum.Normal;
+            scene.YAxis.AutoRange = YAxisReversed
+                ? Plotly.Blazor.LayoutLib.SceneLib.YAxisLib.AutoRangeEnum.Reversed
+                : Plotly.Blazor.LayoutLib.SceneLib.YAxisLib.AutoRangeEnum.True;
+
+            scene.ZAxis.Title.Text = (ZAxisTitle ?? "") + zUnitLabel;
+            scene.ZAxis.RangeMode = Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.RangeModeEnum.Normal;
+            scene.ZAxis.AutoRange = ZAxisReversed
+                ? Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.AutoRangeEnum.Reversed
+                : Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.AutoRangeEnum.True;
+        }
+
+        // Do NOT Task.Run() JS interop. Only invoke after ready on UI thread.
+        _ = InvokeAsync(async () =>
+        {
+            if (_disposed) return;
+            if (!_plotlyReady || chart == null) return;
+
+            try
+            {
+                await chart.Relayout();
+            }
+            catch
+            {
+                // ignore transient JS interop failures during render/dispose
+            }
+        });
+    }
+}
