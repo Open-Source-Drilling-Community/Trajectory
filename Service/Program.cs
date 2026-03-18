@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using System.IO;
 using NORCE.Drilling.Trajectory.Service;
 using NORCE.Drilling.Trajectory.Service.Managers;
+using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -60,6 +61,13 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedProto
 });
+
+if (!String.IsNullOrEmpty(builder.Configuration["ClusterHostURL"]))
+    ServiceConfiguration.ClusterHostURL = builder.Configuration["ClusterHostURL"];
+if (!String.IsNullOrEmpty(builder.Configuration["WellBoreHostURL"]))
+    ServiceConfiguration.WellBoreHostURL = builder.Configuration["WellBoreHostURL"];
+if (!String.IsNullOrEmpty(builder.Configuration["WellHostURL"]))
+    ServiceConfiguration.WellHostURL = builder.Configuration["WellHostURL"];
 
 if (builder.Environment.IsDevelopment())
 {

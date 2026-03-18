@@ -5,6 +5,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OSDC.DotnetLibraries.General.DataManagement;
 using NORCE.Drilling.Trajectory.Service.Managers;
+using System.Threading.Tasks;
 
 namespace NORCE.Drilling.Trajectory.Service.Controllers
 {
@@ -144,7 +145,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         /// <param name="trajectory"></param>
         /// <returns>true if the given Trajectory has been added successfully to the microservice database, at the endpoint Trajectory/api/Trajectory</returns>
         [HttpPost(Name = "PostTrajectory")]
-        public ActionResult PostTrajectory([FromBody] Model.Trajectory? data)
+        public async Task<ActionResult> PostTrajectory([FromBody] Model.Trajectory? data)
         {
             // Check if trajectory exists in the database through ID
             if (data != null && data.MetaInfo != null && data.MetaInfo.ID != Guid.Empty)
@@ -154,7 +155,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                 {   
                     //  If trajectory was not found, call AddTrajectory, where the trajectory.Calculate()
                     // method is called. 
-                    if (_trajectoryManager.AddTrajectory(data))
+                    if (await _trajectoryManager.AddTrajectory(data))
                     {
                         return Ok(); // status=OK is used rather than status=Created because NSwag auto-generated controllers use 200 (OK) rather than 201 (Created) as return codes
                     }
@@ -182,7 +183,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         /// <param name="trajectory"></param>
         /// <returns>true if the given Trajectory has been updated successfully to the microservice database, at the endpoint Trajectory/api/Trajectory/id</returns>
         [HttpPut("{id}", Name = "PutTrajectoryById")]
-        public ActionResult PutTrajectoryById(Guid id, [FromBody] Model.Trajectory? data)
+        public async Task<ActionResult> PutTrajectoryById(Guid id, [FromBody] Model.Trajectory? data)
         {
             // Check if Trajectory is in the data base
             if (data != null && data.MetaInfo != null && data.MetaInfo.ID.Equals(id))
@@ -190,7 +191,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                 var existingData = _trajectoryManager.GetTrajectoryById(id);
                 if (existingData != null)
                 {
-                    if (_trajectoryManager.UpdateTrajectoryById(id, data))
+                    if (await _trajectoryManager.UpdateTrajectoryById(id, data))
                     {
                         return Ok();
                     }

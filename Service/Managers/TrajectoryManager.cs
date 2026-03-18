@@ -1,10 +1,20 @@
-﻿using System;
-using System.Collections.Generic;
+﻿using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
-using OSDC.DotnetLibraries.General.DataManagement;
-using Microsoft.Data.Sqlite;
-using System.Text.Json;
 using NORCE.Drilling.Trajectory.Model;
+using NORCE.Drilling.Trajectory.ModelShared;
+using OSDC.DotnetLibraries.Drilling.Surveying;
+using OSDC.DotnetLibraries.General.DataManagement;
+using OSDC.DotnetLibraries.General.Math;
+using OSDC.DotnetLibraries.General.Statistics;
+using Parlot.Fluent;
+using SharpYaml.Serialization.Logging;
+using System;
+using System.Collections.Generic;
+using System.Diagnostics.Metrics;
+using System.Drawing;
+using System.Reflection;
+using System.Text.Json;
+using System.Threading.Tasks;
 
 namespace NORCE.Drilling.Trajectory.Service.Managers
 {
@@ -125,14 +135,14 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         private static Model.TrajectoryLight CreateDataLightInstance(Model.Trajectory trajectory)
         {
             return new Model.TrajectoryLight()
-                {
-                    MetaInfo = trajectory.MetaInfo,
-                    Name = trajectory.Name,
-                    Description = trajectory.Description,
-                    CreationDate = trajectory.CreationDate,
-                    LastModificationDate = trajectory.LastModificationDate,
-                    WellBoreID = trajectory.WellBoreID
-                };
+            {
+                MetaInfo = trajectory.MetaInfo,
+                Name = trajectory.Name,
+                Description = trajectory.Description,
+                CreationDate = trajectory.CreationDate,
+                LastModificationDate = trajectory.LastModificationDate,
+                WellBoreID = trajectory.WellBoreID
+            };
         }
         /// <summary>
         /// Returns the list of Guid of all Trajectory present in the microservice database 
@@ -173,9 +183,9 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         /// Returns the list of MetaInfo of all Trajectory present in the microservice database 
         /// </summary>
         /// <returns>the list of MetaInfo of all Trajectory present in the microservice database</returns>
-        public List<MetaInfo?>? GetAllTrajectoryMetaInfo()
+        public List<OSDC.DotnetLibraries.General.DataManagement.MetaInfo?>? GetAllTrajectoryMetaInfo()
         {
-            List<MetaInfo?> metaInfos = new();
+            List<OSDC.DotnetLibraries.General.DataManagement.MetaInfo?> metaInfos = new();
             var connection = _connectionManager.GetConnection();
             if (connection != null)
             {
@@ -187,7 +197,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     while (reader.Read() && !reader.IsDBNull(0))
                     {
                         string mInfo = reader.GetString(0);
-                        MetaInfo? metaInfo = JsonSerializer.Deserialize<MetaInfo>(mInfo, JsonSettings.Options);
+                        OSDC.DotnetLibraries.General.DataManagement.MetaInfo? metaInfo = JsonSerializer.Deserialize<OSDC.DotnetLibraries.General.DataManagement.MetaInfo>(mInfo, JsonSettings.Options);
                         metaInfos.Add(metaInfo);
                     }
                     _logger.LogInformation("Returning the list of MetaInfo of existing records from TrajectoryTable");
@@ -208,18 +218,18 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         /// <summary>
         /// Returns the Trajectory identified by its Guid from the microservice database 
         /// </summary>
-        /// <param name="guid"></param>
+        /// <param name="trajId"></param>
         /// <returns>the Trajectory identified by its Guid from the microservice database</returns>
-        public Model.Trajectory? GetTrajectoryById(Guid guid)
+        public Model.Trajectory? GetTrajectoryById(Guid trajId)
         {
-            if (!guid.Equals(Guid.Empty))
+            if (!trajId.Equals(Guid.Empty))
             {
                 var connection = _connectionManager.GetConnection();
                 if (connection != null)
                 {
                     Model.Trajectory? trajectory;
                     var command = connection.CreateCommand();
-                    command.CommandText = $"SELECT Trajectory FROM TrajectoryTable WHERE ID = '{guid}'";
+                    command.CommandText = $"SELECT Trajectory FROM TrajectoryTable WHERE ID = '{trajId}'";
                     try
                     {
                         using var reader = command.ExecuteReader();
@@ -227,7 +237,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                         {
                             string data = reader.GetString(0);
                             trajectory = JsonSerializer.Deserialize<Model.Trajectory>(data, JsonSettings.Options);
-                            if (trajectory != null && trajectory.MetaInfo != null && !trajectory.MetaInfo.ID.Equals(guid))
+                            if (trajectory != null && trajectory.MetaInfo != null && !trajectory.MetaInfo.ID.Equals(trajId))
                                 throw new SqliteException("SQLite database corrupted: returned Trajectory is null or has been jsonified with the wrong ID.", 1);
                         }
                         else
@@ -252,6 +262,57 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             else
             {
                 _logger.LogWarning("The given Trajectory ID is null or empty");
+            }
+            return null;
+        }
+
+        /// <summary>
+        /// Returns the Trajectory identified by the ID of the wellbore it is connected to from the microservice database 
+        /// </summary>
+        /// <param name="wellBoreId"></param>
+        /// <returns>the Trajectory identified by the ID of the wellbore it is connected to from the microservice database</returns>
+        public Model.Trajectory? GetTrajectoryByWellBoreId(Guid wellBoreId)
+        {
+            if (!wellBoreId.Equals(Guid.Empty))
+            {
+                var connection = _connectionManager.GetConnection();
+                if (connection != null)
+                {
+                    Model.Trajectory? trajectory;
+                    var command = connection.CreateCommand();
+                    command.CommandText = $"SELECT Trajectory FROM TrajectoryTable WHERE WellBoreID = '{wellBoreId}'";
+                    try
+                    {
+                        using var reader = command.ExecuteReader();
+                        if (reader.Read() && !reader.IsDBNull(0))
+                        {
+                            string data = reader.GetString(0);
+                            trajectory = JsonSerializer.Deserialize<Model.Trajectory>(data, JsonSettings.Options);
+                            if (trajectory != null && trajectory.MetaInfo != null && !trajectory.WellBoreID.Equals(wellBoreId))
+                                throw new SqliteException("SQLite database corrupted: returned Trajectory is null or its wellbore ID has been jsonified with the wrong ID.", 1);
+                        }
+                        else
+                        {
+                            _logger.LogInformation("No Trajectory with given wellbore ID in the database");
+                            return null;
+                        }
+                    }
+                    catch (SqliteException ex)
+                    {
+                        _logger.LogError(ex, "Impossible to get the Trajectory with given wellbore ID from TrajectoryTable");
+                        return null;
+                    }
+                    _logger.LogInformation("Returning the Trajectory with given wellbore ID from TrajectoryTable");
+                    return trajectory;
+                }
+                else
+                {
+                    _logger.LogWarning("Impossible to access the SQLite database");
+                }
+            }
+            else
+            {
+                _logger.LogWarning("The trajectory of given wellbore ID is null or empty");
             }
             return null;
         }
@@ -311,11 +372,11 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     while (reader.Read() && !reader.IsDBNull(0))
                     {
                         string metaInfoStr = reader.GetString(0);
-                        MetaInfo? metaInfo = JsonSerializer.Deserialize<MetaInfo>(metaInfoStr, JsonSettings.Options);
+                        OSDC.DotnetLibraries.General.DataManagement.MetaInfo? metaInfo = JsonSerializer.Deserialize<OSDC.DotnetLibraries.General.DataManagement.MetaInfo>(metaInfoStr, JsonSettings.Options);
                         Model.TrajectoryLight? trajectoryLight = JsonSerializer.Deserialize<Model.TrajectoryLight>(reader.GetString(1), JsonSettings.Options);
                         if (trajectoryLight != null)
                         {
-                            trajectoryLightList.Add(trajectoryLight);                            
+                            trajectoryLightList.Add(trajectoryLight);
                         }
                     }
                     _logger.LogInformation("Returning the list of existing TrajectoryLight from TrajectoryTable");
@@ -338,98 +399,118 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         /// </summary>
         /// <param name="trajectory"></param>
         /// <returns>true if the given Trajectory has been added successfully to the microservice database</returns>
-        public bool AddTrajectory(Model.Trajectory? trajectory)
+        public async Task<bool> AddTrajectory(Model.Trajectory? trajectory)
         {
-            if (trajectory != null && trajectory.MetaInfo != null && trajectory.MetaInfo.ID != Guid.Empty)
+            try
             {
-                //calculate outputs
-                if (!trajectory.Calculate())
+                if (trajectory != null && trajectory.MetaInfo != null && trajectory.MetaInfo.ID != Guid.Empty && trajectory.WellBoreID != Guid.Empty)
                 {
-                    _logger.LogWarning("Impossible to calculate outputs for the given Trajectory");
-                    return false;
-                }
-
-                //if successful, check if another parent data with the same ID was calculated/added during the calculation time
-                Model.Trajectory? newTrajectory = GetTrajectoryById(trajectory.MetaInfo.ID);
-                if (newTrajectory == null)
-                {
-                    //update TrajectoryTable
-                    var connection = _connectionManager.GetConnection();
-                    if (connection != null)
+                    // calculate Trajectory tie-in point Gaussian geodetic coordinates
+                    if (await GetTieInPointCoordinates(trajectory) is { } point)
                     {
-                        using SqliteTransaction transaction = connection.BeginTransaction();
-                        bool success = true;
-                        try
-                        {
-                            //add the Trajectory to the TrajectoryTable
-                            string metaInfo = JsonSerializer.Serialize(trajectory.MetaInfo, JsonSettings.Options);
-                      
-                            Model.TrajectoryLight trajectoryLight = CreateDataLightInstance(trajectory);
-                            string dataLight = JsonSerializer.Serialize(trajectoryLight, JsonSettings.Options);                           
-
-                            string? cDate = null;
-                            if (trajectory.CreationDate != null)
-                                cDate = ((DateTimeOffset)trajectory.CreationDate).ToString(SqlConnectionManager.DATE_TIME_FORMAT);
-                            string? lDate = null;
-                            if (trajectory.LastModificationDate != null)
-                                lDate = ((DateTimeOffset)trajectory.LastModificationDate).ToString(SqlConnectionManager.DATE_TIME_FORMAT);
-                            string data = JsonSerializer.Serialize(trajectory, JsonSettings.Options);
-                            
-                            var command = connection.CreateCommand();
-                            command.CommandText = "INSERT INTO TrajectoryTable (" +
-                                "ID, " +
-                                "MetaInfo, " +
-                                "TrajectoryLight, " +                                
-                                "CreationDate, " +
-                                "LastModificationDate, " +
-                                "Trajectory" +
-                                ") VALUES (" +
-                                $"'{trajectory.MetaInfo.ID}', " +
-                                $"'{metaInfo}', " +
-                                $"'{dataLight}', " +
-                                $"'{cDate}', " +
-                                $"'{lDate}', " +
-                                $"'{data}'" +
-                                ")";
-                            int count = command.ExecuteNonQuery();
-                            if (count != 1)
-                            {
-                                _logger.LogWarning("Impossible to insert the given Trajectory into the TrajectoryTable");
-                                success = false;
-                            }
-                        }
-                        catch (SqliteException ex)
-                        {
-                            _logger.LogError(ex, "Impossible to add the given Trajectory into TrajectoryTable");
-                            success = false;
-                        }
-                        //finalizing SQL transaction
-                        if (success)
-                        {
-                            transaction.Commit();
-                            _logger.LogInformation("Added the given Trajectory of given ID into the TrajectoryTable successfully");
-                        }
-                        else
-                        {
-                            transaction.Rollback();
-                        }
-                        return success;
+                        trajectory.TieInPoint = point;
                     }
                     else
                     {
-                        _logger.LogWarning("Impossible to access the SQLite database");
+                        _logger.LogError("The tie-in point Gaussian geodetic coordinates can not be evaluated");
+                        return false;
                     }
+
+                    // calculate Trajectory outputs
+                    if (!trajectory.Calculate())
+                    {
+                        _logger.LogWarning("Impossible to calculate outputs for the given Trajectory");
+                        return false;
+                    }
+
+                    // if successful, check if another parent data with the same ID was calculated/added during the calculation time
+                    Model.Trajectory? newTrajectory = GetTrajectoryById(trajectory.MetaInfo.ID);
+                    if (newTrajectory == null)
+                    {
+                        // update TrajectoryTable
+                        var connection = _connectionManager.GetConnection();
+                        if (connection != null)
+                        {
+                            using SqliteTransaction transaction = connection.BeginTransaction();
+                            bool success = true;
+                            try
+                            {
+                                //add the Trajectory to the TrajectoryTable
+                                string metaInfo = JsonSerializer.Serialize(trajectory.MetaInfo, JsonSettings.Options);
+
+                                Model.TrajectoryLight trajectoryLight = CreateDataLightInstance(trajectory);
+                                string dataLight = JsonSerializer.Serialize(trajectoryLight, JsonSettings.Options);
+
+                                string? cDate = null;
+                                if (trajectory.CreationDate != null)
+                                    cDate = ((DateTimeOffset)trajectory.CreationDate).ToString(SqlConnectionManager.DATE_TIME_FORMAT);
+                                string? lDate = null;
+                                if (trajectory.LastModificationDate != null)
+                                    lDate = ((DateTimeOffset)trajectory.LastModificationDate).ToString(SqlConnectionManager.DATE_TIME_FORMAT);
+                                string data = JsonSerializer.Serialize(trajectory, JsonSettings.Options);
+
+                                var command = connection.CreateCommand();
+                                command.CommandText = "INSERT INTO TrajectoryTable (" +
+                                    "ID, " +
+                                    "MetaInfo, " +
+                                    "TrajectoryLight, " +
+                                    "CreationDate, " +
+                                    "LastModificationDate, " +
+                                    "WellBoreID, " +
+                                    "Trajectory" +
+                                    ") VALUES (" +
+                                    $"'{trajectory.MetaInfo.ID}', " +
+                                    $"'{metaInfo}', " +
+                                    $"'{dataLight}', " +
+                                    $"'{cDate}', " +
+                                    $"'{lDate}', " +
+                                    $"'{trajectory.WellBoreID}', " +
+                                    $"'{data}'" +
+                                    ")";
+                                int count = command.ExecuteNonQuery();
+                                if (count != 1)
+                                {
+                                    _logger.LogWarning("Impossible to insert the given Trajectory into the TrajectoryTable");
+                                    success = false;
+                                }
+                            }
+                            catch (SqliteException ex)
+                            {
+                                _logger.LogError(ex, "Impossible to add the given Trajectory into TrajectoryTable");
+                                success = false;
+                            }
+                            // finalizing SQL transaction
+                            if (success)
+                            {
+                                transaction.Commit();
+                                _logger.LogInformation("Added the given Trajectory of given ID into the TrajectoryTable successfully");
+                            }
+                            else
+                            {
+                                transaction.Rollback();
+                            }
+                            return success;
+                        }
+                        else
+                        {
+                            _logger.LogWarning("Impossible to access the SQLite database");
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Impossible to post Trajectory. ID already found in database.");
+                        return false;
+                    }
+
                 }
                 else
                 {
-                    _logger.LogWarning("Impossible to post Trajectory. ID already found in database.");
-                    return false;
+                    _logger.LogWarning("The Trajectory ID or the ID of its input are null or empty");
                 }
-
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogWarning("The Trajectory ID or the ID of its input are null or empty");
+                _logger.LogError(ex, "Unexpected error during the addition of the Trajectory");
             }
             return false;
         }
@@ -439,28 +520,38 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         /// </summary>
         /// <param name="trajectory"></param>
         /// <returns>true if the given Trajectory has been updated successfully</returns>
-        public bool UpdateTrajectoryById(Guid guid, Model.Trajectory? trajectory)
+        public async Task<bool> UpdateTrajectoryById(Guid guid, Model.Trajectory? trajectory)
         {
             bool success = true;
             if (guid != Guid.Empty && trajectory != null && trajectory.MetaInfo != null && trajectory.MetaInfo.ID == guid)
             {
-                //calculate outputs
+                // calculate Trajectory tie-in point Gaussian geodetic coordinates
+                if (await GetTieInPointCoordinates(trajectory) is { } point)
+                {
+                    trajectory.TieInPoint = point;
+                }
+                else
+                {
+                    _logger.LogError("The tie-in point Gaussian geodetic coordinates can not be evaluated");
+                    return false;
+                }
+                // calculate outputs
                 if (!trajectory.Calculate())
                 {
                     _logger.LogWarning("Impossible to calculate outputs of the given Trajectory");
                     return false;
                 }
-                //update TrajectoryTable
+                // update TrajectoryTable
                 var connection = _connectionManager.GetConnection();
                 if (connection != null)
                 {
                     using SqliteTransaction transaction = connection.BeginTransaction();
-                    //update fields in TrajectoryTable
+                    // update fields in TrajectoryTable
                     try
                     {
                         string metaInfo = JsonSerializer.Serialize(trajectory.MetaInfo, JsonSettings.Options);
                         Model.TrajectoryLight trajectoryLight = CreateDataLightInstance(trajectory);
-                        string dataLight = JsonSerializer.Serialize(trajectoryLight, JsonSettings.Options);                           
+                        string dataLight = JsonSerializer.Serialize(trajectoryLight, JsonSettings.Options);
                         string? cDate = null;
                         if (trajectory.CreationDate != null)
                             cDate = ((DateTimeOffset)trajectory.CreationDate).ToString(SqlConnectionManager.DATE_TIME_FORMAT);
@@ -470,9 +561,10 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                         var command = connection.CreateCommand();
                         command.CommandText = $"UPDATE TrajectoryTable SET " +
                             $"MetaInfo = '{metaInfo}', " +
-                            $"TrajectoryLight = '{dataLight}', " +                              
+                            $"TrajectoryLight = '{dataLight}', " +
                             $"CreationDate = '{cDate}', " +
                             $"LastModificationDate = '{lDate}', " +
+                            $"WellBoreID = '{trajectory.WellBoreID}', " +
                             $"Trajectory = '{data}' " +
                             $"WHERE ID = '{guid}'";
                         int count = command.ExecuteNonQuery();
@@ -526,7 +618,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 {
                     using var transaction = connection.BeginTransaction();
                     bool success = true;
-                    //delete Trajectory from TrajectoryTable
+                    // delete Trajectory from TrajectoryTable
                     try
                     {
                         var command = connection.CreateCommand();
@@ -564,6 +656,130 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 _logger.LogWarning("The Trajectory ID is null or empty");
             }
             return false;
+        }
+
+        /// <summary>
+        /// ------------------------------------------------------------------------------
+        /// Logic for defining the TieInPoint of the trajectory
+        /// ------------------------------------------------------------------------------
+        /// Important note 1:
+        /// tie in point location information is collected throughout the microservice architecture
+        /// (mostly in the form of mean GaussianDrillingProperty properties) and wrapped into the mean part of a GaussianGeodeticPoint3D object
+        /// so far uncertainty-propagation capability is not implemented.
+        ///
+        /// Important note 2:
+        /// when uncertainty-propagation will be enacted, extreme care should be taken that GaussianDrillingProperty coordinates
+        /// are intrinsically independent from eachother. The GaussianDrillingProperty data structure does not offer the possibility to account
+        /// for cross-correlation between coordinates: GaussianGeodeticPoint3D and GaussianPoint3D structures have been introduced to correct this.
+        /// 
+        /// </summary>
+        /// <param name="trajectory">the trajectory whose tie-in point geodetic coordinates needs to be computed from  (no need to test for nullity)</param>
+        /// <returns>the uncertainty-aware geodetic coordinates of the tie-in point of the given trajectory</returns>
+        protected async Task<GaussianGeodeticPoint3D?> GetTieInPointCoordinates(Model.Trajectory trajectory) {
+            
+            double? meanLat, meanLon, meanTVD; // mean geodetic coordinates of the tie-in point
+            double? refLat, refLon, refTVD; // geodetic coordinates of the reference point
+                                            // Retrieve the wellbore hosting the trajectory
+            WellBore? wellBore = await APIUtils.ClientWellBore.GetWellBoreByIdAsync(trajectory.WellBoreID);
+            // We cascade up to the slot it is connected to retrieve the reference point coordinates of the tie-in Gaussian geodetic point
+            if (wellBore.WellID is Guid wellId && wellId != Guid.Empty)
+            {
+                Well? well = await APIUtils.ClientWell.GetWellByIdAsync(wellId);
+                if (well?.ClusterID is Guid clusterId && clusterId != Guid.Empty &&
+                    well?.SlotID is Guid slotId && slotId != Guid.Empty)
+                {
+                    Cluster? cluster = await APIUtils.ClientCluster.GetClusterByIdAsync(clusterId);
+                    if (cluster?.Slots[slotId.ToString()] is { } slot)
+                    {
+                        refLat = slot.Latitude?.GaussianValue?.Mean; // uncertainty propagation not implemented yet
+                        refLon = slot.Longitude?.GaussianValue?.Mean; // uncertainty propagation not implemented yet
+                        refTVD = cluster.ReferenceDepth?.GaussianValue?.Mean; // uncertainty propagation not implemented yet
+                    }
+                    else
+                    {
+                        _logger.LogError("the cluster hosting the well hosting the wellbore hosting the trajectory is null or has no slots or does not contain the expected slot ID");
+                        return null;
+                    }
+                }
+                else
+                {
+                    _logger.LogError("the well hosting the wellbore hosting the trajectory is null or has a corrupted cluster ID or slot ID");
+                    return null;
+                }
+            }
+            else
+            {
+                _logger.LogError("the wellbore hosting the trajectory has a corrupted well ID");
+                return null;
+            }
+            // Case 1: the wellbore hosting the trajectory is a main wellbore.
+            if (wellBore?.IsSidetrack is false)
+            {
+                // we assign the coordinates of the reference point to the mean geodetic coordinates of the tie-in point
+                meanLat = refLat;
+                meanLon = refLon;
+                meanTVD = refTVD;
+            }
+            // Case 2: the wellbore hosting the trajectory is a sidetrack, we must interpolate the location of the TieInPoint within the trajectory of the parent wellbore
+            else if (wellBore?.IsSidetrack is true)
+            {
+                if (wellBore.TieInPointAlongHoleDepth?.GaussianValue?.Mean is { } tieInMD &&
+                    wellBore.ParentWellBoreID is Guid parentWellBoreId && parentWellBoreId != Guid.Empty)
+                {
+                    Model.Trajectory? parentTraj = GetTrajectoryByWellBoreId(parentWellBoreId);
+                    if (parentTraj?.SurveyStationList is { } stList)
+                    {
+                        // interpolating the parent trajectory at the TieInPoint depth value held by the child wellbore hosting the child trajectory
+                        SurveyPoint? surveyPoint = new();
+                        SurveyPoint.InterpolateAtAbscissa<SurveyStation>(
+                            stList,
+                            tieInMD,
+                            surveyPoint); // a complete SurveyPoint is instantiated: X, Y, Z, Incl, Azim, Abscissa, Lat, Lon, TVD (although a ICurvilinearPoint3D is passed)
+                        if (surveyPoint?.Latitude is { } lat &&
+                            surveyPoint?.Longitude is { } lon &&
+                            surveyPoint?.TVD is { } tvd)
+                        {
+                            meanLat = lat; // uncertainty propagation not implemented yet
+                            meanLon = lon; // uncertainty propagation not implemented yet
+                            meanTVD = tvd; // uncertainty propagation not implemented yet
+                        }
+                        else
+                        {
+                            _logger.LogError("calculation of Riemannian coordinates failed");
+                            return null;
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogError("the trajectory of the parent wellbore can not be retrieved or has corrupted survey station list");
+                        return null;
+                    }
+
+                }
+                else
+                {
+                    _logger.LogError("the parent wellbore of the wellbore has a corrupted ID");
+                    return null;
+                }
+            }
+            else
+            {
+                _logger.LogError("impossible to load the wellbore hosting the trajectory");
+                return null;
+            }
+            if (meanLat is { } && meanLon is { } && meanTVD is { } &&
+                refLat is { } && refLon is { } && refTVD is { })
+            {
+                return new GaussianGeodeticPoint3D(
+                    new(meanLat, meanLon, meanTVD),
+                    new(),
+                    new(refLat, refLon, refTVD));
+            }
+            else
+            {
+                _logger.LogError("the coordinates of the tie in point of the trajectory are not complete");
+                return null;
+            }
         }
     }
 }

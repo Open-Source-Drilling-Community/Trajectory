@@ -18,7 +18,11 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <PackageReference Include="OSDC.DotnetLibraries.Drilling.Surveying" Version="1.1.1" />
+	  <PackageReference Include="OSDC.DotnetLibraries.Drilling.Surveying" Version="1.2.0" />
+	</ItemGroup>
+
+	<ItemGroup>
+	  <ProjectReference Include="..\ModelSharedIn\ModelSharedIn.csproj" />
 	</ItemGroup>
 
 </Project>

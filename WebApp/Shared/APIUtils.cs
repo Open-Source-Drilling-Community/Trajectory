@@ -1,17 +1,17 @@
 ﻿public static class APIUtils
 {
     // API parameters
-    public static readonly string HostNameTrajectory = NORCE.Drilling.Trajectory.WebApp.Configuration.TrajectoryHostURL!;
+    public static readonly string HostNameTrajectory = NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.TrajectoryHostURL!;
     public static readonly string HostBasePathTrajectory = "Trajectory/api/";
     public static readonly HttpClient HttpClientTrajectory = APIUtils.SetHttpClient(HostNameTrajectory, HostBasePathTrajectory);
     public static readonly NORCE.Drilling.Trajectory.ModelShared.Client ClientTrajectory = new(APIUtils.HttpClientTrajectory.BaseAddress!.ToString(), APIUtils.HttpClientTrajectory);
 
-    public static readonly string HostNameWellBore = NORCE.Drilling.Trajectory.WebApp.Configuration.WellBoreHostURL!;
+    public static readonly string HostNameWellBore = NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.WellBoreHostURL!;
     public static readonly string HostBasePathWellBore = "WellBore/api/";
     public static readonly HttpClient HttpClientWellBore = APIUtils.SetHttpClient(HostNameWellBore, HostBasePathWellBore);
     public static readonly NORCE.Drilling.Trajectory.ModelShared.Client ClientWellBore = new(APIUtils.HttpClientWellBore.BaseAddress!.ToString(), APIUtils.HttpClientWellBore);
 
-    public static readonly string HostNameUnitConversion = NORCE.Drilling.Trajectory.WebApp.Configuration.UnitConversionHostURL!;
+    public static readonly string HostNameUnitConversion = NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.UnitConversionHostURL!;
     public static readonly string HostBasePathUnitConversion = "UnitConversion/api/";
 
     // API utility methods

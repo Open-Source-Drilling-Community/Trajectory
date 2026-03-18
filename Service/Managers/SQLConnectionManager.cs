@@ -50,6 +50,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     "TrajectoryLight text",
                     "CreationDate text",
                     "LastModificationDate text",
+                    "WellBoreID text",
                     "Trajectory text" }
                 }
             };

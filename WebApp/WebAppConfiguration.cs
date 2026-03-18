@@ -1,6 +1,6 @@
 ﻿namespace NORCE.Drilling.Trajectory.WebApp
 {
-    public class Configuration
+    public class WebAppConfiguration
     {
         public static string? TrajectoryHostURL { get; set; }
         public static string? UnitConversionHostURL { get; set; }

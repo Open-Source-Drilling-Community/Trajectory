@@ -25,11 +25,11 @@ app.UseForwardedHeaders();
 app.UsePathBase("/Trajectory/webapp");
 
 if (!String.IsNullOrEmpty(builder.Configuration["TrajectoryHostURL"]))
-    NORCE.Drilling.Trajectory.WebApp.Configuration.TrajectoryHostURL = builder.Configuration["TrajectoryHostURL"];
+    NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.TrajectoryHostURL = builder.Configuration["TrajectoryHostURL"];
 if (!String.IsNullOrEmpty(builder.Configuration["WellBoreHostURL"]))
-    NORCE.Drilling.Trajectory.WebApp.Configuration.WellBoreHostURL = builder.Configuration["WellBoreHostURL"];
+    NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.WellBoreHostURL = builder.Configuration["WellBoreHostURL"];
 if (!String.IsNullOrEmpty(builder.Configuration["UnitConversionHostURL"]))
-    NORCE.Drilling.Trajectory.WebApp.Configuration.UnitConversionHostURL = builder.Configuration["UnitConversionHostURL"];
+    NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.UnitConversionHostURL = builder.Configuration["UnitConversionHostURL"];
 
 // Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())

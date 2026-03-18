@@ -1,4 +1,5 @@
 ﻿using OSDC.DotnetLibraries.General.DataManagement;
+using OSDC.DotnetLibraries.General.Statistics;
 using System;
 
 namespace NORCE.Drilling.Trajectory.Model
@@ -34,7 +35,6 @@ namespace NORCE.Drilling.Trajectory.Model
         /// the ID of the wellbore associated to the trajectory
         /// </summary>
         public Guid WellBoreID { get; set; }
-
         /// <summary>
         /// default constructor required for parsing the data model as a json file
         /// </summary>
@@ -45,13 +45,14 @@ namespace NORCE.Drilling.Trajectory.Model
         /// <summary>
         /// base constructor
         /// </summary>
-        public TrajectoryLight(MetaInfo? metaInfo, string? name, string? descr, DateTimeOffset? creationDate, DateTimeOffset? modifDate)
+        public TrajectoryLight(MetaInfo? metaInfo, string? name, string? descr, DateTimeOffset? creationDate, DateTimeOffset? modifDate, Guid wellboreId)
         {
             MetaInfo = metaInfo;
             Name = name;
             Description = descr;
             CreationDate = creationDate;
             LastModificationDate = modifDate;
+            WellBoreID = wellboreId;
         }
     }
 }

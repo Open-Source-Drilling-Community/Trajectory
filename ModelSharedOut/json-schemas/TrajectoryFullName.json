@@ -291,6 +291,9 @@
             },
             "nullable": true
           },
+          "TieInPoint": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.Statistics.GaussianGeodeticPoint3D"
+          },
           "InterpolatedTrajectory": {
             "type": "array",
             "items": {
@@ -855,6 +858,27 @@
         },
         "additionalProperties": false
       },
+      "OSDC.DotnetLibraries.General.Math.GeodeticPoint3D": {
+        "type": "object",
+        "properties": {
+          "LatitudeWGS84": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "LongitudeWGS84": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TvdWGS84": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.DotnetLibraries.General.Math.Matrix3x3": {
         "type": "object",
         "properties": {
@@ -909,6 +933,36 @@
             "type": "integer",
             "format": "int32",
             "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.DotnetLibraries.General.Statistics.GaussianGeodeticPoint3D": {
+        "type": "object",
+        "properties": {
+          "GeodeticMean": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.Math.GeodeticPoint3D"
+          },
+          "CovarianceNED": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.Math.Matrix3x3"
+          },
+          "ReferencePoint": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.Math.GeodeticPoint3D"
+          },
+          "LatitudeWGS84": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "LongitudeWGS84": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TvdWGS84": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
           }
         },
         "additionalProperties": false
