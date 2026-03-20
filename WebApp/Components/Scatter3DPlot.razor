@@ -17,9 +17,15 @@
     [Parameter] public List<List<object>> XValuesList { get; set; }
     [Parameter] public List<List<object>> YValuesList { get; set; }
     [Parameter] public List<List<object>> ZValuesList { get; set; }
-
+    /// <summary>
+    /// Fixed pixel height/width for the plot.
+    /// Pass 0 (or omit) to let Plotly fill its container responsively.
+    /// When Responsive=true in Config, a null height/width instructs Plotly to
+    /// measure the parent element and use that height/width automatically.
+    /// </summary>
     [Parameter] public int PlotHeight { get; set; }
     [Parameter] public int PlotWidth { get; set; }
+
     [Parameter] public string PlotTitle { get; set; }
     [Parameter] public string XAxisTitle { get; set; }
     [Parameter] public string YAxisTitle { get; set; }
@@ -249,8 +255,16 @@
 
     private void ManageLayout()
     {
-        if (layout == null) return;
-        if (Parent == null) return;
+        if (layout == null || Parent == null) return;
+
+        // Tighten the margins so the 3D scene fills the available canvas
+        layout.Margin = new Plotly.Blazor.LayoutLib.Margin
+        {
+            L = 0,
+            R = 0,
+            T = 30,  // small top margin to leave room for the title
+            B = 0
+        };
 
         string xUnitLabel = Parent.GetUnitLabel(XUnit);
         string yUnitLabel = Parent.GetUnitLabel(YUnit);
@@ -260,13 +274,24 @@
         yUnitLabel = yUnitLabel != null ? $" ({yUnitLabel})" : "";
         zUnitLabel = zUnitLabel != null ? $" ({zUnitLabel})" : "";
 
-        layout.Height = PlotHeight;
-        layout.Width = PlotWidth;
+        // PlotWidth/Height == 0 means "fill container": pass null so that Plotly, combined
+        // with Responsive=true, measures the parent element height/width at render time.
+        // A non-zero value pins the chart to that exact pixel height/width.
+        layout.Height = PlotHeight > 0 ? PlotHeight : null;
+        layout.Width = PlotWidth > 0 ? PlotWidth : null;
         layout.Title.Text = PlotTitle ?? "";
 
         for (int i = 0; i < layout.Scene.Count; ++i)
         {
             var scene = layout.Scene[i];
+            // setting the scene domain to cover the full canvas
+            scene.Domain = new Plotly.Blazor.LayoutLib.SceneLib.Domain
+            {
+                X = new List<object> { 0, 1 },
+                Y = new List<object> { 0, 1 }
+            };
+            // AspectMode.Cube gives equal axes; use Manual + explicit ratios if you want stretch-to-fill.
+            scene.AspectMode = Plotly.Blazor.LayoutLib.SceneLib.AspectModeEnum.Cube;
 
             scene.XAxis.Title.Text = (XAxisTitle ?? "") + xUnitLabel;
             scene.XAxis.AutoRange = Plotly.Blazor.LayoutLib.SceneLib.XAxisLib.AutoRangeEnum.True;

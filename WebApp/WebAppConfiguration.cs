@@ -4,6 +4,8 @@
     {
         public static string? TrajectoryHostURL { get; set; }
         public static string? UnitConversionHostURL { get; set; }
+        public static string? ClusterHostURL { get; set; }
+        public static string? WellHostURL { get; set; }
         public static string? WellBoreHostURL { get; set; }
     }
 }

@@ -1,4 +1,5 @@
-﻿using Microsoft.Data.Sqlite;
+﻿using DWIS.API.DTO;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using NORCE.Drilling.Trajectory.Model;
 using NORCE.Drilling.Trajectory.ModelShared;
@@ -12,6 +13,7 @@ using System;
 using System.Collections.Generic;
 using System.Diagnostics.Metrics;
 using System.Drawing;
+using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
@@ -405,8 +407,16 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             {
                 if (trajectory != null && trajectory.MetaInfo != null && trajectory.MetaInfo.ID != Guid.Empty && trajectory.WellBoreID != Guid.Empty)
                 {
+                    // retrieve the reference point, i.e. the gaussian geodetic coordinates of the slot hosting the trajectory
+                    (GaussianGeodeticPoint3D? referencePoint, WellBore? wellBore, Guid fieldId, string msg) = await APIUtils.GetReferencePointAsync(trajectory);
+                    if (wellBore is null || referencePoint is null)
+                    {
+                        _logger.LogError(msg);
+                        return false;
+                    }
+                    _logger.LogInformation(msg);
                     // calculate Trajectory tie-in point Gaussian geodetic coordinates
-                    if (await GetTieInPointCoordinates(trajectory) is { } point)
+                    if (await GetTieInPointCoordinatesAsync(referencePoint, wellBore) is { } point)
                     {
                         trajectory.TieInPoint = point;
                     }
@@ -415,9 +425,14 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                         _logger.LogError("The tie-in point Gaussian geodetic coordinates can not be evaluated");
                         return false;
                     }
-
+                    // convert the tie-in point Gaussian geodetic coordinates in cartographic coordinates, in the cartographic projection of the field the trajectory belongs to
+                    CartographicCoordinate? slotCoordinate = null;
+                    if (trajectory!.TieInPoint!.ReferencePoint is { } refPoint && fieldId != Guid.Empty)
+                    {
+                        slotCoordinate = await FromGeodeticToCartoNEDAsync(refPoint, fieldId);
+                    }
                     // calculate Trajectory outputs
-                    if (!trajectory.Calculate())
+                    if (!trajectory.Calculate(slotCoordinate))
                     {
                         _logger.LogWarning("Impossible to calculate outputs for the given Trajectory");
                         return false;
@@ -522,84 +537,105 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         /// <returns>true if the given Trajectory has been updated successfully</returns>
         public async Task<bool> UpdateTrajectoryById(Guid guid, Model.Trajectory? trajectory)
         {
-            bool success = true;
-            if (guid != Guid.Empty && trajectory != null && trajectory.MetaInfo != null && trajectory.MetaInfo.ID == guid)
+            try
             {
-                // calculate Trajectory tie-in point Gaussian geodetic coordinates
-                if (await GetTieInPointCoordinates(trajectory) is { } point)
+                bool success = true;
+                if (guid != Guid.Empty && trajectory != null && trajectory.MetaInfo != null && trajectory.MetaInfo.ID == guid)
                 {
-                    trajectory.TieInPoint = point;
-                }
-                else
-                {
-                    _logger.LogError("The tie-in point Gaussian geodetic coordinates can not be evaluated");
-                    return false;
-                }
-                // calculate outputs
-                if (!trajectory.Calculate())
-                {
-                    _logger.LogWarning("Impossible to calculate outputs of the given Trajectory");
-                    return false;
-                }
-                // update TrajectoryTable
-                var connection = _connectionManager.GetConnection();
-                if (connection != null)
-                {
-                    using SqliteTransaction transaction = connection.BeginTransaction();
-                    // update fields in TrajectoryTable
-                    try
+                    // retrieve the reference point, i.e. the gaussian geodetic coordinates of the slot hosting the trajectory
+                    (GaussianGeodeticPoint3D? referencePoint, WellBore? wellBore, Guid fieldId, string msg) = await APIUtils.GetReferencePointAsync(trajectory);
+                    if (wellBore is null || referencePoint is null)
                     {
-                        string metaInfo = JsonSerializer.Serialize(trajectory.MetaInfo, JsonSettings.Options);
-                        Model.TrajectoryLight trajectoryLight = CreateDataLightInstance(trajectory);
-                        string dataLight = JsonSerializer.Serialize(trajectoryLight, JsonSettings.Options);
-                        string? cDate = null;
-                        if (trajectory.CreationDate != null)
-                            cDate = ((DateTimeOffset)trajectory.CreationDate).ToString(SqlConnectionManager.DATE_TIME_FORMAT);
-                        trajectory.LastModificationDate = DateTimeOffset.UtcNow;
-                        string? lDate = ((DateTimeOffset)trajectory.LastModificationDate).ToString(SqlConnectionManager.DATE_TIME_FORMAT);
-                        string data = JsonSerializer.Serialize(trajectory, JsonSettings.Options);
-                        var command = connection.CreateCommand();
-                        command.CommandText = $"UPDATE TrajectoryTable SET " +
-                            $"MetaInfo = '{metaInfo}', " +
-                            $"TrajectoryLight = '{dataLight}', " +
-                            $"CreationDate = '{cDate}', " +
-                            $"LastModificationDate = '{lDate}', " +
-                            $"WellBoreID = '{trajectory.WellBoreID}', " +
-                            $"Trajectory = '{data}' " +
-                            $"WHERE ID = '{guid}'";
-                        int count = command.ExecuteNonQuery();
-                        if (count != 1)
-                        {
-                            _logger.LogWarning("Impossible to update the Trajectory");
-                            success = false;
-                        }
+                        _logger.LogError(msg);
+                        return false;
                     }
-                    catch (SqliteException ex)
+                    _logger.LogInformation(msg);
+                    // calculate Trajectory tie-in point Gaussian geodetic coordinates
+                    if (await GetTieInPointCoordinatesAsync(referencePoint, wellBore) is { } point)
                     {
-                        _logger.LogError(ex, "Impossible to update the Trajectory");
-                        success = false;
-                    }
-
-                    // Finalizing
-                    if (success)
-                    {
-                        transaction.Commit();
-                        _logger.LogInformation("Updated the given Trajectory successfully");
-                        return true;
+                        trajectory.TieInPoint = point;
                     }
                     else
                     {
-                        transaction.Rollback();
+                        _logger.LogError("the tie-in point Gaussian geodetic coordinates can not be evaluated");
+                        return false;
+                    }
+                    // convert the tie-in point Gaussian geodetic coordinates in cartographic coordinates, in the cartographic projection of the field the trajectory belongs to
+                    CartographicCoordinate? slotCoordinate = null;
+                    if (trajectory!.TieInPoint!.ReferencePoint is { } refPoint && fieldId != Guid.Empty)
+                    {
+                        slotCoordinate = await FromGeodeticToCartoNEDAsync(refPoint, fieldId);
+                    }
+                    // calculate outputs
+                    if (slotCoordinate is { } && !trajectory.Calculate(slotCoordinate))
+                    {
+                        _logger.LogWarning("Impossible to calculate outputs of the given Trajectory");
+                        return false;
+                    }
+                    // update TrajectoryTable
+                    var connection = _connectionManager.GetConnection();
+                    if (connection != null)
+                    {
+                        using SqliteTransaction transaction = connection.BeginTransaction();
+                        // update fields in TrajectoryTable
+                        try
+                        {
+                            string metaInfo = JsonSerializer.Serialize(trajectory.MetaInfo, JsonSettings.Options);
+                            Model.TrajectoryLight trajectoryLight = CreateDataLightInstance(trajectory);
+                            string dataLight = JsonSerializer.Serialize(trajectoryLight, JsonSettings.Options);
+                            string? cDate = null;
+                            if (trajectory.CreationDate != null)
+                                cDate = ((DateTimeOffset)trajectory.CreationDate).ToString(SqlConnectionManager.DATE_TIME_FORMAT);
+                            trajectory.LastModificationDate = DateTimeOffset.UtcNow;
+                            string? lDate = ((DateTimeOffset)trajectory.LastModificationDate).ToString(SqlConnectionManager.DATE_TIME_FORMAT);
+                            string data = JsonSerializer.Serialize(trajectory, JsonSettings.Options);
+                            var command = connection.CreateCommand();
+                            command.CommandText = $"UPDATE TrajectoryTable SET " +
+                                $"MetaInfo = '{metaInfo}', " +
+                                $"TrajectoryLight = '{dataLight}', " +
+                                $"CreationDate = '{cDate}', " +
+                                $"LastModificationDate = '{lDate}', " +
+                                $"WellBoreID = '{trajectory.WellBoreID}', " +
+                                $"Trajectory = '{data}' " +
+                                $"WHERE ID = '{guid}'";
+                            int count = command.ExecuteNonQuery();
+                            if (count != 1)
+                            {
+                                _logger.LogWarning("Impossible to update the Trajectory");
+                                success = false;
+                            }
+                        }
+                        catch (SqliteException ex)
+                        {
+                            _logger.LogError(ex, "Impossible to update the Trajectory");
+                            success = false;
+                        }
+
+                        // Finalizing
+                        if (success)
+                        {
+                            transaction.Commit();
+                            _logger.LogInformation("Updated the given Trajectory successfully");
+                            return true;
+                        }
+                        else
+                        {
+                            transaction.Rollback();
+                        }
+                    }
+                    else
+                    {
+                        _logger.LogWarning("Impossible to access the SQLite database");
                     }
                 }
                 else
                 {
-                    _logger.LogWarning("Impossible to access the SQLite database");
+                    _logger.LogWarning("The Trajectory ID or the ID of some of its attributes are null or empty");
                 }
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogWarning("The Trajectory ID or the ID of some of its attributes are null or empty");
+                _logger.LogError(ex, "Unexpected error during the update of the Trajectory");
             }
             return false;
         }
@@ -663,9 +699,8 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         /// Logic for defining the TieInPoint of the trajectory
         /// ------------------------------------------------------------------------------
         /// Important note 1:
-        /// tie in point location information is collected throughout the microservice architecture
-        /// (mostly in the form of mean GaussianDrillingProperty properties) and wrapped into the mean part of a GaussianGeodeticPoint3D object
-        /// so far uncertainty-propagation capability is not implemented.
+        /// tie in point location information is collected throughout the microservice architecture by retrieving the hosting cluster and slot
+        /// and wrapped into the mean part of a GaussianGeodeticPoint3D object (uncertainty-propagation capability is not implemented yet).
         ///
         /// Important note 2:
         /// when uncertainty-propagation will be enacted, extreme care should be taken that GaussianDrillingProperty coordinates
@@ -673,111 +708,152 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         /// for cross-correlation between coordinates: GaussianGeodeticPoint3D and GaussianPoint3D structures have been introduced to correct this.
         /// 
         /// </summary>
-        /// <param name="trajectory">the trajectory whose tie-in point geodetic coordinates needs to be computed from  (no need to test for nullity)</param>
+        /// <param name="referencePoint">the Gaussian geodetic coordinates of the slot hosting the trajectory</param>
+        /// <param name="wellBore">the hosting wellBore needed to compute the geodetic coordinates of the tie-in point (no need to test for nullity)</param>
         /// <returns>the uncertainty-aware geodetic coordinates of the tie-in point of the given trajectory</returns>
-        protected async Task<GaussianGeodeticPoint3D?> GetTieInPointCoordinates(Model.Trajectory trajectory) {
-            
-            double? meanLat, meanLon, meanTVD; // mean geodetic coordinates of the tie-in point
-            double? refLat, refLon, refTVD; // geodetic coordinates of the reference point
-                                            // Retrieve the wellbore hosting the trajectory
-            WellBore? wellBore = await APIUtils.ClientWellBore.GetWellBoreByIdAsync(trajectory.WellBoreID);
-            // We cascade up to the slot it is connected to retrieve the reference point coordinates of the tie-in Gaussian geodetic point
-            if (wellBore.WellID is Guid wellId && wellId != Guid.Empty)
+        private async Task<GaussianGeodeticPoint3D?> GetTieInPointCoordinatesAsync(GaussianGeodeticPoint3D? referencePoint, WellBore wellBore)
+        {
+            try
             {
-                Well? well = await APIUtils.ClientWell.GetWellByIdAsync(wellId);
-                if (well?.ClusterID is Guid clusterId && clusterId != Guid.Empty &&
-                    well?.SlotID is Guid slotId && slotId != Guid.Empty)
+                double? meanLat, meanLon, meanTVD; // mean geodetic coordinates of the tie-in point
+                if (referencePoint?.LatitudeWGS84 is { } refLat &&
+                    referencePoint?.LongitudeWGS84 is { } refLon &&
+                    referencePoint?.TvdWGS84 is { } refTVD)
                 {
-                    Cluster? cluster = await APIUtils.ClientCluster.GetClusterByIdAsync(clusterId);
-                    if (cluster?.Slots[slotId.ToString()] is { } slot)
+
+                    // Case 1: the wellbore hosting the trajectory is a main wellbore.
+                    if (wellBore.IsSidetrack is false)
                     {
-                        refLat = slot.Latitude?.GaussianValue?.Mean; // uncertainty propagation not implemented yet
-                        refLon = slot.Longitude?.GaussianValue?.Mean; // uncertainty propagation not implemented yet
-                        refTVD = cluster.ReferenceDepth?.GaussianValue?.Mean; // uncertainty propagation not implemented yet
+                        // we assign the coordinates of the reference point to the mean geodetic coordinates of the tie-in point
+                        meanLat = refLat;
+                        meanLon = refLon;
+                        meanTVD = refTVD;
                     }
-                    else
+                    // Case 2: the wellbore hosting the trajectory is a sidetrack, we must interpolate the location of the TieInPoint within the trajectory of the parent wellbore
+                    else if (wellBore.IsSidetrack is true)
                     {
-                        _logger.LogError("the cluster hosting the well hosting the wellbore hosting the trajectory is null or has no slots or does not contain the expected slot ID");
-                        return null;
-                    }
-                }
-                else
-                {
-                    _logger.LogError("the well hosting the wellbore hosting the trajectory is null or has a corrupted cluster ID or slot ID");
-                    return null;
-                }
-            }
-            else
-            {
-                _logger.LogError("the wellbore hosting the trajectory has a corrupted well ID");
-                return null;
-            }
-            // Case 1: the wellbore hosting the trajectory is a main wellbore.
-            if (wellBore?.IsSidetrack is false)
-            {
-                // we assign the coordinates of the reference point to the mean geodetic coordinates of the tie-in point
-                meanLat = refLat;
-                meanLon = refLon;
-                meanTVD = refTVD;
-            }
-            // Case 2: the wellbore hosting the trajectory is a sidetrack, we must interpolate the location of the TieInPoint within the trajectory of the parent wellbore
-            else if (wellBore?.IsSidetrack is true)
-            {
-                if (wellBore.TieInPointAlongHoleDepth?.GaussianValue?.Mean is { } tieInMD &&
-                    wellBore.ParentWellBoreID is Guid parentWellBoreId && parentWellBoreId != Guid.Empty)
-                {
-                    Model.Trajectory? parentTraj = GetTrajectoryByWellBoreId(parentWellBoreId);
-                    if (parentTraj?.SurveyStationList is { } stList)
-                    {
-                        // interpolating the parent trajectory at the TieInPoint depth value held by the child wellbore hosting the child trajectory
-                        SurveyPoint? surveyPoint = new();
-                        SurveyPoint.InterpolateAtAbscissa<SurveyStation>(
-                            stList,
-                            tieInMD,
-                            surveyPoint); // a complete SurveyPoint is instantiated: X, Y, Z, Incl, Azim, Abscissa, Lat, Lon, TVD (although a ICurvilinearPoint3D is passed)
-                        if (surveyPoint?.Latitude is { } lat &&
-                            surveyPoint?.Longitude is { } lon &&
-                            surveyPoint?.TVD is { } tvd)
+                        if (wellBore.TieInPointAlongHoleDepth?.GaussianValue?.Mean is { } tieInMD &&
+                            wellBore.ParentWellBoreID is Guid parentWellBoreId && parentWellBoreId != Guid.Empty)
                         {
-                            meanLat = lat; // uncertainty propagation not implemented yet
-                            meanLon = lon; // uncertainty propagation not implemented yet
-                            meanTVD = tvd; // uncertainty propagation not implemented yet
+                            Model.Trajectory? parentTraj = GetTrajectoryByWellBoreId(parentWellBoreId);
+                            if (parentTraj?.SurveyStationList is { } stList)
+                            {
+                                // interpolating the parent trajectory at the TieInPoint depth value held by the child wellbore hosting the child trajectory
+                                SurveyPoint? surveyPoint = new();
+                                SurveyPoint.InterpolateAtAbscissa<SurveyStation>(
+                                    stList,
+                                    tieInMD,
+                                    surveyPoint); // a complete SurveyPoint is instantiated: X, Y, Z, Incl, Azim, Abscissa, Lat, Lon, TVD (although a ICurvilinearPoint3D is passed)
+                                if (surveyPoint?.Latitude is { } lat &&
+                                    surveyPoint?.Longitude is { } lon &&
+                                    surveyPoint?.TVD is { } tvd)
+                                {
+                                    meanLat = lat; // uncertainty propagation not implemented yet
+                                    meanLon = lon; // uncertainty propagation not implemented yet
+                                    meanTVD = tvd; // uncertainty propagation not implemented yet
+                                }
+                                else
+                                {
+                                    _logger.LogError("calculation of Riemannian coordinates failed");
+                                    return null;
+                                }
+                            }
+                            else
+                            {
+                                _logger.LogError("the trajectory of the parent wellbore can not be retrieved or has corrupted survey station list");
+                                return null;
+                            }
+
                         }
                         else
                         {
-                            _logger.LogError("calculation of Riemannian coordinates failed");
+                            _logger.LogError("the parent wellbore of the wellbore has a corrupted ID");
                             return null;
                         }
                     }
                     else
                     {
-                        _logger.LogError("the trajectory of the parent wellbore can not be retrieved or has corrupted survey station list");
+                        _logger.LogError("impossible to load the wellbore hosting the trajectory");
                         return null;
                     }
-
+                    if (meanLat is { } && meanLon is { } && meanTVD is { } &&
+                        refLat is { } && refLon is { } && refTVD is { })
+                    {
+                        return new GaussianGeodeticPoint3D(
+                            new(meanLat, meanLon, meanTVD),
+                            new(),
+                            new(refLat, refLon, refTVD));
+                    }
+                    else
+                    {
+                        _logger.LogError("the coordinates of the tie in point of the trajectory are not complete");
+                        return null;
+                    }
                 }
                 else
                 {
-                    _logger.LogError("the parent wellbore of the wellbore has a corrupted ID");
+                    _logger.LogError("the coordinates of the reference point of the trajectory are not invalid");
                     return null;
                 }
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogError("impossible to load the wellbore hosting the trajectory");
+                _logger.LogError(ex, "an exception was raised while computing tie-in point coordinates");
                 return null;
             }
-            if (meanLat is { } && meanLon is { } && meanTVD is { } &&
-                refLat is { } && refLon is { } && refTVD is { })
+        }
+
+        /// <summary>
+        /// Converts the gaussian geodetic coordinates (geodetic mean) of the <paramref name="geoPoint"/> 
+        /// into cartographic coordinates relative to the cartographic projection of the field which the trajectory belongs to
+        /// </summary>
+        /// <param name="geoPoint">the gaussian geodetic coordinates (geodetic mean) (no need to test for nullity)</param>
+        /// <param name="fieldId">the ID of the field which the trajectory belongs to<param>
+        /// <returns>the cartographic coordinates in the cartographic projection of the field which the trajectory belongs to</returns>
+        private async Task<CartographicCoordinate?> FromGeodeticToCartoNEDAsync(GeodeticPoint3D geoPoint, Guid fieldId)
+        {
+            try
             {
-                return new GaussianGeodeticPoint3D(
-                    new(meanLat, meanLon, meanTVD),
-                    new(),
-                    new(refLat, refLon, refTVD));
+                FieldCartographicConversionSet conversionSet = new()
+                {
+                    MetaInfo = new ModelShared.MetaInfo() { ID = Guid.NewGuid() },
+                    Name = "Convert geodetic coordinate",
+                    Description = "Calculate Cluster Reference",
+                    FieldID = fieldId,
+                    CartographicCoordinateList = [
+                            new() {
+                                GeodeticCoordinate = new GeodeticCoordinate() {
+                                    LatitudeWGS84 = geoPoint.LatitudeWGS84,
+                                    LongitudeWGS84 = geoPoint.LongitudeWGS84,
+                                    VerticalDepthWGS84 = geoPoint.TvdWGS84
+                                }
+                            }
+                        ]
+                };
+                APIUtils.ClientField.PostFieldCartographicConversionSetAsync(conversionSet).Wait();
+                FieldCartographicConversionSet calculatedConversionSet = APIUtils.ClientField.GetFieldCartographicConversionSetByIdAsync(conversionSet.MetaInfo.ID).GetAwaiter().GetResult();
+                if (calculatedConversionSet?.MetaInfo?.ID == conversionSet.MetaInfo.ID &&
+                    calculatedConversionSet.CartographicCoordinateList != null &&
+                    calculatedConversionSet.CartographicCoordinateList.Count > 0 &&
+                    calculatedConversionSet.CartographicCoordinateList.ElementAt(0).GeodeticCoordinate != null)
+                {
+                    APIUtils.ClientField.DeleteFieldCartographicConversionSetByIdAsync(conversionSet.MetaInfo.ID).Wait();
+                    return new CartographicCoordinate()
+                    {
+                        Northing = calculatedConversionSet.CartographicCoordinateList.ElementAt(0).Northing,
+                        Easting = calculatedConversionSet.CartographicCoordinateList.ElementAt(0).Easting,
+                        VerticalDepth = calculatedConversionSet.CartographicCoordinateList.ElementAt(0).GeodeticCoordinate.VerticalDepthWGS84
+                    };
+                }
+                else
+                {
+                    _logger.LogError("the converted cartographic coordinates are not valid");
+                    return null;
+                }
             }
-            else
+            catch (Exception ex)
             {
-                _logger.LogError("the coordinates of the tie in point of the trajectory are not complete");
+                _logger.LogError(ex, "an exception was raised while converting the Gaussian geodetic coordinates into cartographic coordinates");
                 return null;
             }
         }

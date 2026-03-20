@@ -14,7 +14,10 @@
     else
     {
         <div hidden="@isHiddenMainPanel">
-            <MudDataGrid T="TrajectoryLight" MultiSelection="true" Items="@trajectoryList" SelectedItemsChanged="@SelectedItemsChanged"
+            @* _gridKey forces a full remount of MudDataGrid on each reload,
+               clearing all stale selection state from the virtual DOM. *@
+            <MudDataGrid T="TrajectoryLight" @key="_gridKey"
+                         MultiSelection="true" Items="@trajectoryList" SelectedItemsChanged="@SelectedItemsChanged"
                          EditMode="DataGridEditMode.Form"
                          Hover="true" RowClick="@RowClicked"
                          SortMode="SortMode.Multiple" QuickFilter="@_trajectoryFilter" Filterable="false"
@@ -22,7 +25,8 @@
                 <ToolBarContent>
                     <MudText Typo="Typo.h6">Trajectory</MudText>
                     <MudButton OnClick="@AddTrajectory" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
-                    <MudButton OnClick="@DeleteSelectedTrajectory" Color="@Color.Error" Class="add-item-btn">Delete</MudButton>
+                    <MudButton OnClick="@DeleteSelectedTrajectory" Color="@Color.Error" Class="add-item-btn"
+                               Disabled="@(selectedTrajectoryList.Count == 0)">Delete</MudButton>
                     <MudSpacer />
                     <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
                                   AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
@@ -55,8 +59,7 @@
     private List<TrajectoryLight> trajectoryList = new();
     private List<TrajectoryLight> selectedTrajectoryList = new();
     private TrajectoryLight? currentTrajectory;
-    private List<object?>? inputDataList = new(); // container used to pass input data to the TrajectoryEdit razor component without specifying content types (required by µservice Template)
-                                                  // Other variables
+    // Other variables
     private List<WellBore>? wellBoreList;
     // UI related variables
     public bool isHiddenMainPanel;
@@ -64,7 +67,24 @@
     private Guid? trajectoryIdBeingEdited;
     private string? _searchString;
 
+    // Incremented on every reload to force MudDataGrid to fully remount,
+    // which clears stale checkbox/selection state in the virtual DOM.
+    private int _gridKey = 0;
+
     protected override async Task OnInitializedAsync()
+    {
+        // Don't call OnInitializedAsync() directly for refreshes, it is an anti-pattern.
+        // OnInitializedAsync is a page lifecycle hook, not a refresh method.
+        // The LoadDataAsync() is the single source of truth for reloading,
+        // and every refresh path (DeleteTrajectory, DeleteSelectedTrajectory, HandleEditPanelClosed) calls it.
+        await LoadDataAsync();
+    }
+
+    /// <summary>
+    /// Loads (or reloads) all data from the API and resets selection state.
+    /// Always call this instead of OnInitializedAsync() for refreshes.
+    /// </summary>
+    private async Task LoadDataAsync()
     {
         try
         {
@@ -72,6 +92,9 @@
             isHiddenMainPanel = false;
             isHiddenEditPanel = true;
             currentTrajectory = null;
+
+            // Reset selection state before reloading so no ghost items remain!!!
+            selectedTrajectoryList = new List<TrajectoryLight>();
 
             // Starting all loading tasks asynchronously
             logger.LogInformation("Trying to load list of wellbores from client: " + APIUtils.HttpClientWellBore);
@@ -132,7 +155,11 @@
         {
             logger.LogError(ex, "Problem Trajectory initialization");
         }
-        await InvokeAsync(() => { StateHasChanged(); });
+
+        // Increment key to force full MudDataGrid remount, wiping any stale
+        // selection checkboxes or row mappings from the previous render.
+        _gridKey++;
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task AddTrajectory()
@@ -153,28 +180,22 @@
         isHiddenMainPanel = false;
         isHiddenEditPanel = true;
         trajectoryIdBeingEdited = null;
-        await OnInitializedAsync();
+        await LoadDataAsync();
     }
 
     private async Task<bool> ConfirmDeletion()
     {
         var options = new DialogOptions
-            {
-                CloseOnEscapeKey = true,
-                MaxWidth = MaxWidth.Small,
-                FullWidth = true
-            };
+        {
+            CloseOnEscapeKey = true,
+            MaxWidth = MaxWidth.Small,
+            FullWidth = true
+        };
         var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", options);
         var result = await dialog.Result;
-        StateHasChanged();
         if (result == null)
-        {
             return false;
-        }
-        else
-        {
-            return (!result.Canceled);
-        }
+        return (!result.Canceled);
     }
     private async Task DeleteTrajectory(Guid id)
     {
@@ -183,32 +204,38 @@
             if (await ConfirmDeletion())
             {
                 await APIUtils.ClientTrajectory.DeleteTrajectoryByIdAsync(id);
-                await OnInitializedAsync();
+                await LoadDataAsync();
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Impossible to delete Trajectory");
+            Snackbar.Add("Failed to delete trajectory.", Severity.Error);
         }
     }
 
-
     private async Task DeleteSelectedTrajectory()
     {
+        // Snapshot the list before async work so the selection can't shift mid-delete.
+        var toDelete = selectedTrajectoryList.ToList();
+        if (toDelete.Count == 0)
+            return;
         try
         {
             if (await ConfirmDeletion())
             {
-                foreach (TrajectoryLight trajectory in selectedTrajectoryList)
+                foreach (TrajectoryLight trajectory in toDelete)
                 {
                     await APIUtils.ClientTrajectory.DeleteTrajectoryByIdAsync(trajectory.MetaInfo.ID);
                 }
-                await OnInitializedAsync();
+                // Reload data: this also clears selectedTrajectoryList and bumps _gridKey.
+                await LoadDataAsync();
             }
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Impossible to delete all Trajectory");
+            Snackbar.Add("Failed to delete one or more trajectories.", Severity.Error);
         }
 
     }
@@ -221,7 +248,6 @@
             return true;
         if ($"{x.Name} {x.Description}".Contains(_searchString))
             return true;
-
         return false;
     };
 
@@ -244,8 +270,8 @@
     void SelectedItemsChanged(HashSet<TrajectoryLight>
         items)
     {
-        selectedTrajectoryList.Clear();
-        selectedTrajectoryList.InsertRange(0, items);
+        // Assign a new list instance each time to ensure clean reference for Blazor.
+        selectedTrajectoryList = items.ToList();
     }
 
     private async Task RowClicked(DataGridRowClickEventArgs<TrajectoryLight> args)

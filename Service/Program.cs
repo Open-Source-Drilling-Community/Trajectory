@@ -62,6 +62,8 @@ app.UseForwardedHeaders(new ForwardedHeadersOptions
     ForwardedHeaders = ForwardedHeaders.XForwardedProto
 });
 
+if (!String.IsNullOrEmpty(builder.Configuration["FieldHostURL"]))
+    ServiceConfiguration.FieldHostURL = builder.Configuration["FieldHostURL"];
 if (!String.IsNullOrEmpty(builder.Configuration["ClusterHostURL"]))
     ServiceConfiguration.ClusterHostURL = builder.Configuration["ClusterHostURL"];
 if (!String.IsNullOrEmpty(builder.Configuration["WellBoreHostURL"]))
