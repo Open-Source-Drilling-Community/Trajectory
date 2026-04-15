@@ -36,22 +36,26 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         public static readonly string DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
         // dictionary describing tables format
-        // Light weight data fields are enumerated explicitly in the data table implementing the light weight data concept
-        // (thus duplicating info in the database) for 2 reasons
-        // 1) to avoid loading the complete Trajectory (heavy weight data) each time we only need contextual info on the data (light weight data)
-        // 2) to keep control of the logic of inserting and selecting a light data in the database
-        //    localized at the controller/manager level (storing TrajectoryLight as a whole could induce database corruption issues)
-        // If the light weight data concept is not implemented, the same contextual info can be retrieved directly from the Trajectory
         private readonly static Dictionary<string, string[]> _tableStructureDict = new Dictionary<string, string[]>()
             {
                 { "TrajectoryTable", new string[] {
                     "ID text primary key",
                     "MetaInfo text",
-                    "TrajectoryLight text",
                     "CreationDate text",
                     "LastModificationDate text",
+                    "FieldID text",
+                    "ClusterID text",
+                    "WellID text",
                     "WellBoreID text",
                     "Trajectory text" }
+                },
+                { "InterpolatedTrajectoryTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "TrajectoryID text",
+                    "InterpolatedTrajectory text" }
                 }
             };
 

@@ -26,10 +26,16 @@ app.UsePathBase("/Trajectory/webapp");
 
 if (!String.IsNullOrEmpty(builder.Configuration["TrajectoryHostURL"]))
     NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.TrajectoryHostURL = builder.Configuration["TrajectoryHostURL"];
+if (!String.IsNullOrEmpty(builder.Configuration["FieldHostURL"]))
+    NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.FieldHostURL = builder.Configuration["FieldHostURL"];
 if (!String.IsNullOrEmpty(builder.Configuration["ClusterHostURL"]))
     NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.ClusterHostURL = builder.Configuration["ClusterHostURL"];
+if (!String.IsNullOrEmpty(builder.Configuration["RigHostURL"]))
+    NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.RigHostURL = builder.Configuration["RigHostURL"];
 if (!String.IsNullOrEmpty(builder.Configuration["WellBoreHostURL"]))
     NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.WellBoreHostURL = builder.Configuration["WellBoreHostURL"];
+if (!String.IsNullOrEmpty(builder.Configuration["WellBoreArchitectureHostURL"]))
+    NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.WellBoreArchitectureHostURL = builder.Configuration["WellBoreArchitectureHostURL"];
 if (!String.IsNullOrEmpty(builder.Configuration["WellHostURL"]))
     NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.WellHostURL = builder.Configuration["WellHostURL"];
 if (!String.IsNullOrEmpty(builder.Configuration["UnitConversionHostURL"]))

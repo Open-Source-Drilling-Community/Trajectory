@@ -1,5 +1,6 @@
 ﻿using NORCE.Drilling.Trajectory.ModelShared;
 using OSDC.DotnetLibraries.General.Statistics;
+using OSDC.DotnetLibraries.Drilling.Surveying;
 using System;
 using System.Net.Http;
 using System.Reflection;
@@ -28,6 +29,11 @@ public static class APIUtils
     public static readonly HttpClient HttpClientWellBore = APIUtils.SetHttpClient(HostNameWellBore, HostBasePathWellBore);
     public static readonly Client ClientWellBore = new Client(APIUtils.HttpClientWellBore.BaseAddress!.ToString(), APIUtils.HttpClientWellBore);
 
+    public static readonly string HostNameWellBoreArchitecture = NORCE.Drilling.Trajectory.Service.ServiceConfiguration.WellBoreArchitectureHostURL!;
+    public static readonly string HostBasePathWellBoreArchitecture = "WellBoreArchitecture/api/";
+    public static readonly HttpClient HttpClientWellBoreArchitecture = APIUtils.SetHttpClient(HostNameWellBoreArchitecture, HostBasePathWellBoreArchitecture);
+    public static readonly Client ClientWellBoreArchitecture = new Client(APIUtils.HttpClientWellBoreArchitecture.BaseAddress!.ToString(), APIUtils.HttpClientWellBoreArchitecture);
+
     // API utility methods
     public static HttpClient SetHttpClient(string host, string microServiceUri)
     {
@@ -52,7 +58,7 @@ public static class APIUtils
     /// - the info/error message resulting from the interaction with called microservices
     /// </returns>
     /// </summary>
-    public static async Task<(GaussianGeodeticPoint3D?, WellBore?, Guid, string)> GetReferencePointAsync(NORCE.Drilling.Trajectory.Model.Trajectory trajectory)
+    public static async Task<(SurveyPoint?, WellBore?, string)> GetReferencePointAsync(NORCE.Drilling.Trajectory.Model.Trajectory trajectory)
     {
         string msg;
         try
@@ -78,42 +84,43 @@ public static class APIUtils
                             cluster.ReferenceDepth?.GaussianValue?.Mean is { } refTVD)
                         {
                             msg = "cluster, slot, and wellbore successfully retrieved";
-                            return (new GaussianGeodeticPoint3D(
-                                        new(refLat, refLon, refTVD),
-                                        new(),
-                                        new(refLat, refLon, refTVD)),
-                                    wellBore,
-                                    fieldId,
-                                    msg);
+                            SurveyPoint surveyPoint = new SurveyPoint();
+                            surveyPoint.Latitude = refLat;
+                            surveyPoint.Longitude = refLon;
+                            surveyPoint.TVD = refTVD;
+                            surveyPoint.Abscissa = refTVD;
+                            surveyPoint.Inclination = 0;
+                            surveyPoint.Azimuth = 0;
+                            return (surveyPoint, wellBore, msg);
                         }
                         else
                         {
                             msg = "coordinates of the hosting slot are not properly set";
-                            return (null, null, Guid.Empty, msg);
+                            return (null, null, msg);
                         }
                     }
                     else
                     {
                         msg = "the cluster hosting the well hosting the wellbore hosting the trajectory is null or has no slots or does not contain the expected slot ID";
-                        return (null, null, Guid.Empty, msg);
+                        return (null, null, msg);
                     }
                 }
                 else
                 {
                     msg = "the well hosting the wellbore hosting the trajectory is null or has a corrupted cluster ID or slot ID";
-                    return (null, null, Guid.Empty, msg);
+                    return (null, null, msg);
                 }
             }
             else
             {
                 msg = "the wellbore hosting the trajectory has a corrupted well ID";
-                return (null, null, Guid.Empty, msg);
+                return (null, null, msg);
             }
         }
         catch (Exception ex)
         {
             msg = ex.Message + ": an exception was raised while retrieving cluster, slot, and wellbore from trajectory";
-            return (null, null, Guid.Empty, msg);
+            return (null, null, msg);
         }
     }
 }

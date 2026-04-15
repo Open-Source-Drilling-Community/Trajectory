@@ -1,5 +1,11 @@
 ﻿@inject ILogger<TrajectoryEdit> logger
 @inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@using System.Net.Http.Json
+@using System.Globalization
+@using System.Reflection
+@using System.Text
+@using System.Text.RegularExpressions
 
 <MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Trajectory</MudText>
 <MudContainer Class="d-flex flex-row mt-4 mb-4">
@@ -15,26 +21,69 @@
         <MudItem xs="3">
             <MudTextField @bind-Value="traj.Name" Label="Name" Required="true" For="@(() => traj.Name)" ShrinkLabel />
         </MudItem>
-        <MudItem xs="4">
+        <MudItem xs="3">
             <MudTextField @bind-Value="traj.Description" Label="Description" For="@(() => traj.Description)" ShrinkLabel />
         </MudItem>
         <MudItem xs="3">
-            <MudSelect Label="WellBore" T="Guid" Value="@traj.WellBoreID" ValueChanged="@((val) => UpdateWellBoreSelection(val))" ShrinkLabel>
-                @if (WellBoreList is { Count: > 0 } wbList)
+            <MudTextField Value="@FormatDate(traj.CreationDate)" Label="Created" ReadOnly="true" ShrinkLabel />
+        </MudItem>
+        <MudItem xs="3">
+            <MudTextField Value="@FormatDate(traj.LastModificationDate)" Label="Last Updated" ReadOnly="true" ShrinkLabel />
+        </MudItem>
+        <MudItem xs="2">
+            <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId" ValueChanged="OnFieldChanged" ShrinkLabel Clearable="true">
+                @if (AvailableFields.Count > 0)
                 {
-                    @foreach (WellBore wb in wbList)
+                    @foreach (Field field in AvailableFields)
                     {
-                        <MudSelectItem Value="@wb.MetaInfo.ID">
-                            @wb.Name
+                        <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">
+                            @field.Name
                         </MudSelectItem>
                     }
                 }
             </MudSelect>
         </MudItem>
         <MudItem xs="2">
-            <MudInputWithUnitAdornment QuantityLabel="Depth" QuantityName="DepthDrilling"
-                                       SIValue="@traj.MDStep"
-                                       SIValueChanged="@(val => traj.MDStep = val)" />
+            <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId" ValueChanged="OnClusterChanged" ShrinkLabel Clearable="true">
+                @if (AvailableClusters.Count > 0)
+                {
+                    @foreach (Cluster cluster in AvailableClusters)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">
+                            @cluster.Name
+                        </MudSelectItem>
+                    }
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="2">
+            <MudSelect Label="Well" T="Guid?" Value="@selectedWellId" ValueChanged="OnWellChanged" ShrinkLabel Clearable="true">
+                @if (AvailableWells.Count > 0)
+                {
+                    @foreach (Well well in AvailableWells)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">
+                            @well.Name
+                        </MudSelectItem>
+                    }
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="3">
+            <MudSelect Label="WellBore" T="Guid?" Value="@selectedWellBoreId" ValueChanged="OnWellBoreChanged" ShrinkLabel Clearable="true">
+                @if (AvailableWellBores.Count > 0)
+                {
+                    @foreach (WellBore wb in AvailableWellBores)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)wb.MetaInfo.ID)">
+                            @wb.Name
+                        </MudSelectItem>
+                    }
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="3">
+            <MudTextField Value="@AssociatedRigName" Label="Rig" ReadOnly="true" ShrinkLabel />
         </MudItem>
     </MudGrid>
     <MudExpansionPanels Class="mt-4 mb-4" Style="overflow-y: auto; max-height: none;">
@@ -42,9 +91,105 @@
         <MudExpansionPanel Text="Survey stations" @bind-IsExpanded="isSurveyExpanded">
             @if (traj.SurveyStationList is { } ssList)
             {
+                <MudPaper Class="pa-4 mb-4" Outlined="true">
+                    <MudGrid>
+                        <MudItem xs="12">
+                            <MudText Typo="Typo.subtitle1">Import surveys from file</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="4">
+                            <InputFile OnChange="OnSurveyImportFileChanged" />
+                            <MudText Typo="Typo.caption">@surveyImportFileName</MudText>
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudSelect T="string" Label="File format" @bind-Value="selectedSurveyImportFormat" ShrinkLabel>
+                                @foreach (string format in SurveyImportFormats)
+                                {
+                                    <MudSelectItem T="string" Value="@format">@format</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        @if (IsDelimitedImportFormat)
+                        {
+                            <MudItem xs="12" md="3">
+                                <MudSelect T="string" Label="Column separator" @bind-Value="selectedSurveyImportSeparator" ShrinkLabel>
+                                    @foreach (string separator in SurveyImportSeparators)
+                                    {
+                                        <MudSelectItem T="string" Value="@separator">@separator</MudSelectItem>
+                                    }
+                                </MudSelect>
+                            </MudItem>
+                        }
+                        <MudItem xs="12" md="2">
+                            <MudSelect T="string" Label="Decimal marker" @bind-Value="selectedSurveyImportDecimalMarker" ShrinkLabel>
+                                @foreach (string marker in SurveyImportDecimalMarkers)
+                                {
+                                    <MudSelectItem T="string" Value="@marker">@marker</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="2">
+                            <MudNumericField T="int" Label="MD column" @bind-Value="surveyImportMDColumn" Min="1" Immediate="true" />
+                        </MudItem>
+                        <MudItem xs="12" md="2">
+                            <MudSelect T="string" Label="MD unit" @bind-Value="selectedSurveyImportMDUnit" ShrinkLabel>
+                                @foreach (string unit in AvailableSurveyImportDepthUnits)
+                                {
+                                    <MudSelectItem T="string" Value="@unit">@unit</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="2">
+                            <MudNumericField T="int" Label="Incl column" @bind-Value="surveyImportInclinationColumn" Min="1" Immediate="true" />
+                        </MudItem>
+                        <MudItem xs="12" md="2">
+                            <MudSelect T="string" Label="Incl unit" @bind-Value="selectedSurveyImportInclinationUnit" ShrinkLabel>
+                                @foreach (string unit in AvailableSurveyImportAngleUnits)
+                                {
+                                    <MudSelectItem T="string" Value="@unit">@unit</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="2">
+                            <MudNumericField T="int" Label="Az column" @bind-Value="surveyImportAzimuthColumn" Min="1" Immediate="true" />
+                        </MudItem>
+                        <MudItem xs="12" md="2">
+                            <MudSelect T="string" Label="Az unit" @bind-Value="selectedSurveyImportAzimuthUnit" ShrinkLabel>
+                                @foreach (string unit in AvailableSurveyImportAngleUnits)
+                                {
+                                    <MudSelectItem T="string" Value="@unit">@unit</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        @if (IsFixedWidthImportFormat)
+                        {
+                            <MudItem xs="12" md="2">
+                                <MudNumericField T="int" Label="MD start" @bind-Value="surveyImportMDStart" Min="1" Immediate="true" />
+                            </MudItem>
+                            <MudItem xs="12" md="2">
+                                <MudNumericField T="int" Label="MD width" @bind-Value="surveyImportMDWidth" Min="1" Immediate="true" />
+                            </MudItem>
+                            <MudItem xs="12" md="2">
+                                <MudNumericField T="int" Label="Incl start" @bind-Value="surveyImportInclinationStart" Min="1" Immediate="true" />
+                            </MudItem>
+                            <MudItem xs="12" md="2">
+                                <MudNumericField T="int" Label="Incl width" @bind-Value="surveyImportInclinationWidth" Min="1" Immediate="true" />
+                            </MudItem>
+                            <MudItem xs="12" md="2">
+                                <MudNumericField T="int" Label="Az start" @bind-Value="surveyImportAzimuthStart" Min="1" Immediate="true" />
+                            </MudItem>
+                            <MudItem xs="12" md="2">
+                                <MudNumericField T="int" Label="Az width" @bind-Value="surveyImportAzimuthWidth" Min="1" Immediate="true" />
+                            </MudItem>
+                        }
+                        <MudItem xs="12" md="3" Class="d-flex align-center">
+                            <MudButton OnClick="ImportSurveyStationsAsync" Color="Color.Primary" Variant="Variant.Filled">Import</MudButton>
+                        </MudItem>
+                    </MudGrid>
+                </MudPaper>
                 <MudToolBar>
                     <MudText Typo="Typo.h6">Survey stations</MudText>
                     <MudSpacer />
+                    <MudButton OnClick="ExportSurveyStationsAsync" Color="@Color.Primary" Variant="Variant.Outlined" Class="add-item-btn">Export</MudButton>
                     <MudButton OnClick="@AddSurveyStation" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
                     <MudButton OnClick="@DeleteSurveyStations" Color="@Color.Error" Class="add-item-btn">Delete</MudButton>
                 </MudToolBar>
@@ -53,7 +198,7 @@
                           Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true">
                     <HeaderContent>
                         <MudTHeadRow IsCheckable="true">
-                            <MudTh>Measured Depth [@Parent.GetUnitLabel("DepthDrilling")]</MudTh>
+                            <MudTh>Measured Depth [@Parent.GetDepthUnitLabel("DepthDrilling")]</MudTh>
                             <MudTh>Inclination [@Parent.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
                             <MudTh>Azimuth [@Parent.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
                             <MudTh /><MudTh /><MudTh />
@@ -62,6 +207,7 @@
                     <RowTemplate>
                         <MudTd DataLabel="Measured Depth">
                             <MudInputWithUnit QuantityName="DepthDrilling"
+                                              DrillingSignalReference="@DrillingSignalReferenceType.Depth"
                                               SIValueNullable="@context.MD"
                                               SIValueNullableChanged="@(val => context.MD = val)" />
                         </MudTd>
@@ -83,28 +229,70 @@
                 <MudText>No survey stations</MudText>
             }
         </MudExpansionPanel>
-        @* Interpolated trajectory *@
-        <MudExpansionPanel Text="Interpolated trajectory" IsExpandedChanged="@OnInterpolExpandedChanged">
-            @if (traj.InterpolatedTrajectory is { } spList)
+        @* Calculated trajectory *@
+            <MudExpansionPanel Text="Calculated trajectory">
+            <MudToolBar>
+                <MudText Typo="Typo.h6">Calculated trajectory</MudText>
+                <MudSpacer />
+                <MudButton OnClick="ExportCalculatedTrajectoryAsync" Color="@Color.Primary" Variant="Variant.Outlined">Export</MudButton>
+            </MudToolBar>
+            <MudGrid Class="mb-4">
+                <MudItem xs="12" md="5">
+                    <MudSelect T="TrajectoryCalculationType" Label="Trajectory calculation type" Value="@traj.CalculationType" ValueChanged="OnCalculationTypeChanged" ShrinkLabel>
+                        @foreach (TrajectoryCalculationType method in TrajectoryCalculationTypes)
+                        {
+                            <MudSelectItem T="TrajectoryCalculationType" Value="@method">@GetCalculationMethodLabel(method)</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+            @if (CalculatedTieInPoint is { } tieInPoint)
             {
-                <MudToolBar>
-                    <MudText Typo="Typo.h6">Interpolated trajectory</MudText>
-                </MudToolBar>
-                <MudTable Items="@spList" T="SurveyPoint" Height="400px" FixedHeader="true"
-                          Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true">
+                <MudGrid Class="mb-4">
+                    <MudItem xs="12">
+                        <MudText Typo="Typo.subtitle1">Tie in point</MudText>
+                    </MudItem>
+                    <MudItem xs="6" md="2">
+                        <MudText>Measured Depth: @FormatDepthValue(tieInPoint.MD)</MudText>
+                    </MudItem>
+                    <MudItem xs="6" md="2">
+                        <MudText>Inclination: @FormatAngleValue(tieInPoint.Inclination)</MudText>
+                    </MudItem>
+                    <MudItem xs="6" md="2">
+                        <MudText>Azimuth: @FormatAngleValue(tieInPoint.Azimuth)</MudText>
+                    </MudItem>
+                    <MudItem xs="6" md="2">
+                        <MudText>Vertical Depth: @FormatDepthValue(tieInPoint.TVD)</MudText>
+                    </MudItem>
+                    <MudItem xs="6" md="2">
+                        <MudText>@NorthCoordinateLabel: @FormatPositionValue(tieInPoint.RiemannianNorth, PositionDirectionType.North)</MudText>
+                    </MudItem>
+                    <MudItem xs="6" md="2">
+                        <MudText>@EastCoordinateLabel: @FormatPositionValue(tieInPoint.RiemannianEast, PositionDirectionType.East)</MudText>
+                    </MudItem>
+                </MudGrid>
+            }
+            @if (traj.SurveyStationList is { Count: > 0 } calculatedList)
+            {
+                <MudTable Items="@calculatedList" T="SurveyStation" Height="400px" FixedHeader="true"
+                          Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" ReadOnly="true">
                     <HeaderContent>
                         <MudTHeadRow>
-                            <MudTh>Measured Depth [@Parent.GetUnitLabel("DepthDrilling")]</MudTh>
-                            <MudTh>Inclination [@Parent.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
-                            <MudTh>Azimuth [@Parent.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
-                            <MudTh>Riemannian North [@Parent.GetUnitLabel("PositionDrilling")]</MudTh>
-                            <MudTh>Riemannian East [@Parent.GetUnitLabel("PositionDrilling")]</MudTh>
-                            <MudTh>TVD [@Parent.GetUnitLabel("DepthDrilling")]</MudTh>
+                            <MudTh>Measured Depth [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
+                            <MudTh>Inclination [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                            <MudTh>Azimuth [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                            <MudTh>Vertical Depth [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
+                            <MudTh>@NorthCoordinateLabel [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                            <MudTh>@EastCoordinateLabel [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                            <MudTh>Vertical Section [@Parent?.GetUnitLabel("DepthDrilling")]</MudTh>
+                            <MudTh>Curvature [@Parent?.GetUnitLabel("CurvatureDrilling")]</MudTh>
+                            <MudTh>BUR [@Parent?.GetUnitLabel("CurvatureDrilling")]</MudTh>
+                            <MudTh>TR [@Parent?.GetUnitLabel("CurvatureDrilling")]</MudTh>
                         </MudTHeadRow>
                     </HeaderContent>
                     <RowTemplate>
                         <MudTd DataLabel="Measured Depth">
-                            <MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.MD" />
+                            <MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.MD" />
                         </MudTd>
                         <MudTd DataLabel="Inclination">
                             <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Inclination" />
@@ -112,43 +300,79 @@
                         <MudTd DataLabel="Azimuth">
                             <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Azimuth" />
                         </MudTd>
-                        <MudTd DataLabel="Riemannian North">
-                            <MudSpanWithUnit QuantityName="PositionDrilling" SIValue="@context.RiemannianNorth" />
+                        <MudTd DataLabel="Vertical Depth">
+                            <MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.TVD" />
                         </MudTd>
-                        <MudTd DataLabel="Riemannian East">
-                            <MudSpanWithUnit QuantityName="PositionDrilling" SIValue="@context.RiemannianEast" />
+                        <MudTd DataLabel="@NorthCoordinateLabel">
+                            <MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Position" PositionDirection="@PositionDirectionType.North" SIValue="@context.RiemannianNorth" />
                         </MudTd>
-                        <MudTd DataLabel="TVD">
-                            <MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.TVD" />
+                        <MudTd DataLabel="@EastCoordinateLabel">
+                            <MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Position" PositionDirection="@PositionDirectionType.East" SIValue="@context.RiemannianEast" />
+                        </MudTd>
+                        <MudTd DataLabel="Vertical Section">
+                            <MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.VerticalSection" />
+                        </MudTd>
+                        <MudTd DataLabel="Curvature">
+                            <MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.Curvature" />
+                        </MudTd>
+                        <MudTd DataLabel="BUR">
+                            <MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.BUR" />
+                        </MudTd>
+                        <MudTd DataLabel="TR">
+                            <MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.TUR" />
                         </MudTd>
                     </RowTemplate>
                 </MudTable>
             }
             else
             {
-                <MudText>No interpolated trajectory</MudText>
+                <MudText>No calculated trajectory</MudText>
             }
         </MudExpansionPanel>
         @* Plot trajectory *@
         <MudExpansionPanel Text="Plot trajectory" IsExpandedChanged="@OnPlotExpandedChanged"
                            Style="overflow: visible;">
-            @if (traj.SurveyStationList is { } ssList && traj.InterpolatedTrajectory is { } spList)
+            @if (traj.SurveyStationList is { } ssList)
             {
                 <MudToolBar>
                     <MudText Typo="Typo.h6">Plot</MudText>
                 </MudToolBar>
-                @* Major flaw in the visualization here: 
-                        Scatter plot 3D representation assumes coordinates are expressed in an Euclidean space, which is not the case with Riemannian coordinates.
-                        Ideally, XYZ coordinates should represent Euclidean coordinates in an Earth fixed system (Earth-centered, or arbitrary reference point-centered)
-                    *@
                 <MudGrid Justify="Justify.Center">
                     <MudItem xs="12">
                         <Scatter3DPlot NameList="@nameList" ModeFlagList="@modeFlagList" ColorList="@colorList"
                                        XValuesList="@northValuesList" YValuesList="@eastValuesList" ZValuesList="@TVDValuesList"
                                        YAxisReversed="@true" ZAxisReversed="@true"
-                                       PlotTitle="" XAxisTitle="North" YAxisTitle="East" ZAxisTitle="TVD"
-                                       XUnit="PositionDrilling" YUnit="PositionDrilling" ZUnit="DepthDrilling">
+                                       PlotTitle="" XAxisTitle="@NorthCoordinateLabel" YAxisTitle="@EastCoordinateLabel" ZAxisTitle="TVD"
+                                       XUnit="PositionDrilling" YUnit="PositionDrilling" ZUnit="DepthDrilling"
+                                       XAxisUsesPositionReference="@true"
+                                       YAxisUsesPositionReference="@true"
+                                       ZAxisUsesDepthReference="@true"
+                                       XAxisPositionDirection="@PositionDirectionType.North"
+                                       YAxisPositionDirection="@PositionDirectionType.East">
                         </Scatter3DPlot>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <ScatterPlot NameList="@nameList" ModeFlagList="@modeFlagList" ColorList="@colorList"
+                                     XValuesList="@eastValuesList" YValuesList="@northValuesList"
+                                     PlotTitle="" XAxisTitle="@EastCoordinateLabel" YAxisTitle="@NorthCoordinateLabel"
+                                     XUnit="PositionDrilling" YUnit="PositionDrilling"
+                                     XAxisUsesPositionReference="@true"
+                                     YAxisUsesPositionReference="@true"
+                                     XAxisPositionDirection="@PositionDirectionType.East"
+                                     YAxisPositionDirection="@PositionDirectionType.North"
+                                     AspectRatio="1">
+                        </ScatterPlot>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <ScatterPlot NameList="@nameList" ModeFlagList="@modeFlagList" ColorList="@colorList"
+                                     XValuesList="@verticalSectionValuesList" YValuesList="@TVDValuesList"
+                                     PlotTitle="" XAxisTitle="Vertical Section" YAxisTitle="TVD"
+                                     XUnit="DepthDrilling" YUnit="DepthDrilling"
+                                     XAxisStartsAtZero="@true"
+                                     YAxisUsesDepthReference="@true"
+                                     YAxisReversed="@true"
+                                     AspectRatio="1">
+                        </ScatterPlot>
                     </MudItem>
                 </MudGrid>
             }
@@ -166,7 +390,17 @@
     [Parameter]
     public Guid? TrajectoryId { get; set; }
     [Parameter]
+    public List<Rig>? RigList { get; set; }
+    [Parameter]
+    public List<WellBoreArchitectureLight>? WellBoreArchitectureList { get; set; }
+    [Parameter]
     public List<WellBore>? WellBoreList { get; set; }
+    [Parameter]
+    public List<Well>? WellList { get; set; }
+    [Parameter]
+    public List<Cluster>? ClusterList { get; set; }
+    [Parameter]
+    public List<Field>? FieldList { get; set; }
     [Parameter]
     public EventCallback ValueChanged { get; set; }
 
@@ -175,6 +409,45 @@
     private bool isSurveyExpanded = false;
     private bool isInterpolExpanded = false;
     private bool isPlotExpanded = false;
+    private Guid? selectedFieldId;
+    private Guid? selectedClusterId;
+    private Guid? selectedWellId;
+    private Guid? selectedWellBoreId;
+    private static readonly TrajectoryCalculationType[] TrajectoryCalculationTypes = Enum.GetValues<TrajectoryCalculationType>();
+    private static readonly string[] CalculationMethods =
+    [
+        "Minimum Curvature Method",
+        "Constant Build and Turn Rates",
+        "Constant Curvature and Toolface"
+    ];
+    private bool interpolateAtCasingAndLinerShoeDepths;
+    private bool interpolateAtLinerHangingDepths;
+    private bool interpolateAtCasingDiameterChangeDepths;
+    private double? supplementaryInterpolationDepthInput;
+    private List<double> supplementaryInterpolationDepths = [];
+    private IBrowserFile? surveyImportFile;
+    private string surveyImportFileName = "No file selected";
+    private string selectedSurveyImportFormat = "Separated";
+    private static readonly string[] SurveyImportFormats = ["Separated", "Fixed width"];
+    private string selectedSurveyImportSeparator = "Semicolon (;)";
+    private static readonly string[] SurveyImportSeparators = ["Semicolon (;)", "Tab", "Space"];
+    private string selectedSurveyImportDecimalMarker = "Auto";
+    private static readonly string[] SurveyImportDecimalMarkers = ["Auto", "Dot (.)", "Comma (,)"];
+    private string selectedSurveyImportMDUnit = string.Empty;
+    private string selectedSurveyImportInclinationUnit = string.Empty;
+    private string selectedSurveyImportAzimuthUnit = string.Empty;
+    private int surveyImportMDColumn = 1;
+    private int surveyImportInclinationColumn = 2;
+    private int surveyImportAzimuthColumn = 3;
+    private int surveyImportMDStart = 1;
+    private int surveyImportMDWidth = 12;
+    private int surveyImportInclinationStart = 13;
+    private int surveyImportInclinationWidth = 12;
+    private int surveyImportAzimuthStart = 25;
+    private int surveyImportAzimuthWidth = 12;
+    private string selectedInterpolatedCalculationMethod = "Minimum Curvature Method";
+    private List<WellBoreArchitecture>? wellBoreArchitectureHeavyList;
+    private bool isLoadingWellBoreArchitectureData;
 
     // Plot variables
     string[] colorScale = { "black", "blue", "grey", "red", "orange", "green", "yellow", "pink", "brown", "purple" };
@@ -184,6 +457,7 @@
     List<List<object>> northValuesList = new List<List<object>>(); //North values for the list of curves to plot
     List<List<object>> eastValuesList = new List<List<object>>(); //East values for the list of curves to plot
     List<List<object>> TVDValuesList = new List<List<object>>(); //TVD values for the list of curves to plot
+    List<List<object>> verticalSectionValuesList = new List<List<object>>(); //Vertical section values for the list of curves to plot
 
     // Lifecycle
     protected override async Task OnInitializedAsync()
@@ -199,6 +473,12 @@
     {
         try
         {
+            supplementaryInterpolationDepthInput = null;
+            supplementaryInterpolationDepths.Clear();
+            interpolateAtCasingAndLinerShoeDepths = false;
+            interpolateAtLinerHangingDepths = false;
+            interpolateAtCasingDiameterChangeDepths = false;
+
             if (WellBoreList == null || WellBoreList.Count == 0)
             {
                 logger.LogError("No wellbore available on loading/initialization of trajectory");
@@ -212,6 +492,8 @@
             {
                 await InitializeTrajectoryAsync(currentTrajectory);
             }
+            SyncSelectorsFromWellBore(currentTrajectory.WellBoreID);
+            EnsureSurveyImportUnitsSelected();
         }
         catch (Exception ex)
         {
@@ -235,6 +517,7 @@
         {
             if (currentTrajectory is { } && IsValidTrajectory(currentTrajectory))
             {
+                ApplySelectedContext();
                 if (TrajectoryId != null)
                 {
                     currentTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
@@ -297,9 +580,13 @@
     /// Tracks interpolated-trajectory panel state.
     /// No StateHasChanged needed here — MudTable renders fine without a JS interop init.
     /// </summary>
-    private void OnInterpolExpandedChanged(bool expanded)
+    private async Task OnInterpolExpandedChanged(bool expanded)
     {
         isInterpolExpanded = expanded;
+        if (expanded)
+        {
+            await EnsureWellBoreArchitectureDataLoadedAsync();
+        }
     }
 
     /// <summary>
@@ -318,10 +605,963 @@
         }
     }
 
-    private void UpdateWellBoreSelection(Guid wellBoreId)
+    private bool IsDelimitedImportFormat => selectedSurveyImportFormat == "Separated";
+
+    private bool IsFixedWidthImportFormat => selectedSurveyImportFormat == "Fixed width";
+
+    private List<string> AvailableSurveyImportDepthUnits =>
+        GetAvailableSurveyImportUnits(OSDC.UnitConversion.Conversion.DrillingEngineering.DepthDrillingQuantity.UnitChoiceDescriptions);
+
+    private List<string> AvailableSurveyImportAngleUnits =>
+        GetAvailableSurveyImportUnits(OSDC.UnitConversion.Conversion.DrillingEngineering.PlaneAngleDrillingQuantity.UnitChoiceDescriptions);
+
+    private List
+<Field> AvailableFields =>
+        FieldList?
+            .Where(field => field?.MetaInfo != null)
+            .OrderBy(field => field.Name)
+            .ToList() ?? [];
+
+    private List<Cluster> AvailableClusters =>
+        ClusterList?
+            .Where(cluster =>
+                cluster?.MetaInfo != null &&
+                !cluster.IsSingleWell &&
+                (selectedFieldId == null || cluster.FieldID == selectedFieldId))
+            .OrderBy(cluster => cluster.Name)
+            .ToList() ?? [];
+
+    private List<Well> AvailableWells =>
+        WellList?
+            .Where(well =>
+                well?.MetaInfo != null &&
+                (selectedFieldId == null || MatchesSelectedField(well)) &&
+                (selectedClusterId == null || well.IsSingleWell || well.ClusterID == selectedClusterId))
+            .OrderBy(well => well.Name)
+            .ToList() ?? [];
+
+    private List<WellBore> AvailableWellBores =>
+        WellBoreList?
+            .Where(wb =>
+                wb?.MetaInfo != null &&
+                (selectedWellId == null || wb.WellID == selectedWellId))
+            .OrderBy(wb => wb.Name)
+            .ToList() ?? [];
+
+    private Task OnFieldChanged(Guid? fieldId)
     {
-        currentTrajectory.WellBoreID = wellBoreId;
+        selectedFieldId = fieldId;
+
+        if (selectedClusterId != null && !AvailableClusters.Any(cluster => cluster.MetaInfo.ID == selectedClusterId))
+        {
+            selectedClusterId = null;
+        }
+
+        if (selectedWellId != null && !AvailableWells.Any(well => well.MetaInfo.ID == selectedWellId))
+        {
+            selectedWellId = null;
+        }
+
+        if (selectedWellId == null)
+        {
+            selectedWellBoreId = null;
+        }
+        else if (selectedWellBoreId != null && !AvailableWellBores.Any(wb => wb.MetaInfo.ID == selectedWellBoreId))
+        {
+            selectedWellBoreId = null;
+        }
+
+        ApplySelectedContext();
+        return Task.CompletedTask;
     }
+
+    private Task OnClusterChanged(Guid? clusterId)
+    {
+        selectedClusterId = clusterId;
+
+        if (selectedWellId is Guid wellId)
+        {
+            Well? selectedWell = FindWellById(wellId);
+            if (selectedWell == null || (!selectedWell.IsSingleWell && selectedWell.ClusterID != selectedClusterId))
+            {
+                selectedWellId = null;
+                selectedWellBoreId = null;
+            }
+        }
+
+        ApplySelectedContext();
+        return Task.CompletedTask;
+    }
+
+    private Task OnWellChanged(Guid? wellId)
+    {
+        selectedWellId = wellId;
+
+        if (selectedWellId is Guid selectedId)
+        {
+            Well? selectedWell = FindWellById(selectedId);
+            if (selectedWell != null)
+            {
+                selectedClusterId = selectedWell.IsSingleWell ? null : selectedWell.ClusterID;
+                selectedFieldId ??= FindFieldIdForWell(selectedWell);
+            }
+        }
+        else
+        {
+            selectedWellBoreId = null;
+        }
+
+        if (selectedWellBoreId != null && !AvailableWellBores.Any(wb => wb.MetaInfo.ID == selectedWellBoreId))
+        {
+            selectedWellBoreId = AvailableWellBores.FirstOrDefault()?.MetaInfo.ID;
+        }
+
+        ApplySelectedContext();
+        return Task.CompletedTask;
+    }
+
+    private Task OnWellBoreChanged(Guid? wellBoreId)
+    {
+        selectedWellBoreId = wellBoreId;
+        ApplySelectedContext();
+
+        if (wellBoreId is Guid selectedId)
+        {
+            SyncSelectorsFromWellBore(selectedId);
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void ApplySelectedContext()
+    {
+        currentTrajectory.FieldID = selectedFieldId;
+        currentTrajectory.ClusterID = selectedClusterId;
+        currentTrajectory.WellID = selectedWellId;
+        currentTrajectory.WellBoreID = selectedWellBoreId ?? Guid.Empty;
+    }
+
+    private void SyncSelectorsFromWellBore(Guid wellBoreId)
+    {
+        selectedWellBoreId = null;
+        selectedWellId = null;
+        selectedClusterId = null;
+        selectedFieldId = null;
+
+        if (wellBoreId == Guid.Empty)
+        {
+            currentTrajectory.FieldID = null;
+            currentTrajectory.ClusterID = null;
+            currentTrajectory.WellID = null;
+            currentTrajectory.WellBoreID = Guid.Empty;
+            return;
+        }
+
+        WellBore? wellBore = FindWellBoreById(wellBoreId);
+        Well? well = wellBore?.WellID is Guid selectedWellIdValue ? FindWellById(selectedWellIdValue) : null;
+        Cluster? cluster = well?.ClusterID is Guid selectedClusterIdValue ? FindClusterById(selectedClusterIdValue) : null;
+
+        selectedWellBoreId = wellBore?.MetaInfo.ID;
+        selectedWellId = well?.MetaInfo.ID;
+        selectedClusterId = well is { IsSingleWell: true } ? null : cluster?.MetaInfo.ID;
+        selectedFieldId = cluster?.FieldID ?? FindFieldIdForWell(well);
+
+        ApplySelectedContext();
+    }
+
+    private bool MatchesSelectedField(Well well)
+    {
+        if (selectedFieldId == null)
+        {
+            return true;
+        }
+
+        Guid? fieldId = FindFieldIdForWell(well);
+        return fieldId == selectedFieldId;
+    }
+
+    private Guid? FindFieldIdForWell(Well? well)
+    {
+        if (well?.ClusterID is Guid clusterId)
+        {
+            return FindClusterById(clusterId)?.FieldID;
+        }
+
+        return null;
+    }
+
+    private Well? FindWellById(Guid wellId) =>
+        WellList?.FirstOrDefault(well => well?.MetaInfo?.ID == wellId);
+
+    private Cluster? FindClusterById(Guid clusterId) =>
+        ClusterList?.FirstOrDefault(cluster => cluster?.MetaInfo?.ID == clusterId);
+
+    private WellBore? FindWellBoreById(Guid wellBoreId) =>
+        WellBoreList?.FirstOrDefault(wb => wb?.MetaInfo?.ID == wellBoreId);
+
+    private static string FormatDate(DateTimeOffset? value) =>
+        value?.ToString("yyyy-MM-dd HH:mm") ?? string.Empty;
+    private string AssociatedWellBoreArchitectureName =>
+        currentTrajectory.WellBoreID != Guid.Empty
+            ? wellBoreArchitectureHeavyList == null
+                ? (isLoadingWellBoreArchitectureData ? "Loading..." : "NA")
+                : wellBoreArchitectureHeavyList
+                    .FirstOrDefault(architecture => architecture?.WellBoreID == currentTrajectory.WellBoreID)?
+                    .Name ?? "NA"
+            : "NA";
+    private string AssociatedRigName
+    {
+        get
+        {
+            WellBore? wellBore = FindWellBoreById(currentTrajectory.WellBoreID);
+            Guid? rigId = wellBore?.RigID;
+
+            if (rigId == null && wellBore?.WellID is Guid wellId)
+            {
+                Well? well = FindWellById(wellId);
+                if (well?.ClusterID is Guid clusterId)
+                {
+                    rigId = FindClusterById(clusterId)?.RigID;
+                }
+            }
+
+            return rigId is Guid resolvedRigId
+                ? RigList?.FirstOrDefault(rig => rig?.MetaInfo?.ID == resolvedRigId)?.Name ?? "NA"
+                : "NA";
+        }
+    }
+    private SurveyPoint? CalculatedTieInPoint =>
+        currentTrajectory.InterpolatedTrajectory?
+            .OrderBy(point => point.MD ?? double.MaxValue)
+            .FirstOrDefault();
+    private List<SurveyPoint> InterpolatedTrajectoryDisplayList => BuildInterpolatedTrajectoryDisplayList();
+
+    private void AddSupplementaryInterpolationDepth()
+    {
+        if (supplementaryInterpolationDepthInput is not { } depth || depth < 0)
+        {
+            Snackbar.Add("Supplementary interpolation depth must be a positive value", Severity.Warning);
+            return;
+        }
+
+        if (!supplementaryInterpolationDepths.Any(existingDepth => Math.Abs(existingDepth - depth) < 1e-6))
+        {
+            supplementaryInterpolationDepths.Add(depth);
+            supplementaryInterpolationDepths.Sort();
+        }
+
+        supplementaryInterpolationDepthInput = null;
+    }
+
+    private void OnSurveyImportFileChanged(InputFileChangeEventArgs args)
+    {
+        surveyImportFile = args.File;
+        surveyImportFileName = surveyImportFile?.Name ?? "No file selected";
+    }
+
+    private void EnsureSurveyImportUnitsSelected()
+    {
+        string preferredDepthUnit = Parent?.GetUnitChoice("DepthDrilling")?.UnitName ?? string.Empty;
+        string preferredAngleUnit = Parent?.GetUnitChoice("PlaneAngleDrilling")?.UnitName ?? string.Empty;
+
+        if (string.IsNullOrWhiteSpace(selectedSurveyImportMDUnit) || !AvailableSurveyImportDepthUnits.Contains(selectedSurveyImportMDUnit))
+        {
+            selectedSurveyImportMDUnit = AvailableSurveyImportDepthUnits.Contains(preferredDepthUnit)
+                ? preferredDepthUnit
+                : AvailableSurveyImportDepthUnits.FirstOrDefault() ?? selectedSurveyImportMDUnit;
+        }
+
+        if (string.IsNullOrWhiteSpace(selectedSurveyImportInclinationUnit) || !AvailableSurveyImportAngleUnits.Contains(selectedSurveyImportInclinationUnit))
+        {
+            selectedSurveyImportInclinationUnit = AvailableSurveyImportAngleUnits.Contains(preferredAngleUnit)
+                ? preferredAngleUnit
+                : AvailableSurveyImportAngleUnits.FirstOrDefault() ?? selectedSurveyImportInclinationUnit;
+        }
+
+        if (string.IsNullOrWhiteSpace(selectedSurveyImportAzimuthUnit) || !AvailableSurveyImportAngleUnits.Contains(selectedSurveyImportAzimuthUnit))
+        {
+            selectedSurveyImportAzimuthUnit = AvailableSurveyImportAngleUnits.Contains(preferredAngleUnit)
+                ? preferredAngleUnit
+                : AvailableSurveyImportAngleUnits.FirstOrDefault() ?? selectedSurveyImportAzimuthUnit;
+        }
+    }
+
+    private async Task ImportSurveyStationsAsync()
+    {
+        if (surveyImportFile == null)
+        {
+            Snackbar.Add("Select a survey file before importing", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            using System.IO.Stream stream = surveyImportFile.OpenReadStream(10 * 1024 * 1024);
+            using System.IO.StreamReader reader = new(stream);
+            string content = await reader.ReadToEndAsync();
+            string[] lines = content.Split(["\r\n", "\n", "\r"], StringSplitOptions.None);
+
+            List<SurveyStation> importedStations = [];
+            int skippedLines = 0;
+            double? previousMD = null;
+
+            foreach (string line in lines)
+            {
+                if (!TryParseSurveyStationLine(line, out SurveyStation? station))
+                {
+                    skippedLines++;
+                    continue;
+                }
+
+                if (station?.MD is not { } md)
+                {
+                    skippedLines++;
+                    continue;
+                }
+
+                if (previousMD is { } lastMD && md <= lastMD)
+                {
+                    skippedLines++;
+                    continue;
+                }
+
+                importedStations.Add(station);
+                previousMD = md;
+            }
+
+            if (importedStations.Count < 3)
+            {
+                Snackbar.Add("Survey import failed: fewer than 3 valid survey stations were found", Severity.Warning);
+                return;
+            }
+
+            currentTrajectory.SurveyStationList = importedStations;
+            currentTrajectory.InterpolatedTrajectory = null;
+            selectedSurveyStations.Clear();
+            UpdatePlots();
+            Snackbar.Add($"Imported {importedStations.Count} survey stations. Skipped {skippedLines} lines.", Severity.Success);
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error importing survey stations");
+            Snackbar.Add("Error importing survey stations: " + ex.Message, Severity.Warning);
+        }
+    }
+
+    private bool TryParseSurveyStationLine(string line, out SurveyStation? station)
+    {
+        station = null;
+        if (string.IsNullOrWhiteSpace(line))
+        {
+            return false;
+        }
+
+        string? mdToken;
+        string? inclinationToken;
+        string? azimuthToken;
+
+        if (IsFixedWidthImportFormat)
+        {
+            mdToken = ReadFixedWidthToken(line, surveyImportMDStart, surveyImportMDWidth);
+            inclinationToken = ReadFixedWidthToken(line, surveyImportInclinationStart, surveyImportInclinationWidth);
+            azimuthToken = ReadFixedWidthToken(line, surveyImportAzimuthStart, surveyImportAzimuthWidth);
+        }
+        else
+        {
+            List<string> columns = SplitDelimitedColumns(line);
+            mdToken = ReadColumnToken(columns, surveyImportMDColumn);
+            inclinationToken = ReadColumnToken(columns, surveyImportInclinationColumn);
+            azimuthToken = ReadColumnToken(columns, surveyImportAzimuthColumn);
+        }
+
+        if (!TryParseImportedNumber(mdToken, out double md) ||
+            !TryParseImportedNumber(inclinationToken, out double inclination) ||
+            !TryParseImportedNumber(azimuthToken, out double azimuth))
+        {
+            return false;
+        }
+
+        station = new SurveyStation
+        {
+            MD = ConvertDepthToSI(md, selectedSurveyImportMDUnit),
+            Inclination = ConvertAngleToSI(inclination, selectedSurveyImportInclinationUnit),
+            Azimuth = ConvertAngleToSI(azimuth, selectedSurveyImportAzimuthUnit)
+        };
+        return true;
+    }
+
+    private List<string> SplitDelimitedColumns(string line)
+    {
+        return selectedSurveyImportSeparator switch
+        {
+            "Semicolon (;)" => line.Split(';').Select(value => value.Trim()).ToList(),
+            "Tab" => line.Split('\t').Select(value => value.Trim()).ToList(),
+            "Space" => Regex.Split(line.Trim(), @"\s+").Where(value => !string.IsNullOrWhiteSpace(value)).ToList(),
+            _ => line.Split(';').Select(value => value.Trim()).ToList()
+        };
+    }
+
+    private static string? ReadColumnToken(List<string> columns, int columnIndex)
+    {
+        if (columnIndex < 1 || columnIndex > columns.Count)
+        {
+            return null;
+        }
+
+        return columns[columnIndex - 1];
+    }
+
+    private static string? ReadFixedWidthToken(string line, int start, int width)
+    {
+        if (start < 1 || width < 1)
+        {
+            return null;
+        }
+
+        int zeroBasedStart = start - 1;
+        if (zeroBasedStart >= line.Length)
+        {
+            return null;
+        }
+
+        int safeWidth = Math.Min(width, line.Length - zeroBasedStart);
+        return line.Substring(zeroBasedStart, safeWidth).Trim();
+    }
+
+    private bool TryParseImportedNumber(string? token, out double value)
+    {
+        value = 0;
+        if (string.IsNullOrWhiteSpace(token))
+        {
+            return false;
+        }
+
+        string normalized = token.Trim();
+
+        if (selectedSurveyImportDecimalMarker == "Dot (.)")
+        {
+            normalized = normalized.Replace(",", string.Empty);
+        }
+        else if (selectedSurveyImportDecimalMarker == "Comma (,)")
+        {
+            normalized = normalized.Replace(".", string.Empty).Replace(',', '.');
+        }
+        else
+        {
+            normalized = NormalizeAutoDecimalNumber(normalized);
+        }
+
+        return double.TryParse(normalized, NumberStyles.Float | NumberStyles.AllowLeadingSign, CultureInfo.InvariantCulture, out value);
+    }
+
+    private static string NormalizeAutoDecimalNumber(string token)
+    {
+        int lastComma = token.LastIndexOf(',');
+        int lastDot = token.LastIndexOf('.');
+
+        if (lastComma >= 0 && lastDot >= 0)
+        {
+            if (lastComma > lastDot)
+            {
+                return token.Replace(".", string.Empty).Replace(',', '.');
+            }
+
+            return token.Replace(",", string.Empty);
+        }
+
+        if (lastComma >= 0)
+        {
+            return token.Replace(',', '.');
+        }
+
+        return token;
+    }
+
+    private List<string> GetAvailableSurveyImportUnits(List<OSDC.UnitConversion.Conversion.UnitChoice> unitChoices)
+    {
+        HashSet<string> unitLabels = new(StringComparer.OrdinalIgnoreCase);
+        foreach (var c in unitChoices)
+        {
+            if (c != null && !string.IsNullOrEmpty(c.UnitName))
+            {
+                unitLabels.Add(c.UnitName);
+            }
+        }
+        return unitLabels
+            .Where(label => !string.IsNullOrWhiteSpace(label))
+            .OrderBy(label => label, StringComparer.OrdinalIgnoreCase)
+            .ToList();
+    }
+
+    private double ConvertDepthToSI(double value, string unit)
+    {
+        // 1) convert the value from external unit to SI
+        OSDC.UnitConversion.Conversion.UnitChoice? unitChoice = null;
+        foreach (var c in OSDC.UnitConversion.Conversion.DrillingEngineering.DepthDrillingQuantity.UnitChoiceDescriptions)
+        {
+            if (c != null && c.UnitName == unit)
+            {
+                unitChoice = c;
+                break;
+            }
+        }
+        if (unitChoice != null)
+        {
+            value = OSDC.UnitConversion.Conversion.DrillingEngineering.DepthDrillingQuantity.Instance.ToSI(value, unitChoice.ID);
+        }
+        if (Parent != null)
+        {
+            // 2) convert the value from SI to webapp unit without using references
+            value = Parent.FromSI(value, "DepthDrilling");
+            // 3) convert the value from webapp unit to SI using references
+            value = Parent.ToWGS84DepthSI(value, "DepthDrilling");
+        }
+        return value;
+    }
+
+    private static double ConvertAngleToSI(double value, string unit)
+    {
+        OSDC.UnitConversion.Conversion.UnitChoice? unitChoice = null;
+        foreach (var c in OSDC.UnitConversion.Conversion.DrillingEngineering.PlaneAngleDrillingQuantity.UnitChoiceDescriptions)
+        {
+            if (c != null && c.UnitName == unit)
+            {
+                unitChoice = c;
+                break;
+            }
+        }
+        if (unitChoice != null)
+        {
+            value = OSDC.UnitConversion.Conversion.DrillingEngineering.PlaneAngleDrillingQuantity.Instance.ToSI(value, unitChoice.ID);
+        }
+        return value;
+    }
+
+    private void RemoveSupplementaryInterpolationDepth(double depth)
+    {
+        supplementaryInterpolationDepths.Remove(depth);
+    }
+
+    private Task OnCalculationTypeChanged(TrajectoryCalculationType calculationType)
+    {
+        if (currentTrajectory.CalculationType == calculationType)
+        {
+            return Task.CompletedTask;
+        }
+
+        currentTrajectory.CalculationType = calculationType;
+        ClearCalculatedTrajectoryData();
+        UpdatePlots();
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private void ClearCalculatedTrajectoryData()
+    {
+        if (currentTrajectory.SurveyStationList is { Count: > 0 })
+        {
+            foreach (SurveyStation station in currentTrajectory.SurveyStationList)
+            {
+                station.TVD = null;
+                station.RiemannianNorth = null;
+                station.RiemannianEast = null;
+                station.VerticalSection = null;
+                station.Curvature = null;
+                station.BUR = null;
+                station.TUR = null;
+            }
+        }
+
+        currentTrajectory.InterpolatedTrajectory = null;
+    }
+
+    private List<double> GetRequestedInterpolationDepths()
+    {
+        List<double> depths = new(supplementaryInterpolationDepths);
+
+        // Depth extraction from wellbore architecture will be connected later.
+        if (interpolateAtCasingAndLinerShoeDepths || interpolateAtLinerHangingDepths || interpolateAtCasingDiameterChangeDepths)
+        {
+        }
+
+        return depths
+            .Where(depth => depth >= 0)
+            .Distinct()
+            .OrderBy(depth => depth)
+            .ToList();
+    }
+
+    private List<SurveyPoint> BuildInterpolatedTrajectoryDisplayList()
+    {
+        List<SurveyPoint> basePoints = currentTrajectory.InterpolatedTrajectory?
+            .OrderBy(point => point.MD ?? double.MaxValue)
+            .Select(CloneSurveyPoint)
+            .ToList() ?? [];
+
+        if (basePoints.Count == 0)
+        {
+            return basePoints;
+        }
+
+        foreach (double depth in GetRequestedInterpolationDepths())
+        {
+            if (basePoints.Any(point => point.MD is { } pointDepth && Math.Abs(pointDepth - depth) < 1e-6))
+            {
+                continue;
+            }
+
+            SurveyPoint? interpolatedPoint = InterpolateDisplayPoint(basePoints, depth);
+            if (interpolatedPoint != null)
+            {
+                basePoints.Add(interpolatedPoint);
+            }
+        }
+
+        return basePoints
+            .OrderBy(point => point.MD ?? double.MaxValue)
+            .ToList();
+    }
+
+    private static SurveyPoint? InterpolateDisplayPoint(List<SurveyPoint> points, double targetDepth)
+    {
+        SurveyPoint? previous = points
+            .Where(point => point.MD is { } depth && depth <= targetDepth)
+            .OrderByDescending(point => point.MD)
+            .FirstOrDefault();
+        SurveyPoint? next = points
+            .Where(point => point.MD is { } depth && depth >= targetDepth)
+            .OrderBy(point => point.MD)
+            .FirstOrDefault();
+
+        if (previous?.MD is not { } previousDepth || next?.MD is not { } nextDepth)
+        {
+            return null;
+        }
+
+        if (Math.Abs(previousDepth - targetDepth) < 1e-6)
+        {
+            return CloneSurveyPoint(previous);
+        }
+
+        if (Math.Abs(nextDepth - targetDepth) < 1e-6)
+        {
+            return CloneSurveyPoint(next);
+        }
+
+        if (Math.Abs(nextDepth - previousDepth) < 1e-9)
+        {
+            return null;
+        }
+
+        double ratio = (targetDepth - previousDepth) / (nextDepth - previousDepth);
+        return new SurveyPoint
+        {
+            MD = targetDepth,
+            Inclination = InterpolateValue(previous.Inclination, next.Inclination, ratio),
+            Azimuth = InterpolateValue(previous.Azimuth, next.Azimuth, ratio),
+            TVD = InterpolateValue(previous.TVD, next.TVD, ratio),
+            RiemannianNorth = InterpolateValue(previous.RiemannianNorth, next.RiemannianNorth, ratio),
+            RiemannianEast = InterpolateValue(previous.RiemannianEast, next.RiemannianEast, ratio),
+            Curvature = InterpolateValue(previous.Curvature, next.Curvature, ratio),
+            BUR = InterpolateValue(previous.BUR, next.BUR, ratio),
+            TUR = InterpolateValue(previous.TUR, next.TUR, ratio)
+        };
+    }
+
+    private static SurveyPoint CloneSurveyPoint(SurveyPoint point) =>
+        new()
+        {
+            MD = point.MD,
+            Inclination = point.Inclination,
+            Azimuth = point.Azimuth,
+            TVD = point.TVD,
+            RiemannianNorth = point.RiemannianNorth,
+            RiemannianEast = point.RiemannianEast,
+            Curvature = point.Curvature,
+            BUR = point.BUR,
+            TUR = point.TUR
+        };
+
+    private static string GetCalculationMethodLabel(TrajectoryCalculationType method) =>
+        method switch
+        {
+            TrajectoryCalculationType.MinimumCurvatureMethod => "Minimum Curvature Method",
+            TrajectoryCalculationType.ConstantBuildAndTurnMethod => "Constant Build and Turn Rates",
+            TrajectoryCalculationType.ConstantCurvatureAndToolfaceMethod => "Constant Curvature and Toolface",
+            _ => method.ToString()
+        };
+
+    private static double? InterpolateValue(double? start, double? end, double ratio)
+    {
+        if (start is not { } startValue || end is not { } endValue)
+        {
+            return null;
+        }
+
+        return startValue + (endValue - startValue) * ratio;
+    }
+
+    private static double? GetVerticalSection(SurveyPoint? point)
+    {
+        if (point?.RiemannianNorth is { } north && point.RiemannianEast is { } east)
+        {
+            return Math.Sqrt(north * north + east * east);
+        }
+
+        return null;
+    }
+
+    private string FormatDepthValue(double? value)
+    {
+        if (Parent != null && value is not null)
+        {
+            return Parent.FromWGS84DepthSI(value, "DepthDrilling", true);
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string FormatPositionValue(double? value, PositionDirectionType direction)
+    {
+        if (Parent != null && value != null)
+        {
+            return Parent.FromWGS84PositionSI(value, "PositionDrilling", true, direction);
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string NorthCoordinateLabel => GetCoordinateLabel(PositionDirectionType.North);
+
+    private string EastCoordinateLabel => GetCoordinateLabel(PositionDirectionType.East);
+
+    private string GetCoordinateLabel(PositionDirectionType direction)
+    {
+        string? positionReferenceName = Parent?.PositionReferenceName ?? DataUtils.UnitAndReferenceParameters.PositionReferenceName;
+        if (string.Equals(positionReferenceName, "WGS84", StringComparison.OrdinalIgnoreCase))
+        {
+            return direction == PositionDirectionType.North ? "Riemann North" : "Riemann East";
+        }
+
+        if (string.Equals(positionReferenceName, "Cartographic", StringComparison.OrdinalIgnoreCase))
+        {
+            return direction == PositionDirectionType.North ? "Northing" : "Easting";
+        }
+
+        return direction == PositionDirectionType.North ? "North" : "East";
+    }
+
+    private string FormatAngleValue(double? value)
+    {
+        if (Parent != null && value != null)
+        {
+            return Parent.FromSI(value, "PlaneAngleDrilling", true);
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private string FormatCurvatureValue(double? value)
+    {
+        if (Parent != null && value != null)
+        {
+            return Parent.FromSI(value, "CurvatureDrilling", true);
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
+    private async Task ExportSurveyStationsAsync()
+    {
+        if (currentTrajectory.SurveyStationList is not { Count: > 0 } surveyStations)
+        {
+            Snackbar.Add("No survey stations to export", Severity.Warning);
+            return;
+        }
+
+        string[] headers =
+        [
+            $"Measured Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]",
+            $"Inclination [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]",
+            $"Azimuth [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]"
+        ];
+
+        string content = BuildTabSeparatedContent(
+            headers,
+            surveyStations.Select(station => new[]
+            {
+                ConvertDepthForExport(station.MD),
+                ConvertQuantityForExport(station.Inclination, "PlaneAngleDrilling"),
+                ConvertQuantityForExport(station.Azimuth, "PlaneAngleDrilling")
+            }));
+
+        await DownloadExportAsync("survey-stations", content);
+    }
+
+    private async Task ExportCalculatedTrajectoryAsync()
+    {
+        if (currentTrajectory.SurveyStationList is not { Count: > 0 } calculatedStations)
+        {
+            Snackbar.Add("No calculated trajectory to export", Severity.Warning);
+            return;
+        }
+
+        string[] headers =
+        [
+            $"Measured Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]",
+            $"Inclination [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]",
+            $"Azimuth [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]",
+            $"Vertical Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]",
+            $"{NorthCoordinateLabel} [{Parent?.GetUnitLabel("PositionDrilling")}]",
+            $"{EastCoordinateLabel} [{Parent?.GetUnitLabel("PositionDrilling")}]",
+            $"Vertical Section [{Parent?.GetUnitLabel("DepthDrilling")}]",
+            $"Curvature [{Parent?.GetUnitLabel("CurvatureDrilling")}]",
+            $"BUR [{Parent?.GetUnitLabel("CurvatureDrilling")}]",
+            $"TR [{Parent?.GetUnitLabel("CurvatureDrilling")}]"
+        ];
+
+        string content = BuildTabSeparatedContent(
+            headers,
+            calculatedStations.Select(station => new[]
+            {
+                ConvertDepthForExport(station.MD),
+                ConvertQuantityForExport(station.Inclination, "PlaneAngleDrilling"),
+                ConvertQuantityForExport(station.Azimuth, "PlaneAngleDrilling"),
+                ConvertDepthForExport(station.TVD),
+                ConvertPositionForExport(station.RiemannianNorth, PositionDirectionType.North),
+                ConvertPositionForExport(station.RiemannianEast, PositionDirectionType.East),
+                ConvertQuantityForExport(station.VerticalSection, "DepthDrilling"),
+                ConvertQuantityForExport(station.Curvature, "CurvatureDrilling"),
+                ConvertQuantityForExport(station.BUR, "CurvatureDrilling"),
+                ConvertQuantityForExport(station.TUR, "CurvatureDrilling")
+            }));
+
+        await DownloadExportAsync("calculated-trajectory", content);
+    }
+
+    private async Task DownloadExportAsync(string exportName, string content)
+    {
+        try
+        {
+            string trajectoryName = string.IsNullOrWhiteSpace(currentTrajectory.Name) ? "trajectory" : currentTrajectory.Name;
+            string fileName = $"{SanitizeFileName(trajectoryName)}-{exportName}.tsv";
+            string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(content));
+
+            await JSRuntime.InvokeVoidAsync("trajectoryDownloads.saveTextFileFromBase64", fileName, base64Content, "text/tab-separated-values;charset=utf-8");
+            Snackbar.Add($"Exported {exportName}", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error exporting {ExportName}", exportName);
+            Snackbar.Add("Error exporting file: " + ex.Message, Severity.Warning);
+        }
+    }
+
+    private string BuildTabSeparatedContent(IEnumerable<string> headers, IEnumerable<IEnumerable<string>> rows)
+    {
+        StringBuilder builder = new();
+        builder.AppendLine(string.Join('\t', headers.Select(SanitizeExportField)));
+
+        foreach (IEnumerable<string> row in rows)
+        {
+            builder.AppendLine(string.Join('\t', row.Select(SanitizeExportField)));
+        }
+
+        return builder.ToString();
+    }
+
+    private string ConvertDepthForExport(double? value) =>
+        Parent == null || value is not { } depth
+            ? string.Empty
+            : NormalizeExportNumber(Parent.FromWGS84DepthSI(depth, "DepthDrilling", false));
+
+    private string ConvertPositionForExport(double? value, PositionDirectionType direction)
+    {
+        if (Parent == null || value is not { } position || direction == PositionDirectionType.Independent)
+        {
+            return string.Empty;
+        }
+
+        double converted = Parent.FromWGS84PositionSI(position, "PositionDrilling", direction);
+        return double.IsNaN(converted)
+            ? string.Empty
+            : NormalizeExportNumber(converted.ToString(CultureInfo.CurrentCulture));
+    }
+
+    private string ConvertQuantityForExport(double? value, string quantityName) =>
+        Parent == null || value is not { } quantityValue
+            ? string.Empty
+            : NormalizeExportNumber(Parent.FromSI(quantityValue, quantityName, false));
+
+    private static string NormalizeExportNumber(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        string trimmed = value.Trim()
+            .Replace("\u00A0", string.Empty, StringComparison.Ordinal)
+            .Replace(" ", string.Empty, StringComparison.Ordinal);
+
+        if (double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out double parsed) ||
+            double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out parsed) ||
+            double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, new CultureInfo("nb-NO"), out parsed))
+        {
+            return parsed.ToString("G17", CultureInfo.InvariantCulture);
+        }
+
+        return trimmed.Replace(',', '.');
+    }
+
+    private static string SanitizeExportField(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return string.Empty;
+        }
+
+        string sanitized = value
+            .Replace("\r", " ", StringComparison.Ordinal)
+            .Replace("\n", " ", StringComparison.Ordinal)
+            .Replace("\t", " ", StringComparison.Ordinal)
+            .Trim();
+
+        sanitized = sanitized
+            .Replace("°", "deg", StringComparison.Ordinal)
+            .Replace("µ", "u", StringComparison.Ordinal)
+            .Replace("μ", "u", StringComparison.Ordinal);
+
+        StringBuilder ascii = new(sanitized.Length);
+        foreach (char c in sanitized)
+        {
+            ascii.Append(c <= sbyte.MaxValue ? c : '?');
+        }
+
+        return ascii.ToString();
+    }
+
+    private static string SanitizeFileName(string fileName)
+    {
+        char[] invalidChars = Path.GetInvalidFileNameChars();
+        StringBuilder builder = new(fileName.Length);
+
+        foreach (char c in fileName)
+        {
+            builder.Append(invalidChars.Contains(c) ? '-' : c);
+        }
+
+        return builder.ToString().Trim();
+    }
+
     private void AddSurveyStation()
     {
         double? lastMD = 0.0;
@@ -353,36 +1593,13 @@
     {
         try
         {
-            WellBore wellBore = WellBoreList![0];
-            traj.WellBoreID = wellBore.MetaInfo.ID;
-            // retrieve the cluster and slot hosting the wellbore from the microservice architecture
-            (GaussianGeodeticPoint3D? referencePoint, string msg) = await APIUtils.GetReferencePointAsync(wellBore);
-            if (referencePoint?.LatitudeWGS84 is { } refLat &&
-                referencePoint?.LongitudeWGS84 is { } refLon &&
-                referencePoint?.TvdWGS84 is { } refTVD)
-            {
-                logger.LogInformation(msg);
-                if (traj.MDStep == 0.0)
-                    traj.MDStep = 10.0;
-                traj.SurveyStationList.Clear();
-                // TODO: fix bug with using global geodetic coordinates of the slot hosting the trajectory, called reference point (the interpolate function fails badly)
-                // TODO: X=RiemannianNorth should be refined to discriminate between Riemannian coordinates and Euclidean ones.
-                // TODO: in addition to globa coordinates for X, Riemannian ones, local Eulidean coordinates would be convenient to have
-                // traj.SurveyStationList.Add(new SurveyStation() { MD = 0, Inclination = 0, Azimuth = 0, Latitude = refLat, Longitude = refLon, TVD = refTVD });
-                // TODO: the case below with zero Riemannian coordinates falls back to values compatible with local range, although this is not satisfactory at all because
-                //  - 1) computations are done in Riemannian space but are visualized in an Euclidean Scatter3DPlot
-                //  - 2) the zero in Riemannian space should be on the the Equator parallel and Greenwich meridian, whereas they are apparently purely local in this case. Handling of computations in Surveying is wrong, to be debugged.
-                traj.SurveyStationList.Add(new SurveyStation() { MD = 0, Inclination = 0, Azimuth = 0, RiemannianNorth = 0, RiemannianEast = 0, TVD = 0 });
-                traj.SurveyStationList.Add(new SurveyStation() { MD = 10 * traj.MDStep, Inclination = 0, Azimuth = 0 });
-                traj.SurveyStationList.Add(new SurveyStation() { MD = 20 * traj.MDStep, Inclination = 0, Azimuth = 0 });
-            }
-            else
-            {
-                logger.LogError(msg);
-                Snackbar.Add("Error while retrieving the reference point of the slot hosting the initial wellbore of the trajectory: " + msg, Severity.Warning);
-                return;
-            }
-
+            traj.WellBoreID = Guid.Empty;
+            if (traj.MDStep == 0.0)
+                traj.MDStep = 10.0;
+            traj.SurveyStationList.Clear();
+            traj.SurveyStationList.Add(new SurveyStation() { MD = 0, Inclination = 0, Azimuth = 0, RiemannianNorth = 0, RiemannianEast = 0, TVD = 0 });
+            traj.SurveyStationList.Add(new SurveyStation() { MD = 10 * traj.MDStep, Inclination = 0, Azimuth = 0 });
+            traj.SurveyStationList.Add(new SurveyStation() { MD = 20 * traj.MDStep, Inclination = 0, Azimuth = 0 });
         }
         catch (Exception ex)
         {
@@ -403,11 +1620,35 @@
             northValuesList,
             eastValuesList,
             TVDValuesList,
+            verticalSectionValuesList,
             [currentTrajectory]
         );
     }
 
     // Deep copy constructor
+    private async Task EnsureWellBoreArchitectureDataLoadedAsync()
+    {
+        if (wellBoreArchitectureHeavyList != null || isLoadingWellBoreArchitectureData)
+        {
+            return;
+        }
+
+        try
+        {
+            isLoadingWellBoreArchitectureData = true;
+            wellBoreArchitectureHeavyList = (List<WellBoreArchitecture>)await APIUtils.ClientWellBoreArchitecture.GetAllWellBoreArchitectureAsync();
+            await InvokeAsync(StateHasChanged);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem while loading WellBoreArchitecture data");
+        }
+        finally
+        {
+            isLoadingWellBoreArchitectureData = false;
+        }
+    }
+
     private static Trajectory DeepCopyTrajectory(Trajectory source)
     {
         return new Trajectory
@@ -417,7 +1658,11 @@
             Description = source.Description,
             CreationDate = source.CreationDate,
             LastModificationDate = source.LastModificationDate,
+            FieldID = source.FieldID,
+            ClusterID = source.ClusterID,
+            WellID = source.WellID,
             WellBoreID = source.WellBoreID,
+            CalculationType = source.CalculationType,
             MDStep = source.MDStep,
             SurveyStationList = source.SurveyStationList
                 .Select(ss => new SurveyStation

@@ -11,7 +11,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
     {
         private readonly ILogger<DatabaseCleanerService> _logger;
         private readonly SqlConnectionManager _connectionManager;
-        private readonly string[] _dataTables = ["TrajectoryTable"];
+        private readonly string[] _dataTables = ["InterpolatedTrajectoryTable"];
         private static readonly TimeSpan _cleaningInterval = TimeSpan.FromDays(1);
         private static readonly TimeSpan _retirementTime = TimeSpan.FromDays(90);
 

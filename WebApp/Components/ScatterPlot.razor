@@ -1,16 +1,19 @@
-﻿@implements IUnitAwareComponent
+@implements IUnitAwareComponent
+@implements IDisposable
+@using System.Globalization
+@using System.Text
 
-<PlotlyChart @bind-Config="config" @bind-Layout="layout" @bind-Data="data" @ref="chart" />
+<PlotlyChart Config="config" Layout="layout" Data="data" @ref="chart" />
 
 @code {
     [CascadingParameter]
     private MudUnitAndReferenceChoiceTag? Parent { get; set; }
 
     [Parameter]
-    public String? XUnit { get; set; }
+    public string? XUnit { get; set; }
 
     [Parameter]
-    public String? YUnit { get; set; }
+    public string? YUnit { get; set; }
 
     [Parameter]
     public List<string>? NameList { get; set; }
@@ -49,171 +52,398 @@
     public bool YAxisReversed { get; set; }
 
     [Parameter]
-    public decimal? AspectRatio { get; set; } = null;
+    public bool XAxisStartsAtZero { get; set; }
+
+    [Parameter]
+    public decimal? AspectRatio { get; set; }
+
+    [Parameter]
+    public bool XAxisUsesDepthReference { get; set; }
+
+    [Parameter]
+    public bool YAxisUsesDepthReference { get; set; }
+
+    [Parameter]
+    public bool XAxisUsesPositionReference { get; set; }
+
+    [Parameter]
+    public bool YAxisUsesPositionReference { get; set; }
+
+    [Parameter]
+    public PositionDirectionType XAxisPositionDirection { get; set; } = PositionDirectionType.Independent;
+
+    [Parameter]
+    public PositionDirectionType YAxisPositionDirection { get; set; } = PositionDirectionType.Independent;
 
     private PlotlyChart? chart;
-    private Config config = new Config() { Responsive = true };
-    private Layout layout = new Layout
+    private bool _plotlyReady;
+    private bool _disposed;
+    private readonly SemaphoreSlim _plotSemaphore = new(1, 1);
+    private string? _lastPlotSignature;
+    private bool _forceReplot = true;
+
+    private readonly Config config = new() { Responsive = true };
+    private readonly Layout layout = new()
+    {
+        Title = new Plotly.Blazor.LayoutLib.Title { Text = "" },
+        XAxis = new List<XAxis>
         {
-            Title = new Plotly.Blazor.LayoutLib.Title { Text = "" },
-            XAxis = new List<XAxis>
-{
-            new XAxis
+            new()
             {
                 Title = new Plotly.Blazor.LayoutLib.XAxisLib.Title { Text = "" }
             }
         },
-            YAxis = new List<YAxis>
-{
-            new YAxis
+        YAxis = new List<YAxis>
+        {
+            new()
             {
-                Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "" },
+                Title = new Plotly.Blazor.LayoutLib.YAxisLib.Title { Text = "" }
             }
         }
-        };
+    };
 
-    // Using of the interface IList is important for the event callback!
-    private IList<ITrace> data = new List<ITrace>();
+    private readonly IList<ITrace> data = new List<ITrace>();
 
     protected override void OnInitialized()
     {
         base.OnInitialized();
+
         if (Parent == null)
+        {
             throw new ArgumentNullException(nameof(Parent), "ScatterPlot must exist within a UnitAndReferenceChoiceTag");
+        }
+
         Parent.Add(this);
-        ManageUnits();
+    }
+
+    protected override async Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (firstRender)
+        {
+            _plotlyReady = true;
+            await PlotAsync();
+        }
+    }
+
+    protected override async Task OnParametersSetAsync()
+    {
+        await PlotAsync();
+    }
+
+    public void Dispose()
+    {
+        _disposed = true;
     }
 
     public void ManageUnits()
     {
-        if (chart != null && layout != null)
-            Plot();
+        _forceReplot = true;
+        _ = InvokeAsync(async () => await PlotAsync());
     }
 
-    public void Plot()
+    private async Task PlotAsync()
     {
-        if (chart != null)
+        await _plotSemaphore.WaitAsync();
+        try
         {
-            //Update layout, including axis ranges due to unit choice set changes
-            ManageLayout();
-            //Update traces
-            ManageTraces();
+        if (_disposed)
+        {
+            return;
+        }
+
+        ManageLayout();
+
+        if (!_plotlyReady || chart == null)
+        {
+            return;
+        }
+
+        string plotSignature = BuildPlotSignature();
+        if (!_forceReplot && _lastPlotSignature == plotSignature)
+        {
+            return;
+        }
+
+        await ManageTracesAsync();
+
+        try
+        {
+            await chart.React();
+        }
+        catch
+        {
+        }
+
+        await InvokeAsync(StateHasChanged);
+        _lastPlotSignature = plotSignature;
+        _forceReplot = false;
+        }
+        finally
+        {
+            _plotSemaphore.Release();
         }
     }
 
-    private void ManageTraces()
+    private async Task ManageTracesAsync()
     {
-        if (Parent != null && XValuesList != null && XValuesList.Any() && YValuesList != null &&
-            XValuesList.Count == YValuesList.Count && chart != null && XUnit != null && YUnit != null)
+        if (_disposed || !_plotlyReady || chart == null || Parent == null || XUnit == null || YUnit == null)
         {
-            //Remove existing traces
-            chart!.Clear();
+            return;
+        }
 
-            Task.Run(async () =>
+        if (XValuesList == null || YValuesList == null || !XValuesList.Any() || XValuesList.Count != YValuesList.Count)
+        {
+            return;
+        }
+
+        try
+        {
+            await chart.Clear();
+        }
+        catch (NullReferenceException)
+        {
+            return;
+        }
+
+        for (int i = 0; i < XValuesList.Count; i++)
+        {
+            List<object> xValuesInUserUnit = [];
+            List<object> yValuesInUserUnit = [];
+
+            foreach (object x in XValuesList[i])
             {
-                //Convert input values lists to the current unit choice set
-                for (int i = 0; i < XValuesList.Count; i++)
+                if (TryGetDouble(x, out double xd))
                 {
-                    List<object> XValuesInUserUnit = new List<object>();
-                    List<object> YValuesInUserUnit = new List<object>();
-                    foreach (object x in XValuesList[i])
+                    double? value = XAxisUsesDepthReference
+                        ? ConvertDepthForPlot(xd, XUnit)
+                        : XAxisUsesPositionReference
+                            ? ConvertPositionForPlot(xd, XUnit, XAxisPositionDirection)
+                        : Parent.FromSI((double?)xd, XUnit);
+                    if (value.HasValue)
                     {
-                        double? X = null;
-                        if (x is double?)
-                            X = Parent.FromSI((double?)x, XUnit);
-                        if (x is int?)
-                            X = Parent.FromSI((int?)x, XUnit);
-                        if (X != null)
-                            XValuesInUserUnit.Add((double)X);
-                    }
-                    foreach (object y in YValuesList[i])
-                    {
-                        double? Y = null;
-                        if (y is double?)
-                            Y = Parent.FromSI((double?)y, YUnit);
-                        if (y is int?)
-                            Y = Parent.FromSI((int?)y, YUnit);
-                        if (Y != null)
-                            YValuesInUserUnit.Add((double)Y);
-                    }
-                    //Add converted input values to a trace
-                    if (XValuesInUserUnit.Count == YValuesInUserUnit.Count)
-                    {
-                        //pre-processing optional name attribute
-                        string name = (NameList != null && i < NameList.Count) ? NameList[i] : "";
-                        //pre-processing optional modeFlag attribute
-                        Plotly.Blazor.Traces.ScatterLib.ModeFlag modeFlag = (ModeFlagList != null && i < ModeFlagList.Count) ? (Plotly.Blazor.Traces.ScatterLib.ModeFlag)ModeFlagList[i] : Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines;
-                        //pre-processing optional color attribute
-                        Plotly.Blazor.Traces.ScatterLib.Marker marker;
-                        if (ColorList != null && i < ColorList.Count)
-                        {
-                            marker = new Marker { Color = ColorList[i] };
-                        }
-                        else
-                        {
-                            marker = new Marker { AutoColorScale = true };
-                        }
-                        //adding trace with attributes
-                        await InvokeAsync(async () => await chart.AddTrace(new Scatter
-                            {
-                                Name = name,
-                                Mode = modeFlag,
-                                Marker = marker,
-                                X = XValuesInUserUnit,
-                                Y = YValuesInUserUnit
-                            }));
-                        // Add the delay to keep the UI responsive
-                        await Task.Delay(10);
+                        xValuesInUserUnit.Add(value.Value);
                     }
                 }
-                await InvokeAsync(StateHasChanged);
+            }
+
+            foreach (object y in YValuesList[i])
+            {
+                if (TryGetDouble(y, out double yd))
+                {
+                    double? value = YAxisUsesDepthReference
+                        ? ConvertDepthForPlot(yd, YUnit)
+                        : YAxisUsesPositionReference
+                            ? ConvertPositionForPlot(yd, YUnit, YAxisPositionDirection)
+                        : Parent.FromSI((double?)yd, YUnit);
+                    if (value.HasValue)
+                    {
+                        yValuesInUserUnit.Add(value.Value);
+                    }
+                }
+            }
+
+            if (xValuesInUserUnit.Count == 0 || xValuesInUserUnit.Count != yValuesInUserUnit.Count)
+            {
+                continue;
+            }
+
+            string name = NameList != null && i < NameList.Count ? NameList[i] : $"trace_{i}";
+            Plotly.Blazor.Traces.ScatterLib.ModeFlag modeFlag =
+                ModeFlagList != null && i < ModeFlagList.Count
+                    ? (Plotly.Blazor.Traces.ScatterLib.ModeFlag)ModeFlagList[i]
+                    : Plotly.Blazor.Traces.ScatterLib.ModeFlag.Lines;
+
+            Marker marker = ColorList != null && i < ColorList.Count
+                ? new Marker { Color = ColorList[i] }
+                : new Marker { AutoColorScale = true };
+
+            await chart.AddTrace(new Scatter
+            {
+                Name = name,
+                Mode = modeFlag,
+                Marker = marker,
+                X = xValuesInUserUnit,
+                Y = yValuesInUserUnit
             });
         }
     }
 
     private void ManageLayout()
     {
-        if (Parent != null && layout != null && XAxisTitle != null && YAxisTitle != null && chart != null && XUnit != null && YUnit != null)
+        if (Parent == null || XAxisTitle == null || YAxisTitle == null || XUnit == null || YUnit == null)
         {
-            string XUnitLabel = Parent.GetUnitLabel(XUnit);
-            string YUnitLabel = Parent.GetUnitLabel(YUnit);
-            XUnitLabel = XUnitLabel != null ? " (" + XUnitLabel + ")" : "";
-            YUnitLabel = YUnitLabel != null ? " (" + YUnitLabel + ")" : "";
-
-            layout.Height = PlotHeight;
-            layout.Width = PlotWidth;
-            layout.Title.Text = PlotTitle;
-            //updating the list of XAxis
-            for (int i = 0; i < layout.XAxis.Count; ++i)
-            {
-                layout.XAxis.ElementAt(i).Title.Text = XAxisTitle + XUnitLabel;
-                layout.XAxis.ElementAt(i).AutoRange = Plotly.Blazor.LayoutLib.XAxisLib.AutoRangeEnum.True;
-                layout.XAxis.ElementAt(i).RangeMode = Plotly.Blazor.LayoutLib.XAxisLib.RangeModeEnum.Normal;
-                if (XAxisReversed)
-                    layout.XAxis.ElementAt(i).AutoRange = Plotly.Blazor.LayoutLib.XAxisLib.AutoRangeEnum.Reversed;
-            }
-
-            //updating the list of YAxis
-            for (int i = 0; i < layout.YAxis.Count; ++i)
-            {
-                layout.XAxis.ElementAt(i).Title.Text = XAxisTitle + XUnitLabel;
-                layout.YAxis.ElementAt(i).Title.Text = YAxisTitle + YUnitLabel;
-                layout.YAxis.ElementAt(i).AutoRange = Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.True;
-                layout.YAxis.ElementAt(i).RangeMode = Plotly.Blazor.LayoutLib.YAxisLib.RangeModeEnum.Normal;
-                if (YAxisReversed)
-                    layout.YAxis.ElementAt(i).AutoRange = Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.Reversed;
-                if (AspectRatio != null && AspectRatio > 0)
-                {
-                    layout.YAxis.ElementAt(i).ScaleAnchor = "x";
-                    layout.YAxis.ElementAt(i).ScaleRatio = AspectRatio;
-                }
-            }
-            Task.Run(async () =>
-            {
-                // await chart.React();
-                await chart!.Relayout();
-                await InvokeAsync(StateHasChanged);
-            });
+            return;
         }
+
+        string xUnitLabel = XAxisUsesDepthReference
+            ? Parent.GetDepthUnitLabel(XUnit)
+            : XAxisUsesPositionReference
+                ? Parent.GetPositionUnitLabel(XUnit)
+            : Parent.GetUnitLabel(XUnit);
+        string yUnitLabel = YAxisUsesDepthReference
+            ? Parent.GetDepthUnitLabel(YUnit)
+            : YAxisUsesPositionReference
+                ? Parent.GetPositionUnitLabel(YUnit)
+            : Parent.GetUnitLabel(YUnit);
+        xUnitLabel = xUnitLabel != null ? " (" + xUnitLabel + ")" : "";
+        yUnitLabel = yUnitLabel != null ? " (" + yUnitLabel + ")" : "";
+
+        layout.Height = PlotHeight > 0 ? PlotHeight : null;
+        layout.Width = PlotWidth > 0 ? PlotWidth : null;
+        layout.Title.Text = PlotTitle;
+
+        for (int i = 0; i < layout.XAxis.Count; ++i)
+        {
+            layout.XAxis.ElementAt(i).Title.Text = XAxisTitle + xUnitLabel;
+            layout.XAxis.ElementAt(i).AutoRange = XAxisReversed
+                ? Plotly.Blazor.LayoutLib.XAxisLib.AutoRangeEnum.Reversed
+                : Plotly.Blazor.LayoutLib.XAxisLib.AutoRangeEnum.True;
+            layout.XAxis.ElementAt(i).RangeMode = Plotly.Blazor.LayoutLib.XAxisLib.RangeModeEnum.Normal;
+            layout.XAxis.ElementAt(i).Range = XAxisStartsAtZero
+                ? [0, null!]
+                : null;
+        }
+
+        for (int i = 0; i < layout.YAxis.Count; ++i)
+        {
+            layout.YAxis.ElementAt(i).Title.Text = YAxisTitle + yUnitLabel;
+            layout.YAxis.ElementAt(i).AutoRange = YAxisReversed
+                ? Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.Reversed
+                : Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.True;
+            layout.YAxis.ElementAt(i).RangeMode = Plotly.Blazor.LayoutLib.YAxisLib.RangeModeEnum.Normal;
+
+            if (AspectRatio is { } aspectRatio && aspectRatio > 0)
+            {
+                layout.YAxis.ElementAt(i).ScaleAnchor = "x";
+                layout.YAxis.ElementAt(i).ScaleRatio = aspectRatio;
+            }
+        }
+    }
+
+    private static bool TryGetDouble(object v, out double d)
+    {
+        switch (v)
+        {
+            case double dd:
+                d = dd;
+                return true;
+            case float ff:
+                d = ff;
+                return true;
+            case decimal mm:
+                d = (double)mm;
+                return true;
+            case int ii:
+                d = ii;
+                return true;
+            case long ll:
+                d = ll;
+                return true;
+            default:
+                d = default;
+                return false;
+        }
+    }
+
+    private double? ConvertDepthForPlot(double value, string quantityName)
+    {
+        if (Parent == null)
+        {
+            return null;
+        }
+
+        string? converted = Parent.FromWGS84DepthSI(value, quantityName, false);
+        if (string.IsNullOrWhiteSpace(converted))
+        {
+            return null;
+        }
+
+        if (double.TryParse(converted, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out double parsed))
+        {
+            return parsed;
+        }
+
+        if (double.TryParse(converted, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out parsed))
+        {
+            return parsed;
+        }
+
+        return null;
+    }
+
+    private double? ConvertPositionForPlot(double value, string quantityName, PositionDirectionType direction)
+    {
+        if (Parent == null || direction == PositionDirectionType.Independent)
+        {
+            return null;
+        }
+
+        double converted = Parent.FromWGS84PositionSI(value, quantityName, direction);
+        return double.IsNaN(converted) ? null : converted;
+    }
+
+    private string BuildPlotSignature()
+    {
+        StringBuilder builder = new();
+        builder.Append(XUnit).Append('|')
+            .Append(YUnit).Append('|')
+            .Append(XAxisTitle).Append('|')
+            .Append(YAxisTitle).Append('|')
+            .Append(PlotTitle).Append('|')
+            .Append(XAxisReversed).Append('|')
+            .Append(YAxisReversed).Append('|')
+            .Append(XAxisStartsAtZero).Append('|')
+            .Append(AspectRatio).Append('|')
+            .Append(XAxisUsesDepthReference).Append('|')
+            .Append(YAxisUsesDepthReference).Append('|')
+            .Append(XAxisUsesPositionReference).Append('|')
+            .Append(YAxisUsesPositionReference).Append('|')
+            .Append(XAxisPositionDirection).Append('|')
+            .Append(YAxisPositionDirection).Append('|');
+
+        AppendListSignature(builder, NameList);
+        AppendListSignature(builder, ModeFlagList);
+        AppendListSignature(builder, ColorList);
+        AppendNestedListSignature(builder, XValuesList);
+        AppendNestedListSignature(builder, YValuesList);
+
+        return builder.ToString();
+    }
+
+    private static void AppendListSignature<T>(StringBuilder builder, List<T>? values)
+    {
+        if (values == null)
+        {
+            builder.Append("null|");
+            return;
+        }
+
+        builder.Append(values.Count).Append('|');
+        foreach (T? value in values)
+        {
+            builder.Append(value).Append(';');
+        }
+        builder.Append('|');
+    }
+
+    private static void AppendNestedListSignature(StringBuilder builder, List<List<object>>? values)
+    {
+        if (values == null)
+        {
+            builder.Append("null|");
+            return;
+        }
+
+        builder.Append(values.Count).Append('|');
+        foreach (List<object> list in values)
+        {
+            builder.Append(list.Count).Append(':');
+            foreach (object? value in list)
+            {
+                builder.Append(value).Append(',');
+            }
+            builder.Append(';');
+        }
+        builder.Append('|');
     }
 }

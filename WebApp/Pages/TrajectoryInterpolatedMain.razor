@@ -1,0 +1,199 @@
+@page "/TrajectoryInterpolated"
+@inject ILogger<TrajectoryInterpolatedMain> logger
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+
+<MudUnitAndReferenceChoiceTag HttpHost=@APIUtils.HostNameUnitConversion
+                              HttpBasePath=@APIUtils.HostBasePathUnitConversion
+                              HttpController="UnitSystem/"
+                              UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
+                              UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName"
+                              DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
+                              DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
+                              GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                              SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
+                              RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
+                              PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
+                              PositionReferenceNameChanged="@DataUtils.UpdatePositionReferenceName"
+                              WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
+                              CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
+                              LeaseLinePositionReferenceSource="@DataUtils.LeaseLinePositionReferenceSource"
+                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource">
+    @if (interpolatedTrajectoryList == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <div hidden="@isHiddenMainPanel">
+            <MudDataGrid T="InterpolatedTrajectoryLight" @key="_gridKey"
+                         MultiSelection="true" Items="@interpolatedTrajectoryList" SelectedItemsChanged="@SelectedItemsChanged"
+                         Hover="true" RowClick="@RowClicked"
+                         SortMode="SortMode.Multiple" QuickFilter="@_filter" Filterable="false"
+                         ReadOnly="true" ColumnResizeMode="ResizeMode.Column" Elevation="0">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Interpolated Trajectory</MudText>
+                    <MudButton OnClick="@AddInterpolatedTrajectory" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
+                    <MudButton OnClick="@DeleteSelectedInterpolatedTrajectory" Color="@Color.Error" Class="add-item-btn"
+                               Disabled="@(selectedInterpolatedTrajectoryList.Count == 0)">Delete</MudButton>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                                  AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" />
+                </ToolBarContent>
+                <Columns>
+                    <SelectColumn T="InterpolatedTrajectoryLight" />
+                    <PropertyColumn Property="x => x.Name" Title="Interpolation Case" CellStyle="width: 30%;" Sortable="true" />
+                    <PropertyColumn Property="x => x.Description" Title="Description" CellStyle="width: 35%;" Sortable="true" />
+                    <PropertyColumn Property="x => GetTrajectoryNameFromId(x.TrajectoryID)" Title="Trajectory" Sortable="true" />
+                    <TemplateColumn CellClass="d-flex justify-end">
+                        <CellTemplate>
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete"
+                                           OnClick="(() => DeleteInterpolatedTrajectory(context.Item.MetaInfo.ID))" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="InterpolatedTrajectoryLight" />
+                </PagerContent>
+            </MudDataGrid>
+        </div>
+    }
+    @if (isHiddenMainPanel && !isHiddenEditPanel)
+    {
+        <TrajectoryInterpolationEdit InterpolatedTrajectoryId="@interpolatedTrajectoryIdBeingEdited"
+                                     RigList="@rigList"
+                                     WellBoreList="@wellBoreList"
+                                     WellList="@wellList"
+                                     ClusterList="@clusterList"
+                                     FieldList="@fieldList"
+                                     TrajectoryList="@trajectoryList"
+                                     ValueChanged="HandleEditPanelClosed" />
+    }
+</MudUnitAndReferenceChoiceTag>
+
+@code {
+    private List<InterpolatedTrajectoryLight> interpolatedTrajectoryList = new();
+    private List<InterpolatedTrajectoryLight> selectedInterpolatedTrajectoryList = new();
+    private List<TrajectoryLight>? trajectoryList;
+    private List<WellBore>? wellBoreList;
+    private List<Well>? wellList;
+    private List<Cluster>? clusterList;
+    private List<Field>? fieldList;
+    private List<Rig>? rigList;
+    private bool isHiddenMainPanel;
+    private bool isHiddenEditPanel = true;
+    private Guid? interpolatedTrajectoryIdBeingEdited;
+    private string? _searchString;
+    private int _gridKey = 0;
+
+    protected override async Task OnInitializedAsync() => await LoadDataAsync();
+
+    private async Task LoadDataAsync()
+    {
+        try
+        {
+            isHiddenMainPanel = false;
+            isHiddenEditPanel = true;
+            interpolatedTrajectoryIdBeingEdited = null;
+            selectedInterpolatedTrajectoryList = [];
+
+            var interpolatedTask = APIUtils.ClientTrajectory.GetAllInterpolatedTrajectoryLightAsync();
+            var trajectoryTask = APIUtils.ClientTrajectory.GetAllTrajectoryLightAsync();
+            var wellBoreTask = APIUtils.ClientWellBore.GetAllWellBoreAsync();
+            var wellTask = APIUtils.ClientWell.GetAllWellAsync();
+            var clusterTask = APIUtils.ClientCluster.GetAllClusterAsync();
+            var fieldTask = APIUtils.ClientField.GetAllFieldAsync();
+            var rigTask = APIUtils.ClientRig.GetAllRigAsync();
+
+            await Task.WhenAll(interpolatedTask, trajectoryTask, wellBoreTask, wellTask, clusterTask, fieldTask, rigTask);
+
+            interpolatedTrajectoryList = ((ICollection<InterpolatedTrajectoryLight>)await interpolatedTask).OrderBy(x => x.Name).ToList();
+            trajectoryList = ((ICollection<TrajectoryLight>)await trajectoryTask).OrderBy(x => x.Name).ToList();
+            wellBoreList = ((ICollection<WellBore>)await wellBoreTask).OrderBy(x => x.Name).ToList();
+            wellList = ((ICollection<Well>)await wellTask).OrderBy(x => x.Name).ToList();
+            clusterList = ((ICollection<Cluster>)await clusterTask).OrderBy(x => x.Name).ToList();
+            fieldList = ((ICollection<Field>)await fieldTask).OrderBy(x => x.Name).ToList();
+            rigList = ((ICollection<Rig>)await rigTask).OrderBy(x => x.Name).ToList();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem Interpolated Trajectory initialization");
+            Snackbar.Add("Failed to load interpolated trajectories.", Severity.Error);
+        }
+
+        _gridKey++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task AddInterpolatedTrajectory()
+    {
+        isHiddenMainPanel = true;
+        isHiddenEditPanel = false;
+        interpolatedTrajectoryIdBeingEdited = null;
+        await Task.Delay(1);
+    }
+
+    private async Task EditInterpolatedTrajectory(Guid id)
+    {
+        isHiddenMainPanel = true;
+        isHiddenEditPanel = false;
+        interpolatedTrajectoryIdBeingEdited = id;
+        await Task.Delay(1);
+    }
+
+    private async Task HandleEditPanelClosed() => await LoadDataAsync();
+
+    private Func<InterpolatedTrajectoryLight, bool> _filter => x =>
+        string.IsNullOrWhiteSpace(_searchString) ||
+        $"{x.Name} {x.Description} {GetTrajectoryNameFromId(x.TrajectoryID)}".Contains(_searchString, StringComparison.OrdinalIgnoreCase);
+
+    private void SelectedItemsChanged(HashSet<InterpolatedTrajectoryLight> items) => selectedInterpolatedTrajectoryList = items.ToList();
+    private async Task RowClicked(DataGridRowClickEventArgs<InterpolatedTrajectoryLight> args) => await EditInterpolatedTrajectory(args.Item.MetaInfo.ID);
+    private string GetTrajectoryNameFromId(Guid id) => trajectoryList?.FirstOrDefault(t => t?.MetaInfo?.ID == id)?.Name ?? "NA";
+
+    private async Task<bool> ConfirmDeletion()
+    {
+        var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+        var result = await dialog.Result;
+        return result != null && !result.Canceled;
+    }
+
+    private async Task DeleteInterpolatedTrajectory(Guid id)
+    {
+        try
+        {
+            if (await ConfirmDeletion())
+            {
+                await APIUtils.ClientTrajectory.DeleteInterpolatedTrajectoryByIdAsync(id);
+                await LoadDataAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Impossible to delete InterpolatedTrajectory");
+            Snackbar.Add("Failed to delete interpolated trajectory.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteSelectedInterpolatedTrajectory()
+    {
+        var toDelete = selectedInterpolatedTrajectoryList.ToList();
+        if (toDelete.Count == 0) return;
+        try
+        {
+            if (await ConfirmDeletion())
+            {
+                foreach (InterpolatedTrajectoryLight item in toDelete)
+                {
+                    await APIUtils.ClientTrajectory.DeleteInterpolatedTrajectoryByIdAsync(item.MetaInfo.ID);
+                }
+                await LoadDataAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Impossible to delete all InterpolatedTrajectory records");
+            Snackbar.Add("Failed to delete one or more interpolated trajectories.", Severity.Error);
+        }
+    }
+}

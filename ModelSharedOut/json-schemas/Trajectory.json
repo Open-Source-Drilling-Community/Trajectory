@@ -5,254 +5,6 @@
     "version": "1.0"
   },
   "paths": {
-    "/InterpolatedTrajectory": {
-      "get": {
-        "tags": [
-          "InterpolatedTrajectory"
-        ],
-        "operationId": "GetAllInterpolatedTrajectoryId",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "format": "uuid"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "InterpolatedTrajectory"
-        ],
-        "operationId": "PostInterpolatedTrajectory",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.InterpolatedTrajectory"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.InterpolatedTrajectory"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.InterpolatedTrajectory"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/InterpolatedTrajectory/MetaInfo": {
-      "get": {
-        "tags": [
-          "InterpolatedTrajectory"
-        ],
-        "operationId": "GetAllInterpolatedTrajectoryMetaInfo",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/InterpolatedTrajectory/{id}": {
-      "get": {
-        "tags": [
-          "InterpolatedTrajectory"
-        ],
-        "operationId": "GetInterpolatedTrajectoryById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.InterpolatedTrajectory"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "InterpolatedTrajectory"
-        ],
-        "operationId": "PutInterpolatedTrajectoryById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.InterpolatedTrajectory"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.InterpolatedTrajectory"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.InterpolatedTrajectory"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "InterpolatedTrajectory"
-        ],
-        "operationId": "DeleteInterpolatedTrajectoryById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/InterpolatedTrajectory/Trajectory/{trajectoryId}": {
-      "get": {
-        "tags": [
-          "InterpolatedTrajectory"
-        ],
-        "operationId": "GetInterpolatedTrajectoryByTrajectoryId",
-        "parameters": [
-          {
-            "name": "trajectoryId",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.InterpolatedTrajectory"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/InterpolatedTrajectory/LightData": {
-      "get": {
-        "tags": [
-          "InterpolatedTrajectory"
-        ],
-        "operationId": "GetAllInterpolatedTrajectoryLight",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.InterpolatedTrajectoryLight"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/InterpolatedTrajectory/HeavyData": {
-      "get": {
-        "tags": [
-          "InterpolatedTrajectory"
-        ],
-        "operationId": "GetAllInterpolatedTrajectory",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.InterpolatedTrajectory"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/Trajectory": {
       "get": {
         "tags": [
@@ -430,40 +182,6 @@
           "Trajectory"
         ],
         "operationId": "GetAllTrajectoryLight",
-        "parameters": [
-          {
-            "name": "fieldId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "clusterId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "wellId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "wellBoreId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -487,40 +205,6 @@
           "Trajectory"
         ],
         "operationId": "GetAllTrajectory",
-        "parameters": [
-          {
-            "name": "fieldId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "clusterId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "wellId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "wellBoreId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -537,137 +221,41 @@
           }
         }
       }
+    },
+    "/Trajectory/{id}/Interpolated": {
+      "get": {
+        "tags": [
+          "Trajectory"
+        ],
+        "operationId": "GetInterpolatedTrajectoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.Trajectory"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
     "schemas": {
-      "NORCE.Drilling.Trajectory.Model.AnnotatedAbscissa": {
-        "type": "object",
-        "properties": {
-          "Abscissa": {
-            "type": "number",
-            "format": "double"
-          },
-          "Annotation": {
-            "type": "string",
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "NORCE.Drilling.Trajectory.Model.InterpolatedTrajectory": {
-        "type": "object",
-        "properties": {
-          "MetaInfo": {
-            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
-          },
-          "Name": {
-            "type": "string",
-            "nullable": true
-          },
-          "Description": {
-            "type": "string",
-            "nullable": true
-          },
-          "CreationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "LastModificationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "TrajectoryID": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "SurveyStationList": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
-            },
-            "nullable": true
-          },
-          "InterpolationStep": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "InterpolationReferenceDepth": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "MaximumChordArcDistance": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "IncludeFirstSurvey": {
-            "type": "boolean"
-          },
-          "IncludeLastSurvey": {
-            "type": "boolean"
-          },
-          "InterpolateAtCasingAndLinerShoeDepths": {
-            "type": "boolean"
-          },
-          "InterpolateAtLinerHangerDepths": {
-            "type": "boolean"
-          },
-          "InterpolateAtCasingChangeOfDiameter": {
-            "type": "boolean"
-          },
-          "AdditionalAbscissaList": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.AnnotatedAbscissa"
-            },
-            "nullable": true
-          },
-          "InternalAdditionalAbscissaList": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.AnnotatedAbscissa"
-            },
-            "nullable": true
-          }
-        },
-        "additionalProperties": false
-      },
-      "NORCE.Drilling.Trajectory.Model.InterpolatedTrajectoryLight": {
-        "type": "object",
-        "properties": {
-          "MetaInfo": {
-            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
-          },
-          "Name": {
-            "type": "string",
-            "nullable": true
-          },
-          "Description": {
-            "type": "string",
-            "nullable": true
-          },
-          "CreationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "LastModificationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "TrajectoryID": {
-            "type": "string",
-            "format": "uuid"
-          }
-        },
-        "additionalProperties": false
-      },
       "NORCE.Drilling.Trajectory.Model.Trajectory": {
         "type": "object",
         "properties": {
@@ -692,21 +280,6 @@
             "format": "date-time",
             "nullable": true
           },
-          "FieldID": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "ClusterID": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "WellID": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
           "WellBoreID": {
             "type": "string",
             "format": "uuid"
@@ -719,10 +292,14 @@
             "nullable": true
           },
           "TieInPoint": {
-            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint"
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.Statistics.GaussianGeodeticPoint3D"
           },
-          "CalculationType": {
-            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType"
+          "InterpolatedTrajectory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint"
+            },
+            "nullable": true
           },
           "MDStep": {
             "type": "number",
@@ -753,21 +330,6 @@
           "LastModificationDate": {
             "type": "string",
             "format": "date-time",
-            "nullable": true
-          },
-          "FieldID": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "ClusterID": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "WellID": {
-            "type": "string",
-            "format": "uuid",
             "nullable": true
           },
           "WellBoreID": {
@@ -1095,7 +657,7 @@
             "format": "double",
             "nullable": true
           },
-          "Inclination": {
+          "MD": {
             "type": "number",
             "format": "double",
             "nullable": true
@@ -1105,7 +667,7 @@
             "format": "double",
             "nullable": true
           },
-          "MD": {
+          "Inclination": {
             "type": "number",
             "format": "double",
             "nullable": true
@@ -1163,15 +725,6 @@
           "TUR": {
             "type": "number",
             "format": "double",
-            "nullable": true
-          },
-          "VerticalSection": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Annotation": {
-            "type": "string",
             "nullable": true
           }
         },
@@ -1190,7 +743,7 @@
             "format": "double",
             "nullable": true
           },
-          "Inclination": {
+          "MD": {
             "type": "number",
             "format": "double",
             "nullable": true
@@ -1200,7 +753,7 @@
             "format": "double",
             "nullable": true
           },
-          "MD": {
+          "Inclination": {
             "type": "number",
             "format": "double",
             "nullable": true
@@ -1258,15 +811,6 @@
           "TUR": {
             "type": "number",
             "format": "double",
-            "nullable": true
-          },
-          "VerticalSection": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Annotation": {
-            "type": "string",
             "nullable": true
           },
           "Covariance": {
@@ -1292,14 +836,6 @@
         },
         "additionalProperties": false
       },
-      "OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType": {
-        "enum": [
-          "MinimumCurvatureMethod",
-          "ConstantBuildAndTurnMethod",
-          "ConstantCurvatureAndToolfaceMethod"
-        ],
-        "type": "string"
-      },
       "OSDC.DotnetLibraries.General.DataManagement.MetaInfo": {
         "type": "object",
         "properties": {
@@ -1317,6 +853,27 @@
           },
           "HttpEndPoint": {
             "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.DotnetLibraries.General.Math.GeodeticPoint3D": {
+        "type": "object",
+        "properties": {
+          "LatitudeWGS84": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "LongitudeWGS84": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TvdWGS84": {
+            "type": "number",
+            "format": "double",
             "nullable": true
           }
         },
@@ -1376,6 +933,36 @@
             "type": "integer",
             "format": "int32",
             "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.DotnetLibraries.General.Statistics.GaussianGeodeticPoint3D": {
+        "type": "object",
+        "properties": {
+          "GeodeticMean": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.Math.GeodeticPoint3D"
+          },
+          "CovarianceNED": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.Math.Matrix3x3"
+          },
+          "ReferencePoint": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.Math.GeodeticPoint3D"
+          },
+          "LatitudeWGS84": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "LongitudeWGS84": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TvdWGS84": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
           }
         },
         "additionalProperties": false

@@ -1,15 +1,13 @@
-﻿using OSDC.DotnetLibraries.General.DataManagement;
-using OSDC.DotnetLibraries.General.Statistics;
+using OSDC.DotnetLibraries.General.DataManagement;
 using System;
 
 namespace NORCE.Drilling.Trajectory.Model
 {
     /// <summary>
-    /// Light weight version of a Trajectory
-    /// Used to avoid loading the complete Trajectory (heavy weight data) each time we only need contextual info on the data
-    /// Typically used for listing, sorting and filtering purposes
+    /// Light weight version of an InterpolatedTrajectory.
+    /// Used to avoid loading the complete interpolation payload when only contextual data is needed.
     /// </summary>
-    public class TrajectoryLight
+    public class InterpolatedTrajectoryLight
     {
         /// <summary>
         /// a MetaInfo for the TrajectoryLight
@@ -32,42 +30,27 @@ namespace NORCE.Drilling.Trajectory.Model
         /// </summary>
         public DateTimeOffset? LastModificationDate { get; set; }
         /// <summary>
-        /// the ID of the field associated to the trajectory
-        /// </summary>
-        public Guid? FieldID { get; set; }
-        /// <summary>
-        /// the ID of the cluster associated to the trajectory
-        /// </summary>
-        public Guid? ClusterID { get; set; }
-        /// <summary>
-        /// the ID of the well associated to the trajectory
-        /// </summary>
-        public Guid? WellID { get; set; }
-        /// <summary>
         /// the ID of the wellbore associated to the trajectory
         /// </summary>
-        public Guid WellBoreID { get; set; }
+        public Guid TrajectoryID { get; set; }
         /// <summary>
         /// default constructor required for parsing the data model as a json file
         /// </summary>
-        public TrajectoryLight() : base()
+        public InterpolatedTrajectoryLight() : base()
         {
         }
 
         /// <summary>
         /// base constructor
         /// </summary>
-        public TrajectoryLight(MetaInfo? metaInfo, string? name, string? descr, DateTimeOffset? creationDate, DateTimeOffset? modifDate, Guid? fieldId, Guid? clusterId, Guid? wellId, Guid wellboreId)
+        public InterpolatedTrajectoryLight(MetaInfo? metaInfo, string? name, string? descr, DateTimeOffset? creationDate, DateTimeOffset? modifDate, Guid trajectoryId)
         {
             MetaInfo = metaInfo;
             Name = name;
             Description = descr;
             CreationDate = creationDate;
             LastModificationDate = modifDate;
-            FieldID = fieldId;
-            ClusterID = clusterId;
-            WellID = wellId;
-            WellBoreID = wellboreId;
+            TrajectoryID = trajectoryId;
         }
     }
 }

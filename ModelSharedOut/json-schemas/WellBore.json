@@ -5,11 +5,6 @@
     "description": "Data model containing model dependencies of the clients of the current microservice (WebApp, ServiceTest)",
     "version": "1.0"
   },
-  "servers": [
-    {
-      "url": "https://app.digiwells.no/WellBore/api/swagger/merged/swagger.json"
-    }
-  ],
   "paths": {
     "/Cluster": {
       "get": {

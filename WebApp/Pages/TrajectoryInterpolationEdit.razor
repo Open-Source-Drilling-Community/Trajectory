@@ -1,0 +1,701 @@
+@inject ILogger<TrajectoryInterpolationEdit> logger
+@inject ISnackbar Snackbar
+@inject IJSRuntime JSRuntime
+@using System.Globalization
+@using System.Text
+
+<MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Interpolated Trajectory</MudText>
+<MudContainer Class="d-flex flex-row mt-4 mb-4">
+    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveInterpolatedTrajectory">Save</MudButton>
+    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="SendMessage">Cancel</MudButton>
+</MudContainer>
+
+@if (currentInterpolatedTrajectory is { } traj)
+{
+    <MudGrid>
+        <MudItem xs="3"><MudTextField @bind-Value="traj.Name" Label="Name" Required="true" ShrinkLabel /></MudItem>
+        <MudItem xs="3"><MudTextField @bind-Value="traj.Description" Label="Description" ShrinkLabel /></MudItem>
+        <MudItem xs="3"><MudTextField Value="@FormatDate(traj.CreationDate)" Label="Created" ReadOnly="true" ShrinkLabel /></MudItem>
+        <MudItem xs="3"><MudTextField Value="@FormatDate(traj.LastModificationDate)" Label="Last Updated" ReadOnly="true" ShrinkLabel /></MudItem>
+        <MudItem xs="2">
+            <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId" ValueChanged="OnFieldChanged" ShrinkLabel Clearable="true">
+                @foreach (Field field in AvailableFields)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="2">
+            <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId" ValueChanged="OnClusterChanged" ShrinkLabel Clearable="true">
+                @foreach (Cluster cluster in AvailableClusters)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="2">
+            <MudSelect Label="Well" T="Guid?" Value="@selectedWellId" ValueChanged="OnWellChanged" ShrinkLabel Clearable="true">
+                @foreach (Well well in AvailableWells)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="3">
+            <MudSelect Label="WellBore" T="Guid?" Value="@selectedWellBoreId" ValueChanged="OnWellBoreChanged" ShrinkLabel Clearable="true">
+                @foreach (WellBore wb in AvailableWellBores)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)wb.MetaInfo.ID)">@wb.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="3">
+            <MudSelect Label="Trajectory" T="Guid?" Value="@selectedTrajectoryId" ValueChanged="OnTrajectoryChanged" ShrinkLabel Clearable="true">
+                @foreach (TrajectoryLight trajectory in AvailableTrajectories)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)trajectory.MetaInfo.ID)">@trajectory.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="3"><MudTextField Value="@AssociatedRigName" Label="Rig" ReadOnly="true" ShrinkLabel /></MudItem>
+    </MudGrid>
+
+    <MudPaper Class="pa-4 mt-4 mb-4" Outlined="true">
+        <MudGrid>
+            <MudItem xs="12" md="3">
+                <MudInputWithUnit QuantityLabel="Interpolation Interval" QuantityName="DepthDrilling"
+                                  @key="AdditionalDepthReferenceRenderKey"
+                                  SIValueNullable="@InterpolationStepValue"
+                                  SIValueNullableChanged="OnInterpolationStepChanged" />
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudInputWithUnit QuantityLabel="Chord Distance" QuantityName="DepthDrilling"
+                                  SIValueNullable="@MaximumChordDistanceValue"
+                                  SIValueNullableChanged="OnMaximumChordDistanceChanged" />
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudInputWithUnit QuantityLabel="Interpolation Reference Depth" QuantityName="DepthDrilling"
+                                  @key="AdditionalDepthReferenceRenderKey"
+                                  DrillingSignalReference="@DrillingSignalReferenceType.Depth"
+                                  SIValueNullable="@InterpolationReferenceDepthValue"
+                                  SIValueNullableChanged="OnInterpolationReferenceDepthChanged" />
+            </MudItem>
+            <MudItem xs="12" md="3" Class="d-flex align-center">
+                <MudCheckBox T="bool" @bind-Value="traj.IncludeFirstSurvey" Label="Include first survey" />
+            </MudItem>
+            <MudItem xs="12" md="3" Class="d-flex align-center">
+                <MudCheckBox T="bool" @bind-Value="traj.IncludeLastSurvey" Label="Include last survey" />
+            </MudItem>
+            <MudItem xs="12" md="3" Class="d-flex align-center">
+                <MudCheckBox T="bool" @bind-Value="traj.InterpolateAtCasingAndLinerShoeDepths" Label="At casing and liner shoe depths" />
+            </MudItem>
+            <MudItem xs="12" md="3" Class="d-flex align-center">
+                <MudCheckBox T="bool" @bind-Value="traj.InterpolateAtLinerHangerDepths" Label="At casing hanger depths" />
+            </MudItem>
+            <MudItem xs="12" md="3" Class="d-flex align-center">
+                <MudCheckBox T="bool" @bind-Value="traj.InterpolateAtCasingChangeOfDiameter" Label="At casing change of diameter" />
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudInputWithUnit QuantityLabel="Additional Interpolation Depth" QuantityName="DepthDrilling"
+                                  @key="AdditionalDepthReferenceRenderKey"
+                                  DrillingSignalReference="@DrillingSignalReferenceType.Depth"
+                                  SIValueNullable="@supplementaryInterpolationDepthInput"
+                                  SIValueNullableChanged="@(val => supplementaryInterpolationDepthInput = val)" />
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudTextField @bind-Value="supplementaryInterpolationAnnotationInput" Label="Annotation" ShrinkLabel />
+            </MudItem>
+            <MudItem xs="12" md="2" Class="d-flex align-center">
+                <MudButton OnClick="AddSupplementaryInterpolationDepth" Color="Color.Primary" Variant="Variant.Outlined">Add Depth</MudButton>
+            </MudItem>
+            <MudItem xs="12" md="6">
+                @if (AdditionalAbscissas.Count > 0)
+                {
+                    <MudTable Items="@AdditionalAbscissas" T="AnnotatedAbscissa" Dense="true" Elevation="0" Hover="true" @key="AdditionalDepthReferenceRenderKey">
+                        <RowTemplate>
+                            <MudTd DataLabel="Supplementary depth"><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.Abscissa" /></MudTd>
+                            <MudTd DataLabel="Annotation">@context.Annotation</MudTd>
+                            <MudTd DataLabel="Delete"><MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => RemoveSupplementaryInterpolationDepth(context))" /></MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    <MudToolBar>
+        <MudText Typo="Typo.h6">Interpolated survey points</MudText>
+        <MudSpacer />
+        <MudButton OnClick="ExportInterpolatedSurveyPointsAsync" Color="@Color.Primary" Variant="Variant.Outlined">Export</MudButton>
+    </MudToolBar>
+
+    @if (traj.SurveyStationList is { Count: > 0 } surveyStations)
+    {
+        <MudTable Items="@surveyStations" T="SurveyStation" Height="400px" FixedHeader="true" Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" ReadOnly="true">
+            <HeaderContent>
+                <MudTHeadRow>
+                    <MudTh>Measured Depth [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
+                    <MudTh>Inclination [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                    <MudTh>Azimuth [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                    <MudTh>Vertical Depth [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
+                    <MudTh>@NorthCoordinateLabel [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                    <MudTh>@EastCoordinateLabel [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                    <MudTh>Vertical Section [@Parent?.GetUnitLabel("DepthDrilling")]</MudTh>
+                    <MudTh>Curvature [@Parent?.GetUnitLabel("CurvatureDrilling")]</MudTh>
+                    <MudTh>BUR [@Parent?.GetUnitLabel("CurvatureDrilling")]</MudTh>
+                    <MudTh>TR [@Parent?.GetUnitLabel("CurvatureDrilling")]</MudTh>
+                    <MudTh>Annotation</MudTh>
+                </MudTHeadRow>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.MD" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Inclination" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Azimuth" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.TVD" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Position" PositionDirection="@PositionDirectionType.North" SIValue="@context.RiemannianNorth" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Position" PositionDirection="@PositionDirectionType.East" SIValue="@context.RiemannianEast" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.VerticalSection" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.Curvature" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.BUR" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.TUR" /></MudTd>
+                <MudTd>@context.Annotation</MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudText>No interpolated survey points</MudText>
+    }
+}
+
+@code {
+    [CascadingParameter] private MudUnitAndReferenceChoiceTag? Parent { get; set; }
+    [Parameter] public Guid? InterpolatedTrajectoryId { get; set; }
+    [Parameter] public List<Rig>? RigList { get; set; }
+    [Parameter] public List<WellBore>? WellBoreList { get; set; }
+    [Parameter] public List<Well>? WellList { get; set; }
+    [Parameter] public List<Cluster>? ClusterList { get; set; }
+    [Parameter] public List<Field>? FieldList { get; set; }
+    [Parameter] public List<TrajectoryLight>? TrajectoryList { get; set; }
+    [Parameter] public EventCallback ValueChanged { get; set; }
+
+    private InterpolatedTrajectory currentInterpolatedTrajectory = CreateInterpolatedTrajectory();
+    private Guid? selectedFieldId;
+    private Guid? selectedClusterId;
+    private Guid? selectedWellId;
+    private Guid? selectedWellBoreId;
+    private Guid? selectedTrajectoryId;
+    private double? supplementaryInterpolationDepthInput;
+    private string? supplementaryInterpolationAnnotationInput;
+    private List<WellBoreArchitecture>? wellBoreArchitectureHeavyList;
+    private bool isLoadingWellBoreArchitectureData;
+
+    protected override async Task OnParametersSetAsync() => await LoadDataAsync();
+
+    private async Task LoadDataAsync()
+    {
+        currentInterpolatedTrajectory = InterpolatedTrajectoryId is Guid id ? await APIUtils.ClientTrajectory.GetInterpolatedTrajectoryCaseByIdAsync(id) : CreateInterpolatedTrajectory();
+        selectedTrajectoryId = currentInterpolatedTrajectory.TrajectoryID == Guid.Empty ? null : currentInterpolatedTrajectory.TrajectoryID;
+        SyncSelectorsFromTrajectory(selectedTrajectoryId);
+        UpdateReferenceSources();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SaveInterpolatedTrajectory()
+    {
+        try
+        {
+            currentInterpolatedTrajectory.MetaInfo ??= PseudoConstructors.ConstructMetaInfo();
+            currentInterpolatedTrajectory.TrajectoryID = selectedTrajectoryId ?? Guid.Empty;
+            currentInterpolatedTrajectory.AdditionalAbscissaList = BuildUserAdditionalAbscissasForSave();
+            currentInterpolatedTrajectory.InternalAdditionalAbscissaList = await BuildInternalAdditionalAbscissasForSaveAsync();
+            currentInterpolatedTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
+            if (InterpolatedTrajectoryId is Guid id)
+            {
+                await APIUtils.ClientTrajectory.PutInterpolatedTrajectoryByIdAsync(id, currentInterpolatedTrajectory);
+                Snackbar.Add("Interpolated trajectory updated successfully", Severity.Success);
+            }
+            else
+            {
+                currentInterpolatedTrajectory.MetaInfo.ID = currentInterpolatedTrajectory.MetaInfo.ID == Guid.Empty ? Guid.NewGuid() : currentInterpolatedTrajectory.MetaInfo.ID;
+                currentInterpolatedTrajectory.CreationDate ??= DateTimeOffset.UtcNow;
+                await APIUtils.ClientTrajectory.PostInterpolatedTrajectoryAsync(currentInterpolatedTrajectory);
+                Snackbar.Add("Interpolated trajectory created successfully", Severity.Success);
+            }
+            await SendMessage();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error saving interpolated trajectory");
+            Snackbar.Add("Error saving interpolated trajectory: " + ex.Message, Severity.Warning);
+        }
+    }
+
+    private Task SendMessage() => ValueChanged.InvokeAsync();
+    private static InterpolatedTrajectory CreateInterpolatedTrajectory() => new() { MetaInfo = PseudoConstructors.ConstructMetaInfo(), Name = "Default Name", Description = string.Empty, CreationDate = DateTimeOffset.UtcNow, LastModificationDate = DateTimeOffset.UtcNow, SurveyStationList = [], AdditionalAbscissaList = [], InternalAdditionalAbscissaList = [] };
+    private List<AnnotatedAbscissa> AdditionalAbscissas => currentInterpolatedTrajectory.AdditionalAbscissaList?.OrderBy(x => x.Abscissa).ToList() ?? [];
+    private double? InterpolationStepValue => currentInterpolatedTrajectory.InterpolationStep;
+    private double? InterpolationReferenceDepthValue => currentInterpolatedTrajectory.InterpolationReferenceDepth;
+    private double? MaximumChordDistanceValue => currentInterpolatedTrajectory.MaximumChordArcDistance;
+    private void OnInterpolationStepChanged(double? value) => currentInterpolatedTrajectory.InterpolationStep = value;
+    private void OnInterpolationReferenceDepthChanged(double? value) => currentInterpolatedTrajectory.InterpolationReferenceDepth = value;
+    private void OnMaximumChordDistanceChanged(double? value) => currentInterpolatedTrajectory.MaximumChordArcDistance = value;
+    private void AddSupplementaryInterpolationDepth()
+    {
+        if (supplementaryInterpolationDepthInput is not { } depth || double.IsNaN(depth) || double.IsInfinity(depth))
+        {
+            Snackbar.Add("Supplementary interpolation depth must be a defined value", Severity.Warning);
+            return;
+        }
+
+        List<AnnotatedAbscissa> depths = AdditionalAbscissas;
+        AnnotatedAbscissa? existing = depths.FirstOrDefault(x => Math.Abs(x.Abscissa - depth) < 1e-6);
+        string? annotation = string.IsNullOrWhiteSpace(supplementaryInterpolationAnnotationInput) ? null : supplementaryInterpolationAnnotationInput.Trim();
+
+        if (existing == null)
+        {
+            depths.Add(new AnnotatedAbscissa { Abscissa = depth, Annotation = annotation });
+        }
+        else if (!string.IsNullOrWhiteSpace(annotation))
+        {
+            existing.Annotation = annotation;
+        }
+
+        currentInterpolatedTrajectory.AdditionalAbscissaList = depths.OrderBy(x => x.Abscissa).ToList();
+        supplementaryInterpolationDepthInput = null;
+        supplementaryInterpolationAnnotationInput = string.Empty;
+    }
+
+    private void RemoveSupplementaryInterpolationDepth(AnnotatedAbscissa abscissa)
+    {
+        List<AnnotatedAbscissa> depths = AdditionalAbscissas;
+        depths.RemoveAll(x => Math.Abs(x.Abscissa - abscissa.Abscissa) < 1e-6);
+        currentInterpolatedTrajectory.AdditionalAbscissaList = depths;
+    }
+    private List<Field> AvailableFields => FieldList?.Where(x => x?.MetaInfo != null).OrderBy(x => x.Name).ToList() ?? [];
+    private List<Cluster> AvailableClusters => ClusterList?.Where(cluster => cluster?.MetaInfo != null && !cluster.IsSingleWell && (selectedFieldId == null || cluster.FieldID == selectedFieldId)).OrderBy(cluster => cluster.Name).ToList() ?? [];
+    private List<Well> AvailableWells => WellList?.Where(well => well?.MetaInfo != null && (selectedFieldId == null || MatchesSelectedField(well)) && (selectedClusterId == null || well.IsSingleWell || well.ClusterID == selectedClusterId)).OrderBy(well => well.Name).ToList() ?? [];
+    private List<WellBore> AvailableWellBores => WellBoreList?.Where(wb => wb?.MetaInfo != null && (selectedWellId == null || wb.WellID == selectedWellId)).OrderBy(wb => wb.Name).ToList() ?? [];
+    private List<TrajectoryLight> AvailableTrajectories => TrajectoryList?.Where(t => t?.MetaInfo != null && selectedWellBoreId != null && GetTrajectoryWellBoreId(t.MetaInfo.ID) == selectedWellBoreId).OrderBy(t => t.Name).ToList() ?? [];
+    private Task OnFieldChanged(Guid? fieldId) { selectedFieldId = fieldId; NormalizeSelectionChain(); return Task.CompletedTask; }
+    private Task OnClusterChanged(Guid? clusterId) { selectedClusterId = clusterId; NormalizeSelectionChain(); return Task.CompletedTask; }
+    private Task OnWellChanged(Guid? wellId) { selectedWellId = wellId; NormalizeSelectionChain(); return Task.CompletedTask; }
+    private Task OnWellBoreChanged(Guid? wellBoreId) { selectedWellBoreId = wellBoreId; NormalizeSelectionChain(); return Task.CompletedTask; }
+    private Task OnTrajectoryChanged(Guid? trajectoryId) { selectedTrajectoryId = trajectoryId; currentInterpolatedTrajectory.TrajectoryID = trajectoryId ?? Guid.Empty; UpdateReferenceSources(); return Task.CompletedTask; }
+    private void NormalizeSelectionChain() { if (selectedClusterId != null && !AvailableClusters.Any(x => x.MetaInfo.ID == selectedClusterId)) selectedClusterId = null; if (selectedWellId != null && !AvailableWells.Any(x => x.MetaInfo.ID == selectedWellId)) selectedWellId = null; if (selectedWellBoreId != null && !AvailableWellBores.Any(x => x.MetaInfo.ID == selectedWellBoreId)) selectedWellBoreId = null; if (selectedTrajectoryId != null && !AvailableTrajectories.Any(x => x.MetaInfo.ID == selectedTrajectoryId)) selectedTrajectoryId = null; currentInterpolatedTrajectory.TrajectoryID = selectedTrajectoryId ?? Guid.Empty; UpdateReferenceSources(); }
+    private void SyncSelectorsFromTrajectory(Guid? trajectoryId) { selectedFieldId = null; selectedClusterId = null; selectedWellId = null; selectedWellBoreId = null; if (trajectoryId is not Guid id || id == Guid.Empty) return; selectedTrajectoryId = id; selectedWellBoreId = GetTrajectoryWellBoreId(id); WellBore? wb = selectedWellBoreId is Guid wbId ? FindWellBoreById(wbId) : null; Well? well = wb?.WellID is Guid wellId ? FindWellById(wellId) : null; Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null; selectedWellId = well?.MetaInfo.ID; selectedClusterId = well is { IsSingleWell: true } ? null : cluster?.MetaInfo.ID; selectedFieldId = cluster?.FieldID ?? FindFieldIdForWell(well); }
+    private Guid? GetTrajectoryWellBoreId(Guid trajectoryId) => TrajectoryList?.FirstOrDefault(t => t?.MetaInfo?.ID == trajectoryId)?.WellBoreID;
+    private Well? FindWellById(Guid wellId) => WellList?.FirstOrDefault(well => well?.MetaInfo?.ID == wellId);
+    private Cluster? FindClusterById(Guid clusterId) => ClusterList?.FirstOrDefault(cluster => cluster?.MetaInfo?.ID == clusterId);
+    private WellBore? FindWellBoreById(Guid wellBoreId) => WellBoreList?.FirstOrDefault(wb => wb?.MetaInfo?.ID == wellBoreId);
+    private Guid? FindFieldIdForWell(Well? well) => well?.ClusterID is Guid clusterId ? FindClusterById(clusterId)?.FieldID : null;
+    private bool MatchesSelectedField(Well well) => selectedFieldId == null || FindFieldIdForWell(well) == selectedFieldId;
+    private string AssociatedRigName { get { Guid? wellBoreId = selectedWellBoreId ?? (selectedTrajectoryId is Guid trajectoryId ? GetTrajectoryWellBoreId(trajectoryId) : null); WellBore? wellBore = wellBoreId is Guid wbId ? FindWellBoreById(wbId) : null; Guid? rigId = wellBore?.RigID; if (rigId == null && wellBore?.WellID is Guid wellId) { Well? well = FindWellById(wellId); if (well?.ClusterID is Guid clusterId) rigId = FindClusterById(clusterId)?.RigID; } return rigId is Guid resolvedRigId ? RigList?.FirstOrDefault(rig => rig?.MetaInfo?.ID == resolvedRigId)?.Name ?? "NA" : "NA"; } }
+    private static string FormatDate(DateTimeOffset? value) => value?.ToString("yyyy-MM-dd HH:mm") ?? string.Empty;
+    private string NorthCoordinateLabel => GetCoordinateLabel(PositionDirectionType.North);
+    private string EastCoordinateLabel => GetCoordinateLabel(PositionDirectionType.East);
+    private string AdditionalDepthReferenceRenderKey => Parent?.DepthReferenceName ?? DataUtils.UnitAndReferenceParameters.DepthReferenceName ?? "DepthReference";
+    private void UpdateReferenceSources() => DataUtils.ApplyTrajectoryReferenceValues(selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList, RigList);
+    private string GetCoordinateLabel(PositionDirectionType direction) { string? positionReferenceName = Parent?.PositionReferenceName ?? DataUtils.UnitAndReferenceParameters.PositionReferenceName; if (string.Equals(positionReferenceName, "WGS84", StringComparison.OrdinalIgnoreCase)) return direction == PositionDirectionType.North ? "Riemann North" : "Riemann East"; if (string.Equals(positionReferenceName, "Cartographic", StringComparison.OrdinalIgnoreCase)) return direction == PositionDirectionType.North ? "Northing" : "Easting"; return direction == PositionDirectionType.North ? "North" : "East"; }
+    private async Task ExportInterpolatedSurveyPointsAsync() { if (currentInterpolatedTrajectory.SurveyStationList is not { Count: > 0 } stations) { Snackbar.Add("No interpolated survey points to export", Severity.Warning); return; } string[] headers = [$"Measured Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]", $"Inclination [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]", $"Azimuth [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]", $"Vertical Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]", $"{NorthCoordinateLabel} [{Parent?.GetUnitLabel("PositionDrilling")}]", $"{EastCoordinateLabel} [{Parent?.GetUnitLabel("PositionDrilling")}]", $"Vertical Section [{Parent?.GetUnitLabel("DepthDrilling")}]", $"Curvature [{Parent?.GetUnitLabel("CurvatureDrilling")}]", $"BUR [{Parent?.GetUnitLabel("CurvatureDrilling")}]", $"TR [{Parent?.GetUnitLabel("CurvatureDrilling")}]", "Annotation"]; StringBuilder builder = new(); builder.AppendLine(string.Join('\t', headers.Select(SanitizeExportField))); foreach (SurveyStation station in stations) { builder.AppendLine(string.Join('\t', new[] { ConvertDepthForExport(station.MD), ConvertQuantityForExport(station.Inclination, "PlaneAngleDrilling"), ConvertQuantityForExport(station.Azimuth, "PlaneAngleDrilling"), ConvertDepthForExport(station.TVD), ConvertPositionForExport(station.RiemannianNorth, PositionDirectionType.North), ConvertPositionForExport(station.RiemannianEast, PositionDirectionType.East), ConvertQuantityForExport(station.VerticalSection, "DepthDrilling"), ConvertQuantityForExport(station.Curvature, "CurvatureDrilling"), ConvertQuantityForExport(station.BUR, "CurvatureDrilling"), ConvertQuantityForExport(station.TUR, "CurvatureDrilling"), station.Annotation ?? string.Empty }.Select(SanitizeExportField))); } string fileName = $"{SanitizeFileName(string.IsNullOrWhiteSpace(currentInterpolatedTrajectory.Name) ? "interpolated-trajectory" : currentInterpolatedTrajectory.Name)}-survey-points.tsv"; string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(builder.ToString())); await JSRuntime.InvokeVoidAsync("trajectoryDownloads.saveTextFileFromBase64", fileName, base64Content, "text/tab-separated-values;charset=utf-8"); Snackbar.Add("Exported interpolated survey points", Severity.Success); }
+    private string ConvertDepthForExport(double? value) => Parent == null || value is not { } depth ? string.Empty : NormalizeExportNumber(Parent.FromWGS84DepthSI(depth, "DepthDrilling", false));
+    private string ConvertPositionForExport(double? value, PositionDirectionType direction) => Parent == null || value is not { } position ? string.Empty : NormalizeExportNumber(Parent.FromWGS84PositionSI(position, "PositionDrilling", direction).ToString(CultureInfo.CurrentCulture));
+    private string ConvertQuantityForExport(double? value, string quantityName) => Parent == null || value is not { } quantityValue ? string.Empty : NormalizeExportNumber(Parent.FromSI(quantityValue, quantityName, false));
+    private List<AnnotatedAbscissa> BuildUserAdditionalAbscissasForSave()
+    {
+        return AdditionalAbscissas
+            .Select(item => new AnnotatedAbscissa { Abscissa = item.Abscissa, Annotation = item.Annotation })
+            .ToList();
+    }
+
+    private async Task<List<AnnotatedAbscissa>> BuildInternalAdditionalAbscissasForSaveAsync()
+    {
+        List<AnnotatedAbscissa> values = [];
+        Trajectory? selectedTrajectory = await GetSelectedTrajectoryAsync();
+        WellBoreArchitecture? architecture = null;
+
+        if (currentInterpolatedTrajectory.IncludeFirstSurvey ||
+            currentInterpolatedTrajectory.InterpolateAtCasingAndLinerShoeDepths ||
+            currentInterpolatedTrajectory.InterpolateAtLinerHangerDepths ||
+            currentInterpolatedTrajectory.InterpolateAtCasingChangeOfDiameter)
+        {
+            await EnsureWellBoreArchitectureDataLoadedAsync();
+            architecture = GetSelectedWellBoreArchitecture(selectedTrajectory);
+        }
+
+        if (currentInterpolatedTrajectory.IncludeFirstSurvey)
+        {
+            AddOrUpdateAnnotatedAbscissa(values, ResolveFirstSurveyOutputMd(selectedTrajectory, architecture), null);
+        }
+
+        if (currentInterpolatedTrajectory.IncludeLastSurvey && selectedTrajectory?.SurveyStationList is { Count: > 0 } lastSurveyList)
+        {
+            AddOrUpdateAnnotatedAbscissa(values, lastSurveyList.LastOrDefault()?.MD, null);
+        }
+
+        if (currentInterpolatedTrajectory.InterpolateAtCasingAndLinerShoeDepths ||
+            currentInterpolatedTrajectory.InterpolateAtLinerHangerDepths ||
+            currentInterpolatedTrajectory.InterpolateAtCasingChangeOfDiameter)
+        {
+            if (architecture != null)
+            {
+                if (currentInterpolatedTrajectory.InterpolateAtCasingAndLinerShoeDepths && architecture.CasingSections is { Count: > 0 } casingSections)
+                {
+                    foreach (CasingSection casingSection in casingSections)
+                    {
+                        double? topDepth = GetGaussianMean(casingSection?.TopDepth);
+                        double? length = GetGaussianMean(casingSection?.Length);
+                        double? shoeDepth = topDepth is { } top && length is { } len ? top + len : null;
+                        AddOrUpdateAnnotatedAbscissa(values, shoeDepth, BuildCasingAnnotation("Casing shoe", GetCasingSize(casingSection)));
+                    }
+                }
+
+                if (currentInterpolatedTrajectory.InterpolateAtLinerHangerDepths)
+                {
+                    double? hangerDepth = GetScalarValue(architecture.WellHead?.CasingHangerDepth);
+                    CasingSection? casingSection = FindCasingSectionForDepth(architecture.CasingSections, hangerDepth);
+                    AddOrUpdateAnnotatedAbscissa(values, hangerDepth, BuildCasingAnnotation("Casing hanger", GetCasingSize(casingSection)));
+                }
+
+                if (currentInterpolatedTrajectory.InterpolateAtCasingChangeOfDiameter && architecture.CasingSections is { Count: > 0 } casingSectionsForChanges)
+                {
+                    foreach (CasingSection casingSection in casingSectionsForChanges)
+                    {
+                        AddCasingChangeAnnotations(values, casingSection);
+                    }
+                }
+            }
+        }
+
+        return values.OrderBy(x => x.Abscissa).ToList();
+    }
+    private async Task<Trajectory?> GetSelectedTrajectoryAsync()
+    {
+        if (selectedTrajectoryId is not Guid trajectoryId || trajectoryId == Guid.Empty)
+        {
+            return null;
+        }
+
+        try
+        {
+            return await APIUtils.ClientTrajectory.GetTrajectoryByIdAsync(trajectoryId);
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Unable to load source trajectory {TrajectoryId} while preparing internal interpolation depths", trajectoryId);
+            return null;
+        }
+    }
+    private static double? ResolveFirstSurveyOutputMd(Trajectory? trajectory, WellBoreArchitecture? architecture)
+    {
+        if (trajectory?.SurveyStationList is not { Count: > 0 } surveyStationCollection)
+        {
+            return null;
+        }
+
+        List<SurveyStation> surveyStations = surveyStationCollection
+            .Where(station => station?.MD is { } && station.TVD is { })
+            .OrderBy(station => station.MD)
+            .ToList();
+
+        if (surveyStations.Count == 0)
+        {
+            return trajectory.SurveyStationList.FirstOrDefault()?.MD;
+        }
+
+        SurveyStation firstSurvey = surveyStations[0];
+        if (firstSurvey.MD is not { } firstSurveyMd)
+        {
+            return null;
+        }
+
+        List<OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint> surveyPoints = surveyStations
+            .Select(station => new OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint
+            {
+                MD = station.MD,
+                Inclination = station.Inclination,
+                Azimuth = station.Azimuth,
+                TVD = station.TVD,
+                RiemannianNorth = station.RiemannianNorth,
+                RiemannianEast = station.RiemannianEast,
+                Curvature = station.Curvature,
+                BUR = station.BUR,
+                TUR = station.TUR,
+                Toolface = station.Toolface,
+                VerticalSection = station.VerticalSection
+            })
+            .ToList();
+
+        double? wellHeadDepth = GetGaussianMean(architecture?.WellHead?.Depth);
+        if (wellHeadDepth is not { } targetDepth || firstSurvey.TVD is not { } firstSurveyTvd || firstSurveyTvd >= targetDepth)
+        {
+            return firstSurveyMd;
+        }
+
+        for (int i = 1; i < surveyStations.Count; i++)
+        {
+            SurveyStation start = surveyStations[i - 1];
+            SurveyStation end = surveyStations[i];
+            if (start.MD is not { } startMd ||
+                end.MD is not { } endMd ||
+                start.TVD is not { } startTvd ||
+                end.TVD is not { } endTvd)
+            {
+                continue;
+            }
+
+            if (IsDepthWithinSegment(targetDepth, startTvd, endTvd))
+            {
+                return InterpolateMdAtDepth(surveyPoints, startMd, endMd, targetDepth, ToSurveyingCalculationType(trajectory.CalculationType)) ?? firstSurveyMd;
+            }
+        }
+
+        return firstSurveyMd;
+    }
+    private static bool IsDepthWithinSegment(double targetDepth, double startDepth, double endDepth)
+    {
+        double minDepth = Math.Min(startDepth, endDepth);
+        double maxDepth = Math.Max(startDepth, endDepth);
+        return targetDepth >= minDepth && targetDepth <= maxDepth;
+    }
+    private static OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType ToSurveyingCalculationType(TrajectoryCalculationType calculationType)
+    {
+        return calculationType switch
+        {
+            TrajectoryCalculationType.ConstantBuildAndTurnMethod => OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType.ConstantBuildAndTurnMethod,
+            TrajectoryCalculationType.ConstantCurvatureAndToolfaceMethod => OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType.ConstantCurvatureAndToolfaceMethod,
+            _ => OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType.MinimumCurvatureMethod,
+        };
+    }
+    private static double? InterpolateMdAtDepth(List<OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint> surveyStations, double startMd, double endMd, double targetDepth, OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType calculationType)
+    {
+        const double depthTolerance = 1e-6;
+        double lowMd = Math.Min(startMd, endMd);
+        double highMd = Math.Max(startMd, endMd);
+        OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint lowPoint = new();
+        OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint highPoint = new();
+        if (!OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint.InterpolateAtAbscissa(surveyStations, lowMd, lowPoint, calculationType) ||
+            !OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint.InterpolateAtAbscissa(surveyStations, highMd, highPoint, calculationType) ||
+            lowPoint.TVD is not { } resolvedLowDepth ||
+            highPoint.TVD is not { } resolvedHighDepth)
+        {
+            return null;
+        }
+
+        double lowDepth = resolvedLowDepth;
+        double highDepth = resolvedHighDepth;
+
+        if (!IsDepthWithinSegment(targetDepth, lowDepth, highDepth))
+        {
+            return null;
+        }
+
+        for (int i = 0; i < 64; i++)
+        {
+            double midMd = 0.5 * (lowMd + highMd);
+            OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint midPoint = new();
+            if (!OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint.InterpolateAtAbscissa(surveyStations, midMd, midPoint, calculationType) ||
+                midPoint.TVD is not { } resolvedMidDepth)
+            {
+                return null;
+            }
+
+            double midDepth = resolvedMidDepth;
+
+            if (Math.Abs(midDepth - targetDepth) <= depthTolerance)
+            {
+                return midMd;
+            }
+
+            if (IsDepthWithinSegment(targetDepth, lowDepth, midDepth))
+            {
+                highMd = midMd;
+                highDepth = midDepth;
+            }
+            else
+            {
+                lowMd = midMd;
+                lowDepth = midDepth;
+            }
+        }
+
+        return 0.5 * (lowMd + highMd);
+    }
+    private async Task EnsureWellBoreArchitectureDataLoadedAsync()
+    {
+        if (wellBoreArchitectureHeavyList != null || isLoadingWellBoreArchitectureData)
+        {
+            return;
+        }
+
+        try
+        {
+            isLoadingWellBoreArchitectureData = true;
+            wellBoreArchitectureHeavyList = (List<WellBoreArchitecture>)await APIUtils.ClientWellBoreArchitecture.GetAllWellBoreArchitectureAsync();
+        }
+        finally
+        {
+            isLoadingWellBoreArchitectureData = false;
+        }
+    }
+    private WellBoreArchitecture? GetSelectedWellBoreArchitecture(Trajectory? selectedTrajectory = null)
+    {
+        if (wellBoreArchitectureHeavyList is not { Count: > 0 })
+        {
+            return null;
+        }
+
+        HashSet<Guid> candidateWellBoreIds = [];
+
+        if (selectedWellBoreId is Guid selectedWellBore && selectedWellBore != Guid.Empty)
+        {
+            candidateWellBoreIds.Add(selectedWellBore);
+        }
+
+        if (selectedTrajectory?.WellBoreID is Guid trajectoryWellBore && trajectoryWellBore != Guid.Empty)
+        {
+            candidateWellBoreIds.Add(trajectoryWellBore);
+        }
+
+        if (selectedTrajectoryId is Guid trajectoryId)
+        {
+            Guid? lightWellBoreId = GetTrajectoryWellBoreId(trajectoryId);
+            if (lightWellBoreId is Guid resolvedLightWellBoreId && resolvedLightWellBoreId != Guid.Empty)
+            {
+                candidateWellBoreIds.Add(resolvedLightWellBoreId);
+            }
+        }
+
+        foreach (Guid wellBoreId in candidateWellBoreIds.ToList())
+        {
+            foreach (Guid hierarchyWellBoreId in EnumerateWellBoreHierarchyIds(wellBoreId))
+            {
+                WellBoreArchitecture? architecture = wellBoreArchitectureHeavyList.FirstOrDefault(item => item?.WellBoreID == hierarchyWellBoreId);
+                if (architecture != null)
+                {
+                    return architecture;
+                }
+            }
+        }
+
+        return null;
+    }
+    private IEnumerable<Guid> EnumerateWellBoreHierarchyIds(Guid startWellBoreId)
+    {
+        HashSet<Guid> visited = [];
+        Guid? currentWellBoreId = startWellBoreId;
+
+        while (currentWellBoreId is Guid wellBoreId && wellBoreId != Guid.Empty && visited.Add(wellBoreId))
+        {
+            yield return wellBoreId;
+
+            WellBore? currentWellBore = FindWellBoreById(wellBoreId);
+            currentWellBoreId = currentWellBore?.ParentWellBoreID;
+        }
+    }
+    private void AddOrUpdateAnnotatedAbscissa(List<AnnotatedAbscissa> values, double? abscissa, string? annotation)
+    {
+        if (abscissa is not { } depth || double.IsNaN(depth) || double.IsInfinity(depth))
+        {
+            return;
+        }
+
+        AnnotatedAbscissa? existing = values.FirstOrDefault(x => Math.Abs(x.Abscissa - depth) < 1e-6);
+        if (existing == null)
+        {
+            values.Add(new AnnotatedAbscissa { Abscissa = depth, Annotation = annotation });
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(annotation))
+        {
+            return;
+        }
+
+        if (string.IsNullOrWhiteSpace(existing.Annotation))
+        {
+            existing.Annotation = annotation;
+        }
+    }
+    private string BuildCasingAnnotation(string prefix, double? size)
+    {
+        string sizeText = FormatCasingSize(size);
+        return string.IsNullOrWhiteSpace(sizeText) ? prefix : $"{prefix} {sizeText}";
+    }
+    private string BuildCasingChangeAnnotation(double? sizeAbove, double? sizeBelow)
+    {
+        string above = FormatCasingSize(sizeAbove);
+        string below = FormatCasingSize(sizeBelow);
+        if (string.IsNullOrWhiteSpace(above) || string.IsNullOrWhiteSpace(below))
+        {
+            return "Casing size change";
+        }
+
+        return $"Casing size {above} x {below}";
+    }
+    private string FormatCasingSize(double? size) =>
+        Parent == null || size is not { } definedSize
+            ? string.Empty
+            : Parent.FromSI(definedSize, "DiameterPipeDrilling", true);
+    private void AddCasingChangeAnnotations(List<AnnotatedAbscissa> values, CasingSection? casingSection)
+    {
+        if (casingSection?.CasingSectionElements is not { Count: > 1 } elements)
+        {
+            return;
+        }
+
+        double currentDepth = GetGaussianMean(casingSection.TopDepth) ?? 0.0;
+        double? previousBodyOd = null;
+
+        foreach (CasingSectionElement element in elements)
+        {
+            double? currentBodyOd = GetGaussianMean(element?.BodyOD);
+            if (previousBodyOd.HasValue &&
+                currentBodyOd.HasValue &&
+                Math.Abs(previousBodyOd.Value - currentBodyOd.Value) >= 1e-9)
+            {
+                AddOrUpdateAnnotatedAbscissa(values, currentDepth, BuildCasingChangeAnnotation(previousBodyOd.Value, currentBodyOd.Value));
+            }
+
+            previousBodyOd = currentBodyOd ?? previousBodyOd;
+            currentDepth += GetGaussianMean(element?.SectionLength) ?? 0.0;
+        }
+    }
+    private static CasingSection? FindCasingSectionForDepth(ICollection<CasingSection>? casingSections, double? depth)
+    {
+        if (casingSections is not { Count: > 0 })
+        {
+            return null;
+        }
+
+        if (depth is not { } requestedDepth)
+        {
+            return casingSections.FirstOrDefault();
+        }
+
+        return casingSections
+            .OrderBy(section => Math.Abs((GetGaussianMean(section?.TopDepth) ?? double.MaxValue) - requestedDepth))
+            .FirstOrDefault();
+    }
+    private static double? GetCasingSize(CasingSection? casingSection)
+    {
+        if (casingSection?.CasingSectionElements is { Count: > 0 } elements)
+        {
+            foreach (CasingSectionElement element in elements)
+            {
+                double? value = GetGaussianMean(element?.BodyOD);
+                if (value is { })
+                {
+                    return value;
+                }
+            }
+        }
+
+        return null;
+    }
+    private static double? GetGaussianMean(GaussianDrillingProperty? property) => property?.GaussianValue?.Mean;
+    private static double? GetScalarValue(ScalarDrillingProperty? property) => property?.DiracDistributionValue?.Value;
+    private static string NormalizeExportNumber(string? value) { if (string.IsNullOrWhiteSpace(value)) return string.Empty; string trimmed = value.Trim().Replace("\u00A0", string.Empty, StringComparison.Ordinal).Replace(" ", string.Empty, StringComparison.Ordinal); if (double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out double parsed) || double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out parsed) || double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, new CultureInfo("nb-NO"), out parsed)) return parsed.ToString("G17", CultureInfo.InvariantCulture); return trimmed.Replace(',', '.'); }
+    private static string SanitizeExportField(string? value) { if (string.IsNullOrEmpty(value)) return string.Empty; string sanitized = value.Replace("\r", " ", StringComparison.Ordinal).Replace("\n", " ", StringComparison.Ordinal).Replace("\t", " ", StringComparison.Ordinal).Trim().Replace("°", "deg", StringComparison.Ordinal).Replace("µ", "u", StringComparison.Ordinal).Replace("μ", "u", StringComparison.Ordinal); StringBuilder ascii = new(sanitized.Length); foreach (char c in sanitized) ascii.Append(c <= sbyte.MaxValue ? c : '?'); return ascii.ToString(); }
+    private static string SanitizeFileName(string fileName) { char[] invalidChars = Path.GetInvalidFileNameChars(); StringBuilder builder = new(fileName.Length); foreach (char c in fileName) builder.Append(invalidChars.Contains(c) ? '-' : c); return builder.ToString().Trim(); }
+}

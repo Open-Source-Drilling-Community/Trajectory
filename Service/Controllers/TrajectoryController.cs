@@ -90,9 +90,9 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         /// </summary>
         /// <returns>the list of all TrajectoryLight present in the microservice database, at endpoint Trajectory/api/Trajectory/LightData</returns>
         [HttpGet("LightData", Name = "GetAllTrajectoryLight")]
-        public ActionResult<IEnumerable<Model.TrajectoryLight>> GetAllTrajectoryLight()
+        public ActionResult<IEnumerable<Model.TrajectoryLight>> GetAllTrajectoryLight([FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null)
         {
-            var vals = _trajectoryManager.GetAllTrajectoryLight();
+            var vals = _trajectoryManager.GetAllTrajectoryLight(fieldId, clusterId, wellId, wellBoreId);
             if (vals != null)
             {
                 return Ok(vals);
@@ -108,9 +108,9 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         /// </summary>
         /// <returns>the list of all Trajectory present in the microservice database, at endpoint Trajectory/api/Trajectory/HeavyData</returns>
         [HttpGet("HeavyData", Name = "GetAllTrajectory")]
-        public ActionResult<IEnumerable<Model.Trajectory?>> GetAllTrajectory()
+        public ActionResult<IEnumerable<Model.Trajectory?>> GetAllTrajectory([FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null)
         {
-            var vals = _trajectoryManager.GetAllTrajectory();
+            var vals = _trajectoryManager.GetAllTrajectory(fieldId, clusterId, wellId, wellBoreId);
             if (vals != null)
             {
                 return Ok(vals);
@@ -119,24 +119,6 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             {
                 return StatusCode(StatusCodes.Status500InternalServerError);
             }
-        }
-
-        /// <summary>
-        /// Returns the interpolated trajectory associated to the trajectory identified by its Guid from the microservice database, at endpoint Trajectory/api/Trajectory/id/Interpolated
-        /// </summary>
-        /// <returns>the list of all Trajectory present in the microservice database, at endpoint Trajectory/api/Trajectory/HeavyData</returns>
-        [HttpGet("{id}/Interpolated", Name = "GetInterpolatedTrajectoryById")]
-        public ActionResult<Model.Trajectory?> GetInterpolatedTrajectoryById(Guid id)
-        {
-            if (id == Guid.Empty) return BadRequest();
-
-            var traj = _trajectoryManager.GetTrajectoryById(id);
-            if (traj == null) return NotFound();
-
-            var interpolated = traj.InterpolatedTrajectory; // or manager.CalculateInterpolated(id)
-            if (interpolated == null) return NotFound(); // or Ok(traj) with the field
-
-            return Ok(interpolated);
         }
 
         /// <summary>

@@ -68,6 +68,8 @@ if (!String.IsNullOrEmpty(builder.Configuration["ClusterHostURL"]))
     ServiceConfiguration.ClusterHostURL = builder.Configuration["ClusterHostURL"];
 if (!String.IsNullOrEmpty(builder.Configuration["WellBoreHostURL"]))
     ServiceConfiguration.WellBoreHostURL = builder.Configuration["WellBoreHostURL"];
+if (!String.IsNullOrEmpty(builder.Configuration["WellBoreArchitectureHostURL"]))
+    ServiceConfiguration.WellBoreArchitectureHostURL = builder.Configuration["WellBoreArchitectureHostURL"];
 if (!String.IsNullOrEmpty(builder.Configuration["WellHostURL"]))
     ServiceConfiguration.WellHostURL = builder.Configuration["WellHostURL"];
 

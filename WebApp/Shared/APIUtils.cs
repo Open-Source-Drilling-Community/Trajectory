@@ -1,13 +1,22 @@
 ﻿using NORCE.Drilling.Trajectory.ModelShared;
-using OSDC.DotnetLibraries.General.Statistics;
 
 public static class APIUtils
 {
     // API parameters
+    public static readonly string HostNameField = NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.FieldHostURL!;
+    public static readonly string HostBasePathField = "Field/api/";
+    public static readonly HttpClient HttpClientField = APIUtils.SetHttpClient(HostNameField, HostBasePathField);
+    public static readonly Client ClientField = new Client(APIUtils.HttpClientField.BaseAddress!.ToString(), APIUtils.HttpClientField);
+
     public static readonly string HostNameCluster = NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.ClusterHostURL!;
     public static readonly string HostBasePathCluster = "Cluster/api/";
     public static readonly HttpClient HttpClientCluster = APIUtils.SetHttpClient(HostNameCluster, HostBasePathCluster);
     public static readonly Client ClientCluster = new Client(APIUtils.HttpClientCluster.BaseAddress!.ToString(), APIUtils.HttpClientCluster);
+
+    public static readonly string HostNameRig = NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.RigHostURL!;
+    public static readonly string HostBasePathRig = "Rig/api/";
+    public static readonly HttpClient HttpClientRig = APIUtils.SetHttpClient(HostNameRig, HostBasePathRig);
+    public static readonly Client ClientRig = new Client(APIUtils.HttpClientRig.BaseAddress!.ToString(), APIUtils.HttpClientRig);
 
     public static readonly string HostNameWell = NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.WellHostURL!;
     public static readonly string HostBasePathWell = "Well/api/";
@@ -18,6 +27,11 @@ public static class APIUtils
     public static readonly string HostBasePathWellBore = "WellBore/api/";
     public static readonly HttpClient HttpClientWellBore = APIUtils.SetHttpClient(HostNameWellBore, HostBasePathWellBore);
     public static readonly NORCE.Drilling.Trajectory.ModelShared.Client ClientWellBore = new(APIUtils.HttpClientWellBore.BaseAddress!.ToString(), APIUtils.HttpClientWellBore);
+
+    public static readonly string HostNameWellBoreArchitecture = NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.WellBoreArchitectureHostURL!;
+    public static readonly string HostBasePathWellBoreArchitecture = "WellBoreArchitecture/api/";
+    public static readonly HttpClient HttpClientWellBoreArchitecture = APIUtils.SetHttpClient(HostNameWellBoreArchitecture, HostBasePathWellBoreArchitecture);
+    public static readonly NORCE.Drilling.Trajectory.ModelShared.Client ClientWellBoreArchitecture = new(APIUtils.HttpClientWellBoreArchitecture.BaseAddress!.ToString(), APIUtils.HttpClientWellBoreArchitecture);
 
     public static readonly string HostNameTrajectory = NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.TrajectoryHostURL!;
     public static readonly string HostBasePathTrajectory = "Trajectory/api/";
@@ -68,10 +82,12 @@ public static class APIUtils
                             cluster.ReferenceDepth?.GaussianValue?.Mean is { } refTVD)
                         {
                             msg = "cluster, slot, and wellbore successfully retrieved";
-                            return (new GaussianGeodeticPoint3D(
-                                        new(refLat, refLon, refTVD),
-                                        new(),
-                                        new(refLat, refLon, refTVD)),
+                            return (new GaussianGeodeticPoint3D()
+                            {
+                                GeodeticMean = new GeodeticPoint3D() { LatitudeWGS84 = refLat, LongitudeWGS84 = refLon, TvdWGS84 = refTVD },
+                                CovarianceNED = new Matrix3x3(),
+                                ReferencePoint = new GeodeticPoint3D() { LatitudeWGS84 = refLat, LongitudeWGS84 = refLon, TvdWGS84 = refTVD }
+                            },
                                     msg);
                         }
                         else

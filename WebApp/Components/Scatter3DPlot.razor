@@ -1,5 +1,6 @@
 ﻿@implements IUnitAwareComponent
 @implements IDisposable
+@using System.Text
 
 <PlotlyChart Config="config" Layout="layout" Data="data" @ref="chart" />
 
@@ -32,6 +33,11 @@
     [Parameter] public string ZAxisTitle { get; set; }
     [Parameter] public bool ZAxisReversed { get; set; }
     [Parameter] public bool YAxisReversed { get; set; }
+    [Parameter] public bool XAxisUsesPositionReference { get; set; }
+    [Parameter] public bool YAxisUsesPositionReference { get; set; }
+    [Parameter] public bool ZAxisUsesDepthReference { get; set; }
+    [Parameter] public PositionDirectionType XAxisPositionDirection { get; set; } = PositionDirectionType.Independent;
+    [Parameter] public PositionDirectionType YAxisPositionDirection { get; set; } = PositionDirectionType.Independent;
 
     // ---- Helpers ----
 
@@ -62,6 +68,9 @@
     private PlotlyChart chart; // IMPORTANT: do not new() this chart as was the case in the pasr; @ref assigns it after render!
     private bool _plotlyReady;
     private bool _disposed;
+    private readonly SemaphoreSlim _plotSemaphore = new(1, 1);
+    private string? _lastPlotSignature;
+    private bool _forceReplot = true;
 
     // Readonly properties for PlotlyChart: since our chart is controlled directly (chart.Clear(), chart.AddTrace(), ...), we don't need two-way binding via @bind-Data, @bind-Layout, @bind-Config.
     private readonly IList<ITrace> data = new List<ITrace>(); // PlotlyChart uses this list; must be instantiated and not replaced to avoid breaking the reference from PlotlyChart.
@@ -100,7 +109,6 @@
             throw new ArgumentNullException(nameof(Parent), "ScatterPlot3D must exist within a UnitAndReferenceChoiceTag");
 
         Parent.Add(this);
-        ManageUnits();
     }
 
     protected override async Task OnAfterRenderAsync(bool firstRender)
@@ -128,6 +136,7 @@
     public void ManageUnits()
     {
         // Parent notifies unit changes; ensure we replot on UI thread
+        _forceReplot = true;
         _ = InvokeAsync(async () => await PlotAsync());
     }
 
@@ -135,12 +144,18 @@
 
     private async Task PlotAsync()
     {
+        await _plotSemaphore.WaitAsync();
+        try
+        {
         if (_disposed) return;
 
         // Layout can be updated before ready; contrary to trace operations, which must wait for ready
         ManageLayout();
 
         if (!_plotlyReady || chart == null) return;
+
+        string plotSignature = BuildPlotSignature();
+        if (!_forceReplot && _lastPlotSignature == plotSignature) return;
 
         await ManageTracesAsync();
 
@@ -156,6 +171,13 @@
         }
 
         await InvokeAsync(StateHasChanged);
+        _lastPlotSignature = plotSignature;
+        _forceReplot = false;
+        }
+        finally
+        {
+            _plotSemaphore.Release();
+        }
     }
 
     private async Task ManageTracesAsync()
@@ -187,21 +209,27 @@
             foreach (var x in XValuesList[i])
                 if (TryGetDouble(x, out var xd))
                 {
-                    var X = Parent.FromSI((double?)xd, XUnit);
+                    double? X = XAxisUsesPositionReference
+                        ? ConvertPositionForPlot(xd, XUnit, XAxisPositionDirection)
+                        : Parent.FromSI((double?)xd, XUnit);
                     if (X.HasValue) xOut.Add(X.Value);
                 }
 
             foreach (var y in YValuesList[i])
                 if (TryGetDouble(y, out var yd))
                 {
-                    var Y = Parent.FromSI((double?)yd, YUnit);
+                    double? Y = YAxisUsesPositionReference
+                        ? ConvertPositionForPlot(yd, YUnit, YAxisPositionDirection)
+                        : Parent.FromSI((double?)yd, YUnit);
                     if (Y.HasValue) yOut.Add(Y.Value);
                 }
 
             foreach (var z in ZValuesList[i])
                 if (TryGetDouble(z, out var zd))
                 {
-                    var Z = Parent.FromSI((double?)zd, ZUnit);
+                    double? Z = ZAxisUsesDepthReference
+                        ? ConvertDepthForPlot(zd, ZUnit)
+                        : Parent.FromSI((double?)zd, ZUnit);
                     if (Z.HasValue) zOut.Add(Z.Value);
                 }
 
@@ -266,9 +294,9 @@
             B = 0
         };
 
-        string xUnitLabel = Parent.GetUnitLabel(XUnit);
-        string yUnitLabel = Parent.GetUnitLabel(YUnit);
-        string zUnitLabel = Parent.GetUnitLabel(ZUnit);
+        string xUnitLabel = XAxisUsesPositionReference ? Parent.GetPositionUnitLabel(XUnit) : Parent.GetUnitLabel(XUnit);
+        string yUnitLabel = YAxisUsesPositionReference ? Parent.GetPositionUnitLabel(YUnit) : Parent.GetUnitLabel(YUnit);
+        string zUnitLabel = ZAxisUsesDepthReference ? Parent.GetDepthUnitLabel(ZUnit) : Parent.GetUnitLabel(ZUnit);
 
         xUnitLabel = xUnitLabel != null ? $" ({xUnitLabel})" : "";
         yUnitLabel = yUnitLabel != null ? $" ({yUnitLabel})" : "";
@@ -290,8 +318,8 @@
                 X = new List<object> { 0, 1 },
                 Y = new List<object> { 0, 1 }
             };
-            // AspectMode.Cube gives equal axes; use Manual + explicit ratios if you want stretch-to-fill.
-            scene.AspectMode = Plotly.Blazor.LayoutLib.SceneLib.AspectModeEnum.Cube;
+            // AspectMode.Data keeps the same data scale on X, Y and Z.
+            scene.AspectMode = Plotly.Blazor.LayoutLib.SceneLib.AspectModeEnum.Data;
 
             scene.XAxis.Title.Text = (XAxisTitle ?? "") + xUnitLabel;
             scene.XAxis.AutoRange = Plotly.Blazor.LayoutLib.SceneLib.XAxisLib.AutoRangeEnum.True;
@@ -309,21 +337,102 @@
                 ? Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.AutoRangeEnum.Reversed
                 : Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.AutoRangeEnum.True;
         }
+    }
 
-        // Do NOT Task.Run() JS interop. Only invoke after ready on UI thread.
-        _ = InvokeAsync(async () =>
+    private string BuildPlotSignature()
+    {
+        StringBuilder builder = new();
+        builder.Append(XUnit).Append('|')
+            .Append(YUnit).Append('|')
+            .Append(ZUnit).Append('|')
+            .Append(XAxisTitle).Append('|')
+            .Append(YAxisTitle).Append('|')
+            .Append(ZAxisTitle).Append('|')
+            .Append(PlotTitle).Append('|')
+            .Append(YAxisReversed).Append('|')
+            .Append(ZAxisReversed).Append('|')
+            .Append(XAxisUsesPositionReference).Append('|')
+            .Append(YAxisUsesPositionReference).Append('|')
+            .Append(ZAxisUsesDepthReference).Append('|')
+            .Append(XAxisPositionDirection).Append('|')
+            .Append(YAxisPositionDirection).Append('|');
+
+        AppendListSignature(builder, NameList);
+        AppendListSignature(builder, ModeFlagList);
+        AppendListSignature(builder, ColorList);
+        AppendNestedListSignature(builder, XValuesList);
+        AppendNestedListSignature(builder, YValuesList);
+        AppendNestedListSignature(builder, ZValuesList);
+
+        return builder.ToString();
+    }
+
+    private static void AppendListSignature<T>(StringBuilder builder, List<T>? values)
+    {
+        if (values == null)
         {
-            if (_disposed) return;
-            if (!_plotlyReady || chart == null) return;
+            builder.Append("null|");
+            return;
+        }
 
-            try
+        builder.Append(values.Count).Append('|');
+        foreach (T? value in values)
+        {
+            builder.Append(value).Append(';');
+        }
+        builder.Append('|');
+    }
+
+    private static void AppendNestedListSignature(StringBuilder builder, List<List<object>>? values)
+    {
+        if (values == null)
+        {
+            builder.Append("null|");
+            return;
+        }
+
+        builder.Append(values.Count).Append('|');
+        foreach (List<object> list in values)
+        {
+            builder.Append(list.Count).Append(':');
+            foreach (object? value in list)
             {
-                await chart.Relayout();
+                builder.Append(value).Append(',');
             }
-            catch
-            {
-                // ignore transient JS interop failures during render/dispose
-            }
-        });
+            builder.Append(';');
+        }
+        builder.Append('|');
+    }
+
+    private double? ConvertDepthForPlot(double value, string quantityName)
+    {
+        string? converted = Parent.FromWGS84DepthSI(value, quantityName, false);
+        if (string.IsNullOrWhiteSpace(converted))
+        {
+            return null;
+        }
+
+        if (double.TryParse(converted, out double parsed))
+        {
+            return parsed;
+        }
+
+        if (double.TryParse(converted, System.Globalization.NumberStyles.Float | System.Globalization.NumberStyles.AllowThousands, System.Globalization.CultureInfo.InvariantCulture, out parsed))
+        {
+            return parsed;
+        }
+
+        return null;
+    }
+
+    private double? ConvertPositionForPlot(double value, string quantityName, PositionDirectionType direction)
+    {
+        if (direction == PositionDirectionType.Independent)
+        {
+            return null;
+        }
+
+        double converted = Parent.FromWGS84PositionSI(value, quantityName, direction);
+        return double.IsNaN(converted) ? null : converted;
     }
 }
