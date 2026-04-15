@@ -37,11 +37,6 @@ namespace NORCE.Drilling.Trajectory.ModelShared
 					{
 						ConstructSurveyStation(),
 					},
-				InterpolatedTrajectory = new List<SurveyPoint>
-					{
-						ConstructSurveyPoint(),
-					},
-				MDStep = 0.0, 
 			};
 		}
 		public static ErrorSource ConstructErrorSource()

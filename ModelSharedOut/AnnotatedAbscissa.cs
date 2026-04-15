@@ -1,15 +1,5 @@
 namespace NORCE.Drilling.Trajectory.ModelShared
 {
-    [System.Text.Json.Serialization.JsonConverter(typeof(AnnotatedAbscissaJsonConverter))]
-    public partial class AnnotatedAbscissa
-    {
-        [System.Text.Json.Serialization.JsonPropertyName("Abscissa")]
-        public double Abscissa { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("Annotation")]
-        public string? Annotation { get; set; }
-    }
-
     internal sealed class AnnotatedAbscissaJsonConverter : System.Text.Json.Serialization.JsonConverter<AnnotatedAbscissa>
     {
         public override AnnotatedAbscissa? Read(ref System.Text.Json.Utf8JsonReader reader, System.Type typeToConvert, System.Text.Json.JsonSerializerOptions options)

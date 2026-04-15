@@ -194,7 +194,7 @@
 
     private async Task LoadDataAsync()
     {
-        currentInterpolatedTrajectory = InterpolatedTrajectoryId is Guid id ? await APIUtils.ClientTrajectory.GetInterpolatedTrajectoryCaseByIdAsync(id) : CreateInterpolatedTrajectory();
+        currentInterpolatedTrajectory = InterpolatedTrajectoryId is Guid id ? await APIUtils.ClientTrajectory.GetInterpolatedTrajectoryByIdAsync(id) : CreateInterpolatedTrajectory();
         selectedTrajectoryId = currentInterpolatedTrajectory.TrajectoryID == Guid.Empty ? null : currentInterpolatedTrajectory.TrajectoryID;
         SyncSelectorsFromTrajectory(selectedTrajectoryId);
         UpdateReferenceSources();

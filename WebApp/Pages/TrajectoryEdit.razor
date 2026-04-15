@@ -830,11 +830,10 @@
                 : "NA";
         }
     }
-    private SurveyPoint? CalculatedTieInPoint =>
-        currentTrajectory.InterpolatedTrajectory?
+    private SurveyStation? CalculatedTieInPoint =>
+        currentTrajectory.SurveyStationList?
             .OrderBy(point => point.MD ?? double.MaxValue)
             .FirstOrDefault();
-    private List<SurveyPoint> InterpolatedTrajectoryDisplayList => BuildInterpolatedTrajectoryDisplayList();
 
     private void AddSupplementaryInterpolationDepth()
     {
@@ -936,7 +935,6 @@
             }
 
             currentTrajectory.SurveyStationList = importedStations;
-            currentTrajectory.InterpolatedTrajectory = null;
             selectedSurveyStations.Clear();
             UpdatePlots();
             Snackbar.Add($"Imported {importedStations.Count} survey stations. Skipped {skippedLines} lines.", Severity.Success);
@@ -1171,8 +1169,6 @@
                 station.TUR = null;
             }
         }
-
-        currentTrajectory.InterpolatedTrajectory = null;
     }
 
     private List<double> GetRequestedInterpolationDepths()
@@ -1188,37 +1184,6 @@
             .Where(depth => depth >= 0)
             .Distinct()
             .OrderBy(depth => depth)
-            .ToList();
-    }
-
-    private List<SurveyPoint> BuildInterpolatedTrajectoryDisplayList()
-    {
-        List<SurveyPoint> basePoints = currentTrajectory.InterpolatedTrajectory?
-            .OrderBy(point => point.MD ?? double.MaxValue)
-            .Select(CloneSurveyPoint)
-            .ToList() ?? [];
-
-        if (basePoints.Count == 0)
-        {
-            return basePoints;
-        }
-
-        foreach (double depth in GetRequestedInterpolationDepths())
-        {
-            if (basePoints.Any(point => point.MD is { } pointDepth && Math.Abs(pointDepth - depth) < 1e-6))
-            {
-                continue;
-            }
-
-            SurveyPoint? interpolatedPoint = InterpolateDisplayPoint(basePoints, depth);
-            if (interpolatedPoint != null)
-            {
-                basePoints.Add(interpolatedPoint);
-            }
-        }
-
-        return basePoints
-            .OrderBy(point => point.MD ?? double.MaxValue)
             .ToList();
     }
 
@@ -1673,17 +1638,6 @@
                     RiemannianNorth = ss.RiemannianNorth,
                     RiemannianEast = ss.RiemannianEast,
                     TVD = ss.TVD
-                })
-                .ToList(),
-            InterpolatedTrajectory = source.InterpolatedTrajectory?
-                .Select(sp => new SurveyPoint
-                {
-                    MD = sp.MD,
-                    Inclination = sp.Inclination,
-                    Azimuth = sp.Azimuth,
-                    RiemannianNorth = sp.RiemannianNorth,
-                    RiemannianEast = sp.RiemannianEast,
-                    TVD = sp.TVD
                 })
                 .ToList()
         };
