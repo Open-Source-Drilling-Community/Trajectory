@@ -26,44 +26,41 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
     ///     one connection is opened per web request
     ///     > same problems as with shared connection, but limited to the scope of one webrequest rather than to the whole lifetime of the application
     /// </remarks>
-    public class SqlConnectionManager
+    public abstract class SqlConnectionManager
     {
-        private readonly ILogger<SqlConnectionManager> _logger;
+        private readonly ILogger _logger;
         private readonly string _connectionString;
         private readonly string _dbPath;
+        protected string DatabaseFilename { get; }
+        protected IReadOnlyDictionary<string, string[]> TableStructureDict { get; }
+        protected IReadOnlyDictionary<string, string[]> TableIndexDefinitions { get; }
         public static readonly string HOME_DIRECTORY = ".." + Path.DirectorySeparatorChar + "home" + Path.DirectorySeparatorChar;
-        public static readonly string DATABASE_FILENAME = "Trajectory.db";
         public static readonly string DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
 
-        // dictionary describing tables format
-        private readonly static Dictionary<string, string[]> _tableStructureDict = new Dictionary<string, string[]>()
-            {
-                { "TrajectoryTable", new string[] {
-                    "ID text primary key",
-                    "MetaInfo text",
-                    "CreationDate text",
-                    "LastModificationDate text",
-                    "FieldID text",
-                    "ClusterID text",
-                    "WellID text",
-                    "WellBoreID text",
-                    "Trajectory text" }
-                },
-                { "InterpolatedTrajectoryTable", new string[] {
-                    "ID text primary key",
-                    "MetaInfo text",
-                    "CreationDate text",
-                    "LastModificationDate text",
-                    "TrajectoryID text",
-                    "InterpolatedTrajectory text" }
-                }
-            };
-
-        public SqlConnectionManager(string connectionString, ILogger<SqlConnectionManager> logger, string dbPath)
+        protected SqlConnectionManager(ILogger logger, string databaseFilename, IReadOnlyDictionary<string, string[]> tableStructureDict)
+            : this(logger, databaseFilename, tableStructureDict, null)
         {
+        }
+
+        protected SqlConnectionManager(ILogger logger, string databaseFilename, IReadOnlyDictionary<string, string[]> tableStructureDict, IReadOnlyDictionary<string, string[]>? tableIndexDefinitions)
+            : this(BuildConnectionString(BuildDatabasePath(databaseFilename)), logger, BuildDatabasePath(databaseFilename), databaseFilename, tableStructureDict, tableIndexDefinitions)
+        {
+        }
+
+        protected SqlConnectionManager(string connectionString, ILogger logger, string dbPath, string databaseFilename, IReadOnlyDictionary<string, string[]> tableStructureDict, IReadOnlyDictionary<string, string[]>? tableIndexDefinitions = null)
+        {
+            ArgumentNullException.ThrowIfNull(logger);
+            ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
+            ArgumentException.ThrowIfNullOrWhiteSpace(dbPath);
+            ArgumentException.ThrowIfNullOrWhiteSpace(databaseFilename);
+            ArgumentNullException.ThrowIfNull(tableStructureDict);
+
             _connectionString = connectionString;
             _logger = logger;
             _dbPath = dbPath;
+            DatabaseFilename = databaseFilename;
+            TableStructureDict = tableStructureDict;
+            TableIndexDefinitions = tableIndexDefinitions ?? CreateDefaultIndexDefinitions(tableStructureDict);
 
             _logger.LogInformation("SqliteConnectionManager created. DB: {DbPath}", _dbPath);
 
@@ -90,6 +87,35 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 _logger.LogError("Problem while opening SQLite connection");
             }
             return connection;
+        }
+
+        protected static string BuildDatabasePath(string databaseFilename)
+        {
+            return Path.Combine(HOME_DIRECTORY, databaseFilename);
+        }
+
+        protected static string BuildConnectionString(string dbPath)
+        {
+            var builder = new SqliteConnectionStringBuilder
+            {
+                DataSource = dbPath,
+                Mode = SqliteOpenMode.ReadWriteCreate,
+                Cache = SqliteCacheMode.Shared
+            };
+            return builder.ToString();
+        }
+
+        protected static IReadOnlyDictionary<string, string[]> CreateDefaultIndexDefinitions(IReadOnlyDictionary<string, string[]> tableStructureDict)
+        {
+            var result = new Dictionary<string, string[]>();
+            foreach (var table in tableStructureDict)
+            {
+                if (table.Value.Any(column => string.Equals(column.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0], "ID", StringComparison.OrdinalIgnoreCase)))
+                {
+                    result[table.Key] = [$"CREATE UNIQUE INDEX {table.Key}Index ON {table.Key} (ID)"];
+                }
+            }
+            return result;
         }
 
         private bool Initialize()
@@ -145,13 +171,13 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     }
                 }
 
-                if (tableNameList.Count != _tableStructureDict.Count) // unexpected number of tables
+                if (tableNameList.Count != TableStructureDict.Count) // unexpected number of tables
                 {
                     parseOk = false;
                 }
                 else
                 {
-                    foreach (var tableStruct in _tableStructureDict)
+                    foreach (var tableStruct in TableStructureDict)
                     {
                         bool tmpSuccess = false;
                         foreach (string tableName in tableNameList)
@@ -177,12 +203,12 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     {
                         _logger.LogWarning("Unexpected structure of the existing database. A timestamped backup copy will be generated");
                         // backup existing database
-                        string backupFileName = HOME_DIRECTORY + Path.DirectorySeparatorChar + DATABASE_FILENAME;
+                        string backupFileName = HOME_DIRECTORY + Path.DirectorySeparatorChar + DatabaseFilename;
                         string timeStamp = DateTime.UtcNow.ToString(DATE_TIME_FORMAT);
                         backupFileName = backupFileName.Insert(backupFileName.Length - 3, "-" + timeStamp);
                         try
                         {
-                            File.Copy(HOME_DIRECTORY + Path.DirectorySeparatorChar + DATABASE_FILENAME, backupFileName);
+                            File.Copy(HOME_DIRECTORY + Path.DirectorySeparatorChar + DatabaseFilename, backupFileName);
                         }
                         catch (Exception ex)
                         {
@@ -205,12 +231,12 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 {
                     _logger.LogInformation("Creating database tables");
                     bool success = true;
-                    foreach (var tableStruct in _tableStructureDict)
+                    foreach (var tableStruct in TableStructureDict)
                     {
                         string tableName = tableStruct.Key;
                         if (CreateTable(tableStruct))
                         {
-                            if (!IndexTable(tableName))
+                            if (!CreateIndexes(tableName))
                                 success = false;
                         }
                         else
@@ -319,23 +345,31 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             return true;
         }
 
-        private bool IndexTable(string dbName)
+        private bool CreateIndexes(string tableName)
         {
+            if (!TableIndexDefinitions.TryGetValue(tableName, out string[]? indexCommands) || indexCommands.Length == 0)
+            {
+                return true;
+            }
+
             var connection = GetConnection();
             if (connection != null)
             {
                 var command = connection.CreateCommand();
-                command.CommandText = $"CREATE UNIQUE INDEX {dbName}Index ON {dbName} (ID)";
-                try
+                foreach (string indexCommand in indexCommands)
                 {
-                    int res = command.ExecuteNonQuery();
-                    _logger.LogInformation("{dbName} has been successfully indexed", dbName);
+                    command.CommandText = indexCommand;
+                    try
+                    {
+                        int res = command.ExecuteNonQuery();
+                    }
+                    catch (SqliteException ex)
+                    {
+                        _logger.LogError(ex, "Impossible to create index for {tableName} which will be dropped", tableName);
+                        return false;
+                    }
                 }
-                catch (SqliteException ex)
-                {
-                    _logger.LogError(ex, "Impossible to index {dbName} which will be dropped", dbName);
-                    return false;
-                }
+                _logger.LogInformation("{tableName} has been successfully indexed", tableName);
             }
             else
             {

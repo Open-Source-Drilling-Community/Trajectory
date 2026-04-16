@@ -26,6 +26,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModelSharedIn", "ModelShare
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp", "WebApp\WebApp.csproj", "{3215F6CF-A442-1C21-6AD3-94ED23F4EBA5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GlobalAntiCollision", "GlobalAntiCollision\GlobalAntiCollision.csproj", "{A01CA63E-2BA6-04BE-0088-4F88CD1E3C8B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -60,6 +62,10 @@ Global
 		{3215F6CF-A442-1C21-6AD3-94ED23F4EBA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3215F6CF-A442-1C21-6AD3-94ED23F4EBA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3215F6CF-A442-1C21-6AD3-94ED23F4EBA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A01CA63E-2BA6-04BE-0088-4F88CD1E3C8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A01CA63E-2BA6-04BE-0088-4F88CD1E3C8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A01CA63E-2BA6-04BE-0088-4F88CD1E3C8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A01CA63E-2BA6-04BE-0088-4F88CD1E3C8B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE

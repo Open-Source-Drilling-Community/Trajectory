@@ -241,6 +241,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
 
         public async Task<InterpolatedTrajectory?> CalculateInterpolatedTrajectoryAsync(InterpolatedTrajectory? interpolatedTrajectory)
         {
+            await Task.Delay(0);
             try
             {
                 if (interpolatedTrajectory?.MetaInfo == null || interpolatedTrajectory.TrajectoryID == Guid.Empty)

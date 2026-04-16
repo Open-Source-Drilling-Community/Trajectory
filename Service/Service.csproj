@@ -19,11 +19,14 @@
 		<PackageReference Include="Microsoft.OpenApi" Version="1.6.28" />
 		<PackageReference Include="Microsoft.OpenApi.Readers" Version="1.6.28" />
 		<PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
+		<PackageReference Include="OSDC.DotnetLibraries.General.Common" Version="1.1.0" />
+		<PackageReference Include="OSDC.DotnetLibraries.General.Octree" Version="1.1.0" />
 		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerGen" Version="9.0.3" />
 		<PackageReference Include="Swashbuckle.AspNetCore.SwaggerUI" Version="9.0.3" />
 	</ItemGroup>
 
 	<ItemGroup>
+		<ProjectReference Include="..\GlobalAntiCollision\GlobalAntiCollision.csproj" />
 		<ProjectReference Include="..\Model\Model.csproj" />
 	</ItemGroup>
 

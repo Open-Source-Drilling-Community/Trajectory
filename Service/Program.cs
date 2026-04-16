@@ -10,27 +10,11 @@ using System;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// registering the manager of SQLite connections through dependency injection
-builder.Services.AddSingleton(sp =>
-{
-    var logger = sp.GetRequiredService<ILogger<SqlConnectionManager>>();
-
-    var dbPath = Path.Combine(SqlConnectionManager.HOME_DIRECTORY,
-                              SqlConnectionManager.DATABASE_FILENAME);
-
-    // Ensure the directory exists before we build/use the connection string
-    Directory.CreateDirectory(SqlConnectionManager.HOME_DIRECTORY);
-
-    var csb = new Microsoft.Data.Sqlite.SqliteConnectionStringBuilder
-    {
-        DataSource = dbPath,
-        // Optional but safe:
-        Mode = Microsoft.Data.Sqlite.SqliteOpenMode.ReadWriteCreate,
-        Cache = Microsoft.Data.Sqlite.SqliteCacheMode.Shared
-    };
-
-    return new SqlConnectionManager(csb.ToString(), logger, dbPath);
-});
+// registering the managers of SQLite connections through dependency injection
+builder.Services.AddSingleton<SqlConnectionManagerTrajectory>();
+builder.Services.AddSingleton<SqlConnectionManager>(sp => sp.GetRequiredService<SqlConnectionManagerTrajectory>());
+builder.Services.AddSingleton<SqlConnectionManagerSeparationFactorResults>();
+builder.Services.AddSingleton<SqlConnectionManagerOctree>();
 
 // registering the database cleaner service through dependency injection
 builder.Services.AddHostedService(sp => new DatabaseCleanerService(
@@ -53,7 +37,6 @@ builder.Services.AddSwaggerGen(config =>
 var app = builder.Build();
 
 var basePath = "/Trajectory/api";
-var scheme = "http";
 
 app.UsePathBase(basePath);
 

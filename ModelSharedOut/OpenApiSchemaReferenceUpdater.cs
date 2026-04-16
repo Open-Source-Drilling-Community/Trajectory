@@ -20,7 +20,7 @@ public class OpenApiSchemaReferenceUpdater
 
             var clonedSchema = CloneSchema(schema);
 
-            if (clonedSchema.Reference != null)
+            if (clonedSchema != null && clonedSchema.Reference != null)
             {
                 clonedSchema.Reference = new OpenApiReference
                 {
@@ -131,7 +131,7 @@ public class OpenApiSchemaReferenceUpdater
     /// </summary>
     /// <param name="source"></param>
     /// <returns></returns>
-    private OpenApiSchema CloneSchema(OpenApiSchema source)
+    private OpenApiSchema? CloneSchema(OpenApiSchema source)
     {
         if (source == null) return null;
 
