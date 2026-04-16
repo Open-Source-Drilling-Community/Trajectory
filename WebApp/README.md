@@ -43,5 +43,3 @@ The current work has been funded by the [Research Council of Norway](https://www
 **Eric Cayeux**, *NORCE Energy Modelling and Automation*
 
 **Gilles Pelfrene**, *NORCE Energy Modelling and Automation*
-
-**Andrew Holsaeter**, *NORCE Energy Modelling and Automation*
