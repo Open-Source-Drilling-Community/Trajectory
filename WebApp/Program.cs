@@ -1,9 +1,9 @@
 using MudBlazor;
 using MudBlazor.Services;
+using NORCE.Drilling.Trajectory.WebPages;
 
 var builder = WebApplication.CreateBuilder(args);
 
-// Add services to the container.
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddMudServices(config =>
@@ -21,40 +21,34 @@ builder.Services.AddMudServices(config =>
 var app = builder.Build();
 
 app.UseForwardedHeaders();
-// This needs to match with what is defined in "charts/<helm-chart-name>/templates/values.yaml ingress.Path
 app.UsePathBase("/Trajectory/webapp");
 
-if (!String.IsNullOrEmpty(builder.Configuration["TrajectoryHostURL"]))
-    NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.TrajectoryHostURL = builder.Configuration["TrajectoryHostURL"];
-if (!String.IsNullOrEmpty(builder.Configuration["FieldHostURL"]))
-    NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.FieldHostURL = builder.Configuration["FieldHostURL"];
-if (!String.IsNullOrEmpty(builder.Configuration["ClusterHostURL"]))
-    NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.ClusterHostURL = builder.Configuration["ClusterHostURL"];
-if (!String.IsNullOrEmpty(builder.Configuration["RigHostURL"]))
-    NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.RigHostURL = builder.Configuration["RigHostURL"];
-if (!String.IsNullOrEmpty(builder.Configuration["WellBoreHostURL"]))
-    NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.WellBoreHostURL = builder.Configuration["WellBoreHostURL"];
-if (!String.IsNullOrEmpty(builder.Configuration["WellBoreArchitectureHostURL"]))
-    NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.WellBoreArchitectureHostURL = builder.Configuration["WellBoreArchitectureHostURL"];
-if (!String.IsNullOrEmpty(builder.Configuration["WellHostURL"]))
-    NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.WellHostURL = builder.Configuration["WellHostURL"];
-if (!String.IsNullOrEmpty(builder.Configuration["UnitConversionHostURL"]))
-    NORCE.Drilling.Trajectory.WebApp.WebAppConfiguration.UnitConversionHostURL = builder.Configuration["UnitConversionHostURL"];
+if (!string.IsNullOrEmpty(builder.Configuration["TrajectoryHostURL"]))
+    WebAppConfiguration.TrajectoryHostURL = builder.Configuration["TrajectoryHostURL"];
+if (!string.IsNullOrEmpty(builder.Configuration["FieldHostURL"]))
+    WebAppConfiguration.FieldHostURL = builder.Configuration["FieldHostURL"];
+if (!string.IsNullOrEmpty(builder.Configuration["ClusterHostURL"]))
+    WebAppConfiguration.ClusterHostURL = builder.Configuration["ClusterHostURL"];
+if (!string.IsNullOrEmpty(builder.Configuration["RigHostURL"]))
+    WebAppConfiguration.RigHostURL = builder.Configuration["RigHostURL"];
+if (!string.IsNullOrEmpty(builder.Configuration["WellBoreHostURL"]))
+    WebAppConfiguration.WellBoreHostURL = builder.Configuration["WellBoreHostURL"];
+if (!string.IsNullOrEmpty(builder.Configuration["WellBoreArchitectureHostURL"]))
+    WebAppConfiguration.WellBoreArchitectureHostURL = builder.Configuration["WellBoreArchitectureHostURL"];
+if (!string.IsNullOrEmpty(builder.Configuration["WellHostURL"]))
+    WebAppConfiguration.WellHostURL = builder.Configuration["WellHostURL"];
+if (!string.IsNullOrEmpty(builder.Configuration["UnitConversionHostURL"]))
+    WebAppConfiguration.UnitConversionHostURL = builder.Configuration["UnitConversionHostURL"];
 
-// Configure the HTTP request pipeline.
 if (!app.Environment.IsDevelopment())
 {
     app.UseExceptionHandler("/Error");
-    // The default HSTS value is 30 days. You may want to change this for production scenarios, see https://aka.ms/aspnetcore-hsts.
     app.UseHsts();
 }
 
 app.UseHttpsRedirection();
-
 app.UseStaticFiles();
-
 app.UseRouting();
-
 app.MapBlazorHub();
 app.MapFallbackToPage("/_Host");
 

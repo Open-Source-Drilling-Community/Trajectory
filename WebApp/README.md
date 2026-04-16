@@ -1,32 +1,44 @@
-# Trajectory webapp
+# Trajectory WebApp
 
-The Trajectory webapp serves as a user interface to manage data associated with Trajectory microservice
+`WebApp` is the ASP.NET Core Blazor host application for Trajectory.
 
-It is packaged as a docker container called:
+It provides the application shell, startup configuration, routing, and static assets for the UI. The Trajectory and TrajectoryInterpolation pages themselves are now provided by the `WebPages` Razor class library.
 
-``norcedrillingtrajectorywebappclient``
+## Container
 
-It is available on dockerhub, under the digiwells organization, at:
+The host application is packaged as the Docker image:
+
+`norcedrillingtrajectorywebappclient`
+
+It is published under the `digiwells` organization:
 
 https://hub.docker.com/?namespace=digiwells
 
-The API (OpenApi schema) of the microservice is available and testable at:
+## UI Endpoint
 
-https://dev.digiwells.no/Trajectory/api/swagger (development server) 
-
-https://app.digiwells.no/Trajectory/api/swagger (production server)
-
-The webapp itself is available at:
+The web application is available at:
 
 https://dev.digiwells.no/Trajectory/webapp/Trajectory
 
 https://app.digiwells.no/Trajectory/webapp/Trajectory
 
-# Funding
+The backing service OpenAPI endpoint is available at:
 
-The current work has been funded by the [Research Council of Norway](https://www.forskningsradet.no/) and [Industry partners](https://www.digiwells.no/about/board/) in the framework of the cent for research-based innovation [SFI Digiwells (2020-2028)](https://www.digiwells.no/) focused on Digitalization, Drilling Engineering and GeoSteering.
+https://dev.digiwells.no/Trajectory/api/swagger
 
-# Contributors
+https://app.digiwells.no/Trajectory/api/swagger
+
+## Project Relationship
+
+- `WebApp` hosts and configures the UI.
+- `WebPages` contains the reusable Razor pages and page-specific support components.
+- `ModelSharedOut` provides the generated service client types used by `WebPages`.
+
+## Funding
+
+The current work has been funded by the [Research Council of Norway](https://www.forskningsradet.no/) and [Industry partners](https://www.digiwells.no/about/board/) in the framework of the centre for research-based innovation [SFI Digiwells (2020-2028)](https://www.digiwells.no/) focused on digitalization, drilling engineering, and geosteering.
+
+## Contributors
 
 **Eric Cayeux**, *NORCE Energy Modelling and Automation*
 

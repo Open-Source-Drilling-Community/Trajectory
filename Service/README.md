@@ -1,38 +1,61 @@
-# Trajectory microservice
+# Trajectory Service
 
-The Trajectory microservice is packaged as a docker container named:
+`Service` is the ASP.NET Core microservice for Trajectory.
 
-``norcedrillingtrajectoryservice``
+It exposes the Trajectory API and depends on the `Model` project for the domain model and computation logic.
 
-It is available on dockerhub, under the digiwells organization, at:
+## Container
+
+The service is packaged as the Docker image:
+
+`norcedrillingtrajectoryservice`
+
+It is published under the `digiwells` organization:
 
 https://hub.docker.com/?namespace=digiwells
 
-The API (OpenApi schema) of the microservice is available and testable at:
+## Endpoints
 
-https://dev.digiwells.no/Trajectory/api/swagger (development server) 
+OpenAPI / Swagger:
 
-https://app.digiwells.no/Trajectory/api/swagger (production server)
+https://dev.digiwells.no/Trajectory/api/swagger
 
-The microservice itself is available at:
+https://app.digiwells.no/Trajectory/api/swagger
+
+Trajectory API:
 
 https://dev.digiwells.no/Trajectory/api/Trajectory
 
 https://app.digiwells.no/Trajectory/api/Trajectory
 
-# Source code
+## Related Projects
 
-The present microservice and webapp solution has been generated from a NORCE Drilling and Well Modelling team dotnet template.
-Creation date: 02/12/2025
-Version: 4.0.22
-Source code of the dotnet template can be found here: https://github.com/NORCE-DrillingAndWells/Templates
-Documentation relative to the template can be found here: https://github.com/NORCE-DrillingAndWells/DrillingAndWells/wiki/.NET-Templates
+- `Model` contains the main model and trajectory calculation logic used by the service.
+- `ModelSharedOut` contains generated client-side types and service schemas for consumers.
+- `WebPages` contains the reusable Razor UI pages for Trajectory and TrajectoryInterpolation.
+- `WebApp` is the host application that renders the UI using `WebPages`.
 
-# Funding
+## Source Code Origin
 
-The current work has been funded by the [Research Council of Norway](https://www.forskningsradet.no/) and [Industry partners](https://www.digiwells.no/about/board/) in the framework of the cent for research-based innovation [SFI Digiwells (2020-2028)](https://www.digiwells.no/) focused on Digitalization, Drilling Engineering and GeoSteering. 
+The original service and host web application solution was generated from a NORCE Drilling and Wells Modelling Team .NET template.
 
-# Contributors
+Creation date: `02/12/2025`
+
+Version: `4.0.22`
+
+Template source:
+
+https://github.com/NORCE-DrillingAndWells/Templates
+
+Template documentation:
+
+https://github.com/NORCE-DrillingAndWells/DrillingAndWells/wiki/.NET-Templates
+
+## Funding
+
+The current work has been funded by the [Research Council of Norway](https://www.forskningsradet.no/) and [Industry partners](https://www.digiwells.no/about/board/) in the framework of the centre for research-based innovation [SFI Digiwells (2020-2028)](https://www.digiwells.no/) focused on digitalization, drilling engineering, and geosteering.
+
+## Contributors
 
 **Eric Cayeux**, *NORCE Energy Modelling and Automation*
 

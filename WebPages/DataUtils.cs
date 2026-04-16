@@ -1,7 +1,8 @@
-﻿using Microsoft.AspNetCore.Identity.Data;
 using NORCE.Drilling.Trajectory.ModelShared;
 using OSDC.UnitConversion.DrillingRazorMudComponents;
 using System.Runtime.InteropServices;
+
+namespace NORCE.Drilling.Trajectory.WebPages;
 
 public static class DataUtils
 {
@@ -291,7 +292,7 @@ public static class DataUtils
         List<List<object>> eastValuesList,
         List<List<object>> TVDValuesList,
         List<List<object>> verticalSectionValuesList,
-        List<Trajectory> trajectoryList
+        List<NORCE.Drilling.Trajectory.ModelShared.Trajectory> trajectoryList
         )
     {
         if (trajectoryList is { })
@@ -396,3 +397,5 @@ public class ClusterPositionReferenceSource : IClusterPositionReferenceSource
     public double? ClusterNorthPositionReference { get; set; }
     public double? ClusterEastPositionReference { get; set; }
 }
+
+
