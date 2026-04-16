@@ -2,9 +2,10 @@
 @inject ILogger<TrajectoryInterpolatedMain> logger
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
+@inject ITrajectoryAPIUtils Api
 
-<MudUnitAndReferenceChoiceTag HttpHost=@APIUtils.HostNameUnitConversion
-                              HttpBasePath=@APIUtils.HostBasePathUnitConversion
+<MudUnitAndReferenceChoiceTag HttpHost=@Api.HostNameUnitConversion
+                              HttpBasePath=@Api.HostBasePathUnitConversion
                               HttpController="UnitSystem/"
                               UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
                               UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName"
@@ -97,13 +98,13 @@
             interpolatedTrajectoryIdBeingEdited = null;
             selectedInterpolatedTrajectoryList = [];
 
-            var interpolatedTask = APIUtils.ClientTrajectory.GetAllInterpolatedTrajectoryLightAsync();
-            var trajectoryTask = APIUtils.ClientTrajectory.GetAllTrajectoryLightAsync();
-            var wellBoreTask = APIUtils.ClientWellBore.GetAllWellBoreAsync();
-            var wellTask = APIUtils.ClientWell.GetAllWellAsync();
-            var clusterTask = APIUtils.ClientCluster.GetAllClusterAsync();
-            var fieldTask = APIUtils.ClientField.GetAllFieldAsync();
-            var rigTask = APIUtils.ClientRig.GetAllRigAsync();
+            var interpolatedTask = Api.ClientTrajectory.GetAllInterpolatedTrajectoryLightAsync();
+            var trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
+            var wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
+            var wellTask = Api.ClientWell.GetAllWellAsync();
+            var clusterTask = Api.ClientCluster.GetAllClusterAsync();
+            var fieldTask = Api.ClientField.GetAllFieldAsync();
+            var rigTask = Api.ClientRig.GetAllRigAsync();
 
             await Task.WhenAll(interpolatedTask, trajectoryTask, wellBoreTask, wellTask, clusterTask, fieldTask, rigTask);
 
@@ -164,7 +165,7 @@
         {
             if (await ConfirmDeletion())
             {
-                await APIUtils.ClientTrajectory.DeleteInterpolatedTrajectoryByIdAsync(id);
+                await Api.ClientTrajectory.DeleteInterpolatedTrajectoryByIdAsync(id);
                 await LoadDataAsync();
             }
         }
@@ -185,7 +186,7 @@
             {
                 foreach (InterpolatedTrajectoryLight item in toDelete)
                 {
-                    await APIUtils.ClientTrajectory.DeleteInterpolatedTrajectoryByIdAsync(item.MetaInfo.ID);
+                    await Api.ClientTrajectory.DeleteInterpolatedTrajectoryByIdAsync(item.MetaInfo.ID);
                 }
                 await LoadDataAsync();
             }

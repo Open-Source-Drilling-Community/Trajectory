@@ -1,11 +1,26 @@
 using MudBlazor;
 using MudBlazor.Services;
+using NORCE.Drilling.Trajectory.WebApp;
 using NORCE.Drilling.Trajectory.WebPages;
 
 var builder = WebApplication.CreateBuilder(args);
 
+WebPagesHostConfiguration webPagesConfiguration = new()
+{
+    TrajectoryHostURL = builder.Configuration["TrajectoryHostURL"] ?? string.Empty,
+    FieldHostURL = builder.Configuration["FieldHostURL"] ?? string.Empty,
+    ClusterHostURL = builder.Configuration["ClusterHostURL"] ?? string.Empty,
+    RigHostURL = builder.Configuration["RigHostURL"] ?? string.Empty,
+    WellBoreHostURL = builder.Configuration["WellBoreHostURL"] ?? string.Empty,
+    WellBoreArchitectureHostURL = builder.Configuration["WellBoreArchitectureHostURL"] ?? string.Empty,
+    WellHostURL = builder.Configuration["WellHostURL"] ?? string.Empty,
+    UnitConversionHostURL = builder.Configuration["UnitConversionHostURL"] ?? string.Empty
+};
+
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddSingleton<ITrajectoryWebPagesConfiguration>(webPagesConfiguration);
+builder.Services.AddSingleton<ITrajectoryAPIUtils, TrajectoryAPIUtils>();
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
@@ -22,23 +37,6 @@ var app = builder.Build();
 
 app.UseForwardedHeaders();
 app.UsePathBase("/Trajectory/webapp");
-
-if (!string.IsNullOrEmpty(builder.Configuration["TrajectoryHostURL"]))
-    WebAppConfiguration.TrajectoryHostURL = builder.Configuration["TrajectoryHostURL"];
-if (!string.IsNullOrEmpty(builder.Configuration["FieldHostURL"]))
-    WebAppConfiguration.FieldHostURL = builder.Configuration["FieldHostURL"];
-if (!string.IsNullOrEmpty(builder.Configuration["ClusterHostURL"]))
-    WebAppConfiguration.ClusterHostURL = builder.Configuration["ClusterHostURL"];
-if (!string.IsNullOrEmpty(builder.Configuration["RigHostURL"]))
-    WebAppConfiguration.RigHostURL = builder.Configuration["RigHostURL"];
-if (!string.IsNullOrEmpty(builder.Configuration["WellBoreHostURL"]))
-    WebAppConfiguration.WellBoreHostURL = builder.Configuration["WellBoreHostURL"];
-if (!string.IsNullOrEmpty(builder.Configuration["WellBoreArchitectureHostURL"]))
-    WebAppConfiguration.WellBoreArchitectureHostURL = builder.Configuration["WellBoreArchitectureHostURL"];
-if (!string.IsNullOrEmpty(builder.Configuration["WellHostURL"]))
-    WebAppConfiguration.WellHostURL = builder.Configuration["WellHostURL"];
-if (!string.IsNullOrEmpty(builder.Configuration["UnitConversionHostURL"]))
-    WebAppConfiguration.UnitConversionHostURL = builder.Configuration["UnitConversionHostURL"];
 
 if (!app.Environment.IsDevelopment())
 {

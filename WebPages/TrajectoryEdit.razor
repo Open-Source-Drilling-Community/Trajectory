@@ -1,6 +1,7 @@
 ﻿@inject ILogger<TrajectoryEdit> logger
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
+@inject ITrajectoryAPIUtils Api
 @using System.Net.Http.Json
 @using System.Globalization
 @using System.Reflection
@@ -486,7 +487,7 @@
             }
             if (TrajectoryId != null)
             {
-                currentTrajectory = await APIUtils.ClientTrajectory.GetTrajectoryByIdAsync(TrajectoryId.Value);
+                currentTrajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(TrajectoryId.Value);
             }
             else
             {
@@ -521,7 +522,7 @@
                 if (TrajectoryId != null)
                 {
                     currentTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
-                    await APIUtils.ClientTrajectory.PutTrajectoryByIdAsync(TrajectoryId.Value, currentTrajectory);
+                    await Api.ClientTrajectory.PutTrajectoryByIdAsync(TrajectoryId.Value, currentTrajectory);
                     Snackbar.Add("Trajectory updated successfully", Severity.Success);
                     await SendMessage();
                 }
@@ -531,7 +532,7 @@
                     currentTrajectory.MetaInfo.ID = Guid.NewGuid();
                     currentTrajectory.CreationDate = DateTimeOffset.UtcNow;
                     currentTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
-                    await APIUtils.ClientTrajectory.PostTrajectoryAsync(currentTrajectory);
+                    await Api.ClientTrajectory.PostTrajectoryAsync(currentTrajectory);
                     Snackbar.Add("Trajectory created successfully", Severity.Success);
                     await SendMessage();
                 }
@@ -559,7 +560,7 @@
                 newTraj.LastModificationDate = nowDate;
                 newTraj.MetaInfo.ID = Guid.NewGuid();
                 newTraj.Name += "-copy";
-                await APIUtils.ClientTrajectory.PostTrajectoryAsync(newTraj);
+                await Api.ClientTrajectory.PostTrajectoryAsync(newTraj);
                 Snackbar.Add("Trajectory duplicated successfully", Severity.Success);
                 await SendMessage();
             }
@@ -1601,7 +1602,7 @@
         try
         {
             isLoadingWellBoreArchitectureData = true;
-            wellBoreArchitectureHeavyList = (List<WellBoreArchitecture>)await APIUtils.ClientWellBoreArchitecture.GetAllWellBoreArchitectureAsync();
+            wellBoreArchitectureHeavyList = (List<WellBoreArchitecture>)await Api.ClientWellBoreArchitecture.GetAllWellBoreArchitectureAsync();
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)

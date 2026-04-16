@@ -17,12 +17,13 @@
     <RepositoryType>git</RepositoryType>
     <PackageProjectUrl>https://github.com/NORCE-DrillingAndWells/Trajectory</PackageProjectUrl>
     <PackageReadmeFile>README.md</PackageReadmeFile>
-    <GeneratePackageOnBuild>false</GeneratePackageOnBuild>
+    <GeneratePackageOnBuild>False</GeneratePackageOnBuild>
   </PropertyGroup>
 
   <ItemGroup>
     <PackageReference Include="MudBlazor" Version="8.14.0" />
     <PackageReference Include="OSDC.DotnetLibraries.Drilling.Surveying" Version="1.2.9" />
+    <PackageReference Include="OSDC.DotnetLibraries.Drilling.WebAppUtils" Version="1.1.0" />
     <PackageReference Include="OSDC.DotnetLibraries.General.DataManagement" Version="2.1.0" />
     <PackageReference Include="OSDC.UnitConversion.DrillingRazorMudComponents" Version="3.3.47" />
     <PackageReference Include="Plotly.Blazor" Version="6.0.2" />

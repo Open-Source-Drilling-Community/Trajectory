@@ -1,6 +1,7 @@
 @inject ILogger<TrajectoryInterpolationEdit> logger
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
+@inject ITrajectoryAPIUtils Api
 @using System.Globalization
 @using System.Text
 
@@ -194,7 +195,7 @@
 
     private async Task LoadDataAsync()
     {
-        currentInterpolatedTrajectory = InterpolatedTrajectoryId is Guid id ? await APIUtils.ClientTrajectory.GetInterpolatedTrajectoryByIdAsync(id) : CreateInterpolatedTrajectory();
+        currentInterpolatedTrajectory = InterpolatedTrajectoryId is Guid id ? await Api.ClientTrajectory.GetInterpolatedTrajectoryByIdAsync(id) : CreateInterpolatedTrajectory();
         selectedTrajectoryId = currentInterpolatedTrajectory.TrajectoryID == Guid.Empty ? null : currentInterpolatedTrajectory.TrajectoryID;
         SyncSelectorsFromTrajectory(selectedTrajectoryId);
         UpdateReferenceSources();
@@ -212,14 +213,14 @@
             currentInterpolatedTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
             if (InterpolatedTrajectoryId is Guid id)
             {
-                await APIUtils.ClientTrajectory.PutInterpolatedTrajectoryByIdAsync(id, currentInterpolatedTrajectory);
+                await Api.ClientTrajectory.PutInterpolatedTrajectoryByIdAsync(id, currentInterpolatedTrajectory);
                 Snackbar.Add("Interpolated trajectory updated successfully", Severity.Success);
             }
             else
             {
                 currentInterpolatedTrajectory.MetaInfo.ID = currentInterpolatedTrajectory.MetaInfo.ID == Guid.Empty ? Guid.NewGuid() : currentInterpolatedTrajectory.MetaInfo.ID;
                 currentInterpolatedTrajectory.CreationDate ??= DateTimeOffset.UtcNow;
-                await APIUtils.ClientTrajectory.PostInterpolatedTrajectoryAsync(currentInterpolatedTrajectory);
+                await Api.ClientTrajectory.PostInterpolatedTrajectoryAsync(currentInterpolatedTrajectory);
                 Snackbar.Add("Interpolated trajectory created successfully", Severity.Success);
             }
             await SendMessage();
@@ -378,7 +379,7 @@
 
         try
         {
-            return await APIUtils.ClientTrajectory.GetTrajectoryByIdAsync(trajectoryId);
+            return await Api.ClientTrajectory.GetTrajectoryByIdAsync(trajectoryId);
         }
         catch (Exception ex)
         {
@@ -531,7 +532,7 @@
         try
         {
             isLoadingWellBoreArchitectureData = true;
-            wellBoreArchitectureHeavyList = (List<WellBoreArchitecture>)await APIUtils.ClientWellBoreArchitecture.GetAllWellBoreArchitectureAsync();
+            wellBoreArchitectureHeavyList = (List<WellBoreArchitecture>)await Api.ClientWellBoreArchitecture.GetAllWellBoreArchitectureAsync();
         }
         finally
         {
