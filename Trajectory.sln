@@ -13,7 +13,7 @@ Project("{2150E333-8FDC-42A3-9474-1A3956D46DE8}") = "Solution Items", "Solution 
 		global.json = global.json
 		.github\workflows\publish-webpages-nuget.yml = .github\workflows\publish-webpages-nuget.yml
 		README.md = README.md
-	EndProjectSection
+		EndProjectSection
 EndProject
 Project("{9A19103F-16F7-4668-BE54-9A1E7A4F7556}") = "Model", "Model\Model.csproj", "{175CA85F-A210-4E23-8F9C-30B227F73A1D}"
 EndProject
@@ -30,6 +30,8 @@ EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "ModelSharedIn", "ModelSharedIn\ModelSharedIn.csproj", "{8599556D-B893-C377-978F-E262F40875A5}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebApp", "WebApp\WebApp.csproj", "{3215F6CF-A442-1C21-6AD3-94ED23F4EBA5}"
+EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "GlobalAntiCollision", "GlobalAntiCollision\GlobalAntiCollision.csproj", "{A01CA63E-2BA6-04BE-0088-4F88CD1E3C8B}"
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebPages", "WebPages\WebPages.csproj", "{4D6FB47F-D0EC-4FC4-8387-6C1CE2468952}"
 EndProject
@@ -67,11 +69,15 @@ Global
 		{3215F6CF-A442-1C21-6AD3-94ED23F4EBA5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{3215F6CF-A442-1C21-6AD3-94ED23F4EBA5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{3215F6CF-A442-1C21-6AD3-94ED23F4EBA5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{A01CA63E-2BA6-04BE-0088-4F88CD1E3C8B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{A01CA63E-2BA6-04BE-0088-4F88CD1E3C8B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{A01CA63E-2BA6-04BE-0088-4F88CD1E3C8B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{A01CA63E-2BA6-04BE-0088-4F88CD1E3C8B}.Release|Any CPU.Build.0 = Release|Any CPU
 		{4D6FB47F-D0EC-4FC4-8387-6C1CE2468952}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
 		{4D6FB47F-D0EC-4FC4-8387-6C1CE2468952}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4D6FB47F-D0EC-4FC4-8387-6C1CE2468952}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4D6FB47F-D0EC-4FC4-8387-6C1CE2468952}.Release|Any CPU.Build.0 = Release|Any CPU
-	EndGlobalSection
+		EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
 	EndGlobalSection

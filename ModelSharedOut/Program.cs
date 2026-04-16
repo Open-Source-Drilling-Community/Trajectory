@@ -62,7 +62,7 @@ class Program
         bool finished = false;
         DirectoryInfo directory = new DirectoryInfo(Directory.GetCurrentDirectory());
 
-        while (directory != null && !directory.GetFiles("*.sln").Any())
+        while (directory != null && !directory.GetFiles("*.sln").Any() && directory.Parent != null)
         {
             directory = directory.Parent;
         }
@@ -303,18 +303,21 @@ class Program
                 Assembly assembly = Assembly.Load(memorysStream.ToArray());
                 //Find the used class
                 var type = assembly.GetType("NORCE.Drilling.Trajectory.PseudoConstructorsWriter.Writer");
-                var obj = Activator.CreateInstance(type);
-                //Execute desired method
-                var method = type.GetMethod("CreatePseudoConstructors");
-                if (method == null)
+                if (type != null)
                 {
-                    Console.WriteLine("Method not found! Creation of constructors aborted.");
-                    return;
+                    var obj = Activator.CreateInstance(type);
+                    //Execute desired method
+                    var method = type.GetMethod("CreatePseudoConstructors");
+                    if (method == null)
+                    {
+                        Console.WriteLine("Method not found! Creation of constructors aborted.");
+                        return;
+                    }
+                    method.Invoke(obj, null);
+                    Console.ForegroundColor = ConsoleColor.Green;
+                    Console.WriteLine("\t\x1b[1m ✓ - Constructor methods created successfully! \x1b[0m");
+                    Console.ForegroundColor = ConsoleColor.White; // Reset color to default    
                 }
-                method.Invoke(obj, null);
-                Console.ForegroundColor = ConsoleColor.Green;
-                Console.WriteLine("\t\x1b[1m ✓ - Constructor methods created successfully! \x1b[0m");
-                Console.ForegroundColor = ConsoleColor.White; // Reset color to default    
             }
             catch (Exception ex)
             {

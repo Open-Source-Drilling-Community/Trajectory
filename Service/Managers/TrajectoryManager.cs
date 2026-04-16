@@ -323,6 +323,65 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         }
 
         /// <summary>
+        /// Returns the List of Trajectories identified by their Guid's from the microservice database 
+        /// </summary>
+        /// <param name="trajId"></param>
+        /// <returns>the List of Trajectories identified by their Guid's from the microservice database</returns>
+        public List<Model.Trajectory>? GetListOfTrajectoryById(List<Guid> trajIdList)
+        {
+            if (!trajIdList.Contains(Guid.Empty))
+            {
+                var connection = _connectionManager.GetConnection();
+                if (connection != null)
+                {
+                    List<Model.Trajectory>? trajectoryList;
+                    var command = connection.CreateCommand();
+                    command.CommandText = $"SELECT Trajectory FROM TrajectoryTable WHERE ID IN '{trajIdList}'";
+                    try
+                    {
+                        using var reader = command.ExecuteReader();
+                        if (reader.Read() && !reader.IsDBNull(0))
+                        {
+                            string data = reader.GetString(0);
+                            trajectoryList = JsonSerializer.Deserialize<List<Model.Trajectory>>(data, JsonSettings.Options);
+                            if (trajectoryList != null)
+                            {
+                                foreach (Model.Trajectory trajectory in trajectoryList)
+                                {
+                                    if (trajectory != null && trajectory.MetaInfo != null && !trajIdList.Contains(trajectory.MetaInfo.ID))
+                                    {
+                                        throw new SqliteException("SQLite database corrupted: returned Trajectory is null or has been jsonified with the wrong ID.", 1);
+                                    }
+                                }
+                            }
+                        }
+                        else
+                        {
+                            _logger.LogInformation("Problem with one of the trajectories of the given ID's in the database");
+                            return null;
+                        }
+                    }
+                    catch (SqliteException ex)
+                    {
+                        _logger.LogError(ex, "Impossible to get the TrajectoryList with the given ID's from TrajectoryTable");
+                        return null;
+                    }
+                    _logger.LogInformation("Returning the Trajectory of given ID from TrajectoryTable");
+                    return trajectoryList;
+                }
+                else
+                {
+                    _logger.LogWarning("Impossible to access the SQLite database");
+                }
+            }
+            else
+            {
+                _logger.LogWarning("The given Trajectory ID list contains empty ID's");
+            }
+            return null;
+        }
+
+        /// <summary>
         /// Returns the list of all Trajectory present in the microservice database 
         /// </summary>
         /// <returns>the list of all Trajectory present in the microservice database</returns>

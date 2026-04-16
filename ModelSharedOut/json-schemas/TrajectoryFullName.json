@@ -5,6 +5,145 @@
     "version": "1.0"
   },
   "paths": {
+    "/GlobalAntiCollisions": {
+      "get": {
+        "tags": [
+          "GlobalAntiCollisions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GlobalAntiCollisions"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.GlobalAntiCollision.GlobalAntiCollision"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.GlobalAntiCollision.GlobalAntiCollision"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.GlobalAntiCollision.GlobalAntiCollision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/GlobalAntiCollisions/{id}": {
+      "get": {
+        "tags": [
+          "GlobalAntiCollisions"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.GlobalAntiCollision.GlobalAntiCollision"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "GlobalAntiCollisions"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.GlobalAntiCollision.GlobalAntiCollision"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.GlobalAntiCollision.GlobalAntiCollision"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.GlobalAntiCollision.GlobalAntiCollision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "GlobalAntiCollisions"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/InterpolatedTrajectory": {
       "get": {
         "tags": [
@@ -249,6 +388,125 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/Octrees": {
+      "get": {
+        "tags": [
+          "Octrees"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Octrees/{id}": {
+      "get": {
+        "tags": [
+          "Octrees"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.Octree.OctreeCodeLong"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Octrees"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Octrees"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Octrees"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -541,6 +799,78 @@
   },
   "components": {
     "schemas": {
+      "NORCE.Drilling.GlobalAntiCollision.GlobalAntiCollision": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "nullable": true
+          },
+          "ConfidenceFactor": {
+            "type": "number",
+            "format": "double"
+          },
+          "ReferenceWellPathID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ComparisonTrajectoryIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "SeparationFactorResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.GlobalAntiCollision.SeparationFactorResult"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.GlobalAntiCollision.SeparationFactorPoint": {
+        "type": "object",
+        "properties": {
+          "ReferenceMD": {
+            "type": "number",
+            "format": "double"
+          },
+          "ComparisonMD": {
+            "type": "number",
+            "format": "double"
+          },
+          "SeparationFactor": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.GlobalAntiCollision.SeparationFactorResult": {
+        "type": "object",
+        "properties": {
+          "ComparisonTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "SeparationFactorProfile": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.GlobalAntiCollision.SeparationFactorPoint"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "NORCE.Drilling.Trajectory.Model.AnnotatedAbscissa": {
         "type": "object",
         "properties": {
@@ -1376,6 +1706,24 @@
             "type": "integer",
             "format": "int32",
             "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.DotnetLibraries.General.Octree.OctreeCodeLong": {
+        "type": "object",
+        "properties": {
+          "Depth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CodeHigh": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "CodeLow": {
+            "type": "integer",
+            "format": "int64"
           }
         },
         "additionalProperties": false
