@@ -1,4 +1,4 @@
-<Project Sdk="Microsoft.NET.Sdk.Web">
+﻿<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
@@ -25,6 +25,14 @@
   <ItemGroup>
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
     <PackageReference Include="MudBlazor" Version="8.14.0" />
+    <PackageReference Include="NORCE.Drilling.CartographicProjection.WebPages" Version="1.0.4" />
+    <PackageReference Include="NORCE.Drilling.Cluster.WebPages" Version="1.0.4" />
+    <PackageReference Include="NORCE.Drilling.Field.WebPages" Version="1.0.5" />
+    <PackageReference Include="NORCE.Drilling.GeodeticDatum.WebPages" Version="1.0.4" />
+    <PackageReference Include="NORCE.Drilling.Rig.WebPages" Version="1.0.4" />
+    <PackageReference Include="NORCE.Drilling.Well.WebPages" Version="1.0.4" />
+    <PackageReference Include="NORCE.Drilling.WellBore.WebPages" Version="1.0.4" />
+    <PackageReference Include="NORCE.Drilling.WellBoreArchitecture.WebPages" Version="1.0.4" />
   </ItemGroup>
 
   <ItemGroup>

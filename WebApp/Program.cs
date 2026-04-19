@@ -8,6 +8,8 @@ var builder = WebApplication.CreateBuilder(args);
 WebPagesHostConfiguration webPagesConfiguration = new()
 {
     TrajectoryHostURL = builder.Configuration["TrajectoryHostURL"] ?? string.Empty,
+    GeodeticDatumHostURL = builder.Configuration["GeodeticDatumHostURL"] ?? string.Empty,
+    CartographicProjectionHostURL = builder.Configuration["CartographicProjectionHostURL"] ?? string.Empty,
     FieldHostURL = builder.Configuration["FieldHostURL"] ?? string.Empty,
     ClusterHostURL = builder.Configuration["ClusterHostURL"] ?? string.Empty,
     RigHostURL = builder.Configuration["RigHostURL"] ?? string.Empty,
@@ -21,6 +23,7 @@ builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<ITrajectoryWebPagesConfiguration>(webPagesConfiguration);
 builder.Services.AddSingleton<ITrajectoryAPIUtils, TrajectoryAPIUtils>();
+builder.Services.AddExternalWebPages(webPagesConfiguration);
 builder.Services.AddMudServices(config =>
 {
     config.SnackbarConfiguration.PositionClass = Defaults.Classes.Position.BottomLeft;
