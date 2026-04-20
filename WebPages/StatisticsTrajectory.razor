@@ -1,0 +1,84 @@
+@page "/StatisticsTrajectory"
+@inject ILogger<StatisticsTrajectory> logger
+@inject ISnackbar Snackbar
+@inject ITrajectoryAPIUtils Api
+
+@if (statistics_ == null)
+{
+    <p><em>Loading...</em></p>
+}
+else
+{
+    <div hidden="@isHiddenMainPanel">
+        <MudText Class="mt-4 mb-4" Typo="Typo.h5"><strong>Usage Statistics</strong></MudText>
+        <div style="width: 90%; margin: auto">
+            <MudGrid>
+                <MudItem xs="6">
+                    <MudText Typo="Typo.h6">Total count:</MudText>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudText Typo="Typo.body1">@totalCount_</MudText>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudText Typo="Typo.h6">Trajectory count:</MudText>
+                </MudItem>
+                <MudItem xs="6">
+                    <MudText Typo="Typo.body1">@trajectoryCount_</MudText>
+                </MudItem>
+            </MudGrid>
+        </div>
+    </div>
+}
+
+@code {
+    private UsageStatisticsTrajectory statistics_ = null!;
+    private long totalCount_ = 0;
+    private long trajectoryCount_ = 0;
+
+    private bool isHiddenMainPanel = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            statistics_ = await Api.ClientTrajectory.GetTrajectoryUsageStatisticsAsync();
+            if (statistics_ != null)
+            {
+                totalCount_ = 0;
+                trajectoryCount_ = 0;
+
+                SumHistory(statistics_.GetAllTrajectoryIdPerDay);
+                SumHistory(statistics_.GetAllTrajectoryMetaInfoPerDay);
+                SumHistory(statistics_.GetTrajectoryByIdPerDay);
+                SumHistory(statistics_.GetAllTrajectoryLightPerDay);
+                SumHistory(statistics_.GetAllTrajectoryPerDay);
+                SumHistory(statistics_.PostTrajectoryPerDay);
+                SumHistory(statistics_.PutTrajectoryByIdPerDay);
+                SumHistory(statistics_.DeleteTrajectoryByIdPerDay);
+            }
+
+            isHiddenMainPanel = false;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem UsageStatistics initialization");
+            Snackbar.Add("Failed to load usage statistics.", Severity.Error);
+        }
+
+        await InvokeAsync(() => { StateHasChanged(); });
+    }
+
+    private void SumHistory(History? history)
+    {
+        if (history?.Data == null)
+        {
+            return;
+        }
+
+        foreach (CountPerDay count in history.Data)
+        {
+            totalCount_ += (long)count.Count;
+            trajectoryCount_ += (long)count.Count;
+        }
+    }
+}

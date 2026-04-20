@@ -2857,6 +2857,26 @@
         }
       }
     },
+    "/TrajectoryUsageStatistics": {
+      "get": {
+        "tags": [
+          "TrajectoryUsageStatistics"
+        ],
+        "operationId": "GetTrajectoryUsageStatistics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageStatisticsTrajectory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Well": {
       "get": {
         "tags": [
@@ -9517,6 +9537,43 @@
           "WellBoreID": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "UsageStatisticsTrajectory": {
+        "type": "object",
+        "properties": {
+          "LastSaved": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "BackUpInterval": {
+            "type": "string",
+            "format": "date-span"
+          },
+          "GetAllTrajectoryIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllTrajectoryMetaInfoPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllTrajectoryLightPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllTrajectoryPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "PostTrajectoryPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "PutTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "DeleteTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/History"
           }
         }
       },

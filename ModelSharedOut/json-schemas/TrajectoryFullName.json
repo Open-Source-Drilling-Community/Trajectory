@@ -795,6 +795,26 @@
           }
         }
       }
+    },
+    "/TrajectoryUsageStatistics": {
+      "get": {
+        "tags": [
+          "TrajectoryUsageStatistics"
+        ],
+        "operationId": "GetTrajectoryUsageStatistics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.UsageStatisticsTrajectory"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -880,6 +900,33 @@
           },
           "Annotation": {
             "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.CountPerDay": {
+        "type": "object",
+        "properties": {
+          "Date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Count": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.History": {
+        "type": "object",
+        "properties": {
+          "Data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CountPerDay"
+            },
             "nullable": true
           }
         },
@@ -1103,6 +1150,44 @@
           "WellBoreID": {
             "type": "string",
             "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.UsageStatisticsTrajectory": {
+        "type": "object",
+        "properties": {
+          "LastSaved": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "BackUpInterval": {
+            "type": "string",
+            "format": "date-span"
+          },
+          "GetAllTrajectoryIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
+          },
+          "GetAllTrajectoryMetaInfoPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
+          },
+          "GetTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
+          },
+          "GetAllTrajectoryLightPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
+          },
+          "GetAllTrajectoryPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
+          },
+          "PostTrajectoryPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
+          },
+          "PutTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
+          },
+          "DeleteTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
           }
         },
         "additionalProperties": false
