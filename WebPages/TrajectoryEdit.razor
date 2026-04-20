@@ -576,20 +576,6 @@
         }
     }
 
-    // Expansion panel event handlers
-    /// <summary>
-    /// Tracks interpolated-trajectory panel state.
-    /// No StateHasChanged needed here — MudTable renders fine without a JS interop init.
-    /// </summary>
-    private async Task OnInterpolExpandedChanged(bool expanded)
-    {
-        isInterpolExpanded = expanded;
-        if (expanded)
-        {
-            await EnsureWellBoreArchitectureDataLoadedAsync();
-        }
-    }
-
     /// <summary>
     /// Tracks plot panel state AND triggers a re-render so that
     /// Plotly's OnAfterRenderAsync runs and mounts the chart canvas on first open.

@@ -27,7 +27,6 @@
     <PackageReference Include="MudBlazor" Version="8.14.0" />
     <PackageReference Include="NORCE.Drilling.CartographicProjection.WebPages" Version="1.0.4" />
     <PackageReference Include="NORCE.Drilling.Cluster.WebPages" Version="1.0.4" />
-    <PackageReference Include="NORCE.Drilling.Field.WebPages" Version="1.0.5" />
     <PackageReference Include="NORCE.Drilling.GeodeticDatum.WebPages" Version="1.0.4" />
     <PackageReference Include="NORCE.Drilling.Rig.WebPages" Version="1.0.4" />
     <PackageReference Include="NORCE.Drilling.Well.WebPages" Version="1.0.4" />
@@ -36,6 +35,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Field\WebPages\WebPages.csproj" />
     <ProjectReference Include="..\WebPages\WebPages.csproj" />
   </ItemGroup>
 
