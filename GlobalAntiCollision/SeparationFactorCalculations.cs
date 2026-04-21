@@ -72,19 +72,18 @@ namespace NORCE.Drilling.GlobalAntiCollision
 
                 uncertaintyEnvelopeRef.ConfidenceFactor = confidenceFactor;
                 uncertaintyEnvelopeRef.ScalingFactor = maxSeparationFactor;
-                // Should we set this:
-                //uncertaintyEnvelopeCmp.MeshLongitudinalCount = MinNumberInterpolations;
+                uncertaintyEnvelopeRef.MeshLongitudinalCount = MinNumberInterpolations;
                 bool okRef = uncertaintyEnvelopeRef.Calculate();
 
                 uncertaintyEnvelopeCmp.ConfidenceFactor = confidenceFactor;
                 uncertaintyEnvelopeCmp.ScalingFactor = maxSeparationFactor;
-                // Should we set this:
+                // We should not set the MeshLongitudinalCount for the cmp envelope, since we want to use the minRef Value instead (based on the original code)
                 //uncertaintyEnvelopeCmp.MeshLongitudinalCount = numberOfInterpolationsMultiplier * MinNumberInterpolations;
                 uncertaintyEnvelopeCmp.MeshLongitudinalLength = minRef.Value;
                 bool okCmp = uncertaintyEnvelopeCmp.Calculate();
 
-                List<UncertaintyEllipse>? ellipseRef = okRef ? uncertaintyEnvelopeRef.MeshedEllipseList : null; //surveysRef.GetPlainUncertaintyEnvelope(confidenceFactor, maxSeparationFactor, boreholeRadiusRefList, MinNumberInterpolations);
-                List<UncertaintyEllipse>? ellipseCmp = okCmp ? uncertaintyEnvelopeCmp.MeshedEllipseList : null; //surveysCmp.GetPlainUncertaintyEnvelope(confidenceFactor, maxSeparationFactor, boreholeRadiusCmpList, numberOfInterpolationsMultiplier * MinNumberInterpolations, minRef);
+                List<UncertaintyEllipse>? ellipseRef = okRef ? uncertaintyEnvelopeRef.MeshedEllipseList : null;
+                List<UncertaintyEllipse>? ellipseCmp = okCmp ? uncertaintyEnvelopeCmp.MeshedEllipseList : null;
                 if (ellipseRef != null && ellipseCmp != null)
                 {
                     var ellipseRefIndex = k * MinNumberInterpolations + i;
@@ -108,8 +107,8 @@ namespace NORCE.Drilling.GlobalAntiCollision
                         uncertaintyEnvelopeCmp.ScalingFactor = minSeparationFactor;
                         okRef = uncertaintyEnvelopeRef.Calculate();
                         okCmp = uncertaintyEnvelopeCmp.Calculate();
-                        ellipseRef = okRef ? uncertaintyEnvelopeRef.MeshedEllipseList : null; //surveysRef.GetPlainUncertaintyEnvelope(confidenceFactor, minSeparationFactor, boreholeRadiusRefList, MinNumberInterpolations);
-                        ellipseCmp = okCmp ? uncertaintyEnvelopeCmp.MeshedEllipseList : null; //surveysCmp.GetPlainUncertaintyEnvelope(confidenceFactor, minSeparationFactor, boreholeRadiusCmpList, numberOfInterpolationsMultiplier * MinNumberInterpolations, minRef);
+                        ellipseRef = okRef ? uncertaintyEnvelopeRef.MeshedEllipseList : null;
+                        ellipseCmp = okCmp ? uncertaintyEnvelopeCmp.MeshedEllipseList : null;
                         if (ellipseRef != null && ellipseCmp != null)
                         {
                             // Since the Intersect loops over ellipseRef and k is an index on the survey stations, we need to use k * MinNumberInterpolations as start index
@@ -135,8 +134,8 @@ namespace NORCE.Drilling.GlobalAntiCollision
                                     uncertaintyEnvelopeCmp.ScalingFactor = separationFactor;
                                     okRef = uncertaintyEnvelopeRef.Calculate();
                                     okCmp = uncertaintyEnvelopeCmp.Calculate();
-                                    ellipseRef = okRef ? uncertaintyEnvelopeRef.MeshedEllipseList : null; //surveysRef.GetPlainUncertaintyEnvelope(confidenceFactor, separationFactor, boreholeRadiusRefList, MinNumberInterpolations);
-                                    ellipseCmp = okCmp ? uncertaintyEnvelopeCmp.MeshedEllipseList : null; //surveysCmp.GetPlainUncertaintyEnvelope(confidenceFactor, separationFactor, boreholeRadiusCmpList, numberOfInterpolationsMultiplier * MinNumberInterpolations, minRef);
+                                    ellipseRef = okRef ? uncertaintyEnvelopeRef.MeshedEllipseList : null;
+                                    ellipseCmp = okCmp ? uncertaintyEnvelopeCmp.MeshedEllipseList : null;
                                     if (ellipseRef != null && ellipseCmp != null)
                                     {
                                         double cMD;

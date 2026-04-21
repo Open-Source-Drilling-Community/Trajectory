@@ -329,36 +329,48 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         /// <returns>the List of Trajectories identified by their Guid's from the microservice database</returns>
         public List<Model.Trajectory>? GetListOfTrajectoryById(List<Guid> trajIdList)
         {
+            if (trajIdList == null || trajIdList.Count == 0)
+            {
+                return [];
+            }
+
             if (!trajIdList.Contains(Guid.Empty))
             {
                 var connection = _connectionManager.GetConnection();
                 if (connection != null)
                 {
-                    List<Model.Trajectory>? trajectoryList;
+                    List<Model.Trajectory> trajectoryList = [];
                     var command = connection.CreateCommand();
-                    command.CommandText = $"SELECT Trajectory FROM TrajectoryTable WHERE ID IN '{trajIdList}'";
+                    string[] parameterNames = trajIdList
+                        .Select((_, index) => $"@trajId{index}")
+                        .ToArray();
+                    command.CommandText = $"SELECT ID, Trajectory FROM TrajectoryTable WHERE ID IN ({string.Join(", ", parameterNames)})";
+
+                    for (int i = 0; i < trajIdList.Count; i++)
+                    {
+                        command.Parameters.AddWithValue(parameterNames[i], trajIdList[i].ToString());
+                    }
+
                     try
                     {
                         using var reader = command.ExecuteReader();
-                        if (reader.Read() && !reader.IsDBNull(0))
+                        while (reader.Read())
                         {
-                            string data = reader.GetString(0);
-                            trajectoryList = JsonSerializer.Deserialize<List<Model.Trajectory>>(data, JsonSettings.Options);
-                            if (trajectoryList != null)
+                            if (reader.IsDBNull(0) || reader.IsDBNull(1))
                             {
-                                foreach (Model.Trajectory trajectory in trajectoryList)
-                                {
-                                    if (trajectory != null && trajectory.MetaInfo != null && !trajIdList.Contains(trajectory.MetaInfo.ID))
-                                    {
-                                        throw new SqliteException("SQLite database corrupted: returned Trajectory is null or has been jsonified with the wrong ID.", 1);
-                                    }
-                                }
+                                throw new SqliteException("SQLite database corrupted: returned trajectory row contains null values.", 1);
                             }
-                        }
-                        else
-                        {
-                            _logger.LogInformation("Problem with one of the trajectories of the given ID's in the database");
-                            return null;
+
+                            Guid returnedId = Guid.Parse(reader.GetString(0));
+                            string data = reader.GetString(1);
+                            Model.Trajectory? trajectory = JsonSerializer.Deserialize<Model.Trajectory>(data, JsonSettings.Options);
+
+                            if (trajectory == null || trajectory.MetaInfo == null || trajectory.MetaInfo.ID != returnedId || !trajIdList.Contains(returnedId))
+                            {
+                                throw new SqliteException("SQLite database corrupted: returned Trajectory is null or has been jsonified with the wrong ID.", 1);
+                            }
+
+                            trajectoryList.Add(trajectory);
                         }
                     }
                     catch (SqliteException ex)
@@ -366,7 +378,8 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                         _logger.LogError(ex, "Impossible to get the TrajectoryList with the given ID's from TrajectoryTable");
                         return null;
                     }
-                    _logger.LogInformation("Returning the Trajectory of given ID from TrajectoryTable");
+
+                    _logger.LogInformation("Returning the list of trajectories for the given IDs from TrajectoryTable");
                     return trajectoryList;
                 }
                 else
