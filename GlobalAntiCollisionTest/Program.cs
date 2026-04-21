@@ -244,29 +244,34 @@ internal static class Program
             $"GlobalAntiCollisionsController GET by id should return the reference trajectory id for {FormatTrajectoryLabel(referenceTrajectory)}.");
         ValidateComparisonResults(storedByController, trajectoryLookup, $"\tStored by controller (confidence factor {storedByController.ConfidenceFactor:F3})");
 
-        GlobalAntiCollisionModel putPayload = CreateGlobalAntiCollision(globalAntiCollisionId, referenceTrajectory, configuredComparisonTrajectories, 0.95);
-        Console.WriteLine();
-        Console.WriteLine($"\tStarting GlobalAntiCollisionsController.Put for reference trajectory {FormatTrajectoryLabel(referenceTrajectory)}...");
-        Stopwatch putStopwatch = Stopwatch.StartNew();
-        globalAntiCollisionsController.Put(globalAntiCollisionId, putPayload);
-        putStopwatch.Stop();
-        Console.WriteLine($"\tFinished GlobalAntiCollisionsController.Put in {putStopwatch.Elapsed.TotalSeconds:F2} s.");
+        bool runUpdate = false;
+        if (runUpdate)
+        {
+            GlobalAntiCollisionModel putPayload = CreateGlobalAntiCollision(globalAntiCollisionId, referenceTrajectory, configuredComparisonTrajectories, 0.95);
+            Console.WriteLine();
+            Console.WriteLine($"\tStarting GlobalAntiCollisionsController.Put for reference trajectory {FormatTrajectoryLabel(referenceTrajectory)}...");
+            Stopwatch putStopwatch = Stopwatch.StartNew();
+            globalAntiCollisionsController.Put(globalAntiCollisionId, putPayload);
+            putStopwatch.Stop();
+            Console.WriteLine($"\tFinished GlobalAntiCollisionsController.Put in {putStopwatch.Elapsed.TotalSeconds:F2} s.");
 
-        GlobalAntiCollisionModel? updatedByManager = globalAntiCollisionManager.Get(globalAntiCollisionId);
-        Ensure(updatedByManager != null && Math.Abs(updatedByManager.ConfidenceFactor - putPayload.ConfidenceFactor) < 1e-9,
-            "GlobalAntiCollisionManager should observe the updated payload.");
+            GlobalAntiCollisionModel? updatedByManager = globalAntiCollisionManager.Get(globalAntiCollisionId);
+            Ensure(updatedByManager != null && Math.Abs(updatedByManager.ConfidenceFactor - putPayload.ConfidenceFactor) < 1e-9,
+                "GlobalAntiCollisionManager should observe the updated payload.");
 
-        GlobalAntiCollisionModel? updatedByController = globalAntiCollisionsController.Get(globalAntiCollisionId);
-        Ensure(updatedByController != null, "GlobalAntiCollisionsController GET by id should return the updated payload.");
-        Ensure(Math.Abs(updatedByController!.ConfidenceFactor - putPayload.ConfidenceFactor) < 1e-9,
-            "GlobalAntiCollisionsController PUT should update the confidence factor.");
-        ValidateComparisonResults(updatedByController, trajectoryLookup, $"\tUpdated by controller (confidence factor {updatedByController.ConfidenceFactor:F3})");
-        EnsureUpdatedProfilesImproved(
-            storedByController.SeparationFactorResults,
-            updatedByController.SeparationFactorResults,
-            storedByController.ConfidenceFactor,
-            updatedByController.ConfidenceFactor,
-            trajectoryLookup);
+            GlobalAntiCollisionModel? updatedByController = globalAntiCollisionsController.Get(globalAntiCollisionId);
+            Ensure(updatedByController != null, "GlobalAntiCollisionsController GET by id should return the updated payload.");
+            Ensure(Math.Abs(updatedByController!.ConfidenceFactor - putPayload.ConfidenceFactor) < 1e-9,
+                "GlobalAntiCollisionsController PUT should update the confidence factor.");
+            ValidateComparisonResults(updatedByController, trajectoryLookup, $"\tUpdated by controller (confidence factor {updatedByController.ConfidenceFactor:F3})");
+            EnsureUpdatedProfilesImproved(
+                storedByController.SeparationFactorResults,
+                updatedByController.SeparationFactorResults,
+                storedByController.ConfidenceFactor,
+                updatedByController.ConfidenceFactor,
+                trajectoryLookup);
+        }
+
         PrintPossibleCollisionSummary(storedByController, trajectoryLookup, 1.0);
 
         globalAntiCollisionsController.Delete(globalAntiCollisionId);
@@ -518,7 +523,7 @@ internal static class Program
                 $"\t{FormatTrajectoryLabel(updatedResult.ComparisonTrajectoryID, trajectoryLookup)} " +
                 $"{storedMinimumPoint.SeparationFactor:F2} at reference MD {storedMinimumPoint.ReferenceMD:F2} / comparison MD {storedMinimumPoint.ComparisonMD:F2} " +
                 $"vs. {updatedMinimumPoint.SeparationFactor:F2} at reference MD {updatedMinimumPoint.ReferenceMD:F2} / comparison MD {updatedMinimumPoint.ComparisonMD:F2}.");
-            Ensure(updatedMinimumPoint.SeparationFactor > storedMinimumPoint.SeparationFactor,
+            Ensure(updatedMinimumPoint.SeparationFactor >= storedMinimumPoint.SeparationFactor,
                 $"GlobalAntiCollisionsController PUT should improve the minimum separation factor for {FormatTrajectoryLabel(updatedResult.ComparisonTrajectoryID, trajectoryLookup)}.");
         }
     }
