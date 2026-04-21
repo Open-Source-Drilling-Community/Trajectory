@@ -57,6 +57,13 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     "LastModificationDate text",
                     "TrajectoryID text",
                     "InterpolatedTrajectory text" }
+                },
+                { "TrajectoryBatchImportTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "TrajectoryBatchImport text" }
                 }
             };
 

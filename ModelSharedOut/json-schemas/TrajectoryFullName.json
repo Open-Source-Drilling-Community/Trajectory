@@ -795,6 +795,243 @@
           }
         }
       }
+    },
+    "/TrajectoryBatchImport": {
+      "get": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "GetAllTrajectoryBatchImportId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "PostTrajectoryBatchImport",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryBatchImport/MetaInfo": {
+      "get": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "GetAllTrajectoryBatchImportMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryBatchImport/LightData": {
+      "get": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "GetAllTrajectoryBatchImportLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImportLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryBatchImport/HeavyData": {
+      "get": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "GetAllTrajectoryBatchImport",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryBatchImport/{id}": {
+      "get": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "GetTrajectoryBatchImportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "PutTrajectoryBatchImportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "DeleteTrajectoryBatchImportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryUsageStatistics": {
+      "get": {
+        "tags": [
+          "TrajectoryUsageStatistics"
+        ],
+        "operationId": "GetTrajectoryUsageStatistics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.UsageStatisticsTrajectory"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -880,6 +1117,33 @@
           },
           "Annotation": {
             "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.CountPerDay": {
+        "type": "object",
+        "properties": {
+          "Date": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Count": {
+            "type": "integer",
+            "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.History": {
+        "type": "object",
+        "properties": {
+          "Data": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CountPerDay"
+            },
             "nullable": true
           }
         },
@@ -998,6 +1262,72 @@
         },
         "additionalProperties": false
       },
+      "NORCE.Drilling.Trajectory.Model.SurveyImportSettings": {
+        "type": "object",
+        "properties": {
+          "SelectedSurveyImportFormat": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportSeparator": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportDecimalMarker": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportMDUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportInclinationUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportAzimuthUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "SurveyImportMDColumn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportInclinationColumn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportAzimuthColumn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportMDStart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportMDWidth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportInclinationStart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportInclinationWidth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportAzimuthStart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportAzimuthWidth": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "NORCE.Drilling.Trajectory.Model.Trajectory": {
         "type": "object",
         "properties": {
@@ -1061,6 +1391,122 @@
         },
         "additionalProperties": false
       },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SelectedFieldId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "SelectedClusterId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "SelectedWellId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "CommonDepthReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "ReplaceExistingTrajectories": {
+            "type": "boolean"
+          },
+          "ReplaceTrajectoriesWithSameName": {
+            "type": "boolean"
+          },
+          "Settings": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyImportSettings"
+          },
+          "Rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImportRow"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryBatchImportLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryBatchImportRow": {
+        "type": "object",
+        "properties": {
+          "RowId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "WellBoreId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "DepthReferenceName": {
+            "type": "string",
+            "nullable": true
+          },
+          "FileName": {
+            "type": "string",
+            "nullable": true
+          },
+          "FileContentBase64": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "NORCE.Drilling.Trajectory.Model.TrajectoryLight": {
         "type": "object",
         "properties": {
@@ -1103,6 +1549,44 @@
           "WellBoreID": {
             "type": "string",
             "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.UsageStatisticsTrajectory": {
+        "type": "object",
+        "properties": {
+          "LastSaved": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "BackUpInterval": {
+            "type": "string",
+            "format": "date-span"
+          },
+          "GetAllTrajectoryIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
+          },
+          "GetAllTrajectoryMetaInfoPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
+          },
+          "GetTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
+          },
+          "GetAllTrajectoryLightPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
+          },
+          "GetAllTrajectoryPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
+          },
+          "PostTrajectoryPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
+          },
+          "PutTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
+          },
+          "DeleteTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.History"
           }
         },
         "additionalProperties": false

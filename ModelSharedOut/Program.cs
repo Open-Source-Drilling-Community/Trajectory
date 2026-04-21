@@ -70,7 +70,13 @@ class Program
         {
             bool existsFile = File.Exists(directory.FullName + Path.DirectorySeparatorChar + MODELSHARED_FOLDER + Path.DirectorySeparatorChar + CSHARP_MODEL);
             bool doUpdateModel;
-            Console.Clear();
+            try
+            {
+                Console.Clear();
+            }
+            catch (IOException)
+            {
+            }
             do
             {
                 Thread.Sleep(100);

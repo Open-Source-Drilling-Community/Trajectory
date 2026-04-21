@@ -2857,6 +2857,243 @@
         }
       }
     },
+    "/TrajectoryBatchImport": {
+      "get": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "GetAllTrajectoryBatchImportId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "PostTrajectoryBatchImport",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryBatchImport"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryBatchImport"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryBatchImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryBatchImport/MetaInfo": {
+      "get": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "GetAllTrajectoryBatchImportMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryBatchImport/LightData": {
+      "get": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "GetAllTrajectoryBatchImportLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrajectoryBatchImportLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryBatchImport/HeavyData": {
+      "get": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "GetAllTrajectoryBatchImport",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrajectoryBatchImport"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryBatchImport/{id}": {
+      "get": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "GetTrajectoryBatchImportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryBatchImport"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "PutTrajectoryBatchImportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryBatchImport"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryBatchImport"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryBatchImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "TrajectoryBatchImport"
+        ],
+        "operationId": "DeleteTrajectoryBatchImportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryUsageStatistics": {
+      "get": {
+        "tags": [
+          "TrajectoryUsageStatistics"
+        ],
+        "operationId": "GetTrajectoryUsageStatistics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageStatisticsTrajectory"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Well": {
       "get": {
         "tags": [
@@ -9413,6 +9650,71 @@
           }
         }
       },
+      "SurveyImportSettings": {
+        "type": "object",
+        "properties": {
+          "SelectedSurveyImportFormat": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportSeparator": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportDecimalMarker": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportMDUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportInclinationUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportAzimuthUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "SurveyImportMDColumn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportInclinationColumn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportAzimuthColumn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportMDStart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportMDWidth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportInclinationStart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportInclinationWidth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportAzimuthStart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportAzimuthWidth": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
       "Trajectory": {
         "type": "object",
         "properties": {
@@ -9475,6 +9777,119 @@
           }
         }
       },
+      "TrajectoryBatchImport": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SelectedFieldId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "SelectedClusterId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "SelectedWellId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "CommonDepthReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "ReplaceExistingTrajectories": {
+            "type": "boolean"
+          },
+          "ReplaceTrajectoriesWithSameName": {
+            "type": "boolean"
+          },
+          "Settings": {
+            "$ref": "#/components/schemas/SurveyImportSettings"
+          },
+          "Rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryBatchImportRow"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryBatchImportLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryBatchImportRow": {
+        "type": "object",
+        "properties": {
+          "RowId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "WellBoreId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "DepthReferenceName": {
+            "type": "string",
+            "nullable": true
+          },
+          "FileName": {
+            "type": "string",
+            "nullable": true
+          },
+          "FileContentBase64": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "TrajectoryLight": {
         "type": "object",
         "properties": {
@@ -9517,6 +9932,43 @@
           "WellBoreID": {
             "type": "string",
             "format": "uuid"
+          }
+        }
+      },
+      "UsageStatisticsTrajectory": {
+        "type": "object",
+        "properties": {
+          "LastSaved": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "BackUpInterval": {
+            "type": "string",
+            "format": "date-span"
+          },
+          "GetAllTrajectoryIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllTrajectoryMetaInfoPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllTrajectoryLightPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllTrajectoryPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "PostTrajectoryPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "PutTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "DeleteTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/History"
           }
         }
       },

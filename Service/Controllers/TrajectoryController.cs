@@ -4,6 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OSDC.DotnetLibraries.General.DataManagement;
+using NORCE.Drilling.Trajectory.Model;
 using NORCE.Drilling.Trajectory.Service.Managers;
 using System.Threading.Tasks;
 
@@ -30,6 +31,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         [HttpGet(Name = "GetAllTrajectoryId")]
         public ActionResult<IEnumerable<Guid>> GetAllTrajectoryId()
         {
+            UsageStatisticsTrajectory.Instance.IncrementGetAllTrajectoryIdPerDay();
             var ids = _trajectoryManager.GetAllTrajectoryId();
             if (ids != null)
             {
@@ -48,6 +50,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         [HttpGet("MetaInfo", Name = "GetAllTrajectoryMetaInfo")]
         public ActionResult<IEnumerable<MetaInfo>> GetAllTrajectoryMetaInfo()
         {
+            UsageStatisticsTrajectory.Instance.IncrementGetAllTrajectoryMetaInfoPerDay();
             var vals = _trajectoryManager.GetAllTrajectoryMetaInfo();
             if (vals != null)
             {
@@ -67,6 +70,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         [HttpGet("{id}", Name = "GetTrajectoryById")]
         public ActionResult<Model.Trajectory?> GetTrajectoryById(Guid id)
         {
+            UsageStatisticsTrajectory.Instance.IncrementGetTrajectoryByIdPerDay();
             if (!id.Equals(Guid.Empty))
             {
                 var val = _trajectoryManager.GetTrajectoryById(id);
@@ -92,6 +96,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         [HttpGet("LightData", Name = "GetAllTrajectoryLight")]
         public ActionResult<IEnumerable<Model.TrajectoryLight>> GetAllTrajectoryLight([FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null)
         {
+            UsageStatisticsTrajectory.Instance.IncrementGetAllTrajectoryLightPerDay();
             var vals = _trajectoryManager.GetAllTrajectoryLight(fieldId, clusterId, wellId, wellBoreId);
             if (vals != null)
             {
@@ -110,6 +115,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         [HttpGet("HeavyData", Name = "GetAllTrajectory")]
         public ActionResult<IEnumerable<Model.Trajectory?>> GetAllTrajectory([FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null)
         {
+            UsageStatisticsTrajectory.Instance.IncrementGetAllTrajectoryPerDay();
             var vals = _trajectoryManager.GetAllTrajectory(fieldId, clusterId, wellId, wellBoreId);
             if (vals != null)
             {
@@ -129,6 +135,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         [HttpPost(Name = "PostTrajectory")]
         public async Task<ActionResult> PostTrajectory([FromBody] Model.Trajectory? data)
         {
+            UsageStatisticsTrajectory.Instance.IncrementPostTrajectoryPerDay();
             // Check if trajectory exists in the database through ID
             if (data != null && data.MetaInfo != null && data.MetaInfo.ID != Guid.Empty)
             {
@@ -167,6 +174,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         [HttpPut("{id}", Name = "PutTrajectoryById")]
         public async Task<ActionResult> PutTrajectoryById(Guid id, [FromBody] Model.Trajectory? data)
         {
+            UsageStatisticsTrajectory.Instance.IncrementPutTrajectoryByIdPerDay();
             // Check if Trajectory is in the data base
             if (data != null && data.MetaInfo != null && data.MetaInfo.ID.Equals(id))
             {
@@ -203,6 +211,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         [HttpDelete("{id}", Name = "DeleteTrajectoryById")]
         public ActionResult DeleteTrajectoryById(Guid id)
         {
+            UsageStatisticsTrajectory.Instance.IncrementDeleteTrajectoryByIdPerDay();
             if (_trajectoryManager.GetTrajectoryById(id) != null)
             {
                 if (_trajectoryManager.DeleteTrajectoryById(id))

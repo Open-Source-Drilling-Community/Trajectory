@@ -2,8 +2,9 @@
 @inject ILogger<TrajectoryMain> logger
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
-<MudUnitAndReferenceChoiceTag HttpHost=@APIUtils.HostNameUnitConversion
-                              HttpBasePath=@APIUtils.HostBasePathUnitConversion
+@inject ITrajectoryAPIUtils Api
+<MudUnitAndReferenceChoiceTag HttpHost=@Api.HostNameUnitConversion
+                              HttpBasePath=@Api.HostBasePathUnitConversion
                               HttpController="UnitSystem/"
                               UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
                               UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName" 
@@ -158,20 +159,20 @@
             selectedTrajectoryList = new List<TrajectoryLight>();
 
             // Starting all loading tasks asynchronously
-            logger.LogInformation("Trying to load list of rigs from client: " + APIUtils.HttpClientRig);
-            var rigTask = APIUtils.ClientRig.GetAllRigAsync();
-            logger.LogInformation("Trying to load list of fields from client: " + APIUtils.HttpClientField);
-            var fieldTask = APIUtils.ClientField.GetAllFieldAsync();
-            logger.LogInformation("Trying to load list of clusters from client: " + APIUtils.HttpClientCluster);
-            var clusterTask = APIUtils.ClientCluster.GetAllClusterAsync();
-            logger.LogInformation("Trying to load list of wells from client: " + APIUtils.HttpClientWell);
-            var wellTask = APIUtils.ClientWell.GetAllWellAsync();
-            logger.LogInformation("Trying to load list of wellbores from client: " + APIUtils.HttpClientWellBore);
-            var wellBoreTask = APIUtils.ClientWellBore.GetAllWellBoreAsync();
-            logger.LogInformation("Trying to load list of wellborearchitectures from client: " + APIUtils.HttpClientWellBoreArchitecture);
-            var wellBoreArchitectureTask = APIUtils.ClientWellBoreArchitecture.GetAllWellBoreArchitectureLightAsync();
-            logger.LogInformation("Trying to load list of trajectories from client: " + APIUtils.HostNameTrajectory);
-            var trajectoryTask = APIUtils.ClientTrajectory.GetAllTrajectoryLightAsync();
+            logger.LogInformation("Trying to load list of rigs from client: " + Api.HttpClientRig);
+            var rigTask = Api.ClientRig.GetAllRigAsync();
+            logger.LogInformation("Trying to load list of fields from client: " + Api.HttpClientField);
+            var fieldTask = Api.ClientField.GetAllFieldAsync();
+            logger.LogInformation("Trying to load list of clusters from client: " + Api.HttpClientCluster);
+            var clusterTask = Api.ClientCluster.GetAllClusterAsync();
+            logger.LogInformation("Trying to load list of wells from client: " + Api.HttpClientWell);
+            var wellTask = Api.ClientWell.GetAllWellAsync();
+            logger.LogInformation("Trying to load list of wellbores from client: " + Api.HttpClientWellBore);
+            var wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
+            logger.LogInformation("Trying to load list of wellborearchitectures from client: " + Api.HttpClientWellBoreArchitecture);
+            var wellBoreArchitectureTask = Api.ClientWellBoreArchitecture.GetAllWellBoreArchitectureLightAsync();
+            logger.LogInformation("Trying to load list of trajectories from client: " + Api.HostNameTrajectory);
+            var trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
 
             List<Task> loadingTaskList = [trajectoryTask, wellBoreTask, wellTask, clusterTask, fieldTask, rigTask];
 
@@ -550,7 +551,7 @@
         {
             if (await ConfirmDeletion())
             {
-                await APIUtils.ClientTrajectory.DeleteTrajectoryByIdAsync(id);
+                await Api.ClientTrajectory.DeleteTrajectoryByIdAsync(id);
                 await LoadDataAsync();
             }
         }
@@ -573,7 +574,7 @@
             {
                 foreach (TrajectoryLight trajectory in toDelete)
                 {
-                    await APIUtils.ClientTrajectory.DeleteTrajectoryByIdAsync(trajectory.MetaInfo.ID);
+                    await Api.ClientTrajectory.DeleteTrajectoryByIdAsync(trajectory.MetaInfo.ID);
                 }
                 // Reload data: this also clears selectedTrajectoryList and bumps _gridKey.
                 await LoadDataAsync();

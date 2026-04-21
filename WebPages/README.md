@@ -31,22 +31,30 @@ The consuming application is expected to:
 - configure routing so the assembly containing `NORCE.Drilling.Trajectory.WebPages` components is discovered
 - provide the required MudBlazor services
 - load the Plotly.Blazor static assets
-- initialize `WebAppConfiguration` with the service endpoint URLs before the pages are used
+- register an `ITrajectoryAPIUtils` implementation in dependency injection
+- register an `ITrajectoryWebPagesConfiguration` implementation
 
 ## Configuration
 
-The pages use static properties on `WebAppConfiguration`:
+The pages depend on an injected `ITrajectoryAPIUtils` service.
 
-- `TrajectoryHostURL`
-- `UnitConversionHostURL`
-- `ClusterHostURL`
-- `FieldHostURL`
-- `WellHostURL`
-- `WellBoreHostURL`
-- `WellBoreArchitectureHostURL`
-- `RigHostURL`
+The streamlined design is to register:
 
-These values must be assigned by the host application during startup.
+- a host-side `ITrajectoryWebPagesConfiguration`
+- the concrete `TrajectoryAPIUtils`
+
+`ITrajectoryWebPagesConfiguration` extends the following host URL interfaces from `OSDC.DotnetLibraries.Drilling.WebAppUtils`:
+
+- `IFieldHostURL`
+- `IClusterHostURL`
+- `IRigHostURL`
+- `IWellHostURL`
+- `IWellBoreHostURL`
+- `IWellBoreArchitectureHostURL`
+- `ITrajectoryHostURL`
+- `IUnitConversionHostURL`
+
+The host application is responsible for supplying those endpoint values through its configuration object.
 
 ## Notes
 
