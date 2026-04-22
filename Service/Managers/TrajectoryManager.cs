@@ -1,4 +1,4 @@
-﻿using DWIS.API.DTO;
+using DWIS.API.DTO;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using NORCE.Drilling.Trajectory.Model;
@@ -339,7 +339,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 var connection = _connectionManager.GetConnection();
                 if (connection != null)
                 {
-                    List<Model.Trajectory> trajectoryList = [];
+                    Dictionary<Guid, Model.Trajectory> trajectoriesById = [];
                     var command = connection.CreateCommand();
                     string[] parameterNames = trajIdList
                         .Select((_, index) => $"@trajId{index}")
@@ -370,13 +370,22 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                                 throw new SqliteException("SQLite database corrupted: returned Trajectory is null or has been jsonified with the wrong ID.", 1);
                             }
 
-                            trajectoryList.Add(trajectory);
+                            trajectoriesById[returnedId] = trajectory;
                         }
                     }
                     catch (SqliteException ex)
                     {
                         _logger.LogError(ex, "Impossible to get the TrajectoryList with the given ID's from TrajectoryTable");
                         return null;
+                    }
+
+                    List<Model.Trajectory> trajectoryList = [];
+                    foreach (Guid requestedId in trajIdList)
+                    {
+                        if (trajectoriesById.TryGetValue(requestedId, out Model.Trajectory? trajectory))
+                        {
+                            trajectoryList.Add(trajectory);
+                        }
                     }
 
                     _logger.LogInformation("Returning the list of trajectories for the given IDs from TrajectoryTable");

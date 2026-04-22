@@ -31,7 +31,8 @@ internal static class Program
 
         bool deleteOctreesAfterRun = false; // Set to true to delete cached octrees at the end of the run.
         int referenceTrajectoryIndex = 0; // Zero-based index into the loaded trajectory list.
-        string referenceTrajectoryName = "U4"; // If a trajectory name contains this value, use its first match as the reference trajectory.
+        string referenceTrajectoryName = "U1"; // If a trajectory name contains this value, use its first match as the reference trajectory.
+        List<string> comparisonTrajectoryNameFilters = ["U2"]; // If non-empty, only trajectories whose names contain one of these values will be used as comparisons.
 
         List<TestTrajectory> trajectories = [];
         string globalAntiCollisionId = Guid.NewGuid().ToString();
@@ -57,6 +58,9 @@ internal static class Program
                 ? "Octree cleanup mode: enabled. Cached octrees will be deleted at the end of the run.\n"
                 : "Octree cleanup mode: disabled by default. Cached octrees will be reused across runs.\n");
             Console.WriteLine($"Reference trajectory name filter: \"{referenceTrajectoryName}\"");
+            Console.WriteLine(comparisonTrajectoryNameFilters.Count > 0
+                ? $"Comparison trajectory name filters: {string.Join(", ", comparisonTrajectoryNameFilters.Select(filter => $"\"{filter}\""))}"
+                : "Comparison trajectory name filters: <none>");
             Console.WriteLine($"Reference trajectory: {FormatTrajectoryLabel(referenceTrajectory, includeGuid: true)}");
             Console.WriteLine("Using the following trajectories for the local test run:");
             for (int i = 0; i < trajectories.Count; i++)
@@ -74,6 +78,7 @@ internal static class Program
                 harness.GlobalAntiCollisionManager,
                 trajectories,
                 referenceTrajectory,
+                comparisonTrajectoryNameFilters,
                 globalAntiCollisionId);
 
             if (deleteOctreesAfterRun)
@@ -148,17 +153,18 @@ internal static class Program
         Ensure(storedReferenceCodes.Count > 0, $"OctreeManager should return stored codes for {FormatTrajectoryLabel(referenceTrajectory)}.");
 
         List<Guid> searchResults = octreeManager.Search(storedReferenceCodes, false, true, true, referenceTrajectory.Id);
+        Dictionary<Guid, TestTrajectory> trajectoryLookup = trajectories.ToDictionary(trajectory => trajectory.Id);
         Console.WriteLine($"\tOctreeManager overlap search using reference trajectory {FormatTrajectoryLabel(referenceTrajectory)} returned {searchResults.Count} trajectories.");
 
-        foreach (TestTrajectory trajectory in trajectories.Where(trajectory => trajectory.Id != referenceTrajectory.Id))
+        foreach (Guid trajectoryId in searchResults)
         {
-            if (searchResults.Contains(trajectory.Id))
+            if (trajectoryLookup.TryGetValue(trajectoryId, out TestTrajectory trajectory))
             {
                 Console.WriteLine($"\t{FormatTrajectoryLabel(trajectory)} overlaps with the reference trajectory.");
             }
             else
             {
-                //Console.WriteLine($"\t{FormatTrajectoryLabel(trajectory)} does not overlap with the reference trajectory.");
+                Console.WriteLine($"\tTrajectory {trajectoryId} overlaps with the reference trajectory.");
             }
         }
 
@@ -209,6 +215,7 @@ internal static class Program
         GlobalAntiCollisionManager globalAntiCollisionManager,
         IReadOnlyList<TestTrajectory> trajectories,
         TestTrajectory referenceTrajectory,
+        IReadOnlyList<string> comparisonTrajectoryNameFilters,
         string globalAntiCollisionId)
     {
         Console.WriteLine("Running in-process GlobalAntiCollisionManager + GlobalAntiCollisionsController test...");
@@ -216,7 +223,24 @@ internal static class Program
         Dictionary<Guid, TestTrajectory> trajectoryLookup = trajectories.ToDictionary(trajectory => trajectory.Id);
         List<TestTrajectory> configuredComparisonTrajectories = trajectories
             .Where(trajectory => trajectory.Id != referenceTrajectory.Id)
+            .Where(trajectory => MatchesComparisonTrajectoryNameFilter(trajectory, comparisonTrajectoryNameFilters))
             .ToList();
+
+        if (comparisonTrajectoryNameFilters.Count > 0)
+        {
+            if (configuredComparisonTrajectories.Count > 0)
+            {
+                Console.WriteLine("\tUsing the following comparison trajectories after name filtering:");
+                foreach (TestTrajectory comparisonTrajectory in configuredComparisonTrajectories)
+                {
+                    Console.WriteLine($"\t\t{FormatTrajectoryLabel(comparisonTrajectory, includeGuid: true)}");
+                }
+            }
+            else
+            {
+                Console.WriteLine("\tNo comparison trajectories matched the configured name filters.");
+            }
+        }
 
         GlobalAntiCollisionModel postPayload = CreateGlobalAntiCollision(globalAntiCollisionId, referenceTrajectory, configuredComparisonTrajectories, 0.999);
         Console.WriteLine($"\tStarting GlobalAntiCollisionsController.Post for reference trajectory {FormatTrajectoryLabel(referenceTrajectory)}...");
@@ -356,6 +380,21 @@ internal static class Program
         return fallbackIndex;
     }
 
+    private static bool MatchesComparisonTrajectoryNameFilter(
+        TestTrajectory trajectory,
+        IReadOnlyList<string> comparisonTrajectoryNameFilters)
+    {
+        if (comparisonTrajectoryNameFilters.Count == 0)
+        {
+            return true;
+        }
+
+        string trajectoryName = FormatTrajectoryName(trajectory);
+        return comparisonTrajectoryNameFilters.Any(filter =>
+            !string.IsNullOrWhiteSpace(filter) &&
+            trajectoryName.Contains(filter, StringComparison.OrdinalIgnoreCase));
+    }
+
     private static void ConfigureRemoteServiceHosts()
     {
         string host = ExternalServiceBaseAddress.ToString();
@@ -481,7 +520,7 @@ internal static class Program
             {
                 Console.WriteLine(
                     $"\tMinimum separation factor for {FormatTrajectoryLabel(result.ComparisonTrajectoryID, trajectoryLookup)} " +
-                    $"is {minimumPoint.SeparationFactor:F2} at reference MD {minimumPoint.ReferenceMD:F2} and comparison MD {minimumPoint.ComparisonMD:F2}.");
+                    $"is {minimumPoint.SeparationFactor:F3} at reference MD {minimumPoint.ReferenceMD:F2} and comparison MD {minimumPoint.ComparisonMD:F2}.");
             }
         }
     }
@@ -521,8 +560,8 @@ internal static class Program
 
             Console.WriteLine(
                 $"\t{FormatTrajectoryLabel(updatedResult.ComparisonTrajectoryID, trajectoryLookup)} " +
-                $"{storedMinimumPoint.SeparationFactor:F2} at reference MD {storedMinimumPoint.ReferenceMD:F2} / comparison MD {storedMinimumPoint.ComparisonMD:F2} " +
-                $"vs. {updatedMinimumPoint.SeparationFactor:F2} at reference MD {updatedMinimumPoint.ReferenceMD:F2} / comparison MD {updatedMinimumPoint.ComparisonMD:F2}.");
+                $"{storedMinimumPoint.SeparationFactor:F3} at reference MD {storedMinimumPoint.ReferenceMD:F2} / comparison MD {storedMinimumPoint.ComparisonMD:F2} " +
+                $"vs. {updatedMinimumPoint.SeparationFactor:F3} at reference MD {updatedMinimumPoint.ReferenceMD:F2} / comparison MD {updatedMinimumPoint.ComparisonMD:F2}.");
             Ensure(updatedMinimumPoint.SeparationFactor >= storedMinimumPoint.SeparationFactor,
                 $"GlobalAntiCollisionsController PUT should improve the minimum separation factor for {FormatTrajectoryLabel(updatedResult.ComparisonTrajectoryID, trajectoryLookup)}.");
         }
@@ -562,7 +601,7 @@ internal static class Program
 
             Console.WriteLine(
                 $"\tReference well {referenceLabel} vs. comparison well {FormatTrajectoryLabel(result.ComparisonTrajectoryID, trajectoryLookup)}: " +
-                $"minimum separation factor {minimumPoint.SeparationFactor:F2} at reference MD {minimumPoint.ReferenceMD:F2} and comparison MD {minimumPoint.ComparisonMD:F2}.");
+                $"minimum separation factor {minimumPoint.SeparationFactor:F3} at reference MD {minimumPoint.ReferenceMD:F2} and comparison MD {minimumPoint.ComparisonMD:F2}.");
         }
     }
 

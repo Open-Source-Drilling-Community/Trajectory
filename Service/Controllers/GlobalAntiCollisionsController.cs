@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using NORCE.Drilling.Trajectory.Service.Managers;
 using OSDC.DotnetLibraries.Drilling.Surveying;
@@ -6,6 +6,7 @@ using OSDC.DotnetLibraries.General.Common;
 using OSDC.DotnetLibraries.General.Octree;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace NORCE.Drilling.Trajectory.Service.Controllers
 {
@@ -119,6 +120,11 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         private void PrepareCalculationInput(GlobalAntiCollision.GlobalAntiCollision value, out List<SurveyStation>? referenceSurveyList)
         {
             referenceSurveyList = null;
+            List<Guid>? requestedComparisonTrajectoryIds =
+                value.ComparisonTrajectoryIDs is { Count: > 0 }
+                    ? [.. value.ComparisonTrajectoryIDs.Where(id => id != Guid.Empty)]
+                    : null;
+
             if (!value.ReferenceWellPathID.Equals(Guid.Empty))
             {
                 #region Load WellPath and Architecture
@@ -129,7 +135,9 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                 List<OctreeCodeLong>? leaves = referenceSurveyList != null ? _octreeManager.GetLeavesFromSurveyList(referenceSurveyList) : null;
                 #endregion
 
-                value.ComparisonTrajectoryIDs = _octreeManager.Search(leaves, false, true, true, null);
+                value.ComparisonTrajectoryIDs = FilterComparisonTrajectoryIds(
+                    _octreeManager.Search(leaves, false, true, true, null),
+                    requestedComparisonTrajectoryIds);
                 value.ReferenceTrajectoryID = Guid.Empty;
             }
             else if (!value.ReferenceTrajectoryID.Equals(Guid.Empty))
@@ -138,9 +146,27 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                 referenceSurveyList = _trajectoryManager.GetTrajectoryById(value.ReferenceTrajectoryID)?.SurveyStationList;
                 #endregion
 
-                value.ComparisonTrajectoryIDs = _octreeManager.Search(_octreeManager.Get(value.ReferenceTrajectoryID), false, true, true, value.ReferenceTrajectoryID);
+                value.ComparisonTrajectoryIDs = FilterComparisonTrajectoryIds(
+                    _octreeManager.Search(_octreeManager.Get(value.ReferenceTrajectoryID), false, true, true, value.ReferenceTrajectoryID),
+                    requestedComparisonTrajectoryIds);
                 value.ReferenceWellPathID = Guid.Empty;
             }
+        }
+
+        private static List<Guid> FilterComparisonTrajectoryIds(List<Guid>? candidateTrajectoryIds, List<Guid>? requestedComparisonTrajectoryIds)
+        {
+            if (candidateTrajectoryIds == null || candidateTrajectoryIds.Count == 0)
+            {
+                return [];
+            }
+
+            if (requestedComparisonTrajectoryIds == null || requestedComparisonTrajectoryIds.Count == 0)
+            {
+                return candidateTrajectoryIds;
+            }
+
+            HashSet<Guid> requestedIds = [.. requestedComparisonTrajectoryIds];
+            return candidateTrajectoryIds.Where(id => requestedIds.Contains(id)).ToList();
         }
 
         private void CalculateIfPossible(GlobalAntiCollision.GlobalAntiCollision value, List<SurveyStation>? referenceSurveyList)
@@ -171,14 +197,29 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                 return [];
             }
 
-            List<List<SurveyStation>> comparisonSurveyLists = [];
+            Dictionary<Guid, Model.Trajectory> trajectoriesById = [];
             foreach (Model.Trajectory comparisonTrajectory in comparisonTrajectories)
             {
-                if (comparisonTrajectory?.SurveyStationList != null)
+                if (comparisonTrajectory?.MetaInfo?.ID is Guid comparisonTrajectoryId && comparisonTrajectoryId != Guid.Empty)
                 {
-                    comparisonSurveyLists.Add(comparisonTrajectory.SurveyStationList);
+                    trajectoriesById[comparisonTrajectoryId] = comparisonTrajectory;
                 }
             }
+
+            List<List<SurveyStation>> comparisonSurveyLists = [];
+            List<Guid> filteredComparisonTrajectoryIds = [];
+            foreach (Guid comparisonTrajectoryId in comparisonTrajectoryIds)
+            {
+                if (trajectoriesById.TryGetValue(comparisonTrajectoryId, out Model.Trajectory? comparisonTrajectory) &&
+                    comparisonTrajectory.SurveyStationList != null)
+                {
+                    comparisonSurveyLists.Add(comparisonTrajectory.SurveyStationList);
+                    filteredComparisonTrajectoryIds.Add(comparisonTrajectoryId);
+                }
+            }
+
+            comparisonTrajectoryIds.Clear();
+            comparisonTrajectoryIds.AddRange(filteredComparisonTrajectoryIds);
             return comparisonSurveyLists;
         }
     }
