@@ -12,6 +12,16 @@ namespace NORCE.Drilling.GlobalAntiCollision
         public Guid ComparisonTrajectoryID { get; set; } = Guid.Empty;
 
         /// <summary>
+        ///
+        /// </summary>
+        public MeasuredDepthRange? ReferenceMDRange { get; set; }
+
+        /// <summary>
+        ///
+        /// </summary>
+        public MeasuredDepthRange? ComparisonMDRange { get; set; }
+
+        /// <summary>
         /// Tuple order: Reference MD, comparison MD, separation factor.
         /// </summary>
         [JsonConverter(typeof(SeparationFactorProfileJsonConverter))]
@@ -54,6 +64,8 @@ namespace NORCE.Drilling.GlobalAntiCollision
             if (dest != null)
             {
                 dest.ComparisonTrajectoryID = ComparisonTrajectoryID;
+                dest.ReferenceMDRange = ReferenceMDRange != null ? new MeasuredDepthRange(ReferenceMDRange) : null;
+                dest.ComparisonMDRange = ComparisonMDRange != null ? new MeasuredDepthRange(ComparisonMDRange) : null;
                 dest.SeparationFactorProfile ??= [];
                 dest.SeparationFactorProfile.Clear();
 

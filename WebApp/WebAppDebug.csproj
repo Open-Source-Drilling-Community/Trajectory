@@ -9,8 +9,8 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <Content Remove="Pages\_HostDebug.cshtml" />
-    <Content Remove="_ImportsDebug.razor" />
+    <Content Remove="Pages\_Host.cshtml" />
+    <Content Remove="_Imports.razor" />
   </ItemGroup>
 
   <ItemGroup>
@@ -41,7 +41,7 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\WebPages\WebPages.csproj" />
+    <ProjectReference Include="..\WebPages\WebPagesDebug.csproj" />
   </ItemGroup>
 
   <ItemGroup>

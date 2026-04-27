@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 using OSDC.DotnetLibraries.General.Common;
@@ -20,7 +20,14 @@ namespace NORCE.Drilling.GlobalAntiCollision
         /// </summary>
         public static int MinNumberInterpolations { get; set; } = 3;
 
-        public static List<SeparationFactorPoint> CalculateSeparationFactor(List<SurveyStation>? surveysRef, List<SurveyStation>? surveysCmp, int k, double confidenceFactor, UncertaintyEnvelope.ErrorModelType errorModelTypeRef = UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt, UncertaintyEnvelope.ErrorModelType errorModelTypeCmp = UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt)
+        public static List<SeparationFactorPoint> CalculateSeparationFactor(
+            List<SurveyStation>? surveysRef,
+            List<SurveyStation>? surveysCmp,
+            int k,
+            double confidenceFactor,
+            UncertaintyEnvelope.ErrorModelType errorModelTypeRef = UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
+            UncertaintyEnvelope.ErrorModelType errorModelTypeCmp = UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
+            SeparationFactorEnvelopeCache? envelopeCache = null)
         {
             if (surveysRef == null || surveysCmp == null || surveysRef.Count == 0 || surveysCmp.Count == 0)
             {
@@ -52,16 +59,11 @@ namespace NORCE.Drilling.GlobalAntiCollision
                 return [];
             }
 
-            UncertaintyEnvelope uncertaintyEnvelopeRef = new()
+            envelopeCache ??= new SeparationFactorEnvelopeCache(surveysRef, surveysCmp, confidenceFactor, errorModelTypeRef, errorModelTypeCmp);
+            if (!envelopeCache.IsValid)
             {
-                ErrorModel = errorModelTypeRef,
-                SurveyStationList = surveysRef,
-            };
-            UncertaintyEnvelope uncertaintyEnvelopeCmp = new()
-            {
-                ErrorModel = errorModelTypeCmp,
-                SurveyStationList = surveysCmp,
-            };
+                return [];
+            }
 
             List<SeparationFactorPoint> separationFactors = [];
             // Since the Intersect loops over ellipseRef and k is an index on the survey stations, we need to use k * MinNumberInterpolations as start index
@@ -70,32 +72,27 @@ namespace NORCE.Drilling.GlobalAntiCollision
                 double minSeparationFactor = 0.01;
                 var maxSeparationFactor = MaxSeparationFactor;
 
-                uncertaintyEnvelopeRef.ConfidenceFactor = confidenceFactor;
-                uncertaintyEnvelopeRef.ScalingFactor = maxSeparationFactor;
-                uncertaintyEnvelopeRef.MeshLongitudinalCount = MinNumberInterpolations;
-                bool okRef = uncertaintyEnvelopeRef.Calculate();
-
-                uncertaintyEnvelopeCmp.ConfidenceFactor = confidenceFactor;
-                uncertaintyEnvelopeCmp.ScalingFactor = maxSeparationFactor;
-                // We should not set the MeshLongitudinalCount for the cmp envelope, since we want to use the minRef Value instead (based on the original code)
-                //uncertaintyEnvelopeCmp.MeshLongitudinalCount = numberOfInterpolationsMultiplier * MinNumberInterpolations;
-                uncertaintyEnvelopeCmp.MeshLongitudinalLength = minRef.Value;
-                bool okCmp = uncertaintyEnvelopeCmp.Calculate();
-
-                List<UncertaintyEllipse>? ellipseRef = okRef ? uncertaintyEnvelopeRef.MeshedEllipseList : null;
-                List<UncertaintyEllipse>? ellipseCmp = okCmp ? uncertaintyEnvelopeCmp.MeshedEllipseList : null;
-                if (ellipseRef != null && ellipseCmp != null)
+                List<UncertaintyEllipse>? ellipseRef;
+                List<UncertaintyEllipse>? ellipseCmp;
+                bool ok = envelopeCache.TryGetEllipses(maxSeparationFactor, out ellipseRef, out ellipseCmp);
+                if (ok && ellipseRef != null && ellipseCmp != null)
                 {
                     var ellipseRefIndex = k * MinNumberInterpolations + i;
                     if (ellipseRefIndex >= ellipseRef.Count)
                     {
                         break;
                     }
+                    CandidateComparisonIndices candidateIndices = envelopeCache.GetCandidateComparisonIndices(ellipseRefIndex);
                     if (!TryGetMD(ellipseRef[ellipseRefIndex], out double refMD))
                     {
                         continue;
                     }
-                    if (!Intersect(ellipseRef, ellipseCmp, ellipseRefIndex, out double cmpMD))
+                    if (!candidateIndices.HasCandidates)
+                    {
+                        separationFactors.Add(new SeparationFactorPoint(refMD, -1.0, maxSeparationFactor));
+                        continue;
+                    }
+                    if (!Intersect(ellipseRef, ellipseCmp, ellipseRefIndex, out double cmpMD, candidateIndices.PointIndices, candidateIndices.SegmentIndices))
                     {
                         // Undefined numbers may create problems for json serialization
                         cmpMD = -1.0;
@@ -103,16 +100,11 @@ namespace NORCE.Drilling.GlobalAntiCollision
                     }
                     else
                     {
-                        uncertaintyEnvelopeRef.ScalingFactor = minSeparationFactor;
-                        uncertaintyEnvelopeCmp.ScalingFactor = minSeparationFactor;
-                        okRef = uncertaintyEnvelopeRef.Calculate();
-                        okCmp = uncertaintyEnvelopeCmp.Calculate();
-                        ellipseRef = okRef ? uncertaintyEnvelopeRef.MeshedEllipseList : null;
-                        ellipseCmp = okCmp ? uncertaintyEnvelopeCmp.MeshedEllipseList : null;
-                        if (ellipseRef != null && ellipseCmp != null)
+                        ok = envelopeCache.TryGetEllipses(minSeparationFactor, out ellipseRef, out ellipseCmp);
+                        if (ok && ellipseRef != null && ellipseCmp != null)
                         {
                             // Since the Intersect loops over ellipseRef and k is an index on the survey stations, we need to use k * MinNumberInterpolations as start index
-                            if (Intersect(ellipseRef, ellipseCmp, ellipseRefIndex, out cmpMD))
+                            if (Intersect(ellipseRef, ellipseCmp, ellipseRefIndex, out cmpMD, candidateIndices.PointIndices, candidateIndices.SegmentIndices))
                             {
                                 if (Numeric.IsUndefined(cmpMD))
                                 {
@@ -130,17 +122,12 @@ namespace NORCE.Drilling.GlobalAntiCollision
                                 do
                                 {
                                     double separationFactor = 0.5 * (minSeparationFactor + maxSeparationFactor);
-                                    uncertaintyEnvelopeRef.ScalingFactor = separationFactor;
-                                    uncertaintyEnvelopeCmp.ScalingFactor = separationFactor;
-                                    okRef = uncertaintyEnvelopeRef.Calculate();
-                                    okCmp = uncertaintyEnvelopeCmp.Calculate();
-                                    ellipseRef = okRef ? uncertaintyEnvelopeRef.MeshedEllipseList : null;
-                                    ellipseCmp = okCmp ? uncertaintyEnvelopeCmp.MeshedEllipseList : null;
-                                    if (ellipseRef != null && ellipseCmp != null)
+                                    ok = envelopeCache.TryGetEllipses(separationFactor, out ellipseRef, out ellipseCmp);
+                                    if (ok && ellipseRef != null && ellipseCmp != null)
                                     {
                                         double cMD;
                                         // Since the Intersect loops over ellipseRef and k is an index on the survey stations, we need to use k * MinNumberInterpolations as start index
-                                        if (Intersect(ellipseRef, ellipseCmp, ellipseRefIndex, out cMD))
+                                        if (Intersect(ellipseRef, ellipseCmp, ellipseRefIndex, out cMD, candidateIndices.PointIndices, candidateIndices.SegmentIndices))
                                         {
                                             maxSeparationFactor = separationFactor;
                                         }
@@ -215,7 +202,13 @@ namespace NORCE.Drilling.GlobalAntiCollision
             return minDeltaMD;
         }
 
-        private static bool Intersect(List<UncertaintyEllipse> ellipseRef, List<UncertaintyEllipse> ellipseCmp, int k, out double cmpMD)
+        private static bool Intersect(
+            List<UncertaintyEllipse> ellipseRef,
+            List<UncertaintyEllipse> ellipseCmp,
+            int k,
+            out double cmpMD,
+            List<int>? candidatePointIndices = null,
+            List<int>? candidateSegmentIndices = null)
         {
             cmpMD = Numeric.UNDEF_DOUBLE;
             if (k >= 0 && k < ellipseRef.Count - 1 && ellipseRef.Count > 2)
@@ -253,8 +246,14 @@ namespace NORCE.Drilling.GlobalAntiCollision
                     if (planesAbove != null && planesBelow != null)
                     {
                         #region Check if any of the points on the ellipseCmp ellipses are inside the volumes defined by the planes
-                        for (int i = 0; i < ellipseCmp.Count; i++)
+                        IEnumerable<int> pointIndices = candidatePointIndices ?? Enumerable.Range(0, ellipseCmp.Count);
+                        foreach (int i in pointIndices)
                         {
+                            if (!reducedEllipseRefBounds.Intersects(ellipseCmp[i].BoundingBox!))
+                            {
+                                continue;
+                            }
+
                             if (TryGetPoint3D(ellipseCmp[i].EllipseCenter, out Point3D center) && reducedEllipseRefBounds.Contains(center))
                             {
                                 if (IsInside(center, planesAbove) || IsInside(center, planesBelow))
@@ -294,8 +293,14 @@ namespace NORCE.Drilling.GlobalAntiCollision
                         if (trianglesAbove != null && trianglesBelow != null)
                         {
                             List<LineSegment3D> lineSegments = new List<LineSegment3D>();
-                            for (int i = 0; i < ellipseCmp.Count - 1; i++)
+                            IEnumerable<int> segmentIndices = candidateSegmentIndices ?? Enumerable.Range(0, ellipseCmp.Count - 1);
+                            foreach (int i in segmentIndices)
                             {
+                                if (!reducedEllipseRefBounds.Intersects(Bounds.Join(ellipseCmp[i].BoundingBox!, ellipseCmp[i + 1].BoundingBox!)!))
+                                {
+                                    continue;
+                                }
+
                                 if (ellipseCmp[i].EllipseVertices != null && ellipseCmp[i + 1].EllipseVertices != null)
                                 {
                                     Bounds reducedEllipseCmpBounds = GetBounds(ellipseCmp.GetRange(i, 2));
