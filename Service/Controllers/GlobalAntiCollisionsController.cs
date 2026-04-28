@@ -1,5 +1,6 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
+using NORCE.Drilling.GlobalAntiCollision;
 using NORCE.Drilling.Trajectory.Service.Managers;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Common;
@@ -181,7 +182,12 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             {
                 value.ConfidenceFactor = 0.999;
             }
-            value.Calculate(referenceSurveyList, comparisonSurveyLists);
+
+            List<MeasuredDepthRange?> referenceMdRanges = [];
+            List<MeasuredDepthRange?> comparisonMdRanges = [];
+            BuildRelevantMdRanges(referenceSurveyList, comparisonSurveyLists, value.ConfidenceFactor, referenceMdRanges, comparisonMdRanges);
+
+            value.Calculate(referenceSurveyList, comparisonSurveyLists, referenceMdRanges, comparisonMdRanges);
         }
 
         private List<List<SurveyStation>> GetComparisonSurveyLists(List<Guid>? comparisonTrajectoryIds)
@@ -221,6 +227,33 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             comparisonTrajectoryIds.Clear();
             comparisonTrajectoryIds.AddRange(filteredComparisonTrajectoryIds);
             return comparisonSurveyLists;
+        }
+
+        private static void BuildRelevantMdRanges(
+            List<SurveyStation>? referenceSurveyList,
+            List<List<SurveyStation>> comparisonSurveyLists,
+            double confidenceFactor,
+            List<MeasuredDepthRange?> referenceMdRanges,
+            List<MeasuredDepthRange?> comparisonMdRanges)
+        {
+            foreach (List<SurveyStation> comparisonSurveyList in comparisonSurveyLists)
+            {
+                if (RelevantMdRangeCalculator.TryGetRelevantMdRanges(
+                    referenceSurveyList,
+                    comparisonSurveyList,
+                    confidenceFactor,
+                    out MeasuredDepthRange? referenceRange,
+                    out MeasuredDepthRange? comparisonRange))
+                {
+                    referenceMdRanges.Add(referenceRange);
+                    comparisonMdRanges.Add(comparisonRange);
+                }
+                else
+                {
+                    referenceMdRanges.Add(null);
+                    comparisonMdRanges.Add(null);
+                }
+            }
         }
     }
 }

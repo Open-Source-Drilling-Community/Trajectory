@@ -1,7 +1,8 @@
-﻿using Microsoft.Extensions.Logging;
+using Microsoft.Extensions.Logging;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using Microsoft.Data.Sqlite;
 using System.Linq;
+using NORCE.Drilling.GlobalAntiCollision;
 using OSDC.DotnetLibraries.General.Common;
 using OSDC.DotnetLibraries.General.Octree;
 using System;
@@ -124,17 +125,15 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 double confidencefactor = 0.999;
                 double scalingFactor = 1.0;
 
-                UncertaintyEnvelope uncertaintyEnvelope = new()
-                {
-                    ErrorModel = errorModelType,
-                    SurveyStationList = surveyList,
-                    MeshSectorCount = 720,
-                    MeshLongitudinalLength = 0.1,
-                };
-                uncertaintyEnvelope.ConfidenceFactor = confidencefactor;
-                uncertaintyEnvelope.ScalingFactor = scalingFactor;
-                bool ok = uncertaintyEnvelope.Calculate();
-                List<UncertaintyEllipse>? ellipses = ok ? uncertaintyEnvelope.MeshedEllipseList : null;
+                bool ok = PerpendicularEllipseEnvelopeBuilder.TryBuildMeshedEllipseList(
+                    surveyList,
+                    errorModelType,
+                    confidencefactor,
+                    scalingFactor,
+                    720,
+                    null,
+                    0.1,
+                    out List<UncertaintyEllipse>? ellipses);
 
                 // Note that TVD is positive downwards, but we correct for that when we convert to Point3D which are being plotted. We also add some additional margins to make sure we can plot the lower part of the envelope
                 Octree<OctreeCodeLong> octree = new Octree<OctreeCodeLong>(minX_, maxX_, minY_, maxY_, minZ_, maxZ_);

@@ -1,4 +1,4 @@
-﻿using System;
+using System;
 using System.Collections.Generic;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 
@@ -100,17 +100,54 @@ namespace NORCE.Drilling.GlobalAntiCollision
         /// 
         /// </summary>
         /// <returns></returns>
-        public void Calculate(List<SurveyStation>? referenceSurveyList, List<List<SurveyStation>>? comparisonSurveyLists)
+        public void Calculate(
+            List<SurveyStation>? referenceSurveyList,
+            List<List<SurveyStation>>? comparisonSurveyLists,
+            List<MeasuredDepthRange?>? referenceMdRanges = null,
+            List<MeasuredDepthRange?>? comparisonMdRanges = null)
         {
             if (comparisonSurveyLists != null && referenceSurveyList != null)
             {
+                SeparationFactorResults.Clear();
                 for (int i = 0; i < comparisonSurveyLists.Count; i++)
                 {
+                    List<SurveyStation> surveysRef = referenceSurveyList;
                     List<SurveyStation> surveysCmp = comparisonSurveyLists[i];
-                    SeparationFactorResult sfr = new SeparationFactorResult((Guid)ComparisonTrajectoryIDs[i]);
-                    for (int k = 0; k < referenceSurveyList.Count; k++)
+
+                    if (surveysRef.Count == 0 || surveysCmp.Count == 0)
                     {
-                        List<SeparationFactorPoint> safetyFactorResults = SeparationFactorCalculations.CalculateSeparationFactor(referenceSurveyList, surveysCmp, k, ConfidenceFactor);
+                        continue;
+                    }
+
+                    SeparationFactorEnvelopeCache envelopeCache = new(
+                        surveysRef,
+                        surveysCmp,
+                        ConfidenceFactor,
+                        UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
+                        UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt);
+                    if (!envelopeCache.IsValid)
+                    {
+                        continue;
+                    }
+
+                    SeparationFactorResult sfr = new SeparationFactorResult((Guid)ComparisonTrajectoryIDs[i]);
+                    sfr.ReferenceMDRange = referenceMdRanges != null && i < referenceMdRanges.Count
+                        ? referenceMdRanges[i]
+                        : RelevantMdRangeCalculator.GetSurveyMdRange(surveysRef);
+                    sfr.ComparisonMDRange = comparisonMdRanges != null && i < comparisonMdRanges.Count
+                        ? comparisonMdRanges[i]
+                        : RelevantMdRangeCalculator.GetSurveyMdRange(surveysCmp);
+
+                    for (int k = 0; k < surveysRef.Count; k++)
+                    {
+                        List<SeparationFactorPoint> safetyFactorResults = SeparationFactorCalculations.CalculateSeparationFactor(
+                            surveysRef,
+                            surveysCmp,
+                            k,
+                            ConfidenceFactor,
+                            UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
+                            UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
+                            envelopeCache);
                         sfr.SeparationFactorProfile.AddRange(safetyFactorResults);
                     }
                     SeparationFactorResults.Add(sfr);
