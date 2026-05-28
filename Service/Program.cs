@@ -1,4 +1,4 @@
-﻿using Microsoft.AspNetCore.Builder;
+using Microsoft.AspNetCore.Builder;
 using Microsoft.AspNetCore.HttpOverrides;
 using Microsoft.Extensions.DependencyInjection;
 using Microsoft.Extensions.Hosting;
@@ -36,7 +36,7 @@ builder.Services.AddSwaggerGen(config =>
 
 var app = builder.Build();
 
-var basePath = "/Trajectory/api";
+var basePath = "/trajectory/api";
 
 app.UsePathBase(basePath);
 
@@ -96,3 +96,4 @@ app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
