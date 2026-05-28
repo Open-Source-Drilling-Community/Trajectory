@@ -5,6 +5,7 @@ using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Octree;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 
 namespace NORCE.Drilling.Trajectory.Service.Controllers
 {

@@ -33,6 +33,7 @@ internal static class Program
         int referenceTrajectoryIndex = 0; // Zero-based index into the loaded trajectory list.
         string referenceTrajectoryName = "U1"; // If a trajectory name contains this value, use its first match as the reference trajectory.
         List<string> comparisonTrajectoryNameFilters = ["U2"]; // If non-empty, only trajectories whose names contain one of these values will be used as comparisons.
+        bool forceSymmetricSeparationFactorCalculation = false; // Set to true for slower two-direction calculations with less direction-dependent minima.
 
         List<TestTrajectory> trajectories = [];
         string globalAntiCollisionId = Guid.NewGuid().ToString();
@@ -40,6 +41,7 @@ internal static class Program
         try
         {
             ConfigureRemoteServiceHosts();
+            GlobalAntiCollisionModel.UseSymmetricSeparationFactorCalculation = forceSymmetricSeparationFactorCalculation;
 
             remoteTrajectoryClient = CreateHttpClient(RemoteTrajectoryBaseAddress);
 
@@ -57,6 +59,9 @@ internal static class Program
             Console.WriteLine(deleteOctreesAfterRun
                 ? "Octree cleanup mode: enabled. Cached octrees will be deleted at the end of the run.\n"
                 : "Octree cleanup mode: disabled by default. Cached octrees will be reused across runs.\n");
+            Console.WriteLine(forceSymmetricSeparationFactorCalculation
+                ? "Separation factor calculation mode: symmetric. Reverse-direction points will be merged into each profile.\n"
+                : "Separation factor calculation mode: fast. Results may retain reference-direction sampling asymmetry.\n");
             Console.WriteLine($"Reference trajectory name filter: \"{referenceTrajectoryName}\"");
             Console.WriteLine(comparisonTrajectoryNameFilters.Count > 0
                 ? $"Comparison trajectory name filters: {string.Join(", ", comparisonTrajectoryNameFilters.Select(filter => $"\"{filter}\""))}"
@@ -384,14 +389,16 @@ internal static class Program
         TestTrajectory trajectory,
         IReadOnlyList<string> comparisonTrajectoryNameFilters)
     {
-        if (comparisonTrajectoryNameFilters.Count == 0)
+        List<string> activeFilters = comparisonTrajectoryNameFilters
+            .Where(filter => !string.IsNullOrWhiteSpace(filter))
+            .ToList();
+        if (activeFilters.Count == 0)
         {
             return true;
         }
 
         string trajectoryName = FormatTrajectoryName(trajectory);
-        return comparisonTrajectoryNameFilters.Any(filter =>
-            !string.IsNullOrWhiteSpace(filter) &&
+        return activeFilters.Any(filter =>
             trajectoryName.Contains(filter, StringComparison.OrdinalIgnoreCase));
     }
 

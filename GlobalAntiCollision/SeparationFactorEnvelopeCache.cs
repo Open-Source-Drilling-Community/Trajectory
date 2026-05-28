@@ -1,5 +1,6 @@
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Common;
+using OSDC.DotnetLibraries.General.Math;
 using OSDC.DotnetLibraries.General.Octree;
 using System;
 using System.Collections.Generic;
@@ -13,10 +14,23 @@ namespace NORCE.Drilling.GlobalAntiCollision
         private readonly double _confidenceFactor;
         private readonly UncertaintyEnvelope.ErrorModelType _errorModelTypeRef;
         private readonly UncertaintyEnvelope.ErrorModelType _errorModelTypeCmp;
+        private readonly SeparationFactorEnvelopeCache? _sharedReferenceCache;
+        private readonly object _syncLock = new();
         private readonly Dictionary<double, List<UncertaintyEllipse>?> _referenceCache = [];
         private readonly Dictionary<double, List<UncertaintyEllipse>?> _comparisonCache = [];
         private readonly Dictionary<int, CandidateComparisonIndices> _candidateComparisonIndicesCache = [];
+        private readonly Dictionary<UncertaintyEllipse, List<SurveyPoint>> _rotatedEllipseCache = [];
+        private readonly Dictionary<(double SeparationFactor, int SegmentIndex), List<LineSegment3D>?> _comparisonLineSegmentCache = [];
+        private readonly Dictionary<(double SeparationFactor, int ReferenceEllipseIndex), ReferenceIntersectionGeometry?> _referenceGeometryCache = [];
         private readonly int _meshSectorCount;
+        private List<UncertaintyEllipse>? _referenceZeroScaleEllipses;
+        private List<UncertaintyEllipse>? _referenceUnitScaleEllipses;
+        private List<UncertaintyEllipse>? _comparisonZeroScaleEllipses;
+        private List<UncertaintyEllipse>? _comparisonUnitScaleEllipses;
+        private bool _referenceZeroScaleCreated;
+        private bool _referenceUnitScaleCreated;
+        private bool _comparisonZeroScaleCreated;
+        private bool _comparisonUnitScaleCreated;
         private bool _referenceSurveyPrepared;
         private bool _comparisonSurveyPrepared;
 
@@ -26,24 +40,40 @@ namespace NORCE.Drilling.GlobalAntiCollision
             double confidenceFactor,
             UncertaintyEnvelope.ErrorModelType errorModelTypeRef,
             UncertaintyEnvelope.ErrorModelType errorModelTypeCmp,
-            int? meshSectorCount = null)
+            int? meshSectorCount = null,
+            SeparationFactorEnvelopeCache? sharedReferenceCache = null)
         {
             _surveysRef = surveysRef;
             _surveysCmp = surveysCmp;
             _confidenceFactor = confidenceFactor;
             _errorModelTypeRef = errorModelTypeRef;
             _errorModelTypeCmp = errorModelTypeCmp;
+            _sharedReferenceCache = sharedReferenceCache;
             _meshSectorCount = meshSectorCount ?? PerpendicularEllipseEnvelopeBuilder.DefaultMeshSectorCount;
-            MinimumReferenceMdStep = MinimumMDBetweenSurveyStations(_surveysRef);
-            if (MinimumReferenceMdStep.HasValue)
+            ComparisonMeshLongitudinalLength = GetPairComparisonMeshLongitudinalLength(_surveysRef, _surveysCmp);
+            if (ComparisonMeshLongitudinalLength.HasValue)
             {
-                MinimumReferenceMdStep /= SeparationFactorCalculations.MinNumberInterpolations;
+                double minimumComparisonMeshLength = SeparationFactorCalculations.MinimumComparisonMeshLongitudinalLength;
+                if ((_surveysRef.Count >= SeparationFactorCalculations.DenseReferenceSurveyStationCount ||
+                    _surveysCmp.Count >= SeparationFactorCalculations.DenseReferenceSurveyStationCount ||
+                    ComparisonMeshLongitudinalLength.Value < SeparationFactorCalculations.DenseReferenceComparisonMeshLongitudinalLength) &&
+                    SeparationFactorCalculations.DenseReferenceComparisonMeshLongitudinalLength > minimumComparisonMeshLength)
+                {
+                    minimumComparisonMeshLength = SeparationFactorCalculations.DenseReferenceComparisonMeshLongitudinalLength;
+                }
+
+                if (minimumComparisonMeshLength > 0)
+                {
+                    ComparisonMeshLongitudinalLength = Math.Max(
+                        ComparisonMeshLongitudinalLength.Value,
+                        minimumComparisonMeshLength);
+                }
             }
         }
 
-        public double? MinimumReferenceMdStep { get; }
+        public double? ComparisonMeshLongitudinalLength { get; }
 
-        public bool IsValid => MinimumReferenceMdStep.HasValue && MinimumReferenceMdStep.Value > 0;
+        public bool IsValid => ComparisonMeshLongitudinalLength.HasValue && ComparisonMeshLongitudinalLength.Value > 0;
 
         public bool TryGetEllipses(double separationFactor, out List<UncertaintyEllipse>? ellipseRef, out List<UncertaintyEllipse>? ellipseCmp)
         {
@@ -55,9 +85,12 @@ namespace NORCE.Drilling.GlobalAntiCollision
 
         public CandidateComparisonIndices GetCandidateComparisonIndices(int ellipseRefIndex)
         {
-            if (_candidateComparisonIndicesCache.TryGetValue(ellipseRefIndex, out CandidateComparisonIndices? cached))
+            lock (_syncLock)
             {
-                return cached;
+                if (_candidateComparisonIndicesCache.TryGetValue(ellipseRefIndex, out CandidateComparisonIndices? cached))
+                {
+                    return cached;
+                }
             }
 
             if (!TryGetEllipses(SeparationFactorCalculations.MaxSeparationFactor, out List<UncertaintyEllipse>? ellipseRef, out List<UncertaintyEllipse>? ellipseCmp) ||
@@ -65,7 +98,10 @@ namespace NORCE.Drilling.GlobalAntiCollision
                 ellipseCmp == null)
             {
                 CandidateComparisonIndices empty = new([], []);
-                _candidateComparisonIndicesCache[ellipseRefIndex] = empty;
+                lock (_syncLock)
+                {
+                    _candidateComparisonIndicesCache[ellipseRefIndex] = empty;
+                }
                 return empty;
             }
 
@@ -73,7 +109,10 @@ namespace NORCE.Drilling.GlobalAntiCollision
             if (reducedReferenceBounds == null)
             {
                 CandidateComparisonIndices empty = new([], []);
-                _candidateComparisonIndicesCache[ellipseRefIndex] = empty;
+                lock (_syncLock)
+                {
+                    _candidateComparisonIndicesCache[ellipseRefIndex] = empty;
+                }
                 return empty;
             }
 
@@ -81,14 +120,13 @@ namespace NORCE.Drilling.GlobalAntiCollision
             for (int i = 0; i < ellipseCmp.Count; i++)
             {
                 var boundingBox = ellipseCmp[i].BoundingBox;
-                if (boundingBox != null && reducedReferenceBounds.Intersects(boundingBox))
+                if (boundingBox != null && BoundsOverlap(reducedReferenceBounds, boundingBox))
                 {
                     pointIndices.Add(i);
                 }
             }
 
-            int firstSegmentIndex = -1;
-            int lastSegmentIndex = -1;
+            List<int> segmentIndices = [];
             for (int i = 0; i < ellipseCmp.Count - 1; i++)
             {
                 var firstBoundingBox = ellipseCmp[i].BoundingBox;
@@ -99,45 +137,242 @@ namespace NORCE.Drilling.GlobalAntiCollision
                 }
 
                 Bounds? joinedBounds = Bounds.Join(firstBoundingBox, secondBoundingBox);
-                if (joinedBounds != null && reducedReferenceBounds.Intersects(joinedBounds))
+                if (joinedBounds != null && BoundsOverlap(reducedReferenceBounds, joinedBounds))
                 {
-                    if (firstSegmentIndex < 0)
-                    {
-                        firstSegmentIndex = i;
-                    }
-                    lastSegmentIndex = i;
+                    segmentIndices.Add(i);
                 }
             }
 
-            List<int> segmentIndices = CreateContiguousSegmentIndices(firstSegmentIndex, lastSegmentIndex);
             CandidateComparisonIndices results = new(pointIndices, segmentIndices);
-            _candidateComparisonIndicesCache[ellipseRefIndex] = results;
+            lock (_syncLock)
+            {
+                _candidateComparisonIndicesCache[ellipseRefIndex] = results;
+            }
             return results;
         }
 
-        private static List<int> CreateContiguousSegmentIndices(int firstSegmentIndex, int lastSegmentIndex)
+        public List<SurveyPoint> GetOrCreateRotatedEllipseVertices(UncertaintyEllipse ellipse)
         {
-            if (firstSegmentIndex < 0 || lastSegmentIndex < firstSegmentIndex)
+            lock (_syncLock)
             {
-                return [];
+                if (_rotatedEllipseCache.TryGetValue(ellipse, out List<SurveyPoint>? cached))
+                {
+                    return cached;
+                }
             }
 
-            List<int> segmentIndices = [];
-            for (int i = firstSegmentIndex; i <= lastSegmentIndex; i++)
+            List<SurveyPoint> rotated = SeparationFactorCalculations.RotateEllipse(ellipse);
+            lock (_syncLock)
             {
-                segmentIndices.Add(i);
+                _rotatedEllipseCache[ellipse] = rotated;
+            }
+            return rotated;
+        }
+
+        public List<LineSegment3D>? GetOrCreateComparisonLineSegments(double separationFactor, int segmentIndex)
+        {
+            double cacheKey = NormalizeScale(separationFactor);
+            var lineSegmentCacheKey = (cacheKey, segmentIndex);
+            lock (_syncLock)
+            {
+                if (_comparisonLineSegmentCache.TryGetValue(lineSegmentCacheKey, out List<LineSegment3D>? cached))
+                {
+                    return cached;
+                }
             }
 
-            return segmentIndices;
+            List<UncertaintyEllipse>? ellipseCmp = GetOrCreateComparisonEllipses(cacheKey);
+            if (ellipseCmp == null ||
+                segmentIndex < 0 ||
+                segmentIndex >= ellipseCmp.Count - 1 ||
+                ellipseCmp[segmentIndex].EllipseVertices == null ||
+                ellipseCmp[segmentIndex + 1].EllipseVertices == null)
+            {
+                lock (_syncLock)
+                {
+                    _comparisonLineSegmentCache[lineSegmentCacheKey] = null;
+                }
+                return null;
+            }
+
+            List<SurveyPoint> currentVertices = GetOrCreateRotatedEllipseVertices(ellipseCmp[segmentIndex]);
+            List<SurveyPoint> nextVertices = GetOrCreateRotatedEllipseVertices(ellipseCmp[segmentIndex + 1]);
+            if (currentVertices.Count == 0 || currentVertices.Count != nextVertices.Count)
+            {
+                lock (_syncLock)
+                {
+                    _comparisonLineSegmentCache[lineSegmentCacheKey] = null;
+                }
+                return null;
+            }
+
+            List<LineSegment3D> lineSegments = [];
+            for (int i = 0; i < currentVertices.Count - 1; i++)
+            {
+                lineSegments.Add(new LineSegment3D(currentVertices[i], nextVertices[i]));
+            }
+
+            lock (_syncLock)
+            {
+                _comparisonLineSegmentCache[lineSegmentCacheKey] = lineSegments;
+            }
+            return lineSegments;
+        }
+
+        public ReferenceIntersectionGeometry? GetOrCreateReferenceGeometry(
+            double separationFactor,
+            int referenceEllipseIndex,
+            List<UncertaintyEllipse> ellipseRef)
+        {
+            if (_sharedReferenceCache != null)
+            {
+                return _sharedReferenceCache.GetOrCreateReferenceGeometry(separationFactor, referenceEllipseIndex, ellipseRef);
+            }
+
+            double cacheKey = NormalizeScale(separationFactor);
+            var geometryCacheKey = (cacheKey, referenceEllipseIndex);
+            lock (_syncLock)
+            {
+                if (_referenceGeometryCache.TryGetValue(geometryCacheKey, out ReferenceIntersectionGeometry? cached))
+                {
+                    return cached;
+                }
+            }
+
+            ReferenceIntersectionGeometry? geometry = SeparationFactorCalculations.CreateReferenceIntersectionGeometry(
+                ellipseRef,
+                referenceEllipseIndex,
+                GetOrCreateRotatedEllipseVertices);
+            lock (_syncLock)
+            {
+                _referenceGeometryCache[geometryCacheKey] = geometry;
+            }
+
+            return geometry;
         }
 
         private List<UncertaintyEllipse>? GetOrCreateReferenceEllipses(double separationFactor)
         {
-            if (_referenceCache.TryGetValue(separationFactor, out List<UncertaintyEllipse>? cached))
+            if (_sharedReferenceCache != null)
             {
-                return cached;
+                return _sharedReferenceCache.GetOrCreateReferenceEllipses(separationFactor);
             }
 
+            lock (_syncLock)
+            {
+                if (_referenceCache.TryGetValue(separationFactor, out List<UncertaintyEllipse>? cached))
+                {
+                    return cached;
+                }
+            }
+
+            List<UncertaintyEllipse>? ellipses = CreateScaledReferenceEllipses(separationFactor);
+            lock (_syncLock)
+            {
+                _referenceCache[separationFactor] = ellipses;
+            }
+            return ellipses;
+        }
+
+        private List<UncertaintyEllipse>? GetOrCreateComparisonEllipses(double separationFactor)
+        {
+            lock (_syncLock)
+            {
+                if (_comparisonCache.TryGetValue(separationFactor, out List<UncertaintyEllipse>? cached))
+                {
+                    return cached;
+                }
+            }
+
+            if (!ComparisonMeshLongitudinalLength.HasValue)
+            {
+                lock (_syncLock)
+                {
+                    _comparisonCache[separationFactor] = null;
+                }
+                return null;
+            }
+
+            List<UncertaintyEllipse>? ellipses = CreateScaledComparisonEllipses(separationFactor);
+            lock (_syncLock)
+            {
+                _comparisonCache[separationFactor] = ellipses;
+            }
+            return ellipses;
+        }
+
+        private List<UncertaintyEllipse>? CreateScaledReferenceEllipses(double separationFactor)
+        {
+            List<UncertaintyEllipse>? zeroScale = GetOrCreateReferenceScaleAnchor(0.0);
+            List<UncertaintyEllipse>? unitScale = GetOrCreateReferenceScaleAnchor(1.0);
+            return CreateScaledEllipses(zeroScale, unitScale, separationFactor);
+        }
+
+        private List<UncertaintyEllipse>? CreateScaledComparisonEllipses(double separationFactor)
+        {
+            List<UncertaintyEllipse>? zeroScale = GetOrCreateComparisonScaleAnchor(0.0);
+            List<UncertaintyEllipse>? unitScale = GetOrCreateComparisonScaleAnchor(1.0);
+            return CreateScaledEllipses(zeroScale, unitScale, separationFactor);
+        }
+
+        private List<UncertaintyEllipse>? GetOrCreateReferenceScaleAnchor(double separationFactor)
+        {
+            if (separationFactor == 0.0)
+            {
+                lock (_syncLock)
+                {
+                    if (!_referenceZeroScaleCreated)
+                    {
+                        _referenceZeroScaleEllipses = BuildReferenceEllipses(separationFactor);
+                        _referenceZeroScaleCreated = true;
+                    }
+
+                    return _referenceZeroScaleEllipses;
+                }
+            }
+
+            lock (_syncLock)
+            {
+                if (!_referenceUnitScaleCreated)
+                {
+                    _referenceUnitScaleEllipses = BuildReferenceEllipses(separationFactor);
+                    _referenceUnitScaleCreated = true;
+                }
+
+                return _referenceUnitScaleEllipses;
+            }
+        }
+
+        private List<UncertaintyEllipse>? GetOrCreateComparisonScaleAnchor(double separationFactor)
+        {
+            if (separationFactor == 0.0)
+            {
+                lock (_syncLock)
+                {
+                    if (!_comparisonZeroScaleCreated)
+                    {
+                        _comparisonZeroScaleEllipses = BuildComparisonEllipses(separationFactor);
+                        _comparisonZeroScaleCreated = true;
+                    }
+
+                    return _comparisonZeroScaleEllipses;
+                }
+            }
+
+            lock (_syncLock)
+            {
+                if (!_comparisonUnitScaleCreated)
+                {
+                    _comparisonUnitScaleEllipses = BuildComparisonEllipses(separationFactor);
+                    _comparisonUnitScaleCreated = true;
+                }
+
+                return _comparisonUnitScaleEllipses;
+            }
+        }
+
+        private List<UncertaintyEllipse>? BuildReferenceEllipses(double separationFactor)
+        {
             bool ok = PerpendicularEllipseEnvelopeBuilder.TryBuildMeshedEllipseList(
                 _surveysRef,
                 _errorModelTypeRef,
@@ -148,24 +383,13 @@ namespace NORCE.Drilling.GlobalAntiCollision
                 SeparationFactorCalculations.MinNumberInterpolations,
                 null,
                 out List<UncertaintyEllipse>? ellipses);
-            if (!ok)
-            {
-                ellipses = null;
-            }
-            _referenceCache[separationFactor] = ellipses;
-            return ellipses;
+            return ok ? ellipses : null;
         }
 
-        private List<UncertaintyEllipse>? GetOrCreateComparisonEllipses(double separationFactor)
+        private List<UncertaintyEllipse>? BuildComparisonEllipses(double separationFactor)
         {
-            if (_comparisonCache.TryGetValue(separationFactor, out List<UncertaintyEllipse>? cached))
+            if (!ComparisonMeshLongitudinalLength.HasValue)
             {
-                return cached;
-            }
-
-            if (!MinimumReferenceMdStep.HasValue)
-            {
-                _comparisonCache[separationFactor] = null;
                 return null;
             }
 
@@ -177,14 +401,129 @@ namespace NORCE.Drilling.GlobalAntiCollision
                 separationFactor,
                 _meshSectorCount,
                 null,
-                MinimumReferenceMdStep.Value,
+                ComparisonMeshLongitudinalLength.Value,
                 out List<UncertaintyEllipse>? ellipses);
-            if (!ok)
+            return ok ? ellipses : null;
+        }
+
+        private List<UncertaintyEllipse>? CreateScaledEllipses(
+            List<UncertaintyEllipse>? zeroScaleEllipses,
+            List<UncertaintyEllipse>? unitScaleEllipses,
+            double separationFactor)
+        {
+            if (zeroScaleEllipses == null ||
+                unitScaleEllipses == null ||
+                zeroScaleEllipses.Count != unitScaleEllipses.Count)
             {
-                ellipses = null;
+                return null;
             }
-            _comparisonCache[separationFactor] = ellipses;
-            return ellipses;
+
+            List<UncertaintyEllipse> scaledEllipses = new(unitScaleEllipses.Count);
+            for (int i = 0; i < unitScaleEllipses.Count; i++)
+            {
+                UncertaintyEllipse? scaled = CreateScaledEllipse(zeroScaleEllipses[i], unitScaleEllipses[i], separationFactor);
+                if (scaled == null)
+                {
+                    return null;
+                }
+
+                scaledEllipses.Add(scaled);
+            }
+
+            return scaledEllipses;
+        }
+
+        private static UncertaintyEllipse? CreateScaledEllipse(
+            UncertaintyEllipse zeroScaleEllipse,
+            UncertaintyEllipse unitScaleEllipse,
+            double separationFactor)
+        {
+            if (zeroScaleEllipse.EllipseRadii == null ||
+                unitScaleEllipse.EllipseRadii == null ||
+                zeroScaleEllipse.EllipseRadii[0] is not double zeroFirstRadius ||
+                unitScaleEllipse.EllipseRadii[0] is not double unitFirstRadius ||
+                zeroScaleEllipse.EllipseRadii[1] is not double zeroSecondRadius ||
+                unitScaleEllipse.EllipseRadii[1] is not double unitSecondRadius ||
+                unitScaleEllipse.EllipseCenter == null)
+            {
+                return null;
+            }
+
+            Vector2D radii = new();
+            radii[0] = ScaleValue(zeroFirstRadius, unitFirstRadius, separationFactor);
+            radii[1] = ScaleValue(zeroSecondRadius, unitSecondRadius, separationFactor);
+            UncertaintyEllipse scaledEllipse = new()
+            {
+                EllipseCenter = unitScaleEllipse.EllipseCenter,
+                EllipseOrientationAngle = unitScaleEllipse.EllipseOrientationAngle,
+                EllipseRadii = radii,
+            };
+
+            if (!TryCreateScaledVertices(zeroScaleEllipse, unitScaleEllipse, separationFactor, scaledEllipse))
+            {
+                return null;
+            }
+
+            return scaledEllipse;
+        }
+
+        private static bool TryCreateScaledVertices(
+            UncertaintyEllipse zeroScaleEllipse,
+            UncertaintyEllipse unitScaleEllipse,
+            double separationFactor,
+            UncertaintyEllipse scaledEllipse)
+        {
+            if (zeroScaleEllipse.EllipseVertices == null ||
+                unitScaleEllipse.EllipseVertices == null ||
+                zeroScaleEllipse.EllipseVertices.Count != unitScaleEllipse.EllipseVertices.Count ||
+                !TryGetCoordinates(scaledEllipse.EllipseCenter, out double centerX, out double centerY, out double centerZ))
+            {
+                return scaledEllipse.DiscretizeEllipse(unitScaleEllipse.EllipseVertices?.Count - 1 ?? 0);
+            }
+
+            scaledEllipse.BoundingBox = new(centerX, centerY, centerZ, centerX, centerY, centerZ);
+            scaledEllipse.EllipseVertices = new(unitScaleEllipse.EllipseVertices.Count);
+            for (int i = 0; i < unitScaleEllipse.EllipseVertices.Count; i++)
+            {
+                SurveyPoint zeroScaleVertex = zeroScaleEllipse.EllipseVertices[i];
+                SurveyPoint unitScaleVertex = unitScaleEllipse.EllipseVertices[i];
+                if (!TryGetCoordinates(zeroScaleVertex, out double zeroX, out double zeroY, out double zeroZ) ||
+                    !TryGetCoordinates(unitScaleVertex, out double unitX, out double unitY, out double unitZ))
+                {
+                    return false;
+                }
+
+                SurveyPoint scaledPoint = new()
+                {
+                    X = ScaleValue(zeroX, unitX, separationFactor),
+                    Y = ScaleValue(zeroY, unitY, separationFactor),
+                    Z = ScaleValue(zeroZ, unitZ, separationFactor),
+                };
+                scaledEllipse.EllipseVertices.Add(scaledPoint);
+                UpdateBoundingBox(scaledEllipse.BoundingBox, scaledPoint);
+            }
+
+            return true;
+        }
+
+        private static double ScaleValue(double zeroScaleValue, double unitScaleValue, double separationFactor)
+        {
+            return zeroScaleValue + separationFactor * (unitScaleValue - zeroScaleValue);
+        }
+
+        private static void UpdateBoundingBox(BoundingBox3D boundingBox, SurveyPoint point)
+        {
+            if (!TryGetCoordinates(point, out double x, out double y, out double z))
+            {
+                return;
+            }
+
+            if (x < boundingBox.MinX) boundingBox.MinX = x;
+            if (x > boundingBox.MaxX) boundingBox.MaxX = x;
+            if (y < boundingBox.MinY) boundingBox.MinY = y;
+            if (y > boundingBox.MaxY) boundingBox.MaxY = y;
+            if (z < boundingBox.MinZ) boundingBox.MinZ = z;
+            if (z > boundingBox.MaxZ) boundingBox.MaxZ = z;
         }
 
         private static double NormalizeScale(double separationFactor)
@@ -228,6 +567,26 @@ namespace NORCE.Drilling.GlobalAntiCollision
             }
 
             return bounds;
+        }
+
+        private static bool BoundsOverlap(Bounds left, Bounds right)
+        {
+            return left.MinX <= right.MaxX &&
+                left.MaxX >= right.MinX &&
+                left.MinY <= right.MaxY &&
+                left.MaxY >= right.MinY &&
+                left.MinZ <= right.MaxZ &&
+                left.MaxZ >= right.MinZ;
+        }
+
+        private static bool BoundsOverlap(Bounds left, BoundingBox3D right)
+        {
+            return left.MinX <= right.MaxX &&
+                left.MaxX >= right.MinX &&
+                left.MinY <= right.MaxY &&
+                left.MaxY >= right.MinY &&
+                left.MinZ <= right.MaxZ &&
+                left.MaxZ >= right.MinZ;
         }
 
         private static Bounds GetBounds(List<UncertaintyEllipse> ellipses)
@@ -307,6 +666,21 @@ namespace NORCE.Drilling.GlobalAntiCollision
             }
             return minDeltaMD;
         }
+
+        private static double? GetPairComparisonMeshLongitudinalLength(
+            List<SurveyStation> surveysRef,
+            List<SurveyStation> surveysCmp)
+        {
+            double? minimumReferenceMD = MinimumMDBetweenSurveyStations(surveysRef);
+            double? minimumComparisonMD = MinimumMDBetweenSurveyStations(surveysCmp);
+            if (!minimumReferenceMD.HasValue || !minimumComparisonMD.HasValue)
+            {
+                return null;
+            }
+
+            return Math.Max(minimumReferenceMD.Value, minimumComparisonMD.Value) /
+                SeparationFactorCalculations.MinNumberInterpolations;
+        }
     }
 
     public sealed class CandidateComparisonIndices
@@ -322,5 +696,32 @@ namespace NORCE.Drilling.GlobalAntiCollision
         public List<int> SegmentIndices { get; }
 
         public bool HasCandidates => PointIndices.Count > 0 || SegmentIndices.Count > 0;
+    }
+
+    public sealed class ReferenceIntersectionGeometry
+    {
+        public ReferenceIntersectionGeometry(
+            Bounds bounds,
+            List<Plane3D> planesAbove,
+            List<Plane3D> planesBelow,
+            List<Triangle3D> trianglesAbove,
+            List<Triangle3D> trianglesBelow)
+        {
+            Bounds = bounds;
+            PlanesAbove = planesAbove;
+            PlanesBelow = planesBelow;
+            TrianglesAbove = trianglesAbove;
+            TrianglesBelow = trianglesBelow;
+        }
+
+        public Bounds Bounds { get; }
+
+        public List<Plane3D> PlanesAbove { get; }
+
+        public List<Plane3D> PlanesBelow { get; }
+
+        public List<Triangle3D> TrianglesAbove { get; }
+
+        public List<Triangle3D> TrianglesBelow { get; }
     }
 }

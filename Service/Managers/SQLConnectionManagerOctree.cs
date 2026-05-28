@@ -1,6 +1,5 @@
 using System;
 using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Extensions.Logging;
 
 namespace NORCE.Drilling.Trajectory.Service.Managers
@@ -13,8 +12,9 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         internal const string CacheTableName = "GlobalOctreeCache";
         internal const string WellboresTableName = "GlobalOctreeWellbores";
         internal const string CacheIndexName = "GlobalOctreeCacheIndex";
-        internal const string WellboresIndexName = "GlobalOctreeWellboresIndex";
-        internal const string WellboresIndexName2 = "GlobalOctreeWellboresIndex2";
+        internal const string CacheTrajectoryIndexName = "GlobalOctreeCacheTrajectoryIndex";
+        internal const string WellboresTrajectoryIndexName = "GlobalOctreeWellboresTrajectoryIndex";
+        internal const string WellboresFilterIndexName = "GlobalOctreeWellboresFilterIndex";
 
         public SqlConnectionManagerOctree(ILogger<SqlConnectionManagerOctree> logger)
             : base(logger, DatabaseName, CreateTableStructureDict(), CreateTableIndexDefinitions())
@@ -24,22 +24,24 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         #region Helper methods to create database structure
         private static IReadOnlyDictionary<string, string[]> CreateTableStructureDict()
         {
-            string[] cacheFields = CreateCacheLevelColumns(" TINYINT");
-
             return new Dictionary<string, string[]>
             {
                 {
                     CacheTableName,
-                    cacheFields
+                    [
+                        "OctreeCodeCacheHigh BIGINT",
+                        "OctreeCodeCacheLow BIGINT",
+                        "TrajectoryID TEXT",
+                        "IsPlanned BOOL",
+                        "IsMeasured BOOL",
+                        "IsDefinitive BOOL",
+                        "OctreeCodeCount INTEGER",
+                        "OctreeCodes BLOB"
+                    ]
                 },
                 {
                     WellboresTableName,
                     [
-                        "OctreeCodeCacheHigh BIGINT",
-                        "OctreeCodeCacheLow BIGINT",
-                        "OctreeDepth TINYINT",
-                        "OctreeCodeHigh BIGINT",
-                        "OctreeCodeLow BIGINT",
                         "TrajectoryID TEXT",
                         "IsPlanned BOOL",
                         "IsMeasured BOOL",
@@ -51,29 +53,24 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
 
         private static IReadOnlyDictionary<string, string[]> CreateTableIndexDefinitions()
         {
-            string cacheIndexColumns = string.Join(", ", CreateCacheLevelColumns());
-
             return new Dictionary<string, string[]>
             {
                 {
                     CacheTableName,
-                    [$"CREATE UNIQUE INDEX {CacheIndexName} ON {CacheTableName} ({cacheIndexColumns})"]
+                    [
+                        $"CREATE UNIQUE INDEX {CacheIndexName} ON {CacheTableName} (OctreeCodeCacheHigh, OctreeCodeCacheLow, TrajectoryID)",
+                        $"CREATE INDEX {CacheIndexName}Lookup ON {CacheTableName} (OctreeCodeCacheHigh, OctreeCodeCacheLow, IsPlanned, IsMeasured, IsDefinitive, TrajectoryID)",
+                        $"CREATE INDEX {CacheTrajectoryIndexName} ON {CacheTableName} (TrajectoryID)"
+                    ]
                 },
                 {
                     WellboresTableName,
                     [
-                        $"CREATE INDEX {WellboresIndexName} ON {WellboresTableName} (OctreeDepth, OctreeCodeHigh, OctreeCodeLow)",
-                        $"CREATE INDEX {WellboresIndexName2} ON {WellboresTableName} (OctreeCodeCacheHigh, OctreeCodeCacheLow)"
+                        $"CREATE UNIQUE INDEX {WellboresTrajectoryIndexName} ON {WellboresTableName} (TrajectoryID)",
+                        $"CREATE INDEX {WellboresFilterIndexName} ON {WellboresTableName} (IsPlanned, IsMeasured, IsDefinitive, TrajectoryID)"
                     ]
                 }
             };
-        }
-
-        private static string[] CreateCacheLevelColumns(string suffix = "")
-        {
-            return Enumerable.Range(0, OctreeDepthCache)
-                .Select(i => $"Level{i:00}{suffix}")
-                .ToArray();
         }
         #endregion
     }

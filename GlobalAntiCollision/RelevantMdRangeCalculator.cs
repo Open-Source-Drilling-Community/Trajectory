@@ -9,7 +9,6 @@ namespace NORCE.Drilling.GlobalAntiCollision
     public static class RelevantMdRangeCalculator
     {
         private const double DefaultConfidenceFactor = 0.999;
-        private const double ScalingFactor = 1.0;
         private const int MeshSectorCount = 36;
 
         public static bool TryGetRelevantMdRanges(
@@ -42,15 +41,17 @@ namespace NORCE.Drilling.GlobalAntiCollision
             double? comparisonMinMD = null;
             double? comparisonMaxMD = null;
 
-            foreach (UncertaintyEllipse referenceEllipse in referenceEllipses)
+            for (int referenceIndex = 0; referenceIndex < referenceEllipses.Count; referenceIndex++)
             {
+                UncertaintyEllipse referenceEllipse = referenceEllipses[referenceIndex];
                 if (referenceEllipse.BoundingBox == null || !TryGetMD(referenceEllipse, out double referenceMD))
                 {
                     continue;
                 }
 
-                foreach (UncertaintyEllipse comparisonEllipse in comparisonEllipses)
+                for (int comparisonIndex = 0; comparisonIndex < comparisonEllipses.Count; comparisonIndex++)
                 {
+                    UncertaintyEllipse comparisonEllipse = comparisonEllipses[comparisonIndex];
                     if (comparisonEllipse.BoundingBox == null)
                     {
                         continue;
@@ -66,6 +67,65 @@ namespace NORCE.Drilling.GlobalAntiCollision
 
                     UpdateRange(referenceMD, ref referenceMinMD, ref referenceMaxMD);
                     UpdateRange(comparisonMD, ref comparisonMinMD, ref comparisonMaxMD);
+                }
+
+                for (int comparisonIndex = 0; comparisonIndex < comparisonEllipses.Count - 1; comparisonIndex++)
+                {
+                    Bounds? comparisonSegmentBounds = TryGetJoinedBounds(comparisonEllipses[comparisonIndex], comparisonEllipses[comparisonIndex + 1]);
+                    if (comparisonSegmentBounds == null ||
+                        !Intersects(referenceEllipse.BoundingBox, comparisonSegmentBounds) ||
+                        !TryGetMD(comparisonEllipses[comparisonIndex], out double comparisonStartMD) ||
+                        !TryGetMD(comparisonEllipses[comparisonIndex + 1], out double comparisonEndMD))
+                    {
+                        continue;
+                    }
+
+                    UpdateRange(referenceMD, ref referenceMinMD, ref referenceMaxMD);
+                    UpdateRange(comparisonStartMD, ref comparisonMinMD, ref comparisonMaxMD);
+                    UpdateRange(comparisonEndMD, ref comparisonMinMD, ref comparisonMaxMD);
+                }
+            }
+
+            for (int referenceIndex = 0; referenceIndex < referenceEllipses.Count - 1; referenceIndex++)
+            {
+                Bounds? referenceSegmentBounds = TryGetJoinedBounds(referenceEllipses[referenceIndex], referenceEllipses[referenceIndex + 1]);
+                if (referenceSegmentBounds == null ||
+                    !TryGetMD(referenceEllipses[referenceIndex], out double referenceStartMD) ||
+                    !TryGetMD(referenceEllipses[referenceIndex + 1], out double referenceEndMD))
+                {
+                    continue;
+                }
+
+                for (int comparisonIndex = 0; comparisonIndex < comparisonEllipses.Count; comparisonIndex++)
+                {
+                    UncertaintyEllipse comparisonEllipse = comparisonEllipses[comparisonIndex];
+                    if (comparisonEllipse.BoundingBox == null ||
+                        !Intersects(referenceSegmentBounds, comparisonEllipse.BoundingBox) ||
+                        !TryGetMD(comparisonEllipse, out double comparisonMD))
+                    {
+                        continue;
+                    }
+
+                    UpdateRange(referenceStartMD, ref referenceMinMD, ref referenceMaxMD);
+                    UpdateRange(referenceEndMD, ref referenceMinMD, ref referenceMaxMD);
+                    UpdateRange(comparisonMD, ref comparisonMinMD, ref comparisonMaxMD);
+                }
+
+                for (int comparisonIndex = 0; comparisonIndex < comparisonEllipses.Count - 1; comparisonIndex++)
+                {
+                    Bounds? comparisonSegmentBounds = TryGetJoinedBounds(comparisonEllipses[comparisonIndex], comparisonEllipses[comparisonIndex + 1]);
+                    if (comparisonSegmentBounds == null ||
+                        !Intersects(referenceSegmentBounds, comparisonSegmentBounds) ||
+                        !TryGetMD(comparisonEllipses[comparisonIndex], out double comparisonStartMD) ||
+                        !TryGetMD(comparisonEllipses[comparisonIndex + 1], out double comparisonEndMD))
+                    {
+                        continue;
+                    }
+
+                    UpdateRange(referenceStartMD, ref referenceMinMD, ref referenceMaxMD);
+                    UpdateRange(referenceEndMD, ref referenceMinMD, ref referenceMaxMD);
+                    UpdateRange(comparisonStartMD, ref comparisonMinMD, ref comparisonMaxMD);
+                    UpdateRange(comparisonEndMD, ref comparisonMinMD, ref comparisonMaxMD);
                 }
             }
 
@@ -110,7 +170,7 @@ namespace NORCE.Drilling.GlobalAntiCollision
                     surveyStations,
                     UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
                     clampedConfidenceFactor,
-                    ScalingFactor,
+                    SeparationFactorCalculations.MaxSeparationFactor,
                     MeshSectorCount,
                     null,
                     minimumDeltaMD.Value / SeparationFactorCalculations.MinNumberInterpolations,
@@ -121,7 +181,7 @@ namespace NORCE.Drilling.GlobalAntiCollision
                 surveyStations,
                 UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
                 clampedConfidenceFactor,
-                ScalingFactor,
+                SeparationFactorCalculations.MaxSeparationFactor,
                 MeshSectorCount,
                 SeparationFactorCalculations.MinNumberInterpolations,
                 null,
@@ -165,8 +225,52 @@ namespace NORCE.Drilling.GlobalAntiCollision
 
         private static bool Intersects(OSDC.DotnetLibraries.General.Math.BoundingBox3D left, OSDC.DotnetLibraries.General.Math.BoundingBox3D right)
         {
-            Bounds bounds = new(left.MinX, left.MaxX, left.MinY, left.MaxY, left.MinZ, left.MaxZ);
-            return bounds.Intersects(right);
+            return left.MinX <= right.MaxX &&
+                left.MaxX >= right.MinX &&
+                left.MinY <= right.MaxY &&
+                left.MaxY >= right.MinY &&
+                left.MinZ <= right.MaxZ &&
+                left.MaxZ >= right.MinZ;
+        }
+
+        private static bool Intersects(OSDC.DotnetLibraries.General.Math.BoundingBox3D left, Bounds right)
+        {
+            return left.MinX <= right.MaxX &&
+                left.MaxX >= right.MinX &&
+                left.MinY <= right.MaxY &&
+                left.MaxY >= right.MinY &&
+                left.MinZ <= right.MaxZ &&
+                left.MaxZ >= right.MinZ;
+        }
+
+        private static bool Intersects(Bounds left, OSDC.DotnetLibraries.General.Math.BoundingBox3D right)
+        {
+            return left.MinX <= right.MaxX &&
+                left.MaxX >= right.MinX &&
+                left.MinY <= right.MaxY &&
+                left.MaxY >= right.MinY &&
+                left.MinZ <= right.MaxZ &&
+                left.MaxZ >= right.MinZ;
+        }
+
+        private static bool Intersects(Bounds left, Bounds right)
+        {
+            return left.MinX <= right.MaxX &&
+                left.MaxX >= right.MinX &&
+                left.MinY <= right.MaxY &&
+                left.MaxY >= right.MinY &&
+                left.MinZ <= right.MaxZ &&
+                left.MaxZ >= right.MinZ;
+        }
+
+        private static Bounds? TryGetJoinedBounds(UncertaintyEllipse first, UncertaintyEllipse second)
+        {
+            if (first.BoundingBox == null || second.BoundingBox == null)
+            {
+                return null;
+            }
+
+            return Bounds.Join(first.BoundingBox, second.BoundingBox);
         }
 
         private static double? MinimumMDBetweenSurveyStations(List<SurveyStation>? listOfSurveyStations)

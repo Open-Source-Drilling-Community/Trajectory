@@ -6,6 +6,7 @@ using NORCE.Drilling.GlobalAntiCollision;
 using OSDC.DotnetLibraries.General.Common;
 using OSDC.DotnetLibraries.General.Octree;
 using System;
+using System.Buffers.Binary;
 using System.Collections.Generic;
 
 namespace NORCE.Drilling.Trajectory.Service.Managers
@@ -32,6 +33,10 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         private double maxX_ = Numeric.PI / 2.0;
         private double maxY_ = Numeric.PI;
         private double maxZ_ = 34000000.0; // We want the resolution in z to be of the same order of magnitude as for the other directions in the relevant region (circumference of the earth is ca 40 000 km)
+        private const double EarthRadiusMeters = 6000000.0;
+        private const double EnvelopePointSpacingToCellSizeRatio = 0.5;
+        private const int MinEnvelopeMeshSectorCount = 36;
+        private const int MaxEnvelopeMeshSectorCount = 240;
         #endregion
 
         #region Octree settings for debugging against octree database from the summer demo containing 16 duplicates of Ullrigg wells
@@ -121,23 +126,29 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             List<OctreeCodeLong> leaves = new List<OctreeCodeLong>();
             if (surveyList is { Count: >= 2 })
             {
-                #region Calculate the uncertainty envelope at confidencefactor 0.999 and scalingFactor = 1.0 with 0.1m spacing between intermediate ellipses and 720 point for each ellipse
+                #region Calculate the uncertainty envelope at confidencefactor 0.999 and scalingFactor = 1.0 with point spacing linked to the octree cell size
                 double confidencefactor = 0.999;
                 double scalingFactor = 1.0;
+                double targetPointSpacing = GetTargetEnvelopePointSpacing(OctreeDepthDetails);
+                double latitudeCellSize = GetOctreeCellSize(minX_, maxX_, OctreeDepthDetails);
+                double longitudeCellSize = GetOctreeCellSize(minY_, maxY_, OctreeDepthDetails);
+                double verticalCellSize = GetOctreeCellSize(minZ_, maxZ_, OctreeDepthDetails);
 
-                bool ok = PerpendicularEllipseEnvelopeBuilder.TryBuildMeshedEllipseList(
+                bool ok = PerpendicularEllipseEnvelopeBuilder.TryBuildMeshedEllipseListWithAdaptiveSectorCount(
                     surveyList,
                     errorModelType,
                     confidencefactor,
                     scalingFactor,
-                    720,
+                    targetPointSpacing,
+                    MinEnvelopeMeshSectorCount,
+                    MaxEnvelopeMeshSectorCount,
                     null,
-                    0.1,
-                    out List<UncertaintyEllipse>? ellipses);
+                    targetPointSpacing,
+                    out List<UncertaintyEllipse>? ellipses,
+                    out _);
 
-                // Note that TVD is positive downwards, but we correct for that when we convert to Point3D which are being plotted. We also add some additional margins to make sure we can plot the lower part of the envelope
-                Octree<OctreeCodeLong> octree = new Octree<OctreeCodeLong>(minX_, maxX_, minY_, maxY_, minZ_, maxZ_);
-                if (ellipses is { Count: > 2 })
+                HashSet<OctreeCodeLong> leafCodes = new(OctreeCodeLongComparer.Instance);
+                if (ok && ellipses is { Count: > 2 })
                 {
                     foreach (UncertaintyEllipse ellipse in ellipses)
                     {
@@ -157,17 +168,20 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                                 sp.Longitude is double longitude &&
                                 sp.TVD is double tvd)
                             {
-                                octree.Add(latitude, longitude, tvd, OctreeDepthDetails);
+                                AddPointAndNeighbourCodes(
+                                    latitude,
+                                    longitude,
+                                    tvd,
+                                    latitudeCellSize,
+                                    longitudeCellSize,
+                                    verticalCellSize,
+                                    leafCodes);
                             }
                         }
                     }
                 }
 
-                // Extract the leaves of each octree
-                List<OctreeCodeLong>? octreeLeaves = octree.GetLeaves(OctreeDepthDetails);
-                leaves = octreeLeaves ?? [];
-                // Now we don't need the octree anymore
-                octree.DeleteRootNodes();
+                leaves = CompactLeafCodes(leafCodes, OctreeDepthDetails);
                 #endregion
             }
             return leaves ?? [];
@@ -194,6 +208,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             {
                 return false;
             }
+            OctreeCodeLong truncatedCode = new(octreeCode[..octreeDepthCache_]);
 
             using var connection = _connectionManager.GetConnection();
             if (connection == null)
@@ -203,14 +218,20 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             }
 
             using var command = connection.CreateCommand();
-            string[] cacheColumns = CreateCacheLevelColumns();
             command.CommandText =
-                $"INSERT INTO {SqlConnectionManagerOctree.CacheTableName} ({string.Join(", ", cacheColumns)}) VALUES ({string.Join(", ", cacheColumns.Select((_, i) => $"@level{i}"))})";
-            AddCacheParameters(command, octreeCode);
+                $"INSERT OR IGNORE INTO {SqlConnectionManagerOctree.CacheTableName} (OctreeCodeCacheHigh, OctreeCodeCacheLow, TrajectoryID, IsPlanned, IsMeasured, IsDefinitive, OctreeCodeCount, OctreeCodes) VALUES (@cacheHigh, @cacheLow, @trajectoryId, @isPlanned, @isMeasured, @isDefinitive, @codeCount, @codes)";
+            AddCacheParameters(command, truncatedCode);
+            command.Parameters.AddWithValue("@trajectoryId", Guid.Empty.ToString());
+            command.Parameters.AddWithValue("@isPlanned", false);
+            command.Parameters.AddWithValue("@isMeasured", false);
+            command.Parameters.AddWithValue("@isDefinitive", false);
+            command.Parameters.AddWithValue("@codeCount", 0);
+            command.Parameters.Add("@codes", SqliteType.Blob).Value = Array.Empty<byte>();
 
             try
             {
-                return command.ExecuteNonQuery() == 1;
+                command.ExecuteNonQuery();
+                return true;
             }
             catch (SqliteException ex)
             {
@@ -223,7 +244,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         {
             if (!ID.Equals(Guid.Empty))
             {
-                return DeleteDetails(ID);
+                return Delete(ID);
             }
             return false;
         }
@@ -239,46 +260,39 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
 
         public bool Delete(Guid trajectoryID)
         {
-            if (!trajectoryID.Equals(Guid.Empty))
+            if (trajectoryID.Equals(Guid.Empty))
             {
-                bool success = true;
-                List<OctreeCodeLong> currentCodes = GetDetails(trajectoryID);
-                if (currentCodes.Count > 0)
-                {
-                    List<OctreeCodeLong> truncatedCodes = GetTruncatedCodes(currentCodes);
-                    List<OctreeCodeLong> orphanCodes = [];
-                    foreach (OctreeCodeLong truncatedCode in truncatedCodes)
-                    {
-                        List<Guid> trajectories = GetDetails(truncatedCode);
-                        bool additionalTrajectory = trajectories.Any(trajId => trajId != trajectoryID);
-                        if (!additionalTrajectory)
-                        {
-                            orphanCodes.Add(truncatedCode);
-                        }
-                    }
-
-                    foreach (OctreeCodeLong orphanCode in orphanCodes)
-                    {
-                        success &= DeleteInCache(orphanCode.Decode());
-                        if (!success)
-                        {
-                            break;
-                        }
-                    }
-
-                    foreach (OctreeCodeLong code in currentCodes)
-                    {
-                        success &= DeleteDetails(code, trajectoryID);
-                        if (!success)
-                        {
-                            break;
-                        }
-                    }
-                }
-
-                return success;
+                return false;
             }
-            return false;
+
+            using var connection = _connectionManager.GetConnection();
+            if (connection == null)
+            {
+                _logger.LogWarning("Impossible to access the SQLite database");
+                return false;
+            }
+
+            using var transaction = connection.BeginTransaction();
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            try
+            {
+                command.CommandText = $"DELETE FROM {SqlConnectionManagerOctree.CacheTableName} WHERE TrajectoryID = @trajectoryId";
+                command.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
+                command.ExecuteNonQuery();
+
+                command.CommandText = $"DELETE FROM {SqlConnectionManagerOctree.WellboresTableName} WHERE TrajectoryID = @trajectoryId";
+                command.ExecuteNonQuery();
+
+                transaction.Commit();
+                return true;
+            }
+            catch (SqliteException ex)
+            {
+                transaction.Rollback();
+                _logger.LogError(ex, "Impossible to delete octree details for trajectory {TrajectoryId}", trajectoryID);
+                return false;
+            }
         }
 
         public bool Add(List<OctreeCodeLong> codes, Guid trajectoryID, bool isPlanned, bool isMeasured, bool isDefinitive)
@@ -286,7 +300,6 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             if (!trajectoryID.Equals(Guid.Empty) && codes != null)
             {
                 bool success = true;
-                List<OctreeCodeLong> truncatedCodes = GetTruncatedCodes(codes);
                 if (Contains(trajectoryID))
                 {
                     success &= Delete(trajectoryID);
@@ -299,18 +312,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
 
                 if (success)
                 {
-                    foreach (OctreeCodeLong truncatedCode in truncatedCodes)
-                    {
-                        byte[] bytes = truncatedCode.Decode();
-                        if (!ContainsInCache(bytes))
-                        {
-                            success &= AddInCache(bytes);
-                            if (!success)
-                            {
-                                break;
-                            }
-                        }
-                    }
+                    success &= AddCacheEntries(codes, trajectoryID, isPlanned, isMeasured, isDefinitive);
                 }
 
                 return success;
@@ -326,22 +328,14 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 return trajectoryIDs;
             }
 
-            List<OctreeCodeLong> truncatedReferenceCodes = GetTruncatedCodes(codes);
-            List<OctreeCodeLong> truncatedCodes = [];
-            foreach (OctreeCodeLong truncatedCode in truncatedReferenceCodes)
-            {
-                if (ContainsInCache(truncatedCode.Decode()))
-                {
-                    truncatedCodes.Add(truncatedCode);
-                }
-            }
-
+            List<OctreeCodeLong> truncatedCodes = GetTruncatedCodes(codes);
             List<Pair<OctreeCodeLong, Guid>> detailedList = GetDetails(truncatedCodes, isPlanned, isMeasured, isDefinitive, investigatedTrajectoryID);
+            HashSet<Guid> uniqueTrajectoryIDs = [];
             foreach (OctreeCodeLong code in codes)
             {
                 foreach (Pair<OctreeCodeLong, Guid> detail in detailedList)
                 {
-                    if (code.Intersect(detail.Left) && !trajectoryIDs.Contains(detail.Right))
+                    if (code.Intersect(detail.Left) && uniqueTrajectoryIDs.Add(detail.Right))
                     {
                         trajectoryIDs.Add(detail.Right);
                     }
@@ -366,10 +360,16 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 command.CommandText = $"DROP INDEX IF EXISTS {SqlConnectionManagerOctree.CacheIndexName}";
                 command.ExecuteNonQuery();
 
-                command.CommandText = $"DROP INDEX IF EXISTS {SqlConnectionManagerOctree.WellboresIndexName}";
+                command.CommandText = $"DROP INDEX IF EXISTS {SqlConnectionManagerOctree.WellboresTrajectoryIndexName}";
                 command.ExecuteNonQuery();
 
-                command.CommandText = $"DROP INDEX IF EXISTS {SqlConnectionManagerOctree.WellboresIndexName2}";
+                command.CommandText = $"DROP INDEX IF EXISTS {SqlConnectionManagerOctree.WellboresFilterIndexName}";
+                command.ExecuteNonQuery();
+
+                command.CommandText = $"DROP INDEX IF EXISTS {SqlConnectionManagerOctree.CacheIndexName}Lookup";
+                command.ExecuteNonQuery();
+
+                command.CommandText = $"DROP INDEX IF EXISTS {SqlConnectionManagerOctree.CacheTrajectoryIndexName}";
                 command.ExecuteNonQuery();
 
                 command.CommandText = $"DROP TABLE IF EXISTS {SqlConnectionManagerOctree.CacheTableName}";
@@ -393,7 +393,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             {
                 return false;
             }
-            byte[] validCode = octreeCode!;
+            OctreeCodeLong truncatedCode = new(octreeCode![..octreeDepthCache_]);
 
             using var connection = _connectionManager.GetConnection();
             if (connection == null)
@@ -403,12 +403,12 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             }
 
             using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT COUNT(*) FROM {SqlConnectionManagerOctree.CacheTableName} WHERE {BuildCacheMatchClause()}";
-            AddCacheParameters(command, validCode);
+            command.CommandText = $"SELECT 1 FROM {SqlConnectionManagerOctree.CacheTableName} WHERE OctreeCodeCacheHigh = @cacheHigh AND OctreeCodeCacheLow = @cacheLow LIMIT 1";
+            AddCacheParameters(command, truncatedCode);
 
             try
             {
-                return Convert.ToInt64(command.ExecuteScalar()) > 0;
+                return command.ExecuteScalar() != null;
             }
             catch (SqliteException ex)
             {
@@ -427,7 +427,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             }
 
             using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT TrajectoryID FROM {SqlConnectionManagerOctree.WellboresTableName} WHERE OctreeCodeCacheHigh = @cacheHigh AND OctreeCodeCacheLow = @cacheLow";
+            command.CommandText = $"SELECT TrajectoryID FROM {SqlConnectionManagerOctree.CacheTableName} WHERE OctreeCodeCacheHigh = @cacheHigh AND OctreeCodeCacheLow = @cacheLow";
             command.Parameters.AddWithValue("@cacheHigh", (long)truncatedCode.CodeHigh);
             command.Parameters.AddWithValue("@cacheLow", (long)truncatedCode.CodeLow);
 
@@ -464,35 +464,78 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             }
 
             List<Pair<OctreeCodeLong, Guid>> results = [];
-            foreach (OctreeCodeLong truncatedCode in truncatedCodes)
+            using var transaction = connection.BeginTransaction();
+            using (SqliteCommand createTempCommand = connection.CreateCommand())
             {
-                using var command = connection.CreateCommand();
-                command.CommandText =
-                    $"SELECT OctreeDepth, OctreeCodeHigh, OctreeCodeLow, TrajectoryID FROM {SqlConnectionManagerOctree.WellboresTableName} WHERE OctreeCodeCacheHigh = @cacheHigh AND OctreeCodeCacheLow = @cacheLow AND IsPlanned = @isPlanned AND IsMeasured = @isMeasured AND IsDefinitive = @isDefinitive";
-                command.Parameters.AddWithValue("@cacheHigh", (long)truncatedCode.CodeHigh);
-                command.Parameters.AddWithValue("@cacheLow", (long)truncatedCode.CodeLow);
-                command.Parameters.AddWithValue("@isPlanned", isPlanned);
-                command.Parameters.AddWithValue("@isMeasured", isMeasured);
-                command.Parameters.AddWithValue("@isDefinitive", isDefinitive);
-                if (ignoredTrajectoryID != null)
-                {
-                    command.CommandText += " AND TrajectoryID <> @ignoredTrajectoryId";
-                    command.Parameters.AddWithValue("@ignoredTrajectoryId", ignoredTrajectoryID.Value.ToString());
-                }
+                createTempCommand.Transaction = transaction;
+                createTempCommand.CommandText =
+                    """
+                    CREATE TEMP TABLE IF NOT EXISTS TempOctreeCacheCodes (
+                        OctreeCodeCacheHigh BIGINT NOT NULL,
+                        OctreeCodeCacheLow BIGINT NOT NULL,
+                        PRIMARY KEY (OctreeCodeCacheHigh, OctreeCodeCacheLow)
+                    ) WITHOUT ROWID
+                    """;
+                createTempCommand.ExecuteNonQuery();
+                createTempCommand.CommandText = "DELETE FROM TempOctreeCacheCodes";
+                createTempCommand.ExecuteNonQuery();
+            }
 
-                try
+            using (SqliteCommand insertTempCommand = connection.CreateCommand())
+            {
+                insertTempCommand.Transaction = transaction;
+                insertTempCommand.CommandText =
+                    "INSERT OR IGNORE INTO TempOctreeCacheCodes (OctreeCodeCacheHigh, OctreeCodeCacheLow) VALUES (@cacheHigh, @cacheLow)";
+                foreach (OctreeCodeLong truncatedCode in truncatedCodes)
                 {
-                    using var reader = command.ExecuteReader();
+                    insertTempCommand.Parameters.Clear();
+                    AddCacheParameters(insertTempCommand, truncatedCode);
+                    insertTempCommand.ExecuteNonQuery();
+                }
+            }
+
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                $"""
+                SELECT cache.TrajectoryID, cache.OctreeCodes
+                FROM {SqlConnectionManagerOctree.CacheTableName} cache
+                INNER JOIN TempOctreeCacheCodes c
+                    ON c.OctreeCodeCacheHigh = cache.OctreeCodeCacheHigh
+                   AND c.OctreeCodeCacheLow = cache.OctreeCodeCacheLow
+                WHERE cache.IsPlanned = @isPlanned
+                  AND cache.IsMeasured = @isMeasured
+                  AND cache.IsDefinitive = @isDefinitive
+                """;
+            command.Parameters.AddWithValue("@isPlanned", isPlanned);
+            command.Parameters.AddWithValue("@isMeasured", isMeasured);
+            command.Parameters.AddWithValue("@isDefinitive", isDefinitive);
+            if (ignoredTrajectoryID != null)
+            {
+                command.CommandText += " AND cache.TrajectoryID <> @ignoredTrajectoryId";
+                command.Parameters.AddWithValue("@ignoredTrajectoryId", ignoredTrajectoryID.Value.ToString());
+            }
+
+            try
+            {
+                using (var reader = command.ExecuteReader())
+                {
                     while (reader.Read())
                     {
-                        results.Add(new Pair<OctreeCodeLong, Guid>(ReadCode(reader, 0), ReadGuid(reader, 3)));
+                        Guid trajectoryId = ReadGuid(reader, 0);
+                        foreach (OctreeCodeLong code in DeserializeCodes(reader, 1))
+                        {
+                            results.Add(new Pair<OctreeCodeLong, Guid>(code, trajectoryId));
+                        }
                     }
                 }
-                catch (SqliteException ex)
-                {
-                    _logger.LogError(ex, "Impossible to retrieve octree details for truncated codes");
-                    return [];
-                }
+                transaction.Commit();
+            }
+            catch (SqliteException ex)
+            {
+                transaction.Rollback();
+                _logger.LogError(ex, "Impossible to retrieve octree details for truncated codes");
+                return [];
             }
 
             return results;
@@ -541,7 +584,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             }
 
             using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT OctreeDepth, OctreeCodeHigh, OctreeCodeLow FROM {SqlConnectionManagerOctree.WellboresTableName} WHERE TrajectoryID = @trajectoryId";
+            command.CommandText = $"SELECT OctreeCodes FROM {SqlConnectionManagerOctree.CacheTableName} WHERE TrajectoryID = @trajectoryId";
             command.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
 
             List<OctreeCodeLong> results = [];
@@ -550,7 +593,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 using var reader = command.ExecuteReader();
                 while (reader.Read())
                 {
-                    results.Add(ReadCode(reader, 0));
+                    results.AddRange(DeserializeCodes(reader, 0));
                 }
             }
             catch (SqliteException ex)
@@ -580,25 +623,81 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             using var command = connection.CreateCommand();
             command.Transaction = transaction;
             command.CommandText =
-                $"INSERT INTO {SqlConnectionManagerOctree.WellboresTableName} (OctreeCodeCacheHigh, OctreeCodeCacheLow, OctreeDepth, OctreeCodeHigh, OctreeCodeLow, TrajectoryID, IsPlanned, IsMeasured, IsDefinitive) VALUES (@cacheHigh, @cacheLow, @depth, @high, @low, @trajectoryId, @isPlanned, @isMeasured, @isDefinitive)";
+                $"INSERT OR REPLACE INTO {SqlConnectionManagerOctree.WellboresTableName} (TrajectoryID, IsPlanned, IsMeasured, IsDefinitive) VALUES (@trajectoryId, @isPlanned, @isMeasured, @isDefinitive)";
+            command.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
+            command.Parameters.AddWithValue("@isPlanned", isPlanned);
+            command.Parameters.AddWithValue("@isMeasured", isMeasured);
+            command.Parameters.AddWithValue("@isDefinitive", isDefinitive);
 
-            int affected = 0;
             try
             {
-                foreach (OctreeCodeLong code in codes)
-                {
-                    command.Parameters.Clear();
-                    AddDetailParameters(command, code, trajectoryID, isPlanned, isMeasured, isDefinitive);
-                    affected += command.ExecuteNonQuery();
-                }
-
+                int affected = command.ExecuteNonQuery();
                 transaction.Commit();
-                return affected == codes.Count;
+                return affected == 1;
             }
             catch (SqliteException ex)
             {
                 transaction.Rollback();
                 _logger.LogError(ex, "Impossible to add octree details for trajectory {TrajectoryId}", trajectoryID);
+                return false;
+            }
+        }
+
+        private bool AddCacheEntries(List<OctreeCodeLong> codes, Guid trajectoryID, bool isPlanned, bool isMeasured, bool isDefinitive)
+        {
+            if (codes.Count == 0)
+            {
+                return true;
+            }
+
+            Dictionary<OctreeCodeLong, List<OctreeCodeLong>> codesByTruncatedCode = new(OctreeCodeLongComparer.Instance);
+            foreach (OctreeCodeLong code in codes)
+            {
+                OctreeCodeLong truncatedCode = CreateTruncatedCode(code);
+                if (!codesByTruncatedCode.TryGetValue(truncatedCode, out List<OctreeCodeLong>? groupedCodes))
+                {
+                    groupedCodes = [];
+                    codesByTruncatedCode[truncatedCode] = groupedCodes;
+                }
+
+                groupedCodes.Add(code);
+            }
+
+            using var connection = _connectionManager.GetConnection();
+            if (connection == null)
+            {
+                _logger.LogWarning("Impossible to access the SQLite database");
+                return false;
+            }
+
+            using var transaction = connection.BeginTransaction();
+            using var command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText =
+                $"INSERT OR REPLACE INTO {SqlConnectionManagerOctree.CacheTableName} (OctreeCodeCacheHigh, OctreeCodeCacheLow, TrajectoryID, IsPlanned, IsMeasured, IsDefinitive, OctreeCodeCount, OctreeCodes) VALUES (@cacheHigh, @cacheLow, @trajectoryId, @isPlanned, @isMeasured, @isDefinitive, @codeCount, @codes)";
+
+            try
+            {
+                foreach (KeyValuePair<OctreeCodeLong, List<OctreeCodeLong>> codesByTruncatedCodeEntry in codesByTruncatedCode)
+                {
+                    command.Parameters.Clear();
+                    AddCacheParameters(command, codesByTruncatedCodeEntry.Key);
+                    command.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
+                    command.Parameters.AddWithValue("@isPlanned", isPlanned);
+                    command.Parameters.AddWithValue("@isMeasured", isMeasured);
+                    command.Parameters.AddWithValue("@isDefinitive", isDefinitive);
+                    command.Parameters.AddWithValue("@codeCount", codesByTruncatedCodeEntry.Value.Count);
+                    command.Parameters.Add("@codes", SqliteType.Blob).Value = SerializeCodes(codesByTruncatedCodeEntry.Value);
+                    command.ExecuteNonQuery();
+                }
+
+                transaction.Commit();
+                return true;
+            }
+            catch (SqliteException ex)
+            {
+                transaction.Rollback();
+                _logger.LogError(ex, "Impossible to add octree cache entries");
                 return false;
             }
         }
@@ -609,7 +708,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             {
                 return false;
             }
-            byte[] validCode = octreeCode!;
+            OctreeCodeLong truncatedCode = new(octreeCode![..octreeDepthCache_]);
 
             using var connection = _connectionManager.GetConnection();
             if (connection == null)
@@ -619,8 +718,8 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             }
 
             using var command = connection.CreateCommand();
-            command.CommandText = $"DELETE FROM {SqlConnectionManagerOctree.CacheTableName} WHERE {BuildCacheMatchClause()}";
-            AddCacheParameters(command, validCode);
+            command.CommandText = $"DELETE FROM {SqlConnectionManagerOctree.CacheTableName} WHERE OctreeCodeCacheHigh = @cacheHigh AND OctreeCodeCacheLow = @cacheLow";
+            AddCacheParameters(command, truncatedCode);
 
             try
             {
@@ -634,102 +733,15 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             }
         }
 
-        private bool DeleteDetails(Guid trajectoryID)
-        {
-            using var connection = _connectionManager.GetConnection();
-            if (connection == null)
-            {
-                _logger.LogWarning("Impossible to access the SQLite database");
-                return false;
-            }
-
-            using var command = connection.CreateCommand();
-            command.CommandText = $"DELETE FROM {SqlConnectionManagerOctree.WellboresTableName} WHERE TrajectoryID = @trajectoryId";
-            command.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
-
-            try
-            {
-                command.ExecuteNonQuery();
-                return true;
-            }
-            catch (SqliteException ex)
-            {
-                _logger.LogError(ex, "Impossible to delete octree details for trajectory {TrajectoryId}", trajectoryID);
-                return false;
-            }
-        }
-
-        private bool DeleteDetails(OctreeCodeLong code, Guid trajectoryID)
-        {
-            using var connection = _connectionManager.GetConnection();
-            if (connection == null)
-            {
-                _logger.LogWarning("Impossible to access the SQLite database");
-                return false;
-            }
-
-            using var command = connection.CreateCommand();
-            command.CommandText =
-                $"DELETE FROM {SqlConnectionManagerOctree.WellboresTableName} WHERE OctreeDepth = @depth AND OctreeCodeHigh = @high AND OctreeCodeLow = @low AND TrajectoryID = @trajectoryId";
-            command.Parameters.AddWithValue("@depth", code.Depth);
-            command.Parameters.AddWithValue("@high", (long)code.CodeHigh);
-            command.Parameters.AddWithValue("@low", (long)code.CodeLow);
-            command.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
-
-            try
-            {
-                command.ExecuteNonQuery();
-                return true;
-            }
-            catch (SqliteException ex)
-            {
-                _logger.LogError(ex, "Impossible to delete octree code for trajectory {TrajectoryId}", trajectoryID);
-                return false;
-            }
-        }
-
-        private string[] CreateCacheLevelColumns()
-        {
-            return Enumerable.Range(0, octreeDepthCache_)
-                .Select(i => $"Level{i:00}")
-                .ToArray();
-        }
-
         private bool HasValidCacheCode(byte[]? octreeCode)
         {
             return octreeCode != null && octreeCode.Length >= octreeDepthCache_;
         }
 
-        private string BuildCacheMatchClause()
+        private void AddCacheParameters(SqliteCommand command, OctreeCodeLong truncatedCode)
         {
-            return string.Join(" AND ", CreateCacheLevelColumns().Select((column, index) => $"{column} = @level{index}"));
-        }
-
-        private void AddCacheParameters(SqliteCommand command, byte[] octreeCode)
-        {
-            for (int i = 0; i < octreeDepthCache_; i++)
-            {
-                command.Parameters.AddWithValue($"@level{i}", octreeCode[i]);
-            }
-        }
-
-        private void AddDetailParameters(SqliteCommand command, OctreeCodeLong code, Guid trajectoryID, bool isPlanned, bool isMeasured, bool isDefinitive)
-        {
-            OctreeCodeLong truncatedCode = CreateTruncatedCode(code);
             command.Parameters.AddWithValue("@cacheHigh", (long)truncatedCode.CodeHigh);
             command.Parameters.AddWithValue("@cacheLow", (long)truncatedCode.CodeLow);
-            command.Parameters.AddWithValue("@depth", code.Depth);
-            command.Parameters.AddWithValue("@high", (long)code.CodeHigh);
-            command.Parameters.AddWithValue("@low", (long)code.CodeLow);
-            command.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
-            command.Parameters.AddWithValue("@isPlanned", isPlanned);
-            command.Parameters.AddWithValue("@isMeasured", isMeasured);
-            command.Parameters.AddWithValue("@isDefinitive", isDefinitive);
-        }
-
-        private static OctreeCodeLong ReadCode(SqliteDataReader reader, int startIndex)
-        {
-            return new OctreeCodeLong(reader.GetByte(startIndex), (ulong)reader.GetInt64(startIndex + 1), (ulong)reader.GetInt64(startIndex + 2));
         }
 
         private static Guid ReadGuid(SqliteDataReader reader, int index)
@@ -737,25 +749,305 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             return Guid.Parse(reader.GetString(index));
         }
 
+        private static byte[] SerializeCodes(List<OctreeCodeLong> codes)
+        {
+            const int bytesPerCode = 17;
+            byte[] buffer = new byte[codes.Count * bytesPerCode];
+            for (int i = 0; i < codes.Count; i++)
+            {
+                int offset = i * bytesPerCode;
+                OctreeCodeLong code = codes[i];
+                buffer[offset] = code.Depth;
+                BinaryPrimitives.WriteUInt64LittleEndian(buffer.AsSpan(offset + 1, sizeof(ulong)), code.CodeHigh);
+                BinaryPrimitives.WriteUInt64LittleEndian(buffer.AsSpan(offset + 1 + sizeof(ulong), sizeof(ulong)), code.CodeLow);
+            }
+
+            return buffer;
+        }
+
+        private static List<OctreeCodeLong> DeserializeCodes(SqliteDataReader reader, int index)
+        {
+            if (reader.IsDBNull(index))
+            {
+                return [];
+            }
+
+            return DeserializeCodes((byte[])reader[index]);
+        }
+
+        private static List<OctreeCodeLong> DeserializeCodes(byte[] buffer)
+        {
+            const int bytesPerCode = 17;
+            if (buffer.Length == 0 || buffer.Length % bytesPerCode != 0)
+            {
+                return [];
+            }
+
+            int count = buffer.Length / bytesPerCode;
+            List<OctreeCodeLong> codes = new(count);
+            for (int i = 0; i < count; i++)
+            {
+                int offset = i * bytesPerCode;
+                byte depth = buffer[offset];
+                ulong codeHigh = BinaryPrimitives.ReadUInt64LittleEndian(buffer.AsSpan(offset + 1, sizeof(ulong)));
+                ulong codeLow = BinaryPrimitives.ReadUInt64LittleEndian(buffer.AsSpan(offset + 1 + sizeof(ulong), sizeof(ulong)));
+                codes.Add(new OctreeCodeLong(depth, codeHigh, codeLow));
+            }
+
+            return codes;
+        }
+
+        private double GetTargetEnvelopePointSpacing(int octreeDepth)
+        {
+            return GetConservativeOctreeCellSizeMeters(octreeDepth) * EnvelopePointSpacingToCellSizeRatio;
+        }
+
+        private static double GetOctreeCellSize(double min, double max, int octreeDepth)
+        {
+            return (max - min) / Math.Pow(2.0, octreeDepth);
+        }
+
+        private double GetConservativeOctreeCellSizeMeters(int octreeDepth)
+        {
+            double cellCount = Math.Pow(2.0, octreeDepth);
+            double latitudeCellSize = EarthRadiusMeters * (maxX_ - minX_) / cellCount;
+            double longitudeCellSizeAtEquator = EarthRadiusMeters * (maxY_ - minY_) / cellCount;
+            double verticalCellSize = (maxZ_ - minZ_) / cellCount;
+            return Math.Min(latitudeCellSize, Math.Min(longitudeCellSizeAtEquator, verticalCellSize));
+        }
+
+        private void AddPointAndNeighbourCodes(
+            double x,
+            double y,
+            double z,
+            double xCellSize,
+            double yCellSize,
+            double zCellSize,
+            HashSet<OctreeCodeLong> leafCodes)
+        {
+            for (int xOffset = -1; xOffset <= 1; xOffset++)
+            {
+                double expandedX = x + xOffset * xCellSize;
+                for (int yOffset = -1; yOffset <= 1; yOffset++)
+                {
+                    double expandedY = y + yOffset * yCellSize;
+                    for (int zOffset = -1; zOffset <= 1; zOffset++)
+                    {
+                        double expandedZ = z + zOffset * zCellSize;
+                        if (TryCreateOctreeCode(expandedX, expandedY, expandedZ, OctreeDepthDetails, out OctreeCodeLong code))
+                        {
+                            leafCodes.Add(code);
+                        }
+                    }
+                }
+            }
+        }
+
+        private bool TryCreateOctreeCode(double x, double y, double z, int depth, out OctreeCodeLong code)
+        {
+            code = default;
+            if (depth < 1 || depth > Octree<OctreeCodeLong>.MaxDepthOctreeCodeLong ||
+                !IsInsideBounds(x, minX_, maxX_) ||
+                !IsInsideBounds(y, minY_, maxY_) ||
+                !IsInsideBounds(z, minZ_, maxZ_))
+            {
+                return false;
+            }
+
+            const int reservedForDepth = 5;
+            const int depthPivot = (sizeof(ulong) * 8 - reservedForDepth) / 3;
+
+            double minX = minX_;
+            double maxX = maxX_;
+            double minY = minY_;
+            double maxY = maxY_;
+            double minZ = minZ_;
+            double maxZ = maxZ_;
+            ulong codeHigh = 0;
+            ulong codeLow = 0;
+            int highDepth = Math.Min(depth, depthPivot);
+            int lowDepth = depth - depthPivot;
+
+            for (int level = 0; level < depth; level++)
+            {
+                double middleX = (minX + maxX) / 2.0;
+                double middleY = (minY + maxY) / 2.0;
+                double middleZ = (minZ + maxZ) / 2.0;
+                byte index = 0;
+
+                if (x > middleX)
+                {
+                    index |= 1;
+                    minX = middleX;
+                }
+                else
+                {
+                    maxX = middleX;
+                }
+
+                if (y > middleY)
+                {
+                    index |= 2;
+                    minY = middleY;
+                }
+                else
+                {
+                    maxY = middleY;
+                }
+
+                if (z > middleZ)
+                {
+                    index |= 4;
+                    minZ = middleZ;
+                }
+                else
+                {
+                    maxZ = middleZ;
+                }
+
+                if (level < depthPivot)
+                {
+                    codeHigh |= (ulong)index << ((highDepth - 1) * 3 - 3 * level);
+                }
+                else
+                {
+                    int lowLevel = level - depthPivot;
+                    codeLow |= (ulong)index << ((lowDepth - 1) * 3 - 3 * lowLevel);
+                }
+            }
+
+            code = new OctreeCodeLong((byte)depth, codeHigh, codeLow);
+            return true;
+        }
+
+        private static bool IsInsideBounds(double value, double min, double max)
+        {
+            return double.IsFinite(value) && value >= min && value <= max;
+        }
+
+        private static List<OctreeCodeLong> CompactLeafCodes(HashSet<OctreeCodeLong> leafCodes, int depth)
+        {
+            HashSet<OctreeCodeLong> compactedCodes = leafCodes;
+            for (int currentDepth = depth; currentDepth > 1; currentDepth--)
+            {
+                Dictionary<OctreeCodeLong, byte> childMasksByParent = new(OctreeCodeLongComparer.Instance);
+                foreach (OctreeCodeLong code in compactedCodes)
+                {
+                    if (code.Depth != currentDepth)
+                    {
+                        continue;
+                    }
+
+                    OctreeCodeLong parent = FastTruncate(code, (byte)(currentDepth - 1));
+                    byte childMask = (byte)(1 << GetLastChildIndex(code));
+                    childMasksByParent[parent] = (byte)(childMasksByParent.GetValueOrDefault(parent) | childMask);
+                }
+
+                HashSet<OctreeCodeLong> fullParents = new(OctreeCodeLongComparer.Instance);
+                foreach (KeyValuePair<OctreeCodeLong, byte> childMaskByParent in childMasksByParent)
+                {
+                    if (childMaskByParent.Value == byte.MaxValue)
+                    {
+                        fullParents.Add(childMaskByParent.Key);
+                    }
+                }
+
+                if (fullParents.Count == 0)
+                {
+                    continue;
+                }
+
+                HashSet<OctreeCodeLong> nextCodes = new(compactedCodes.Count, OctreeCodeLongComparer.Instance);
+                foreach (OctreeCodeLong code in compactedCodes)
+                {
+                    if (code.Depth == currentDepth &&
+                        fullParents.Contains(FastTruncate(code, (byte)(currentDepth - 1))))
+                    {
+                        continue;
+                    }
+
+                    nextCodes.Add(code);
+                }
+
+                foreach (OctreeCodeLong parent in fullParents)
+                {
+                    nextCodes.Add(parent);
+                }
+
+                compactedCodes = nextCodes;
+            }
+
+            return compactedCodes
+                .OrderBy(code => code.Depth)
+                .ThenBy(code => code.CodeHigh)
+                .ThenBy(code => code.CodeLow)
+                .ToList();
+        }
+
+        private static byte GetLastChildIndex(OctreeCodeLong code)
+        {
+            return (byte)(code.Depth > 19 ? code.CodeLow & 7UL : code.CodeHigh & 7UL);
+        }
+
+        private static OctreeCodeLong FastTruncate(OctreeCodeLong code, byte depth)
+        {
+            if (code.Depth <= depth)
+            {
+                return code;
+            }
+
+            ulong codeHigh = code.CodeHigh;
+            ulong codeLow = code.CodeLow;
+            if (code.Depth > 19 && depth > 19)
+            {
+                codeLow >>= 3 * (code.Depth - depth);
+            }
+            else if (code.Depth > 19)
+            {
+                codeLow = 0;
+                codeHigh >>= 3 * (19 - depth);
+            }
+            else
+            {
+                codeHigh >>= 3 * (code.Depth - depth);
+            }
+
+            return new OctreeCodeLong(depth, codeHigh, codeLow);
+        }
+
+        private sealed class OctreeCodeLongComparer : IEqualityComparer<OctreeCodeLong>
+        {
+            public static readonly OctreeCodeLongComparer Instance = new();
+
+            public bool Equals(OctreeCodeLong x, OctreeCodeLong y)
+            {
+                return x.Depth == y.Depth &&
+                    x.CodeHigh == y.CodeHigh &&
+                    x.CodeLow == y.CodeLow;
+            }
+
+            public int GetHashCode(OctreeCodeLong obj)
+            {
+                return HashCode.Combine(obj.Depth, obj.CodeHigh, obj.CodeLow);
+            }
+        }
+
         private OctreeCodeLong CreateTruncatedCode(OctreeCodeLong code)
         {
-            OctreeCodeLong truncatedCode = new OctreeCodeLong(code);
-            truncatedCode.Truncate((byte)octreeDepthCache_);
-            return truncatedCode;
+            return FastTruncate(code, (byte)octreeDepthCache_);
         }
 
         private List<OctreeCodeLong> GetTruncatedCodes(List<OctreeCodeLong> codes)
         {
-            List<OctreeCodeLong> truncatedCodes = [];
+            HashSet<OctreeCodeLong> truncatedCodeSet = new(OctreeCodeLongComparer.Instance);
             foreach (OctreeCodeLong code in codes)
             {
-                OctreeCodeLong truncatedCode = CreateTruncatedCode(code);
-                if (!truncatedCodes.Contains(truncatedCode))
-                {
-                    truncatedCodes.Add(truncatedCode);
-                }
+                truncatedCodeSet.Add(CreateTruncatedCode(code));
             }
-            return truncatedCodes;
+            return truncatedCodeSet
+                .OrderBy(code => code.CodeHigh)
+                .ThenBy(code => code.CodeLow)
+                .ToList();
         }
     }
 }
