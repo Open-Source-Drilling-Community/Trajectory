@@ -1073,6 +1073,20 @@
         },
         "additionalProperties": false
       },
+      "NORCE.Drilling.GlobalAntiCollision.MeasuredDepthRange": {
+        "type": "object",
+        "properties": {
+          "StartMD": {
+            "type": "number",
+            "format": "double"
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
       "NORCE.Drilling.GlobalAntiCollision.SeparationFactorPoint": {
         "type": "object",
         "properties": {
@@ -1097,6 +1111,12 @@
           "ComparisonTrajectoryID": {
             "type": "string",
             "format": "uuid"
+          },
+          "ReferenceMDRange": {
+            "$ref": "#/components/schemas/NORCE.Drilling.GlobalAntiCollision.MeasuredDepthRange"
+          },
+          "ComparisonMDRange": {
+            "$ref": "#/components/schemas/NORCE.Drilling.GlobalAntiCollision.MeasuredDepthRange"
           },
           "SeparationFactorProfile": {
             "type": "array",
@@ -1624,7 +1644,7 @@
           "MSXY_TI2",
           "MSXY_TI3",
           "MSZ",
-          "AMIL",
+          "AMID",
           "DEC_U",
           "DEC_OS",
           "DEC_OH",
