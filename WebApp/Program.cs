@@ -16,7 +16,8 @@ WebPagesHostConfiguration webPagesConfiguration = new()
     WellBoreHostURL = builder.Configuration["WellBoreHostURL"] ?? string.Empty,
     WellBoreArchitectureHostURL = builder.Configuration["WellBoreArchitectureHostURL"] ?? string.Empty,
     WellHostURL = builder.Configuration["WellHostURL"] ?? string.Empty,
-    UnitConversionHostURL = builder.Configuration["UnitConversionHostURL"] ?? string.Empty
+    UnitConversionHostURL = builder.Configuration["UnitConversionHostURL"] ?? string.Empty,
+    SurveyInstrumentHostURL = builder.Configuration["SurveyInstrumentHostURL"] ?? string.Empty
 };
 
 builder.Services.AddRazorPages();

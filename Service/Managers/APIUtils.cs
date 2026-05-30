@@ -34,6 +34,11 @@ public static class APIUtils
     public static readonly HttpClient HttpClientWellBoreArchitecture = APIUtils.SetHttpClient(HostNameWellBoreArchitecture, HostBasePathWellBoreArchitecture);
     public static readonly Client ClientWellBoreArchitecture = new Client(APIUtils.HttpClientWellBoreArchitecture.BaseAddress!.ToString(), APIUtils.HttpClientWellBoreArchitecture);
 
+    public static readonly string HostNameSurveyInstrument = NORCE.Drilling.Trajectory.Service.ServiceConfiguration.SurveyInstrumentHostURL!;
+    public static readonly string HostBasePathSurveyInstrument = "SurveyInstrument/api/";
+    public static readonly HttpClient HttpClientSurveyInstrument = APIUtils.SetHttpClient(HostNameSurveyInstrument, HostBasePathSurveyInstrument);
+    public static readonly Client ClientSurveyInstrument = new Client(APIUtils.HttpClientSurveyInstrument.BaseAddress!.ToString(), APIUtils.HttpClientSurveyInstrument);
+
     // API utility methods
     public static HttpClient SetHttpClient(string host, string microServiceUri)
     {

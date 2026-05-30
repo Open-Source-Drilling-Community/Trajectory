@@ -40,6 +40,10 @@ public static class ExternalWebPagesServiceCollectionExtensions
         services.AddSingleton<
             NORCE.Drilling.GeodeticDatum.WebPages.IGeodeticDatumAPIUtils,
             NORCE.Drilling.GeodeticDatum.WebPages.GeodeticDatumAPIUtils>();
+        services.AddSingleton<NORCE.Drilling.SurveyInstrument.WebPages.ISurveyInstrumentWebPagesConfiguration>(configuration);
+        services.AddSingleton<
+            NORCE.Drilling.SurveyInstrument.WebPages.ISurveyInstrumentAPIUtils,
+            NORCE.Drilling.SurveyInstrument.WebPages.SurveyInstrumentAPIUtils>();
         return services;
     }
 }

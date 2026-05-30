@@ -10,6 +10,7 @@ public interface ITrajectoryWebPagesConfiguration :
     IWellBoreHostURL,
     IWellBoreArchitectureHostURL,
     ITrajectoryHostURL,
-    IUnitConversionHostURL
+    IUnitConversionHostURL,
+    ISurveyInstrumentHostURL
 {
 }

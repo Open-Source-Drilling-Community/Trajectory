@@ -35,6 +35,10 @@ public class TrajectoryAPIUtils : APIUtils, ITrajectoryAPIUtils
         HttpClientTrajectory = SetHttpClient(HostNameTrajectory, HostBasePathTrajectory);
         ClientTrajectory = new Client(HttpClientTrajectory.BaseAddress!.ToString(), HttpClientTrajectory);
 
+        HostNameSurveyInstrument = Require(configuration.SurveyInstrumentHostURL, nameof(configuration.SurveyInstrumentHostURL));
+        HttpClientSurveyInstrument = SetHttpClient(HostNameSurveyInstrument, HostBasePathSurveyInstrument);
+        ClientSurveyInstrument = new Client(HttpClientSurveyInstrument.BaseAddress!.ToString(), HttpClientSurveyInstrument);
+
         HostNameUnitConversion = Require(configuration.UnitConversionHostURL, nameof(configuration.UnitConversionHostURL));
     }
 
@@ -82,6 +86,11 @@ public class TrajectoryAPIUtils : APIUtils, ITrajectoryAPIUtils
     public string HostBasePathTrajectory { get; } = "Trajectory/api/";
     public HttpClient HttpClientTrajectory { get; }
     public Client ClientTrajectory { get; }
+
+    public string HostNameSurveyInstrument { get; }
+    public string HostBasePathSurveyInstrument { get; } = "SurveyInstrument/api/";
+    public HttpClient HttpClientSurveyInstrument { get; }
+    public Client ClientSurveyInstrument { get; }
 
     public string HostNameUnitConversion { get; }
     public string HostBasePathUnitConversion { get; } = "UnitConversion/api/";

@@ -39,6 +39,11 @@ public interface ITrajectoryAPIUtils
     HttpClient HttpClientTrajectory { get; }
     Client ClientTrajectory { get; }
 
+    string HostNameSurveyInstrument { get; }
+    string HostBasePathSurveyInstrument { get; }
+    HttpClient HttpClientSurveyInstrument { get; }
+    Client ClientSurveyInstrument { get; }
+
     string HostNameUnitConversion { get; }
     string HostBasePathUnitConversion { get; }
 }

@@ -55,6 +55,8 @@ if (!String.IsNullOrEmpty(builder.Configuration["WellBoreArchitectureHostURL"]))
     ServiceConfiguration.WellBoreArchitectureHostURL = builder.Configuration["WellBoreArchitectureHostURL"];
 if (!String.IsNullOrEmpty(builder.Configuration["WellHostURL"]))
     ServiceConfiguration.WellHostURL = builder.Configuration["WellHostURL"];
+if (!String.IsNullOrEmpty(builder.Configuration["SurveyInstrumentHostURL"]))
+    ServiceConfiguration.SurveyInstrumentHostURL = builder.Configuration["SurveyInstrumentHostURL"];
 
 if (builder.Environment.IsDevelopment())
 {
