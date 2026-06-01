@@ -23,6 +23,8 @@
 
     [Parameter]
     public List<string>? ColorList { get; set; }
+    [Parameter]
+    public List<bool>? ShowLegendList { get; set; }
 
     [Parameter]
     public List<List<object>>? XValuesList { get; set; }
@@ -256,12 +258,17 @@
             Marker marker = ColorList != null && i < ColorList.Count
                 ? new Marker { Color = ColorList[i] }
                 : new Marker { AutoColorScale = true };
+            Line line = ColorList != null && i < ColorList.Count
+                ? new Line { Color = ColorList[i] }
+                : new Line();
 
             await chart.AddTrace(new Scatter
             {
                 Name = name,
                 Mode = modeFlag,
                 Marker = marker,
+                Line = line,
+                ShowLegend = ShowLegendList == null || i >= ShowLegendList.Count || ShowLegendList[i],
                 X = xValuesInUserUnit,
                 Y = yValuesInUserUnit
             });
@@ -404,6 +411,7 @@
         AppendListSignature(builder, NameList);
         AppendListSignature(builder, ModeFlagList);
         AppendListSignature(builder, ColorList);
+        AppendListSignature(builder, ShowLegendList);
         AppendNestedListSignature(builder, XValuesList);
         AppendNestedListSignature(builder, YValuesList);
 

@@ -3,6 +3,7 @@ using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Common;
 using OSDC.DotnetLibraries.General.Math;
 using OSDC.DotnetLibraries.General.Statistics;
+using System;
 using System.Collections.Generic;
 using System.Linq;
 
@@ -13,7 +14,14 @@ namespace NORCE.Drilling.Trajectory.Model
     {
 
         /// <summary>
-        /// The list of survey stations extracted from survey files, ordered by measured depths. 
+        /// The survey run sections used to compose this trajectory.
+        /// Sections are ordered by increasing start abscissa. A section includes survey stations
+        /// from the referenced survey run with a measured depth greater than or equal to its start
+        /// abscissa and, except for the last section, lower than the next section start abscissa.
+        /// </summary>
+        public List<TrajectorySurveyRunSection>? SurveyRunSectionList { get; set; }
+        /// <summary>
+        /// The calculated list of survey stations materialized from survey runs, ordered by measured depths.
         /// Each survey station contains the measured depth, the inclination and the azimuth of the wellbore at that depth, 
         /// as well as the uncertainty associated to these measurements.
         /// </summary>
@@ -26,7 +34,7 @@ namespace NORCE.Drilling.Trajectory.Model
         ///   this location is determined by the TieInPointAlongHoleDepth univariate property of the wellbore, which is 
         ///   relative to the measured depth of the parent wellbore.
         /// </summary>
-        public SurveyPoint? TieInPoint { get; set; }
+        public SurveyStation? TieInPoint { get; set; }
         /// <summary>
         /// the method used to calculate the trajectory position from the curvilinear abscissa, inclination and azimuth.
         /// </summary>
@@ -69,21 +77,18 @@ namespace NORCE.Drilling.Trajectory.Model
                 {
                     if (updatedList[0] is not null && updatedList[0].Abscissa is not null && Numeric.EQ(updatedList[0].Abscissa, TieInPoint.Abscissa))
                     {
-                        updatedList[0].RiemannianNorth = TieInPoint.RiemannianNorth;
-                        updatedList[0].RiemannianEast = TieInPoint.RiemannianEast;
-                        updatedList[0].TVD = TieInPoint.TVD;
-                        updatedList[0].VerticalSection = TieInPoint.VerticalSection ?? 0;
+                        SurveyStation tieInStation = new SurveyStation(TieInPoint)
+                        {
+                            VerticalSection = TieInPoint.VerticalSection ?? 0
+                        };
+                        updatedList[0] = tieInStation;
                     }
                     else
                     {
-                        SurveyStation tieInStation = new SurveyStation();
-                        tieInStation.Abscissa = TieInPoint.Abscissa;
-                        tieInStation.Inclination = TieInPoint.Inclination;
-                        tieInStation.Azimuth = TieInPoint.Azimuth;
-                        tieInStation.TVD = TieInPoint.TVD;
-                        tieInStation.RiemannianNorth = TieInPoint.RiemannianNorth;
-                        tieInStation.RiemannianEast = TieInPoint.RiemannianEast;
-                        tieInStation.VerticalSection = TieInPoint.VerticalSection ?? 0;
+                        SurveyStation tieInStation = new SurveyStation(TieInPoint)
+                        {
+                            VerticalSection = TieInPoint.VerticalSection ?? 0
+                        };
                         updatedList.Insert(0, tieInStation);
                     }
                 }
@@ -101,5 +106,11 @@ namespace NORCE.Drilling.Trajectory.Model
             }
             return true;
         }
+    }
+
+    public class TrajectorySurveyRunSection
+    {
+        public Guid SurveyRunID { get; set; }
+        public double StartAbscissa { get; set; }
     }
 }

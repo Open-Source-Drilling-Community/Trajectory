@@ -33,6 +33,9 @@ namespace NORCE.Drilling.Trajectory.Model
         /// the ID of the wellbore associated to the trajectory
         /// </summary>
         public Guid TrajectoryID { get; set; }
+        public CalculationState CalculationState { get; set; } = CalculationState.Completed;
+        public double CalculationProgress { get; set; } = 1.0;
+        public string? CalculationMessage { get; set; }
         /// <summary>
         /// default constructor required for parsing the data model as a json file
         /// </summary>

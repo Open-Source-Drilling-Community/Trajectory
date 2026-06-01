@@ -2066,6 +2066,576 @@
         }
       }
     },
+    "/ErrorSource": {
+      "get": {
+        "tags": [
+          "ErrorSource"
+        ],
+        "operationId": "GetAllErrorSourceId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "ErrorSource"
+        ],
+        "operationId": "PostErrorSource",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorSource"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorSource"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorSource"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ErrorSource/MetaInfo": {
+      "get": {
+        "tags": [
+          "ErrorSource"
+        ],
+        "operationId": "GetAllErrorSourceMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/ErrorSource/{id}": {
+      "get": {
+        "tags": [
+          "ErrorSource"
+        ],
+        "operationId": "GetErrorSourceById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ErrorSource"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "ErrorSource"
+        ],
+        "operationId": "PutErrorSourceById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorSource"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorSource"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/ErrorSource"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "ErrorSource"
+        ],
+        "operationId": "DeleteErrorSourceById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/ErrorSource/HeavyData": {
+      "get": {
+        "tags": [
+          "ErrorSource"
+        ],
+        "operationId": "GetAllErrorSource",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/ErrorSource"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyInstrument": {
+      "get": {
+        "tags": [
+          "SurveyInstrument"
+        ],
+        "operationId": "GetAllSurveyInstrumentId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "SurveyInstrument"
+        ],
+        "operationId": "PostSurveyInstrument",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyInstrument"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyInstrument"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyInstrument"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyInstrument/MetaInfo": {
+      "get": {
+        "tags": [
+          "SurveyInstrument"
+        ],
+        "operationId": "GetAllSurveyInstrumentMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyInstrument/{id}": {
+      "get": {
+        "tags": [
+          "SurveyInstrument"
+        ],
+        "operationId": "GetSurveyInstrumentById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyInstrument"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "SurveyInstrument"
+        ],
+        "operationId": "PutSurveyInstrumentById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyInstrument"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyInstrument"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyInstrument"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "SurveyInstrument"
+        ],
+        "operationId": "DeleteSurveyInstrumentById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyInstrument/LightData": {
+      "get": {
+        "tags": [
+          "SurveyInstrument"
+        ],
+        "operationId": "GetAllSurveyInstrumentLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyInstrumentLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyInstrument/HeavyData": {
+      "get": {
+        "tags": [
+          "SurveyInstrument"
+        ],
+        "operationId": "GetAllSurveyInstrument",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyInstrument"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyInstrumentUsageStatistics": {
+      "get": {
+        "tags": [
+          "SurveyInstrumentUsageStatistics"
+        ],
+        "operationId": "GetSurveyInstrumentUsageStatistics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageStatisticsSurveyInstrument"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/GlobalAntiCollisions": {
+      "get": {
+        "tags": [
+          "GlobalAntiCollisions"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GlobalAntiCollisions"
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlobalAntiCollision"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlobalAntiCollision"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlobalAntiCollision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/GlobalAntiCollisions/{id}": {
+      "get": {
+        "tags": [
+          "GlobalAntiCollisions"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlobalAntiCollision"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "GlobalAntiCollisions"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlobalAntiCollision"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlobalAntiCollision"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/GlobalAntiCollision"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "GlobalAntiCollisions"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/InterpolatedTrajectory": {
       "get": {
         "tags": [
@@ -2310,6 +2880,643 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/Octrees": {
+      "get": {
+        "tags": [
+          "Octrees"
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Octrees/{id}": {
+      "get": {
+        "tags": [
+          "Octrees"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OctreeCodeLong"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "Octrees"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "Octrees"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "Octrees"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRun": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetAllSurveyRunId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "PostSurveyRun",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyRun"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyRun"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyRun"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRun/MetaInfo": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetAllSurveyRunMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRun/LightData": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetAllSurveyRunLight",
+        "parameters": [
+          {
+            "name": "fieldId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "clusterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "wellId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "wellBoreId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "surveyInstrumentId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyRunLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRun/HeavyData": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetAllSurveyRun",
+        "parameters": [
+          {
+            "name": "fieldId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "clusterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "wellId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "wellBoreId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "surveyInstrumentId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyRun"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRun/{id}": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetSurveyRunById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyRun"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "PutSurveyRunById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyRun"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyRun"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyRun"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "DeleteSurveyRunById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRunBatchImport": {
+      "get": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "GetAllSurveyRunBatchImportId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "PostSurveyRunBatchImport",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyRunBatchImport"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyRunBatchImport"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyRunBatchImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRunBatchImport/MetaInfo": {
+      "get": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "GetAllSurveyRunBatchImportMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRunBatchImport/LightData": {
+      "get": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "GetAllSurveyRunBatchImportLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyRunBatchImportLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRunBatchImport/HeavyData": {
+      "get": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "GetAllSurveyRunBatchImport",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/SurveyRunBatchImport"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRunBatchImport/{id}": {
+      "get": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "GetSurveyRunBatchImportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyRunBatchImport"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "PutSurveyRunBatchImportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyRunBatchImport"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyRunBatchImport"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyRunBatchImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "DeleteSurveyRunBatchImportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -2592,6 +3799,26 @@
                   "items": {
                     "$ref": "#/components/schemas/Trajectory"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryUsageStatistics": {
+      "get": {
+        "tags": [
+          "TrajectoryUsageStatistics"
+        ],
+        "operationId": "GetTrajectoryUsageStatistics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageStatisticsTrajectory"
                 }
               }
             }
@@ -8962,20 +10189,7 @@
           }
         }
       },
-      "AnnotatedAbscissa": {
-        "type": "object",
-        "properties": {
-          "Abscissa": {
-            "type": "number",
-            "format": "double"
-          },
-          "Annotation": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "InterpolatedTrajectory": {
+      "SurveyInstrumentLight": {
         "type": "object",
         "properties": {
           "MetaInfo": {
@@ -8998,198 +10212,64 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
-          },
-          "TrajectoryID": {
-            "type": "string",
-            "format": "uuid"
-          },
-          "SurveyStationList": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SurveyStation"
-            },
-            "nullable": true
-          },
-          "InterpolationStep": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "InterpolationReferenceDepth": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "MaximumChordArcDistance": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "IncludeFirstSurvey": {
-            "type": "boolean"
-          },
-          "IncludeLastSurvey": {
-            "type": "boolean"
-          },
-          "InterpolateAtCasingAndLinerShoeDepths": {
-            "type": "boolean"
-          },
-          "InterpolateAtLinerHangerDepths": {
-            "type": "boolean"
-          },
-          "InterpolateAtCasingChangeOfDiameter": {
-            "type": "boolean"
-          },
-          "AdditionalAbscissaList": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AnnotatedAbscissa"
-            },
-            "nullable": true
-          },
-          "InternalAdditionalAbscissaList": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/AnnotatedAbscissa"
-            },
-            "nullable": true
           }
         }
       },
-      "InterpolatedTrajectoryLight": {
+      "UsageStatisticsSurveyInstrument": {
         "type": "object",
         "properties": {
-          "MetaInfo": {
-            "$ref": "#/components/schemas/MetaInfo"
-          },
-          "Name": {
+          "LastSaved": {
             "type": "string",
-            "nullable": true
+            "format": "date-time"
           },
-          "Description": {
+          "BackUpInterval": {
             "type": "string",
-            "nullable": true
+            "format": "date-span"
           },
-          "CreationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+          "GetAllSurveyInstrumentIdPerDay": {
+            "$ref": "#/components/schemas/History"
           },
-          "LastModificationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+          "GetAllSurveyInstrumentMetaInfoPerDay": {
+            "$ref": "#/components/schemas/History"
           },
-          "TrajectoryID": {
-            "type": "string",
-            "format": "uuid"
-          }
-        }
-      },
-      "Trajectory": {
-        "type": "object",
-        "properties": {
-          "MetaInfo": {
-            "$ref": "#/components/schemas/MetaInfo"
+          "GetSurveyInstrumentByIdPerDay": {
+            "$ref": "#/components/schemas/History"
           },
-          "Name": {
-            "type": "string",
-            "nullable": true
+          "GetAllSurveyInstrumentLightPerDay": {
+            "$ref": "#/components/schemas/History"
           },
-          "Description": {
-            "type": "string",
-            "nullable": true
+          "GetAllSurveyInstrumentPerDay": {
+            "$ref": "#/components/schemas/History"
           },
-          "CreationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+          "PostSurveyInstrumentPerDay": {
+            "$ref": "#/components/schemas/History"
           },
-          "LastModificationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+          "PutSurveyInstrumentByIdPerDay": {
+            "$ref": "#/components/schemas/History"
           },
-          "FieldID": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
+          "DeleteSurveyInstrumentByIdPerDay": {
+            "$ref": "#/components/schemas/History"
           },
-          "ClusterID": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
+          "GetAllErrorSourceIdPerDay": {
+            "$ref": "#/components/schemas/History"
           },
-          "WellID": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
+          "GetAllErrorSourceMetaInfoPerDay": {
+            "$ref": "#/components/schemas/History"
           },
-          "WellBoreID": {
-            "type": "string",
-            "format": "uuid"
+          "GetErrorSourceByIdPerDay": {
+            "$ref": "#/components/schemas/History"
           },
-          "SurveyStationList": {
-            "type": "array",
-            "items": {
-              "$ref": "#/components/schemas/SurveyStation"
-            },
-            "nullable": true
+          "GetAllErrorSourcePerDay": {
+            "$ref": "#/components/schemas/History"
           },
-          "TieInPoint": {
-            "$ref": "#/components/schemas/SurveyPoint"
+          "PostErrorSourcePerDay": {
+            "$ref": "#/components/schemas/History"
           },
-          "CalculationType": {
-            "$ref": "#/components/schemas/TrajectoryCalculationType"
+          "PutErrorSourceByIdPerDay": {
+            "$ref": "#/components/schemas/History"
           },
-          "MDStep": {
-            "type": "number",
-            "format": "double"
-          }
-        }
-      },
-      "TrajectoryLight": {
-        "type": "object",
-        "properties": {
-          "MetaInfo": {
-            "$ref": "#/components/schemas/MetaInfo"
-          },
-          "Name": {
-            "type": "string",
-            "nullable": true
-          },
-          "Description": {
-            "type": "string",
-            "nullable": true
-          },
-          "CreationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "LastModificationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "FieldID": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "ClusterID": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "WellID": {
-            "type": "string",
-            "format": "uuid",
-            "nullable": true
-          },
-          "WellBoreID": {
-            "type": "string",
-            "format": "uuid"
+          "DeleteErrorSourceByIdPerDay": {
+            "$ref": "#/components/schemas/History"
           }
         }
       },
@@ -9226,7 +10306,7 @@
           "MSXY_TI2",
           "MSXY_TI3",
           "MSZ",
-          "AMIL",
+          "AMID",
           "DEC_U",
           "DEC_OS",
           "DEC_OH",
@@ -9495,6 +10575,670 @@
           "Gyro_ISCWSA"
         ],
         "type": "string"
+      },
+      "GlobalAntiCollision": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "nullable": true
+          },
+          "ConfidenceFactor": {
+            "type": "number",
+            "format": "double"
+          },
+          "ReferenceWellPathID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ComparisonTrajectoryIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "SeparationFactorResults": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeparationFactorResult"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "MeasuredDepthRange": {
+        "type": "object",
+        "properties": {
+          "StartMD": {
+            "type": "number",
+            "format": "double"
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "SeparationFactorPoint": {
+        "type": "object",
+        "properties": {
+          "ReferenceMD": {
+            "type": "number",
+            "format": "double"
+          },
+          "ComparisonMD": {
+            "type": "number",
+            "format": "double"
+          },
+          "SeparationFactor": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "SeparationFactorResult": {
+        "type": "object",
+        "properties": {
+          "ComparisonTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ReferenceMDRange": {
+            "$ref": "#/components/schemas/MeasuredDepthRange"
+          },
+          "ComparisonMDRange": {
+            "$ref": "#/components/schemas/MeasuredDepthRange"
+          },
+          "SeparationFactorProfile": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SeparationFactorPoint"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "AnnotatedAbscissa": {
+        "type": "object",
+        "properties": {
+          "Abscissa": {
+            "type": "number",
+            "format": "double"
+          },
+          "Annotation": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "InterpolatedTrajectory": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "TrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "SurveyStationList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyStation"
+            },
+            "nullable": true
+          },
+          "InterpolationStep": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "InterpolationReferenceDepth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "MaximumChordArcDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "IncludeFirstSurvey": {
+            "type": "boolean"
+          },
+          "IncludeLastSurvey": {
+            "type": "boolean"
+          },
+          "InterpolateAtCasingAndLinerShoeDepths": {
+            "type": "boolean"
+          },
+          "InterpolateAtLinerHangerDepths": {
+            "type": "boolean"
+          },
+          "InterpolateAtCasingChangeOfDiameter": {
+            "type": "boolean"
+          },
+          "AdditionalAbscissaList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnnotatedAbscissa"
+            },
+            "nullable": true
+          },
+          "InternalAdditionalAbscissaList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AnnotatedAbscissa"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "InterpolatedTrajectoryLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "TrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "SurveyImportSettings": {
+        "type": "object",
+        "properties": {
+          "SelectedSurveyImportFormat": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportSeparator": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportDecimalMarker": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportMDUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportInclinationUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "SelectedSurveyImportAzimuthUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "SurveyImportMDColumn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportInclinationColumn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportAzimuthColumn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportMDStart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportMDWidth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportInclinationStart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportInclinationWidth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportAzimuthStart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportAzimuthWidth": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "SurveyRun": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "FieldID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ClusterID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellBoreID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "SurveyInstrumentID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "SurveyStationList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyStation"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "SurveyRunBatchImport": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SelectedFieldId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "SelectedClusterId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "SelectedWellId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "CommonDepthReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "ReplaceExistingTrajectories": {
+            "type": "boolean"
+          },
+          "ReplaceTrajectoriesWithSameName": {
+            "type": "boolean"
+          },
+          "Settings": {
+            "$ref": "#/components/schemas/SurveyImportSettings"
+          },
+          "Rows": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyRunBatchImportRow"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "SurveyRunBatchImportLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "SurveyRunBatchImportRow": {
+        "type": "object",
+        "properties": {
+          "RowId": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "WellBoreId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "SurveyInstrumentId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "DepthReferenceName": {
+            "type": "string",
+            "nullable": true
+          },
+          "FileName": {
+            "type": "string",
+            "nullable": true
+          },
+          "FileContentBase64": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SurveyRunLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "FieldID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ClusterID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellBoreID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "SurveyInstrumentID": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "Trajectory": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "FieldID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ClusterID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellBoreID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "SurveyRunSectionList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectorySurveyRunSection"
+            },
+            "nullable": true
+          },
+          "SurveyStationList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyStation"
+            },
+            "nullable": true
+          },
+          "TieInPoint": {
+            "$ref": "#/components/schemas/SurveyPoint"
+          },
+          "CalculationType": {
+            "$ref": "#/components/schemas/TrajectoryCalculationType"
+          },
+          "MDStep": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "TrajectoryLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "FieldID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ClusterID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellBoreID": {
+            "type": "string",
+            "format": "uuid"
+          }
+        }
+      },
+      "TrajectorySurveyRunSection": {
+        "type": "object",
+        "properties": {
+          "SurveyRunID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "StartAbscissa": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "UsageStatisticsTrajectory": {
+        "type": "object",
+        "properties": {
+          "LastSaved": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "BackUpInterval": {
+            "type": "string",
+            "format": "date-span"
+          },
+          "GetAllTrajectoryIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllTrajectoryMetaInfoPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllTrajectoryLightPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllTrajectoryPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "PostTrajectoryPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "PutTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "DeleteTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          }
+        }
       },
       "SurveyPoint": {
         "type": "object",

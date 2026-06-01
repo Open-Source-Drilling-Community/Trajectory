@@ -68,12 +68,12 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         /// <param name="guid"></param>
         /// <returns>the Trajectory identified by its Guid from the microservice database, at endpoint Trajectory/api/Trajectory/id</returns>
         [HttpGet("{id}", Name = "GetTrajectoryById")]
-        public ActionResult<Model.Trajectory?> GetTrajectoryById(Guid id)
+        public ActionResult<Model.Trajectory?> GetTrajectoryById(Guid id, [FromQuery] bool includeCalculatedStations = false)
         {
             UsageStatisticsTrajectory.Instance.IncrementGetTrajectoryByIdPerDay();
             if (!id.Equals(Guid.Empty))
             {
-                var val = _trajectoryManager.GetTrajectoryById(id);
+                var val = _trajectoryManager.GetTrajectoryById(id, includeCalculatedStations);
                 if (val != null)
                 {
                     return Ok(val);
@@ -89,15 +89,38 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             }
         }
 
+        [HttpGet("{id}/SurveyStations/ChunkCount", Name = "GetTrajectorySurveyStationChunkCount")]
+        public ActionResult<int> GetSurveyStationChunkCount(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                return BadRequest();
+            }
+
+            return Ok(_trajectoryManager.GetSurveyStationChunkCount(id));
+        }
+
+        [HttpGet("{id}/SurveyStations/Chunks/{chunkIndex}", Name = "GetTrajectorySurveyStationChunk")]
+        public ActionResult<SurveyStationChunk?> GetSurveyStationChunk(Guid id, int chunkIndex)
+        {
+            if (id == Guid.Empty || chunkIndex < 0)
+            {
+                return BadRequest();
+            }
+
+            SurveyStationChunk? value = _trajectoryManager.GetSurveyStationChunk(id, chunkIndex);
+            return value != null ? Ok(value) : NotFound();
+        }
+
         /// <summary>
         /// Returns the list of all TrajectoryLight present in the microservice database, at endpoint Trajectory/api/Trajectory/LightData
         /// </summary>
         /// <returns>the list of all TrajectoryLight present in the microservice database, at endpoint Trajectory/api/Trajectory/LightData</returns>
         [HttpGet("LightData", Name = "GetAllTrajectoryLight")]
-        public ActionResult<IEnumerable<Model.TrajectoryLight>> GetAllTrajectoryLight([FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null)
+        public ActionResult<IEnumerable<Model.TrajectoryLight>> GetAllTrajectoryLight([FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null, [FromQuery] TrajectoryType? trajectoryType = null, [FromQuery] bool? isDefinitive = null)
         {
             UsageStatisticsTrajectory.Instance.IncrementGetAllTrajectoryLightPerDay();
-            var vals = _trajectoryManager.GetAllTrajectoryLight(fieldId, clusterId, wellId, wellBoreId);
+            var vals = _trajectoryManager.GetAllTrajectoryLight(fieldId, clusterId, wellId, wellBoreId, trajectoryType, isDefinitive);
             if (vals != null)
             {
                 return Ok(vals);
@@ -113,10 +136,10 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         /// </summary>
         /// <returns>the list of all Trajectory present in the microservice database, at endpoint Trajectory/api/Trajectory/HeavyData</returns>
         [HttpGet("HeavyData", Name = "GetAllTrajectory")]
-        public ActionResult<IEnumerable<Model.Trajectory?>> GetAllTrajectory([FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null)
+        public ActionResult<IEnumerable<Model.Trajectory?>> GetAllTrajectory([FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null, [FromQuery] TrajectoryType? trajectoryType = null, [FromQuery] bool? isDefinitive = null)
         {
             UsageStatisticsTrajectory.Instance.IncrementGetAllTrajectoryPerDay();
-            var vals = _trajectoryManager.GetAllTrajectory(fieldId, clusterId, wellId, wellBoreId);
+            var vals = _trajectoryManager.GetAllTrajectory(fieldId, clusterId, wellId, wellBoreId, trajectoryType, isDefinitive);
             if (vals != null)
             {
                 return Ok(vals);

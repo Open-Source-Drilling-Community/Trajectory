@@ -48,7 +48,49 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     "ClusterID text",
                     "WellID text",
                     "WellBoreID text",
+                    "TrajectoryType text",
+                    "IsDefinitive integer",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
                     "Trajectory text" }
+                },
+                { "SurveyRunTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "FieldID text",
+                    "ClusterID text",
+                    "WellID text",
+                    "WellBoreID text",
+                    "SurveyInstrumentID text",
+                    "SurveyRunType text",
+                    "CalculationType text",
+                    "ParentSurveyRunID text",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
+                    "SurveyRun text" }
+                },
+                { "SurveyRunMeasurementChunkTable", new string[] {
+                    "ID text primary key",
+                    "SurveyRunID text",
+                    "ChunkIndex integer",
+                    "MeasurementCount integer",
+                    "StartMD real",
+                    "EndMD real",
+                    "SurveyMeasurementChunk text" }
+                },
+                { "SurveyStationChunkTable", new string[] {
+                    "ID text primary key",
+                    "OwnerID text",
+                    "OwnerType text",
+                    "ChunkIndex integer",
+                    "StationCount integer",
+                    "StartMD real",
+                    "EndMD real",
+                    "SurveyStationChunk text" }
                 },
                 { "InterpolatedTrajectoryTable", new string[] {
                     "ID text primary key",
@@ -56,14 +98,25 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     "CreationDate text",
                     "LastModificationDate text",
                     "TrajectoryID text",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
                     "InterpolatedTrajectory text" }
                 },
-                { "TrajectoryBatchImportTable", new string[] {
+                { "SurveyRunBatchImportTable", new string[] {
                     "ID text primary key",
                     "MetaInfo text",
                     "CreationDate text",
                     "LastModificationDate text",
-                    "TrajectoryBatchImport text" }
+                    "SurveyRunBatchImport text" }
+                },
+                { "SurveyStationEllipseCalculationTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "ConfidenceFactor real",
+                    "SurveyStationEllipseCalculation text" }
                 }
             };
 

@@ -86,156 +86,73 @@
         <MudItem xs="3">
             <MudTextField Value="@AssociatedRigName" Label="Rig" ReadOnly="true" ShrinkLabel />
         </MudItem>
+        <MudItem xs="3">
+            <MudSelect T="TrajectoryType" Label="Type" Value="@traj.TrajectoryType" ValueChanged="OnTrajectoryTypeChanged" ShrinkLabel>
+                @foreach (TrajectoryType trajectoryType in TrajectoryTypes)
+                {
+                    <MudSelectItem T="TrajectoryType" Value="@trajectoryType">@trajectoryType</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="3" Class="d-flex align-center">
+            <MudTooltip Text="@DefinitiveTooltipText">
+                <div>
+                    <MudCheckBox T="bool" @bind-Value="traj.IsDefinitive" Label="Definitive" Color="Color.Primary" Disabled="@IsDefinitiveChoiceDisabled" />
+                </div>
+            </MudTooltip>
+        </MudItem>
     </MudGrid>
     <MudExpansionPanels Class="mt-4 mb-4" Style="overflow-y: auto; max-height: none;">
-        @* Survey stations *@
-        <MudExpansionPanel Text="Survey stations" @bind-IsExpanded="isSurveyExpanded">
-            @if (traj.SurveyStationList is { } ssList)
+        @* Survey run sections *@
+        <MudExpansionPanel Text="Survey run sections" @bind-IsExpanded="isSurveyExpanded">
+            <MudToolBar>
+                <MudText Typo="Typo.h6">Survey run sections</MudText>
+                <MudSpacer />
+                <MudButton OnClick="@AddSurveyRunSection" Color="@Color.Success" Class="add-item-btn"
+                           Disabled="@(!AvailableSurveyRuns.Any())">Add</MudButton>
+                <MudButton OnClick="@DeleteSurveyRunSections" Color="@Color.Error" Class="add-item-btn"
+                           Disabled="@(!selectedSurveyRunSections.Any())">Delete</MudButton>
+            </MudToolBar>
+            @if (!AvailableSurveyRuns.Any())
             {
-                <MudPaper Class="pa-4 mb-4" Outlined="true">
-                    <MudGrid>
-                        <MudItem xs="12">
-                            <MudText Typo="Typo.subtitle1">Import surveys from file</MudText>
-                        </MudItem>
-                        <MudItem xs="12" md="4">
-                            <InputFile OnChange="OnSurveyImportFileChanged" />
-                            <MudText Typo="Typo.caption">@surveyImportFileName</MudText>
-                        </MudItem>
-                        <MudItem xs="12" md="3">
-                            <MudSelect T="string" Label="File format" @bind-Value="selectedSurveyImportFormat" ShrinkLabel>
-                                @foreach (string format in SurveyImportFormats)
-                                {
-                                    <MudSelectItem T="string" Value="@format">@format</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        @if (IsDelimitedImportFormat)
-                        {
-                            <MudItem xs="12" md="3">
-                                <MudSelect T="string" Label="Column separator" @bind-Value="selectedSurveyImportSeparator" ShrinkLabel>
-                                    @foreach (string separator in SurveyImportSeparators)
-                                    {
-                                        <MudSelectItem T="string" Value="@separator">@separator</MudSelectItem>
-                                    }
-                                </MudSelect>
-                            </MudItem>
-                        }
-                        <MudItem xs="12" md="2">
-                            <MudSelect T="string" Label="Decimal marker" @bind-Value="selectedSurveyImportDecimalMarker" ShrinkLabel>
-                                @foreach (string marker in SurveyImportDecimalMarkers)
-                                {
-                                    <MudSelectItem T="string" Value="@marker">@marker</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="12" md="2">
-                            <MudNumericField T="int" Label="MD column" @bind-Value="surveyImportMDColumn" Min="1" Immediate="true" />
-                        </MudItem>
-                        <MudItem xs="12" md="2">
-                            <MudSelect T="string" Label="MD unit" @bind-Value="selectedSurveyImportMDUnit" ShrinkLabel>
-                                @foreach (string unit in AvailableSurveyImportDepthUnits)
-                                {
-                                    <MudSelectItem T="string" Value="@unit">@unit</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="12" md="2">
-                            <MudNumericField T="int" Label="Incl column" @bind-Value="surveyImportInclinationColumn" Min="1" Immediate="true" />
-                        </MudItem>
-                        <MudItem xs="12" md="2">
-                            <MudSelect T="string" Label="Incl unit" @bind-Value="selectedSurveyImportInclinationUnit" ShrinkLabel>
-                                @foreach (string unit in AvailableSurveyImportAngleUnits)
-                                {
-                                    <MudSelectItem T="string" Value="@unit">@unit</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="12" md="2">
-                            <MudNumericField T="int" Label="Az column" @bind-Value="surveyImportAzimuthColumn" Min="1" Immediate="true" />
-                        </MudItem>
-                        <MudItem xs="12" md="2">
-                            <MudSelect T="string" Label="Az unit" @bind-Value="selectedSurveyImportAzimuthUnit" ShrinkLabel>
-                                @foreach (string unit in AvailableSurveyImportAngleUnits)
-                                {
-                                    <MudSelectItem T="string" Value="@unit">@unit</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        @if (IsFixedWidthImportFormat)
-                        {
-                            <MudItem xs="12" md="2">
-                                <MudNumericField T="int" Label="MD start" @bind-Value="surveyImportMDStart" Min="1" Immediate="true" />
-                            </MudItem>
-                            <MudItem xs="12" md="2">
-                                <MudNumericField T="int" Label="MD width" @bind-Value="surveyImportMDWidth" Min="1" Immediate="true" />
-                            </MudItem>
-                            <MudItem xs="12" md="2">
-                                <MudNumericField T="int" Label="Incl start" @bind-Value="surveyImportInclinationStart" Min="1" Immediate="true" />
-                            </MudItem>
-                            <MudItem xs="12" md="2">
-                                <MudNumericField T="int" Label="Incl width" @bind-Value="surveyImportInclinationWidth" Min="1" Immediate="true" />
-                            </MudItem>
-                            <MudItem xs="12" md="2">
-                                <MudNumericField T="int" Label="Az start" @bind-Value="surveyImportAzimuthStart" Min="1" Immediate="true" />
-                            </MudItem>
-                            <MudItem xs="12" md="2">
-                                <MudNumericField T="int" Label="Az width" @bind-Value="surveyImportAzimuthWidth" Min="1" Immediate="true" />
-                            </MudItem>
-                        }
-                        <MudItem xs="12" md="3" Class="d-flex align-center">
-                            <MudButton OnClick="ImportSurveyStationsAsync" Color="Color.Primary" Variant="Variant.Filled">Import</MudButton>
-                        </MudItem>
-                    </MudGrid>
-                </MudPaper>
-                <MudToolBar>
-                    <MudText Typo="Typo.h6">Survey stations</MudText>
-                    <MudSpacer />
-                    <MudButton OnClick="ExportSurveyStationsAsync" Color="@Color.Primary" Variant="Variant.Outlined" Class="add-item-btn">Export</MudButton>
-                    <MudButton OnClick="@AddSurveyStation" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
-                    <MudButton OnClick="@DeleteSurveyStations" Color="@Color.Error" Class="add-item-btn">Delete</MudButton>
-                </MudToolBar>
-                <MudTable Items="@ssList" MultiSelection="true" T="SurveyStation"
-                          @bind-SelectedItems="selectedSurveyStations"
-                          Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true">
-                    <HeaderContent>
-                        <MudTHeadRow IsCheckable="true">
-                            <MudTh>Measured Depth [@Parent.GetDepthUnitLabel("DepthDrilling")]</MudTh>
-                            <MudTh>Inclination [@Parent.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
-                            <MudTh>Azimuth [@Parent.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
-                            <MudTh /><MudTh /><MudTh />
-                        </MudTHeadRow>
-                    </HeaderContent>
-                    <RowTemplate>
-                        <MudTd DataLabel="Measured Depth">
-                            <MudInputWithUnit QuantityName="DepthDrilling"
-                                              DrillingSignalReference="@DrillingSignalReferenceType.Depth"
-                                              SIValueNullable="@context.MD"
-                                              SIValueNullableChanged="@(val => context.MD = val)" />
-                        </MudTd>
-                        <MudTd DataLabel="Inclination">
-                            <MudInputWithUnit QuantityName="PlaneAngleDrilling"
-                                              SIValueNullable="@context.Inclination"
-                                              SIValueNullableChanged="@(val => context.Inclination = val)" />
-                        </MudTd>
-                        <MudTd DataLabel="Azimuth">
-                            <MudInputWithUnit QuantityName="PlaneAngleDrilling"
-                                              SIValueNullable="@context.Azimuth"
-                                              SIValueNullableChanged="@(val => context.Azimuth = val)" />
-                        </MudTd>
-                    </RowTemplate>
-                </MudTable>
+                <MudText>No Survey Runs are available for the selected WellBore.</MudText>
             }
-            else
-            {
-                <MudText>No survey stations</MudText>
-            }
+            <MudTable Items="@TrajectorySurveyRunSections" MultiSelection="true" T="TrajectorySurveyRunSection"
+                      @bind-SelectedItems="selectedSurveyRunSections"
+                      Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true">
+                <HeaderContent>
+                    <MudTHeadRow IsCheckable="true">
+                        <MudTh>Survey Run</MudTh>
+                        <MudTh>Start Abscissa [@Parent?.GetUnitLabel("DepthDrilling")]</MudTh>
+                        <MudTh />
+                    </MudTHeadRow>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Survey Run">
+                        <MudSelect T="Guid?" Value="@((Guid?)context.SurveyRunID)" ValueChanged="@(value => OnSurveyRunSectionSurveyRunChanged(context, value))" ShrinkLabel Dense="true">
+                            @foreach (SurveyRunLight surveyRun in AvailableSurveyRuns)
+                            {
+                                <MudSelectItem T="Guid?" Value="@((Guid?)surveyRun.MetaInfo.ID)">@GetSurveyRunDisplayName(surveyRun)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudTd>
+                    <MudTd DataLabel="Start Abscissa">
+                        <MudInputWithUnit QuantityName="DepthDrilling"
+                                          SIValueNullable="@context.StartAbscissa"
+                                          SIValueNullableChanged="@(value => OnSurveyRunSectionStartChanged(context, value))" />
+                    </MudTd>
+                    <MudTd>
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteSurveyRunSection(context))" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
         </MudExpansionPanel>
         @* Calculated trajectory *@
-            <MudExpansionPanel Text="Calculated trajectory">
+            <MudExpansionPanel Text="Calculated trajectory" ExpandedChanged="@OnCalculatedStationsPanelExpandedChanged">
             <MudToolBar>
                 <MudText Typo="Typo.h6">Calculated trajectory</MudText>
                 <MudSpacer />
-                <MudButton OnClick="ExportCalculatedTrajectoryAsync" Color="@Color.Primary" Variant="Variant.Outlined">Export</MudButton>
+                <MudButton OnClick="ExportCalculatedTrajectoryAsync" Color="@Color.Primary" Variant="Variant.Outlined" Disabled="@isLoadingCalculatedStations_">Export</MudButton>
             </MudToolBar>
             <MudGrid Class="mb-4">
                 <MudItem xs="12" md="5">
@@ -273,9 +190,17 @@
                     </MudItem>
                 </MudGrid>
             }
-            @if (traj.SurveyStationList is { Count: > 0 } calculatedList)
+            @if (isLoadingCalculatedStations_)
+            {
+                <MudPaper Class="pa-4" Outlined="true">
+                    <MudText Typo="Typo.body2">@CalculatedStationLoadingText</MudText>
+                    <MudProgressLinear Value="@CalculatedStationLoadingProgressPercent" Color="Color.Info" Class="mt-2" />
+                </MudPaper>
+            }
+            else if (traj.SurveyStationList is { Count: > 0 } calculatedList)
             {
                 <MudTable Items="@calculatedList" T="SurveyStation" Height="400px" FixedHeader="true"
+                          Virtualize="true" OverscanCount="3" ItemSize="38"
                           Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" ReadOnly="true">
                     <HeaderContent>
                         <MudTHeadRow>
@@ -330,18 +255,45 @@
                 <MudText>No calculated trajectory</MudText>
             }
         </MudExpansionPanel>
+        <MudExpansionPanel Text="Uncertainty ellipses" ExpandedChanged="@OnCalculatedStationsPanelExpandedChanged">
+            @if (isLoadingCalculatedStations_)
+            {
+                <MudPaper Class="pa-4" Outlined="true">
+                    <MudText Typo="Typo.body2">@CalculatedStationLoadingText</MudText>
+                    <MudProgressLinear Value="@CalculatedStationLoadingProgressPercent" Color="Color.Info" Class="mt-2" />
+                </MudPaper>
+            }
+            else if (traj.SurveyStationList is { Count: > 0 } calculatedList)
+            {
+                <SurveyStationEllipseTable SurveyStationList="@calculatedList"
+                                           CalculationName="@($"{traj.Name} uncertainty ellipses")"
+                                           EllipseResultsChanged="OnEllipseResultsChanged" />
+            }
+            else
+            {
+                <MudText>No calculated trajectory</MudText>
+            }
+        </MudExpansionPanel>
         @* Plot trajectory *@
-        <MudExpansionPanel Text="Plot trajectory" IsExpandedChanged="@OnPlotExpandedChanged"
+        <MudExpansionPanel Text="Plot trajectory" ExpandedChanged="@OnPlotExpandedChanged"
                            Style="overflow: visible;">
-            @if (traj.SurveyStationList is { } ssList)
+            @if (isLoadingCalculatedStations_)
+            {
+                <MudPaper Class="pa-4" Outlined="true">
+                    <MudText Typo="Typo.body2">@CalculatedStationLoadingText</MudText>
+                    <MudProgressLinear Value="@CalculatedStationLoadingProgressPercent" Color="Color.Info" Class="mt-2" />
+                </MudPaper>
+            }
+            else if (traj.SurveyStationList is { Count: > 0 } ssList)
             {
                 <MudToolBar>
                     <MudText Typo="Typo.h6">Plot</MudText>
                 </MudToolBar>
                 <MudGrid Justify="Justify.Center">
                     <MudItem xs="12">
-                        <Scatter3DPlot NameList="@nameList" ModeFlagList="@modeFlagList" ColorList="@colorList"
-                                       XValuesList="@northValuesList" YValuesList="@eastValuesList" ZValuesList="@TVDValuesList"
+                        <Scatter3DPlot NameList="@ThreeDNameList" ModeFlagList="@ThreeDModeFlagList" ColorList="@ThreeDColorList"
+                                       ShowLegendList="@ThreeDShowLegendList"
+                                       XValuesList="@ThreeDNorthValuesList" YValuesList="@ThreeDEastValuesList" ZValuesList="@ThreeDTvdValuesList"
                                        YAxisReversed="@true" ZAxisReversed="@true"
                                        PlotTitle="" XAxisTitle="@NorthCoordinateLabel" YAxisTitle="@EastCoordinateLabel" ZAxisTitle="TVD"
                                        XUnit="PositionDrilling" YUnit="PositionDrilling" ZUnit="DepthDrilling"
@@ -353,8 +305,9 @@
                         </Scatter3DPlot>
                     </MudItem>
                     <MudItem xs="12" md="6">
-                        <ScatterPlot NameList="@nameList" ModeFlagList="@modeFlagList" ColorList="@colorList"
-                                     XValuesList="@eastValuesList" YValuesList="@northValuesList"
+                        <ScatterPlot NameList="@HorizontalNameList" ModeFlagList="@HorizontalModeFlagList" ColorList="@HorizontalColorList"
+                                     ShowLegendList="@HorizontalShowLegendList"
+                                     XValuesList="@HorizontalEastValuesList" YValuesList="@HorizontalNorthValuesList"
                                      PlotTitle="" XAxisTitle="@EastCoordinateLabel" YAxisTitle="@NorthCoordinateLabel"
                                      XUnit="PositionDrilling" YUnit="PositionDrilling"
                                      XAxisUsesPositionReference="@true"
@@ -365,8 +318,9 @@
                         </ScatterPlot>
                     </MudItem>
                     <MudItem xs="12" md="6">
-                        <ScatterPlot NameList="@nameList" ModeFlagList="@modeFlagList" ColorList="@colorList"
-                                     XValuesList="@verticalSectionValuesList" YValuesList="@TVDValuesList"
+                        <ScatterPlot NameList="@VerticalNameList" ModeFlagList="@VerticalModeFlagList" ColorList="@VerticalColorList"
+                                     ShowLegendList="@VerticalShowLegendList"
+                                     XValuesList="@VerticalSectionValuesList" YValuesList="@VerticalTvdValuesList"
                                      PlotTitle="" XAxisTitle="Vertical Section" YAxisTitle="TVD"
                                      XUnit="DepthDrilling" YUnit="DepthDrilling"
                                      XAxisStartsAtZero="@true"
@@ -379,7 +333,7 @@
             }
             else
             {
-                <MudText>Either no survey stations or interpolated trajectory</MudText>
+                <MudText>No calculated trajectory</MudText>
             }
         </MudExpansionPanel>
     </MudExpansionPanels>
@@ -403,10 +357,13 @@
     [Parameter]
     public List<Field>? FieldList { get; set; }
     [Parameter]
+    public List<TrajectoryLight>? TrajectoryList { get; set; }
+    [Parameter]
     public EventCallback ValueChanged { get; set; }
 
     private Trajectory currentTrajectory = PseudoConstructors.ConstructTrajectory();
     private HashSet<SurveyStation> selectedSurveyStations = new();
+    private HashSet<TrajectorySurveyRunSection> selectedSurveyRunSections = new();
     private bool isSurveyExpanded = false;
     private bool isInterpolExpanded = false;
     private bool isPlotExpanded = false;
@@ -414,6 +371,7 @@
     private Guid? selectedClusterId;
     private Guid? selectedWellId;
     private Guid? selectedWellBoreId;
+    private static readonly TrajectoryType[] TrajectoryTypes = Enum.GetValues<TrajectoryType>();
     private static readonly TrajectoryCalculationType[] TrajectoryCalculationTypes = Enum.GetValues<TrajectoryCalculationType>();
     private static readonly string[] CalculationMethods =
     [
@@ -449,6 +407,12 @@
     private string selectedInterpolatedCalculationMethod = "Minimum Curvature Method";
     private List<WellBoreArchitecture>? wellBoreArchitectureHeavyList;
     private bool isLoadingWellBoreArchitectureData;
+    private List<SurveyRunLight> surveyRunList = [];
+    private bool isLoadingCalculatedStations_;
+    private bool calculatedStationLoadComplete_;
+    private int calculatedStationChunkCount_;
+    private int calculatedStationChunksLoaded_;
+    private int calculatedStationsLoaded_;
 
     // Plot variables
     string[] colorScale = { "black", "blue", "grey", "red", "orange", "green", "yellow", "pink", "brown", "purple" };
@@ -459,6 +423,40 @@
     List<List<object>> eastValuesList = new List<List<object>>(); //East values for the list of curves to plot
     List<List<object>> TVDValuesList = new List<List<object>>(); //TVD values for the list of curves to plot
     List<List<object>> verticalSectionValuesList = new List<List<object>>(); //Vertical section values for the list of curves to plot
+    private readonly EllipsePlotData ellipsePlotData = new();
+    private List<SurveyStationEllipseResult> ellipseResults = [];
+
+    private List<string> HorizontalNameList => Combine(nameList, ellipsePlotData.HorizontalNameList);
+    private List<int> HorizontalModeFlagList => Combine(modeFlagList, ellipsePlotData.HorizontalModeFlagList);
+    private List<string> HorizontalColorList => Combine(colorList, ellipsePlotData.HorizontalColorList);
+    private List<bool> HorizontalShowLegendList => CombineLegendFlags(nameList.Count, ellipsePlotData.HorizontalShowLegendList);
+    private List<List<object>> HorizontalEastValuesList => Combine(eastValuesList, ellipsePlotData.HorizontalEastValuesList);
+    private List<List<object>> HorizontalNorthValuesList => Combine(northValuesList, ellipsePlotData.HorizontalNorthValuesList);
+
+    private List<string> VerticalNameList => Combine(nameList, ellipsePlotData.VerticalNameList);
+    private List<int> VerticalModeFlagList => Combine(modeFlagList, ellipsePlotData.VerticalModeFlagList);
+    private List<string> VerticalColorList => Combine(colorList, ellipsePlotData.VerticalColorList);
+    private List<bool> VerticalShowLegendList => CombineLegendFlags(nameList.Count, ellipsePlotData.VerticalShowLegendList);
+    private List<List<object>> VerticalSectionValuesList => Combine(verticalSectionValuesList, ellipsePlotData.VerticalSectionValuesList);
+    private List<List<object>> VerticalTvdValuesList => Combine(TVDValuesList, ellipsePlotData.VerticalTvdValuesList);
+
+    private List<string> ThreeDNameList => Combine(nameList, ellipsePlotData.PerpendicularNameList);
+    private List<int> ThreeDModeFlagList => Combine(modeFlagList, ellipsePlotData.PerpendicularModeFlagList);
+    private List<string> ThreeDColorList => Combine(colorList, ellipsePlotData.PerpendicularColorList);
+    private List<bool> ThreeDShowLegendList => CombineLegendFlags(nameList.Count, ellipsePlotData.PerpendicularShowLegendList);
+    private List<List<object>> ThreeDNorthValuesList => Combine(northValuesList, ellipsePlotData.PerpendicularNorthValuesList);
+    private List<List<object>> ThreeDEastValuesList => Combine(eastValuesList, ellipsePlotData.PerpendicularEastValuesList);
+    private List<List<object>> ThreeDTvdValuesList => Combine(TVDValuesList, ellipsePlotData.PerpendicularTvdValuesList);
+
+    private static List<T> Combine<T>(IEnumerable<T> first, IEnumerable<T> second) => first.Concat(second).ToList();
+    private static List<bool> CombineLegendFlags(int baseTraceCount, IEnumerable<bool> ellipseFlags) =>
+        Enumerable.Repeat(true, baseTraceCount).Concat(ellipseFlags).ToList();
+    private double CalculatedStationLoadingProgressPercent =>
+        calculatedStationChunkCount_ <= 0 ? 0.0 : 100.0 * calculatedStationChunksLoaded_ / calculatedStationChunkCount_;
+    private string CalculatedStationLoadingText =>
+        calculatedStationChunkCount_ <= 0
+            ? "Loading calculated trajectory chunks..."
+            : $"Loading calculated trajectory chunks {calculatedStationChunksLoaded_}/{calculatedStationChunkCount_} ({calculatedStationsLoaded_:N0} stations)";
 
     // Lifecycle
     protected override async Task OnInitializedAsync()
@@ -488,11 +486,20 @@
             if (TrajectoryId != null)
             {
                 currentTrajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(TrajectoryId.Value);
+                currentTrajectory.SurveyStationList ??= [];
+                ResetCalculatedStationLoadingState();
             }
             else
             {
                 await InitializeTrajectoryAsync(currentTrajectory);
+                ResetCalculatedStationLoadingState();
             }
+            currentTrajectory.SurveyRunSectionList ??= new List<TrajectorySurveyRunSection>();
+            currentTrajectory.SurveyStationList ??= new List<SurveyStation>();
+            surveyRunList = ((IEnumerable<SurveyRunLight>)await Api.ClientTrajectory.GetAllSurveyRunLightAsync())
+                .Where(surveyRun => surveyRun?.MetaInfo != null)
+                .OrderBy(surveyRun => surveyRun.Name)
+                .ToList();
             SyncSelectorsFromWellBore(currentTrajectory.WellBoreID);
             EnsureSurveyImportUnitsSelected();
         }
@@ -519,10 +526,14 @@
             if (currentTrajectory is { } && IsValidTrajectory(currentTrajectory))
             {
                 ApplySelectedContext();
+                NormalizeSurveyRunSections();
                 if (TrajectoryId != null)
                 {
                     currentTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
                     await Api.ClientTrajectory.PutTrajectoryByIdAsync(TrajectoryId.Value, currentTrajectory);
+                    currentTrajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(TrajectoryId.Value);
+                    currentTrajectory.SurveyStationList ??= [];
+                    ResetCalculatedStationLoadingState();
                     Snackbar.Add("Trajectory updated successfully", Severity.Success);
                     await SendMessage();
                 }
@@ -533,13 +544,16 @@
                     currentTrajectory.CreationDate = DateTimeOffset.UtcNow;
                     currentTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
                     await Api.ClientTrajectory.PostTrajectoryAsync(currentTrajectory);
+                    currentTrajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(currentTrajectory.MetaInfo.ID);
+                    currentTrajectory.SurveyStationList ??= [];
+                    ResetCalculatedStationLoadingState();
                     Snackbar.Add("Trajectory created successfully", Severity.Success);
                     await SendMessage();
                 }
             }
             else
             {
-                Snackbar.Add("Trajectory badly configured (at least 3 survey stations with valid coordinates)", Severity.Error);
+                Snackbar.Add("Trajectory badly configured (select a WellBore and define an ordered list of Survey Run sections)", Severity.Error);
             }
         }
         catch (Exception ex)
@@ -548,12 +562,98 @@
             Snackbar.Add("Error saving Trajectory: " + ex.Message, Severity.Warning);
         }
     }
+
+    private Task OnCalculatedStationsPanelExpandedChanged(bool expanded)
+    {
+        if (expanded)
+        {
+            StartCalculatedStationLoading();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void StartCalculatedStationLoading()
+    {
+        if (calculatedStationLoadComplete_ || isLoadingCalculatedStations_)
+        {
+            return;
+        }
+
+        _ = LoadTrajectoryCalculatedStationsAsync(currentTrajectory);
+    }
+
+    private void ResetCalculatedStationLoadingState()
+    {
+        calculatedStationLoadComplete_ = false;
+        isLoadingCalculatedStations_ = false;
+        calculatedStationChunkCount_ = 0;
+        calculatedStationChunksLoaded_ = 0;
+        calculatedStationsLoaded_ = 0;
+    }
+
+    private async Task LoadTrajectoryCalculatedStationsAsync(Trajectory? trajectory)
+    {
+        if (trajectory?.MetaInfo?.ID is not Guid trajectoryId || trajectoryId == Guid.Empty)
+        {
+            return;
+        }
+
+        isLoadingCalculatedStations_ = true;
+        calculatedStationLoadComplete_ = false;
+        calculatedStationChunkCount_ = 0;
+        calculatedStationChunksLoaded_ = 0;
+        calculatedStationsLoaded_ = 0;
+        trajectory.SurveyStationList = [];
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            int chunkCount = await Api.ClientTrajectory.GetTrajectorySurveyStationChunkCountAsync(trajectoryId);
+            calculatedStationChunkCount_ = chunkCount;
+            await InvokeAsync(StateHasChanged);
+            if (chunkCount <= 0)
+            {
+                trajectory.SurveyStationList ??= [];
+                calculatedStationLoadComplete_ = true;
+                return;
+            }
+
+            List<SurveyStation> stations = [];
+            for (int chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
+            {
+                SurveyStationChunk chunk = await Api.ClientTrajectory.GetTrajectorySurveyStationChunkAsync(trajectoryId, chunkIndex);
+                if (chunk.SurveyStationList is { Count: > 0 } chunkStations)
+                {
+                    stations.AddRange(chunkStations);
+                }
+
+                calculatedStationChunksLoaded_ = chunkIndex + 1;
+                calculatedStationsLoaded_ = stations.Count;
+                if (chunkIndex == 0 || calculatedStationChunksLoaded_ == chunkCount || calculatedStationChunksLoaded_ % 5 == 0)
+                {
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+
+            trajectory.SurveyStationList = stations;
+            calculatedStationLoadComplete_ = true;
+            UpdatePlots();
+        }
+        finally
+        {
+            isLoadingCalculatedStations_ = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
     private async Task DuplicateTrajectory()
     {
         try
         {
             if (currentTrajectory is { } && IsValidTrajectory(currentTrajectory))
             {
+                ApplySelectedContext();
+                NormalizeSurveyRunSections();
                 Trajectory newTraj = DeepCopyTrajectory(currentTrajectory);
                 var nowDate = DateTimeOffset.UtcNow;
                 newTraj.CreationDate = nowDate;
@@ -566,7 +666,7 @@
             }
             else
             {
-                Snackbar.Add("Trajectory badly configured (at least 3 survey stations with valid coordinates)", Severity.Success);
+                Snackbar.Add("Trajectory badly configured (select a WellBore and define an ordered list of Survey Run sections)", Severity.Error);
             }
         }
         catch (Exception ex)
@@ -585,6 +685,7 @@
         isPlotExpanded = expanded;
         if (expanded)
         {
+            StartCalculatedStationLoading();
             // Give MudBlazor's expand animation one tick to finish, then let
             // Plotly measure the container and draw into it.
             await Task.Delay(50);
@@ -633,6 +734,20 @@
                 wb?.MetaInfo != null &&
                 (selectedWellId == null || wb.WellID == selectedWellId))
             .OrderBy(wb => wb.Name)
+            .ToList() ?? [];
+
+    private List<SurveyRunLight> AvailableSurveyRuns =>
+        surveyRunList
+            .Where(surveyRun =>
+                surveyRun?.MetaInfo != null &&
+                selectedWellBoreId != null &&
+                surveyRun.WellBoreID == selectedWellBoreId)
+            .OrderBy(surveyRun => surveyRun.Name)
+            .ToList();
+
+    private List<TrajectorySurveyRunSection> TrajectorySurveyRunSections =>
+        currentTrajectory.SurveyRunSectionList?
+            .OrderBy(section => section.StartAbscissa)
             .ToList() ?? [];
 
     private Task OnFieldChanged(Guid? fieldId)
@@ -711,6 +826,8 @@
     {
         selectedWellBoreId = wellBoreId;
         ApplySelectedContext();
+        RemoveSurveyRunSectionsFromOtherWellBores();
+        ClearDefinitiveFlagIfAnotherTrajectoryAlreadyUsesIt();
 
         if (wellBoreId is Guid selectedId)
         {
@@ -718,6 +835,63 @@
         }
 
         return Task.CompletedTask;
+    }
+
+    private Task OnTrajectoryTypeChanged(TrajectoryType trajectoryType)
+    {
+        currentTrajectory.TrajectoryType = trajectoryType;
+        ClearDefinitiveFlagIfAnotherTrajectoryAlreadyUsesIt();
+        return Task.CompletedTask;
+    }
+
+    private bool IsDefinitiveChoiceDisabled =>
+        !currentTrajectory.IsDefinitive && HasOtherDefinitiveTrajectory(currentTrajectory.TrajectoryType);
+
+    private string DefinitiveTooltipText =>
+        IsDefinitiveChoiceDisabled && GetOtherDefinitiveTrajectoryName(currentTrajectory.TrajectoryType) is { } name
+            ? $"Already marked as definitive: {name}"
+            : "Mark this trajectory as definitive";
+
+    private void ClearDefinitiveFlagIfAnotherTrajectoryAlreadyUsesIt()
+    {
+        if (currentTrajectory.IsDefinitive && HasOtherDefinitiveTrajectory(currentTrajectory.TrajectoryType))
+        {
+            currentTrajectory.IsDefinitive = false;
+        }
+    }
+
+    private bool HasOtherDefinitiveTrajectory(TrajectoryType trajectoryType)
+    {
+        Guid wellBoreId = selectedWellBoreId ?? currentTrajectory.WellBoreID;
+        if (wellBoreId == Guid.Empty || TrajectoryList == null)
+        {
+            return false;
+        }
+
+        Guid currentTrajectoryId = currentTrajectory.MetaInfo?.ID ?? Guid.Empty;
+        return TrajectoryList.Any(trajectory =>
+            trajectory?.MetaInfo?.ID is Guid trajectoryId &&
+            trajectoryId != currentTrajectoryId &&
+            trajectory.WellBoreID == wellBoreId &&
+            trajectory.TrajectoryType == trajectoryType &&
+            trajectory.IsDefinitive);
+    }
+
+    private string? GetOtherDefinitiveTrajectoryName(TrajectoryType trajectoryType)
+    {
+        Guid wellBoreId = selectedWellBoreId ?? currentTrajectory.WellBoreID;
+        if (wellBoreId == Guid.Empty || TrajectoryList == null)
+        {
+            return null;
+        }
+
+        Guid currentTrajectoryId = currentTrajectory.MetaInfo?.ID ?? Guid.Empty;
+        return TrajectoryList.FirstOrDefault(trajectory =>
+            trajectory?.MetaInfo?.ID is Guid trajectoryId &&
+            trajectoryId != currentTrajectoryId &&
+            trajectory.WellBoreID == wellBoreId &&
+            trajectory.TrajectoryType == trajectoryType &&
+            trajectory.IsDefinitive)?.Name;
     }
 
     private void ApplySelectedContext()
@@ -785,6 +959,9 @@
 
     private WellBore? FindWellBoreById(Guid wellBoreId) =>
         WellBoreList?.FirstOrDefault(wb => wb?.MetaInfo?.ID == wellBoreId);
+
+    private static string GetSurveyRunDisplayName(SurveyRunLight surveyRun) =>
+        $"{surveyRun.Name} ({surveyRun.SurveyRunType})";
 
     private static string FormatDate(DateTimeOffset? value) =>
         value?.ToString("yyyy-MM-dd HH:mm") ?? string.Empty;
@@ -1174,13 +1351,13 @@
             .ToList();
     }
 
-    private static SurveyPoint? InterpolateDisplayPoint(List<SurveyPoint> points, double targetDepth)
+    private static SurveyStation? InterpolateDisplayPoint(List<SurveyStation> points, double targetDepth)
     {
-        SurveyPoint? previous = points
+        SurveyStation? previous = points
             .Where(point => point.MD is { } depth && depth <= targetDepth)
             .OrderByDescending(point => point.MD)
             .FirstOrDefault();
-        SurveyPoint? next = points
+        SurveyStation? next = points
             .Where(point => point.MD is { } depth && depth >= targetDepth)
             .OrderBy(point => point.MD)
             .FirstOrDefault();
@@ -1206,7 +1383,7 @@
         }
 
         double ratio = (targetDepth - previousDepth) / (nextDepth - previousDepth);
-        return new SurveyPoint
+        return new SurveyStation
         {
             MD = targetDepth,
             Inclination = InterpolateValue(previous.Inclination, next.Inclination, ratio),
@@ -1220,7 +1397,7 @@
         };
     }
 
-    private static SurveyPoint CloneSurveyPoint(SurveyPoint point) =>
+    private static SurveyStation CloneSurveyPoint(SurveyStation point) =>
         new()
         {
             MD = point.MD,
@@ -1253,7 +1430,7 @@
         return startValue + (endValue - startValue) * ratio;
     }
 
-    private static double? GetVerticalSection(SurveyPoint? point)
+    private static double? GetVerticalSection(SurveyStation? point)
     {
         if (point?.RiemannianNorth is { } north && point.RiemannianEast is { } east)
         {
@@ -1490,7 +1667,7 @@
         sanitized = sanitized
             .Replace("°", "deg", StringComparison.Ordinal)
             .Replace("µ", "u", StringComparison.Ordinal)
-            .Replace("μ", "u", StringComparison.Ordinal);
+            .Replace("µ", "u", StringComparison.Ordinal);
 
         StringBuilder ascii = new(sanitized.Length);
         foreach (char c in sanitized)
@@ -1514,44 +1691,136 @@
         return builder.ToString().Trim();
     }
 
-    private void AddSurveyStation()
+    private void AddSurveyRunSection()
     {
-        double? lastMD = 0.0;
-        if (currentTrajectory.SurveyStationList.Count > 0)
-            lastMD = currentTrajectory.SurveyStationList.Last().MD;
-        currentTrajectory.SurveyStationList.Add(new SurveyStation() { MD = lastMD + 10 * currentTrajectory.MDStep, Inclination = 0, Azimuth = 0 });
+        currentTrajectory.SurveyRunSectionList ??= new List<TrajectorySurveyRunSection>();
+
+        SurveyRunLight? surveyRun = AvailableSurveyRuns
+            .FirstOrDefault(candidate => !currentTrajectory.SurveyRunSectionList.Any(section => section.SurveyRunID == candidate.MetaInfo.ID))
+            ?? AvailableSurveyRuns.FirstOrDefault();
+
+        if (surveyRun?.MetaInfo == null)
+        {
+            Snackbar.Add("No Survey Run is available for the selected WellBore", Severity.Warning);
+            return;
+        }
+
+        double startAbscissa = currentTrajectory.SurveyRunSectionList
+            .Select(section => section.StartAbscissa)
+            .DefaultIfEmpty(0.0)
+            .Max();
+
+        currentTrajectory.SurveyRunSectionList.Add(new TrajectorySurveyRunSection
+        {
+            SurveyRunID = surveyRun.MetaInfo.ID,
+            StartAbscissa = currentTrajectory.SurveyRunSectionList.Count == 0 ? 0.0 : startAbscissa + currentTrajectory.MDStep
+        });
+        ClearCalculatedTrajectoryData();
     }
-    private void DeleteSurveyStation(SurveyStation station)
+
+    private void DeleteSurveyRunSection(TrajectorySurveyRunSection section)
     {
-        currentTrajectory.SurveyStationList.Remove(station);
+        currentTrajectory.SurveyRunSectionList?.Remove(section);
+        selectedSurveyRunSections.Remove(section);
+        ClearCalculatedTrajectoryData();
     }
-    private void DeleteSurveyStations()
+
+    private void DeleteSurveyRunSections()
     {
-        foreach (SurveyStation point in selectedSurveyStations)
-            DeleteSurveyStation(point);
+        foreach (TrajectorySurveyRunSection section in selectedSurveyRunSections.ToList())
+        {
+            DeleteSurveyRunSection(section);
+        }
+        selectedSurveyRunSections.Clear();
     }
+
+    private void OnSurveyRunSectionSurveyRunChanged(TrajectorySurveyRunSection section, Guid? surveyRunId)
+    {
+        section.SurveyRunID = surveyRunId ?? Guid.Empty;
+        ClearCalculatedTrajectoryData();
+    }
+
+    private void OnSurveyRunSectionStartChanged(TrajectorySurveyRunSection section, double? startAbscissa)
+    {
+        section.StartAbscissa = startAbscissa ?? 0.0;
+        ClearCalculatedTrajectoryData();
+    }
+
+    private void NormalizeSurveyRunSections()
+    {
+        currentTrajectory.SurveyRunSectionList = currentTrajectory.SurveyRunSectionList?
+            .Where(section => section.SurveyRunID != Guid.Empty)
+            .OrderBy(section => section.StartAbscissa)
+            .ToList() ?? new List<TrajectorySurveyRunSection>();
+    }
+
+    private void RemoveSurveyRunSectionsFromOtherWellBores()
+    {
+        if (selectedWellBoreId == null || currentTrajectory.SurveyRunSectionList == null)
+        {
+            return;
+        }
+
+        HashSet<Guid> availableSurveyRunIds = AvailableSurveyRuns
+            .Where(surveyRun => surveyRun?.MetaInfo != null)
+            .Select(surveyRun => surveyRun.MetaInfo.ID)
+            .ToHashSet();
+
+        int countBefore = currentTrajectory.SurveyRunSectionList.Count;
+        currentTrajectory.SurveyRunSectionList = currentTrajectory.SurveyRunSectionList
+            .Where(section => availableSurveyRunIds.Contains(section.SurveyRunID))
+            .ToList();
+
+        if (currentTrajectory.SurveyRunSectionList.Count != countBefore)
+        {
+            selectedSurveyRunSections.Clear();
+            ClearCalculatedTrajectoryData();
+        }
+    }
+
     private bool IsValidTrajectory(Trajectory traj)
     {
-        bool success = false;
-        if (traj.MDStep > 0.0 && traj.SurveyStationList is { Count: > 2 } ssList)
+        if (traj.MDStep <= 0.0 || selectedWellBoreId == null || traj.SurveyRunSectionList is not { Count: > 0 } sectionList)
         {
-            success = true;
-            foreach (var ss in ssList)
-                success &= ss.MD is { } && ss.Inclination is { } && ss.Azimuth is { };
+            return false;
         }
-        return success;
+        if (traj.IsDefinitive && HasOtherDefinitiveTrajectory(traj.TrajectoryType))
+        {
+            return false;
+        }
+
+        HashSet<Guid> availableSurveyRunIds = AvailableSurveyRuns
+            .Where(surveyRun => surveyRun?.MetaInfo != null)
+            .Select(surveyRun => surveyRun.MetaInfo.ID)
+            .ToHashSet();
+
+        double? previousStart = null;
+        foreach (TrajectorySurveyRunSection section in sectionList.OrderBy(section => section.StartAbscissa))
+        {
+            if (section.SurveyRunID == Guid.Empty || !availableSurveyRunIds.Contains(section.SurveyRunID))
+            {
+                return false;
+            }
+            if (previousStart is { } previous && section.StartAbscissa <= previous)
+            {
+                return false;
+            }
+            previousStart = section.StartAbscissa;
+        }
+
+        return true;
     }
     private async Task InitializeTrajectoryAsync(Trajectory traj)
     {
         try
         {
             traj.WellBoreID = Guid.Empty;
+            traj.TrajectoryType = TrajectoryType.Actual;
+            traj.IsDefinitive = false;
             if (traj.MDStep == 0.0)
                 traj.MDStep = 10.0;
-            traj.SurveyStationList.Clear();
-            traj.SurveyStationList.Add(new SurveyStation() { MD = 0, Inclination = 0, Azimuth = 0, RiemannianNorth = 0, RiemannianEast = 0, TVD = 0 });
-            traj.SurveyStationList.Add(new SurveyStation() { MD = 10 * traj.MDStep, Inclination = 0, Azimuth = 0 });
-            traj.SurveyStationList.Add(new SurveyStation() { MD = 20 * traj.MDStep, Inclination = 0, Azimuth = 0 });
+            traj.SurveyRunSectionList = new List<TrajectorySurveyRunSection>();
+            traj.SurveyStationList = new List<SurveyStation>();
         }
         catch (Exception ex)
         {
@@ -1575,6 +1844,14 @@
             verticalSectionValuesList,
             [currentTrajectory]
         );
+        DataUtils.UpdateEllipsePlots(currentTrajectory?.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData);
+    }
+
+    private async Task OnEllipseResultsChanged(ICollection<SurveyStationEllipseResult> results)
+    {
+        ellipseResults = results?.ToList() ?? [];
+        DataUtils.UpdateEllipsePlots(currentTrajectory?.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData);
+        await InvokeAsync(StateHasChanged);
     }
 
     // Deep copy constructor
@@ -1614,9 +1891,18 @@
             ClusterID = source.ClusterID,
             WellID = source.WellID,
             WellBoreID = source.WellBoreID,
+            TrajectoryType = source.TrajectoryType,
+            IsDefinitive = false,
             CalculationType = source.CalculationType,
             MDStep = source.MDStep,
-            SurveyStationList = source.SurveyStationList
+            SurveyRunSectionList = source.SurveyRunSectionList?
+                .Select(section => new TrajectorySurveyRunSection
+                {
+                    SurveyRunID = section.SurveyRunID,
+                    StartAbscissa = section.StartAbscissa
+                })
+                .ToList() ?? new List<TrajectorySurveyRunSection>(),
+            SurveyStationList = source.SurveyStationList?
                 .Select(ss => new SurveyStation
                 {
                     MD = ss.MD,
@@ -1626,8 +1912,10 @@
                     RiemannianEast = ss.RiemannianEast,
                     TVD = ss.TVD
                 })
-                .ToList()
+                .ToList() ?? new List<SurveyStation>()
         };
     }
 
 }
+
+

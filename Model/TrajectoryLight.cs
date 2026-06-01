@@ -48,6 +48,17 @@ namespace NORCE.Drilling.Trajectory.Model
         /// </summary>
         public Guid WellBoreID { get; set; }
         /// <summary>
+        /// whether the trajectory represents an actual or planned trajectory
+        /// </summary>
+        public TrajectoryType TrajectoryType { get; set; } = TrajectoryType.Actual;
+        /// <summary>
+        /// whether the trajectory is the definitive trajectory for its type and wellbore
+        /// </summary>
+        public bool IsDefinitive { get; set; }
+        public CalculationState CalculationState { get; set; } = CalculationState.Completed;
+        public double CalculationProgress { get; set; } = 1.0;
+        public string? CalculationMessage { get; set; }
+        /// <summary>
         /// default constructor required for parsing the data model as a json file
         /// </summary>
         public TrajectoryLight() : base()
@@ -57,7 +68,7 @@ namespace NORCE.Drilling.Trajectory.Model
         /// <summary>
         /// base constructor
         /// </summary>
-        public TrajectoryLight(MetaInfo? metaInfo, string? name, string? descr, DateTimeOffset? creationDate, DateTimeOffset? modifDate, Guid? fieldId, Guid? clusterId, Guid? wellId, Guid wellboreId)
+        public TrajectoryLight(MetaInfo? metaInfo, string? name, string? descr, DateTimeOffset? creationDate, DateTimeOffset? modifDate, Guid? fieldId, Guid? clusterId, Guid? wellId, Guid wellboreId, TrajectoryType trajectoryType = TrajectoryType.Actual, bool isDefinitive = false)
         {
             MetaInfo = metaInfo;
             Name = name;
@@ -68,6 +79,8 @@ namespace NORCE.Drilling.Trajectory.Model
             ClusterID = clusterId;
             WellID = wellId;
             WellBoreID = wellboreId;
+            TrajectoryType = trajectoryType;
+            IsDefinitive = isDefinitive;
         }
     }
 }

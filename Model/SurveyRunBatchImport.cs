@@ -4,9 +4,9 @@ using System.Collections.Generic;
 namespace NORCE.Drilling.Trajectory.Model
 {
     /// <summary>
-    /// Persisted definition of a trajectory batch import configuration.
+    /// Persisted definition of a survey run batch import configuration.
     /// </summary>
-    public class TrajectoryBatchImport : TrajectoryBatchImportLight
+    public class SurveyRunBatchImport : SurveyRunBatchImportLight
     {
         public Guid? SelectedFieldId { get; set; }
         public Guid? SelectedClusterId { get; set; }
@@ -15,17 +15,19 @@ namespace NORCE.Drilling.Trajectory.Model
         public bool ReplaceExistingTrajectories { get; set; }
         public bool ReplaceTrajectoriesWithSameName { get; set; }
         public SurveyImportSettings? Settings { get; set; }
-        public List<TrajectoryBatchImportRow>? Rows { get; set; }
+        public List<SurveyRunBatchImportRow>? Rows { get; set; }
 
-        public TrajectoryBatchImport() : base()
+        public SurveyRunBatchImport() : base()
         {
         }
     }
 
-    public class TrajectoryBatchImportRow
+    public class SurveyRunBatchImportRow
     {
         public Guid RowId { get; set; } = Guid.NewGuid();
         public Guid? WellBoreId { get; set; }
+        public Guid? SurveyInstrumentId { get; set; }
+        public Guid? ParentSurveyRunId { get; set; }
         public string? DepthReferenceName { get; set; }
         public string? FileName { get; set; }
         public string? FileContentBase64 { get; set; }

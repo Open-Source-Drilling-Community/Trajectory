@@ -6,6 +6,8 @@ namespace NORCE.Drilling.Trajectory.WebPages;
 
 public static class DataUtils
 {
+    private const int MaxDisplayedUncertaintyEllipses = 200;
+
     // default values
     public static string FLOATING_COLOUR = "rgba(70, 50, 240, 0.86)";
     public static string FLOATING_COLOUR_DEEP = "rgba(232, 230, 241, 0.86)";
@@ -357,6 +359,249 @@ public static class DataUtils
                 }
             }
         }
+    }
+
+    public static void UpdateEllipsePlots(
+        IReadOnlyCollection<SurveyStation>? surveyStations,
+        IReadOnlyCollection<SurveyStationEllipseResult>? ellipseResults,
+        EllipsePlotData ellipsePlotData)
+    {
+        ellipsePlotData.Clear();
+        if (surveyStations is not { Count: > 0 } || ellipseResults is not { Count: > 0 })
+        {
+            return;
+        }
+
+        List<(SurveyStation Station, SurveyStationEllipseResult Result)> plotCandidates = [];
+        foreach (SurveyStationEllipseResult result in ellipseResults)
+        {
+            SurveyStation? station = FindStation(surveyStations, result.MD);
+            if (station == null)
+            {
+                continue;
+            }
+
+            plotCandidates.Add((station, result));
+        }
+
+        foreach ((SurveyStation station, SurveyStationEllipseResult result) in SelectEvenlySpacedEllipses(plotCandidates))
+        {
+            AddHorizontalEllipseTrace(station, result.HorizontalEllipse, ellipsePlotData);
+            AddVerticalEllipseTrace(station, result.VerticalEllipse, ellipsePlotData);
+            AddPerpendicularEllipseTrace(station, result.PerpendicularEllipse, ellipsePlotData);
+        }
+    }
+
+    private static IReadOnlyList<(SurveyStation Station, SurveyStationEllipseResult Result)> SelectEvenlySpacedEllipses(
+        IReadOnlyList<(SurveyStation Station, SurveyStationEllipseResult Result)> candidates)
+    {
+        if (candidates.Count <= MaxDisplayedUncertaintyEllipses)
+        {
+            return candidates;
+        }
+
+        List<(SurveyStation Station, SurveyStationEllipseResult Result)> orderedCandidates = candidates
+            .OrderBy(candidate => candidate.Result.MD ?? candidate.Station.MD ?? candidate.Station.Abscissa ?? double.MaxValue)
+            .ToList();
+        HashSet<int> selectedIndexes = [];
+        for (int sampleIndex = 0; sampleIndex < MaxDisplayedUncertaintyEllipses; sampleIndex++)
+        {
+            int sourceIndex = (int)System.Math.Round(sampleIndex * (orderedCandidates.Count - 1.0) / (MaxDisplayedUncertaintyEllipses - 1.0));
+            selectedIndexes.Add(System.Math.Clamp(sourceIndex, 0, orderedCandidates.Count - 1));
+        }
+
+        selectedIndexes.Add(orderedCandidates.Count - 1);
+        return selectedIndexes
+            .Order()
+            .Select(index => orderedCandidates[index])
+            .ToList();
+    }
+
+    private static SurveyStation? FindStation(IReadOnlyCollection<SurveyStation> surveyStations, double? md)
+    {
+        if (md is not { } definedMd)
+        {
+            return null;
+        }
+
+        return surveyStations
+            .Where(station => station != null && (station.MD ?? station.Abscissa) is { })
+            .OrderBy(station => System.Math.Abs(((station.MD ?? station.Abscissa) ?? double.MaxValue) - definedMd))
+            .FirstOrDefault();
+    }
+
+    private static void AddHorizontalEllipseTrace(SurveyStation station, SurveyStationEllipse? ellipse, EllipsePlotData plotData)
+    {
+        if (ellipse?.SemiMajorAxis is not double semiMajor ||
+            ellipse.SemiMinorAxis is not double semiMinor ||
+            ellipse.OrientationAngle is not double angle ||
+            GetNorth(station) is not double centerNorth ||
+            GetEast(station) is not double centerEast)
+        {
+            return;
+        }
+
+        List<object> northValues = [];
+        List<object> eastValues = [];
+        for (int i = 0; i <= 72; i++)
+        {
+            double phi = 2.0 * System.Math.PI * i / 72.0;
+            double major = semiMajor * System.Math.Cos(phi);
+            double minor = semiMinor * System.Math.Sin(phi);
+            double northOffset = major * System.Math.Cos(angle) - minor * System.Math.Sin(angle);
+            double eastOffset = major * System.Math.Sin(angle) + minor * System.Math.Cos(angle);
+            northValues.Add(centerNorth + northOffset);
+            eastValues.Add(centerEast + eastOffset);
+        }
+
+        bool showLegend = plotData.HorizontalNameList.Count == 0;
+        plotData.HorizontalNameList.Add("Horizontal ellipses");
+        plotData.HorizontalModeFlagList.Add(1);
+        plotData.HorizontalColorList.Add(COLORSCALE[0]);
+        plotData.HorizontalShowLegendList.Add(showLegend);
+        plotData.HorizontalNorthValuesList.Add(northValues);
+        plotData.HorizontalEastValuesList.Add(eastValues);
+    }
+
+    private static void AddVerticalEllipseTrace(SurveyStation station, SurveyStationEllipse? ellipse, EllipsePlotData plotData)
+    {
+        if (ellipse?.SemiMajorAxis is not double semiMajor ||
+            ellipse.SemiMinorAxis is not double semiMinor ||
+            ellipse.OrientationAngle is not double angle ||
+            GetVerticalSection(station) is not double centerVerticalSection ||
+            GetTvd(station) is not double centerTvd)
+        {
+            return;
+        }
+
+        List<object> verticalSectionValues = [];
+        List<object> tvdValues = [];
+        for (int i = 0; i <= 72; i++)
+        {
+            double phi = 2.0 * System.Math.PI * i / 72.0;
+            double major = semiMajor * System.Math.Cos(phi);
+            double minor = semiMinor * System.Math.Sin(phi);
+            double verticalSectionOffset = major * System.Math.Sin(angle) + minor * System.Math.Cos(angle);
+            double tvdOffset = major * System.Math.Cos(angle) - minor * System.Math.Sin(angle);
+            verticalSectionValues.Add(centerVerticalSection + verticalSectionOffset);
+            tvdValues.Add(centerTvd + tvdOffset);
+        }
+
+        bool showLegend = plotData.VerticalNameList.Count == 0;
+        plotData.VerticalNameList.Add("Vertical ellipses");
+        plotData.VerticalModeFlagList.Add(1);
+        plotData.VerticalColorList.Add(COLORSCALE[0]);
+        plotData.VerticalShowLegendList.Add(showLegend);
+        plotData.VerticalSectionValuesList.Add(verticalSectionValues);
+        plotData.VerticalTvdValuesList.Add(tvdValues);
+    }
+
+    private static void AddPerpendicularEllipseTrace(SurveyStation station, SurveyStationEllipse? ellipse, EllipsePlotData plotData)
+    {
+        if (ellipse?.SemiMajorAxis is not double semiMajor ||
+            ellipse.SemiMinorAxis is not double semiMinor ||
+            ellipse.OrientationAngle is not double angle ||
+            station.Inclination is not double inclination ||
+            station.Azimuth is not double azimuth ||
+            GetNorth(station) is not double centerNorth ||
+            GetEast(station) is not double centerEast ||
+            GetTvd(station) is not double centerTvd)
+        {
+            return;
+        }
+
+        double cosA = System.Math.Cos(azimuth);
+        double sinA = System.Math.Sin(azimuth);
+        double cosI = System.Math.Cos(inclination);
+        double sinI = System.Math.Sin(inclination);
+        double cosO = System.Math.Cos(angle);
+        double sinO = System.Math.Sin(angle);
+
+        List<object> northValues = [];
+        List<object> eastValues = [];
+        List<object> tvdValues = [];
+        for (int i = 0; i <= 72; i++)
+        {
+            double phi = 2.0 * System.Math.PI * i / 72.0;
+            double localX0 = semiMajor * System.Math.Cos(phi);
+            double localY0 = semiMinor * System.Math.Sin(phi);
+            double localX = localX0 * cosO - localY0 * sinO;
+            double localY = localX0 * sinO + localY0 * cosO;
+
+            double northOffset = cosA * cosI * localX - sinA * localY;
+            double eastOffset = sinA * cosI * localX + cosA * localY;
+            double tvdOffset = -sinI * localX;
+
+            northValues.Add(centerNorth + northOffset);
+            eastValues.Add(centerEast + eastOffset);
+            tvdValues.Add(centerTvd + tvdOffset);
+        }
+
+        bool showLegend = plotData.PerpendicularNameList.Count == 0;
+        plotData.PerpendicularNameList.Add("Perpendicular ellipses");
+        plotData.PerpendicularModeFlagList.Add(1);
+        plotData.PerpendicularColorList.Add(COLORSCALE[0]);
+        plotData.PerpendicularShowLegendList.Add(showLegend);
+        plotData.PerpendicularNorthValuesList.Add(northValues);
+        plotData.PerpendicularEastValuesList.Add(eastValues);
+        plotData.PerpendicularTvdValuesList.Add(tvdValues);
+    }
+
+    private static double? GetNorth(SurveyStation station) => station.X ?? station.RiemannianNorth;
+
+    private static double? GetEast(SurveyStation station) => station.Y ?? station.RiemannianEast;
+
+    private static double? GetTvd(SurveyStation station) => station.Z ?? station.TVD;
+
+    private static double? GetVerticalSection(SurveyStation station) => station.VerticalSection ?? station.MD ?? station.Abscissa;
+
+}
+
+public class EllipsePlotData
+{
+    public List<string> HorizontalNameList { get; } = [];
+    public List<int> HorizontalModeFlagList { get; } = [];
+    public List<string> HorizontalColorList { get; } = [];
+    public List<bool> HorizontalShowLegendList { get; } = [];
+    public List<List<object>> HorizontalNorthValuesList { get; } = [];
+    public List<List<object>> HorizontalEastValuesList { get; } = [];
+
+    public List<string> VerticalNameList { get; } = [];
+    public List<int> VerticalModeFlagList { get; } = [];
+    public List<string> VerticalColorList { get; } = [];
+    public List<bool> VerticalShowLegendList { get; } = [];
+    public List<List<object>> VerticalSectionValuesList { get; } = [];
+    public List<List<object>> VerticalTvdValuesList { get; } = [];
+
+    public List<string> PerpendicularNameList { get; } = [];
+    public List<int> PerpendicularModeFlagList { get; } = [];
+    public List<string> PerpendicularColorList { get; } = [];
+    public List<bool> PerpendicularShowLegendList { get; } = [];
+    public List<List<object>> PerpendicularNorthValuesList { get; } = [];
+    public List<List<object>> PerpendicularEastValuesList { get; } = [];
+    public List<List<object>> PerpendicularTvdValuesList { get; } = [];
+
+    public void Clear()
+    {
+        HorizontalNameList.Clear();
+        HorizontalModeFlagList.Clear();
+        HorizontalColorList.Clear();
+        HorizontalShowLegendList.Clear();
+        HorizontalNorthValuesList.Clear();
+        HorizontalEastValuesList.Clear();
+        VerticalNameList.Clear();
+        VerticalModeFlagList.Clear();
+        VerticalColorList.Clear();
+        VerticalShowLegendList.Clear();
+        VerticalSectionValuesList.Clear();
+        VerticalTvdValuesList.Clear();
+        PerpendicularNameList.Clear();
+        PerpendicularModeFlagList.Clear();
+        PerpendicularColorList.Clear();
+        PerpendicularShowLegendList.Clear();
+        PerpendicularNorthValuesList.Clear();
+        PerpendicularEastValuesList.Clear();
+        PerpendicularTvdValuesList.Clear();
     }
 }
 public class GroundMudLineDepthReferenceSource : IGroundMudLineDepthReferenceSource

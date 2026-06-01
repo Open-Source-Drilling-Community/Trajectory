@@ -1,0 +1,143 @@
+﻿@inject ILogger<SurveyStationEllipseTable> logger
+@inject ISnackbar Snackbar
+@inject ITrajectoryAPIUtils Api
+@using System.Linq
+
+<MudPaper Class="pa-4 mt-4" Outlined="true">
+    <MudToolBar>
+        <MudText Typo="Typo.h6">Uncertainty ellipses</MudText>
+        <MudSpacer />
+        <MudNumericField T="double" Label="Confidence factor" Value="@confidenceFactor_" ValueChanged="OnConfidenceFactorChanged"
+                         Min="0.0001" Max="0.9999" Step="0.01" Immediate="true" Style="max-width: 180px;" />
+        <MudButton Class="ms-2" Color="Color.Primary" Variant="Variant.Outlined" OnClick="CalculateEllipsesAsync"
+                   Disabled="@(!CanCalculate || isCalculating_)">Calculate</MudButton>
+    </MudToolBar>
+    @if (isCalculating_)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Info" Class="mb-2" />
+    }
+
+    @if (ellipseResults_ is { Count: > 0 })
+    {
+        <MudTable Items="@ellipseResults_" T="SurveyStationEllipseResult" Height="400px" FixedHeader="true"
+                          Virtualize="true" OverscanCount="3" ItemSize="38"
+                          Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" ReadOnly="true">
+            <HeaderContent>
+                <MudTHeadRow>
+                    <MudTh rowspan="2">Measured Depth [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
+                    <MudTh colspan="3">Horizontal</MudTh>
+                    <MudTh colspan="3">Vertical</MudTh>
+                    <MudTh colspan="3">Perpendicular</MudTh>
+                </MudTHeadRow>
+                <MudTHeadRow>
+                    <MudTh>Semi-long [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                    <MudTh>Semi-short [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                    <MudTh>Angle [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                    <MudTh>Semi-long [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                    <MudTh>Semi-short [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                    <MudTh>Angle [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                    <MudTh>Semi-long [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                    <MudTh>Semi-short [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                    <MudTh>Angle [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                </MudTHeadRow>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="Measured Depth">
+                    <MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.MD" />
+                </MudTd>
+                @EllipseCells(context.HorizontalEllipse)
+                @EllipseCells(context.VerticalEllipse)
+                @EllipseCells(context.PerpendicularEllipse)
+            </RowTemplate>
+        </MudTable>
+    }
+</MudPaper>
+
+@code {
+    [CascadingParameter] private MudUnitAndReferenceChoiceTag? Parent { get; set; }
+    [Parameter] public ICollection<SurveyStation>? SurveyStationList { get; set; }
+    [Parameter] public Guid? SurveyInstrumentID { get; set; }
+    [Parameter] public string? CalculationName { get; set; }
+    [Parameter] public EventCallback<ICollection<SurveyStationEllipseResult>> EllipseResultsChanged { get; set; }
+
+    private double confidenceFactor_ = 0.95;
+    private List<SurveyStationEllipseResult> ellipseResults_ = [];
+    private bool isCalculating_;
+
+    private bool CanCalculate =>
+        SurveyStationList is { Count: > 0 } &&
+        confidenceFactor_ > 0.0 &&
+        confidenceFactor_ < 1.0;
+
+    private async Task OnConfidenceFactorChanged(double value)
+    {
+        confidenceFactor_ = value;
+        ellipseResults_ = [];
+        await EllipseResultsChanged.InvokeAsync(ellipseResults_);
+    }
+
+    private async Task CalculateEllipsesAsync()
+    {
+        if (!CanCalculate || SurveyStationList == null)
+        {
+            Snackbar.Add("No survey stations available for ellipse calculation", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            isCalculating_ = true;
+            SurveyStationEllipseCalculation order = new()
+            {
+                MetaInfo = PseudoConstructors.ConstructMetaInfo(),
+                Name = string.IsNullOrWhiteSpace(CalculationName) ? "Survey station ellipse calculation" : CalculationName,
+                Description = string.Empty,
+                CreationDate = DateTimeOffset.UtcNow,
+                LastModificationDate = DateTimeOffset.UtcNow,
+                ConfidenceFactor = confidenceFactor_,
+                SurveyInstrumentID = SurveyInstrumentID,
+                SurveyStationList = SurveyStationList.ToList()
+            };
+
+            SurveyStationEllipseCalculation result = await Api.ClientTrajectory.PostSurveyStationEllipseCalculationAsync(order);
+            ellipseResults_ = result.SurveyStationEllipseResultList?.ToList() ?? [];
+            await EllipseResultsChanged.InvokeAsync(ellipseResults_);
+            if (ellipseResults_.Count == 0)
+            {
+                Snackbar.Add("No uncertainty ellipses could be calculated", Severity.Warning);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem while calculating uncertainty ellipses");
+            Snackbar.Add("Problem while calculating uncertainty ellipses: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            isCalculating_ = false;
+        }
+    }
+
+    private RenderFragment EllipseCells(SurveyStationEllipse? ellipse) => @<text>
+        <MudTd>
+            @if (ellipse?.SemiMajorAxis is double semiMajorAxis)
+            {
+                <MudSpanWithUnit QuantityName="PositionDrilling" SIValue="@semiMajorAxis" />
+            }
+        </MudTd>
+        <MudTd>
+            @if (ellipse?.SemiMinorAxis is double semiMinorAxis)
+            {
+                <MudSpanWithUnit QuantityName="PositionDrilling" SIValue="@semiMinorAxis" />
+            }
+        </MudTd>
+        <MudTd>
+            @if (ellipse?.OrientationAngle is double orientationAngle)
+            {
+                <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@orientationAngle" />
+            }
+        </MudTd>
+    </text>;
+}
+
+

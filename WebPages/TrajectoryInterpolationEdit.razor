@@ -1,4 +1,4 @@
-@inject ILogger<TrajectoryInterpolationEdit> logger
+﻿@inject ILogger<TrajectoryInterpolationEdit> logger
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
 @inject ITrajectoryAPIUtils Api
@@ -124,15 +124,26 @@
         </MudGrid>
     </MudPaper>
 
-    <MudToolBar>
-        <MudText Typo="Typo.h6">Interpolated survey points</MudText>
-        <MudSpacer />
-        <MudButton OnClick="ExportInterpolatedSurveyPointsAsync" Color="@Color.Primary" Variant="Variant.Outlined">Export</MudButton>
-    </MudToolBar>
+    <MudExpansionPanels Class="mt-4" Style="overflow-y: auto; max-height: none;">
+        <MudExpansionPanel Text="Interpolated survey points" ExpandedChanged="@OnCalculatedStationsPanelExpandedChanged">
+            <MudToolBar>
+                <MudText Typo="Typo.h6">Interpolated survey points</MudText>
+                <MudSpacer />
+                <MudButton OnClick="ExportInterpolatedSurveyPointsAsync" Color="@Color.Primary" Variant="Variant.Outlined" Disabled="@isLoadingCalculatedStations_">Export</MudButton>
+            </MudToolBar>
 
-    @if (traj.SurveyStationList is { Count: > 0 } surveyStations)
-    {
-        <MudTable Items="@surveyStations" T="SurveyStation" Height="400px" FixedHeader="true" Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" ReadOnly="true">
+            @if (isLoadingCalculatedStations_)
+            {
+                <MudPaper Class="pa-4" Outlined="true">
+                    <MudText Typo="Typo.body2">@InterpolatedStationLoadingText</MudText>
+                    <MudProgressLinear Value="@InterpolatedStationLoadingProgressPercent" Color="Color.Info" Class="mt-2" />
+                </MudPaper>
+            }
+            else if (traj.SurveyStationList is { Count: > 0 } surveyStations)
+            {
+                <MudTable Items="@surveyStations" T="SurveyStation" Height="400px" FixedHeader="true"
+                          Virtualize="true" OverscanCount="3" ItemSize="38"
+                          Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" ReadOnly="true">
             <HeaderContent>
                 <MudTHeadRow>
                     <MudTh>Measured Depth [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
@@ -161,12 +172,92 @@
                 <MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.TUR" /></MudTd>
                 <MudTd>@context.Annotation</MudTd>
             </RowTemplate>
-        </MudTable>
-    }
-    else
-    {
-        <MudText>No interpolated survey points</MudText>
-    }
+                </MudTable>
+            }
+            else
+            {
+                <MudText>No interpolated survey points</MudText>
+            }
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="Uncertainty ellipses" ExpandedChanged="@OnCalculatedStationsPanelExpandedChanged">
+            @if (isLoadingCalculatedStations_)
+            {
+                <MudPaper Class="pa-4" Outlined="true">
+                    <MudText Typo="Typo.body2">@InterpolatedStationLoadingText</MudText>
+                    <MudProgressLinear Value="@InterpolatedStationLoadingProgressPercent" Color="Color.Info" Class="mt-2" />
+                </MudPaper>
+            }
+            else if (traj.SurveyStationList is { Count: > 0 } surveyStations)
+            {
+                <SurveyStationEllipseTable SurveyStationList="@surveyStations"
+                                           CalculationName="@($"{traj.Name} uncertainty ellipses")"
+                                           EllipseResultsChanged="OnEllipseResultsChanged" />
+            }
+            else
+            {
+                <MudText>No interpolated survey points</MudText>
+            }
+        </MudExpansionPanel>
+        <MudExpansionPanel Text="Plot interpolated trajectory" Style="overflow: visible;" ExpandedChanged="@OnCalculatedStationsPanelExpandedChanged">
+            @if (isLoadingCalculatedStations_)
+            {
+                <MudPaper Class="pa-4" Outlined="true">
+                    <MudText Typo="Typo.body2">@InterpolatedStationLoadingText</MudText>
+                    <MudProgressLinear Value="@InterpolatedStationLoadingProgressPercent" Color="Color.Info" Class="mt-2" />
+                </MudPaper>
+            }
+            else if (traj.SurveyStationList is { Count: > 0 })
+            {
+                <MudToolBar>
+                    <MudText Typo="Typo.h6">Plot</MudText>
+                </MudToolBar>
+                <MudGrid Justify="Justify.Center">
+                    <MudItem xs="12">
+                        <Scatter3DPlot NameList="@ThreeDNameList" ModeFlagList="@ThreeDModeFlagList" ColorList="@ThreeDColorList"
+                                       ShowLegendList="@ThreeDShowLegendList"
+                                       XValuesList="@ThreeDNorthValuesList" YValuesList="@ThreeDEastValuesList" ZValuesList="@ThreeDTvdValuesList"
+                                       YAxisReversed="@true" ZAxisReversed="@true"
+                                       PlotTitle="" XAxisTitle="@NorthCoordinateLabel" YAxisTitle="@EastCoordinateLabel" ZAxisTitle="TVD"
+                                       XUnit="PositionDrilling" YUnit="PositionDrilling" ZUnit="DepthDrilling"
+                                       XAxisUsesPositionReference="@true"
+                                       YAxisUsesPositionReference="@true"
+                                       ZAxisUsesDepthReference="@true"
+                                       XAxisPositionDirection="@PositionDirectionType.North"
+                                       YAxisPositionDirection="@PositionDirectionType.East">
+                        </Scatter3DPlot>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <ScatterPlot NameList="@HorizontalNameList" ModeFlagList="@HorizontalModeFlagList" ColorList="@HorizontalColorList"
+                                     ShowLegendList="@HorizontalShowLegendList"
+                                     XValuesList="@HorizontalEastValuesList" YValuesList="@HorizontalNorthValuesList"
+                                     PlotTitle="" XAxisTitle="@EastCoordinateLabel" YAxisTitle="@NorthCoordinateLabel"
+                                     XUnit="PositionDrilling" YUnit="PositionDrilling"
+                                     XAxisUsesPositionReference="@true"
+                                     YAxisUsesPositionReference="@true"
+                                     XAxisPositionDirection="@PositionDirectionType.East"
+                                     YAxisPositionDirection="@PositionDirectionType.North"
+                                     AspectRatio="1">
+                        </ScatterPlot>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <ScatterPlot NameList="@VerticalNameList" ModeFlagList="@VerticalModeFlagList" ColorList="@VerticalColorList"
+                                     ShowLegendList="@VerticalShowLegendList"
+                                     XValuesList="@VerticalSectionValuesList" YValuesList="@VerticalTvdValuesList"
+                                     PlotTitle="" XAxisTitle="Vertical Section" YAxisTitle="TVD"
+                                     XUnit="DepthDrilling" YUnit="DepthDrilling"
+                                     YAxisReversed="@true"
+                                     YAxisUsesDepthReference="@true"
+                                     XAxisStartsAtZero="@true">
+                        </ScatterPlot>
+                    </MudItem>
+                </MudGrid>
+            }
+            else
+            {
+                <MudText>No interpolated survey points</MudText>
+            }
+        </MudExpansionPanel>
+    </MudExpansionPanels>
 }
 
 @code {
@@ -190,15 +281,64 @@
     private string? supplementaryInterpolationAnnotationInput;
     private List<WellBoreArchitecture>? wellBoreArchitectureHeavyList;
     private bool isLoadingWellBoreArchitectureData;
+    private readonly List<string> nameList = [];
+    private readonly List<int> modeFlagList = [];
+    private readonly List<string> colorList = [];
+    private readonly List<List<object>> northValuesList = [];
+    private readonly List<List<object>> eastValuesList = [];
+    private readonly List<List<object>> tvdValuesList = [];
+    private readonly List<List<object>> verticalSectionValuesList = [];
+    private readonly EllipsePlotData ellipsePlotData = new();
+    private List<SurveyStationEllipseResult> ellipseResults = [];
+    private bool isLoadingCalculatedStations_;
+    private bool calculatedStationLoadComplete_;
+    private int calculatedStationChunkCount_;
+    private int calculatedStationChunksLoaded_;
+    private int calculatedStationsLoaded_;
+
+    private List<string> HorizontalNameList => Combine(nameList, ellipsePlotData.HorizontalNameList);
+    private List<int> HorizontalModeFlagList => Combine(modeFlagList, ellipsePlotData.HorizontalModeFlagList);
+    private List<string> HorizontalColorList => Combine(colorList, ellipsePlotData.HorizontalColorList);
+    private List<bool> HorizontalShowLegendList => CombineLegendFlags(nameList.Count, ellipsePlotData.HorizontalShowLegendList);
+    private List<List<object>> HorizontalEastValuesList => Combine(eastValuesList, ellipsePlotData.HorizontalEastValuesList);
+    private List<List<object>> HorizontalNorthValuesList => Combine(northValuesList, ellipsePlotData.HorizontalNorthValuesList);
+
+    private List<string> VerticalNameList => Combine(nameList, ellipsePlotData.VerticalNameList);
+    private List<int> VerticalModeFlagList => Combine(modeFlagList, ellipsePlotData.VerticalModeFlagList);
+    private List<string> VerticalColorList => Combine(colorList, ellipsePlotData.VerticalColorList);
+    private List<bool> VerticalShowLegendList => CombineLegendFlags(nameList.Count, ellipsePlotData.VerticalShowLegendList);
+    private List<List<object>> VerticalSectionValuesList => Combine(verticalSectionValuesList, ellipsePlotData.VerticalSectionValuesList);
+    private List<List<object>> VerticalTvdValuesList => Combine(tvdValuesList, ellipsePlotData.VerticalTvdValuesList);
+
+    private List<string> ThreeDNameList => Combine(nameList, ellipsePlotData.PerpendicularNameList);
+    private List<int> ThreeDModeFlagList => Combine(modeFlagList, ellipsePlotData.PerpendicularModeFlagList);
+    private List<string> ThreeDColorList => Combine(colorList, ellipsePlotData.PerpendicularColorList);
+    private List<bool> ThreeDShowLegendList => CombineLegendFlags(nameList.Count, ellipsePlotData.PerpendicularShowLegendList);
+    private List<List<object>> ThreeDNorthValuesList => Combine(northValuesList, ellipsePlotData.PerpendicularNorthValuesList);
+    private List<List<object>> ThreeDEastValuesList => Combine(eastValuesList, ellipsePlotData.PerpendicularEastValuesList);
+    private List<List<object>> ThreeDTvdValuesList => Combine(tvdValuesList, ellipsePlotData.PerpendicularTvdValuesList);
+
+    private static List<T> Combine<T>(IEnumerable<T> first, IEnumerable<T> second) => first.Concat(second).ToList();
+    private static List<bool> CombineLegendFlags(int baseTraceCount, IEnumerable<bool> ellipseFlags) =>
+        Enumerable.Repeat(true, baseTraceCount).Concat(ellipseFlags).ToList();
+    private double InterpolatedStationLoadingProgressPercent =>
+        calculatedStationChunkCount_ <= 0 ? 0.0 : 100.0 * calculatedStationChunksLoaded_ / calculatedStationChunkCount_;
+    private string InterpolatedStationLoadingText =>
+        calculatedStationChunkCount_ <= 0
+            ? "Loading interpolated survey point chunks..."
+            : $"Loading interpolated survey point chunks {calculatedStationChunksLoaded_}/{calculatedStationChunkCount_} ({calculatedStationsLoaded_:N0} stations)";
 
     protected override async Task OnParametersSetAsync() => await LoadDataAsync();
 
     private async Task LoadDataAsync()
     {
         currentInterpolatedTrajectory = InterpolatedTrajectoryId is Guid id ? await Api.ClientTrajectory.GetInterpolatedTrajectoryByIdAsync(id) : CreateInterpolatedTrajectory();
+        currentInterpolatedTrajectory.SurveyStationList ??= [];
+        ResetCalculatedStationLoadingState();
         selectedTrajectoryId = currentInterpolatedTrajectory.TrajectoryID == Guid.Empty ? null : currentInterpolatedTrajectory.TrajectoryID;
         SyncSelectorsFromTrajectory(selectedTrajectoryId);
         UpdateReferenceSources();
+        UpdatePlots();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -214,6 +354,9 @@
             if (InterpolatedTrajectoryId is Guid id)
             {
                 await Api.ClientTrajectory.PutInterpolatedTrajectoryByIdAsync(id, currentInterpolatedTrajectory);
+                currentInterpolatedTrajectory = await Api.ClientTrajectory.GetInterpolatedTrajectoryByIdAsync(id);
+                currentInterpolatedTrajectory.SurveyStationList ??= [];
+                ResetCalculatedStationLoadingState();
                 Snackbar.Add("Interpolated trajectory updated successfully", Severity.Success);
             }
             else
@@ -221,6 +364,9 @@
                 currentInterpolatedTrajectory.MetaInfo.ID = currentInterpolatedTrajectory.MetaInfo.ID == Guid.Empty ? Guid.NewGuid() : currentInterpolatedTrajectory.MetaInfo.ID;
                 currentInterpolatedTrajectory.CreationDate ??= DateTimeOffset.UtcNow;
                 await Api.ClientTrajectory.PostInterpolatedTrajectoryAsync(currentInterpolatedTrajectory);
+                currentInterpolatedTrajectory = await Api.ClientTrajectory.GetInterpolatedTrajectoryByIdAsync(currentInterpolatedTrajectory.MetaInfo.ID);
+                currentInterpolatedTrajectory.SurveyStationList ??= [];
+                ResetCalculatedStationLoadingState();
                 Snackbar.Add("Interpolated trajectory created successfully", Severity.Success);
             }
             await SendMessage();
@@ -233,6 +379,91 @@
     }
 
     private Task SendMessage() => ValueChanged.InvokeAsync();
+
+    private Task OnCalculatedStationsPanelExpandedChanged(bool expanded)
+    {
+        if (expanded)
+        {
+            StartCalculatedStationLoading();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void StartCalculatedStationLoading()
+    {
+        if (calculatedStationLoadComplete_ || isLoadingCalculatedStations_)
+        {
+            return;
+        }
+
+        _ = LoadInterpolatedTrajectoryCalculatedStationsAsync(currentInterpolatedTrajectory);
+    }
+
+    private void ResetCalculatedStationLoadingState()
+    {
+        calculatedStationLoadComplete_ = false;
+        isLoadingCalculatedStations_ = false;
+        calculatedStationChunkCount_ = 0;
+        calculatedStationChunksLoaded_ = 0;
+        calculatedStationsLoaded_ = 0;
+    }
+
+    private async Task LoadInterpolatedTrajectoryCalculatedStationsAsync(InterpolatedTrajectory? interpolatedTrajectory)
+    {
+        if (interpolatedTrajectory?.MetaInfo?.ID is not Guid interpolatedTrajectoryId || interpolatedTrajectoryId == Guid.Empty)
+        {
+            return;
+        }
+
+        isLoadingCalculatedStations_ = true;
+        calculatedStationLoadComplete_ = false;
+        calculatedStationChunkCount_ = 0;
+        calculatedStationChunksLoaded_ = 0;
+        calculatedStationsLoaded_ = 0;
+        interpolatedTrajectory.SurveyStationList = [];
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            int chunkCount = await Api.ClientTrajectory.GetInterpolatedTrajectorySurveyStationChunkCountAsync(interpolatedTrajectoryId);
+            calculatedStationChunkCount_ = chunkCount;
+            await InvokeAsync(StateHasChanged);
+            if (chunkCount <= 0)
+            {
+                interpolatedTrajectory.SurveyStationList ??= [];
+                calculatedStationLoadComplete_ = true;
+                return;
+            }
+
+            List<SurveyStation> stations = [];
+            for (int chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
+            {
+                SurveyStationChunk chunk = await Api.ClientTrajectory.GetInterpolatedTrajectorySurveyStationChunkAsync(interpolatedTrajectoryId, chunkIndex);
+                if (chunk.SurveyStationList is { Count: > 0 } chunkStations)
+                {
+                    stations.AddRange(chunkStations);
+                }
+
+                calculatedStationChunksLoaded_ = chunkIndex + 1;
+                calculatedStationsLoaded_ = stations.Count;
+                if (chunkIndex == 0 || calculatedStationChunksLoaded_ == chunkCount || calculatedStationChunksLoaded_ % 5 == 0)
+                {
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+
+            interpolatedTrajectory.SurveyStationList = stations;
+            calculatedStationLoadComplete_ = true;
+            UpdatePlots();
+        }
+        finally
+        {
+            isLoadingCalculatedStations_ = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
     private static InterpolatedTrajectory CreateInterpolatedTrajectory() => new() { MetaInfo = PseudoConstructors.ConstructMetaInfo(), Name = "Default Name", Description = string.Empty, CreationDate = DateTimeOffset.UtcNow, LastModificationDate = DateTimeOffset.UtcNow, SurveyStationList = [], AdditionalAbscissaList = [], InternalAdditionalAbscissaList = [] };
     private List<AnnotatedAbscissa> AdditionalAbscissas => currentInterpolatedTrajectory.AdditionalAbscissaList?.OrderBy(x => x.Abscissa).ToList() ?? [];
     private double? InterpolationStepValue => currentInterpolatedTrajectory.InterpolationStep;
@@ -297,6 +528,32 @@
     private string EastCoordinateLabel => GetCoordinateLabel(PositionDirectionType.East);
     private string AdditionalDepthReferenceRenderKey => Parent?.DepthReferenceName ?? DataUtils.UnitAndReferenceParameters.DepthReferenceName ?? "DepthReference";
     private void UpdateReferenceSources() => DataUtils.ApplyTrajectoryReferenceValues(selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList, RigList);
+    private void UpdatePlots()
+    {
+        Trajectory plotTrajectory = new()
+        {
+            Name = currentInterpolatedTrajectory.Name,
+            SurveyStationList = currentInterpolatedTrajectory.SurveyStationList
+        };
+
+        DataUtils.UpdatePlots(
+            nameList,
+            modeFlagList,
+            colorList,
+            northValuesList,
+            eastValuesList,
+            tvdValuesList,
+            verticalSectionValuesList,
+            [plotTrajectory]);
+        DataUtils.UpdateEllipsePlots(currentInterpolatedTrajectory.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData);
+    }
+
+    private async Task OnEllipseResultsChanged(ICollection<SurveyStationEllipseResult> results)
+    {
+        ellipseResults = results?.ToList() ?? [];
+        DataUtils.UpdateEllipsePlots(currentInterpolatedTrajectory.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData);
+        await InvokeAsync(StateHasChanged);
+    }
     private string GetCoordinateLabel(PositionDirectionType direction) { string? positionReferenceName = Parent?.PositionReferenceName ?? DataUtils.UnitAndReferenceParameters.PositionReferenceName; if (string.Equals(positionReferenceName, "WGS84", StringComparison.OrdinalIgnoreCase)) return direction == PositionDirectionType.North ? "Riemann North" : "Riemann East"; if (string.Equals(positionReferenceName, "Cartographic", StringComparison.OrdinalIgnoreCase)) return direction == PositionDirectionType.North ? "Northing" : "Easting"; return direction == PositionDirectionType.North ? "North" : "East"; }
     private async Task ExportInterpolatedSurveyPointsAsync() { if (currentInterpolatedTrajectory.SurveyStationList is not { Count: > 0 } stations) { Snackbar.Add("No interpolated survey points to export", Severity.Warning); return; } string[] headers = [$"Measured Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]", $"Inclination [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]", $"Azimuth [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]", $"Vertical Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]", $"{NorthCoordinateLabel} [{Parent?.GetUnitLabel("PositionDrilling")}]", $"{EastCoordinateLabel} [{Parent?.GetUnitLabel("PositionDrilling")}]", $"Vertical Section [{Parent?.GetUnitLabel("DepthDrilling")}]", $"Curvature [{Parent?.GetUnitLabel("CurvatureDrilling")}]", $"BUR [{Parent?.GetUnitLabel("CurvatureDrilling")}]", $"TR [{Parent?.GetUnitLabel("CurvatureDrilling")}]", "Annotation"]; StringBuilder builder = new(); builder.AppendLine(string.Join('\t', headers.Select(SanitizeExportField))); foreach (SurveyStation station in stations) { builder.AppendLine(string.Join('\t', new[] { ConvertDepthForExport(station.MD), ConvertQuantityForExport(station.Inclination, "PlaneAngleDrilling"), ConvertQuantityForExport(station.Azimuth, "PlaneAngleDrilling"), ConvertDepthForExport(station.TVD), ConvertPositionForExport(station.RiemannianNorth, PositionDirectionType.North), ConvertPositionForExport(station.RiemannianEast, PositionDirectionType.East), ConvertQuantityForExport(station.VerticalSection, "DepthDrilling"), ConvertQuantityForExport(station.Curvature, "CurvatureDrilling"), ConvertQuantityForExport(station.BUR, "CurvatureDrilling"), ConvertQuantityForExport(station.TUR, "CurvatureDrilling"), station.Annotation ?? string.Empty }.Select(SanitizeExportField))); } string fileName = $"{SanitizeFileName(string.IsNullOrWhiteSpace(currentInterpolatedTrajectory.Name) ? "interpolated-trajectory" : currentInterpolatedTrajectory.Name)}-survey-points.tsv"; string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(builder.ToString())); await JSRuntime.InvokeVoidAsync("trajectoryDownloads.saveTextFileFromBase64", fileName, base64Content, "text/tab-separated-values;charset=utf-8"); Snackbar.Add("Exported interpolated survey points", Severity.Success); }
     private string ConvertDepthForExport(double? value) => Parent == null || value is not { } depth ? string.Empty : NormalizeExportNumber(Parent.FromWGS84DepthSI(depth, "DepthDrilling", false));
@@ -379,13 +636,41 @@
 
         try
         {
-            return await Api.ClientTrajectory.GetTrajectoryByIdAsync(trajectoryId);
+            Trajectory trajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(trajectoryId);
+            await LoadTrajectoryCalculatedStationsAsync(trajectory);
+            return trajectory;
         }
         catch (Exception ex)
         {
             logger.LogWarning(ex, "Unable to load source trajectory {TrajectoryId} while preparing internal interpolation depths", trajectoryId);
             return null;
         }
+    }
+    private async Task LoadTrajectoryCalculatedStationsAsync(Trajectory? trajectory)
+    {
+        if (trajectory?.MetaInfo?.ID is not Guid trajectoryId || trajectoryId == Guid.Empty)
+        {
+            return;
+        }
+
+        int chunkCount = await Api.ClientTrajectory.GetTrajectorySurveyStationChunkCountAsync(trajectoryId);
+        if (chunkCount <= 0)
+        {
+            trajectory.SurveyStationList ??= [];
+            return;
+        }
+
+        List<SurveyStation> stations = [];
+        for (int chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
+        {
+            SurveyStationChunk chunk = await Api.ClientTrajectory.GetTrajectorySurveyStationChunkAsync(trajectoryId, chunkIndex);
+            if (chunk.SurveyStationList is { Count: > 0 } chunkStations)
+            {
+                stations.AddRange(chunkStations);
+            }
+        }
+
+        trajectory.SurveyStationList = stations;
     }
     private static double? ResolveFirstSurveyOutputMd(Trajectory? trajectory, WellBoreArchitecture? architecture)
     {
@@ -697,6 +982,9 @@
     private static double? GetGaussianMean(GaussianDrillingProperty? property) => property?.GaussianValue?.Mean;
     private static double? GetScalarValue(ScalarDrillingProperty? property) => property?.DiracDistributionValue?.Value;
     private static string NormalizeExportNumber(string? value) { if (string.IsNullOrWhiteSpace(value)) return string.Empty; string trimmed = value.Trim().Replace("\u00A0", string.Empty, StringComparison.Ordinal).Replace(" ", string.Empty, StringComparison.Ordinal); if (double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out double parsed) || double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out parsed) || double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, new CultureInfo("nb-NO"), out parsed)) return parsed.ToString("G17", CultureInfo.InvariantCulture); return trimmed.Replace(',', '.'); }
-    private static string SanitizeExportField(string? value) { if (string.IsNullOrEmpty(value)) return string.Empty; string sanitized = value.Replace("\r", " ", StringComparison.Ordinal).Replace("\n", " ", StringComparison.Ordinal).Replace("\t", " ", StringComparison.Ordinal).Trim().Replace("°", "deg", StringComparison.Ordinal).Replace("µ", "u", StringComparison.Ordinal).Replace("μ", "u", StringComparison.Ordinal); StringBuilder ascii = new(sanitized.Length); foreach (char c in sanitized) ascii.Append(c <= sbyte.MaxValue ? c : '?'); return ascii.ToString(); }
+    private static string SanitizeExportField(string? value) { if (string.IsNullOrEmpty(value)) return string.Empty; string sanitized = value.Replace("\r", " ", StringComparison.Ordinal).Replace("\n", " ", StringComparison.Ordinal).Replace("\t", " ", StringComparison.Ordinal).Trim().Replace("Â°", "deg", StringComparison.Ordinal).Replace("Âµ", "u", StringComparison.Ordinal).Replace("Î¼", "u", StringComparison.Ordinal); StringBuilder ascii = new(sanitized.Length); foreach (char c in sanitized) ascii.Append(c <= sbyte.MaxValue ? c : '?'); return ascii.ToString(); }
     private static string SanitizeFileName(string fileName) { char[] invalidChars = Path.GetInvalidFileNameChars(); StringBuilder builder = new(fileName.Length); foreach (char c in fileName) builder.Append(invalidChars.Contains(c) ? '-' : c); return builder.ToString().Trim(); }
 }
+
+
+

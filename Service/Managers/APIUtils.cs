@@ -1,6 +1,7 @@
 ﻿using NORCE.Drilling.Trajectory.ModelShared;
 using OSDC.DotnetLibraries.General.Statistics;
 using OSDC.DotnetLibraries.Drilling.Surveying;
+using OSDC.DotnetLibraries.General.Math;
 using System;
 using System.Net.Http;
 using System.Reflection;
@@ -63,12 +64,17 @@ public static class APIUtils
     /// - the info/error message resulting from the interaction with called microservices
     /// </returns>
     /// </summary>
-    public static async Task<(SurveyPoint?, WellBore?, string)> GetReferencePointAsync(NORCE.Drilling.Trajectory.Model.Trajectory trajectory)
+    public static async Task<(SurveyStation?, WellBore?, string)> GetReferencePointAsync(NORCE.Drilling.Trajectory.Model.Trajectory trajectory)
+    {
+        return await GetReferencePointAsync(trajectory.WellBoreID);
+    }
+
+    public static async Task<(SurveyStation?, WellBore?, string)> GetReferencePointAsync(Guid wellBoreId)
     {
         string msg;
         try
         {
-            WellBore? wellBore = await APIUtils.ClientWellBore.GetWellBoreByIdAsync(trajectory.WellBoreID);
+            WellBore? wellBore = await APIUtils.ClientWellBore.GetWellBoreByIdAsync(wellBoreId);
             // We cascade up to the slot it is connected to retrieve the reference point coordinates of the tie-in Gaussian geodetic point
             if (wellBore?.WellID is Guid wellId && wellId != Guid.Empty)
             {
@@ -85,17 +91,22 @@ public static class APIUtils
                         fieldId != Guid.Empty)
                     {
                         if (slot.Latitude?.GaussianValue?.Mean is { } refLat &&
+                            slot.Latitude.GaussianValue.StandardDeviation is { } refLatStd &&
                             slot.Longitude?.GaussianValue?.Mean is { } refLon &&
-                            cluster.ReferenceDepth?.GaussianValue?.Mean is { } refTVD)
+                            slot.Longitude.GaussianValue.StandardDeviation is { } refLonStd &&
+                            cluster.ReferenceDepth?.GaussianValue?.Mean is { } refTVD &&
+                            cluster.ReferenceDepth.GaussianValue.StandardDeviation is { } refTVDStd)
                         {
                             msg = "cluster, slot, and wellbore successfully retrieved";
-                            SurveyPoint surveyPoint = new SurveyPoint();
+                            SurveyStation surveyPoint = new SurveyStation();
                             surveyPoint.Latitude = refLat;
                             surveyPoint.Longitude = refLon;
                             surveyPoint.TVD = refTVD;
+                            surveyPoint.MD = refTVD;
                             surveyPoint.Abscissa = refTVD;
                             surveyPoint.Inclination = 0;
                             surveyPoint.Azimuth = 0;
+                            surveyPoint.Covariance = CreateWellheadCovariance(refLat, refLon, refLatStd, refLonStd, refTVDStd);
                             return (surveyPoint, wellBore, msg);
                         }
                         else
@@ -127,5 +138,43 @@ public static class APIUtils
             msg = ex.Message + ": an exception was raised while retrieving cluster, slot, and wellbore from trajectory";
             return (null, null, msg);
         }
+    }
+
+    private static SymmetricMatrix3x3 CreateWellheadCovariance(double latitude, double longitude, double latitudeStdDev, double longitudeStdDev, double tvdStdDev)
+    {
+        SurveyPoint nominal = new()
+        {
+            Latitude = latitude,
+            Longitude = longitude
+        };
+        SurveyPoint latitudeShifted = new()
+        {
+            Latitude = latitude + latitudeStdDev,
+            Longitude = longitude
+        };
+        SurveyPoint longitudeShifted = new()
+        {
+            Latitude = latitude,
+            Longitude = longitude + longitudeStdDev
+        };
+
+        double northStdDev = (nominal.RiemannianNorth is { } north && latitudeShifted.RiemannianNorth is { } shiftedNorth)
+            ? shiftedNorth - north
+            : 0.0;
+        double eastStdDev = (nominal.RiemannianEast is { } east && longitudeShifted.RiemannianEast is { } shiftedEast)
+            ? shiftedEast - east
+            : 0.0;
+
+        SymmetricMatrix3x3 covariance = new();
+        covariance[0, 0] = northStdDev * northStdDev;
+        covariance[0, 1] = 0.0;
+        covariance[0, 2] = 0.0;
+        covariance[1, 0] = 0.0;
+        covariance[1, 1] = eastStdDev * eastStdDev;
+        covariance[1, 2] = 0.0;
+        covariance[2, 0] = 0.0;
+        covariance[2, 1] = 0.0;
+        covariance[2, 2] = tvdStdDev * tvdStdDev;
+        return covariance;
     }
 }

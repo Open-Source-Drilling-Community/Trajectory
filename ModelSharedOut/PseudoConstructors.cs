@@ -103,9 +103,9 @@ namespace NORCE.Drilling.Trajectory.ModelShared
 				GyroCompassError = null, 
 			};
 		}
-		public static SurveyPoint ConstructSurveyPoint()
+		public static SurveyStation ConstructSurveyPoint()
 		{
-			return new SurveyPoint
+			return new SurveyStation
 			{
 				Z = null, 
 				Abscissa = null, 
