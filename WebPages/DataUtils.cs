@@ -162,6 +162,26 @@ public static class DataUtils
         }
     }
 
+    public static void ApplySurveyRunReferenceValues(Guid? surveyRunID, List<SurveyRunLight>? surveyRunList, List<WellBore>? wellBores, List<Well>? wells, List<Cluster>? clusters, List<Rig>? rigs)
+    {
+        SurveyRunLight? surveyRun = surveyRunList?.FirstOrDefault(item => item?.MetaInfo?.ID == surveyRunID);
+        if (surveyRun?.MetaInfo == null)
+        {
+            ApplyTrajectoryReferenceValues(null, null, wellBores, wells, clusters, rigs);
+            return;
+        }
+
+        TrajectoryLight proxyTrajectory = new()
+        {
+            MetaInfo = surveyRun.MetaInfo,
+            FieldID = surveyRun.FieldID,
+            ClusterID = surveyRun.ClusterID,
+            WellID = surveyRun.WellID,
+            WellBoreID = surveyRun.WellBoreID
+        };
+        ApplyTrajectoryReferenceValues(surveyRun.MetaInfo.ID, [proxyTrajectory], wellBores, wells, clusters, rigs);
+    }
+
     private static Guid? FindSlotIdFromWellBoreHierarchy(WellBore? wellBore, List<WellBore>? wellBores, List<Well>? wells)
     {
         if (wellBore == null || wellBores == null || wells == null)

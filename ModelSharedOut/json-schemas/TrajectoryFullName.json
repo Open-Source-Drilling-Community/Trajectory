@@ -1381,6 +1381,303 @@
         }
       }
     },
+    "/SurveyRunMinimumDistanceCalculation": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "GetAllSurveyRunMinimumDistanceCalculationId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "PostSurveyRunMinimumDistanceCalculation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRunMinimumDistanceCalculation/MetaInfo": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "GetAllSurveyRunMinimumDistanceCalculationMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRunMinimumDistanceCalculation/{id}": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "GetSurveyRunMinimumDistanceCalculationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeResults",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "PutSurveyRunMinimumDistanceCalculationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "DeleteSurveyRunMinimumDistanceCalculationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRunMinimumDistanceCalculation/{id}/Results/ChunkCount": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "GetSurveyRunMinimumDistanceCalculationResultChunkCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRunMinimumDistanceCalculation/{id}/Results/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "GetSurveyRunMinimumDistanceCalculationResultChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceResultChunk"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRunMinimumDistanceCalculation/LightData": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "GetAllSurveyRunMinimumDistanceCalculationLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculationLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRunMinimumDistanceCalculation/HeavyData": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "GetAllSurveyRunMinimumDistanceCalculation",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/SurveyStationEllipseCalculation": {
       "get": {
         "tags": [
@@ -1911,6 +2208,303 @@
         }
       }
     },
+    "/TrajectoryMinimumDistanceCalculation": {
+      "get": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "GetAllTrajectoryMinimumDistanceCalculationId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "PostTrajectoryMinimumDistanceCalculation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryMinimumDistanceCalculation/MetaInfo": {
+      "get": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "GetAllTrajectoryMinimumDistanceCalculationMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryMinimumDistanceCalculation/{id}": {
+      "get": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "GetTrajectoryMinimumDistanceCalculationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeResults",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "PutTrajectoryMinimumDistanceCalculationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "DeleteTrajectoryMinimumDistanceCalculationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryMinimumDistanceCalculation/{id}/Results/ChunkCount": {
+      "get": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "GetTrajectoryMinimumDistanceCalculationResultChunkCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryMinimumDistanceCalculation/{id}/Results/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "GetTrajectoryMinimumDistanceCalculationResultChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceResultChunk"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryMinimumDistanceCalculation/LightData": {
+      "get": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "GetAllTrajectoryMinimumDistanceCalculationLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculationLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryMinimumDistanceCalculation/HeavyData": {
+      "get": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "GetAllTrajectoryMinimumDistanceCalculation",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/TrajectoryUsageStatistics": {
       "get": {
         "tags": [
@@ -2207,6 +2801,62 @@
           },
           "CalculationMessage": {
             "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.MinimumDistanceAdaptiveRefinementSettings": {
+        "type": "object",
+        "properties": {
+          "Enabled": {
+            "type": "boolean"
+          },
+          "PolarDeviationTolerance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "PolarAngularTolerance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "MinimumMDStep": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "MaximumDepth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "MaximumExtraSamplesPerComparison": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.MinimumDistanceReferenceInterval": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "StartMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double",
             "nullable": true
           }
         },
@@ -2625,6 +3275,369 @@
         },
         "additionalProperties": false
       },
+      "NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ReferenceSurveyRunID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ComparisonSurveyRunIDList": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "ResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "IntervalResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "MaximumChordArcDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "AccountForBoreholeRadius": {
+            "type": "boolean"
+          },
+          "OctreeMaximumDepth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "OctreeMaximumSegmentCountPerLeaf": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "AdaptiveRefinementSettings": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.MinimumDistanceAdaptiveRefinementSettings"
+          },
+          "GlobalMinimumCenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumComparisonSurveyRunID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "GlobalMinimumComparisonMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumToolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumIsGravity": {
+            "type": "boolean"
+          },
+          "ReferenceIntervalList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.MinimumDistanceReferenceInterval"
+            },
+            "nullable": true
+          },
+          "ResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceResult"
+            },
+            "nullable": true
+          },
+          "IntervalResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceIntervalResult"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculationLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ReferenceSurveyRunID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ComparisonSurveyRunIDList": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "ResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "IntervalResultCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceIntervalResult": {
+        "type": "object",
+        "properties": {
+          "IntervalID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "IntervalName": {
+            "type": "string",
+            "nullable": true
+          },
+          "StartMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonSurveyRunID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "SampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "AverageCenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StandardDeviationCenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "AverageClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StandardDeviationClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceResult": {
+        "type": "object",
+        "properties": {
+          "ReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceTVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceBoreholeDiameter": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonSurveyRunID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ComparisonMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonTVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonBoreholeDiameter": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "CenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Toolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "IsGravity": {
+            "type": "boolean"
+          },
+          "IsAdaptiveRefinementSample": {
+            "type": "boolean"
+          },
+          "RefinementLevel": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceResultChunk": {
+        "type": "object",
+        "properties": {
+          "OwnerID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ChunkIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "StartReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceResult"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "NORCE.Drilling.Trajectory.Model.SurveyRunType": {
         "enum": [
           "Actual",
@@ -2912,6 +3925,369 @@
           },
           "CalculationMessage": {
             "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ComparisonTrajectoryIDList": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "ResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "IntervalResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "MaximumChordArcDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "AccountForBoreholeRadius": {
+            "type": "boolean"
+          },
+          "OctreeMaximumDepth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "OctreeMaximumSegmentCountPerLeaf": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "AdaptiveRefinementSettings": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.MinimumDistanceAdaptiveRefinementSettings"
+          },
+          "GlobalMinimumCenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumComparisonTrajectoryID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "GlobalMinimumComparisonMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumToolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumIsGravity": {
+            "type": "boolean"
+          },
+          "ReferenceIntervalList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.MinimumDistanceReferenceInterval"
+            },
+            "nullable": true
+          },
+          "ResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceResult"
+            },
+            "nullable": true
+          },
+          "IntervalResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceIntervalResult"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculationLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ComparisonTrajectoryIDList": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "ResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "IntervalResultCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceIntervalResult": {
+        "type": "object",
+        "properties": {
+          "IntervalID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "IntervalName": {
+            "type": "string",
+            "nullable": true
+          },
+          "StartMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonTrajectoryID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "SampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "AverageCenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StandardDeviationCenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "AverageClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StandardDeviationClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceResult": {
+        "type": "object",
+        "properties": {
+          "ReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceTVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceBoreholeDiameter": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonTrajectoryID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ComparisonMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonTVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonBoreholeDiameter": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "CenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Toolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "IsGravity": {
+            "type": "boolean"
+          },
+          "IsAdaptiveRefinementSample": {
+            "type": "boolean"
+          },
+          "RefinementLevel": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceResultChunk": {
+        "type": "object",
+        "properties": {
+          "OwnerID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ChunkIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "StartReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceResult"
+            },
             "nullable": true
           }
         },

@@ -117,6 +117,50 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     "LastModificationDate text",
                     "ConfidenceFactor real",
                     "SurveyStationEllipseCalculation text" }
+                },
+                { "TrajectoryMinimumDistanceCalculationTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "ReferenceTrajectoryID text",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
+                    "ResultCount integer",
+                    "IntervalResultCount integer",
+                    "TrajectoryMinimumDistanceCalculation text" }
+                },
+                { "TrajectoryMinimumDistanceResultChunkTable", new string[] {
+                    "ID text primary key",
+                    "OwnerID text",
+                    "ChunkIndex integer",
+                    "ResultCount integer",
+                    "StartReferenceMD real",
+                    "EndReferenceMD real",
+                    "TrajectoryMinimumDistanceResultChunk text" }
+                },
+                { "SurveyRunMinimumDistanceCalculationTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "ReferenceSurveyRunID text",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
+                    "ResultCount integer",
+                    "IntervalResultCount integer",
+                    "SurveyRunMinimumDistanceCalculation text" }
+                },
+                { "SurveyRunMinimumDistanceResultChunkTable", new string[] {
+                    "ID text primary key",
+                    "OwnerID text",
+                    "ChunkIndex integer",
+                    "ResultCount integer",
+                    "StartReferenceMD real",
+                    "EndReferenceMD real",
+                    "SurveyRunMinimumDistanceResultChunk text" }
                 }
             };
 
