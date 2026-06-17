@@ -1,6 +1,7 @@
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Common;
 using OSDC.DotnetLibraries.General.DataManagement;
+using OSDC.DotnetLibraries.General.Math;
 using System;
 using System.Collections.Generic;
 using System.Linq;
@@ -18,6 +19,8 @@ namespace NORCE.Drilling.Trajectory.Model
         public Guid? SurveyInstrumentID { get; set; }
         public List<SurveyStation>? SurveyStationList { get; set; }
         public List<SurveyStationEllipseResult>? SurveyStationEllipseResultList { get; set; }
+        public List<SurveyPoint>? HighestTvdSurveyPointList { get; set; }
+        public List<SurveyPoint>? LowestTvdSurveyPointList { get; set; }
         public string? CalculationMessage { get; private set; }
 
         public bool Calculate()
@@ -27,17 +30,24 @@ namespace NORCE.Drilling.Trajectory.Model
             {
                 CalculationMessage = "Confidence factor must be between 0 and 1 and at least one survey station is required.";
                 SurveyStationEllipseResultList = null;
+                HighestTvdSurveyPointList = null;
+                LowestTvdSurveyPointList = null;
                 return false;
             }
 
             if (!EnsureCovariance(surveyStations))
             {
                 SurveyStationEllipseResultList = null;
+                HighestTvdSurveyPointList = null;
+                LowestTvdSurveyPointList = null;
                 return false;
             }
 
-            SurveyStationEllipseResultList = surveyStations
+            List<SurveyStation> orderedStations = surveyStations
                 .OrderBy(station => station.MD ?? station.Abscissa ?? double.MaxValue)
+                .ToList();
+
+            SurveyStationEllipseResultList = orderedStations
                 .Select(station =>
                 {
                     SurveyStationEllipseResult result = new()
@@ -50,14 +60,17 @@ namespace NORCE.Drilling.Trajectory.Model
                     return result;
                 })
                 .ToList();
+            CalculateExtremeTvdPaths(orderedStations);
 
             bool hasResult = SurveyStationEllipseResultList.Any(result =>
                 result.HorizontalEllipse != null ||
                 result.VerticalEllipse != null ||
-                result.PerpendicularEllipse != null);
+                result.PerpendicularEllipse != null) ||
+                HighestTvdSurveyPointList is { Count: > 1 } ||
+                LowestTvdSurveyPointList is { Count: > 1 };
             if (!hasResult)
             {
-                CalculationMessage = "No ellipse could be calculated from the survey station covariance matrices.";
+                CalculationMessage = "No uncertainty result could be calculated from the survey station covariance matrices.";
             }
             return hasResult;
         }
@@ -122,6 +135,105 @@ namespace NORCE.Drilling.Trajectory.Model
                 }
             }
             return false;
+        }
+
+        private void CalculateExtremeTvdPaths(List<SurveyStation> orderedStations)
+        {
+            HighestTvdSurveyPointList = [];
+            LowestTvdSurveyPointList = [];
+            if (orderedStations.Count == 0)
+            {
+                return;
+            }
+
+            SurveyPoint? first = CreateSurveyPoint(orderedStations[0]);
+            if (first == null)
+            {
+                return;
+            }
+
+            HighestTvdSurveyPointList.Add(new SurveyPoint(first));
+            LowestTvdSurveyPointList.Add(new SurveyPoint(first));
+            SurveyPoint previousHighest = new(first);
+            SurveyPoint previousLowest = new(first);
+
+            for (int i = 1; i < orderedStations.Count; i++)
+            {
+                SurveyStation station = orderedStations[i];
+                UncertaintyEllipsoid ellipsoid = new()
+                {
+                    EllipsoidSurveyStation = station,
+                    ConfidenceFactor = ConfidenceFactor,
+                    ScalingFactor = 1.0,
+                    CalculateHorizontalEllipse = false,
+                    CalculateVerticalEllipse = false,
+                    CalculatePerpendicularEllipse = false
+                };
+
+                if (!ellipsoid.CalculateExactExtremumsInDepth() ||
+                    ellipsoid.PointAtHighestTVD == null ||
+                    ellipsoid.PointAtLowestTVD == null)
+                {
+                    continue;
+                }
+
+                SurveyPoint? highest = CreateCompletedPoint(previousHighest, ellipsoid.PointAtHighestTVD);
+                if (highest != null)
+                {
+                    HighestTvdSurveyPointList.Add(highest);
+                    previousHighest = highest;
+                }
+
+                SurveyPoint? lowest = CreateCompletedPoint(previousLowest, ellipsoid.PointAtLowestTVD);
+                if (lowest != null)
+                {
+                    LowestTvdSurveyPointList.Add(lowest);
+                    previousLowest = lowest;
+                }
+            }
+        }
+
+        private static SurveyPoint? CreateSurveyPoint(SurveyStation station)
+        {
+            if ((station.X ?? station.RiemannianNorth) is not double x ||
+                (station.Y ?? station.RiemannianEast) is not double y ||
+                (station.Z ?? station.TVD) is not double z ||
+                (station.Abscissa ?? station.MD) is not double abscissa ||
+                station.Inclination is not double inclination ||
+                station.Azimuth is not double azimuth)
+            {
+                return null;
+            }
+
+            return new SurveyPoint
+            {
+                X = x,
+                Y = y,
+                Z = z,
+                Abscissa = abscissa,
+                Inclination = inclination,
+                Azimuth = azimuth,
+                VerticalSection = station.VerticalSection ?? 0.0
+            };
+        }
+
+        private static SurveyPoint? CreateCompletedPoint(SurveyPoint previous, Point3D point)
+        {
+            if (point.X is not double x ||
+                point.Y is not double y ||
+                point.Z is not double z)
+            {
+                return null;
+            }
+
+            SurveyPoint target = new()
+            {
+                X = x,
+                Y = y,
+                Z = z
+            };
+
+            return previous.CompleteFromXYZ(target) ? target : null;
         }
 
         private SurveyStationEllipse? CalculateEllipse(SurveyStation station, EllipseProjection projection)

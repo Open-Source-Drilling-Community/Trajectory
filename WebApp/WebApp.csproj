@@ -31,6 +31,7 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
     <PackageReference Include="NORCE.Drilling.CartographicProjection.WebPages" Version="1.0.7" />
     <PackageReference Include="NORCE.Drilling.Cluster.WebPages" Version="1.0.10" />
+    <PackageReference Include="NORCE.Drilling.EarthGeomagneticField.WebPages" Version="1.0.1" />
     <PackageReference Include="NORCE.Drilling.Field.WebPages" Version="1.0.11" />
     <PackageReference Include="NORCE.Drilling.GeodeticDatum.WebPages" Version="1.0.5" />
     <PackageReference Include="NORCE.Drilling.Rig.WebPages" Version="1.0.7" />

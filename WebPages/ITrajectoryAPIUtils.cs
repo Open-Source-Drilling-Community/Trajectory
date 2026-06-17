@@ -44,6 +44,11 @@ public interface ITrajectoryAPIUtils
     HttpClient HttpClientSurveyInstrument { get; }
     Client ClientSurveyInstrument { get; }
 
+    string HostNameEarthMagneticField { get; }
+    string HostBasePathEarthMagneticField { get; }
+    HttpClient HttpClientEarthMagneticField { get; }
+    Client ClientEarthMagneticField { get; }
+
     string HostNameUnitConversion { get; }
     string HostBasePathUnitConversion { get; }
 }

@@ -39,6 +39,10 @@ public class TrajectoryAPIUtils : APIUtils, ITrajectoryAPIUtils
         HttpClientSurveyInstrument = SetHttpClient(HostNameSurveyInstrument, HostBasePathSurveyInstrument);
         ClientSurveyInstrument = new Client(HttpClientSurveyInstrument.BaseAddress!.ToString(), HttpClientSurveyInstrument);
 
+        HostNameEarthMagneticField = Require(configuration.EarthMagneticFieldHostURL, nameof(configuration.EarthMagneticFieldHostURL));
+        HttpClientEarthMagneticField = SetHttpClient(HostNameEarthMagneticField, HostBasePathEarthMagneticField);
+        ClientEarthMagneticField = new Client(HttpClientEarthMagneticField.BaseAddress!.ToString(), HttpClientEarthMagneticField);
+
         HostNameUnitConversion = Require(configuration.UnitConversionHostURL, nameof(configuration.UnitConversionHostURL));
     }
 
@@ -91,6 +95,11 @@ public class TrajectoryAPIUtils : APIUtils, ITrajectoryAPIUtils
     public string HostBasePathSurveyInstrument { get; } = "SurveyInstrument/api/";
     public HttpClient HttpClientSurveyInstrument { get; }
     public Client ClientSurveyInstrument { get; }
+
+    public string HostNameEarthMagneticField { get; }
+    public string HostBasePathEarthMagneticField { get; } = "EarthMagneticField/api/";
+    public HttpClient HttpClientEarthMagneticField { get; }
+    public Client ClientEarthMagneticField { get; }
 
     public string HostNameUnitConversion { get; }
     public string HostBasePathUnitConversion { get; } = "UnitConversion/api/";

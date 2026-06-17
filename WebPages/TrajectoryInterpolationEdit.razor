@@ -191,7 +191,8 @@
             {
                 <SurveyStationEllipseTable SurveyStationList="@surveyStations"
                                            CalculationName="@($"{traj.Name} uncertainty ellipses")"
-                                           EllipseResultsChanged="OnEllipseResultsChanged" />
+                                           EllipseResultsChanged="OnEllipseResultsChanged"
+                                           CalculationChanged="OnEllipseCalculationChanged" />
             }
             else
             {
@@ -290,6 +291,7 @@
     private readonly List<List<object>> verticalSectionValuesList = [];
     private readonly EllipsePlotData ellipsePlotData = new();
     private List<SurveyStationEllipseResult> ellipseResults = [];
+    private SurveyStationEllipseCalculation? ellipseCalculation;
     private bool isLoadingCalculatedStations_;
     private bool calculatedStationLoadComplete_;
     private int calculatedStationChunkCount_;
@@ -545,14 +547,28 @@
             tvdValuesList,
             verticalSectionValuesList,
             [plotTrajectory]);
-        DataUtils.UpdateEllipsePlots(currentInterpolatedTrajectory.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData);
+        UpdateUncertaintyPlotData();
     }
 
     private async Task OnEllipseResultsChanged(ICollection<SurveyStationEllipseResult> results)
     {
         ellipseResults = results?.ToList() ?? [];
-        DataUtils.UpdateEllipsePlots(currentInterpolatedTrajectory.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData);
+        ellipseCalculation = null;
+        UpdateUncertaintyPlotData();
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnEllipseCalculationChanged(SurveyStationEllipseCalculation? calculation)
+    {
+        ellipseCalculation = calculation;
+        UpdateUncertaintyPlotData();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateUncertaintyPlotData()
+    {
+        DataUtils.UpdateEllipsePlots(currentInterpolatedTrajectory.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData);
+        DataUtils.AddExtremeTvdPathPlots(ellipseCalculation, ellipsePlotData);
     }
     private string GetCoordinateLabel(PositionDirectionType direction) { string? positionReferenceName = Parent?.PositionReferenceName ?? DataUtils.UnitAndReferenceParameters.PositionReferenceName; if (string.Equals(positionReferenceName, "WGS84", StringComparison.OrdinalIgnoreCase)) return direction == PositionDirectionType.North ? "Riemann North" : "Riemann East"; if (string.Equals(positionReferenceName, "Cartographic", StringComparison.OrdinalIgnoreCase)) return direction == PositionDirectionType.North ? "Northing" : "Easting"; return direction == PositionDirectionType.North ? "North" : "East"; }
     private async Task ExportInterpolatedSurveyPointsAsync() { if (currentInterpolatedTrajectory.SurveyStationList is not { Count: > 0 } stations) { Snackbar.Add("No interpolated survey points to export", Severity.Warning); return; } string[] headers = [$"Measured Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]", $"Inclination [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]", $"Azimuth [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]", $"Vertical Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]", $"{NorthCoordinateLabel} [{Parent?.GetUnitLabel("PositionDrilling")}]", $"{EastCoordinateLabel} [{Parent?.GetUnitLabel("PositionDrilling")}]", $"Vertical Section [{Parent?.GetUnitLabel("DepthDrilling")}]", $"Curvature [{Parent?.GetUnitLabel("CurvatureDrilling")}]", $"BUR [{Parent?.GetUnitLabel("CurvatureDrilling")}]", $"TR [{Parent?.GetUnitLabel("CurvatureDrilling")}]", "Annotation"]; StringBuilder builder = new(); builder.AppendLine(string.Join('\t', headers.Select(SanitizeExportField))); foreach (SurveyStation station in stations) { builder.AppendLine(string.Join('\t', new[] { ConvertDepthForExport(station.MD), ConvertQuantityForExport(station.Inclination, "PlaneAngleDrilling"), ConvertQuantityForExport(station.Azimuth, "PlaneAngleDrilling"), ConvertDepthForExport(station.TVD), ConvertPositionForExport(station.RiemannianNorth, PositionDirectionType.North), ConvertPositionForExport(station.RiemannianEast, PositionDirectionType.East), ConvertQuantityForExport(station.VerticalSection, "DepthDrilling"), ConvertQuantityForExport(station.Curvature, "CurvatureDrilling"), ConvertQuantityForExport(station.BUR, "CurvatureDrilling"), ConvertQuantityForExport(station.TUR, "CurvatureDrilling"), station.Annotation ?? string.Empty }.Select(SanitizeExportField))); } string fileName = $"{SanitizeFileName(string.IsNullOrWhiteSpace(currentInterpolatedTrajectory.Name) ? "interpolated-trajectory" : currentInterpolatedTrajectory.Name)}-survey-points.tsv"; string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(builder.ToString())); await JSRuntime.InvokeVoidAsync("trajectoryDownloads.saveTextFileFromBase64", fileName, base64Content, "text/tab-separated-values;charset=utf-8"); Snackbar.Add("Exported interpolated survey points", Severity.Success); }

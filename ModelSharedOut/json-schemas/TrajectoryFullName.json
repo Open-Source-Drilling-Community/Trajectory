@@ -3752,6 +3752,20 @@
             },
             "nullable": true
           },
+          "HighestTvdSurveyPointList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint"
+            },
+            "nullable": true
+          },
+          "LowestTvdSurveyPointList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint"
+            },
+            "nullable": true
+          },
           "CalculationMessage": {
             "type": "string",
             "nullable": true,
@@ -4656,6 +4670,101 @@
           "Gyro_ISCWSA"
         ],
         "type": "string"
+      },
+      "OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint": {
+        "type": "object",
+        "properties": {
+          "Z": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Abscissa": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Inclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Azimuth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "MD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "X": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Y": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "RiemannianNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "RiemannianEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Curvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Toolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "BUR": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TUR": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "VerticalSection": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Annotation": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation": {
         "type": "object",

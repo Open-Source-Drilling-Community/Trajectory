@@ -434,13 +434,13 @@ else
             selectedBatchImportList_ = [];
             currentBatchImport_ = CreateEmptyBatchImport();
 
-            Task<System.Collections.Generic.ICollection<Field>> fieldTask = Api.ClientField.GetAllFieldAsync();
-            Task<System.Collections.Generic.ICollection<Cluster>> clusterTask = Api.ClientCluster.GetAllClusterAsync();
-            Task<System.Collections.Generic.ICollection<Well>> wellTask = Api.ClientWell.GetAllWellAsync();
-            Task<System.Collections.Generic.ICollection<WellBore>> wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
-            Task<System.Collections.Generic.ICollection<Rig>> rigTask = Api.ClientRig.GetAllRigAsync();
-            Task<System.Collections.Generic.ICollection<SurveyInstrumentLight>> surveyInstrumentTask = Api.ClientSurveyInstrument.GetAllSurveyInstrumentLightAsync();
-            Task<System.Collections.Generic.ICollection<SurveyRun>> surveyRunHeavyTask = Api.ClientTrajectory.GetAllSurveyRunAsync();
+            Task<ICollection<Field>> fieldTask = Api.ClientField.GetAllFieldAsync();
+            Task<ICollection<Cluster>> clusterTask = Api.ClientCluster.GetAllClusterAsync();
+            Task<ICollection<Well>> wellTask = Api.ClientWell.GetAllWellAsync();
+            Task<ICollection<WellBore>> wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
+            Task<ICollection<Rig>> rigTask = Api.ClientRig.GetAllRigAsync();
+            Task<ICollection<SurveyInstrumentLight>> surveyInstrumentTask = Api.ClientSurveyInstrument.GetAllSurveyInstrumentLightAsync();
+            Task<ICollection<SurveyRun>> surveyRunHeavyTask = Api.ClientTrajectory.GetAllSurveyRunAsync();
             Task<List<SharedSurveyRunBatchImportLight>?> batchImportTask = GetStoredBatchImportsLightAsync();
 
             await Task.WhenAll(fieldTask, clusterTask, wellTask, wellBoreTask, rigTask, surveyInstrumentTask, surveyRunHeavyTask, batchImportTask);

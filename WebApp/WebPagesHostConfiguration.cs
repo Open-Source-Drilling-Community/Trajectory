@@ -12,7 +12,8 @@ public class WebPagesHostConfiguration :
     NORCE.Drilling.Field.WebPages.IFieldWebPagesConfiguration,
     NORCE.Drilling.CartographicProjection.WebPages.ICartographicProjectionWebPagesConfiguration,
     NORCE.Drilling.GeodeticDatum.WebPages.IGeodeticDatumWebPagesConfiguration,
-    NORCE.Drilling.SurveyInstrument.WebPages.ISurveyInstrumentWebPagesConfiguration
+    NORCE.Drilling.SurveyInstrument.WebPages.ISurveyInstrumentWebPagesConfiguration,
+    NORCE.Drilling.EarthGeomagneticField.WebPages.IEarthGeomagneticFieldWebPagesConfiguration
 {
     public string FieldHostURL { get; set; } = string.Empty;
     public string ClusterHostURL { get; set; } = string.Empty;
@@ -25,4 +26,5 @@ public class WebPagesHostConfiguration :
     public string GeodeticDatumHostURL { get; set; } = string.Empty;
     public string UnitConversionHostURL { get; set; } = string.Empty;
     public string SurveyInstrumentHostURL { get; set; } = string.Empty;
+    public string EarthMagneticFieldHostURL { get; set; } = string.Empty;
 }

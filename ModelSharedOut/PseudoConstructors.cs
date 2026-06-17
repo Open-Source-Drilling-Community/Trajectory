@@ -23,162 +23,6 @@ namespace NORCE.Drilling.Trajectory.ModelShared
 					HttpEndPoint = "Trajectory/",
 				};
 			}
-		public static Trajectory ConstructTrajectory()
-		{
-			return new Trajectory
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				WellBoreID = new Guid(),
-				SurveyStationList = new List<SurveyStation>
-					{
-						ConstructSurveyStation(),
-					},
-			};
-		}
-		public static ErrorSource ConstructErrorSource()
-		{
-			return new ErrorSource
-			{
-				MetaInfo = ConstructMetaInfo(),
-				ErrorCode = (ErrorCode)0,
-				Description = "Default Description",
-				Index = 0, 
-				IsSystematic = false, 
-				IsRandom = false, 
-				IsGlobal = false, 
-				SingularIssues = false, 
-				IsContinuous = false, 
-				IsStationary = false, 
-				KOperatorImposed = false, 
-				Magnitude = null, 
-				MagnitudeQuantity = "Default MagnitudeQuantity",
-				UseInclinationInterval = false, 
-				StartInclination = null, 
-				EndInclination = null, 
-				InitInclination = null, 
-			};
-		}
-		public static SurveyInstrument ConstructSurveyInstrument()
-		{
-			return new SurveyInstrument
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				ModelType = (SurveyInstrumentModelType)0,
-				ErrorSourceList = new List<ErrorSource>
-					{
-						ConstructErrorSource(),
-					},
-				Dip = 0.0, 
-				Declination = 0.0, 
-				Gravity = 0.0, 
-				BField = 0.0, 
-				Convergence = 0.0, 
-				Latitude = 0.0, 
-				EarthRotRate = 0.0, 
-				CantAngle = 0.0, 
-				GyroRunningSpeed = null, 
-				ExtRefInitInc = null, 
-				GyroSwitching = null, 
-				GyroMinDist = null, 
-				GyroNoiseRed = null, 
-				UseRelDepthError = false, 
-				RelDepthError = null, 
-				UseMisalignment = false, 
-				Misalignment = null, 
-				UseTrueInclination = false, 
-				TrueInclination = null, 
-				UseReferenceError = false, 
-				ReferenceError = null, 
-				UseDrillStringMag = false, 
-				DrillStringMag = null, 
-				UseGyroCompassError = false, 
-				GyroCompassError = null, 
-			};
-		}
-		public static SurveyStation ConstructSurveyPoint()
-		{
-			return new SurveyStation
-			{
-				Z = null, 
-				Abscissa = null, 
-				MD = null, 
-				Azimuth = null, 
-				Inclination = null, 
-				X = null, 
-				Y = null, 
-				TVD = null, 
-				RiemannianNorth = null, 
-				RiemannianEast = null, 
-				Latitude = null, 
-				Longitude = null, 
-				Curvature = null, 
-				Toolface = null, 
-				BUR = null, 
-				TUR = null, 
-			};
-		}
-		public static SurveyStation ConstructSurveyStation()
-		{
-			return new SurveyStation
-			{
-				Z = null, 
-				Abscissa = null, 
-				MD = null, 
-				Azimuth = null, 
-				Inclination = null, 
-				X = null, 
-				Y = null, 
-				TVD = null, 
-				RiemannianNorth = null, 
-				RiemannianEast = null, 
-				Latitude = null, 
-				Longitude = null, 
-				Curvature = null, 
-				Toolface = null, 
-				BUR = null, 
-				TUR = null, 
-				Covariance = ConstructSymmetricMatrix3x3(),
-				EigenVectors = ConstructMatrix3x3(),
-				EigenValues = ConstructVector3D(),
-				Bias = ConstructVector3D(),
-				SurveyTool = ConstructSurveyInstrument(),
-				BoreholeRadius = null, 
-			};
-		}
-		public static Matrix3x3 ConstructMatrix3x3()
-		{
-			return new Matrix3x3
-			{
-				RowCount = 0, 
-				ColumnCount = 0, 
-			};
-		}
-		public static SymmetricMatrix3x3 ConstructSymmetricMatrix3x3()
-		{
-			return new SymmetricMatrix3x3
-			{
-				ColumnCount = 0, 
-				RowCount = 0, 
-			};
-		}
-		public static Vector3D ConstructVector3D()
-		{
-			return new Vector3D
-			{
-				X = null, 
-				Y = null, 
-				Z = null, 
-				Dim = 0, 
-			};
-		}
 		public static Cluster ConstructCluster()
 		{
 			return new Cluster
@@ -612,6 +456,1991 @@ namespace NORCE.Drilling.Trajectory.ModelShared
 				DeleteFieldCartographicConversionSetByIdPerDay = ConstructHistory(),
 			};
 		}
+		public static Accumulator ConstructAccumulator()
+		{
+			return new Accumulator
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				AccumulatorClass = (AccumulatorClass)0,
+				Capacity = null, 
+				MaxLimitDesignPressure = null, 
+				MaxLimitOperatingPressure = null, 
+			};
+		}
+		public static AutoDriller ConstructAutoDriller()
+		{
+			return new AutoDriller
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				ControlMode = (AutodrillerControlMode)0,
+				MaxLimitRop = null, 
+				MinLimitRop = null, 
+				MaxLimitWob = null, 
+				MinLimitWob = null, 
+				MaxLimitDifferentialPressure = null, 
+				MinLimitDifferentialPressure = null, 
+				MaxLimitTrq = null, 
+				MinLimitTrq = null, 
+				SetpointWob = null, 
+				SetpointRop = null, 
+				SetpointDiffp = null, 
+				SetpointTrq = null, 
+			};
+		}
+		public static AuxSolidsControl ConstructAuxSolidsControl()
+		{
+			return new AuxSolidsControl
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				SolidsControlClass = (SolidsControlClass)0,
+				DesanderOn = null, 
+				DesilterOn = null, 
+				DegasserOn = null, 
+				CentrifugeOn = null, 
+			};
+		}
+		public static BopLineDefinition ConstructBopLineDefinition()
+		{
+			return new BopLineDefinition
+			{
+				BopLinesClass = (BopLineClass)0,
+				LineOd = null, 
+				LineId = null, 
+				Length = null, 
+			};
+		}
+		public static BopStack ConstructBopStack()
+		{
+			return new BopStack
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				BopStackClass = (BopStackClass)0,
+				UnitReferenceList = "Default UnitReferenceList",
+				BopControlType = (ControllerType)0,
+				BoreDiameter = null, 
+				Height = null, 
+				Weight = null, 
+				BopComponents = new List<BopStackComponentDefinition>
+					{
+						ConstructBopStackComponentDefinition(),
+					},
+				BopLines = new List<BopLineDefinition>
+					{
+						ConstructBopLineDefinition(),
+					},
+				MaxLimitDesignPressure = null, 
+				MaxLimitOperatingPressure = null, 
+				MinLimitOperatingPressure = null, 
+				BopLineMaxLimitDesignPressure = null, 
+				BopLineMaxLimitOperatingPressure = null, 
+				CasingPressure = null, 
+				KillLinePressure = null, 
+				ChokeLinePressure = null, 
+				ShutInDrillpipePressure = null, 
+			};
+		}
+		public static BopStackComponentDefinition ConstructBopStackComponentDefinition()
+		{
+			return new BopStackComponentDefinition
+			{
+				BopStackComponentClass = (BopComponentClass)0,
+				BoreDiameter = null, 
+				Height = null, 
+			};
+		}
+		public static CasingDriveSystem ConstructCasingDriveSystem()
+		{
+			return new CasingDriveSystem
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				CsgDrvClass = (CasingDriveClass)0,
+				HoistingCapacity = null, 
+				Length = null, 
+				MaxLimitDesignTorque = null, 
+				MaxLimitDesignPressure = null, 
+				MaxLimitDesignRotationSpeed = null, 
+				MaxLimitTorque = null, 
+				MaxLimitPressure = null, 
+				MaxLimitRotationSpeed = null, 
+				MaxLimitPushDown = null, 
+			};
+		}
+		public static CasingRunningTool ConstructCasingRunningTool()
+		{
+			return new CasingRunningTool
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static CasingTongs ConstructCasingTongs()
+		{
+			return new CasingTongs
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static CatWalk ConstructCatWalk()
+		{
+			return new CatWalk
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static CementPump ConstructCementPump()
+		{
+			return new CementPump
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				PumpClass = (PumpClass)0,
+				PlungerDiameter = null, 
+				StrokeLength = null, 
+				CementPumpDisplacement = new List<CementPumpDisplacementPoint>
+					{
+						ConstructCementPumpDisplacementPoint(),
+					},
+				MaxLimitPressure = null, 
+				MaxLimitFlowRate = null, 
+			};
+		}
+		public static CementPumpDisplacementPoint ConstructCementPumpDisplacementPoint()
+		{
+			return new CementPumpDisplacementPoint
+			{
+				StrokeRate = null, 
+				FlowRate = null, 
+				Pressure = null, 
+			};
+		}
+		public static CementUnit ConstructCementUnit()
+		{
+			return new CementUnit
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				Mounting = (MountingType)0,
+				Features = "Default Features",
+				NumberOfPumps = null, 
+			};
+		}
+		public static Centrifuge ConstructCentrifuge()
+		{
+			return new Centrifuge
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static ChokeCvCurvePoint ConstructChokeCvCurvePoint()
+		{
+			return new ChokeCvCurvePoint
+			{
+				Pressure = null, 
+				Flow = null, 
+			};
+		}
+		public static ChokeManifold ConstructChokeManifold()
+		{
+			return new ChokeManifold
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				ChokeControlClass = (ControlClass)0,
+				MaxLimitDesignPressure = null, 
+				MaxLimitOperatingPressure = null, 
+				MinLimitOperatingPressure = null, 
+				MaxLimitTestPressure = null, 
+				MaxLimitOperatingTemperature = null, 
+				MinLimitOperatingTemperature = null, 
+			};
+		}
+		public static CoilDriveSystem ConstructCoilDriveSystem()
+		{
+			return new CoilDriveSystem
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				CoilDrvClass = (MountingType)0,
+				ReelPayloadCapacity = null, 
+				ReelPayloadLength = null, 
+				ReelRemainingLength = null, 
+				InjectorHeadRadius = null, 
+				InjectorHeadMinTubingOd = null, 
+				InjHeadDesignPullCapacity = null, 
+				InjHeadDesignSnubCapacity = null, 
+				InjHeadPullCapacity = null, 
+				InjHeadSnubCapacity = null, 
+				InjHeadMaxSpeed = null, 
+				CtLoad = null, 
+				CtWeightOnBit = null, 
+				CtCoilSpeed = null, 
+				CtCircPressure = null, 
+				CtWellheadPressure = null, 
+				CtEngineSpeed = null, 
+				CtInjHeadDrivePressure = null, 
+				CtInjTubingReelDrivePress = null, 
+				CtChainTension = null, 
+			};
+		}
+		public static ContinuousCirculationDevice ConstructContinuousCirculationDevice()
+		{
+			return new ContinuousCirculationDevice
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				CcdControlClass = (ControlClass)0,
+				WorkingPumpPressure = null, 
+				MaxLimitDesignPressure = null, 
+				MaxLimitOperatingPressure = null, 
+				MaxLimitFlowrate = null, 
+				MaxLimitBackflow = null, 
+				MaxLimitFluidTemperature = null, 
+				MinLimitFluidTemperature = null, 
+				MaxLimitMudWeight = null, 
+				MaxLimitRotationRate = null, 
+			};
+		}
+		public static CrownBlock ConstructCrownBlock()
+		{
+			return new CrownBlock
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				SheaveDiameter = null, 
+				GrooveDiameter = null, 
+				NumberOfSheaves = null, 
+				MaxLimitDesignLoad = null, 
+				MaxLimitOperatingLoad = null, 
+				MaxLimitCompensatorStroke = null, 
+				Hookload = null, 
+			};
+		}
+		public static CuttingsDryer ConstructCuttingsDryer()
+		{
+			return new CuttingsDryer
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static CuttingsTransportSystem ConstructCuttingsTransportSystem()
+		{
+			return new CuttingsTransportSystem
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static Degasser ConstructDegasser()
+		{
+			return new Degasser
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static Derrick ConstructDerrick()
+		{
+			return new Derrick
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				DerrickClass = (DerrickClass)0,
+				Height = null, 
+				MaxLimitJointsPerStand = null, 
+				MaxLimitDesignLoad = null, 
+				MaxLimitOperatingLoad = null, 
+				MaxLimitWindSpeed = null, 
+			};
+		}
+		public static Desander ConstructDesander()
+		{
+			return new Desander
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static Desilter ConstructDesilter()
+		{
+			return new Desilter
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static Drawworks ConstructDrawworks()
+		{
+			return new Drawworks
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				DrawworksClass = (DrawworksClass)0,
+				MaxLimitDesignLoad = null, 
+				MaxLimitOperatingLoad = null, 
+				MaxLimitContinuousDrumPower = null, 
+				MaxLimitContinuousDrumTorque = null, 
+			};
+		}
+		public static DrillLine ConstructDrillLine()
+		{
+			return new DrillLine
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				Number = null, 
+				Diameter = null, 
+				LinearWeight = null, 
+				MaxLimitDesignBreakingLoad = null, 
+				MaxLimitOperatingBreakingLoad = null, 
+				Hookload = null, 
+			};
+		}
+		public static DrillingChokeManifold ConstructDrillingChokeManifold()
+		{
+			return new DrillingChokeManifold
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				ManifoldType = (ManifoldClass)0,
+				TrimSize = null, 
+				FlowMeter = "Default FlowMeter",
+				FlowMeterSize = null, 
+				FlowMeterPressureRating = null, 
+				JunkBasket = null, 
+				ChokeCount = "Default ChokeCount",
+				FlowMeterCount = "Default FlowMeterCount",
+				PressureSensorVotingNumber = "Default PressureSensorVotingNumber",
+				ChokeNumber = (ChokeNumber)0,
+				ChokeFunction = (ChokeFunction)0,
+				ChokeCvCurves = new List<ChokeCvCurvePoint>
+					{
+						ConstructChokeCvCurvePoint(),
+					},
+				MaxLimitDesignPressure = null, 
+				MaxLimitOperatingPressure = null, 
+				MaxLimitOperatingTemperature = null, 
+				MinLimitOperatingTemperature = null, 
+				MaxLimitOpeningSpeed = null, 
+				MaxLimitBackPressure = null, 
+				MinLimitFlowrate = null, 
+				MaxLimitFlowrate = null, 
+				PressureBeforeChoke = null, 
+				PressureAfterChoke = null, 
+				CvValue = null, 
+				CloggingOccuring = null, 
+				TemperatureBeforeChoke = null, 
+				TemperatureAfterChoke = null, 
+				FlowThroughChoke = null, 
+				MudDensityOut = null, 
+				MudDensityIn = null, 
+				ReliefValvePressure = null, 
+				PressureBeforeFlowMeter = null, 
+				PressureAfterFlowMeter = null, 
+				InletPressure = null, 
+				OutletPressure = null, 
+				VotingSensorsFailed = null, 
+			};
+		}
+		public static DrillingFluidTypeDescriptor ConstructDrillingFluidTypeDescriptor()
+		{
+			return new DrillingFluidTypeDescriptor
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				DrillingFluidClass = (DrillingFluidClass)0,
+				DrillingFluidType = (DrillingFluidType)0,
+			};
+		}
+		public static DrillingMarineRiser ConstructDrillingMarineRiser()
+		{
+			return new DrillingMarineRiser
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				RiserClass = (RiserClass)0,
+				JointWeight = null, 
+				RiserInsideDiameter = null, 
+				RiserOuterDiameter = null, 
+				RiserJointLength = null, 
+				RiserTotalLength = null, 
+				MaxLimitTensionLoad = null, 
+				MaxLimitOpTensionLoad = null, 
+				MaxLimitDesignKillPressure = null, 
+				MaxLimitOpKillPressure = null, 
+				MaxLimitDesignBoosterPressure = null, 
+				MaxLimitBoosterPressure = null, 
+				MaxLimitOpTemperature = null, 
+				MinLimitOpTemperature = null, 
+				MaxLimitAngleRiser = null, 
+			};
+		}
+		public static DrillstringHeaveCompensator ConstructDrillstringHeaveCompensator()
+		{
+			return new DrillstringHeaveCompensator
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				HeaveCompClass = (HeaveCompensatorClass)0,
+				CompensatorCapacity = null, 
+				CompensatorStatus = (CompensatorStatus)0,
+				MaxLimitCompensatorStroke = null, 
+			};
+		}
+		public static DriveMode ConstructDriveMode()
+		{
+			return new DriveMode
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				DriveModeClass = (DriveModeClass)0,
+			};
+		}
+		public static FloatValve ConstructFloatValve()
+		{
+			return new FloatValve
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				FloatValveClass = (FloatValveClass)0,
+				Diameter = null, 
+				Length = null, 
+				MaxLimitDesignPressure = null, 
+				MaxLimitOperatingPressure = null, 
+			};
+		}
+		public static FlowRoutingManifold ConstructFlowRoutingManifold()
+		{
+			return new FlowRoutingManifold
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				ManifoldType = (ManifoldClass)0,
+				FlangeSize = null, 
+				ReliefLineDiameter = null, 
+				EqualizationLineDiameter = null, 
+				PressureReliefValveTrim = null, 
+				ManifoldFlowPath = (ManifoldFlowPath)0,
+				ManifoldFlowcurves = new List<RoutingManifoldCurvePoint>
+					{
+						ConstructRoutingManifoldCurvePoint(),
+					},
+				MaxLimitDesignPressure = null, 
+				MaxLimitOperatingPressure = null, 
+				MaxLimitOperatingTemperature = null, 
+				MinLimitOperatingTemperature = null, 
+				MaxLimitFlowrate = null, 
+				InletPressure = null, 
+				OutletPressure = null, 
+				ReliefValvePressure = null, 
+				CloggingOccuring = null, 
+				TemperatureInlet = null, 
+				TemperatureOutlet = null, 
+			};
+		}
+		public static FlowSensor ConstructFlowSensor()
+		{
+			return new FlowSensor
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				FlowTransducer = (FlowSensorType)0,
+				FlowOutOfBorehole = null, 
+				MudFlowrateOut = null, 
+				MudFlowrateIn = null, 
+			};
+		}
+		public static Generator ConstructGenerator()
+		{
+			return new Generator
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				GeneratorClass = (GeneratorClass)0,
+				Speed = null, 
+				Power = null, 
+				Voltage = null, 
+				PowerFactor = null, 
+				SpeedMode = (SpeedMode)0,
+				EngineModel = (EngineModelType)0,
+				PowerplantGeneratorNumber = null, 
+				PowerplantTotalPower = null, 
+				StartupTimeCold = null, 
+				StartupTimeWarm = null, 
+				CoolingMedium = (GeneratorCooling)0,
+				Phases = (GeneratorPhases)0,
+				MaxLimitPower = null, 
+				MaxLimitPowerIncrease = null, 
+				MaxLimitSpeedIncrease = null, 
+				MaxLimitSpeed = null, 
+				MaxLimitVoltage = null, 
+				MinLimitVoltage = null, 
+				MaxLimitFrequency = null, 
+				MinLimitFrequency = null, 
+				EnginePower = null, 
+				GeneratorPower = null, 
+				EngineFuelConsumption = null, 
+				EngineSpecificFuelConsumption = null, 
+				RunningHours = null, 
+				EngineSpeed = null, 
+				GeneratorVoltage = null, 
+				GridVoltage = null, 
+				GridFrequency = null, 
+				GeneratorFrequency = null, 
+				EngineTemperature = null, 
+			};
+		}
+		public static HoistingSystem ConstructHoistingSystem()
+		{
+			return new HoistingSystem
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				HoistingSystemType = (HoistingSystemType)0,
+				Drawworks = ConstructDrawworks(),
+				CrownBlock = ConstructCrownBlock(),
+				TravellingBlock = ConstructTravellingBlock(),
+				DrillLine = ConstructDrillLine(),
+			};
+		}
+		public static IronRoughneck ConstructIronRoughneck()
+		{
+			return new IronRoughneck
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static Kelly ConstructKelly()
+		{
+			return new Kelly
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				KellyClass = (KellyClass)0,
+				KellyJointLength = null, 
+				MaxLimitDesignRotationSpeed = null, 
+				MaxLimitDesignTorque = null, 
+				MaxLimitIbopPressure = null, 
+				MaxLimitRotationSpeed = null, 
+				MaxLimitTorque = null, 
+				SurfaceRotation = null, 
+				SurfaceTorque = null, 
+				KellyHeight = null, 
+			};
+		}
+		public static MarineMpdEquipment ConstructMarineMpdEquipment()
+		{
+			return new MarineMpdEquipment
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				MarineMpdClass = (MarineMpdClass)0,
+				Length = null, 
+				Weight = null, 
+				ThroughBoreDiameter = null, 
+				ControlMeans = (ControllerType)0,
+				ContainsFlowSpool = null, 
+				ContainsNonRotatingDevice = null, 
+				ContainsDrillstringIsolation = null, 
+				MaxLimitDesignPressure = null, 
+				MaxLimitDynamicPressure = null, 
+				MaxLimitRotatingSpeed = null, 
+			};
+		}
+		public static MeasurementAfm ConstructMeasurementAfm()
+		{
+			return new MeasurementAfm
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				UpdateRate = null, 
+				Active = null, 
+				AfmMudDensity = null, 
+				AfmMudTemperature = null, 
+				AfmPv = null, 
+				AfmYp = null, 
+				AfmRheometerMeasurements = new List<RheometerAfmMeasurement>
+					{
+						ConstructRheometerAfmMeasurement(),
+					},
+				RtViscConsistencyIndex = null, 
+				RtViscFlowBehaviorIndex = null, 
+			};
+		}
+		public static MpdControlDevice ConstructMpdControlDevice()
+		{
+			return new MpdControlDevice
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				MpdControlDeviceClass = (MpdControlDeviceClass)0,
+				NominalSize = null, 
+				ThroughBoreDiameter = null, 
+				SealingElementMaterial = "Default SealingElementMaterial",
+				ControlDeviceHeight = null, 
+				MaxLimitStaticPressure = null, 
+				MaxLimitDynamicPressure = null, 
+				MaxLimitRotatingSpeed = null, 
+				MaxLimitActivationPressure = null, 
+			};
+		}
+		public static MpdController ConstructMpdController()
+		{
+			return new MpdController
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				MpdGradientMode = (MpdGradientMode)0,
+				PrimaryChokeTrim = null, 
+				SecondaryChokeTrim = null, 
+				MaxLimitPressure = null, 
+				MinLimitMudPumpFlowrate = null, 
+				ManipulatedMpdChoke = null, 
+				ManipulatedLiftPumpRate = null, 
+				ControlledDownholePressure = null, 
+				BackpressureFlowrate = null, 
+				AnnulusRefillFlowrate = null, 
+			};
+		}
+		public static MudGasSeparator ConstructMudGasSeparator()
+		{
+			return new MudGasSeparator
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static MudPump ConstructMudPump()
+		{
+			return new MudPump
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				Type = (MudPumpType)0,
+				PumpClass = (PumpClass)0,
+				PumpAction = null, 
+				PumpEfficiency = null, 
+				PumpDisplacement = null, 
+				LinerId = null, 
+				Stroke = null, 
+				PulsationDamperPressure = null, 
+				PulsationDamperVolume = null, 
+				MaxLimitDesignPressure = null, 
+				MaxLimitOperatingPressure = null, 
+				MaxLimitOperatingPower = null, 
+				MaxLimitOperatingFlowRate = null, 
+				MaxLimitOperatingSpeed = null, 
+				MudPumpStrokeRate = null, 
+				MudPumpFlowRate = null, 
+			};
+		}
+		public static MudTank ConstructMudTank()
+		{
+			return new MudTank
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				TankClass = (TankClass)0,
+				TankFluidType = (TankFluidType)0,
+				MaxLimitOperatingVolume = null, 
+			};
+		}
+		public static MultiPhaseSeparator ConstructMultiPhaseSeparator()
+		{
+			return new MultiPhaseSeparator
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				SeparatorClass = (SeparatorPhaseClass)0,
+				MaximumOperatingPressure = null, 
+				MaximumOperatingFlowrate = null, 
+				SeparationEfficiency = null, 
+				SeparatorMedium = (SeparatorMedium)0,
+				MaxLimitDesignPressure = null, 
+				MaxLimitOperatingPressure = null, 
+				MaxLimitFlowrate = null, 
+				MaxLimitOperatingTemperature = null, 
+				MinLimitOperatingTemperature = null, 
+				PressureSeparator = null, 
+				TemperatureSeparator = null, 
+			};
+		}
+		public static PipeDeck ConstructPipeDeck()
+		{
+			return new PipeDeck
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static PipeRack ConstructPipeRack()
+		{
+			return new PipeRack
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static ReturnFlowLine ConstructReturnFlowLine()
+		{
+			return new ReturnFlowLine
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static RheometerAfmMeasurement ConstructRheometerAfmMeasurement()
+		{
+			return new RheometerAfmMeasurement
+			{
+				AfmViscShearRate = null, 
+				AfmViscShearStress = null, 
+			};
+		}
+		public static Rig ConstructRig()
+		{
+			return new Rig
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				MudPumpList = new List<MudPump>
+					{
+						ConstructMudPump(),
+					},
+				CementPumpList = new List<CementPump>
+					{
+						ConstructCementPump(),
+					},
+				CementUnit = ConstructCementUnit(),
+				DriveMode = ConstructDriveMode(),
+				MainRigMast = ConstructRigMast(),
+				AuxiliaryRigMast = ConstructRigMast(),
+				MudTankList = new List<MudTank>
+					{
+						ConstructMudTank(),
+					},
+				GeneratorList = new List<Generator>
+					{
+						ConstructGenerator(),
+					},
+				ShaleShakerList = new List<ShaleShaker>
+					{
+						ConstructShaleShaker(),
+					},
+				AuxSolidsControl = ConstructAuxSolidsControl(),
+				DrillingFluidType = ConstructDrillingFluidTypeDescriptor(),
+				FlowSensor = ConstructFlowSensor(),
+				MeasurementAfm = ConstructMeasurementAfm(),
+				ReturnFlowLine = ConstructReturnFlowLine(),
+				MudGasSeparatorList = new List<MudGasSeparator>
+					{
+						ConstructMudGasSeparator(),
+					},
+				DesanderList = new List<Desander>
+					{
+						ConstructDesander(),
+					},
+				DesilterList = new List<Desilter>
+					{
+						ConstructDesilter(),
+					},
+				CentrifugeList = new List<Centrifuge>
+					{
+						ConstructCentrifuge(),
+					},
+				DegasserList = new List<Degasser>
+					{
+						ConstructDegasser(),
+					},
+				CuttingsTransportSystem = ConstructCuttingsTransportSystem(),
+				CuttingsDryerList = new List<CuttingsDryer>
+					{
+						ConstructCuttingsDryer(),
+					},
+				PipeDeck = ConstructPipeDeck(),
+				Accumulator = ConstructAccumulator(),
+				BopStack = ConstructBopStack(),
+				FloatValve = ConstructFloatValve(),
+				AutoDriller = ConstructAutoDriller(),
+				MpdController = ConstructMpdController(),
+				MpdControlDevice = ConstructMpdControlDevice(),
+				ContinuousCirculationDevice = ConstructContinuousCirculationDevice(),
+				DrillingChokeManifold = ConstructDrillingChokeManifold(),
+				SurfaceMpdEquipment = ConstructSurfaceMpdEquipment(),
+				MarineMpdEquipment = ConstructMarineMpdEquipment(),
+				MultiPhaseSeparator = ConstructMultiPhaseSeparator(),
+				FlowRoutingManifold = ConstructFlowRoutingManifold(),
+				DrillstringHeaveCompensator = ConstructDrillstringHeaveCompensator(),
+				DrillingMarineRiser = ConstructDrillingMarineRiser(),
+				RiserHeaveCompensator = ConstructRiserHeaveCompensator(),
+				DrillFloorElevation = null, 
+				IsFixedPlatform = false, 
+				ClusterID = null, 
+			};
+		}
+		public static RigChoke ConstructRigChoke()
+		{
+			return new RigChoke
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static RigMast ConstructRigMast()
+		{
+			return new RigMast
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				HoistingSystem = ConstructHoistingSystem(),
+				CatWalk = ConstructCatWalk(),
+				PipeRack = ConstructPipeRack(),
+				CasingDriveSystem = ConstructCasingDriveSystem(),
+				CoilDriveSystem = ConstructCoilDriveSystem(),
+				Derrick = ConstructDerrick(),
+				TorqueTurnSub = ConstructTorqueTurnSub(),
+				RotaryTable = ConstructRotaryTable(),
+				TopDrive = ConstructTopDrive(),
+				Kelly = ConstructKelly(),
+				IronRoughneck = ConstructIronRoughneck(),
+				CasingTongs = ConstructCasingTongs(),
+				CasingRunningTool = ConstructCasingRunningTool(),
+				StandPipe = ConstructStandPipe(),
+				StandPipeManifold = ConstructStandPipeManifold(),
+				RotaryHose = ConstructRotaryHose(),
+				ChokeManifold = ConstructChokeManifold(),
+				RigChokeList = new List<RigChoke>
+					{
+						ConstructRigChoke(),
+					},
+				Slips = ConstructSlips(),
+			};
+		}
+		public static RiserHeaveCompensator ConstructRiserHeaveCompensator()
+		{
+			return new RiserHeaveCompensator
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				RiserCompensatorClass = (RiserCompensatorClass)0,
+				CompensatorCapacity = null, 
+				CompensatorStatus = (CompensatorStatus)0,
+				MaxLimitCompensatorStroke = null, 
+			};
+		}
+		public static RotaryHose ConstructRotaryHose()
+		{
+			return new RotaryHose
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static RotaryTable ConstructRotaryTable()
+		{
+			return new RotaryTable
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				RotaryTableType = (RotaryTableType)0,
+				TableOpeningDiameter = null, 
+				BushingType = (RotaryTableBushingType)0,
+				BushingSize = null, 
+				Height = null, 
+				Mass = null, 
+				MaxLimitOperatingSpeed = null, 
+				MaxLimitDesignSpeed = null, 
+				MaxLimitOperatingTorque = null, 
+				MaxLimitDesignTorque = null, 
+				MaxLimitOperatingStringWeight = null, 
+				MaxLimitDesignStringWeight = null, 
+				MaxLimitPower = null, 
+				MaxLimitTemperature = null, 
+			};
+		}
+		public static RoutingManifoldCurvePoint ConstructRoutingManifoldCurvePoint()
+		{
+			return new RoutingManifoldCurvePoint
+			{
+				Pressure = null, 
+				Flow = null, 
+			};
+		}
+		public static ShakerScreenDefinition ConstructShakerScreenDefinition()
+		{
+			return new ShakerScreenDefinition
+			{
+				ScreenDeck = null, 
+				MeshSize = "Default MeshSize",
+			};
+		}
+		public static ShaleShaker ConstructShaleShaker()
+		{
+			return new ShaleShaker
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				ShakerClass = (ShakerClass)0,
+				ActiveShakers = "Default ActiveShakers",
+				ShakerScreens = new List<ShakerScreenDefinition>
+					{
+						ConstructShakerScreenDefinition(),
+					},
+				MaxLimitOperatingCapacity = null, 
+			};
+		}
+		public static Slips ConstructSlips()
+		{
+			return new Slips
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static StandPipe ConstructStandPipe()
+		{
+			return new StandPipe
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				PressureMeasurementElevation = null, 
+				MudHoseHangingPointElevation = null, 
+			};
+		}
+		public static StandPipeManifold ConstructStandPipeManifold()
+		{
+			return new StandPipeManifold
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				PipeDiameter = null, 
+				StandpipeSpecLevel = (StandpipeSpecLevel)0,
+				MaxLimitDesignPressure = null, 
+				MaxLimitOperatingPressure = null, 
+				MaxLimitOperatingTemperature = null, 
+				MinLimitOperatingTemperature = null, 
+			};
+		}
+		public static SurfaceMpdEquipment ConstructSurfaceMpdEquipment()
+		{
+			return new SurfaceMpdEquipment
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				SurfaceMpdClass = (SurfaceMpdClass)0,
+				MinimumBoreholeSize = null, 
+				MaximumBoreholeSize = null, 
+				PressureAccuracy = null, 
+				MaxLimitDesignPressure = null, 
+				MaxLimitOperatingPressure = null, 
+				MinLimitOperatingPressure = null, 
+				MaxLimitFlowrate = null, 
+				MaxLimitMudWeight = null, 
+				MaxLimitPressure = null, 
+				MinLimitMudPumpFlowrate = null, 
+				StrokeRate = null, 
+				FlowRate = null, 
+				PressureAtDischarge = null, 
+				Power = null, 
+				PressureAtInlet = null, 
+			};
+		}
+		public static TopDrive ConstructTopDrive()
+		{
+			return new TopDrive
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				TopDriveClass = (TopDriveClass)0,
+				TopDriveControllerType = (TopDriveControllerType)0,
+				Orientable = null, 
+				Weight = null, 
+				MaxLimitIbopPressure = null, 
+				MaxLimitRotationSpeed = null, 
+				MaxLimitDesignLoad = null, 
+				MaxLimitDesignTorque = null, 
+				MaxLimitOperatingLoad = null, 
+				MaxLimitOperatingTorque = null, 
+				MaxLimitMakeupTorque = null, 
+				MaxLimitBreakoutTorque = null, 
+				TopDriveHeight = null, 
+				ProportionalGain = null, 
+				IntegralGain = null, 
+				TuningFrequency = null, 
+				VFDFilterTimeConstant = null, 
+				EncoderTimeConstant = null, 
+				AccelerationFilterTimeConstant = null, 
+				TorqueHighPassFilterTimeConstant = null, 
+				TorqueLowPassFilterTimeConstant = null, 
+				TuningFactor = null, 
+				InertiaCorrectionFactor = null, 
+			};
+		}
+		public static TorqueTurnSub ConstructTorqueTurnSub()
+		{
+			return new TorqueTurnSub
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				Length = null, 
+				OutsideDiameter = null, 
+				InsideDiameter = null, 
+				Weight = null, 
+				BatteryLife = null, 
+				MaxLimitDesignLoad = null, 
+				MaxLimitDesignTorque = null, 
+				MaxLimitDesignPressure = null, 
+				MaxLimitLoad = null, 
+				MaxLimitTorque = null, 
+				MaxLimitPressure = null, 
+				MaxLimitTemperature = null, 
+				MinLimitTemperature = null, 
+				SurfaceTorque = null, 
+				Hookload = null, 
+				SurfaceTurnCount = null, 
+				SurfaceAcceleration = null, 
+				SurfaceRotationRate = null, 
+				SurfaceBorePressure = null, 
+				SurfaceAxialVibration = null, 
+				SurfaceTorsionalVibration = null, 
+				SurfaceLateralVibration = null, 
+			};
+		}
+		public static TravellingBlock ConstructTravellingBlock()
+		{
+			return new TravellingBlock
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				Weight = null, 
+				NumberOfSheaves = null, 
+				GrooveDiameter = null, 
+				MaxLimitBlockTravel = null, 
+				MaxLimitDesignLoad = null, 
+				MaxLimitOperatingLoad = null, 
+				HookVelocity = null, 
+				HookPosition = null, 
+			};
+		}
+		public static UsageStatisticsRig ConstructUsageStatisticsRig()
+		{
+			return new UsageStatisticsRig
+			{
+				LastSaved = DateTimeOffset.UtcNow,
+				BackUpInterval = "Default BackUpInterval",
+				GetAllRigIdPerDay = ConstructHistory(),
+				GetAllRigMetaInfoPerDay = ConstructHistory(),
+				GetRigByIdPerDay = ConstructHistory(),
+				GetAllRigLightPerDay = ConstructHistory(),
+				GetAllRigPerDay = ConstructHistory(),
+				PostRigPerDay = ConstructHistory(),
+				PutRigByIdPerDay = ConstructHistory(),
+				DeleteRigByIdPerDay = ConstructHistory(),
+			};
+		}
+		public static UsageStatisticsSurveyInstrument ConstructUsageStatisticsSurveyInstrument()
+		{
+			return new UsageStatisticsSurveyInstrument
+			{
+				LastSaved = DateTimeOffset.UtcNow,
+				BackUpInterval = "Default BackUpInterval",
+				GetAllSurveyInstrumentIdPerDay = ConstructHistory(),
+				GetAllSurveyInstrumentMetaInfoPerDay = ConstructHistory(),
+				GetSurveyInstrumentByIdPerDay = ConstructHistory(),
+				GetAllSurveyInstrumentLightPerDay = ConstructHistory(),
+				GetAllSurveyInstrumentPerDay = ConstructHistory(),
+				PostSurveyInstrumentPerDay = ConstructHistory(),
+				PutSurveyInstrumentByIdPerDay = ConstructHistory(),
+				DeleteSurveyInstrumentByIdPerDay = ConstructHistory(),
+				GetAllErrorSourceIdPerDay = ConstructHistory(),
+				GetAllErrorSourceMetaInfoPerDay = ConstructHistory(),
+				GetErrorSourceByIdPerDay = ConstructHistory(),
+				GetAllErrorSourcePerDay = ConstructHistory(),
+				PostErrorSourcePerDay = ConstructHistory(),
+				PutErrorSourceByIdPerDay = ConstructHistory(),
+				DeleteErrorSourceByIdPerDay = ConstructHistory(),
+			};
+		}
+		public static ErrorSource ConstructErrorSource()
+		{
+			return new ErrorSource
+			{
+				MetaInfo = ConstructMetaInfo(),
+				ErrorCode = (ErrorCode)0,
+				Description = "Default Description",
+				Index = 0, 
+				IsSystematic = false, 
+				IsRandom = false, 
+				IsGlobal = false, 
+				SingularIssues = false, 
+				IsContinuous = false, 
+				IsStationary = false, 
+				KOperatorImposed = false, 
+				Magnitude = null, 
+				MagnitudeQuantity = "Default MagnitudeQuantity",
+				UseInclinationInterval = false, 
+				StartInclination = null, 
+				EndInclination = null, 
+				InitInclination = null, 
+			};
+		}
+		public static SurveyInstrument ConstructSurveyInstrument()
+		{
+			return new SurveyInstrument
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				ModelType = (SurveyInstrumentModelType)0,
+				ErrorSourceList = new List<ErrorSource>
+					{
+						ConstructErrorSource(),
+					},
+				Dip = 0.0, 
+				Declination = 0.0, 
+				Gravity = 0.0, 
+				BField = 0.0, 
+				Convergence = 0.0, 
+				Latitude = 0.0, 
+				EarthRotRate = 0.0, 
+				CantAngle = 0.0, 
+				GyroRunningSpeed = null, 
+				ExtRefInitInc = null, 
+				GyroSwitching = null, 
+				GyroMinDist = null, 
+				GyroNoiseRed = null, 
+				UseRelDepthError = false, 
+				RelDepthError = null, 
+				UseMisalignment = false, 
+				Misalignment = null, 
+				UseTrueInclination = false, 
+				TrueInclination = null, 
+				UseReferenceError = false, 
+				ReferenceError = null, 
+				UseDrillStringMag = false, 
+				DrillStringMag = null, 
+				UseGyroCompassError = false, 
+				GyroCompassError = null, 
+			};
+		}
+		public static GlobalAntiCollision ConstructGlobalAntiCollision()
+		{
+			return new GlobalAntiCollision
+			{
+				ID = "Default ID",
+				ConfidenceFactor = 0.0, 
+				ReferenceWellPathID = new Guid(),
+				ReferenceTrajectoryID = new Guid(),
+				ComparisonTrajectoryIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				SeparationFactorResults = new List<SeparationFactorResult>
+					{
+						ConstructSeparationFactorResult(),
+					},
+			};
+		}
+		public static MeasuredDepthRange ConstructMeasuredDepthRange()
+		{
+			return new MeasuredDepthRange
+			{
+				StartMD = 0.0, 
+				EndMD = 0.0, 
+			};
+		}
+		public static SeparationFactorPoint ConstructSeparationFactorPoint()
+		{
+			return new SeparationFactorPoint
+			{
+				ReferenceMD = 0.0, 
+				ComparisonMD = 0.0, 
+				SeparationFactor = 0.0, 
+			};
+		}
+		public static SeparationFactorResult ConstructSeparationFactorResult()
+		{
+			return new SeparationFactorResult
+			{
+				ComparisonTrajectoryID = new Guid(),
+				ReferenceMDRange = ConstructMeasuredDepthRange(),
+				ComparisonMDRange = ConstructMeasuredDepthRange(),
+				SeparationFactorProfile = new List<SeparationFactorPoint>
+					{
+						ConstructSeparationFactorPoint(),
+					},
+			};
+		}
+		public static AnnotatedAbscissa ConstructAnnotatedAbscissa()
+		{
+			return new AnnotatedAbscissa
+			{
+				Abscissa = 0.0, 
+				Annotation = "Default Annotation",
+			};
+		}
+		public static InterpolatedTrajectory ConstructInterpolatedTrajectory()
+		{
+			return new InterpolatedTrajectory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				TrajectoryID = new Guid(),
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0, 
+				CalculationMessage = "Default CalculationMessage",
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+				InterpolationStep = null, 
+				InterpolationReferenceDepth = null, 
+				MaximumChordArcDistance = null, 
+				IncludeFirstSurvey = false, 
+				IncludeLastSurvey = false, 
+				InterpolateAtCasingAndLinerShoeDepths = false, 
+				InterpolateAtLinerHangerDepths = false, 
+				InterpolateAtCasingChangeOfDiameter = false, 
+				AdditionalAbscissaList = new List<AnnotatedAbscissa>
+					{
+						ConstructAnnotatedAbscissa(),
+					},
+				InternalAdditionalAbscissaList = new List<AnnotatedAbscissa>
+					{
+						ConstructAnnotatedAbscissa(),
+					},
+			};
+		}
+		public static MinimumDistanceAdaptiveRefinementSettings ConstructMinimumDistanceAdaptiveRefinementSettings()
+		{
+			return new MinimumDistanceAdaptiveRefinementSettings
+			{
+				Enabled = false, 
+				PolarDeviationTolerance = null, 
+				PolarAngularTolerance = null, 
+				MinimumMDStep = null, 
+				MaximumDepth = 0, 
+				MaximumExtraSamplesPerComparison = 0, 
+			};
+		}
+		public static MinimumDistanceReferenceInterval ConstructMinimumDistanceReferenceInterval()
+		{
+			return new MinimumDistanceReferenceInterval
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+				StartMD = null, 
+				EndMD = null, 
+			};
+		}
+		public static SurveyImportSettings ConstructSurveyImportSettings()
+		{
+			return new SurveyImportSettings
+			{
+				SelectedSurveyImportFormat = "Default SelectedSurveyImportFormat",
+				SelectedSurveyImportSeparator = "Default SelectedSurveyImportSeparator",
+				SelectedSurveyImportDecimalMarker = "Default SelectedSurveyImportDecimalMarker",
+				SelectedSurveyImportMDUnit = "Default SelectedSurveyImportMDUnit",
+				SelectedSurveyImportInclinationUnit = "Default SelectedSurveyImportInclinationUnit",
+				SelectedSurveyImportAzimuthUnit = "Default SelectedSurveyImportAzimuthUnit",
+				SurveyImportMDColumn = 0, 
+				SurveyImportInclinationColumn = 0, 
+				SurveyImportAzimuthColumn = 0, 
+				SurveyImportMDStart = 0, 
+				SurveyImportMDWidth = 0, 
+				SurveyImportInclinationStart = 0, 
+				SurveyImportInclinationWidth = 0, 
+				SurveyImportAzimuthStart = 0, 
+				SurveyImportAzimuthWidth = 0, 
+			};
+		}
+		public static SurveyMeasurement ConstructSurveyMeasurement()
+		{
+			return new SurveyMeasurement
+			{
+				MD = null, 
+				Inclination = null, 
+				Azimuth = null, 
+				Annotation = "Default Annotation",
+			};
+		}
+		public static SurveyMeasurementChunk ConstructSurveyMeasurementChunk()
+		{
+			return new SurveyMeasurementChunk
+			{
+				SurveyRunID = new Guid(),
+				ChunkIndex = 0, 
+				MeasurementCount = 0, 
+				StartMD = null, 
+				EndMD = null, 
+				SurveyMeasurementList = new List<SurveyMeasurement>
+					{
+						ConstructSurveyMeasurement(),
+					},
+			};
+		}
+		public static SurveyRun ConstructSurveyRun()
+		{
+			return new SurveyRun
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				FieldID = null, 
+				ClusterID = null, 
+				WellID = null, 
+				WellBoreID = new Guid(),
+				SurveyInstrumentID = new Guid(),
+				SurveyRunType = (SurveyRunType)0,
+				CalculationType = (TrajectoryCalculationType)0,
+				ParentSurveyRunID = null, 
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0, 
+				CalculationMessage = "Default CalculationMessage",
+				TieInPoint = ConstructSurveyStation(),
+				SurveyMeasurementList = new List<SurveyMeasurement>
+					{
+						ConstructSurveyMeasurement(),
+					},
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+			};
+		}
+		public static SurveyRunBatchImport ConstructSurveyRunBatchImport()
+		{
+			return new SurveyRunBatchImport
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				SelectedFieldId = null, 
+				SelectedClusterId = null, 
+				SelectedWellId = null, 
+				CommonDepthReference = "Default CommonDepthReference",
+				ReplaceExistingTrajectories = false, 
+				ReplaceTrajectoriesWithSameName = false, 
+				Settings = ConstructSurveyImportSettings(),
+				Rows = new List<SurveyRunBatchImportRow>
+					{
+						ConstructSurveyRunBatchImportRow(),
+					},
+			};
+		}
+		public static SurveyRunBatchImportRow ConstructSurveyRunBatchImportRow()
+		{
+			return new SurveyRunBatchImportRow
+			{
+				RowId = new Guid(),
+				WellBoreId = null, 
+				SurveyInstrumentId = null, 
+				ParentSurveyRunId = null, 
+				DepthReferenceName = "Default DepthReferenceName",
+				FileName = "Default FileName",
+				FileContentBase64 = "Default FileContentBase64",
+			};
+		}
+		public static SurveyRunMinimumDistanceCalculation ConstructSurveyRunMinimumDistanceCalculation()
+		{
+			return new SurveyRunMinimumDistanceCalculation
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				ReferenceSurveyRunID = new Guid(),
+				ComparisonSurveyRunIDList = new List<Guid>
+					{
+						new Guid(),
+					},
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0, 
+				CalculationMessage = "Default CalculationMessage",
+				ResultCount = 0, 
+				IntervalResultCount = 0, 
+				MaximumChordArcDistance = null, 
+				AccountForBoreholeRadius = false, 
+				OctreeMaximumDepth = 0, 
+				OctreeMaximumSegmentCountPerLeaf = 0, 
+				AdaptiveRefinementSettings = ConstructMinimumDistanceAdaptiveRefinementSettings(),
+				GlobalMinimumCenterToCenterDistance = null, 
+				GlobalMinimumClearanceDistance = null, 
+				GlobalMinimumReferenceMD = null, 
+				GlobalMinimumComparisonSurveyRunID = null, 
+				GlobalMinimumComparisonMD = null, 
+				GlobalMinimumToolface = null, 
+				GlobalMinimumIsGravity = false, 
+				ReferenceIntervalList = new List<MinimumDistanceReferenceInterval>
+					{
+						ConstructMinimumDistanceReferenceInterval(),
+					},
+				ResultList = new List<SurveyRunMinimumDistanceResult>
+					{
+						ConstructSurveyRunMinimumDistanceResult(),
+					},
+				IntervalResultList = new List<SurveyRunMinimumDistanceIntervalResult>
+					{
+						ConstructSurveyRunMinimumDistanceIntervalResult(),
+					},
+			};
+		}
+		public static SurveyRunMinimumDistanceIntervalResult ConstructSurveyRunMinimumDistanceIntervalResult()
+		{
+			return new SurveyRunMinimumDistanceIntervalResult
+			{
+				IntervalID = new Guid(),
+				IntervalName = "Default IntervalName",
+				StartMD = null, 
+				EndMD = null, 
+				ComparisonSurveyRunID = null, 
+				SampleCount = 0, 
+				AverageCenterToCenterDistance = null, 
+				StandardDeviationCenterToCenterDistance = null, 
+				AverageClearanceDistance = null, 
+				StandardDeviationClearanceDistance = null, 
+			};
+		}
+		public static SurveyRunMinimumDistanceResult ConstructSurveyRunMinimumDistanceResult()
+		{
+			return new SurveyRunMinimumDistanceResult
+			{
+				ReferenceMD = null, 
+				ReferenceTVD = null, 
+				ReferenceNorth = null, 
+				ReferenceEast = null, 
+				ReferenceBoreholeDiameter = null, 
+				ComparisonSurveyRunID = null, 
+				ComparisonMD = null, 
+				ComparisonTVD = null, 
+				ComparisonNorth = null, 
+				ComparisonEast = null, 
+				ComparisonBoreholeDiameter = null, 
+				CenterToCenterDistance = null, 
+				ClearanceDistance = null, 
+				Toolface = null, 
+				IsGravity = false, 
+				IsAdaptiveRefinementSample = false, 
+				RefinementLevel = 0, 
+			};
+		}
+		public static SurveyRunMinimumDistanceResultChunk ConstructSurveyRunMinimumDistanceResultChunk()
+		{
+			return new SurveyRunMinimumDistanceResultChunk
+			{
+				OwnerID = new Guid(),
+				ChunkIndex = 0, 
+				ResultCount = 0, 
+				StartReferenceMD = null, 
+				EndReferenceMD = null, 
+				ResultList = new List<SurveyRunMinimumDistanceResult>
+					{
+						ConstructSurveyRunMinimumDistanceResult(),
+					},
+			};
+		}
+		public static SurveyStationChunk ConstructSurveyStationChunk()
+		{
+			return new SurveyStationChunk
+			{
+				OwnerID = new Guid(),
+				OwnerType = "Default OwnerType",
+				ChunkIndex = 0, 
+				StationCount = 0, 
+				StartMD = null, 
+				EndMD = null, 
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+			};
+		}
+		public static SurveyStationEllipse ConstructSurveyStationEllipse()
+		{
+			return new SurveyStationEllipse
+			{
+				SemiMajorAxis = null, 
+				SemiMinorAxis = null, 
+				OrientationAngle = null, 
+			};
+		}
+		public static SurveyStationEllipseCalculation ConstructSurveyStationEllipseCalculation()
+		{
+			return new SurveyStationEllipseCalculation
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				ConfidenceFactor = 0.0, 
+				SurveyInstrumentID = null, 
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+				SurveyStationEllipseResultList = new List<SurveyStationEllipseResult>
+					{
+						ConstructSurveyStationEllipseResult(),
+					},
+				HighestTvdSurveyPointList = new List<SurveyPoint>
+					{
+						ConstructSurveyPoint(),
+					},
+				LowestTvdSurveyPointList = new List<SurveyPoint>
+					{
+						ConstructSurveyPoint(),
+					},
+				CalculationMessage = "Default CalculationMessage",
+			};
+		}
+		public static SurveyStationEllipseResult ConstructSurveyStationEllipseResult()
+		{
+			return new SurveyStationEllipseResult
+			{
+				MD = null, 
+				HorizontalEllipse = ConstructSurveyStationEllipse(),
+				VerticalEllipse = ConstructSurveyStationEllipse(),
+				PerpendicularEllipse = ConstructSurveyStationEllipse(),
+			};
+		}
+		public static Trajectory ConstructTrajectory()
+		{
+			return new Trajectory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				FieldID = null, 
+				ClusterID = null, 
+				WellID = null, 
+				WellBoreID = new Guid(),
+				TrajectoryType = (TrajectoryType)0,
+				IsDefinitive = false, 
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0, 
+				CalculationMessage = "Default CalculationMessage",
+				SurveyRunSectionList = new List<TrajectorySurveyRunSection>
+					{
+						ConstructTrajectorySurveyRunSection(),
+					},
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+				TieInPoint = ConstructSurveyStation(),
+				CalculationType = (TrajectoryCalculationType)0,
+				MDStep = 0.0, 
+			};
+		}
+		public static TrajectoryMinimumDistanceCalculation ConstructTrajectoryMinimumDistanceCalculation()
+		{
+			return new TrajectoryMinimumDistanceCalculation
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				ReferenceTrajectoryID = new Guid(),
+				ComparisonTrajectoryIDList = new List<Guid>
+					{
+						new Guid(),
+					},
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0, 
+				CalculationMessage = "Default CalculationMessage",
+				ResultCount = 0, 
+				IntervalResultCount = 0, 
+				MaximumChordArcDistance = null, 
+				AccountForBoreholeRadius = false, 
+				OctreeMaximumDepth = 0, 
+				OctreeMaximumSegmentCountPerLeaf = 0, 
+				AdaptiveRefinementSettings = ConstructMinimumDistanceAdaptiveRefinementSettings(),
+				GlobalMinimumCenterToCenterDistance = null, 
+				GlobalMinimumClearanceDistance = null, 
+				GlobalMinimumReferenceMD = null, 
+				GlobalMinimumComparisonTrajectoryID = null, 
+				GlobalMinimumComparisonMD = null, 
+				GlobalMinimumToolface = null, 
+				GlobalMinimumIsGravity = false, 
+				ReferenceIntervalList = new List<MinimumDistanceReferenceInterval>
+					{
+						ConstructMinimumDistanceReferenceInterval(),
+					},
+				ResultList = new List<TrajectoryMinimumDistanceResult>
+					{
+						ConstructTrajectoryMinimumDistanceResult(),
+					},
+				IntervalResultList = new List<TrajectoryMinimumDistanceIntervalResult>
+					{
+						ConstructTrajectoryMinimumDistanceIntervalResult(),
+					},
+			};
+		}
+		public static TrajectoryMinimumDistanceIntervalResult ConstructTrajectoryMinimumDistanceIntervalResult()
+		{
+			return new TrajectoryMinimumDistanceIntervalResult
+			{
+				IntervalID = new Guid(),
+				IntervalName = "Default IntervalName",
+				StartMD = null, 
+				EndMD = null, 
+				ComparisonTrajectoryID = null, 
+				SampleCount = 0, 
+				AverageCenterToCenterDistance = null, 
+				StandardDeviationCenterToCenterDistance = null, 
+				AverageClearanceDistance = null, 
+				StandardDeviationClearanceDistance = null, 
+			};
+		}
+		public static TrajectoryMinimumDistanceResult ConstructTrajectoryMinimumDistanceResult()
+		{
+			return new TrajectoryMinimumDistanceResult
+			{
+				ReferenceMD = null, 
+				ReferenceTVD = null, 
+				ReferenceNorth = null, 
+				ReferenceEast = null, 
+				ReferenceBoreholeDiameter = null, 
+				ComparisonTrajectoryID = null, 
+				ComparisonMD = null, 
+				ComparisonTVD = null, 
+				ComparisonNorth = null, 
+				ComparisonEast = null, 
+				ComparisonBoreholeDiameter = null, 
+				CenterToCenterDistance = null, 
+				ClearanceDistance = null, 
+				Toolface = null, 
+				IsGravity = false, 
+				IsAdaptiveRefinementSample = false, 
+				RefinementLevel = 0, 
+			};
+		}
+		public static TrajectoryMinimumDistanceResultChunk ConstructTrajectoryMinimumDistanceResultChunk()
+		{
+			return new TrajectoryMinimumDistanceResultChunk
+			{
+				OwnerID = new Guid(),
+				ChunkIndex = 0, 
+				ResultCount = 0, 
+				StartReferenceMD = null, 
+				EndReferenceMD = null, 
+				ResultList = new List<TrajectoryMinimumDistanceResult>
+					{
+						ConstructTrajectoryMinimumDistanceResult(),
+					},
+			};
+		}
+		public static TrajectorySurveyRunSection ConstructTrajectorySurveyRunSection()
+		{
+			return new TrajectorySurveyRunSection
+			{
+				SurveyRunID = new Guid(),
+				StartAbscissa = 0.0, 
+			};
+		}
+		public static UsageStatisticsTrajectory ConstructUsageStatisticsTrajectory()
+		{
+			return new UsageStatisticsTrajectory
+			{
+				LastSaved = DateTimeOffset.UtcNow,
+				BackUpInterval = "Default BackUpInterval",
+				GetAllTrajectoryIdPerDay = ConstructHistory(),
+				GetAllTrajectoryMetaInfoPerDay = ConstructHistory(),
+				GetTrajectoryByIdPerDay = ConstructHistory(),
+				GetAllTrajectoryLightPerDay = ConstructHistory(),
+				GetAllTrajectoryPerDay = ConstructHistory(),
+				PostTrajectoryPerDay = ConstructHistory(),
+				PutTrajectoryByIdPerDay = ConstructHistory(),
+				DeleteTrajectoryByIdPerDay = ConstructHistory(),
+			};
+		}
+		public static SurveyPoint ConstructSurveyPoint()
+		{
+			return new SurveyPoint
+			{
+				Z = null, 
+				Abscissa = null, 
+				Inclination = null, 
+				Azimuth = null, 
+				MD = null, 
+				X = null, 
+				Y = null, 
+				TVD = null, 
+				RiemannianNorth = null, 
+				RiemannianEast = null, 
+				Latitude = null, 
+				Longitude = null, 
+				Curvature = null, 
+				Toolface = null, 
+				BUR = null, 
+				TUR = null, 
+				VerticalSection = null, 
+				Annotation = "Default Annotation",
+			};
+		}
+		public static SurveyStation ConstructSurveyStation()
+		{
+			return new SurveyStation
+			{
+				Z = null, 
+				Abscissa = null, 
+				Inclination = null, 
+				Azimuth = null, 
+				MD = null, 
+				X = null, 
+				Y = null, 
+				TVD = null, 
+				RiemannianNorth = null, 
+				RiemannianEast = null, 
+				Latitude = null, 
+				Longitude = null, 
+				Curvature = null, 
+				Toolface = null, 
+				BUR = null, 
+				TUR = null, 
+				VerticalSection = null, 
+				Annotation = "Default Annotation",
+				Covariance = ConstructSymmetricMatrix3x3(),
+				EigenVectors = ConstructMatrix3x3(),
+				EigenValues = ConstructVector3D(),
+				Bias = ConstructVector3D(),
+				SurveyTool = ConstructSurveyInstrument(),
+				BoreholeRadius = null, 
+			};
+		}
+		public static Matrix3x3 ConstructMatrix3x3()
+		{
+			return new Matrix3x3
+			{
+				RowCount = 0, 
+				ColumnCount = 0, 
+			};
+		}
+		public static SymmetricMatrix3x3 ConstructSymmetricMatrix3x3()
+		{
+			return new SymmetricMatrix3x3
+			{
+				ColumnCount = 0, 
+				RowCount = 0, 
+			};
+		}
+		public static Vector3D ConstructVector3D()
+		{
+			return new Vector3D
+			{
+				X = null, 
+				Y = null, 
+				Z = null, 
+				Dim = 0, 
+			};
+		}
+		public static UsageStatisticsWell ConstructUsageStatisticsWell()
+		{
+			return new UsageStatisticsWell
+			{
+				LastSaved = DateTimeOffset.UtcNow,
+				BackUpInterval = "Default BackUpInterval",
+				GetAllWellIdPerDay = ConstructHistory(),
+				GetAllWellMetaInfoPerDay = ConstructHistory(),
+				GetWellByIdPerDay = ConstructHistory(),
+				GetAllWellPerDay = ConstructHistory(),
+				PostWellPerDay = ConstructHistory(),
+				PutWellByIdPerDay = ConstructHistory(),
+				DeleteWellByIdPerDay = ConstructHistory(),
+			};
+		}
+		public static Well ConstructWell()
+		{
+			return new Well
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				SlotID = null, 
+				ClusterID = null, 
+				IsSingleWell = false, 
+			};
+		}
 		public static UsageStatisticsWellBore ConstructUsageStatisticsWellBore()
 		{
 			return new UsageStatisticsWellBore
@@ -644,33 +2473,164 @@ namespace NORCE.Drilling.Trajectory.ModelShared
 				SidetrackType = (SidetrackType)0,
 			};
 		}
-		public static UsageStatisticsWell ConstructUsageStatisticsWell()
+		public static BoreHoleSize ConstructBoreHoleSize()
 		{
-			return new UsageStatisticsWell
+			return new BoreHoleSize
 			{
-				LastSaved = DateTimeOffset.UtcNow,
-				BackUpInterval = "Default BackUpInterval",
-				GetAllWellIdPerDay = ConstructHistory(),
-				GetAllWellMetaInfoPerDay = ConstructHistory(),
-				GetWellByIdPerDay = ConstructHistory(),
-				GetAllWellPerDay = ConstructHistory(),
-				PostWellPerDay = ConstructHistory(),
-				PutWellByIdPerDay = ConstructHistory(),
-				DeleteWellByIdPerDay = ConstructHistory(),
+				HoleSize = ConstructGaussianDrillingProperty(),
+				Length = ConstructGaussianDrillingProperty(),
 			};
 		}
-		public static Well ConstructWell()
+		public static CasingSection ConstructCasingSection()
 		{
-			return new Well
+			return new CasingSection
+			{
+				TopDepth = ConstructGaussianDrillingProperty(),
+				Length = ConstructGaussianDrillingProperty(),
+				TopCementDepth = ConstructGaussianDrillingProperty(),
+				CasingSectionElements = new List<CasingSectionElement>
+					{
+						ConstructCasingSectionElement(),
+					},
+				CasingSectionSizeTable = new List<BoreHoleSize>
+					{
+						ConstructBoreHoleSize(),
+					},
+				OpenHoleSection = ConstructOpenHoleSection(),
+			};
+		}
+		public static CasingSectionElement ConstructCasingSectionElement()
+		{
+			return new CasingSectionElement
+			{
+				BodyOD = ConstructGaussianDrillingProperty(),
+				BodyID = ConstructGaussianDrillingProperty(),
+				CollarOD = ConstructGaussianDrillingProperty(),
+				JointLength = ConstructGaussianDrillingProperty(),
+				SectionLength = ConstructGaussianDrillingProperty(),
+				MaxDLS = ConstructScalarDrillingProperty(),
+				ConnectionType = "Default ConnectionType",
+				Grade = "Default Grade",
+				MaterialDensity = ConstructGaussianDrillingProperty(),
+				YoungModulus = ConstructGaussianDrillingProperty(),
+				LinearWeight = ConstructGaussianDrillingProperty(),
+				TensileStrength = ConstructGaussianDrillingProperty(),
+				TorsionalStrength = ConstructGaussianDrillingProperty(),
+				BurstPressure = ConstructGaussianDrillingProperty(),
+				CollapsePressure = ConstructGaussianDrillingProperty(),
+				YieldStress = ConstructGaussianDrillingProperty(),
+				MakeUpTorqueRecommended = ConstructScalarDrillingProperty(),
+			};
+		}
+		public static ElementConnectivity ConstructElementConnectivity()
+		{
+			return new ElementConnectivity
+			{
+				UpstreamElement = ConstructSideElement(),
+				DownstreamElement = ConstructSideElement(),
+			};
+		}
+		public static OpenHoleSection ConstructOpenHoleSection()
+		{
+			return new OpenHoleSection
+			{
+				HoleSizes = new List<BoreHoleSize>
+					{
+						ConstructBoreHoleSize(),
+					},
+			};
+		}
+		public static SideConnector ConstructSideConnector()
+		{
+			return new SideConnector
+			{
+				Position = ConstructGaussianDrillingProperty(),
+				VerticalDepth = ConstructGaussianDrillingProperty(),
+				FirstSideElement = ConstructSideElement(),
+				ElementConnectivities = new List<ElementConnectivity>
+					{
+						ConstructElementConnectivity(),
+					},
+			};
+		}
+		public static SideElement ConstructSideElement()
+		{
+			return new SideElement
+			{
+				Name = "Default Name",
+				Type = (SideElementType)0,
+				Length = ConstructGaussianDrillingProperty(),
+				TopVerticalDepth = ConstructGaussianDrillingProperty(),
+				OD = ConstructGaussianDrillingProperty(),
+				ID = ConstructGaussianDrillingProperty(),
+			};
+		}
+		public static SurfaceSection ConstructSurfaceSection()
+		{
+			return new SurfaceSection
+			{
+				Type = (SurfaceSectionType)0,
+				SectionLength = ConstructGaussianDrillingProperty(),
+				BodyOD = ConstructGaussianDrillingProperty(),
+				BodyID = ConstructGaussianDrillingProperty(),
+				ConnectionType = "Default ConnectionType",
+				Grade = "Default Grade",
+				MaterialDensity = ConstructGaussianDrillingProperty(),
+				YoungModulus = ConstructGaussianDrillingProperty(),
+				LinearWeight = ConstructGaussianDrillingProperty(),
+				TensileStrength = ConstructGaussianDrillingProperty(),
+				BurstPressure = ConstructGaussianDrillingProperty(),
+				CollapsePressure = ConstructGaussianDrillingProperty(),
+				YieldStress = ConstructGaussianDrillingProperty(),
+				MakeUpTorqueRecommended = ConstructScalarDrillingProperty(),
+				SideConnectors = new List<SideConnector>
+					{
+						ConstructSideConnector(),
+					},
+			};
+		}
+		public static WellBoreArchitecture ConstructWellBoreArchitecture()
+		{
+			return new WellBoreArchitecture
 			{
 				MetaInfo = ConstructMetaInfo(),
 				Name = "Default Name",
 				Description = "Default Description",
 				CreationDate = DateTimeOffset.UtcNow,
 				LastModificationDate = DateTimeOffset.UtcNow,
-				SlotID = null, 
-				ClusterID = null, 
-				IsSingleWell = false, 
+				WellBoreID = null, 
+				WellHead = ConstructWellHead(),
+				FluidsAboveGroundLevel = new List<WellBoreArchitectureFluid>
+					{
+						ConstructWellBoreArchitectureFluid(),
+					},
+				SurfaceSections = new List<SurfaceSection>
+					{
+						ConstructSurfaceSection(),
+					},
+				CasingSections = new List<CasingSection>
+					{
+						ConstructCasingSection(),
+					},
+			};
+		}
+		public static WellBoreArchitectureFluid ConstructWellBoreArchitectureFluid()
+		{
+			return new WellBoreArchitectureFluid
+			{
+				Fluid = (FluidType)0,
+				Depth = ConstructGaussianDrillingProperty(),
+			};
+		}
+		public static WellHead ConstructWellHead()
+		{
+			return new WellHead
+			{
+				MaxOD = ConstructScalarDrillingProperty(),
+				MinOD = ConstructScalarDrillingProperty(),
+				Depth = ConstructGaussianDrillingProperty(),
+				CasingHangerDepth = ConstructScalarDrillingProperty(),
+				TubingHangerDepth = ConstructScalarDrillingProperty(),
 			};
 		}
 	}

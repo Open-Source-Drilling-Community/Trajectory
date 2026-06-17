@@ -44,6 +44,10 @@ public static class ExternalWebPagesServiceCollectionExtensions
         services.AddSingleton<
             NORCE.Drilling.SurveyInstrument.WebPages.ISurveyInstrumentAPIUtils,
             NORCE.Drilling.SurveyInstrument.WebPages.SurveyInstrumentAPIUtils>();
+        services.AddSingleton<NORCE.Drilling.EarthGeomagneticField.WebPages.IEarthGeomagneticFieldWebPagesConfiguration>(configuration);
+        services.AddSingleton<
+            NORCE.Drilling.EarthGeomagneticField.WebPages.IEarthGeomagneticFieldAPIUtils,
+            NORCE.Drilling.EarthGeomagneticField.WebPages.EarthGeomagneticFieldAPIUtils>();
         return services;
     }
 }

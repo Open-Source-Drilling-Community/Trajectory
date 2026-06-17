@@ -412,6 +412,19 @@ public static class DataUtils
         }
     }
 
+    public static void AddExtremeTvdPathPlots(
+        SurveyStationEllipseCalculation? calculation,
+        EllipsePlotData ellipsePlotData)
+    {
+        if (calculation == null)
+        {
+            return;
+        }
+
+        AddExtremeTvdPathTrace(calculation.HighestTvdSurveyPointList, "Highest TVD path", "green", ellipsePlotData);
+        AddExtremeTvdPathTrace(calculation.LowestTvdSurveyPointList, "Lowest TVD path", "red", ellipsePlotData);
+    }
+
     private static IReadOnlyList<(SurveyStation Station, SurveyStationEllipseResult Result)> SelectEvenlySpacedEllipses(
         IReadOnlyList<(SurveyStation Station, SurveyStationEllipseResult Result)> candidates)
     {
@@ -562,6 +575,66 @@ public static class DataUtils
         plotData.PerpendicularModeFlagList.Add(1);
         plotData.PerpendicularColorList.Add(COLORSCALE[0]);
         plotData.PerpendicularShowLegendList.Add(showLegend);
+        plotData.PerpendicularNorthValuesList.Add(northValues);
+        plotData.PerpendicularEastValuesList.Add(eastValues);
+        plotData.PerpendicularTvdValuesList.Add(tvdValues);
+    }
+
+    private static void AddExtremeTvdPathTrace(
+        ICollection<SurveyPoint>? path,
+        string name,
+        string color,
+        EllipsePlotData plotData)
+    {
+        if (path is not { Count: > 1 })
+        {
+            return;
+        }
+
+        List<object> northValues = [];
+        List<object> eastValues = [];
+        List<object> tvdValues = [];
+        List<object> verticalSectionValues = [];
+        foreach (SurveyPoint point in path)
+        {
+            if (point == null ||
+                (point.X ?? point.RiemannianNorth) is not double north ||
+                (point.Y ?? point.RiemannianEast) is not double east ||
+                (point.Z ?? point.TVD) is not double tvd ||
+                (point.VerticalSection ?? point.Abscissa) is not double verticalSection)
+            {
+                continue;
+            }
+
+            northValues.Add(north);
+            eastValues.Add(east);
+            tvdValues.Add(tvd);
+            verticalSectionValues.Add(verticalSection);
+        }
+
+        if (northValues.Count <= 1)
+        {
+            return;
+        }
+
+        plotData.HorizontalNameList.Add(name);
+        plotData.HorizontalModeFlagList.Add(3);
+        plotData.HorizontalColorList.Add(color);
+        plotData.HorizontalShowLegendList.Add(true);
+        plotData.HorizontalNorthValuesList.Add(northValues);
+        plotData.HorizontalEastValuesList.Add(eastValues);
+
+        plotData.VerticalNameList.Add(name);
+        plotData.VerticalModeFlagList.Add(3);
+        plotData.VerticalColorList.Add(color);
+        plotData.VerticalShowLegendList.Add(true);
+        plotData.VerticalSectionValuesList.Add(verticalSectionValues);
+        plotData.VerticalTvdValuesList.Add(tvdValues);
+
+        plotData.PerpendicularNameList.Add(name);
+        plotData.PerpendicularModeFlagList.Add(3);
+        plotData.PerpendicularColorList.Add(color);
+        plotData.PerpendicularShowLegendList.Add(true);
         plotData.PerpendicularNorthValuesList.Add(northValues);
         plotData.PerpendicularEastValuesList.Add(eastValues);
         plotData.PerpendicularTvdValuesList.Add(tvdValues);

@@ -370,7 +370,8 @@
                         <SurveyStationEllipseTable SurveyStationList="@calculatedList"
                                                    SurveyInstrumentID="@surveyRun.SurveyInstrumentID"
                                                    CalculationName="@($"{surveyRun.Name} uncertainty ellipses")"
-                                                   EllipseResultsChanged="OnEllipseResultsChanged" />
+                                                   EllipseResultsChanged="OnEllipseResultsChanged"
+                                                   CalculationChanged="OnEllipseCalculationChanged" />
                     }
                 </MudExpansionPanel>
                 <MudExpansionPanel Text="Plot survey run" Style="overflow: visible;" ExpandedChanged="@OnCalculatedStationsPanelExpandedChanged">
@@ -570,6 +571,7 @@
     private readonly List<List<object>> verticalSectionValuesList = [];
     private readonly EllipsePlotData ellipsePlotData = new();
     private List<SurveyStationEllipseResult> ellipseResults = [];
+    private SurveyStationEllipseCalculation? ellipseCalculation;
 
     private List<string> HorizontalNameList => Combine(nameList, ellipsePlotData.HorizontalNameList);
     private List<int> HorizontalModeFlagList => Combine(modeFlagList, ellipsePlotData.HorizontalModeFlagList);
@@ -747,14 +749,14 @@
             surveyRunIdBeingEdited_ = null;
             selectedSurveyRunList_ = [];
 
-            Task<System.Collections.Generic.ICollection<Field>> fieldTask = Api.ClientField.GetAllFieldAsync();
-            Task<System.Collections.Generic.ICollection<Cluster>> clusterTask = Api.ClientCluster.GetAllClusterAsync();
-            Task<System.Collections.Generic.ICollection<Well>> wellTask = Api.ClientWell.GetAllWellAsync();
-            Task<System.Collections.Generic.ICollection<WellBore>> wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
-            Task<System.Collections.Generic.ICollection<Rig>> rigTask = Api.ClientRig.GetAllRigAsync();
-            Task<System.Collections.Generic.ICollection<SurveyInstrumentLight>> surveyInstrumentTask = Api.ClientSurveyInstrument.GetAllSurveyInstrumentLightAsync();
-            Task<System.Collections.Generic.ICollection<SurveyRunLight>> surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
-            Task<System.Collections.Generic.ICollection<SurveyRun>> surveyRunHeavyTask = Api.ClientTrajectory.GetAllSurveyRunAsync();
+            Task<ICollection<Field>> fieldTask = Api.ClientField.GetAllFieldAsync();
+            Task<ICollection<Cluster>> clusterTask = Api.ClientCluster.GetAllClusterAsync();
+            Task<ICollection<Well>> wellTask = Api.ClientWell.GetAllWellAsync();
+            Task<ICollection<WellBore>> wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
+            Task<ICollection<Rig>> rigTask = Api.ClientRig.GetAllRigAsync();
+            Task<ICollection<SurveyInstrumentLight>> surveyInstrumentTask = Api.ClientSurveyInstrument.GetAllSurveyInstrumentLightAsync();
+            Task<ICollection<SurveyRunLight>> surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
+            Task<ICollection<SurveyRun>> surveyRunHeavyTask = Api.ClientTrajectory.GetAllSurveyRunAsync();
 
             await Task.WhenAll(fieldTask, clusterTask, wellTask, wellBoreTask, rigTask, surveyInstrumentTask, surveyRunTask, surveyRunHeavyTask);
 
@@ -1917,14 +1919,28 @@
             verticalSectionValuesList,
             [plotTrajectory]
         );
-        DataUtils.UpdateEllipsePlots(currentSurveyRun_?.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData);
+        UpdateUncertaintyPlotData();
     }
 
     private async Task OnEllipseResultsChanged(ICollection<SurveyStationEllipseResult> results)
     {
         ellipseResults = results?.ToList() ?? [];
-        DataUtils.UpdateEllipsePlots(currentSurveyRun_?.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData);
+        ellipseCalculation = null;
+        UpdateUncertaintyPlotData();
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnEllipseCalculationChanged(SurveyStationEllipseCalculation? calculation)
+    {
+        ellipseCalculation = calculation;
+        UpdateUncertaintyPlotData();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateUncertaintyPlotData()
+    {
+        DataUtils.UpdateEllipsePlots(currentSurveyRun_?.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData);
+        DataUtils.AddExtremeTvdPathPlots(ellipseCalculation, ellipsePlotData);
     }
 
     private static string GetCalculationMethodLabel(TrajectoryCalculationType method) =>

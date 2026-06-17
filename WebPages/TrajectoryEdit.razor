@@ -267,7 +267,8 @@
             {
                 <SurveyStationEllipseTable SurveyStationList="@calculatedList"
                                            CalculationName="@($"{traj.Name} uncertainty ellipses")"
-                                           EllipseResultsChanged="OnEllipseResultsChanged" />
+                                           EllipseResultsChanged="OnEllipseResultsChanged"
+                                           CalculationChanged="OnEllipseCalculationChanged" />
             }
             else
             {
@@ -425,6 +426,7 @@
     List<List<object>> verticalSectionValuesList = new List<List<object>>(); //Vertical section values for the list of curves to plot
     private readonly EllipsePlotData ellipsePlotData = new();
     private List<SurveyStationEllipseResult> ellipseResults = [];
+    private SurveyStationEllipseCalculation? ellipseCalculation;
 
     private List<string> HorizontalNameList => Combine(nameList, ellipsePlotData.HorizontalNameList);
     private List<int> HorizontalModeFlagList => Combine(modeFlagList, ellipsePlotData.HorizontalModeFlagList);
@@ -1844,14 +1846,28 @@
             verticalSectionValuesList,
             [currentTrajectory]
         );
-        DataUtils.UpdateEllipsePlots(currentTrajectory?.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData);
+        UpdateUncertaintyPlotData();
     }
 
     private async Task OnEllipseResultsChanged(ICollection<SurveyStationEllipseResult> results)
     {
         ellipseResults = results?.ToList() ?? [];
-        DataUtils.UpdateEllipsePlots(currentTrajectory?.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData);
+        ellipseCalculation = null;
+        UpdateUncertaintyPlotData();
         await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnEllipseCalculationChanged(SurveyStationEllipseCalculation? calculation)
+    {
+        ellipseCalculation = calculation;
+        UpdateUncertaintyPlotData();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateUncertaintyPlotData()
+    {
+        DataUtils.UpdateEllipsePlots(currentTrajectory?.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData);
+        DataUtils.AddExtremeTvdPathPlots(ellipseCalculation, ellipsePlotData);
     }
 
     // Deep copy constructor
