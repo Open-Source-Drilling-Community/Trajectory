@@ -18,7 +18,9 @@ WebPagesHostConfiguration webPagesConfiguration = new()
     WellHostURL = builder.Configuration["WellHostURL"] ?? string.Empty,
     UnitConversionHostURL = builder.Configuration["UnitConversionHostURL"] ?? string.Empty,
     SurveyInstrumentHostURL = builder.Configuration["SurveyInstrumentHostURL"] ?? string.Empty,
-    EarthMagneticFieldHostURL = builder.Configuration["EarthMagneticFieldHostURL"] ?? string.Empty
+    EarthMagneticFieldHostURL = builder.Configuration["EarthMagneticFieldHostURL"] ?? string.Empty,
+    GravitationalFieldHostURL = builder.Configuration["GravitationalFieldHostURL"] ?? string.Empty,
+    VerticalDatumHostURL = builder.Configuration["VerticalDatumHostURL"] ?? string.Empty
 };
 
 builder.Services.AddRazorPages();
