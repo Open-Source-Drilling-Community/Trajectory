@@ -749,14 +749,14 @@
             surveyRunIdBeingEdited_ = null;
             selectedSurveyRunList_ = [];
 
-            Task<ICollection<Field>> fieldTask = Api.ClientField.GetAllFieldAsync();
-            Task<ICollection<Cluster>> clusterTask = Api.ClientCluster.GetAllClusterAsync();
-            Task<ICollection<Well>> wellTask = Api.ClientWell.GetAllWellAsync();
-            Task<ICollection<WellBore>> wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
-            Task<ICollection<Rig>> rigTask = Api.ClientRig.GetAllRigAsync();
-            Task<ICollection<SurveyInstrumentLight>> surveyInstrumentTask = Api.ClientSurveyInstrument.GetAllSurveyInstrumentLightAsync();
-            Task<ICollection<SurveyRunLight>> surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
-            Task<ICollection<SurveyRun>> surveyRunHeavyTask = Api.ClientTrajectory.GetAllSurveyRunAsync();
+            var fieldTask = Api.ClientField.GetAllFieldAsync();
+            var clusterTask = Api.ClientCluster.GetAllClusterAsync();
+            var wellTask = Api.ClientWell.GetAllWellAsync();
+            var wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
+            var rigTask = Api.ClientRig.GetAllRigAsync();
+            var surveyInstrumentTask = Api.ClientSurveyInstrument.GetAllSurveyInstrumentLightAsync();
+            var surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
+            var surveyRunHeavyTask = Api.ClientTrajectory.GetAllSurveyRunAsync();
 
             await Task.WhenAll(fieldTask, clusterTask, wellTask, wellBoreTask, rigTask, surveyInstrumentTask, surveyRunTask, surveyRunHeavyTask);
 

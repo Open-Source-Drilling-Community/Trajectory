@@ -103,6 +103,32 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     "CalculationMessage text",
                     "InterpolatedTrajectory text" }
                 },
+                { "TrajectoryRealizationCaseTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "TrajectoryID text",
+                    "RealizationCount integer",
+                    "CoarseningMaximumDistance real",
+                    "RandomSeed integer",
+                    "ReferenceStationCount integer",
+                    "CoarsenedStationCount integer",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
+                    "TrajectoryRealizationCase text" }
+                },
+                { "TrajectoryRealizationChunkTable", new string[] {
+                    "ID text primary key",
+                    "OwnerID text",
+                    "ChunkIndex integer",
+                    "RealizationCount integer",
+                    "SurveyPointCount integer",
+                    "StartMD real",
+                    "EndMD real",
+                    "TrajectoryRealizationChunk text" }
+                },
                 { "SurveyRunBatchImportTable", new string[] {
                     "ID text primary key",
                     "MetaInfo text",

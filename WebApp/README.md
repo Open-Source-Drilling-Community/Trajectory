@@ -2,7 +2,7 @@
 
 `WebApp` is the ASP.NET Core Blazor host application for Trajectory.
 
-It provides the application shell, startup configuration, routing, and static assets for the UI. The Trajectory and TrajectoryInterpolation pages themselves are now provided by the `WebPages` Razor class library.
+It provides the application shell, startup configuration, routing, and static assets for the UI. The Trajectory, TrajectoryInterpolation, and TrajectoryRealization pages themselves are now provided by the `WebPages` Razor class library.
 
 ## Container
 
@@ -33,6 +33,10 @@ https://app.digiwells.no/Trajectory/api/swagger
 - `WebApp` hosts and configures the UI.
 - `WebPages` contains the reusable Razor pages and page-specific support components.
 - `ModelSharedOut` provides the generated service client types used by `WebPages`.
+
+## Navigation
+
+The side menu exposes the main trajectory pages, including trajectory interpolation and trajectory realizations. The realization page is placed near the uncertainty-related trajectory pages because it uses survey station wellbore position uncertainty as its input distribution.
 
 ## Funding
 

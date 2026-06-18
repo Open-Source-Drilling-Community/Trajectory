@@ -5885,6 +5885,303 @@
         }
       }
     },
+    "/TrajectoryRealizationCase": {
+      "get": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "GetAllTrajectoryRealizationCaseId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "PostTrajectoryRealizationCase",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryRealizationCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryRealizationCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryRealizationCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryRealizationCase/MetaInfo": {
+      "get": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "GetAllTrajectoryRealizationCaseMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryRealizationCase/{id}": {
+      "get": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "GetTrajectoryRealizationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeRealizations",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryRealizationCase"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "PutTrajectoryRealizationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryRealizationCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryRealizationCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryRealizationCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "DeleteTrajectoryRealizationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryRealizationCase/LightData": {
+      "get": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "GetAllTrajectoryRealizationCaseLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrajectoryRealizationCaseLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryRealizationCase/HeavyData": {
+      "get": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "GetAllTrajectoryRealizationCase",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrajectoryRealizationCase"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryRealizationCase/{id}/Realizations/ChunkCount": {
+      "get": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "GetTrajectoryRealizationChunkCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryRealizationCase/{id}/Realizations/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "GetTrajectoryRealizationChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryRealizationChunk"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/TrajectoryUsageStatistics": {
       "get": {
         "tags": [
@@ -15097,6 +15394,185 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/TrajectoryMinimumDistanceResult"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryRealizationCase": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "TrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "RealizationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CoarseningMaximumDistance": {
+            "type": "number",
+            "format": "double"
+          },
+          "RandomSeed": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "ReferenceStationCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "CoarsenedStationCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "RealizationList": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/SurveyPoint"
+              }
+            },
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryRealizationCaseLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "TrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "RealizationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CoarseningMaximumDistance": {
+            "type": "number",
+            "format": "double"
+          },
+          "RandomSeed": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "ReferenceStationCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "CoarsenedStationCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryRealizationChunk": {
+        "type": "object",
+        "properties": {
+          "OwnerID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ChunkIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "RealizationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyPointCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "StartMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "RealizationList": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/SurveyPoint"
+              }
             },
             "nullable": true
           }

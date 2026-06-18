@@ -1702,6 +1702,91 @@ namespace NORCE.Drilling.Trajectory.ModelShared
 				DeleteRigByIdPerDay = ConstructHistory(),
 			};
 		}
+		public static EarthMagneticData ConstructEarthMagneticData()
+		{
+			return new EarthMagneticData
+			{
+				Latitude = 0.0, 
+				Longitude = 0.0, 
+				Depth = 0.0, 
+				Year = 0.0, 
+				Dip = null, 
+				FieldIntensity = null, 
+				Declination = null, 
+				HorizontalMagneticField = null, 
+			};
+		}
+		public static EarthMagneticField ConstructEarthMagneticField()
+		{
+			return new EarthMagneticField
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				EarthMagneticFieldData = new List<EarthMagneticData>
+					{
+						ConstructEarthMagneticData(),
+					},
+				Type = (EarthMagneticFieldType)0,
+			};
+		}
+		public static EarthMagneticFieldCalculationOrder ConstructEarthMagneticFieldCalculationOrder()
+		{
+			return new EarthMagneticFieldCalculationOrder
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				CalculationMethod = (EarthMagneticFieldCalculationMethod)0,
+				RawEarthMagneticFieldTable = ConstructEarthMagneticField(),
+				CompletedEarthMagneticFieldTable = ConstructEarthMagneticField(),
+			};
+		}
+		public static GravitationalData ConstructGravitationalData()
+		{
+			return new GravitationalData
+			{
+				Lattitude = 0.0, 
+				Longitude = 0.0, 
+				Depth = 0.0, 
+				GravitatyIntensityX = null, 
+				GravitatyIntensityY = null, 
+				GravitatyIntensityZ = null, 
+			};
+		}
+		public static GravitationalField ConstructGravitationalField()
+		{
+			return new GravitationalField
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				Type = (GravitationalFieldType)0,
+				GravitationalDataTable = new List<GravitationalData>
+					{
+						ConstructGravitationalData(),
+					},
+			};
+		}
+		public static GravitationalFieldCalculationOrder ConstructGravitationalFieldCalculationOrder()
+		{
+			return new GravitationalFieldCalculationOrder
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				RawGravitationalField = ConstructGravitationalField(),
+				CompletedGravitationalField = ConstructGravitationalField(),
+			};
+		}
 		public static UsageStatisticsSurveyInstrument ConstructUsageStatisticsSurveyInstrument()
 		{
 			return new UsageStatisticsSurveyInstrument
@@ -2308,6 +2393,52 @@ namespace NORCE.Drilling.Trajectory.ModelShared
 					},
 			};
 		}
+		public static TrajectoryRealizationCase ConstructTrajectoryRealizationCase()
+		{
+			return new TrajectoryRealizationCase
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				TrajectoryID = new Guid(),
+				RealizationCount = 0, 
+				CoarseningMaximumDistance = 0.0, 
+				RandomSeed = null, 
+				ReferenceStationCount = null, 
+				CoarsenedStationCount = null, 
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0, 
+				CalculationMessage = "Default CalculationMessage",
+				RealizationList = new List<List<SurveyPoint>>
+					{
+						new List<SurveyPoint>
+						{
+							ConstructSurveyPoint(),
+						}
+					},
+			};
+		}
+		public static TrajectoryRealizationChunk ConstructTrajectoryRealizationChunk()
+		{
+			return new TrajectoryRealizationChunk
+			{
+				OwnerID = new Guid(),
+				ChunkIndex = 0, 
+				RealizationCount = 0, 
+				SurveyPointCount = 0, 
+				StartMD = null, 
+				EndMD = null, 
+				RealizationList = new List<List<SurveyPoint>>
+					{
+						new List<SurveyPoint>
+						{
+							ConstructSurveyPoint(),
+						}
+					},
+			};
+		}
 		public static TrajectorySurveyRunSection ConstructTrajectorySurveyRunSection()
 		{
 			return new TrajectorySurveyRunSection
@@ -2410,6 +2541,45 @@ namespace NORCE.Drilling.Trajectory.ModelShared
 				Y = null, 
 				Z = null, 
 				Dim = 0, 
+			};
+		}
+		public static VerticalDatum ConstructVerticalDatum()
+		{
+			return new VerticalDatum
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				DatumSet = new List<VerticalDatumSet>
+					{
+						ConstructVerticalDatumSet(),
+					},
+				ConversionFrom = (VerticalDatumConversion)0,
+				Type = (VerticalDatumType)0,
+			};
+		}
+		public static VerticalDatumOrder ConstructVerticalDatumOrder()
+		{
+			return new VerticalDatumOrder
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				VerticalDatum = ConstructVerticalDatum(),
+			};
+		}
+		public static VerticalDatumSet ConstructVerticalDatumSet()
+		{
+			return new VerticalDatumSet
+			{
+				Latitude = 0.0, 
+				Longitude = 0.0, 
+				VerticalDatumWGS64 = null, 
+				GenericVerticalDatum = 0.0, 
 			};
 		}
 		public static UsageStatisticsWell ConstructUsageStatisticsWell()
