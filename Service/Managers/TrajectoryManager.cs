@@ -759,6 +759,16 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     return null;
                 }
 
+                WellBoreArchitecture? wellBoreArchitecture = await APIUtils.GetWellBoreArchitectureByWellBoreIdAsync(trajectory.WellBoreID);
+                if (wellBoreArchitecture != null)
+                {
+                    FillBoreholeRadiusFromArchitecture(trajectory, wellBoreArchitecture);
+                }
+                else
+                {
+                    _logger.LogWarning("No WellBoreArchitecture found for WellBoreID {WellBoreID}", trajectory.WellBoreID);
+                }
+
                 return trajectory;
             }
             catch (Exception ex)
@@ -888,5 +898,253 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 return null;
             }
         }
+
+        public static int FillBoreholeRadiusFromArchitecture(Model.Trajectory trajectory, WellBoreArchitecture architecture)
+        {
+            if (trajectory.SurveyStationList is not { Count: > 0 })
+            {
+                return 0;
+            }
+
+            List<BoreholeRadiusInterval> intervals = BuildBoreholeRadiusIntervals(architecture);
+            if (intervals.Count == 0)
+            {
+                return 0;
+            }
+
+            int filledCount = 0;
+            foreach (SurveyStation station in trajectory.SurveyStationList)
+            {
+                if (station.MD is not double md)
+                {
+                    continue;
+                }
+
+                double? radius = ResolveBoreholeRadius(intervals, md);
+                if (radius.HasValue)
+                {
+                    station.BoreholeRadius = radius.Value;
+                    filledCount++;
+                }
+            }
+
+            return filledCount;
+        }
+
+        private static List<BoreholeRadiusInterval> BuildBoreholeRadiusIntervals(WellBoreArchitecture architecture)
+        {
+            List<BoreholeRadiusInterval> intervals = [];
+
+            AddSurfaceSectionIntervals(intervals, architecture);
+
+            if (architecture.CasingSections is { Count: > 0 })
+            {
+                foreach (CasingSection casingSection in architecture.CasingSections)
+                {
+                    AddCasingSectionIntervals(intervals, casingSection);
+                }
+            }
+
+            return intervals
+                .OrderBy(interval => interval.StartMD)
+                .ThenBy(interval => interval.EndMD)
+                .ThenBy(interval => interval.Radius)
+                .ToList();
+        }
+
+        private static void AddSurfaceSectionIntervals(List<BoreholeRadiusInterval> intervals, WellBoreArchitecture architecture)
+        {
+            if (architecture.SurfaceSections is not { Count: > 0 })
+            {
+                return;
+            }
+
+            if (GetGaussianMean(architecture.WellHead?.Depth) is not double wellHeadDepth ||
+                !IsUsableDepthValue(wellHeadDepth))
+            {
+                return;
+            }
+
+            List<(SurfaceSection Section, double Length)> surfaceSections = [];
+            foreach (SurfaceSection? surfaceSection in architecture.SurfaceSections)
+            {
+                if (surfaceSection is null)
+                {
+                    continue;
+                }
+
+                SurfaceSection nonNullSurfaceSection = surfaceSection;
+                if (GetGaussianMean(nonNullSurfaceSection.SectionLength) is double length &&
+                    IsUsablePositiveValue(length))
+                {
+                    surfaceSections.Add((nonNullSurfaceSection, length));
+                }
+            }
+
+            if (surfaceSections.Count == 0)
+            {
+                return;
+            }
+
+            double currentMD = wellHeadDepth - surfaceSections.Sum(item => item.Length);
+            foreach ((SurfaceSection surfaceSection, double surfaceLength) in surfaceSections)
+            {
+                double? radius = GetRadiusFromDiameter(surfaceSection?.BodyID);
+                double endMD = currentMD + surfaceLength;
+                if (radius.HasValue)
+                {
+                    TryAddBoreholeRadiusInterval(intervals, currentMD, endMD, radius.Value);
+                }
+
+                currentMD = endMD;
+            }
+        }
+
+        private static void AddCasingSectionIntervals(List<BoreholeRadiusInterval> intervals, CasingSection? casingSection)
+        {
+            if (GetGaussianMean(casingSection?.TopDepth) is not double topDepth ||
+                !IsUsableDepthValue(topDepth))
+            {
+                return;
+            }
+
+            double currentMD = topDepth;
+            int sizeCount = casingSection?.CasingSectionSizeTable?.Count ?? 0;
+            double casingSectionLength = GetGaussianMean(casingSection?.Length) ?? 0.0;
+
+            if (casingSection?.CasingSectionSizeTable is { Count: > 0 })
+            {
+                foreach (BoreHoleSize boreHoleSize in casingSection.CasingSectionSizeTable)
+                {
+                    double? radius = GetRadiusFromDiameter(boreHoleSize?.HoleSize);
+                    double? length = GetGaussianMean(boreHoleSize?.Length);
+                    if ((!length.HasValue || !IsUsablePositiveValue(length.Value)) &&
+                        sizeCount == 1 &&
+                        IsUsablePositiveValue(casingSectionLength))
+                    {
+                        length = casingSectionLength;
+                    }
+
+                    if (length is not double boreHoleLength || !IsUsablePositiveValue(boreHoleLength))
+                    {
+                        continue;
+                    }
+
+                    double endMD = currentMD + boreHoleLength;
+                    if (radius.HasValue)
+                    {
+                        TryAddBoreholeRadiusInterval(intervals, currentMD, endMD, radius.Value);
+                    }
+
+                    currentMD = endMD;
+                }
+            }
+
+            AddOpenHoleIntervals(intervals, ResolveOpenHoleStartMD(casingSection, topDepth, currentMD), casingSection?.OpenHoleSection);
+        }
+
+        private static double ResolveOpenHoleStartMD(CasingSection? casingSection, double topDepth, double fallbackStartMD)
+        {
+            if (casingSection?.CasingSectionElements is { Count: > 0 })
+            {
+                double elementLengthSum = 0.0;
+                foreach (CasingSectionElement casingElement in casingSection.CasingSectionElements)
+                {
+                    double? length = GetGaussianMean(casingElement?.SectionLength);
+                    if (length is double elementLength && IsUsablePositiveValue(elementLength))
+                    {
+                        elementLengthSum += elementLength;
+                    }
+                }
+
+                if (IsUsablePositiveValue(elementLengthSum))
+                {
+                    return topDepth + elementLengthSum;
+                }
+            }
+
+            double? casingSectionLength = GetGaussianMean(casingSection?.Length);
+            if (casingSectionLength is double sectionLength && IsUsablePositiveValue(sectionLength))
+            {
+                return topDepth + sectionLength;
+            }
+
+            return fallbackStartMD;
+        }
+
+        private static void AddOpenHoleIntervals(List<BoreholeRadiusInterval> intervals, double startMD, OpenHoleSection? openHoleSection)
+        {
+            if (openHoleSection?.HoleSizes is not { Count: > 0 })
+            {
+                return;
+            }
+
+            double currentMD = startMD;
+            foreach (BoreHoleSize holeSize in openHoleSection.HoleSizes)
+            {
+                double? radius = GetRadiusFromDiameter(holeSize?.HoleSize);
+                double? length = GetGaussianMean(holeSize?.Length);
+                if (!radius.HasValue || length is not double holeLength || !IsUsablePositiveValue(holeLength))
+                {
+                    continue;
+                }
+
+                double endMD = currentMD + holeLength;
+                TryAddBoreholeRadiusInterval(intervals, currentMD, endMD, radius.Value);
+                currentMD = endMD;
+            }
+        }
+
+        private static void TryAddBoreholeRadiusInterval(List<BoreholeRadiusInterval> intervals, double startMD, double endMD, double radius)
+        {
+            if (IsUsableDepthValue(startMD) &&
+                IsUsableDepthValue(endMD) &&
+                endMD > startMD &&
+                IsUsablePositiveValue(radius))
+            {
+                intervals.Add(new BoreholeRadiusInterval(startMD, endMD, radius));
+            }
+        }
+
+        private static double? ResolveBoreholeRadius(IReadOnlyList<BoreholeRadiusInterval> intervals, double md)
+        {
+            const double depthTolerance = 1e-6;
+            double? radius = null;
+            for (int i = 0; i < intervals.Count; i++)
+            {
+                BoreholeRadiusInterval interval = intervals[i];
+                if (md + depthTolerance >= interval.StartMD && md <= interval.EndMD + depthTolerance)
+                {
+                    radius = radius.HasValue
+                        ? Math.Max(radius.Value, interval.Radius)
+                        : interval.Radius;
+                }
+            }
+
+            return radius;
+        }
+
+        private static double? GetRadiusFromDiameter(GaussianDrillingProperty? property)
+        {
+            double? diameter = GetGaussianMean(property);
+            return diameter is double value && IsUsablePositiveValue(value) ? 0.5 * value : null;
+        }
+
+        private static double? GetGaussianMean(GaussianDrillingProperty? property)
+        {
+            return property?.GaussianValue?.Mean;
+        }
+
+        private static bool IsUsablePositiveValue(double value)
+        {
+            return double.IsFinite(value) && value > 0;
+        }
+
+        private static bool IsUsableDepthValue(double value)
+        {
+            return double.IsFinite(value);
+        }
+
+        private sealed record BoreholeRadiusInterval(double StartMD, double EndMD, double Radius);
     }
 }

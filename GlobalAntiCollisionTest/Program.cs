@@ -4,6 +4,7 @@ using NORCE.Drilling.GlobalAntiCollision;
 using NORCE.Drilling.Trajectory.Service;
 using NORCE.Drilling.Trajectory.Service.Controllers;
 using NORCE.Drilling.Trajectory.Service.Managers;
+using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Octree;
 using System.Diagnostics;
 using System.Linq;
@@ -14,6 +15,7 @@ using System.Text.Json;
 
 using GlobalAntiCollisionModel = NORCE.Drilling.GlobalAntiCollision.GlobalAntiCollision;
 using TrajectoryModel = NORCE.Drilling.Trajectory.Model.Trajectory;
+using WellBoreArchitecture = NORCE.Drilling.Trajectory.ModelShared.WellBoreArchitecture;
 
 internal static class Program
 {
@@ -31,9 +33,12 @@ internal static class Program
 
         bool deleteOctreesAfterRun = false; // Set to true to delete cached octrees at the end of the run.
         int referenceTrajectoryIndex = 0; // Zero-based index into the loaded trajectory list.
-        string referenceTrajectoryName = "U1"; // If a trajectory name contains this value, use its first match as the reference trajectory.
-        List<string> comparisonTrajectoryNameFilters = ["U2"]; // If non-empty, only trajectories whose names contain one of these values will be used as comparisons.
+        string referenceTrajectoryName = "U5A Extrapolated Drop"; // If a trajectory name contains this value, use its first match as the reference trajectory.
+        List<string> comparisonTrajectoryNameFilters = ["U8"]; // If non-empty, only trajectories whose names contain one of these values will be used as comparisons.
         bool forceSymmetricSeparationFactorCalculation = false; // Set to true for slower two-direction calculations with less direction-dependent minima.
+        bool fillBoreholeRadiusFromWellboreArchitecture = true; // Set to false to use the remote trajectory source exactly as returned.
+        bool allowBoreholeRadiusArchitectureFallbackByTrajectoryName = false; // Set to true to try similarly named trajectories when a WellBoreID has no architecture. This changes anti-collision inputs.
+        bool printSeparationFactorProfilesForPossibleCollisions = true; // Set to false to skip full profile output for comparisons with minimum separation factor between 0.01 and 1.0.
 
         List<TestTrajectory> trajectories = [];
         string globalAntiCollisionId = Guid.NewGuid().ToString();
@@ -49,6 +54,11 @@ internal static class Program
             harness = CreateLocalHarness();
 
             trajectories = await LoadTestTrajectoriesAsync(remoteTrajectoryClient);
+            if (fillBoreholeRadiusFromWellboreArchitecture)
+            {
+                await FillBoreholeRadiusFromWellboreArchitectureAsync(trajectories, allowBoreholeRadiusArchitectureFallbackByTrajectoryName);
+            }
+
             referenceTrajectoryIndex = ResolveReferenceTrajectoryIndex(trajectories, referenceTrajectoryIndex, referenceTrajectoryName);
 
             TestTrajectory referenceTrajectory = trajectories[referenceTrajectoryIndex];
@@ -62,6 +72,18 @@ internal static class Program
             Console.WriteLine(forceSymmetricSeparationFactorCalculation
                 ? "Separation factor calculation mode: symmetric. Reverse-direction points will be merged into each profile.\n"
                 : "Separation factor calculation mode: fast. Results may retain reference-direction sampling asymmetry.\n");
+            Console.WriteLine(fillBoreholeRadiusFromWellboreArchitecture
+                ? "Borehole radius source: WellBoreArchitecture. Survey stations are hydrated before local test seeding.\n"
+                : "Borehole radius source: remote trajectory payload. Survey stations are not modified by the test harness.\n");
+            if (fillBoreholeRadiusFromWellboreArchitecture)
+            {
+                Console.WriteLine(allowBoreholeRadiusArchitectureFallbackByTrajectoryName
+                    ? "Borehole radius fallback: enabled. Missing WellBoreID architecture matches may use a similarly named trajectory.\n"
+                    : "Borehole radius fallback: disabled. Missing WellBoreID architecture matches are left unchanged.\n");
+            }
+            Console.WriteLine(printSeparationFactorProfilesForPossibleCollisions
+                ? "Separation factor profile printing: enabled for comparison trajectories with minimum separation factor in (0.01, 1.0).\n"
+                : "Separation factor profile printing: disabled.\n");
             Console.WriteLine($"Reference trajectory name filter: \"{referenceTrajectoryName}\"");
             Console.WriteLine(comparisonTrajectoryNameFilters.Count > 0
                 ? $"Comparison trajectory name filters: {string.Join(", ", comparisonTrajectoryNameFilters.Select(filter => $"\"{filter}\""))}"
@@ -84,6 +106,7 @@ internal static class Program
                 trajectories,
                 referenceTrajectory,
                 comparisonTrajectoryNameFilters,
+                printSeparationFactorProfilesForPossibleCollisions,
                 globalAntiCollisionId);
 
             if (deleteOctreesAfterRun)
@@ -221,6 +244,7 @@ internal static class Program
         IReadOnlyList<TestTrajectory> trajectories,
         TestTrajectory referenceTrajectory,
         IReadOnlyList<string> comparisonTrajectoryNameFilters,
+        bool printSeparationFactorProfilesForPossibleCollisions,
         string globalAntiCollisionId)
     {
         Console.WriteLine("Running in-process GlobalAntiCollisionManager + GlobalAntiCollisionsController test...");
@@ -302,6 +326,10 @@ internal static class Program
         }
 
         PrintPossibleCollisionSummary(storedByController, trajectoryLookup, 1.0);
+        if (printSeparationFactorProfilesForPossibleCollisions)
+        {
+            PrintSeparationFactorProfilesForPossibleCollisions(storedByController, trajectoryLookup, 0.01, 1.0);
+        }
 
         globalAntiCollisionsController.Delete(globalAntiCollisionId);
         Ensure(!globalAntiCollisionManager.Contains(globalAntiCollisionId),
@@ -356,6 +384,146 @@ internal static class Program
         return trajectories;
     }
 
+    private static async Task FillBoreholeRadiusFromWellboreArchitectureAsync(
+        IReadOnlyList<TestTrajectory> trajectories,
+        bool allowFallbackByTrajectoryName)
+    {
+        Console.WriteLine("Filling survey station borehole radii from WellBoreArchitecture...");
+        Stopwatch stopwatch = Stopwatch.StartNew();
+
+        ICollection<WellBoreArchitecture> architectures = await APIUtils.ClientWellBoreArchitecture.GetAllWellBoreArchitectureAsync();
+        Dictionary<Guid, WellBoreArchitecture> architecturesByWellBoreId = architectures
+            .Where(architecture => architecture?.WellBoreID is Guid wellBoreId && wellBoreId != Guid.Empty)
+            .GroupBy(architecture => architecture.WellBoreID!.Value)
+            .ToDictionary(group => group.Key, group => group.First());
+        Dictionary<string, TestTrajectory> architectureFallbackTrajectoriesByName = BuildArchitectureFallbackTrajectoriesByName(
+            trajectories,
+            architecturesByWellBoreId);
+
+        int filledTrajectoryCount = 0;
+        int filledStationCount = 0;
+        int missingArchitectureCount = 0;
+        int missingIntervalCount = 0;
+        int fallbackArchitectureCount = 0;
+
+        foreach (TestTrajectory testTrajectory in trajectories)
+        {
+            Guid wellBoreId = testTrajectory.Trajectory.WellBoreID;
+            if (!TryGetArchitectureForTrajectory(
+                testTrajectory,
+                architecturesByWellBoreId,
+                architectureFallbackTrajectoriesByName,
+                allowFallbackByTrajectoryName,
+                out WellBoreArchitecture? architecture,
+                out TestTrajectory? fallbackTrajectory))
+            {
+                missingArchitectureCount++;
+                Console.WriteLine($"\tNo WellBoreArchitecture found for {FormatTrajectoryLabel(testTrajectory)} with WellBoreID {wellBoreId}.");
+                continue;
+            }
+
+            if (fallbackTrajectory.HasValue)
+            {
+                fallbackArchitectureCount++;
+                Console.WriteLine(
+                    $"\tUsing WellBoreArchitecture from {FormatTrajectoryLabel(fallbackTrajectory.Value)} " +
+                    $"for {FormatTrajectoryLabel(testTrajectory)} because WellBoreID {wellBoreId} has no direct architecture match.");
+            }
+
+            int filledCount = TrajectoryManager.FillBoreholeRadiusFromArchitecture(testTrajectory.Trajectory, architecture!);
+            if (filledCount == 0)
+            {
+                missingIntervalCount++;
+                Console.WriteLine($"\tNo borehole radius intervals matched {FormatTrajectoryLabel(testTrajectory)}.");
+                continue;
+            }
+
+            filledTrajectoryCount++;
+            filledStationCount += filledCount;
+        }
+
+        stopwatch.Stop();
+        Console.WriteLine(
+            $"\tFilled borehole radius for {filledStationCount} survey stations across {filledTrajectoryCount}/{trajectories.Count} trajectories " +
+            $"in {stopwatch.Elapsed.TotalSeconds:F2} s.");
+        if (missingArchitectureCount > 0 || missingIntervalCount > 0)
+        {
+            Console.WriteLine($"\tMissing architecture: {missingArchitectureCount}; no matching intervals: {missingIntervalCount}.");
+        }
+        if (fallbackArchitectureCount > 0)
+        {
+            Console.WriteLine($"\tFallback architecture matches used: {fallbackArchitectureCount}.");
+        }
+
+        Console.WriteLine();
+    }
+
+    private static Dictionary<string, TestTrajectory> BuildArchitectureFallbackTrajectoriesByName(
+        IReadOnlyList<TestTrajectory> trajectories,
+        IReadOnlyDictionary<Guid, WellBoreArchitecture> architecturesByWellBoreId)
+    {
+        Dictionary<string, TestTrajectory> fallbackTrajectories = [];
+        foreach (TestTrajectory trajectory in trajectories)
+        {
+            if (!architecturesByWellBoreId.ContainsKey(trajectory.Trajectory.WellBoreID))
+            {
+                continue;
+            }
+
+            string key = GetArchitectureFallbackKey(trajectory);
+            if (string.IsNullOrWhiteSpace(key) || fallbackTrajectories.ContainsKey(key))
+            {
+                continue;
+            }
+
+            fallbackTrajectories[key] = trajectory;
+        }
+
+        return fallbackTrajectories;
+    }
+
+    private static bool TryGetArchitectureForTrajectory(
+        TestTrajectory testTrajectory,
+        IReadOnlyDictionary<Guid, WellBoreArchitecture> architecturesByWellBoreId,
+        IReadOnlyDictionary<string, TestTrajectory> architectureFallbackTrajectoriesByName,
+        bool allowFallbackByTrajectoryName,
+        out WellBoreArchitecture? architecture,
+        out TestTrajectory? fallbackTrajectory)
+    {
+        fallbackTrajectory = null;
+        if (architecturesByWellBoreId.TryGetValue(testTrajectory.Trajectory.WellBoreID, out architecture))
+        {
+            return true;
+        }
+
+        if (!allowFallbackByTrajectoryName)
+        {
+            return false;
+        }
+
+        string fallbackKey = GetArchitectureFallbackKey(testTrajectory);
+        if (!string.IsNullOrWhiteSpace(fallbackKey) &&
+            architectureFallbackTrajectoriesByName.TryGetValue(fallbackKey, out TestTrajectory candidateTrajectory) &&
+            candidateTrajectory.Id != testTrajectory.Id &&
+            architecturesByWellBoreId.TryGetValue(candidateTrajectory.Trajectory.WellBoreID, out architecture))
+        {
+            fallbackTrajectory = candidateTrajectory;
+            return true;
+        }
+
+        return false;
+    }
+
+    private static string GetArchitectureFallbackKey(TestTrajectory trajectory)
+    {
+        string[] ignoredTokens = ["MIA", "EXTRAPOLATED"];
+        string[] tokens = FormatTrajectoryName(trajectory)
+            .Split([' ', '-', '_'], StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        return string.Concat(tokens
+            .Where(token => !ignoredTokens.Contains(token, StringComparer.OrdinalIgnoreCase)))
+            .ToUpperInvariant();
+    }
+
     private static TestTrajectory CreateDuplicateTestTrajectory(Guid seedId, TrajectoryModel trajectory, string duplicateRole)
     {
         return new TestTrajectory(CreateDeterministicGuid($"{seedId:D}:{duplicateRole}"), trajectory, true);
@@ -371,11 +539,19 @@ internal static class Program
 
         if (!string.IsNullOrWhiteSpace(referenceTrajectoryName))
         {
-            int matchedIndex = trajectories
+            var indexedTrajectories = trajectories
                 .Select((trajectory, index) => new { trajectory, index })
-                .FirstOrDefault(x => FormatTrajectoryName(x.trajectory).Contains(referenceTrajectoryName, StringComparison.OrdinalIgnoreCase))
-                ?.index ?? -1;
+                .ToList();
 
+            int matchedIndex = indexedTrajectories
+                .FirstOrDefault(x => FormatTrajectoryName(x.trajectory).Equals(referenceTrajectoryName, StringComparison.OrdinalIgnoreCase))
+                ?.index ?? -1;
+            if (matchedIndex == -1)
+            {
+                matchedIndex = indexedTrajectories
+                    .FirstOrDefault(x => FormatTrajectoryName(x.trajectory).Contains(referenceTrajectoryName, StringComparison.OrdinalIgnoreCase))
+                    ?.index ?? -1;
+            }
             if (matchedIndex >= 0)
             {
                 return matchedIndex;
@@ -521,7 +697,9 @@ internal static class Program
 
             if (!TryGetMinimumSeparationPoint(result, out SeparationFactorPoint minimumPoint))
             {
-                Console.WriteLine($"\t{FormatTrajectoryLabel(result.ComparisonTrajectoryID, trajectoryLookup)} has an empty separation factor profile.");
+                Console.WriteLine(
+                    $"\t{FormatTrajectoryLabel(result.ComparisonTrajectoryID, trajectoryLookup)} has an empty separation factor profile " +
+                    $"for reference MD range {FormatMeasuredDepthRange(result.ReferenceMDRange)} and comparison MD range {FormatMeasuredDepthRange(result.ComparisonMDRange)}.");
             }
             else
             {
@@ -611,6 +789,241 @@ internal static class Program
                 $"minimum separation factor {minimumPoint.SeparationFactor:F3} at reference MD {minimumPoint.ReferenceMD:F2} and comparison MD {minimumPoint.ComparisonMD:F2}.");
         }
     }
+
+    private static void PrintSeparationFactorProfilesForPossibleCollisions(
+        GlobalAntiCollisionModel payload,
+        IReadOnlyDictionary<Guid, TestTrajectory> trajectoryLookup,
+        double exclusiveLowerBound,
+        double exclusiveUpperBound)
+    {
+        Console.WriteLine(
+            $"\n\tSeparation factor profiles for comparisons with minimum separation factor > {exclusiveLowerBound:F2} " +
+            $"and < {exclusiveUpperBound:F2}:");
+
+        if (payload.SeparationFactorResults.Count == 0)
+        {
+            Console.WriteLine("\tNo comparison trajectories produced separation factor results.");
+            return;
+        }
+
+        List<(SeparationFactorResult Result, SeparationFactorPoint MinimumPoint)> selectedResults = [];
+        if (payload.SeparationFactorResults.Count == 1)
+        {
+            if (TryGetMinimumSeparationPoint(payload.SeparationFactorResults[0], out SeparationFactorPoint minimumPoint))
+            {
+                selectedResults.Add((payload.SeparationFactorResults[0], minimumPoint));
+            }
+        }
+        else
+        {
+            foreach (SeparationFactorResult result in payload.SeparationFactorResults)
+            {
+                if (TryGetMinimumSeparationPoint(result, out SeparationFactorPoint minimumPoint) &&
+                    minimumPoint.SeparationFactor > exclusiveLowerBound &&
+                    minimumPoint.SeparationFactor < exclusiveUpperBound)
+                {
+                    selectedResults.Add((result, minimumPoint));
+                }
+            }
+        }
+
+        if (selectedResults.Count == 0)
+        {
+            Console.WriteLine("\tNo comparison trajectories matched the configured profile-printing range.");
+            return;
+        }
+
+        string referenceLabel = FormatTrajectoryLabel(payload.ReferenceTrajectoryID, trajectoryLookup);
+        foreach ((SeparationFactorResult result, SeparationFactorPoint minimumPoint) in selectedResults)
+        {
+            BoreholeRadiusCoverage referenceRadiusCoverage = GetBoreholeRadiusCoverage(trajectoryLookup, payload.ReferenceTrajectoryID);
+            BoreholeRadiusCoverage comparisonRadiusCoverage = GetBoreholeRadiusCoverage(trajectoryLookup, result.ComparisonTrajectoryID);
+            Console.WriteLine(
+                $"\n\tReference well {referenceLabel} vs. comparison well {FormatTrajectoryLabel(result.ComparisonTrajectoryID, trajectoryLookup)} " +
+                $"minimum separation factor {minimumPoint.SeparationFactor:F6} at reference MD {minimumPoint.ReferenceMD:F2} " +
+                $"and comparison MD {minimumPoint.ComparisonMD:F2}:");
+            Console.WriteLine(
+                $"\t\tBorehole radius coverage: reference {FormatBoreholeRadiusCoverage(referenceRadiusCoverage)}, " +
+                $"comparison {FormatBoreholeRadiusCoverage(comparisonRadiusCoverage)}.");
+            Console.WriteLine("\t\tIndex\tReferenceMD\tComparisonMD\tCenterlineDistance\tClearanceDistance\tSeparationFactor");
+
+            for (int i = 0; i < result.SeparationFactorProfile.Count; i++)
+            {
+                SeparationFactorPoint point = result.SeparationFactorProfile[i];
+                ProfileDistance profileDistance = CalculateProfileDistance(
+                    trajectoryLookup,
+                    payload.ReferenceTrajectoryID,
+                    result.ComparisonTrajectoryID,
+                    point);
+                Console.WriteLine(
+                    $"\t\t{i}\t{point.ReferenceMD:F6}\t{point.ComparisonMD:F6}\t" +
+                    $"{FormatNullableDistance(profileDistance.CenterlineDistance)}\t" +
+                    $"{FormatNullableDistance(profileDistance.ClearanceDistance)}\t" +
+                    $"{point.SeparationFactor:F9}");
+            }
+        }
+    }
+
+    private static ProfileDistance CalculateProfileDistance(
+        IReadOnlyDictionary<Guid, TestTrajectory> trajectoryLookup,
+        Guid referenceTrajectoryId,
+        Guid comparisonTrajectoryId,
+        SeparationFactorPoint point)
+    {
+        if (IsUndefinedComparisonMD(point))
+        {
+            return new(null, null);
+        }
+
+        if (!trajectoryLookup.TryGetValue(referenceTrajectoryId, out TestTrajectory referenceTrajectory) ||
+            !trajectoryLookup.TryGetValue(comparisonTrajectoryId, out TestTrajectory comparisonTrajectory))
+        {
+            return new(null, null);
+        }
+
+        if (!TryInterpolateSurveySample(referenceTrajectory.Trajectory.SurveyStationList, point.ReferenceMD, out SurveySample3D referenceSample) ||
+            !TryInterpolateSurveySample(comparisonTrajectory.Trajectory.SurveyStationList, point.ComparisonMD, out SurveySample3D comparisonSample))
+        {
+            return new(null, null);
+        }
+
+        double centerlineDistance = referenceSample.Point.DistanceTo(comparisonSample.Point);
+        double? clearanceDistance = null;
+        if (referenceSample.BoreholeRadius is double referenceRadius &&
+            comparisonSample.BoreholeRadius is double comparisonRadius &&
+            double.IsFinite(referenceRadius) &&
+            double.IsFinite(comparisonRadius))
+        {
+            clearanceDistance = centerlineDistance - referenceRadius - comparisonRadius;
+        }
+
+        return new(centerlineDistance, clearanceDistance);
+    }
+
+    private static bool IsUndefinedComparisonMD(SeparationFactorPoint point)
+    {
+        const double tolerance = 1e-9;
+        return Math.Abs(point.ComparisonMD - -1.0) <= tolerance &&
+            Math.Abs(point.SeparationFactor - SeparationFactorCalculations.MaxSeparationFactor) <= tolerance;
+    }
+
+    private static bool TryInterpolateSurveySample(List<SurveyStation>? surveyStations, double md, out SurveySample3D sample)
+    {
+        sample = default;
+        if (surveyStations is not { Count: > 0 } || !double.IsFinite(md))
+        {
+            return false;
+        }
+
+        List<SurveyStation> stations = surveyStations
+            .Where(station => station?.MD is double stationMd && double.IsFinite(stationMd))
+            .OrderBy(station => station.MD)
+            .ToList();
+        if (stations.Count == 0)
+        {
+            return false;
+        }
+
+        const double tolerance = 1e-6;
+        if (md < stations[0].MD!.Value - tolerance || md > stations[^1].MD!.Value + tolerance)
+        {
+            return false;
+        }
+
+        for (int i = 0; i < stations.Count; i++)
+        {
+            if (Math.Abs(stations[i].MD!.Value - md) <= tolerance)
+            {
+                if (!TryGetSurveyPoint3D(stations[i], out SurveyPoint3D point))
+                {
+                    return false;
+                }
+
+                sample = new SurveySample3D(point, GetFiniteNullableValue(stations[i].BoreholeRadius));
+                return true;
+            }
+        }
+
+        for (int i = 0; i < stations.Count - 1; i++)
+        {
+            SurveyStation start = stations[i];
+            SurveyStation end = stations[i + 1];
+            double startMd = start.MD!.Value;
+            double endMd = end.MD!.Value;
+            if (md + tolerance < startMd || md - tolerance > endMd)
+            {
+                continue;
+            }
+
+            if (!TryGetSurveyPoint3D(start, out SurveyPoint3D startPoint) ||
+                !TryGetSurveyPoint3D(end, out SurveyPoint3D endPoint))
+            {
+                return false;
+            }
+
+            double denominator = endMd - startMd;
+            double ratio = Math.Abs(denominator) <= tolerance ? 0.0 : (md - startMd) / denominator;
+            sample = new SurveySample3D(
+                SurveyPoint3D.Interpolate(startPoint, endPoint, Math.Clamp(ratio, 0.0, 1.0)),
+                GetConservativeBoreholeRadius(start, end));
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetSurveyPoint3D(SurveyStation station, out SurveyPoint3D point)
+    {
+        point = default;
+        double? x = station.X ?? station.RiemannianNorth;
+        double? y = station.Y ?? station.RiemannianEast;
+        double? z = station.Z ?? station.TVD;
+        if (x is not double xValue || y is not double yValue || z is not double zValue ||
+            !double.IsFinite(xValue) || !double.IsFinite(yValue) || !double.IsFinite(zValue))
+        {
+            return false;
+        }
+
+        point = new SurveyPoint3D(xValue, yValue, zValue);
+        return true;
+    }
+
+    private static string FormatNullableDistance(double? distance) => distance.HasValue ? $"{distance.Value:F6}" : "N/A";
+
+    private static string FormatMeasuredDepthRange(MeasuredDepthRange? range) =>
+        range == null ? "<full trajectory>" : $"[{range.StartMD:F2}, {range.EndMD:F2}]";
+
+    private static BoreholeRadiusCoverage GetBoreholeRadiusCoverage(
+        IReadOnlyDictionary<Guid, TestTrajectory> trajectoryLookup,
+        Guid trajectoryId)
+    {
+        if (!trajectoryLookup.TryGetValue(trajectoryId, out TestTrajectory trajectory) ||
+            trajectory.Trajectory.SurveyStationList is not { Count: > 0 } surveyStations)
+        {
+            return new(0, 0);
+        }
+
+        int filledCount = surveyStations.Count(station => GetFiniteNullableValue(station.BoreholeRadius).HasValue);
+        return new(filledCount, surveyStations.Count);
+    }
+
+    private static string FormatBoreholeRadiusCoverage(BoreholeRadiusCoverage coverage) =>
+        $"{coverage.FilledStationCount}/{coverage.TotalStationCount} stations";
+
+    private static double? GetConservativeBoreholeRadius(SurveyStation start, SurveyStation end)
+    {
+        double? startRadius = GetFiniteNullableValue(start.BoreholeRadius);
+        double? endRadius = GetFiniteNullableValue(end.BoreholeRadius);
+        if (startRadius.HasValue && endRadius.HasValue)
+        {
+            return Math.Max(startRadius.Value, endRadius.Value);
+        }
+
+        return startRadius ?? endRadius;
+    }
+
+    private static double? GetFiniteNullableValue(double? value) =>
+        value is double finiteValue && double.IsFinite(finiteValue) ? finiteValue : null;
 
     private static bool TryGetMinimumSeparationPoint(SeparationFactorResult result, out SeparationFactorPoint minimumPoint)
     {
@@ -778,4 +1191,25 @@ internal static class Program
         GlobalAntiCollisionsController GlobalAntiCollisionsController);
 
     private readonly record struct TestTrajectory(Guid Id, TrajectoryModel Trajectory, bool IsDuplicate);
+
+    private readonly record struct BoreholeRadiusCoverage(int FilledStationCount, int TotalStationCount);
+
+    private readonly record struct ProfileDistance(double? CenterlineDistance, double? ClearanceDistance);
+
+    private readonly record struct SurveySample3D(SurveyPoint3D Point, double? BoreholeRadius);
+
+    private readonly record struct SurveyPoint3D(double X, double Y, double Z)
+    {
+        public static SurveyPoint3D Interpolate(SurveyPoint3D start, SurveyPoint3D end, double ratio) =>
+            new(
+                start.X + (end.X - start.X) * ratio,
+                start.Y + (end.Y - start.Y) * ratio,
+                start.Z + (end.Z - start.Z) * ratio);
+
+        public double DistanceTo(SurveyPoint3D other) =>
+            Math.Sqrt(
+                Math.Pow(X - other.X, 2.0) +
+                Math.Pow(Y - other.Y, 2.0) +
+                Math.Pow(Z - other.Z, 2.0));
+    }
 }

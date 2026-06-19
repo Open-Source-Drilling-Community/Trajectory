@@ -1,7 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>WebAppDebug</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>89364871-a9ad-4f1c-b2ab-83cee18de1c9</UserSecretsId>
@@ -10,7 +11,11 @@
 
   <ItemGroup>
     <Content Remove="Pages\_Host.cshtml" />
+    <Content Remove="Pages\_HostDebug.cshtml" />
+    <Content Include="Pages\_HostDebug.cshtml" Link="Pages\_Host.cshtml" />
     <Content Remove="_Imports.razor" />
+    <Content Remove="_ImportsDebug.razor" />
+    <Content Include="_ImportsDebug.razor" Link="_Imports.razor" />
   </ItemGroup>
 
   <ItemGroup>
@@ -32,7 +37,6 @@
     <PackageReference Include="MudBlazor" Version="8.14.0" />
     <PackageReference Include="NORCE.Drilling.CartographicProjection.WebPages" Version="1.0.4" />
     <PackageReference Include="NORCE.Drilling.Cluster.WebPages" Version="1.0.4" />
-    <PackageReference Include="NORCE.Drilling.Field.WebPages" Version="1.0.6" />
     <PackageReference Include="NORCE.Drilling.GeodeticDatum.WebPages" Version="1.0.4" />
     <PackageReference Include="NORCE.Drilling.Rig.WebPages" Version="1.0.4" />
     <PackageReference Include="NORCE.Drilling.Well.WebPages" Version="1.0.4" />
@@ -41,6 +45,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Field\WebPages\FieldWebPagesDebug.csproj" />
     <ProjectReference Include="..\WebPages\WebPagesDebug.csproj" />
   </ItemGroup>
 

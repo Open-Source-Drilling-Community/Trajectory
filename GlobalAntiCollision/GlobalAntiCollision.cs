@@ -229,7 +229,7 @@ namespace NORCE.Drilling.GlobalAntiCollision
         {
             foreach (SeparationFactorPoint point in reverseDirectionalProfile)
             {
-                if (!double.IsFinite(point.ComparisonMD) || point.ComparisonMD < 0)
+                if (!double.IsFinite(point.ComparisonMD))
                 {
                     continue;
                 }

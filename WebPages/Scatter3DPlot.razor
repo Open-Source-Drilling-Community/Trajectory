@@ -1,6 +1,7 @@
-﻿@implements IUnitAwareComponent
+@implements IUnitAwareComponent
 @implements IDisposable
 @using System.Text
+@inject IJSRuntime JSRuntime
 
 <PlotlyChart Config="config" Layout="layout" Data="data" @ref="chart" />
 
@@ -14,6 +15,7 @@
     [Parameter] public List<string> NameList { get; set; }
     [Parameter] public List<int> ModeFlagList { get; set; }   // 1=lines, 2=markers, 3=lines+markers
     [Parameter] public List<string> ColorList { get; set; }
+    [Parameter] public List<double?> MarkerSizeList { get; set; } = [];
 
     [Parameter] public List<List<object>> XValuesList { get; set; }
     [Parameter] public List<List<object>> YValuesList { get; set; }
@@ -38,6 +40,7 @@
     [Parameter] public bool ZAxisUsesDepthReference { get; set; }
     [Parameter] public PositionDirectionType XAxisPositionDirection { get; set; } = PositionDirectionType.Independent;
     [Parameter] public PositionDirectionType YAxisPositionDirection { get; set; } = PositionDirectionType.Independent;
+    [Parameter] public EventCallback<int> TraceClicked { get; set; }
 
     // ---- Helpers ----
 
@@ -69,6 +72,10 @@
     private bool _plotlyReady;
     private bool _disposed;
     private readonly SemaphoreSlim _plotSemaphore = new(1, 1);
+    private const string PlotlyUiRevision = "trajectory-scatter-3d-camera";
+    private IJSObjectReference? _cameraPersistenceModule;
+    private string? _cameraPersistenceChartId;
+    private DotNetObjectReference<Scatter3DPlot>? _dotNetReference;
     private string? _lastPlotSignature;
     private bool _forceReplot = true;
 
@@ -117,6 +124,7 @@
         {
             _plotlyReady = true;
             await PlotAsync(); // first safe render/update
+            await EnsureCameraPersistenceAsync();
         }
     }
 
@@ -129,6 +137,7 @@
     public void Dispose()
     {
         _disposed = true;
+        _ = DisposeCameraPersistenceAsync();
     }
 
     // ---- IUnitAwareComponent ----
@@ -169,6 +178,7 @@
         {
             // Ignore if React() isn't available / throws during transient render states
         }
+        await EnsureCameraPersistenceAsync();
 
         await InvokeAsync(StateHasChanged);
         _lastPlotSignature = plotSignature;
@@ -178,6 +188,71 @@
         {
             _plotSemaphore.Release();
         }
+    }
+
+    private async Task EnsureCameraPersistenceAsync()
+    {
+        if (_disposed || !_plotlyReady || chart?.Id == null)
+        {
+            return;
+        }
+
+        try
+        {
+            _cameraPersistenceModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>(
+                "import",
+                "./_content/NORCE.Drilling.Trajectory.WebPages/scatter3dCameraPersistence.js?v=20260602-closest-approach");
+
+            if (_cameraPersistenceChartId != chart.Id)
+            {
+                _cameraPersistenceChartId = chart.Id;
+                _dotNetReference ??= DotNetObjectReference.Create(this);
+                await _cameraPersistenceModule.InvokeVoidAsync("install", chart.Id, _dotNetReference);
+            }
+        }
+        catch (JSException)
+        {
+        }
+        catch (InvalidOperationException)
+        {
+        }
+    }
+
+    private async Task DisposeCameraPersistenceAsync()
+    {
+        if (_cameraPersistenceModule == null)
+        {
+            return;
+        }
+
+        try
+        {
+            if (!string.IsNullOrWhiteSpace(_cameraPersistenceChartId))
+            {
+                await _cameraPersistenceModule.InvokeVoidAsync("uninstall", _cameraPersistenceChartId);
+            }
+
+            await _cameraPersistenceModule.DisposeAsync();
+            _dotNetReference?.Dispose();
+            _dotNetReference = null;
+        }
+        catch (JSException)
+        {
+        }
+        catch (InvalidOperationException)
+        {
+        }
+    }
+
+    [JSInvokable]
+    public async Task OnPlotlyTraceClicked(int traceIndex)
+    {
+        if (_disposed || !TraceClicked.HasDelegate)
+        {
+            return;
+        }
+
+        await TraceClicked.InvokeAsync(traceIndex);
     }
 
     private async Task ManageTracesAsync()
@@ -251,6 +326,10 @@
                 marker = (ColorList != null && i < ColorList.Count)
                     ? new Plotly.Blazor.Traces.Scatter3DLib.Marker { Color = ColorList[i] }
                     : new Plotly.Blazor.Traces.Scatter3DLib.Marker { AutoColorScale = true };
+                if (MarkerSizeList != null && i < MarkerSizeList.Count && MarkerSizeList[i] is { } markerSize && markerSize > 0.0)
+                {
+                    marker.Size = (decimal)markerSize;
+                }
             }
 
             // Line config only when lines requested
@@ -308,10 +387,12 @@
         layout.Height = PlotHeight > 0 ? PlotHeight : null;
         layout.Width = PlotWidth > 0 ? PlotWidth : null;
         layout.Title.Text = PlotTitle ?? "";
+        layout.UiRevision = PlotlyUiRevision;
 
         for (int i = 0; i < layout.Scene.Count; ++i)
         {
             var scene = layout.Scene[i];
+            scene.UiRevision = PlotlyUiRevision;
             // setting the scene domain to cover the full canvas
             scene.Domain = new Plotly.Blazor.LayoutLib.SceneLib.Domain
             {
@@ -360,6 +441,7 @@
         AppendListSignature(builder, NameList);
         AppendListSignature(builder, ModeFlagList);
         AppendListSignature(builder, ColorList);
+        AppendListSignature(builder, MarkerSizeList);
         AppendNestedListSignature(builder, XValuesList);
         AppendNestedListSignature(builder, YValuesList);
         AppendNestedListSignature(builder, ZValuesList);
