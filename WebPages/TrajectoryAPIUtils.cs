@@ -35,6 +35,14 @@ public class TrajectoryAPIUtils : APIUtils, ITrajectoryAPIUtils
         HttpClientTrajectory = SetHttpClient(HostNameTrajectory, HostBasePathTrajectory);
         ClientTrajectory = new Client(HttpClientTrajectory.BaseAddress!.ToString(), HttpClientTrajectory);
 
+        HostNameSurveyInstrument = Require(configuration.SurveyInstrumentHostURL, nameof(configuration.SurveyInstrumentHostURL));
+        HttpClientSurveyInstrument = SetHttpClient(HostNameSurveyInstrument, HostBasePathSurveyInstrument);
+        ClientSurveyInstrument = new Client(HttpClientSurveyInstrument.BaseAddress!.ToString(), HttpClientSurveyInstrument);
+
+        HostNameEarthMagneticField = Require(configuration.EarthMagneticFieldHostURL, nameof(configuration.EarthMagneticFieldHostURL));
+        HttpClientEarthMagneticField = SetHttpClient(HostNameEarthMagneticField, HostBasePathEarthMagneticField);
+        ClientEarthMagneticField = new Client(HttpClientEarthMagneticField.BaseAddress!.ToString(), HttpClientEarthMagneticField);
+
         HostNameUnitConversion = Require(configuration.UnitConversionHostURL, nameof(configuration.UnitConversionHostURL));
     }
 
@@ -82,6 +90,16 @@ public class TrajectoryAPIUtils : APIUtils, ITrajectoryAPIUtils
     public string HostBasePathTrajectory { get; } = "Trajectory/api/";
     public HttpClient HttpClientTrajectory { get; }
     public Client ClientTrajectory { get; }
+
+    public string HostNameSurveyInstrument { get; }
+    public string HostBasePathSurveyInstrument { get; } = "SurveyInstrument/api/";
+    public HttpClient HttpClientSurveyInstrument { get; }
+    public Client ClientSurveyInstrument { get; }
+
+    public string HostNameEarthMagneticField { get; }
+    public string HostBasePathEarthMagneticField { get; } = "EarthMagneticField/api/";
+    public HttpClient HttpClientEarthMagneticField { get; }
+    public Client ClientEarthMagneticField { get; }
 
     public string HostNameUnitConversion { get; }
     public string HostBasePathUnitConversion { get; } = "UnitConversion/api/";

@@ -15,6 +15,7 @@
     [Parameter] public List<string> NameList { get; set; }
     [Parameter] public List<int> ModeFlagList { get; set; }   // 1=lines, 2=markers, 3=lines+markers
     [Parameter] public List<string> ColorList { get; set; }
+    [Parameter] public List<bool>? ShowLegendList { get; set; }
     [Parameter] public List<double?> MarkerSizeList { get; set; } = [];
 
     [Parameter] public List<List<object>> XValuesList { get; set; }
@@ -345,6 +346,7 @@
             {
                 Name = name,
                 Mode = mode,
+                ShowLegend = ShowLegendList == null || i >= ShowLegendList.Count || ShowLegendList[i],
                 X = xOut,
                 Y = yOut,
                 Z = zOut
@@ -441,6 +443,7 @@
         AppendListSignature(builder, NameList);
         AppendListSignature(builder, ModeFlagList);
         AppendListSignature(builder, ColorList);
+        AppendListSignature(builder, ShowLegendList);
         AppendListSignature(builder, MarkerSizeList);
         AppendNestedListSignature(builder, XValuesList);
         AppendNestedListSignature(builder, YValuesList);

@@ -38,15 +38,38 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpGet("{id}", Name = "GetInterpolatedTrajectoryById")]
-        public ActionResult<Model.InterpolatedTrajectory?> GetInterpolatedTrajectoryById(Guid id)
+        public ActionResult<Model.InterpolatedTrajectory?> GetInterpolatedTrajectoryById(Guid id, [FromQuery] bool includeCalculatedStations = false)
         {
             if (id == Guid.Empty)
             {
                 return BadRequest();
             }
 
-            var val = _manager.GetInterpolatedTrajectoryById(id);
+            var val = _manager.GetInterpolatedTrajectoryById(id, includeCalculatedStations);
             return val != null ? Ok(val) : NotFound();
+        }
+
+        [HttpGet("{id}/SurveyStations/ChunkCount", Name = "GetInterpolatedTrajectorySurveyStationChunkCount")]
+        public ActionResult<int> GetSurveyStationChunkCount(Guid id)
+        {
+            if (id == Guid.Empty)
+            {
+                return BadRequest();
+            }
+
+            return Ok(_manager.GetSurveyStationChunkCount(id));
+        }
+
+        [HttpGet("{id}/SurveyStations/Chunks/{chunkIndex}", Name = "GetInterpolatedTrajectorySurveyStationChunk")]
+        public ActionResult<Model.SurveyStationChunk?> GetSurveyStationChunk(Guid id, int chunkIndex)
+        {
+            if (id == Guid.Empty || chunkIndex < 0)
+            {
+                return BadRequest();
+            }
+
+            Model.SurveyStationChunk? value = _manager.GetSurveyStationChunk(id, chunkIndex);
+            return value != null ? Ok(value) : NotFound();
         }
 
         [HttpGet("Trajectory/{trajectoryId}", Name = "GetInterpolatedTrajectoryByTrajectoryId")]

@@ -1,5 +1,5 @@
-@page "/TrajectoryBatchImport"
-@inject ILogger<TrajectoryBatchImport> logger
+@page "/SurveyRunBatchImport"
+@inject ILogger<SurveyRunBatchImport> logger
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
 @inject ITrajectoryAPIUtils Api
@@ -10,11 +10,11 @@
 @using OSDC.UnitConversion.Conversion.DrillingEngineering
 @using SharedSurveyImportSettings = NORCE.Drilling.Trajectory.ModelShared.SurveyImportSettings
 @using SharedMetaInfo = NORCE.Drilling.Trajectory.ModelShared.MetaInfo
-@using SharedTrajectoryBatchImport = NORCE.Drilling.Trajectory.ModelShared.TrajectoryBatchImport
-@using SharedTrajectoryBatchImportLight = NORCE.Drilling.Trajectory.ModelShared.TrajectoryBatchImportLight
-@using SharedTrajectoryBatchImportRow = NORCE.Drilling.Trajectory.ModelShared.TrajectoryBatchImportRow
+@using SharedSurveyRunBatchImport = NORCE.Drilling.Trajectory.ModelShared.SurveyRunBatchImport
+@using SharedSurveyRunBatchImportLight = NORCE.Drilling.Trajectory.ModelShared.SurveyRunBatchImportLight
+@using SharedSurveyRunBatchImportRow = NORCE.Drilling.Trajectory.ModelShared.SurveyRunBatchImportRow
 
-<MudText Class="mt-4 mb-4" Typo="Typo.h5"><strong>Batch Import Trajectories</strong></MudText>
+<MudText Class="mt-4 mb-4" Typo="Typo.h5"><strong>Batch Import Survey Runs</strong></MudText>
 
 @if (isLoading_)
 {
@@ -23,14 +23,14 @@
 else
 {
     <div hidden="@isHiddenMainPanel_">
-            <MudDataGrid T="SharedTrajectoryBatchImportLight" @key="_gridKey"
+            <MudDataGrid T="SharedSurveyRunBatchImportLight" @key="_gridKey"
                      MultiSelection="true" Items="@batchImportList_"
                      SelectedItemsChanged="@SelectedItemsChanged"
                      Hover="true" RowClick="@RowClicked"
                      SortMode="SortMode.Multiple" QuickFilter="@_batchImportFilter"
                      Filterable="false" ReadOnly="true" ColumnResizeMode="ResizeMode.Column" Elevation="0">
             <ToolBarContent>
-                <MudText Typo="Typo.h6">Saved Batch Imports</MudText>
+                <MudText Typo="Typo.h6">Saved Survey Run Batch Imports</MudText>
                 <MudButton OnClick="@AddBatchImport" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
                 <MudButton OnClick="@DeleteSelectedBatchImports" Color="@Color.Error" Class="add-item-btn"
                            Disabled="@(selectedBatchImportList_.Count == 0)">Delete</MudButton>
@@ -39,7 +39,7 @@ else
                               AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0"></MudTextField>
             </ToolBarContent>
             <Columns>
-                    <SelectColumn T="SharedTrajectoryBatchImportLight" />
+                    <SelectColumn T="SharedSurveyRunBatchImportLight" />
                 <PropertyColumn Property="x => x.Name" Title="Batch Import" Sortable="true" />
                 <PropertyColumn Property="x => x.Description" Title="Description" Sortable="true" />
                 <PropertyColumn Property="x => x.LastModificationDate" Title="Last Updated" Sortable="true" />
@@ -51,7 +51,7 @@ else
                 </TemplateColumn>
             </Columns>
             <PagerContent>
-                    <MudDataGridPager T="SharedTrajectoryBatchImportLight" />
+                    <MudDataGridPager T="SharedSurveyRunBatchImportLight" />
             </PagerContent>
         </MudDataGrid>
     </div>
@@ -59,7 +59,7 @@ else
     <div hidden="@isHiddenEditPanel_">
         <MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Batch Import</MudText>
         <MudContainer Class="d-flex flex-row mt-4 mb-4">
-            <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Secondary" OnClick="UploadTrajectoriesAsync" Disabled="@isUploading_">Upload trajectories</MudButton>
+            <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Secondary" OnClick="UploadSurveyRunsAsync" Disabled="@isUploading_">Upload survey runs</MudButton>
             <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveBatchImportAsync">Save</MudButton>
             <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="HandleEditPanelClosed">Cancel</MudButton>
         </MudContainer>
@@ -110,7 +110,7 @@ else
         </MudPaper>
 
         <MudPaper Class="pa-4 mb-4" Outlined="true">
-            <MudText Typo="Typo.h6">Trajectory file format</MudText>
+            <MudText Typo="Typo.h6">Survey run file format</MudText>
             <MudGrid Class="mt-2">
                 <MudItem xs="12" md="4">
                     <MudSelect T="string" Label="File format" @bind-Value="selectedSurveyImportFormat_" ShrinkLabel>
@@ -231,15 +231,17 @@ else
         </MudToolBar>
 
         <MudPaper Class="pa-4 mb-4" Outlined="true">
-            <MudText Typo="Typo.caption">Import a batch description file to restore the table, filters, per-row depth references, upload mode, format settings, and selected trajectory files.</MudText>
+            <MudText Typo="Typo.caption">Import a batch description file to restore the table, filters, per-row depth references, upload mode, format settings, and selected survey run files.</MudText>
             <div class="mt-2">
                 <InputFile OnChange="ImportAssociationTableAsync" accept=".json,application/json" />
             </div>
         </MudPaper>
 
-        <MudTable Items="@rows_" T="TrajectoryImportRowState" Hover="true" Dense="true" Bordered="true" Elevation="1">
+        <MudTable Items="@rows_" T="SurveyRunImportRowState" Hover="true" Dense="true" Bordered="true" Elevation="1">
             <HeaderContent>
                 <MudTh>Wellbore</MudTh>
+                <MudTh>Survey instrument</MudTh>
+                <MudTh>Parent survey run</MudTh>
                 <MudTh>Depth reference</MudTh>
                 <MudTh>File name</MudTh>
                 <MudTh>File</MudTh>
@@ -250,6 +252,22 @@ else
                 <MudTd DataLabel="Wellbore">
                     <MudSelect T="Guid?" Value="@context.WellBoreId" ValueChanged="@(value => OnRowWellBoreChanged(context, value))" ShrinkLabel Dense="true">
                         @foreach (WellBore option in GetRowWellBoreOptions(context))
+                        {
+                            <MudSelectItem T="Guid?" Value="@((Guid?)option.MetaInfo.ID)">@option.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudTd>
+                <MudTd DataLabel="Survey instrument">
+                    <MudSelect T="Guid?" Value="@context.SurveyInstrumentId" ValueChanged="@(value => OnRowSurveyInstrumentChanged(context, value))" ShrinkLabel Dense="true">
+                        @foreach (SurveyInstrumentLight option in AvailableSurveyInstruments)
+                        {
+                            <MudSelectItem T="Guid?" Value="@((Guid?)option.MetaInfo.ID)">@option.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudTd>
+                <MudTd DataLabel="Parent survey run">
+                    <MudSelect T="Guid?" Value="@context.ParentSurveyRunId" ValueChanged="@(value => OnRowParentSurveyRunChanged(context, value))" ShrinkLabel Dense="true" Clearable="true" Disabled="@(!IsRowParentSurveyRunRequired(context))">
+                        @foreach (SurveyRun option in GetRowParentSurveyRunOptions(context))
                         {
                             <MudSelectItem T="Guid?" Value="@((Guid?)option.MetaInfo.ID)">@option.Name</MudSelectItem>
                         }
@@ -268,7 +286,7 @@ else
                 </MudTd>
                 <MudTd DataLabel="File">
                     <div @key="context.RowId">
-                        <InputFile OnChange="@(args => OnTrajectoryFileChangedAsync(context, args))" />
+                        <InputFile OnChange="@(args => OnSurveyRunFileChangedAsync(context, args))" />
                     </div>
                 </MudTd>
                 <MudTd DataLabel="Status">
@@ -290,17 +308,19 @@ else
     [CascadingParameter]
     private MudUnitAndReferenceChoiceTag? Parent { get; set; }
 
-    private readonly List<TrajectoryImportRowState> rows_ = [];
+    private readonly List<SurveyRunImportRowState> rows_ = [];
     private List<Field>? fieldList_;
     private List<Cluster>? clusterList_;
     private List<Well>? wellList_;
     private List<WellBore>? wellBoreList_;
     private List<Rig>? rigList_;
+    private List<SurveyInstrumentLight>? surveyInstrumentList_;
+    private List<SurveyRun>? allSurveyRunHeavyList_;
 
-    private List<SharedTrajectoryBatchImportLight> allBatchImportList_ = [];
-    private List<SharedTrajectoryBatchImportLight> batchImportList_ = [];
-    private List<SharedTrajectoryBatchImportLight> selectedBatchImportList_ = [];
-    private SharedTrajectoryBatchImport currentBatchImport_ = CreateEmptyBatchImport();
+    private List<SharedSurveyRunBatchImportLight> allBatchImportList_ = [];
+    private List<SharedSurveyRunBatchImportLight> batchImportList_ = [];
+    private List<SharedSurveyRunBatchImportLight> selectedBatchImportList_ = [];
+    private SharedSurveyRunBatchImport currentBatchImport_ = CreateEmptyBatchImport();
 
     private bool isLoading_ = true;
     private bool isUploading_;
@@ -315,6 +335,7 @@ else
     private string commonDepthReference_ = "Rotary table";
     private bool replaceExistingTrajectories_;
     private bool replaceTrajectoriesWithSameName_;
+    private const int SurveyMeasurementChunkSize = 5000;
 
     private string selectedSurveyImportFormat_ = "Separated";
     private static readonly string[] SurveyImportFormats = ["Separated", "Fixed width"];
@@ -344,7 +365,7 @@ else
         WriteIndented = true
     };
 
-    private Func<SharedTrajectoryBatchImportLight, bool> _batchImportFilter => item =>
+    private Func<SharedSurveyRunBatchImportLight, bool> _batchImportFilter => item =>
     {
         if (string.IsNullOrWhiteSpace(_searchString))
         {
@@ -386,6 +407,12 @@ else
             .OrderBy(wellBore => wellBore.Name)
             .ToList() ?? [];
 
+    private List<SurveyInstrumentLight> AvailableSurveyInstruments =>
+        surveyInstrumentList_?
+            .Where(instrument => instrument?.MetaInfo != null)
+            .OrderBy(instrument => instrument.Name)
+            .ToList() ?? [];
+
     private List<string> AvailableSurveyImportDepthUnits =>
         GetAvailableSurveyImportUnits(DepthDrillingQuantity.UnitChoiceDescriptions);
 
@@ -407,20 +434,24 @@ else
             selectedBatchImportList_ = [];
             currentBatchImport_ = CreateEmptyBatchImport();
 
-            Task<System.Collections.Generic.ICollection<Field>> fieldTask = Api.ClientField.GetAllFieldAsync();
-            Task<System.Collections.Generic.ICollection<Cluster>> clusterTask = Api.ClientCluster.GetAllClusterAsync();
-            Task<System.Collections.Generic.ICollection<Well>> wellTask = Api.ClientWell.GetAllWellAsync();
-            Task<System.Collections.Generic.ICollection<WellBore>> wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
-            Task<System.Collections.Generic.ICollection<Rig>> rigTask = Api.ClientRig.GetAllRigAsync();
-            Task<List<SharedTrajectoryBatchImportLight>?> batchImportTask = GetStoredBatchImportsLightAsync();
+            var fieldTask = Api.ClientField.GetAllFieldAsync();
+            var clusterTask = Api.ClientCluster.GetAllClusterAsync();
+            var wellTask = Api.ClientWell.GetAllWellAsync();
+            var wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
+            var rigTask = Api.ClientRig.GetAllRigAsync();
+            var surveyInstrumentTask = Api.ClientSurveyInstrument.GetAllSurveyInstrumentLightAsync();
+            var surveyRunHeavyTask = Api.ClientTrajectory.GetAllSurveyRunAsync();
+            Task<List<SharedSurveyRunBatchImportLight>?> batchImportTask = GetStoredBatchImportsLightAsync();
 
-            await Task.WhenAll(fieldTask, clusterTask, wellTask, wellBoreTask, rigTask, batchImportTask);
+            await Task.WhenAll(fieldTask, clusterTask, wellTask, wellBoreTask, rigTask, surveyInstrumentTask, surveyRunHeavyTask, batchImportTask);
 
             fieldList_ = fieldTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
             clusterList_ = clusterTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
             wellList_ = wellTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
             wellBoreList_ = wellBoreTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
             rigList_ = rigTask.Result.Where(item => item != null).ToList();
+            surveyInstrumentList_ = surveyInstrumentTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
+            allSurveyRunHeavyList_ = surveyRunHeavyTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
 
             allBatchImportList_ = batchImportTask.Result?.OrderBy(item => item.Name).ToList() ?? [];
             batchImportList_ = allBatchImportList_.ToList();
@@ -431,7 +462,7 @@ else
         catch (Exception ex)
         {
             logger.LogError(ex, "Problem batch trajectory import initialization");
-            Snackbar.Add("Problem on trajectory batch import initialization.", Severity.Error);
+            Snackbar.Add("Problem on survey run batch import initialization.", Severity.Error);
         }
         finally
         {
@@ -439,10 +470,10 @@ else
         }
     }
 
-    private static SharedTrajectoryBatchImport CreateEmptyBatchImport()
+    private static SharedSurveyRunBatchImport CreateEmptyBatchImport()
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
-        return new SharedTrajectoryBatchImport
+        return new SharedSurveyRunBatchImport
         {
             MetaInfo = new SharedMetaInfo(),
             Name = string.Empty,
@@ -455,31 +486,31 @@ else
         };
     }
 
-    private async Task<List<SharedTrajectoryBatchImportLight>?> GetStoredBatchImportsLightAsync()
+    private async Task<List<SharedSurveyRunBatchImportLight>?> GetStoredBatchImportsLightAsync()
     {
-        return (await Api.ClientTrajectory.GetAllTrajectoryBatchImportLightAsync()).ToList();
+        return (await Api.ClientTrajectory.GetAllSurveyRunBatchImportLightAsync()).ToList();
     }
 
-    private async Task<SharedTrajectoryBatchImport?> GetStoredBatchImportByIdAsync(Guid id)
+    private async Task<SharedSurveyRunBatchImport?> GetStoredBatchImportByIdAsync(Guid id)
     {
-        return await Api.ClientTrajectory.GetTrajectoryBatchImportByIdAsync(id);
+        return await Api.ClientTrajectory.GetSurveyRunBatchImportByIdAsync(id);
     }
 
-    private async Task<bool> PostStoredBatchImportAsync(SharedTrajectoryBatchImport batchImport)
+    private async Task<bool> PostStoredBatchImportAsync(SharedSurveyRunBatchImport batchImport)
     {
-        await Api.ClientTrajectory.PostTrajectoryBatchImportAsync(batchImport);
+        await Api.ClientTrajectory.PostSurveyRunBatchImportAsync(batchImport);
         return true;
     }
 
-    private async Task<bool> PutStoredBatchImportAsync(Guid id, SharedTrajectoryBatchImport batchImport)
+    private async Task<bool> PutStoredBatchImportAsync(Guid id, SharedSurveyRunBatchImport batchImport)
     {
-        await Api.ClientTrajectory.PutTrajectoryBatchImportByIdAsync(id, batchImport);
+        await Api.ClientTrajectory.PutSurveyRunBatchImportByIdAsync(id, batchImport);
         return true;
     }
 
     private async Task<bool> DeleteStoredBatchImportAsync(Guid id)
     {
-        await Api.ClientTrajectory.DeleteTrajectoryBatchImportByIdAsync(id);
+        await Api.ClientTrajectory.DeleteSurveyRunBatchImportByIdAsync(id);
         return true;
     }
 
@@ -495,7 +526,7 @@ else
     {
         try
         {
-            SharedTrajectoryBatchImport? batchImport = await GetStoredBatchImportByIdAsync(id);
+            SharedSurveyRunBatchImport? batchImport = await GetStoredBatchImportByIdAsync(id);
             if (batchImport == null)
             {
                 Snackbar.Add("Batch import not found.", Severity.Warning);
@@ -531,7 +562,7 @@ else
 
         try
         {
-            SharedTrajectoryBatchImport snapshot = BuildStoredBatchImportSnapshot();
+            SharedSurveyRunBatchImport snapshot = BuildStoredBatchImportSnapshot();
             bool success;
 
             if (snapshot.MetaInfo?.ID is Guid id && id != Guid.Empty && allBatchImportList_.Any(item => item.MetaInfo?.ID == id))
@@ -562,12 +593,12 @@ else
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Problem while saving trajectory batch import");
+            logger.LogError(ex, "Problem while saving survey run batch import");
             Snackbar.Add("Error saving batch import: " + ex.Message, Severity.Warning);
         }
     }
 
-    private SharedTrajectoryBatchImport BuildStoredBatchImportSnapshot()
+    private SharedSurveyRunBatchImport BuildStoredBatchImportSnapshot()
     {
         if (currentBatchImport_.MetaInfo == null)
         {
@@ -575,7 +606,7 @@ else
         }
         currentBatchImport_.LastModificationDate = DateTimeOffset.UtcNow;
 
-        return new SharedTrajectoryBatchImport
+        return new SharedSurveyRunBatchImport
         {
             MetaInfo = currentBatchImport_.MetaInfo,
             Name = currentBatchImport_.Name,
@@ -607,10 +638,12 @@ else
                 SurveyImportAzimuthWidth = surveyImportAzimuthWidth_
             },
             Rows = rows_
-                .Select(row => new SharedTrajectoryBatchImportRow
+                .Select(row => new SharedSurveyRunBatchImportRow
                 {
                     RowId = row.RowId,
                     WellBoreId = row.WellBoreId,
+                    SurveyInstrumentId = row.SurveyInstrumentId,
+                    ParentSurveyRunId = row.ParentSurveyRunId,
                     DepthReferenceName = row.DepthReferenceName,
                     FileName = row.FileName,
                     FileContentBase64 = row.FileContent == null ? null : Convert.ToBase64String(row.FileContent)
@@ -619,7 +652,7 @@ else
         };
     }
 
-    private void ApplyStoredBatchImport(SharedTrajectoryBatchImport batchImport)
+    private void ApplyStoredBatchImport(SharedSurveyRunBatchImport batchImport)
     {
         currentBatchImport_ = batchImport;
         selectedFieldId_ = batchImport.SelectedFieldId;
@@ -647,12 +680,14 @@ else
         surveyImportAzimuthWidth_ = settings.SurveyImportAzimuthWidth > 0 ? settings.SurveyImportAzimuthWidth : surveyImportAzimuthWidth_;
 
         rows_.Clear();
-        foreach (SharedTrajectoryBatchImportRow row in batchImport.Rows ?? [])
+        foreach (SharedSurveyRunBatchImportRow row in batchImport.Rows ?? [])
         {
-            rows_.Add(new TrajectoryImportRowState
+            rows_.Add(new SurveyRunImportRowState
             {
                 RowId = row.RowId,
                 WellBoreId = row.WellBoreId,
+                SurveyInstrumentId = row.SurveyInstrumentId,
+                ParentSurveyRunId = row.ParentSurveyRunId,
                 DepthReferenceName = string.IsNullOrWhiteSpace(row.DepthReferenceName) ? commonDepthReference_ : row.DepthReferenceName,
                 FileName = row.FileName,
                 FileContent = string.IsNullOrWhiteSpace(row.FileContentBase64) ? null : Convert.FromBase64String(row.FileContentBase64),
@@ -688,15 +723,15 @@ else
         surveyImportAzimuthStart_ = 25;
         surveyImportAzimuthWidth_ = 12;
         rows_.Clear();
-        rows_.Add(new TrajectoryImportRowState { DepthReferenceName = commonDepthReference_ });
+        rows_.Add(new SurveyRunImportRowState { DepthReferenceName = commonDepthReference_ });
     }
 
-    private void SelectedItemsChanged(HashSet<SharedTrajectoryBatchImportLight> items)
+    private void SelectedItemsChanged(HashSet<SharedSurveyRunBatchImportLight> items)
     {
         selectedBatchImportList_ = items.ToList();
     }
 
-    private async Task RowClicked(DataGridRowClickEventArgs<SharedTrajectoryBatchImportLight> args)
+    private async Task RowClicked(DataGridRowClickEventArgs<SharedSurveyRunBatchImportLight> args)
     {
         if (args.Item.MetaInfo?.ID is Guid id && id != Guid.Empty)
         {
@@ -726,7 +761,7 @@ else
 
     private async Task DeleteSelectedBatchImports()
     {
-        List<SharedTrajectoryBatchImportLight> toDelete = selectedBatchImportList_.ToList();
+        List<SharedSurveyRunBatchImportLight> toDelete = selectedBatchImportList_.ToList();
         if (toDelete.Count == 0)
         {
             return;
@@ -736,7 +771,7 @@ else
         {
             if (await ConfirmDeletion())
             {
-                foreach (SharedTrajectoryBatchImportLight batchImport in toDelete)
+                foreach (SharedSurveyRunBatchImportLight batchImport in toDelete)
                 {
                     if (batchImport.MetaInfo?.ID is Guid id && id != Guid.Empty)
                     {
@@ -824,10 +859,10 @@ else
 
     private void AddRow()
     {
-        rows_.Add(new TrajectoryImportRowState { DepthReferenceName = commonDepthReference_ });
+        rows_.Add(new SurveyRunImportRowState { DepthReferenceName = commonDepthReference_ });
     }
 
-    private void RemoveRow(TrajectoryImportRowState row)
+    private void RemoveRow(SurveyRunImportRowState row)
     {
         rows_.Remove(row);
         EnsureAtLeastOneRow();
@@ -837,33 +872,48 @@ else
     {
         if (rows_.Count == 0)
         {
-            rows_.Add(new TrajectoryImportRowState { DepthReferenceName = commonDepthReference_ });
+            rows_.Add(new SurveyRunImportRowState { DepthReferenceName = commonDepthReference_ });
         }
     }
 
-    private void ClearRowFile(TrajectoryImportRowState row)
+    private void ClearRowFile(SurveyRunImportRowState row)
     {
         row.FileName = null;
         row.FileContent = null;
+        row.ParentSurveyRunId = null;
         row.Status = "File cleared";
         row.RowId = Guid.NewGuid();
     }
 
-    private void OnRowWellBoreChanged(TrajectoryImportRowState row, Guid? wellBoreId)
+    private void OnRowWellBoreChanged(SurveyRunImportRowState row, Guid? wellBoreId)
     {
         row.WellBoreId = wellBoreId;
+        ClearInvalidParentSurveyRunSelection(row);
         row.Status = "Ready";
     }
 
-    private void OnRowDepthReferenceChanged(TrajectoryImportRowState row, string? depthReference)
+    private void OnRowSurveyInstrumentChanged(SurveyRunImportRowState row, Guid? surveyInstrumentId)
+    {
+        row.SurveyInstrumentId = surveyInstrumentId;
+        row.Status = "Ready";
+    }
+
+    private void OnRowDepthReferenceChanged(SurveyRunImportRowState row, string? depthReference)
     {
         row.DepthReferenceName = string.IsNullOrWhiteSpace(depthReference) ? commonDepthReference_ : depthReference;
+        ClearInvalidParentSurveyRunSelection(row);
+        row.Status = "Ready";
+    }
+
+    private void OnRowParentSurveyRunChanged(SurveyRunImportRowState row, Guid? parentSurveyRunId)
+    {
+        row.ParentSurveyRunId = parentSurveyRunId;
         row.Status = "Ready";
     }
 
     private void ApplyCommonDepthReferenceToAllRows()
     {
-        foreach (TrajectoryImportRowState row in rows_)
+        foreach (SurveyRunImportRowState row in rows_)
         {
             row.DepthReferenceName = commonDepthReference_;
         }
@@ -882,7 +932,7 @@ else
         }
     }
 
-    private async Task OnTrajectoryFileChangedAsync(TrajectoryImportRowState row, InputFileChangeEventArgs args)
+    private async Task OnSurveyRunFileChangedAsync(SurveyRunImportRowState row, InputFileChangeEventArgs args)
     {
         try
         {
@@ -897,19 +947,20 @@ else
             await stream.CopyToAsync(memory);
             row.FileContent = memory.ToArray();
             row.FileName = file.Name;
+            ClearInvalidParentSurveyRunSelection(row);
             row.Status = "File loaded";
         }
         catch (Exception ex)
         {
-            logger.LogError(ex, "Problem while loading a trajectory import file");
+            logger.LogError(ex, "Problem while loading a survey run import file");
             row.Status = "File loading failed";
-            Snackbar.Add("Error loading trajectory file: " + ex.Message, Severity.Warning);
+            Snackbar.Add("Error loading survey run file: " + ex.Message, Severity.Warning);
         }
     }
 
-    private async Task UploadTrajectoriesAsync()
+    private async Task UploadSurveyRunsAsync()
     {
-        List<TrajectoryImportRowState> candidateRows = rows_
+        List<SurveyRunImportRowState> candidateRows = rows_
             .Where(row => row.WellBoreId != null || row.FileContent != null)
             .ToList();
 
@@ -925,7 +976,7 @@ else
 
         try
         {
-            foreach (TrajectoryImportRowState row in candidateRows)
+            foreach (SurveyRunImportRowState row in candidateRows)
             {
                 try
                 {
@@ -943,6 +994,13 @@ else
                         continue;
                     }
 
+                    if (row.SurveyInstrumentId is not Guid surveyInstrumentId)
+                    {
+                        row.Status = "Select a survey instrument";
+                        failedCount++;
+                        continue;
+                    }
+
                     WellBore? wellBore = FindWellBoreById(wellBoreId);
                     Well? well = wellBore?.WellID is Guid wellId ? FindWellById(wellId) : null;
                     Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null;
@@ -955,9 +1013,23 @@ else
 
                     if (importedStations.Count < 3)
                     {
-                        row.Status = "Invalid trajectory file";
+                        row.Status = "Invalid survey run file";
                         failedCount++;
                         continue;
+                    }
+
+                    if (IsSurveyRunParentRequired(row, importedStations))
+                    {
+                        if (row.ParentSurveyRunId is not Guid parentSurveyRunId || !GetRowParentSurveyRunOptions(row).Any(surveyRun => surveyRun.MetaInfo?.ID == parentSurveyRunId))
+                        {
+                            row.Status = "Select a parent survey run";
+                            failedCount++;
+                            continue;
+                        }
+                    }
+                    else
+                    {
+                        row.ParentSurveyRunId = null;
                     }
 
                     if (replaceExistingTrajectories_)
@@ -967,8 +1039,14 @@ else
                         existingTrajectories.Clear();
                     }
 
-                    string baseTrajectoryName = Path.GetFileNameWithoutExtension(row.FileName ?? "trajectory");
+                    string baseTrajectoryName = Path.GetFileNameWithoutExtension(row.FileName ?? "survey-run");
                     TrajectoryLight? sameNameTrajectory = existingTrajectories.FirstOrDefault(trajectory => string.Equals(trajectory?.Name, baseTrajectoryName, StringComparison.OrdinalIgnoreCase));
+                    SurveyRun surveyRun = CreateSurveyRun(row, importedStations, fieldId, cluster, well, baseTrajectoryName, surveyInstrumentId);
+
+                    row.Status = "Uploading survey run";
+                    await Api.ClientTrajectory.PostSurveyRunAsync(surveyRun);
+                    await UploadSurveyMeasurementChunksAsync(surveyRun.MetaInfo.ID, importedStations.Select(SurveyMeasurement.FromSurveyStation).ToList());
+                    await Api.ClientTrajectory.CommitSurveyRunSurveyMeasurementChunksAsync(surveyRun.MetaInfo.ID);
 
                     if (!replaceExistingTrajectories_ && replaceTrajectoriesWithSameName_ && sameNameTrajectory?.MetaInfo?.ID is Guid existingTrajectoryId && existingTrajectoryId != Guid.Empty)
                     {
@@ -980,7 +1058,7 @@ else
                             continue;
                         }
 
-                        ApplyImportedSurveyToTrajectory(trajectory, row, importedStations, fieldId, cluster, well, baseTrajectoryName);
+                        ApplySurveyRunToTrajectory(trajectory, row, surveyRun, importedStations, fieldId, cluster, well, baseTrajectoryName);
                         trajectory.LastModificationDate = DateTimeOffset.UtcNow;
 
                         row.Status = "Replacing matching trajectory";
@@ -989,8 +1067,8 @@ else
                     else
                     {
                         string trajectoryName = GenerateTrajectoryName(baseTrajectoryName, existingTrajectories);
-                        Trajectory trajectory = CreateTrajectory(row, importedStations, fieldId, cluster, well, trajectoryName);
-                        row.Status = "Uploading";
+                        Trajectory trajectory = CreateTrajectory(row, surveyRun, importedStations, fieldId, cluster, well, trajectoryName);
+                        row.Status = "Uploading default trajectory";
                         await Api.ClientTrajectory.PostTrajectoryAsync(trajectory);
                     }
 
@@ -1001,7 +1079,7 @@ else
                 {
                     failedCount++;
                     row.Status = "Upload failed";
-                    logger.LogError(ex, "Problem while uploading trajectory for row {RowId}", row.RowId);
+                    logger.LogError(ex, "Problem while uploading survey run for row {RowId}", row.RowId);
                 }
             }
         }
@@ -1012,7 +1090,7 @@ else
 
         if (uploadedCount > 0)
         {
-            Snackbar.Add($"Uploaded {uploadedCount} trajectories.", Severity.Success);
+            Snackbar.Add($"Uploaded {uploadedCount} survey runs.", Severity.Success);
         }
 
         if (failedCount > 0)
@@ -1021,7 +1099,50 @@ else
         }
     }
 
-    private Trajectory CreateTrajectory(TrajectoryImportRowState row, List<SurveyStation> surveyStations, Guid? fieldId, Cluster? cluster, Well? well, string trajectoryName)
+    private SurveyRun CreateSurveyRun(SurveyRunImportRowState row, List<SurveyStation> surveyStations, Guid? fieldId, Cluster? cluster, Well? well, string surveyRunName, Guid surveyInstrumentId)
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        return new SurveyRun
+        {
+            MetaInfo = new MetaInfo { ID = Guid.NewGuid() },
+            Name = surveyRunName,
+            Description = $"Imported from {(row.FileName ?? "survey run file")}",
+            CreationDate = now,
+            LastModificationDate = now,
+            FieldID = fieldId,
+            ClusterID = well is { IsSingleWell: true } ? null : cluster?.MetaInfo.ID,
+            WellID = well?.MetaInfo.ID,
+            WellBoreID = row.WellBoreId ?? Guid.Empty,
+            SurveyInstrumentID = surveyInstrumentId,
+            SurveyRunType = SurveyRunType.Actual,
+            CalculationType = TrajectoryCalculationType.MinimumCurvatureMethod,
+            ParentSurveyRunID = row.ParentSurveyRunId,
+            SurveyMeasurementList = null,
+            SurveyStationList = null
+        };
+    }
+
+    private async Task UploadSurveyMeasurementChunksAsync(Guid surveyRunId, List<SurveyMeasurement> measurements)
+    {
+        await Api.ClientTrajectory.DeleteSurveyRunSurveyMeasurementChunksAsync(surveyRunId);
+        int chunkIndex = 0;
+        foreach (List<SurveyMeasurement> measurementChunk in measurements.Chunk(SurveyMeasurementChunkSize).Select(chunk => chunk.ToList()))
+        {
+            SurveyMeasurementChunk chunk = new()
+            {
+                SurveyRunID = surveyRunId,
+                ChunkIndex = chunkIndex,
+                MeasurementCount = measurementChunk.Count,
+                StartMD = measurementChunk.FirstOrDefault()?.MD,
+                EndMD = measurementChunk.LastOrDefault()?.MD,
+                SurveyMeasurementList = measurementChunk
+            };
+            await Api.ClientTrajectory.PutSurveyRunSurveyMeasurementChunkAsync(surveyRunId, chunkIndex, chunk);
+            chunkIndex++;
+        }
+    }
+
+    private Trajectory CreateTrajectory(SurveyRunImportRowState row, SurveyRun surveyRun, List<SurveyStation> surveyStations, Guid? fieldId, Cluster? cluster, Well? well, string trajectoryName)
     {
         Trajectory trajectory = PseudoConstructors.ConstructTrajectory();
         DateTimeOffset now = DateTimeOffset.UtcNow;
@@ -1029,22 +1150,32 @@ else
         trajectory.MetaInfo.ID = Guid.NewGuid();
         trajectory.CreationDate = now;
         trajectory.LastModificationDate = now;
-        ApplyImportedSurveyToTrajectory(trajectory, row, surveyStations, fieldId, cluster, well, trajectoryName);
+        ApplySurveyRunToTrajectory(trajectory, row, surveyRun, surveyStations, fieldId, cluster, well, trajectoryName);
 
         return trajectory;
     }
 
-    private static void ApplyImportedSurveyToTrajectory(Trajectory trajectory, TrajectoryImportRowState row, List<SurveyStation> surveyStations, Guid? fieldId, Cluster? cluster, Well? well, string trajectoryName)
+    private static void ApplySurveyRunToTrajectory(Trajectory trajectory, SurveyRunImportRowState row, SurveyRun surveyRun, List<SurveyStation> surveyStations, Guid? fieldId, Cluster? cluster, Well? well, string trajectoryName)
     {
         trajectory.Name = trajectoryName;
-        trajectory.Description = $"Imported from {(row.FileName ?? "trajectory file")}";
+        trajectory.Description = $"Imported from {(row.FileName ?? "survey run file")}";
         trajectory.FieldID = fieldId;
         trajectory.ClusterID = well is { IsSingleWell: true } ? null : cluster?.MetaInfo.ID;
         trajectory.WellID = well?.MetaInfo.ID;
         trajectory.WellBoreID = row.WellBoreId ?? Guid.Empty;
+        trajectory.TrajectoryType = TrajectoryType.Actual;
+        trajectory.IsDefinitive = false;
         trajectory.CalculationType = TrajectoryCalculationType.MinimumCurvatureMethod;
         trajectory.MDStep = EstimateMdStep(surveyStations);
-        trajectory.SurveyStationList = surveyStations;
+        trajectory.SurveyStationList = null;
+        trajectory.SurveyRunSectionList =
+        [
+            new TrajectorySurveyRunSection
+            {
+                SurveyRunID = surveyRun.MetaInfo?.ID ?? Guid.Empty,
+                StartAbscissa = surveyStations.FirstOrDefault()?.MD ?? surveyStations.FirstOrDefault()?.Abscissa ?? 0.0
+            }
+        ];
     }
 
     private static double EstimateMdStep(List<SurveyStation> surveyStations)
@@ -1077,7 +1208,7 @@ else
             return;
         }
 
-        TrajectoryAssociationPackage package = new()
+        SurveyRunBatchDescriptionPackage package = new()
         {
             SelectedFieldId = selectedFieldId_,
             SelectedClusterId = selectedClusterId_,
@@ -1104,9 +1235,11 @@ else
                 SurveyImportAzimuthWidth = surveyImportAzimuthWidth_
             },
             Rows = rows_
-                .Select(row => new TrajectoryAssociationRow
+                .Select(row => new SurveyRunBatchDescriptionRow
                 {
                     WellBoreId = row.WellBoreId,
+                    SurveyInstrumentId = row.SurveyInstrumentId,
+                    ParentSurveyRunId = row.ParentSurveyRunId,
                     DepthReferenceName = row.DepthReferenceName,
                     FileName = row.FileName,
                     FileContentBase64 = row.FileContent == null ? null : Convert.ToBase64String(row.FileContent)
@@ -1115,7 +1248,7 @@ else
         };
 
         string json = JsonSerializer.Serialize(package, BatchImportJsonOptions);
-        await DownloadTextFileAsync("trajectory-batch-import-associations.json", json, "application/json;charset=utf-8");
+        await DownloadTextFileAsync("survey-run-batch-import-associations.json", json, "application/json;charset=utf-8");
         Snackbar.Add("Association table exported.", Severity.Success);
     }
 
@@ -1132,7 +1265,7 @@ else
             using System.IO.Stream stream = file.OpenReadStream(20 * 1024 * 1024);
             using StreamReader reader = new(stream);
             string json = await reader.ReadToEndAsync();
-            TrajectoryAssociationPackage? package = JsonSerializer.Deserialize<TrajectoryAssociationPackage>(json, BatchImportJsonOptions);
+            SurveyRunBatchDescriptionPackage? package = JsonSerializer.Deserialize<SurveyRunBatchDescriptionPackage>(json, BatchImportJsonOptions);
 
             if (package == null)
             {
@@ -1169,11 +1302,13 @@ else
             NormalizeSelectionChain();
             rows_.Clear();
 
-            foreach (TrajectoryAssociationRow row in package.Rows ?? [])
+            foreach (SurveyRunBatchDescriptionRow row in package.Rows ?? [])
             {
-                rows_.Add(new TrajectoryImportRowState
+                rows_.Add(new SurveyRunImportRowState
                 {
                     WellBoreId = row.WellBoreId,
+                    SurveyInstrumentId = row.SurveyInstrumentId,
+                    ParentSurveyRunId = row.ParentSurveyRunId,
                     DepthReferenceName = string.IsNullOrWhiteSpace(row.DepthReferenceName) ? commonDepthReference_ : row.DepthReferenceName,
                     FileName = row.FileName,
                     FileContent = string.IsNullOrWhiteSpace(row.FileContentBase64) ? null : Convert.FromBase64String(row.FileContentBase64),
@@ -1192,7 +1327,7 @@ else
         }
     }
 
-    private List<SurveyStation> ParseSurveyStations(string content, TrajectoryImportRowState row, Cluster? cluster, WellBore? wellBore, out int skippedLines)
+    private List<SurveyStation> ParseSurveyStations(string content, SurveyRunImportRowState row, Cluster? cluster, WellBore? wellBore, out int skippedLines)
     {
         string[] lines = content.Split(["\r\n", "\n", "\r"], StringSplitOptions.None);
         List<SurveyStation> importedStations = [];
@@ -1410,18 +1545,7 @@ else
             value = DepthDrillingQuantity.Instance.ToSI(value, unitChoice.ID);
         }
 
-        if (Parent != null)
-        {
-            ApplyDepthReferenceContext(depthReferenceContext);
-            value = Parent.FromSI(value, "DepthDrilling");
-            value = Parent.ToWGS84DepthSI(value, "DepthDrilling");
-        }
-        else
-        {
-            value -= depthReferenceContext.OffsetToWgs84;
-        }
-
-        return value;
+        return value - depthReferenceContext.OffsetToWgs84;
     }
 
     private static void ApplyDepthReferenceContext(DepthReferenceContext context)
@@ -1470,7 +1594,9 @@ else
         }
 
         Rig? rig = rigList_?.FirstOrDefault(item => item?.MetaInfo?.ID == resolvedRigId);
-        return rig?.DrillFloorElevation is double drillFloorElevation ? -drillFloorElevation : 0.0;
+        return rig?.DrillFloorElevation is double rotaryTableDepthWgs84
+            ? -rotaryTableDepthWgs84
+            : 0.0;
     }
 
     private async Task<System.Collections.Generic.ICollection<TrajectoryLight>> GetExistingTrajectoriesAsync(Guid wellBoreId)
@@ -1526,7 +1652,7 @@ else
         return value;
     }
 
-    private List<WellBore> GetRowWellBoreOptions(TrajectoryImportRowState row)
+    private List<WellBore> GetRowWellBoreOptions(SurveyRunImportRowState row)
     {
         IEnumerable<WellBore> options = AvailableWellBores;
 
@@ -1543,6 +1669,104 @@ else
             .Where(option => option?.MetaInfo != null)
             .OrderBy(option => option.Name)
             .ToList();
+    }
+
+    private List<SurveyRun> GetRowParentSurveyRunOptions(SurveyRunImportRowState row) =>
+        allSurveyRunHeavyList_?
+            .Where(surveyRun =>
+                surveyRun?.MetaInfo?.ID is Guid &&
+                IsParentSurveyRunCandidate(row, surveyRun))
+            .OrderBy(surveyRun => surveyRun.Name)
+            .ToList() ?? [];
+
+    private bool IsRowParentSurveyRunRequired(SurveyRunImportRowState row)
+    {
+        if (row.FileContent == null || row.WellBoreId is not Guid)
+        {
+            return false;
+        }
+
+        string content = Encoding.UTF8.GetString(row.FileContent);
+        WellBore? wellBore = row.WellBoreId is Guid wellBoreId ? FindWellBoreById(wellBoreId) : null;
+        Well? well = wellBore?.WellID is Guid wellId ? FindWellById(wellId) : null;
+        Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null;
+        List<SurveyStation> stations = ParseSurveyStations(content, row, cluster, wellBore, out _);
+        return IsSurveyRunParentRequired(row, stations);
+    }
+
+    private bool IsSurveyRunParentRequired(SurveyRunImportRowState row, List<SurveyStation> stations) =>
+        GetFirstSurveyStationMd(stations) is { } firstMd &&
+        GetRowWellheadMd(row) is { } wellheadMd &&
+        firstMd > wellheadMd;
+
+    private bool IsParentSurveyRunCandidate(SurveyRunImportRowState row, SurveyRun candidate)
+    {
+        if (row.FileContent == null)
+        {
+            return false;
+        }
+
+        string content = Encoding.UTF8.GetString(row.FileContent);
+        WellBore? wellBore = row.WellBoreId is Guid wellBoreId ? FindWellBoreById(wellBoreId) : null;
+        Well? well = wellBore?.WellID is Guid wellId ? FindWellById(wellId) : null;
+        Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null;
+        List<SurveyStation> stations = ParseSurveyStations(content, row, cluster, wellBore, out _);
+
+        if (GetFirstSurveyStationMd(stations) is not { } firstMd ||
+            candidate.SurveyStationList is not { Count: > 0 } candidateStations)
+        {
+            return false;
+        }
+
+        List<double> candidateMds = candidateStations
+            .Select(station => station.MD ?? station.Abscissa)
+            .Where(md => md.HasValue)
+            .Select(md => md!.Value)
+            .OrderBy(md => md)
+            .ToList();
+
+        if (candidateMds.Count == 0)
+        {
+            return false;
+        }
+
+        const double maxTieInGap = 10.0;
+        double firstParentMd = candidateMds.First();
+        double lastParentMd = candidateMds.Last();
+        return (firstParentMd <= firstMd && firstMd <= lastParentMd) ||
+               (lastParentMd <= firstMd && firstMd - lastParentMd <= maxTieInGap);
+    }
+
+    private static double? GetFirstSurveyStationMd(List<SurveyStation> stations) =>
+        stations
+            .Select(station => station.MD ?? station.Abscissa)
+            .Where(md => md.HasValue)
+            .Select(md => md!.Value)
+            .OrderBy(md => md)
+            .Cast<double?>()
+            .FirstOrDefault();
+
+    private double? GetRowWellheadMd(SurveyRunImportRowState row)
+    {
+        WellBore? wellBore = row.WellBoreId is Guid wellBoreId ? FindWellBoreById(wellBoreId) : null;
+        Well? well = wellBore?.WellID is Guid wellId ? FindWellById(wellId) : null;
+        Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null;
+        return cluster?.ReferenceDepth?.GaussianValue?.Mean;
+    }
+
+    private void ClearInvalidParentSurveyRunSelection(SurveyRunImportRowState row)
+    {
+        if (!IsRowParentSurveyRunRequired(row))
+        {
+            row.ParentSurveyRunId = null;
+            return;
+        }
+
+        if (row.ParentSurveyRunId is Guid parentSurveyRunId &&
+            !GetRowParentSurveyRunOptions(row).Any(surveyRun => surveyRun.MetaInfo?.ID == parentSurveyRunId))
+        {
+            row.ParentSurveyRunId = null;
+        }
     }
 
     private bool MatchesSelectedField(Well well)
@@ -1606,17 +1830,19 @@ else
         await JSRuntime.InvokeVoidAsync("trajectoryDownloads.saveTextFileFromBase64", fileName, base64Content, contentType);
     }
 
-    private sealed class TrajectoryImportRowState
+    private sealed class SurveyRunImportRowState
     {
         public Guid RowId { get; set; } = Guid.NewGuid();
         public Guid? WellBoreId { get; set; }
+        public Guid? SurveyInstrumentId { get; set; }
+        public Guid? ParentSurveyRunId { get; set; }
         public string DepthReferenceName { get; set; } = "Rotary table";
         public string? FileName { get; set; }
         public byte[]? FileContent { get; set; }
         public string Status { get; set; } = "Ready";
     }
 
-    private sealed class TrajectoryAssociationPackage
+    private sealed class SurveyRunBatchDescriptionPackage
     {
         public Guid? SelectedFieldId { get; set; }
         public Guid? SelectedClusterId { get; set; }
@@ -1625,12 +1851,14 @@ else
         public bool ReplaceExistingTrajectories { get; set; }
         public bool ReplaceTrajectoriesWithSameName { get; set; }
         public SurveyImportSettingsPackage? Settings { get; set; }
-        public List<TrajectoryAssociationRow>? Rows { get; set; }
+        public List<SurveyRunBatchDescriptionRow>? Rows { get; set; }
     }
 
-    private sealed class TrajectoryAssociationRow
+    private sealed class SurveyRunBatchDescriptionRow
     {
         public Guid? WellBoreId { get; set; }
+        public Guid? SurveyInstrumentId { get; set; }
+        public Guid? ParentSurveyRunId { get; set; }
         public string? DepthReferenceName { get; set; }
         public string? FileName { get; set; }
         public string? FileContentBase64 { get; set; }
@@ -1664,3 +1892,4 @@ else
         public double? RotaryTableDepthReference { get; set; }
     }
 }
+

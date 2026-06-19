@@ -23,6 +23,8 @@
 
     [Parameter]
     public List<string>? ColorList { get; set; }
+    [Parameter]
+    public List<bool>? ShowLegendList { get; set; }
 
     [Parameter]
     public List<List<object>>? XValuesList { get; set; }
@@ -46,6 +48,12 @@
     public string? YAxisTitle { get; set; }
 
     [Parameter]
+    public bool ShowAxisTitles { get; set; } = true;
+
+    [Parameter]
+    public List<Annotation>? Annotations { get; set; }
+
+    [Parameter]
     public bool XAxisReversed { get; set; }
 
     [Parameter]
@@ -53,6 +61,9 @@
 
     [Parameter]
     public bool XAxisStartsAtZero { get; set; }
+
+    [Parameter]
+    public bool ShowCartesianGrid { get; set; } = true;
 
     [Parameter]
     public decimal? AspectRatio { get; set; }
@@ -256,12 +267,17 @@
             Marker marker = ColorList != null && i < ColorList.Count
                 ? new Marker { Color = ColorList[i] }
                 : new Marker { AutoColorScale = true };
+            Line line = ColorList != null && i < ColorList.Count
+                ? new Line { Color = ColorList[i] }
+                : new Line();
 
             await chart.AddTrace(new Scatter
             {
                 Name = name,
                 Mode = modeFlag,
                 Marker = marker,
+                Line = line,
+                ShowLegend = ShowLegendList == null || i >= ShowLegendList.Count || ShowLegendList[i],
                 X = xValuesInUserUnit,
                 Y = yValuesInUserUnit
             });
@@ -291,10 +307,11 @@
         layout.Height = PlotHeight > 0 ? PlotHeight : null;
         layout.Width = PlotWidth > 0 ? PlotWidth : null;
         layout.Title.Text = PlotTitle;
+        layout.Annotations = Annotations;
 
         for (int i = 0; i < layout.XAxis.Count; ++i)
         {
-            layout.XAxis.ElementAt(i).Title.Text = XAxisTitle + xUnitLabel;
+            layout.XAxis.ElementAt(i).Title.Text = ShowAxisTitles ? XAxisTitle + xUnitLabel : string.Empty;
             layout.XAxis.ElementAt(i).AutoRange = XAxisReversed
                 ? Plotly.Blazor.LayoutLib.XAxisLib.AutoRangeEnum.Reversed
                 : Plotly.Blazor.LayoutLib.XAxisLib.AutoRangeEnum.True;
@@ -302,15 +319,17 @@
             layout.XAxis.ElementAt(i).Range = XAxisStartsAtZero
                 ? [0, null!]
                 : null;
+            layout.XAxis.ElementAt(i).ShowGrid = ShowCartesianGrid;
         }
 
         for (int i = 0; i < layout.YAxis.Count; ++i)
         {
-            layout.YAxis.ElementAt(i).Title.Text = YAxisTitle + yUnitLabel;
+            layout.YAxis.ElementAt(i).Title.Text = ShowAxisTitles ? YAxisTitle + yUnitLabel : string.Empty;
             layout.YAxis.ElementAt(i).AutoRange = YAxisReversed
                 ? Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.Reversed
                 : Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.True;
             layout.YAxis.ElementAt(i).RangeMode = Plotly.Blazor.LayoutLib.YAxisLib.RangeModeEnum.Normal;
+            layout.YAxis.ElementAt(i).ShowGrid = ShowCartesianGrid;
 
             if (AspectRatio is { } aspectRatio && aspectRatio > 0)
             {
@@ -390,9 +409,11 @@
             .Append(XAxisTitle).Append('|')
             .Append(YAxisTitle).Append('|')
             .Append(PlotTitle).Append('|')
+            .Append(ShowAxisTitles).Append('|')
             .Append(XAxisReversed).Append('|')
             .Append(YAxisReversed).Append('|')
             .Append(XAxisStartsAtZero).Append('|')
+            .Append(ShowCartesianGrid).Append('|')
             .Append(AspectRatio).Append('|')
             .Append(XAxisUsesDepthReference).Append('|')
             .Append(YAxisUsesDepthReference).Append('|')
@@ -404,8 +425,18 @@
         AppendListSignature(builder, NameList);
         AppendListSignature(builder, ModeFlagList);
         AppendListSignature(builder, ColorList);
+        AppendListSignature(builder, ShowLegendList);
         AppendNestedListSignature(builder, XValuesList);
         AppendNestedListSignature(builder, YValuesList);
+        if (Annotations != null)
+        {
+            foreach (Annotation annotation in Annotations)
+            {
+                builder.Append(annotation.Text).Append(':')
+                    .Append(annotation.X).Append(':')
+                    .Append(annotation.Y).Append('|');
+            }
+        }
 
         return builder.ToString();
     }

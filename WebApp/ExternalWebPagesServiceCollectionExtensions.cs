@@ -40,6 +40,22 @@ public static class ExternalWebPagesServiceCollectionExtensions
         services.AddSingleton<
             NORCE.Drilling.GeodeticDatum.WebPages.IGeodeticDatumAPIUtils,
             NORCE.Drilling.GeodeticDatum.WebPages.GeodeticDatumAPIUtils>();
+        services.AddSingleton<NORCE.Drilling.SurveyInstrument.WebPages.ISurveyInstrumentWebPagesConfiguration>(configuration);
+        services.AddSingleton<
+            NORCE.Drilling.SurveyInstrument.WebPages.ISurveyInstrumentAPIUtils,
+            NORCE.Drilling.SurveyInstrument.WebPages.SurveyInstrumentAPIUtils>();
+        services.AddSingleton<NORCE.Drilling.EarthGeomagneticField.WebPages.IEarthGeomagneticFieldWebPagesConfiguration>(configuration);
+        services.AddSingleton<
+            NORCE.Drilling.EarthGeomagneticField.WebPages.IEarthGeomagneticFieldAPIUtils,
+            NORCE.Drilling.EarthGeomagneticField.WebPages.EarthGeomagneticFieldAPIUtils>();
+        services.AddSingleton<NORCE.Drilling.GravitationalField.WebPages.IGravitationalFieldWebPagesConfiguration>(configuration);
+        services.AddSingleton<
+            NORCE.Drilling.GravitationalField.WebPages.IGravitationalFieldAPIUtils,
+            NORCE.Drilling.GravitationalField.WebPages.APIUtils>();
+        services.AddSingleton<NORCE.Drilling.VerticalDatum.WebPage.IVerticalDatumWebPageConfiguration>(configuration);
+        services.AddSingleton<
+            NORCE.Drilling.VerticalDatum.WebPage.IVerticalDatumAPIUtils,
+            NORCE.Drilling.VerticalDatum.WebPage.APIUtils>();
         return services;
     }
 }

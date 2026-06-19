@@ -236,6 +236,14 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "includeCalculatedStations",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
           }
         ],
         "responses": {
@@ -311,6 +319,78 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/InterpolatedTrajectory/{id}/SurveyStations/ChunkCount": {
+      "get": {
+        "tags": [
+          "InterpolatedTrajectory"
+        ],
+        "operationId": "GetInterpolatedTrajectorySurveyStationChunkCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/InterpolatedTrajectory/{id}/SurveyStations/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "InterpolatedTrajectory"
+        ],
+        "operationId": "GetInterpolatedTrajectorySurveyStationChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyStationChunk"
+                }
+              }
+            }
           }
         }
       }
@@ -511,6 +591,1230 @@
         }
       }
     },
+    "/SurveyRun": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetAllSurveyRunId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "PostSurveyRun",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRun"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRun"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRun"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRun/MetaInfo": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetAllSurveyRunMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRun/LightData": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetAllSurveyRunLight",
+        "parameters": [
+          {
+            "name": "fieldId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "clusterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "wellId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "wellBoreId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "surveyInstrumentId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "surveyRunType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRun/HeavyData": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetAllSurveyRun",
+        "parameters": [
+          {
+            "name": "fieldId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "clusterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "wellId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "wellBoreId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "surveyInstrumentId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "surveyRunType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunType"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRun"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRun/{id}": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetSurveyRunById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeMeasurements",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          },
+          {
+            "name": "includeCalculatedStations",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRun"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "PutSurveyRunById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRun"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRun"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRun"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "DeleteSurveyRunById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRun/{id}/SurveyStations/ChunkCount": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetSurveyRunSurveyStationChunkCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRun/{id}/SurveyStations/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetSurveyRunSurveyStationChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyStationChunk"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRun/{id}/SurveyMeasurements/ChunkCount": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetSurveyRunSurveyMeasurementChunkCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRun/{id}/SurveyMeasurements/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetSurveyRunSurveyMeasurementChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyMeasurementChunk"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "PutSurveyRunSurveyMeasurementChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyMeasurementChunk"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyMeasurementChunk"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyMeasurementChunk"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRun/{id}/SurveyMeasurements/Chunks": {
+      "delete": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "DeleteSurveyRunSurveyMeasurementChunks",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRun/{id}/SurveyMeasurements/Commit": {
+      "post": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "CommitSurveyRunSurveyMeasurementChunks",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRunBatchImport": {
+      "get": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "GetAllSurveyRunBatchImportId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "PostSurveyRunBatchImport",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunBatchImport"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunBatchImport"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunBatchImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRunBatchImport/MetaInfo": {
+      "get": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "GetAllSurveyRunBatchImportMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRunBatchImport/LightData": {
+      "get": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "GetAllSurveyRunBatchImportLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunBatchImportLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRunBatchImport/HeavyData": {
+      "get": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "GetAllSurveyRunBatchImport",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunBatchImport"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRunBatchImport/{id}": {
+      "get": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "GetSurveyRunBatchImportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunBatchImport"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "PutSurveyRunBatchImportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunBatchImport"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunBatchImport"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunBatchImport"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "DeleteSurveyRunBatchImportById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRunMinimumDistanceCalculation": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "GetAllSurveyRunMinimumDistanceCalculationId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "PostSurveyRunMinimumDistanceCalculation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRunMinimumDistanceCalculation/MetaInfo": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "GetAllSurveyRunMinimumDistanceCalculationMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRunMinimumDistanceCalculation/{id}": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "GetSurveyRunMinimumDistanceCalculationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeResults",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "PutSurveyRunMinimumDistanceCalculationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "DeleteSurveyRunMinimumDistanceCalculationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRunMinimumDistanceCalculation/{id}/Results/ChunkCount": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "GetSurveyRunMinimumDistanceCalculationResultChunkCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRunMinimumDistanceCalculation/{id}/Results/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "GetSurveyRunMinimumDistanceCalculationResultChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceResultChunk"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRunMinimumDistanceCalculation/LightData": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "GetAllSurveyRunMinimumDistanceCalculationLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculationLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRunMinimumDistanceCalculation/HeavyData": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "GetAllSurveyRunMinimumDistanceCalculation",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyStationEllipseCalculation": {
+      "get": {
+        "tags": [
+          "SurveyStationEllipseCalculation"
+        ],
+        "operationId": "GetAllSurveyStationEllipseCalculationId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "SurveyStationEllipseCalculation"
+        ],
+        "operationId": "PostSurveyStationEllipseCalculation",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyStationEllipseCalculation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyStationEllipseCalculation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyStationEllipseCalculation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyStationEllipseCalculation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyStationEllipseCalculation/MetaInfo": {
+      "get": {
+        "tags": [
+          "SurveyStationEllipseCalculation"
+        ],
+        "operationId": "GetAllSurveyStationEllipseCalculationMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyStationEllipseCalculation/{id}": {
+      "get": {
+        "tags": [
+          "SurveyStationEllipseCalculation"
+        ],
+        "operationId": "GetSurveyStationEllipseCalculationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyStationEllipseCalculation"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "SurveyStationEllipseCalculation"
+        ],
+        "operationId": "DeleteSurveyStationEllipseCalculationById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/Trajectory": {
       "get": {
         "tags": [
@@ -603,6 +1907,14 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "includeCalculatedStations",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
           }
         ],
         "responses": {
@@ -682,6 +1994,78 @@
         }
       }
     },
+    "/Trajectory/{id}/SurveyStations/ChunkCount": {
+      "get": {
+        "tags": [
+          "Trajectory"
+        ],
+        "operationId": "GetTrajectorySurveyStationChunkCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Trajectory/{id}/SurveyStations/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "Trajectory"
+        ],
+        "operationId": "GetTrajectorySurveyStationChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyStationChunk"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Trajectory/LightData": {
       "get": {
         "tags": [
@@ -719,6 +2103,20 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "trajectoryType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryType"
+            }
+          },
+          {
+            "name": "isDefinitive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
             }
           }
         ],
@@ -777,6 +2175,20 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "trajectoryType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryType"
+            }
+          },
+          {
+            "name": "isDefinitive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
           }
         ],
         "responses": {
@@ -796,12 +2208,12 @@
         }
       }
     },
-    "/TrajectoryBatchImport": {
+    "/TrajectoryMinimumDistanceCalculation": {
       "get": {
         "tags": [
-          "TrajectoryBatchImport"
+          "TrajectoryMinimumDistanceCalculation"
         ],
-        "operationId": "GetAllTrajectoryBatchImportId",
+        "operationId": "GetAllTrajectoryMinimumDistanceCalculationId",
         "responses": {
           "200": {
             "description": "OK",
@@ -821,24 +2233,24 @@
       },
       "post": {
         "tags": [
-          "TrajectoryBatchImport"
+          "TrajectoryMinimumDistanceCalculation"
         ],
-        "operationId": "PostTrajectoryBatchImport",
+        "operationId": "PostTrajectoryMinimumDistanceCalculation",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
               }
             }
           }
@@ -850,12 +2262,12 @@
         }
       }
     },
-    "/TrajectoryBatchImport/MetaInfo": {
+    "/TrajectoryMinimumDistanceCalculation/MetaInfo": {
       "get": {
         "tags": [
-          "TrajectoryBatchImport"
+          "TrajectoryMinimumDistanceCalculation"
         ],
-        "operationId": "GetAllTrajectoryBatchImportMetaInfo",
+        "operationId": "GetAllTrajectoryMinimumDistanceCalculationMetaInfo",
         "responses": {
           "200": {
             "description": "OK",
@@ -873,58 +2285,12 @@
         }
       }
     },
-    "/TrajectoryBatchImport/LightData": {
+    "/TrajectoryMinimumDistanceCalculation/{id}": {
       "get": {
         "tags": [
-          "TrajectoryBatchImport"
+          "TrajectoryMinimumDistanceCalculation"
         ],
-        "operationId": "GetAllTrajectoryBatchImportLight",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImportLight"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/TrajectoryBatchImport/HeavyData": {
-      "get": {
-        "tags": [
-          "TrajectoryBatchImport"
-        ],
-        "operationId": "GetAllTrajectoryBatchImport",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/TrajectoryBatchImport/{id}": {
-      "get": {
-        "tags": [
-          "TrajectoryBatchImport"
-        ],
-        "operationId": "GetTrajectoryBatchImportById",
+        "operationId": "GetTrajectoryMinimumDistanceCalculationById",
         "parameters": [
           {
             "name": "id",
@@ -934,6 +2300,14 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "includeResults",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
           }
         ],
         "responses": {
@@ -942,7 +2316,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
                 }
               }
             }
@@ -951,9 +2325,9 @@
       },
       "put": {
         "tags": [
-          "TrajectoryBatchImport"
+          "TrajectoryMinimumDistanceCalculation"
         ],
-        "operationId": "PutTrajectoryBatchImportById",
+        "operationId": "PutTrajectoryMinimumDistanceCalculationById",
         "parameters": [
           {
             "name": "id",
@@ -969,17 +2343,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport"
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
               }
             }
           }
@@ -992,9 +2366,9 @@
       },
       "delete": {
         "tags": [
-          "TrajectoryBatchImport"
+          "TrajectoryMinimumDistanceCalculation"
         ],
-        "operationId": "DeleteTrajectoryBatchImportById",
+        "operationId": "DeleteTrajectoryMinimumDistanceCalculationById",
         "parameters": [
           {
             "name": "id",
@@ -1009,6 +2383,421 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryMinimumDistanceCalculation/{id}/Results/ChunkCount": {
+      "get": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "GetTrajectoryMinimumDistanceCalculationResultChunkCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryMinimumDistanceCalculation/{id}/Results/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "GetTrajectoryMinimumDistanceCalculationResultChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceResultChunk"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryMinimumDistanceCalculation/LightData": {
+      "get": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "GetAllTrajectoryMinimumDistanceCalculationLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculationLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryMinimumDistanceCalculation/HeavyData": {
+      "get": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "GetAllTrajectoryMinimumDistanceCalculation",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryRealizationCase": {
+      "get": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "GetAllTrajectoryRealizationCaseId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "PostTrajectoryRealizationCase",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryRealizationCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryRealizationCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryRealizationCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryRealizationCase/MetaInfo": {
+      "get": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "GetAllTrajectoryRealizationCaseMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryRealizationCase/{id}": {
+      "get": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "GetTrajectoryRealizationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeRealizations",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryRealizationCase"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "PutTrajectoryRealizationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryRealizationCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryRealizationCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryRealizationCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "DeleteTrajectoryRealizationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryRealizationCase/LightData": {
+      "get": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "GetAllTrajectoryRealizationCaseLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryRealizationCaseLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryRealizationCase/HeavyData": {
+      "get": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "GetAllTrajectoryRealizationCase",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryRealizationCase"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryRealizationCase/{id}/Realizations/ChunkCount": {
+      "get": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "GetTrajectoryRealizationChunkCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryRealizationCase/{id}/Realizations/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "TrajectoryRealizationCase"
+        ],
+        "operationId": "GetTrajectoryRealizationChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryRealizationChunk"
+                }
+              }
+            }
           }
         }
       }
@@ -1142,6 +2931,16 @@
         },
         "additionalProperties": false
       },
+      "NORCE.Drilling.Trajectory.Model.CalculationState": {
+        "enum": [
+          "Completed",
+          "Queued",
+          "Running",
+          "Failed",
+          "NotCalculated"
+        ],
+        "type": "string"
+      },
       "NORCE.Drilling.Trajectory.Model.CountPerDay": {
         "type": "object",
         "properties": {
@@ -1196,6 +2995,17 @@
           "TrajectoryID": {
             "type": "string",
             "format": "uuid"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
           },
           "SurveyStationList": {
             "type": "array",
@@ -1278,6 +3088,73 @@
           "TrajectoryID": {
             "type": "string",
             "format": "uuid"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.MinimumDistanceAdaptiveRefinementSettings": {
+        "type": "object",
+        "properties": {
+          "Enabled": {
+            "type": "boolean"
+          },
+          "PolarDeviationTolerance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "PolarAngularTolerance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "MinimumMDStep": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "MaximumDepth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "MaximumExtraSamplesPerComparison": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.MinimumDistanceReferenceInterval": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "StartMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1348,7 +3225,67 @@
         },
         "additionalProperties": false
       },
-      "NORCE.Drilling.Trajectory.Model.Trajectory": {
+      "NORCE.Drilling.Trajectory.Model.SurveyMeasurement": {
+        "type": "object",
+        "properties": {
+          "MD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Inclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Azimuth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Annotation": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyMeasurementChunk": {
+        "type": "object",
+        "properties": {
+          "SurveyRunID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ChunkIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "MeasurementCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "StartMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "SurveyMeasurementList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyMeasurement"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyRun": {
         "type": "object",
         "properties": {
           "MetaInfo": {
@@ -1391,27 +3328,53 @@
             "type": "string",
             "format": "uuid"
           },
+          "SurveyInstrumentID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "SurveyRunType": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunType"
+          },
+          "CalculationType": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType"
+          },
+          "ParentSurveyRunID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "TieInPoint": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+          },
+          "SurveyMeasurementList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyMeasurement"
+            },
+            "nullable": true
+          },
           "SurveyStationList": {
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
             },
             "nullable": true
-          },
-          "TieInPoint": {
-            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint"
-          },
-          "CalculationType": {
-            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType"
-          },
-          "MDStep": {
-            "type": "number",
-            "format": "double"
           }
         },
         "additionalProperties": false
       },
-      "NORCE.Drilling.Trajectory.Model.TrajectoryBatchImport": {
+      "NORCE.Drilling.Trajectory.Model.SurveyRunBatchImport": {
         "type": "object",
         "properties": {
           "MetaInfo": {
@@ -1466,14 +3429,14 @@
           "Rows": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryBatchImportRow"
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunBatchImportRow"
             },
             "nullable": true
           }
         },
         "additionalProperties": false
       },
-      "NORCE.Drilling.Trajectory.Model.TrajectoryBatchImportLight": {
+      "NORCE.Drilling.Trajectory.Model.SurveyRunBatchImportLight": {
         "type": "object",
         "properties": {
           "MetaInfo": {
@@ -1500,7 +3463,7 @@
         },
         "additionalProperties": false
       },
-      "NORCE.Drilling.Trajectory.Model.TrajectoryBatchImportRow": {
+      "NORCE.Drilling.Trajectory.Model.SurveyRunBatchImportRow": {
         "type": "object",
         "properties": {
           "RowId": {
@@ -1508,6 +3471,16 @@
             "format": "uuid"
           },
           "WellBoreId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "SurveyInstrumentId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ParentSurveyRunId": {
             "type": "string",
             "format": "uuid",
             "nullable": true
@@ -1523,6 +3496,684 @@
           "FileContentBase64": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyRunLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "FieldID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ClusterID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellBoreID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "SurveyInstrumentID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "SurveyRunType": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunType"
+          },
+          "CalculationType": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType"
+          },
+          "ParentSurveyRunID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ReferenceSurveyRunID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ComparisonSurveyRunIDList": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "ResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "IntervalResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "MaximumChordArcDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "AccountForBoreholeRadius": {
+            "type": "boolean"
+          },
+          "OctreeMaximumDepth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "OctreeMaximumSegmentCountPerLeaf": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "AdaptiveRefinementSettings": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.MinimumDistanceAdaptiveRefinementSettings"
+          },
+          "GlobalMinimumCenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumComparisonSurveyRunID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "GlobalMinimumComparisonMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumToolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumIsGravity": {
+            "type": "boolean"
+          },
+          "ReferenceIntervalList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.MinimumDistanceReferenceInterval"
+            },
+            "nullable": true
+          },
+          "ResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceResult"
+            },
+            "nullable": true
+          },
+          "IntervalResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceIntervalResult"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculationLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ReferenceSurveyRunID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ComparisonSurveyRunIDList": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "ResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "IntervalResultCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceIntervalResult": {
+        "type": "object",
+        "properties": {
+          "IntervalID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "IntervalName": {
+            "type": "string",
+            "nullable": true
+          },
+          "StartMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonSurveyRunID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "SampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "AverageCenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StandardDeviationCenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "AverageClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StandardDeviationClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceResult": {
+        "type": "object",
+        "properties": {
+          "ReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceTVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceBoreholeDiameter": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonSurveyRunID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ComparisonMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonTVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonBoreholeDiameter": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "CenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Toolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "IsGravity": {
+            "type": "boolean"
+          },
+          "IsAdaptiveRefinementSample": {
+            "type": "boolean"
+          },
+          "RefinementLevel": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceResultChunk": {
+        "type": "object",
+        "properties": {
+          "OwnerID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ChunkIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "StartReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyRunMinimumDistanceResult"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyRunType": {
+        "enum": [
+          "Actual",
+          "Planned"
+        ],
+        "type": "string"
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyStationChunk": {
+        "type": "object",
+        "properties": {
+          "OwnerID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "OwnerType": {
+            "type": "string",
+            "nullable": true
+          },
+          "ChunkIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "StationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "StartMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "SurveyStationList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyStationEllipse": {
+        "type": "object",
+        "properties": {
+          "SemiMajorAxis": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "SemiMinorAxis": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "OrientationAngle": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyStationEllipseCalculation": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ConfidenceFactor": {
+            "type": "number",
+            "format": "double"
+          },
+          "SurveyInstrumentID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "SurveyStationList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+            },
+            "nullable": true
+          },
+          "SurveyStationEllipseResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyStationEllipseResult"
+            },
+            "nullable": true
+          },
+          "HighestTvdSurveyPointList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint"
+            },
+            "nullable": true
+          },
+          "LowestTvdSurveyPointList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint"
+            },
+            "nullable": true
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.SurveyStationEllipseResult": {
+        "type": "object",
+        "properties": {
+          "MD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "HorizontalEllipse": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyStationEllipse"
+          },
+          "VerticalEllipse": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyStationEllipse"
+          },
+          "PerpendicularEllipse": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.SurveyStationEllipse"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.Trajectory": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "FieldID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ClusterID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellBoreID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "TrajectoryType": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryType"
+          },
+          "IsDefinitive": {
+            "type": "boolean"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "SurveyRunSectionList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectorySurveyRunSection"
+            },
+            "nullable": true
+          },
+          "SurveyStationList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+            },
+            "nullable": true
+          },
+          "TieInPoint": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+          },
+          "CalculationType": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType"
+          },
+          "MDStep": {
+            "type": "number",
+            "format": "double"
           }
         },
         "additionalProperties": false
@@ -1569,9 +4220,592 @@
           "WellBoreID": {
             "type": "string",
             "format": "uuid"
+          },
+          "TrajectoryType": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryType"
+          },
+          "IsDefinitive": {
+            "type": "boolean"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ComparisonTrajectoryIDList": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "ResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "IntervalResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "MaximumChordArcDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "AccountForBoreholeRadius": {
+            "type": "boolean"
+          },
+          "OctreeMaximumDepth": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "OctreeMaximumSegmentCountPerLeaf": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "AdaptiveRefinementSettings": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.MinimumDistanceAdaptiveRefinementSettings"
+          },
+          "GlobalMinimumCenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumComparisonTrajectoryID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "GlobalMinimumComparisonMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumToolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GlobalMinimumIsGravity": {
+            "type": "boolean"
+          },
+          "ReferenceIntervalList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.MinimumDistanceReferenceInterval"
+            },
+            "nullable": true
+          },
+          "ResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceResult"
+            },
+            "nullable": true
+          },
+          "IntervalResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceIntervalResult"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculationLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ComparisonTrajectoryIDList": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "ResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "IntervalResultCount": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceIntervalResult": {
+        "type": "object",
+        "properties": {
+          "IntervalID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "IntervalName": {
+            "type": "string",
+            "nullable": true
+          },
+          "StartMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonTrajectoryID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "SampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "AverageCenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StandardDeviationCenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "AverageClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StandardDeviationClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceResult": {
+        "type": "object",
+        "properties": {
+          "ReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceTVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceBoreholeDiameter": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonTrajectoryID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ComparisonMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonTVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ComparisonBoreholeDiameter": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "CenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ClearanceDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Toolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "IsGravity": {
+            "type": "boolean"
+          },
+          "IsAdaptiveRefinementSample": {
+            "type": "boolean"
+          },
+          "RefinementLevel": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceResultChunk": {
+        "type": "object",
+        "properties": {
+          "OwnerID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ChunkIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "StartReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.TrajectoryMinimumDistanceResult"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryRealizationCase": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "TrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "RealizationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CoarseningMaximumDistance": {
+            "type": "number",
+            "format": "double"
+          },
+          "RandomSeed": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "ReferenceStationCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "CoarsenedStationCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "RealizationList": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint"
+              }
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryRealizationCaseLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "TrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "RealizationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CoarseningMaximumDistance": {
+            "type": "number",
+            "format": "double"
+          },
+          "RandomSeed": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "ReferenceStationCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "CoarsenedStationCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/NORCE.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryRealizationChunk": {
+        "type": "object",
+        "properties": {
+          "OwnerID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ChunkIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "RealizationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyPointCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "StartMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "RealizationList": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint"
+              }
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectorySurveyRunSection": {
+        "type": "object",
+        "properties": {
+          "SurveyRunID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "StartAbscissa": {
+            "type": "number",
+            "format": "double"
+          }
+        },
+        "additionalProperties": false
+      },
+      "NORCE.Drilling.Trajectory.Model.TrajectoryType": {
+        "enum": [
+          "Actual",
+          "Planned"
+        ],
+        "type": "string"
       },
       "NORCE.Drilling.Trajectory.Model.UsageStatisticsTrajectory": {
         "type": "object",

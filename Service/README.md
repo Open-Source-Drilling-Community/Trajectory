@@ -4,6 +4,14 @@
 
 It exposes the Trajectory API and depends on the `Model` project for the domain model and computation logic.
 
+## Responsibilities
+
+- expose CRUD endpoints for trajectory data
+- expose trajectory interpolation cases
+- expose trajectory realization cases
+- persist data in SQLite
+- run trajectory realization calculations asynchronously so long-running cases do not block the request that creates or updates the case
+
 ## Container
 
 The service is packaged as the Docker image:
@@ -28,11 +36,21 @@ https://dev.digiwells.no/Trajectory/api/Trajectory
 
 https://app.digiwells.no/Trajectory/api/Trajectory
 
+Trajectory realization cases are exposed through:
+
+- `TrajectoryRealizationCase`
+- `TrajectoryRealizationCase/LightData`
+- `TrajectoryRealizationCase/{id}`
+- `TrajectoryRealizationCase/{id}/Realizations/ChunkCount`
+- `TrajectoryRealizationCase/{id}/Realizations/Chunks/{chunkIndex}`
+
+The light data endpoint is intended for grids and polling calculation status. Realized trajectories are stored separately in chunks, with 25 realizations per chunk by default, so clients can load large result sets progressively.
+
 ## Related Projects
 
 - `Model` contains the main model and trajectory calculation logic used by the service.
 - `ModelSharedOut` contains generated client-side types and service schemas for consumers.
-- `WebPages` contains the reusable Razor UI pages for Trajectory and TrajectoryInterpolation.
+- `WebPages` contains the reusable Razor UI pages for Trajectory, TrajectoryInterpolation, and TrajectoryRealization.
 - `WebApp` is the host application that renders the UI using `WebPages`.
 
 ## Source Code Origin

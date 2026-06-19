@@ -79,9 +79,16 @@
                 </ToolBarContent>
                 <Columns>
                     <SelectColumn T="TrajectoryLight" />
-                    <PropertyColumn Property="x => x.Name" Title="Trajectory" CellStyle="width: 30%;" Sortable="true" Editable="false" />
-                    <PropertyColumn Property="x => x.Description" Title="Description" CellStyle="width: 40%;" Sortable="true" Editable="false" />
+                    <PropertyColumn Property="x => x.Name" Title="Trajectory" CellStyle="width: 25%;" Sortable="true" Editable="false" />
+                    <PropertyColumn Property="x => x.Description" Title="Description" CellStyle="width: 35%;" Sortable="true" Editable="false" />
+                    <PropertyColumn Property="x => x.TrajectoryType" Title="Type" Sortable="true" Editable="false" />
+                    <PropertyColumn Property="x => x.IsDefinitive" Title="Definitive" Sortable="true" Editable="false" />
                     <PropertyColumn Property="x => GetWellBoreNameFromID(x.WellBoreID)" Title="WellBore" Sortable="true" />
+                    <TemplateColumn Title="Calculation" Sortable="true">
+                        <CellTemplate>
+                            @CalculationStatusContent(context.Item)
+                        </CellTemplate>
+                    </TemplateColumn>
                     <TemplateColumn CellClass="d-flex justify-end">
                         <CellTemplate>
                             <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteTrajectory(context.Item.MetaInfo.ID))" />
@@ -103,6 +110,7 @@
                         WellList="@wellList"
                         ClusterList="@clusterList"
                         FieldList="@fieldList"
+                        TrajectoryList="@allTrajectoryList"
                         ValueChanged="HandleEditPanelClosed" />
     }
 </MudUnitAndReferenceChoiceTag>
@@ -112,6 +120,7 @@
     private List<TrajectoryLight> allTrajectoryList = new();
     private List<TrajectoryLight> trajectoryList = new();
     private List<TrajectoryLight> selectedTrajectoryList = new();
+    private CancellationTokenSource? calculationPollingCancellation_;
     // Other variables
     private List<WellBore>? wellBoreList;
     private List<Well>? wellList;
@@ -323,6 +332,8 @@
                 }
                 loadingTaskList.Remove(finishedTask);
             }
+
+            StartCalculationPollingIfNeeded();
         }
         catch (Exception ex)
         {
@@ -562,6 +573,64 @@
         }
     }
 
+    private RenderFragment CalculationStatusContent(TrajectoryLight trajectory) => @<div style="min-width: 140px;">
+        @if (trajectory.CalculationState == CalculationState.Running || trajectory.CalculationState == CalculationState.Queued)
+        {
+            <MudText Typo="Typo.caption">@trajectory.CalculationState</MudText>
+            <MudProgressLinear Value="@(100.0 * trajectory.CalculationProgress)" Color="Color.Info" Size="Size.Small" />
+        }
+        else if (trajectory.CalculationState == CalculationState.Failed)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Error">@trajectory.CalculationState</MudText>
+        }
+        else
+        {
+            <MudText Typo="Typo.caption">@trajectory.CalculationState</MudText>
+        }
+    </div>;
+
+    private void StartCalculationPollingIfNeeded()
+    {
+        if (trajectoryList?.Any(IsCalculationActive) != true || calculationPollingCancellation_ != null)
+        {
+            return;
+        }
+
+        calculationPollingCancellation_ = new CancellationTokenSource();
+        _ = PollCalculationProgressAsync(calculationPollingCancellation_.Token);
+    }
+
+    private async Task PollCalculationProgressAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                allTrajectoryList = ((IEnumerable<TrajectoryLight>)await Api.ClientTrajectory.GetAllTrajectoryLightAsync()).OrderBy(item => item.Name).ToList();
+                trajectoryList = ApplyTrajectoryFilters();
+                _gridKey++;
+                await InvokeAsync(StateHasChanged);
+                if (!trajectoryList.Any(IsCalculationActive))
+                {
+                    break;
+                }
+            }
+        }
+        catch (TaskCanceledException)
+        {
+        }
+        finally
+        {
+            calculationPollingCancellation_?.Dispose();
+            calculationPollingCancellation_ = null;
+        }
+    }
+
+    private static bool IsCalculationActive(TrajectoryLight trajectory) =>
+        trajectory.CalculationState == CalculationState.Running ||
+        trajectory.CalculationState == CalculationState.Queued;
+
     private async Task DeleteSelectedTrajectory()
     {
         // Snapshot the list before async work so the selection can't shift mid-delete.
@@ -594,7 +663,7 @@
     {
         if (string.IsNullOrWhiteSpace(_searchString))
             return true;
-        if ($"{x.Name} {x.Description}".Contains(_searchString))
+        if ($"{x.Name} {x.Description} {x.TrajectoryType} {(x.IsDefinitive ? "Definitive" : string.Empty)}".Contains(_searchString, StringComparison.OrdinalIgnoreCase))
             return true;
         return false;
     };

@@ -7,5 +7,7 @@
         public static string? WellHostURL { get; set; }
         public static string? WellBoreHostURL { get; set; }
         public static string? WellBoreArchitectureHostURL { get; set; }
+        public static string? SurveyInstrumentHostURL { get; set; }
+
     }
 }

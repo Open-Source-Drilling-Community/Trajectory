@@ -10,6 +10,8 @@ public interface ITrajectoryWebPagesConfiguration :
     IWellBoreHostURL,
     IWellBoreArchitectureHostURL,
     ITrajectoryHostURL,
-    IUnitConversionHostURL
+    IUnitConversionHostURL,
+    ISurveyInstrumentHostURL
 {
+    string EarthMagneticFieldHostURL { get; }
 }

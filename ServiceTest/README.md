@@ -8,6 +8,8 @@ This project exercises the Trajectory service through its generated client and v
 
 These tests are integration-style tests rather than pure unit tests.
 
+Service-level tests should cover trajectory realization case CRUD operations, light-data polling, asynchronous calculation state changes, and chunked retrieval of realized trajectories.
+
 ## Dependencies
 
 `ServiceTest` depends on:

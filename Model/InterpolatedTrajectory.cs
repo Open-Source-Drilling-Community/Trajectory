@@ -124,6 +124,13 @@ namespace NORCE.Drilling.Trajectory.Model
                 .Select(point =>
                 {
                     SurveyStation station = new(point);
+                    if ((point.MD ?? point.Abscissa) is { } abscissa &&
+                        SurveyStation.InterpolateAtAbscissa(surveyList, abscissa, out SurveyStation? interpolatedStation, trajectory.CalculationType) &&
+                        interpolatedStation != null)
+                    {
+                        station = interpolatedStation;
+                    }
+                    station.VerticalSection ??= point.VerticalSection;
                     station.Annotation = point.Annotation;
                     return station;
                 })

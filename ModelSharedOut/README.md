@@ -8,6 +8,8 @@ This project stores OpenAPI schemas and generates C# classes that are used by do
 
 It includes the Trajectory service schema together with other related schemas needed by clients and reusable UI components.
 
+The generated output includes client types and methods for trajectory realization cases, including light data, full case data, and chunked realization retrieval.
+
 ## Dependencies
 
 `ModelSharedOut` depends on:
@@ -20,6 +22,7 @@ It includes the Trajectory service schema together with other related schemas ne
 
 - `WebPages` depends on `ModelSharedOut`.
 - client-facing generated types and schemas are produced here for use outside the core service implementation.
+- trajectory realization UI pages use the generated chunk endpoints to avoid loading large realization sets through the light case lists.
 
 ## Notes
 

@@ -1,0 +1,271 @@
+@page "/TrajectoryRealization"
+@inject ILogger<TrajectoryRealizationMain> logger
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject ITrajectoryAPIUtils Api
+
+<MudUnitAndReferenceChoiceTag HttpHost=@Api.HostNameUnitConversion
+                              HttpBasePath=@Api.HostBasePathUnitConversion
+                              HttpController="UnitSystem/"
+                              UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
+                              UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName"
+                              DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
+                              DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
+                              GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                              SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
+                              RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
+                              PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
+                              PositionReferenceNameChanged="@DataUtils.UpdatePositionReferenceName"
+                              WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
+                              CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
+                              LeaseLinePositionReferenceSource="@DataUtils.LeaseLinePositionReferenceSource"
+                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource">
+    @if (caseList == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <div hidden="@isHiddenMainPanel">
+            <MudDataGrid T="TrajectoryRealizationCaseLight" @key="gridKey"
+                         MultiSelection="true" Items="@caseList" SelectedItemsChanged="@SelectedItemsChanged"
+                         Hover="true" RowClick="@RowClicked"
+                         SortMode="SortMode.Multiple" QuickFilter="@filter" Filterable="false"
+                         ReadOnly="true" ColumnResizeMode="ResizeMode.Column" Elevation="0">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Trajectory Realizations</MudText>
+                    <MudButton OnClick="@AddCase" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
+                    <MudButton OnClick="@DeleteSelectedCases" Color="@Color.Error" Class="add-item-btn"
+                               Disabled="@(selectedCaseList.Count == 0)">Delete</MudButton>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                                  AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" />
+                </ToolBarContent>
+                <Columns>
+                    <SelectColumn T="TrajectoryRealizationCaseLight" />
+                    <PropertyColumn Property="x => x.Name" Title="Case" CellStyle="width: 22%;" Sortable="true" />
+                    <PropertyColumn Property="x => x.Description" Title="Description" CellStyle="width: 24%;" Sortable="true" />
+                    <PropertyColumn Property="x => GetTrajectoryNameFromId(x.TrajectoryID)" Title="Trajectory" Sortable="true" />
+                    <PropertyColumn Property="x => x.RealizationCount" Title="Realizations" Sortable="true" />
+                    <PropertyColumn Property="x => x.ReferenceStationCount" Title="Reference Stations" Sortable="true" />
+                    <PropertyColumn Property="x => x.CoarsenedStationCount" Title="Coarsened Stations" Sortable="true" />
+                    <TemplateColumn Title="Calculation" Sortable="true">
+                        <CellTemplate>
+                            @CalculationStatusContent(context.Item)
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn CellClass="d-flex justify-end">
+                        <CellTemplate>
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete"
+                                           OnClick="(() => DeleteCase(context.Item.MetaInfo.ID))" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="TrajectoryRealizationCaseLight" />
+                </PagerContent>
+            </MudDataGrid>
+        </div>
+    }
+    @if (isHiddenMainPanel && !isHiddenEditPanel)
+    {
+        <TrajectoryRealizationEdit CaseId="@caseIdBeingEdited"
+                                   RigList="@rigList"
+                                   WellBoreList="@wellBoreList"
+                                   WellList="@wellList"
+                                   ClusterList="@clusterList"
+                                   FieldList="@fieldList"
+                                   TrajectoryList="@trajectoryList"
+                                   ValueChanged="HandleEditPanelClosed" />
+    }
+</MudUnitAndReferenceChoiceTag>
+
+@code {
+    private List<TrajectoryRealizationCaseLight> caseList = new();
+    private List<TrajectoryRealizationCaseLight> selectedCaseList = new();
+    private List<TrajectoryLight>? trajectoryList;
+    private List<WellBore>? wellBoreList;
+    private List<Well>? wellList;
+    private List<Cluster>? clusterList;
+    private List<Field>? fieldList;
+    private List<Rig>? rigList;
+    private bool isHiddenMainPanel;
+    private bool isHiddenEditPanel = true;
+    private Guid? caseIdBeingEdited;
+    private string? searchString;
+    private int gridKey;
+    private CancellationTokenSource? pollingCancellation;
+
+    protected override async Task OnInitializedAsync() => await LoadDataAsync();
+
+    private async Task LoadDataAsync()
+    {
+        try
+        {
+            isHiddenMainPanel = false;
+            isHiddenEditPanel = true;
+            caseIdBeingEdited = null;
+            selectedCaseList = [];
+
+            var caseTask = Api.ClientTrajectory.GetAllTrajectoryRealizationCaseLightAsync();
+            var trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
+            var wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
+            var wellTask = Api.ClientWell.GetAllWellAsync();
+            var clusterTask = Api.ClientCluster.GetAllClusterAsync();
+            var fieldTask = Api.ClientField.GetAllFieldAsync();
+            var rigTask = Api.ClientRig.GetAllRigAsync();
+
+            await Task.WhenAll(caseTask, trajectoryTask, wellBoreTask, wellTask, clusterTask, fieldTask, rigTask);
+
+            caseList = ((ICollection<TrajectoryRealizationCaseLight>)await caseTask).OrderBy(x => x.Name).ToList();
+            trajectoryList = ((ICollection<TrajectoryLight>)await trajectoryTask).OrderBy(x => x.Name).ToList();
+            wellBoreList = ((ICollection<WellBore>)await wellBoreTask).OrderBy(x => x.Name).ToList();
+            wellList = ((ICollection<Well>)await wellTask).OrderBy(x => x.Name).ToList();
+            clusterList = ((ICollection<Cluster>)await clusterTask).OrderBy(x => x.Name).ToList();
+            fieldList = ((ICollection<Field>)await fieldTask).OrderBy(x => x.Name).ToList();
+            rigList = ((ICollection<Rig>)await rigTask).OrderBy(x => x.Name).ToList();
+            StartPollingIfNeeded();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem Trajectory Realization initialization");
+            Snackbar.Add("Failed to load trajectory realizations.", Severity.Error);
+        }
+
+        gridKey++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private RenderFragment CalculationStatusContent(TrajectoryRealizationCaseLight item) => @<div style="min-width: 140px;">
+        @if (IsCalculationActive(item))
+        {
+            <MudText Typo="Typo.caption">@item.CalculationState</MudText>
+            <MudProgressLinear Value="@(100.0 * item.CalculationProgress)" Color="Color.Info" Size="Size.Small" />
+        }
+        else if (item.CalculationState == CalculationState.Failed)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Error">@item.CalculationState</MudText>
+        }
+        else
+        {
+            <MudText Typo="Typo.caption">@item.CalculationState</MudText>
+        }
+    </div>;
+
+    private void StartPollingIfNeeded()
+    {
+        if (caseList?.Any(IsCalculationActive) != true || pollingCancellation != null)
+        {
+            return;
+        }
+
+        pollingCancellation = new CancellationTokenSource();
+        _ = PollProgressAsync(pollingCancellation.Token);
+    }
+
+    private async Task PollProgressAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                caseList = ((ICollection<TrajectoryRealizationCaseLight>)await Api.ClientTrajectory.GetAllTrajectoryRealizationCaseLightAsync()).OrderBy(x => x.Name).ToList();
+                gridKey++;
+                await InvokeAsync(StateHasChanged);
+                if (!caseList.Any(IsCalculationActive))
+                {
+                    break;
+                }
+            }
+        }
+        catch (TaskCanceledException)
+        {
+        }
+        finally
+        {
+            pollingCancellation?.Dispose();
+            pollingCancellation = null;
+        }
+    }
+
+    private static bool IsCalculationActive(TrajectoryRealizationCaseLight item) =>
+        item.CalculationState == CalculationState.Running ||
+        item.CalculationState == CalculationState.Queued;
+
+    private async Task AddCase()
+    {
+        isHiddenMainPanel = true;
+        isHiddenEditPanel = false;
+        caseIdBeingEdited = null;
+        await Task.Delay(1);
+    }
+
+    private async Task EditCase(Guid id)
+    {
+        isHiddenMainPanel = true;
+        isHiddenEditPanel = false;
+        caseIdBeingEdited = id;
+        await Task.Delay(1);
+    }
+
+    private async Task HandleEditPanelClosed() => await LoadDataAsync();
+
+    private Func<TrajectoryRealizationCaseLight, bool> filter => x =>
+        string.IsNullOrWhiteSpace(searchString) ||
+        $"{x.Name} {x.Description} {GetTrajectoryNameFromId(x.TrajectoryID)}".Contains(searchString, StringComparison.OrdinalIgnoreCase);
+
+    private void SelectedItemsChanged(HashSet<TrajectoryRealizationCaseLight> items) => selectedCaseList = items.ToList();
+    private async Task RowClicked(DataGridRowClickEventArgs<TrajectoryRealizationCaseLight> args) => await EditCase(args.Item.MetaInfo.ID);
+    private string GetTrajectoryNameFromId(Guid id) => trajectoryList?.FirstOrDefault(t => t?.MetaInfo?.ID == id)?.Name ?? "NA";
+
+    private async Task<bool> ConfirmDeletion()
+    {
+        IDialogReference dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+        DialogResult? result = await dialog.Result;
+        return result != null && !result.Canceled;
+    }
+
+    private async Task DeleteCase(Guid id)
+    {
+        try
+        {
+            if (await ConfirmDeletion())
+            {
+                await Api.ClientTrajectory.DeleteTrajectoryRealizationCaseByIdAsync(id);
+                await LoadDataAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Impossible to delete TrajectoryRealizationCase");
+            Snackbar.Add("Failed to delete trajectory realization case.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteSelectedCases()
+    {
+        List<TrajectoryRealizationCaseLight> toDelete = selectedCaseList.ToList();
+        if (toDelete.Count == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            if (await ConfirmDeletion())
+            {
+                foreach (TrajectoryRealizationCaseLight item in toDelete)
+                {
+                    await Api.ClientTrajectory.DeleteTrajectoryRealizationCaseByIdAsync(item.MetaInfo.ID);
+                }
+                await LoadDataAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Impossible to delete selected TrajectoryRealizationCase records");
+            Snackbar.Add("Failed to delete one or more trajectory realization cases.", Severity.Error);
+        }
+    }
+}

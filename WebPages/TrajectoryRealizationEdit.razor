@@ -1,0 +1,771 @@
+@inject ILogger<TrajectoryRealizationEdit> logger
+@inject ISnackbar Snackbar
+@inject ITrajectoryAPIUtils Api
+@inject IJSRuntime JSRuntime
+@using System.Globalization
+@using System.Text
+
+<MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Trajectory Realization Case</MudText>
+<MudContainer Class="d-flex flex-row mt-4 mb-4">
+    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveCase">Save</MudButton>
+    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="SendMessage">Cancel</MudButton>
+</MudContainer>
+
+@if (currentCase is { } item)
+{
+    <MudGrid>
+        <MudItem xs="3"><MudTextField @bind-Value="item.Name" Label="Name" Required="true" ShrinkLabel /></MudItem>
+        <MudItem xs="3"><MudTextField @bind-Value="item.Description" Label="Description" ShrinkLabel /></MudItem>
+        <MudItem xs="3"><MudTextField Value="@FormatDate(item.CreationDate)" Label="Created" ReadOnly="true" ShrinkLabel /></MudItem>
+        <MudItem xs="3"><MudTextField Value="@FormatDate(item.LastModificationDate)" Label="Last Updated" ReadOnly="true" ShrinkLabel /></MudItem>
+        <MudItem xs="2">
+            <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId" ValueChanged="OnFieldChanged" ShrinkLabel Clearable="true">
+                @foreach (Field field in AvailableFields)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="2">
+            <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId" ValueChanged="OnClusterChanged" ShrinkLabel Clearable="true">
+                @foreach (Cluster cluster in AvailableClusters)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="2">
+            <MudSelect Label="Well" T="Guid?" Value="@selectedWellId" ValueChanged="OnWellChanged" ShrinkLabel Clearable="true">
+                @foreach (Well well in AvailableWells)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="3">
+            <MudSelect Label="WellBore" T="Guid?" Value="@selectedWellBoreId" ValueChanged="OnWellBoreChanged" ShrinkLabel Clearable="true">
+                @foreach (WellBore wb in AvailableWellBores)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)wb.MetaInfo.ID)">@wb.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="3">
+            <MudSelect Label="Trajectory" T="Guid?" Value="@selectedTrajectoryId" ValueChanged="OnTrajectoryChanged" ShrinkLabel Clearable="true">
+                @foreach (TrajectoryLight trajectory in AvailableTrajectories)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)trajectory.MetaInfo.ID)">@trajectory.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="3"><MudTextField Value="@AssociatedRigName" Label="Rig" ReadOnly="true" ShrinkLabel /></MudItem>
+    </MudGrid>
+
+    <MudPaper Class="pa-4 mt-4 mb-4" Outlined="true">
+        <MudGrid>
+            <MudItem xs="12" md="3">
+                <MudNumericField T="int" @bind-Value="item.RealizationCount" Label="Realizations"
+                                 Min="1" Max="1000" Step="1" Required="true" ShrinkLabel />
+            </MudItem>
+            <MudItem xs="12" md="3" Class="d-flex align-center">
+                <MudSwitch T="bool" @bind-Value="advancedMode" Color="Color.Primary" Label="Advanced" />
+            </MudItem>
+            @if (advancedMode)
+            {
+                <MudItem xs="12" md="3">
+                    <MudInputWithUnit QuantityLabel="Maximum Coarsening Distance" QuantityName="PositionDrilling"
+                                      SIValueNullable="@CoarseningMaximumDistanceValue"
+                                      SIValueNullableChanged="OnCoarseningMaximumDistanceChanged" />
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudNumericField T="int?" @bind-Value="item.RandomSeed" Label="Random Seed" ShrinkLabel Clearable="true" />
+                </MudItem>
+            }
+        </MudGrid>
+    </MudPaper>
+
+    <MudPaper Class="pa-4 mt-4 mb-4" Outlined="true">
+        <MudGrid>
+            <MudItem xs="12" md="3"><MudTextField Value="@item.CalculationState.ToString()" Label="State" ReadOnly="true" ShrinkLabel /></MudItem>
+            <MudItem xs="12" md="3"><MudTextField Value="@item.ReferenceStationCount?.ToString()" Label="Reference Stations" ReadOnly="true" ShrinkLabel /></MudItem>
+            <MudItem xs="12" md="3"><MudTextField Value="@item.CoarsenedStationCount?.ToString()" Label="Coarsened Stations" ReadOnly="true" ShrinkLabel /></MudItem>
+            <MudItem xs="12" md="3">
+                <MudText Typo="Typo.caption">Progress</MudText>
+                <MudProgressLinear Value="@(100.0 * item.CalculationProgress)" Color="Color.Info" />
+            </MudItem>
+            @if (!string.IsNullOrWhiteSpace(item.CalculationMessage))
+            {
+                <MudItem xs="12"><MudText Color="Color.Warning">@item.CalculationMessage</MudText></MudItem>
+            }
+        </MudGrid>
+    </MudPaper>
+
+    <MudExpansionPanels Class="mt-4" Style="overflow-y: auto; max-height: none;">
+        <MudExpansionPanel Text="Realized trajectories" ExpandedChanged="OnRealizationsPanelExpandedChanged">
+            <MudPaper Class="pa-4 mb-4" Outlined="true">
+                <MudGrid>
+                    <MudItem xs="12" md="3">
+                        <MudTextField @bind-Value="exportFileName" Label="File Name" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="string" @bind-Value="exportSeparatorKey" Label="Column Separator" ShrinkLabel>
+                            <MudSelectItem T="string" Value="@("Tab")">Tab</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Comma")">Comma</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Semicolon")">Semicolon</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Space")">Space</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("Pipe")">Pipe</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="string" @bind-Value="exportArrangement" Label="Arrangement" ShrinkLabel>
+                            <MudSelectItem T="string" Value="@("Sequential")">One After Another</MudSelectItem>
+                            <MudSelectItem T="string" Value="@("SideBySide")">Side By Side</MudSelectItem>
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="3" Class="d-flex align-center">
+                        <MudButton OnClick="ExportRealizationsAsync" Color="Color.Primary" Variant="Variant.Outlined" Disabled="@(!CanUseRealizations || isLoadingRealizations)">Export</MudButton>
+                    </MudItem>
+                    <MudItem xs="12">
+                        <MudSwitch T="bool" @bind-Value="showExportUnitReferences" Color="Color.Primary" Label="Export Units and References" />
+                    </MudItem>
+                    @if (showExportUnitReferences)
+                    {
+                        <MudItem xs="12">
+                            <MudUnitAndReferenceChoiceTag @ref="exportUnitReferenceTag"
+                                                          HttpHost=@Api.HostNameUnitConversion
+                                                          HttpBasePath=@Api.HostBasePathUnitConversion
+                                                          HttpController="UnitSystem/"
+                                                          UnitSystemName="@exportUnitSystemName"
+                                                          UnitSystemNameChanged="OnExportUnitSystemNameChanged"
+                                                          DepthReferenceName="@exportDepthReferenceName"
+                                                          DepthReferenceNameChanged="OnExportDepthReferenceNameChanged"
+                                                          GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                                                          SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
+                                                          RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
+                                                          PositionReferenceName="@exportPositionReferenceName"
+                                                          PositionReferenceNameChanged="OnExportPositionReferenceNameChanged"
+                                                          WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
+                                                          CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
+                                                          LeaseLinePositionReferenceSource="@DataUtils.LeaseLinePositionReferenceSource"
+                                                          ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource"
+                                                          AzimuthReferenceName="@exportAzimuthReferenceName"
+                                                          AzimuthReferenceNameChanged="OnExportAzimuthReferenceNameChanged" />
+                        </MudItem>
+                    }
+                    <MudItem xs="12" md="3">
+                        <MudNumericField T="int" Value="@maxDisplayedRealizations" ValueChanged="OnMaxDisplayedRealizationsChanged"
+                                         Label="Displayed Realizations" Min="1" Max="@DisplayRealizationMaximum" Step="1" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="3"><MudTextField Value="@LoadedRealizationCountText" Label="Loaded Realizations" ReadOnly="true" ShrinkLabel /></MudItem>
+                </MudGrid>
+            </MudPaper>
+
+            @if (isLoadingRealizations)
+            {
+                <MudPaper Class="pa-4" Outlined="true">
+                    <MudText Typo="Typo.body2">@realizationLoadingText</MudText>
+                    <MudProgressLinear Value="@realizationLoadingProgressPercent" Color="Color.Info" Class="mt-2" />
+                </MudPaper>
+            }
+            else if (CanUseRealizations)
+            {
+                <MudGrid Justify="Justify.Center">
+                    <MudItem xs="12">
+                        <Scatter3DPlot NameList="@plotNameList" ModeFlagList="@plotModeFlagList" ColorList="@plotColorList"
+                                       ShowLegendList="@plotShowLegendList"
+                                       XValuesList="@plotNorthValuesList" YValuesList="@plotEastValuesList" ZValuesList="@plotTvdValuesList"
+                                       YAxisReversed="@true" ZAxisReversed="@true"
+                                       PlotTitle="" XAxisTitle="@NorthCoordinateLabel" YAxisTitle="@EastCoordinateLabel" ZAxisTitle="TVD"
+                                       XUnit="PositionDrilling" YUnit="PositionDrilling" ZUnit="DepthDrilling"
+                                       XAxisUsesPositionReference="@true"
+                                       YAxisUsesPositionReference="@true"
+                                       ZAxisUsesDepthReference="@true"
+                                       XAxisPositionDirection="@PositionDirectionType.North"
+                                       YAxisPositionDirection="@PositionDirectionType.East">
+                        </Scatter3DPlot>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <ScatterPlot NameList="@plotNameList" ModeFlagList="@plotModeFlagList" ColorList="@plotColorList"
+                                     ShowLegendList="@plotShowLegendList"
+                                     XValuesList="@plotEastValuesList" YValuesList="@plotNorthValuesList"
+                                     PlotTitle="" XAxisTitle="@EastCoordinateLabel" YAxisTitle="@NorthCoordinateLabel"
+                                     XUnit="PositionDrilling" YUnit="PositionDrilling"
+                                     XAxisUsesPositionReference="@true"
+                                     YAxisUsesPositionReference="@true"
+                                     XAxisPositionDirection="@PositionDirectionType.East"
+                                     YAxisPositionDirection="@PositionDirectionType.North"
+                                     AspectRatio="1">
+                        </ScatterPlot>
+                    </MudItem>
+                    <MudItem xs="12" md="6">
+                        <ScatterPlot NameList="@plotNameList" ModeFlagList="@plotModeFlagList" ColorList="@plotColorList"
+                                     ShowLegendList="@plotShowLegendList"
+                                     XValuesList="@plotVerticalSectionValuesList" YValuesList="@plotTvdValuesList"
+                                     PlotTitle="" XAxisTitle="Vertical Section" YAxisTitle="TVD"
+                                     XUnit="DepthDrilling" YUnit="DepthDrilling"
+                                     YAxisReversed="@true"
+                                     YAxisUsesDepthReference="@true"
+                                     XAxisStartsAtZero="@true">
+                        </ScatterPlot>
+                    </MudItem>
+                </MudGrid>
+            }
+            else
+            {
+                <MudText>No realized trajectories</MudText>
+            }
+        </MudExpansionPanel>
+    </MudExpansionPanels>
+}
+
+@code {
+    [CascadingParameter] private MudUnitAndReferenceChoiceTag? Parent { get; set; }
+    [Parameter] public Guid? CaseId { get; set; }
+    [Parameter] public List<Rig>? RigList { get; set; }
+    [Parameter] public List<WellBore>? WellBoreList { get; set; }
+    [Parameter] public List<Well>? WellList { get; set; }
+    [Parameter] public List<Cluster>? ClusterList { get; set; }
+    [Parameter] public List<Field>? FieldList { get; set; }
+    [Parameter] public List<TrajectoryLight>? TrajectoryList { get; set; }
+    [Parameter] public EventCallback ValueChanged { get; set; }
+
+    private TrajectoryRealizationCase currentCase = CreateCase();
+    private Guid? selectedFieldId;
+    private Guid? selectedClusterId;
+    private Guid? selectedWellId;
+    private Guid? selectedWellBoreId;
+    private Guid? selectedTrajectoryId;
+    private bool advancedMode;
+    private List<List<SurveyPoint>> realizedTrajectories = [];
+    private bool isLoadingRealizations;
+    private bool realizationsLoaded;
+    private int realizationChunkCount;
+    private int realizationChunksLoaded;
+    private int maxDisplayedRealizations = 50;
+    private string realizationLoadingText = string.Empty;
+    private string exportFileName = "trajectory-realizations.tsv";
+    private string exportSeparatorKey = "Tab";
+    private string exportArrangement = "Sequential";
+    private bool showExportUnitReferences;
+    private bool exportReferenceDefaultsInitialized;
+    private MudUnitAndReferenceChoiceTag? exportUnitReferenceTag;
+    private string? exportUnitSystemName = DataUtils.UnitAndReferenceParameters.UnitSystemName;
+    private string? exportDepthReferenceName = DataUtils.UnitAndReferenceParameters.DepthReferenceName;
+    private string? exportPositionReferenceName = DataUtils.UnitAndReferenceParameters.PositionReferenceName;
+    private string? exportAzimuthReferenceName = DataUtils.UnitAndReferenceParameters.AzimuthReferenceName ?? "True North";
+    private readonly List<string> plotNameList = [];
+    private readonly List<int> plotModeFlagList = [];
+    private readonly List<string> plotColorList = [];
+    private readonly List<bool> plotShowLegendList = [];
+    private readonly List<List<object>> plotNorthValuesList = [];
+    private readonly List<List<object>> plotEastValuesList = [];
+    private readonly List<List<object>> plotTvdValuesList = [];
+    private readonly List<List<object>> plotVerticalSectionValuesList = [];
+
+    private double? CoarseningMaximumDistanceValue => currentCase.CoarseningMaximumDistance;
+    private bool CanUseRealizations => realizedTrajectories.Count > 0;
+    private int DisplayRealizationMaximum => Math.Max(1, realizedTrajectories.Count > 0 ? realizedTrajectories.Count : currentCase.RealizationCount);
+    private double realizationLoadingProgressPercent => realizationChunkCount <= 0 ? 0.0 : 100.0 * realizationChunksLoaded / realizationChunkCount;
+    private string LoadedRealizationCountText => realizedTrajectories.Count == 0 ? "0" : $"{realizedTrajectories.Count} of {currentCase.RealizationCount}";
+    private MudUnitAndReferenceChoiceTag? ExportUnitReference => exportUnitReferenceTag ?? Parent;
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            if (CaseId is Guid id && id != Guid.Empty)
+            {
+                currentCase = await Api.ClientTrajectory.GetTrajectoryRealizationCaseByIdAsync(id, false);
+                SyncSelectorsFromTrajectory(currentCase.TrajectoryID);
+            }
+            else
+            {
+                currentCase = CreateCase();
+            }
+
+            exportFileName = $"{SanitizeFileName(string.IsNullOrWhiteSpace(currentCase.Name) ? "trajectory-realizations" : currentCase.Name)}.tsv";
+            UpdateReferenceSources();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem while loading TrajectoryRealizationCase");
+            Snackbar.Add("Failed to load trajectory realization case.", Severity.Error);
+        }
+    }
+
+    protected override void OnParametersSet()
+    {
+        if (!exportReferenceDefaultsInitialized)
+        {
+            exportUnitSystemName = Parent?.UnitSystemName ?? DataUtils.UnitAndReferenceParameters.UnitSystemName;
+            exportDepthReferenceName = Parent?.DepthReferenceName ?? DataUtils.UnitAndReferenceParameters.DepthReferenceName;
+            exportPositionReferenceName = Parent?.PositionReferenceName ?? DataUtils.UnitAndReferenceParameters.PositionReferenceName;
+            exportAzimuthReferenceName = Parent?.AzimuthReferenceName ?? DataUtils.UnitAndReferenceParameters.AzimuthReferenceName ?? "True North";
+            exportReferenceDefaultsInitialized = true;
+        }
+    }
+
+    private static TrajectoryRealizationCase CreateCase()
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        return new TrajectoryRealizationCase
+        {
+            MetaInfo = PseudoConstructors.ConstructMetaInfo(),
+            Name = "Trajectory realization case",
+            Description = string.Empty,
+            CreationDate = now,
+            LastModificationDate = now,
+            RealizationCount = 100,
+            CoarseningMaximumDistance = 0.1,
+            CalculationState = CalculationState.Completed,
+            CalculationProgress = 1.0
+        };
+    }
+
+    private async Task SaveCase()
+    {
+        if (currentCase.MetaInfo == null || currentCase.MetaInfo.ID == Guid.Empty)
+        {
+            currentCase.MetaInfo = PseudoConstructors.ConstructMetaInfo();
+        }
+
+        if (selectedTrajectoryId is not Guid trajectoryId || trajectoryId == Guid.Empty)
+        {
+            Snackbar.Add("Select a trajectory before saving.", Severity.Warning);
+            return;
+        }
+
+        if (currentCase.RealizationCount < 1 || currentCase.RealizationCount > 1000)
+        {
+            Snackbar.Add("The number of realizations must be between 1 and 1000.", Severity.Warning);
+            return;
+        }
+
+        currentCase.TrajectoryID = trajectoryId;
+        currentCase.LastModificationDate = DateTimeOffset.UtcNow;
+        currentCase.CoarseningMaximumDistance = Math.Max(0.0, currentCase.CoarseningMaximumDistance);
+
+        try
+        {
+            if (CaseId is Guid id && id != Guid.Empty)
+            {
+                await Api.ClientTrajectory.PutTrajectoryRealizationCaseByIdAsync(id, currentCase);
+            }
+            else
+            {
+                await Api.ClientTrajectory.PostTrajectoryRealizationCaseAsync(currentCase);
+            }
+
+            Snackbar.Add("Trajectory realization case saved.", Severity.Success);
+            await SendMessage();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem while saving TrajectoryRealizationCase");
+            Snackbar.Add("Failed to save trajectory realization case: " + ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task SendMessage() => await ValueChanged.InvokeAsync();
+
+    private async Task OnRealizationsPanelExpandedChanged(bool expanded)
+    {
+        if (expanded)
+        {
+            await EnsureRealizationsLoadedAsync();
+        }
+    }
+
+    private async Task EnsureRealizationsLoadedAsync()
+    {
+        if (realizationsLoaded || currentCase.MetaInfo?.ID is not Guid caseId || caseId == Guid.Empty)
+        {
+            return;
+        }
+
+        try
+        {
+            isLoadingRealizations = true;
+            realizationLoadingText = "Loading realized trajectories";
+            realizationChunkCount = await Api.ClientTrajectory.GetTrajectoryRealizationChunkCountAsync(caseId);
+            realizationChunksLoaded = 0;
+            realizedTrajectories = [];
+
+            for (int chunkIndex = 0; chunkIndex < realizationChunkCount; chunkIndex++)
+            {
+                TrajectoryRealizationChunk chunk = await Api.ClientTrajectory.GetTrajectoryRealizationChunkAsync(caseId, chunkIndex);
+                if (chunk.RealizationList is { Count: > 0 } chunkRealizations)
+                {
+                    realizedTrajectories.AddRange(chunkRealizations.Select(realization => realization?.ToList() ?? []));
+                }
+                realizationChunksLoaded++;
+                realizationLoadingText = $"Loaded realization chunk {realizationChunksLoaded} of {realizationChunkCount}";
+                await InvokeAsync(StateHasChanged);
+            }
+
+            realizationsLoaded = true;
+            maxDisplayedRealizations = Math.Clamp(maxDisplayedRealizations, 1, DisplayRealizationMaximum);
+            UpdateRealizationPlots();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem while loading trajectory realizations");
+            Snackbar.Add("Failed to load realized trajectories: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            isLoadingRealizations = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task OnMaxDisplayedRealizationsChanged(int value)
+    {
+        maxDisplayedRealizations = Math.Clamp(value, 1, DisplayRealizationMaximum);
+        UpdateRealizationPlots();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void UpdateRealizationPlots()
+    {
+        plotNameList.Clear();
+        plotModeFlagList.Clear();
+        plotColorList.Clear();
+        plotShowLegendList.Clear();
+        plotNorthValuesList.Clear();
+        plotEastValuesList.Clear();
+        plotTvdValuesList.Clear();
+        plotVerticalSectionValuesList.Clear();
+
+        int displayCount = Math.Min(maxDisplayedRealizations, realizedTrajectories.Count);
+        for (int realizationIndex = 0; realizationIndex < displayCount; realizationIndex++)
+        {
+            List<SurveyPoint> realization = realizedTrajectories[realizationIndex];
+            List<object> northValues = [];
+            List<object> eastValues = [];
+            List<object> tvdValues = [];
+            List<object> verticalSectionValues = [];
+
+            foreach (SurveyPoint point in realization)
+            {
+                if (GetNorth(point) is not double north ||
+                    GetEast(point) is not double east ||
+                    GetTvd(point) is not double tvd)
+                {
+                    continue;
+                }
+
+                northValues.Add(north);
+                eastValues.Add(east);
+                tvdValues.Add(tvd);
+                verticalSectionValues.Add(point.VerticalSection ?? point.MD ?? point.Abscissa ?? double.NaN);
+            }
+
+            if (northValues.Count == 0)
+            {
+                continue;
+            }
+
+            plotNameList.Add($"Realization {realizationIndex + 1}");
+            plotModeFlagList.Add(1);
+            plotColorList.Add("#1f77b4");
+            plotShowLegendList.Add(realizationIndex == 0);
+            plotNorthValuesList.Add(northValues);
+            plotEastValuesList.Add(eastValues);
+            plotTvdValuesList.Add(tvdValues);
+            plotVerticalSectionValuesList.Add(verticalSectionValues);
+        }
+    }
+
+    private async Task ExportRealizationsAsync()
+    {
+        await EnsureRealizationsLoadedAsync();
+        if (realizedTrajectories.Count == 0)
+        {
+            Snackbar.Add("No realized trajectories to export.", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            string separator = ResolveSeparator(exportSeparatorKey);
+            string content = exportArrangement == "SideBySide"
+                ? BuildSideBySideExport(separator)
+                : BuildSequentialExport(separator);
+
+            string fileName = SanitizeFileName(string.IsNullOrWhiteSpace(exportFileName) ? "trajectory-realizations.tsv" : exportFileName);
+            string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(content));
+            bool saved = await JSRuntime.InvokeAsync<bool>("trajectoryDownloads.saveTextFileFromBase64", fileName, base64Content, "text/plain;charset=utf-8");
+            if (saved)
+            {
+                Snackbar.Add("Exported realized trajectories.", Severity.Success);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem while exporting trajectory realizations");
+            Snackbar.Add("Failed to export realized trajectories: " + ex.Message, Severity.Error);
+        }
+    }
+
+    private string BuildSequentialExport(string separator)
+    {
+        StringBuilder builder = new();
+        builder.AppendLine(BuildTrajectoryHeader(separator));
+
+        for (int realizationIndex = 0; realizationIndex < realizedTrajectories.Count; realizationIndex++)
+        {
+            builder.AppendLine(BuildRealizationSeparatorLine(realizationIndex, separator));
+            foreach (SurveyPoint point in realizedTrajectories[realizationIndex])
+            {
+                builder.AppendLine(BuildSurveyPointExportLine(point, separator));
+            }
+        }
+
+        return builder.ToString();
+    }
+
+    private string BuildSideBySideExport(string separator)
+    {
+        StringBuilder builder = new();
+        List<string> realizationHeader = [];
+        List<string> columnHeader = [];
+        for (int realizationIndex = 0; realizationIndex < realizedTrajectories.Count; realizationIndex++)
+        {
+            realizationHeader.Add($"Realization {realizationIndex + 1}");
+            realizationHeader.AddRange(Enumerable.Repeat(string.Empty, ExportColumnCount - 1));
+            columnHeader.AddRange(GetTrajectoryHeaders());
+        }
+        builder.AppendLine(string.Join(separator, realizationHeader.Select(SanitizeExportField)));
+        builder.AppendLine(string.Join(separator, columnHeader.Select(SanitizeExportField)));
+
+        int maxPointCount = realizedTrajectories.Max(realization => realization.Count);
+        for (int pointIndex = 0; pointIndex < maxPointCount; pointIndex++)
+        {
+            List<string> row = [];
+            foreach (List<SurveyPoint> realization in realizedTrajectories)
+            {
+                if (pointIndex >= realization.Count)
+                {
+                    row.AddRange(Enumerable.Repeat(string.Empty, 10));
+                    continue;
+                }
+
+                SurveyPoint point = realization[pointIndex];
+                row.AddRange(GetSurveyPointExportValues(point));
+            }
+            builder.AppendLine(string.Join(separator, row.Select(SanitizeExportField)));
+        }
+
+        return builder.ToString();
+    }
+
+    private const int ExportColumnCount = 10;
+
+    private string BuildTrajectoryHeader(string separator) => string.Join(separator, GetTrajectoryHeaders().Select(SanitizeExportField));
+
+    private string BuildRealizationSeparatorLine(int realizationIndex, string separator)
+    {
+        List<string> row = [$"Realization {realizationIndex + 1}"];
+        row.AddRange(Enumerable.Repeat(string.Empty, ExportColumnCount - 1));
+        return string.Join(separator, row.Select(SanitizeExportField));
+    }
+
+    private string BuildSurveyPointExportLine(SurveyPoint point, string separator) =>
+        string.Join(separator, GetSurveyPointExportValues(point).Select(SanitizeExportField));
+
+    private List<string> GetTrajectoryHeaders() =>
+    [
+        LengthHeader("MD"),
+        InclinationHeader("Incl"),
+        AzimuthHeader("Az"),
+        DepthReferenceHeader("TVD"),
+        PositionHeader("North"),
+        PositionHeader("East"),
+        CurvatureHeader("DLS"),
+        CurvatureHeader("BUR"),
+        CurvatureHeader("TUR"),
+        LengthHeader("VSect")
+    ];
+
+    private List<string> GetSurveyPointExportValues(SurveyPoint point) =>
+    [
+        ConvertLengthForExport(point.MD ?? point.Abscissa),
+        ConvertInclinationForExport(point.Inclination),
+        ConvertAzimuthForExport(point.Azimuth),
+        ConvertDepthReferenceForExport(GetTvd(point)),
+        ConvertPositionForExport(GetNorth(point), PositionDirectionType.North),
+        ConvertPositionForExport(GetEast(point), PositionDirectionType.East),
+        ConvertQuantityForExport(point.Curvature, "CurvatureDrilling"),
+        ConvertQuantityForExport(point.BUR, "CurvatureDrilling"),
+        ConvertQuantityForExport(point.TUR, "CurvatureDrilling"),
+        ConvertLengthForExport(point.VerticalSection)
+    ];
+
+    private Task OnCoarseningMaximumDistanceChanged(double? value)
+    {
+        currentCase.CoarseningMaximumDistance = value ?? 0.1;
+        return Task.CompletedTask;
+    }
+
+    private Task OnExportUnitSystemNameChanged(string value) { exportUnitSystemName = value; return Task.CompletedTask; }
+    private Task OnExportDepthReferenceNameChanged(string value) { exportDepthReferenceName = value; return Task.CompletedTask; }
+    private Task OnExportPositionReferenceNameChanged(string value) { exportPositionReferenceName = value; return Task.CompletedTask; }
+    private Task OnExportAzimuthReferenceNameChanged(string value) { exportAzimuthReferenceName = value; return Task.CompletedTask; }
+
+    private List<Field> AvailableFields => FieldList?.Where(x => x?.MetaInfo != null).OrderBy(x => x.Name).ToList() ?? [];
+    private List<Cluster> AvailableClusters => ClusterList?.Where(cluster => cluster?.MetaInfo != null && !cluster.IsSingleWell && (selectedFieldId == null || cluster.FieldID == selectedFieldId)).OrderBy(cluster => cluster.Name).ToList() ?? [];
+    private List<Well> AvailableWells => WellList?.Where(well => well?.MetaInfo != null && (selectedFieldId == null || MatchesSelectedField(well)) && (selectedClusterId == null || well.IsSingleWell || well.ClusterID == selectedClusterId)).OrderBy(well => well.Name).ToList() ?? [];
+    private List<WellBore> AvailableWellBores => WellBoreList?.Where(wb => wb?.MetaInfo != null && (selectedWellId == null || wb.WellID == selectedWellId)).OrderBy(wb => wb.Name).ToList() ?? [];
+    private List<TrajectoryLight> AvailableTrajectories => TrajectoryList?.Where(t => t?.MetaInfo != null && selectedWellBoreId != null && GetTrajectoryWellBoreId(t.MetaInfo.ID) == selectedWellBoreId).OrderBy(t => t.Name).ToList() ?? [];
+
+    private Task OnFieldChanged(Guid? fieldId) { selectedFieldId = fieldId; NormalizeSelectionChain(); return Task.CompletedTask; }
+    private Task OnClusterChanged(Guid? clusterId) { selectedClusterId = clusterId; NormalizeSelectionChain(); return Task.CompletedTask; }
+    private Task OnWellChanged(Guid? wellId) { selectedWellId = wellId; NormalizeSelectionChain(); return Task.CompletedTask; }
+    private Task OnWellBoreChanged(Guid? wellBoreId) { selectedWellBoreId = wellBoreId; NormalizeSelectionChain(); return Task.CompletedTask; }
+    private Task OnTrajectoryChanged(Guid? trajectoryId) { selectedTrajectoryId = trajectoryId; currentCase.TrajectoryID = trajectoryId ?? Guid.Empty; UpdateReferenceSources(); return Task.CompletedTask; }
+
+    private void NormalizeSelectionChain()
+    {
+        if (selectedClusterId != null && !AvailableClusters.Any(x => x.MetaInfo.ID == selectedClusterId)) selectedClusterId = null;
+        if (selectedWellId != null && !AvailableWells.Any(x => x.MetaInfo.ID == selectedWellId)) selectedWellId = null;
+        if (selectedWellBoreId != null && !AvailableWellBores.Any(x => x.MetaInfo.ID == selectedWellBoreId)) selectedWellBoreId = null;
+        if (selectedTrajectoryId != null && !AvailableTrajectories.Any(x => x.MetaInfo.ID == selectedTrajectoryId)) selectedTrajectoryId = null;
+        currentCase.TrajectoryID = selectedTrajectoryId ?? Guid.Empty;
+        UpdateReferenceSources();
+    }
+
+    private void SyncSelectorsFromTrajectory(Guid? trajectoryId)
+    {
+        selectedFieldId = null;
+        selectedClusterId = null;
+        selectedWellId = null;
+        selectedWellBoreId = null;
+        if (trajectoryId is not Guid id || id == Guid.Empty)
+        {
+            return;
+        }
+
+        selectedTrajectoryId = id;
+        selectedWellBoreId = GetTrajectoryWellBoreId(id);
+        WellBore? wb = selectedWellBoreId is Guid wbId ? FindWellBoreById(wbId) : null;
+        Well? well = wb?.WellID is Guid wellId ? FindWellById(wellId) : null;
+        Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null;
+        selectedWellId = well?.MetaInfo.ID;
+        selectedClusterId = well is { IsSingleWell: true } ? null : cluster?.MetaInfo.ID;
+        selectedFieldId = cluster?.FieldID ?? FindFieldIdForWell(well);
+    }
+
+    private Guid? GetTrajectoryWellBoreId(Guid trajectoryId) => TrajectoryList?.FirstOrDefault(t => t?.MetaInfo?.ID == trajectoryId)?.WellBoreID;
+    private Well? FindWellById(Guid wellId) => WellList?.FirstOrDefault(well => well?.MetaInfo?.ID == wellId);
+    private Cluster? FindClusterById(Guid clusterId) => ClusterList?.FirstOrDefault(cluster => cluster?.MetaInfo?.ID == clusterId);
+    private WellBore? FindWellBoreById(Guid wellBoreId) => WellBoreList?.FirstOrDefault(wb => wb?.MetaInfo?.ID == wellBoreId);
+    private Guid? FindFieldIdForWell(Well? well) => well?.ClusterID is Guid clusterId ? FindClusterById(clusterId)?.FieldID : null;
+    private bool MatchesSelectedField(Well well) => selectedFieldId == null || FindFieldIdForWell(well) == selectedFieldId;
+
+    private string AssociatedRigName
+    {
+        get
+        {
+            Guid? wellBoreId = selectedWellBoreId ?? (selectedTrajectoryId is Guid trajectoryId ? GetTrajectoryWellBoreId(trajectoryId) : null);
+            WellBore? wellBore = wellBoreId is Guid wbId ? FindWellBoreById(wbId) : null;
+            Guid? rigId = wellBore?.RigID;
+            if (rigId == null && wellBore?.WellID is Guid wellId)
+            {
+                Well? well = FindWellById(wellId);
+                if (well?.ClusterID is Guid clusterId)
+                {
+                    rigId = FindClusterById(clusterId)?.RigID;
+                }
+            }
+            return rigId is Guid resolvedRigId ? RigList?.FirstOrDefault(rig => rig?.MetaInfo?.ID == resolvedRigId)?.Name ?? "NA" : "NA";
+        }
+    }
+
+    private void UpdateReferenceSources() => DataUtils.ApplyTrajectoryReferenceValues(selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList, RigList);
+    private static string FormatDate(DateTimeOffset? value) => value?.ToString("yyyy-MM-dd HH:mm") ?? string.Empty;
+    private string NorthCoordinateLabel => GetCoordinateLabel(PositionDirectionType.North);
+    private string EastCoordinateLabel => GetCoordinateLabel(PositionDirectionType.East);
+    private string GetCoordinateLabel(PositionDirectionType direction)
+    {
+        string? positionReferenceName = Parent?.PositionReferenceName ?? DataUtils.UnitAndReferenceParameters.PositionReferenceName;
+        if (string.Equals(positionReferenceName, "WGS84", StringComparison.OrdinalIgnoreCase))
+        {
+            return direction == PositionDirectionType.North ? "Riemann North" : "Riemann East";
+        }
+
+        if (string.Equals(positionReferenceName, "Cartographic", StringComparison.OrdinalIgnoreCase))
+        {
+            return direction == PositionDirectionType.North ? "Northing" : "Easting";
+        }
+
+        return direction == PositionDirectionType.North ? "North" : "East";
+    }
+
+    private static double? GetNorth(SurveyPoint point) => point.X ?? point.RiemannianNorth;
+    private static double? GetEast(SurveyPoint point) => point.Y ?? point.RiemannianEast;
+    private static double? GetTvd(SurveyPoint point) => point.Z ?? point.TVD;
+    private string LengthHeader(string name) => $"{name} [{ExportUnitReference?.GetUnitLabel("DepthDrilling")}]";
+    private string DepthReferenceHeader(string name) => $"{name} [{ExportUnitReference?.GetDepthUnitLabel("DepthDrilling")}]";
+    private string InclinationHeader(string name) => $"{name} [{ExportUnitReference?.GetUnitLabel("PlaneAngleDrilling")}]";
+    private string AzimuthHeader(string name) => $"{name} [{ExportUnitReference?.GetAzimuthUnitLabel("PlaneAngleDrilling")}]";
+    private string PositionHeader(string name) => $"{name} [{ExportUnitReference?.GetPositionUnitLabel("PositionDrilling")}]";
+    private string CurvatureHeader(string name) => $"{name} [{ExportUnitReference?.GetUnitLabel("CurvatureDrilling")}]";
+    private string ConvertLengthForExport(double? value) => ExportUnitReference == null || value is not { } length ? string.Empty : NormalizeExportNumber(ExportUnitReference.FromSI(length, "DepthDrilling", false));
+    private string ConvertDepthReferenceForExport(double? value) => ExportUnitReference == null || value is not { } depth ? string.Empty : NormalizeExportNumber(ExportUnitReference.FromWGS84DepthSI(depth, "DepthDrilling", false));
+    private string ConvertInclinationForExport(double? value) => ConvertQuantityForExport(value, "PlaneAngleDrilling");
+    private string ConvertAzimuthForExport(double? value) => ExportUnitReference == null || value is not { } azimuth ? string.Empty : NormalizeExportNumber(ExportUnitReference.FromTrueNorthAzimuthSI(azimuth, "PlaneAngleDrilling", false));
+    private string ConvertPositionForExport(double? value, PositionDirectionType direction) => ExportUnitReference == null || value is not { } position ? string.Empty : NormalizeExportNumber(ExportUnitReference.FromWGS84PositionSI(position, "PositionDrilling", direction).ToString(CultureInfo.CurrentCulture));
+    private string ConvertQuantityForExport(double? value, string quantityName) => ExportUnitReference == null || value is not { } quantityValue ? string.Empty : NormalizeExportNumber(ExportUnitReference.FromSI(quantityValue, quantityName, false));
+    private static string ResolveSeparator(string key) => key switch
+    {
+        "Comma" => ",",
+        "Semicolon" => ";",
+        "Space" => " ",
+        "Pipe" => "|",
+        _ => "\t"
+    };
+
+    private static string NormalizeExportNumber(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return string.Empty;
+        }
+
+        string trimmed = value.Trim().Replace("\u00A0", string.Empty, StringComparison.Ordinal).Replace(" ", string.Empty, StringComparison.Ordinal);
+        if (double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out double parsed) ||
+            double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out parsed) ||
+            double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, new CultureInfo("nb-NO"), out parsed))
+        {
+            return parsed.ToString("G17", CultureInfo.InvariantCulture);
+        }
+
+        return trimmed.Replace(',', '.');
+    }
+
+    private static string SanitizeExportField(string? value)
+    {
+        if (string.IsNullOrEmpty(value))
+        {
+            return string.Empty;
+        }
+
+        return value
+            .Replace("\r", " ", StringComparison.Ordinal)
+            .Replace("\n", " ", StringComparison.Ordinal)
+            .Replace("\t", " ", StringComparison.Ordinal)
+            .Trim();
+    }
+
+    private static string SanitizeFileName(string fileName)
+    {
+        char[] invalidChars = Path.GetInvalidFileNameChars();
+        StringBuilder builder = new(fileName.Length);
+        foreach (char c in fileName)
+        {
+            builder.Append(invalidChars.Contains(c) ? '-' : c);
+        }
+        return builder.ToString().Trim();
+    }
+}

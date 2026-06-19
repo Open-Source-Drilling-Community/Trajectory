@@ -48,7 +48,49 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     "ClusterID text",
                     "WellID text",
                     "WellBoreID text",
+                    "TrajectoryType text",
+                    "IsDefinitive integer",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
                     "Trajectory text" }
+                },
+                { "SurveyRunTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "FieldID text",
+                    "ClusterID text",
+                    "WellID text",
+                    "WellBoreID text",
+                    "SurveyInstrumentID text",
+                    "SurveyRunType text",
+                    "CalculationType text",
+                    "ParentSurveyRunID text",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
+                    "SurveyRun text" }
+                },
+                { "SurveyRunMeasurementChunkTable", new string[] {
+                    "ID text primary key",
+                    "SurveyRunID text",
+                    "ChunkIndex integer",
+                    "MeasurementCount integer",
+                    "StartMD real",
+                    "EndMD real",
+                    "SurveyMeasurementChunk text" }
+                },
+                { "SurveyStationChunkTable", new string[] {
+                    "ID text primary key",
+                    "OwnerID text",
+                    "OwnerType text",
+                    "ChunkIndex integer",
+                    "StationCount integer",
+                    "StartMD real",
+                    "EndMD real",
+                    "SurveyStationChunk text" }
                 },
                 { "InterpolatedTrajectoryTable", new string[] {
                     "ID text primary key",
@@ -56,14 +98,95 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     "CreationDate text",
                     "LastModificationDate text",
                     "TrajectoryID text",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
                     "InterpolatedTrajectory text" }
                 },
-                { "TrajectoryBatchImportTable", new string[] {
+                { "TrajectoryRealizationCaseTable", new string[] {
                     "ID text primary key",
                     "MetaInfo text",
                     "CreationDate text",
                     "LastModificationDate text",
-                    "TrajectoryBatchImport text" }
+                    "TrajectoryID text",
+                    "RealizationCount integer",
+                    "CoarseningMaximumDistance real",
+                    "RandomSeed integer",
+                    "ReferenceStationCount integer",
+                    "CoarsenedStationCount integer",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
+                    "TrajectoryRealizationCase text" }
+                },
+                { "TrajectoryRealizationChunkTable", new string[] {
+                    "ID text primary key",
+                    "OwnerID text",
+                    "ChunkIndex integer",
+                    "RealizationCount integer",
+                    "SurveyPointCount integer",
+                    "StartMD real",
+                    "EndMD real",
+                    "TrajectoryRealizationChunk text" }
+                },
+                { "SurveyRunBatchImportTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "SurveyRunBatchImport text" }
+                },
+                { "SurveyStationEllipseCalculationTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "ConfidenceFactor real",
+                    "SurveyStationEllipseCalculation text" }
+                },
+                { "TrajectoryMinimumDistanceCalculationTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "ReferenceTrajectoryID text",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
+                    "ResultCount integer",
+                    "IntervalResultCount integer",
+                    "TrajectoryMinimumDistanceCalculation text" }
+                },
+                { "TrajectoryMinimumDistanceResultChunkTable", new string[] {
+                    "ID text primary key",
+                    "OwnerID text",
+                    "ChunkIndex integer",
+                    "ResultCount integer",
+                    "StartReferenceMD real",
+                    "EndReferenceMD real",
+                    "TrajectoryMinimumDistanceResultChunk text" }
+                },
+                { "SurveyRunMinimumDistanceCalculationTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "ReferenceSurveyRunID text",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
+                    "ResultCount integer",
+                    "IntervalResultCount integer",
+                    "SurveyRunMinimumDistanceCalculation text" }
+                },
+                { "SurveyRunMinimumDistanceResultChunkTable", new string[] {
+                    "ID text primary key",
+                    "OwnerID text",
+                    "ChunkIndex integer",
+                    "ResultCount integer",
+                    "StartReferenceMD real",
+                    "EndReferenceMD real",
+                    "SurveyRunMinimumDistanceResultChunk text" }
                 }
             };
 

@@ -1,0 +1,1026 @@
+@page "/SurveyRunMinimumDistanceCalculation"
+@inject ILogger<SurveyRunMinimumDistanceCalculationMain> logger
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject ITrajectoryAPIUtils Api
+
+<MudUnitAndReferenceChoiceTag HttpHost=@Api.HostNameUnitConversion
+                              HttpBasePath=@Api.HostBasePathUnitConversion
+                              HttpController="UnitSystem/"
+                              UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
+                              UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName"
+                              DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
+                              DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
+                              GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                              SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
+                              RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
+                              PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
+                              PositionReferenceNameChanged="@DataUtils.UpdatePositionReferenceName"
+                              WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
+                              CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
+                              LeaseLinePositionReferenceSource="@DataUtils.LeaseLinePositionReferenceSource"
+                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource">
+    @if (!isEditing_)
+    {
+        <MudDataGrid T="SurveyRunMinimumDistanceCalculationLight" @key="gridKey_"
+                     MultiSelection="true" Items="@calculationLightList_" SelectedItemsChanged="@SelectedItemsChanged"
+                     Hover="true" RowClick="@RowClicked"
+                     SortMode="SortMode.Multiple" QuickFilter="@Filter" Filterable="false"
+                     ReadOnly="true" ColumnResizeMode="ResizeMode.Column" Elevation="0">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Survey Run Minimum Distance</MudText>
+                <MudButton OnClick="@AddCalculation" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
+                <MudButton OnClick="@DeleteSelectedCalculations" Color="@Color.Error" Class="add-item-btn"
+                           Disabled="@(selectedCalculationLightList_.Count == 0)">Delete</MudButton>
+                <MudSpacer />
+                <MudTextField @bind-Value="searchString_" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                              AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" />
+            </ToolBarContent>
+            <Columns>
+                <SelectColumn T="SurveyRunMinimumDistanceCalculationLight" />
+                <PropertyColumn Property="x => x.Name" Title="Case" CellStyle="width: 25%;" Sortable="true" />
+                <PropertyColumn Property="x => x.Description" Title="Description" CellStyle="width: 25%;" Sortable="true" />
+                <PropertyColumn Property="x => GetSurveyRunName(x.ReferenceSurveyRunID)" Title="Reference Survey Run" Sortable="true" />
+                <PropertyColumn Property="x => x.ResultCount" Title="Results" Sortable="true" />
+                <TemplateColumn Title="Calculation" Sortable="true">
+                    <CellTemplate>
+                        @CalculationStatusContent(context.Item)
+                    </CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn CellClass="d-flex justify-end">
+                    <CellTemplate>
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete"
+                                       OnClick="(() => DeleteCalculation(context.Item.MetaInfo.ID))" />
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent>
+                <MudDataGridPager T="SurveyRunMinimumDistanceCalculationLight" />
+            </PagerContent>
+        </MudDataGrid>
+    }
+    else if (currentCalculation_ != null)
+    {
+        <MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Minimum Distance Calculation</MudText>
+        <MudContainer Class="d-flex flex-row mt-4 mb-4">
+            <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveCalculation">Save</MudButton>
+            <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditor">Cancel</MudButton>
+        </MudContainer>
+
+        <MudGrid>
+            <MudItem xs="12" md="3"><MudTextField @bind-Value="currentCalculation_.Name" Label="Name" Required="true" ShrinkLabel /></MudItem>
+            <MudItem xs="12" md="3"><MudTextField @bind-Value="currentCalculation_.Description" Label="Description" ShrinkLabel /></MudItem>
+            <MudItem xs="12" md="3">
+                <MudSelect Label="Reference Survey Run" T="Guid?" Value="@selectedReferenceSurveyRunId_" ValueChanged="OnReferenceSurveyRunChanged" ShrinkLabel Clearable="true">
+                    @foreach (SurveyRunLight surveyRun in SurveyRunLightList_)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)surveyRun.MetaInfo.ID)">@surveyRun.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudInputWithUnit QuantityLabel="Chord Distance" QuantityName="DepthDrilling"
+                                  SIValueNullable="@currentCalculation_.MaximumChordArcDistance"
+                                  SIValueNullableChanged="@OnMaximumChordDistanceChanged" />
+            </MudItem>
+            <MudItem xs="12" md="3" Class="d-flex align-center">
+                <MudCheckBox T="bool" @bind-Value="currentCalculation_.AccountForBoreholeRadius" Label="Use borehole radius" />
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudNumericField T="int" @bind-Value="currentCalculation_.OctreeMaximumDepth" Label="Octree Depth" Min="1" Max="12" ShrinkLabel />
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudNumericField T="int" @bind-Value="currentCalculation_.OctreeMaximumSegmentCountPerLeaf" Label="Segments per Leaf" Min="4" Max="256" ShrinkLabel />
+            </MudItem>
+            <MudItem xs="12" md="3" Class="d-flex align-center">
+                <MudCheckBox T="bool" Value="@AdaptiveRefinement.Enabled" ValueChanged="@OnAdaptiveRefinementEnabledChanged" Label="Adaptive polar refinement" />
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudSelect Label="Displayed Distance" T="string" @bind-Value="selectedDistanceMode_" ShrinkLabel>
+                    <MudSelectItem T="string" Value="@CenterDistanceMode">Center to center</MudSelectItem>
+                    <MudSelectItem T="string" Value="@ClearanceDistanceMode">Clearance</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12">
+                <MudExpansionPanels Elevation="0">
+                    <MudExpansionPanel Text="Advanced adaptive refinement settings">
+                        <MudGrid>
+                            <MudItem xs="12" md="3">
+                                <MudInputWithUnit QuantityLabel="Polar Deviation" QuantityName="PositionDrilling"
+                                                  SIValueNullable="@AdaptiveRefinement.PolarDeviationTolerance"
+                                                  SIValueNullableChanged="@OnAdaptivePolarDeviationToleranceChanged" />
+                            </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudInputWithUnit QuantityLabel="Angular Deviation" QuantityName="PlaneAngleDrilling"
+                                                  SIValueNullable="@AdaptiveRefinement.PolarAngularTolerance"
+                                                  SIValueNullableChanged="@OnAdaptivePolarAngularToleranceChanged" />
+                            </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudInputWithUnit QuantityLabel="Minimum MD Step" QuantityName="DepthDrilling"
+                                                  SIValueNullable="@AdaptiveRefinement.MinimumMDStep"
+                                                  SIValueNullableChanged="@OnAdaptiveMinimumMDStepChanged" />
+                            </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudNumericField T="int" Value="@AdaptiveRefinement.MaximumDepth" ValueChanged="@OnAdaptiveMaximumDepthChanged" Label="Maximum Refinement Depth" Min="1" Max="12" ShrinkLabel />
+                            </MudItem>
+                            <MudItem xs="12" md="3">
+                                <MudNumericField T="int" Value="@AdaptiveRefinement.MaximumExtraSamplesPerComparison" ValueChanged="@OnAdaptiveMaximumExtraSamplesChanged" Label="Max Extra Samples" Min="0" Max="100000" ShrinkLabel />
+                            </MudItem>
+                        </MudGrid>
+                    </MudExpansionPanel>
+                </MudExpansionPanels>
+            </MudItem>
+        </MudGrid>
+
+        <MudPaper Class="pa-4 mt-4" Outlined="true">
+            <MudText Typo="Typo.subtitle1">Comparison Survey Runs</MudText>
+            <MudGrid Class="mt-1">
+                <MudItem xs="12" md="5">
+                    <MudTextField @bind-Value="comparisonSearchString_" Label="Filter available survey runs" ShrinkLabel Immediate="true"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
+                    <MudToolBar Dense="true" Class="px-0">
+                        <MudText Typo="Typo.caption">@AvailableComparisonCandidates.Count survey run candidates</MudText>
+                        <MudSpacer />
+                        <MudButton OnClick="AddStagedComparisonSurveyRuns" Color="Color.Primary" Variant="Variant.Outlined"
+                                   Disabled="@(!stagedComparisonSurveyRunIDs_.Any())">Add Selected</MudButton>
+                        <MudButton OnClick="AddFilteredComparisonSurveyRuns" Color="Color.Primary" Variant="Variant.Text"
+                                   Disabled="@(!AvailableComparisonCandidates.Any())">Add Filtered</MudButton>
+                    </MudToolBar>
+                    <MudTable Items="@AvailableComparisonCandidates" T="SurveyRunLight" Dense="true" Hover="true"
+                              Height="320px" FixedHeader="true" Elevation="0">
+                        <HeaderContent>
+                            <MudTh></MudTh>
+                            <MudTh>Name</MudTh>
+                            <MudTh>Description</MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Select">
+                                <MudCheckBox T="bool" Value="@IsComparisonCandidateStaged(context.MetaInfo.ID)"
+                                             ValueChanged="@((bool selected) => SetComparisonCandidateStaged(context.MetaInfo.ID, selected))" />
+                            </MudTd>
+                            <MudTd DataLabel="Name">@context.Name</MudTd>
+                            <MudTd DataLabel="Description">@context.Description</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudItem>
+                <MudItem xs="12" md="7">
+                    <MudToolBar Dense="true" Class="px-0">
+                        <MudText Typo="Typo.caption">@SelectedComparisonSurveyRuns.Count selected comparison survey runs</MudText>
+                        <MudSpacer />
+                        <MudButton OnClick="ClearComparisonSurveyRuns" Color="Color.Error" Variant="Variant.Text"
+                                   Disabled="@(!SelectedComparisonSurveyRuns.Any())">Clear</MudButton>
+                    </MudToolBar>
+                    <MudTable Items="@SelectedComparisonSurveyRuns" T="SurveyRunLight" Dense="true" Hover="true"
+                              Height="370px" FixedHeader="true" Elevation="0">
+                        <HeaderContent>
+                            <MudTh>Name</MudTh>
+                            <MudTh>Description</MudTh>
+                            <MudTh></MudTh>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="Name">@context.Name</MudTd>
+                            <MudTd DataLabel="Description">@context.Description</MudTd>
+                            <MudTd DataLabel="Remove">
+                                <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete"
+                                               OnClick="@(() => RemoveComparisonSurveyRun(context.MetaInfo.ID))" />
+                            </MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                </MudItem>
+            </MudGrid>
+        </MudPaper>
+
+        <MudPaper Class="pa-4 mt-4" Outlined="true">
+            <MudToolBar Dense="true" Class="px-0">
+                <MudText Typo="Typo.subtitle1">Reference MD Intervals</MudText>
+                <MudSpacer />
+                <MudButton OnClick="AddReferenceInterval" Color="Color.Success" Variant="Variant.Outlined">Add interval</MudButton>
+            </MudToolBar>
+            <MudTable Items="@ReferenceIntervals" T="MinimumDistanceReferenceInterval" Dense="true" Hover="true" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Name</MudTh>
+                    <MudTh>Start MD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
+                    <MudTh>End MD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
+                    <MudTh></MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Name">
+                        <MudTextField @bind-Value="context.Name" ShrinkLabel />
+                    </MudTd>
+                    <MudTd DataLabel="Start MD">
+                        <MudInputWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth"
+                                          SIValueNullable="@context.StartMD"
+                                          SIValueNullableChanged="@((double? value) => context.StartMD = value)" />
+                    </MudTd>
+                    <MudTd DataLabel="End MD">
+                        <MudInputWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth"
+                                          SIValueNullable="@context.EndMD"
+                                          SIValueNullableChanged="@((double? value) => context.EndMD = value)" />
+                    </MudTd>
+                    <MudTd DataLabel="Remove">
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete"
+                                       OnClick="@(() => RemoveReferenceInterval(context))" />
+                    </MudTd>
+                </RowTemplate>
+            </MudTable>
+        </MudPaper>
+
+        <MudExpansionPanels Class="mt-4" Style="overflow-y: auto; max-height: none;">
+            <MudExpansionPanel Text="Results" ExpandedChanged="@OnResultsPanelExpandedChanged">
+                @if (IsCalculationActive(currentCalculation_))
+                {
+                    <MudPaper Class="pa-4" Outlined="true">
+                        <MudText Typo="Typo.body2">@currentCalculation_.CalculationMessage</MudText>
+                        <MudProgressLinear Value="@(100.0 * currentCalculation_.CalculationProgress)" Color="Color.Info" Class="mt-2" />
+                    </MudPaper>
+                }
+                else if (isLoadingResults_)
+                {
+                    <MudPaper Class="pa-4" Outlined="true">
+                        <MudText Typo="Typo.body2">@ResultLoadingText</MudText>
+                        <MudProgressLinear Value="@ResultLoadingProgressPercent" Color="Color.Info" Class="mt-2" />
+                    </MudPaper>
+                }
+                else if (currentCalculation_.ResultList is { Count: > 0 } results)
+                {
+                    <MudText Typo="Typo.body2" Class="mb-2">
+                        Global minimum clearance: <MudSpanWithUnit QuantityName="PositionDrilling" SIValue="@currentCalculation_.GlobalMinimumClearanceDistance" />
+                        at MD <MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@currentCalculation_.GlobalMinimumReferenceMD" />
+                    </MudText>
+                    @if (currentCalculation_.IntervalResultList is { Count: > 0 } && ValidReferenceIntervals.Count > 0)
+                    {
+                        <MudText Typo="Typo.subtitle2" Class="mt-2 mb-1">Interval Summary (@SelectedDistanceLabel)</MudText>
+                        <MudTable Items="@ValidReferenceIntervals" T="MinimumDistanceReferenceInterval" Dense="true" Hover="true" Elevation="1" Bordered="true" Class="mb-3">
+                            <HeaderContent>
+                                <MudTh>Interval</MudTh>
+                                @foreach (Guid surveyRunId in ResultComparisonSurveyRunIDs)
+                                {
+                                    <MudTh>@GetSurveyRunName(surveyRunId)</MudTh>
+                                }
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Interval">@GetIntervalLabel(context)</MudTd>
+                                @foreach (Guid surveyRunId in ResultComparisonSurveyRunIDs)
+                                {
+                                    <MudTd>@FormatIntervalResult(GetIntervalResult(context.ID, surveyRunId))</MudTd>
+                                }
+                            </RowTemplate>
+                        </MudTable>
+                    }
+                    <MudPaper Class="pa-3 mb-3" Outlined="true">
+                        <MudToolBar Dense="true" Class="px-0">
+                            <MudText Typo="Typo.caption">@FilteredResultList.Count/@results.Count result rows displayed</MudText>
+                            <MudSpacer />
+                            <MudButton OnClick="SelectAllResultSurveyRuns" Color="Color.Primary" Variant="Variant.Text">All</MudButton>
+                            <MudButton OnClick="ClearResultSurveyRunFilter" Color="Color.Primary" Variant="Variant.Text">None</MudButton>
+                        </MudToolBar>
+                        <MudGrid>
+                            @foreach (Guid surveyRunId in ResultComparisonSurveyRunIDs)
+                            {
+                                <MudItem xs="12" sm="6" md="4" lg="3">
+                                    <MudCheckBox T="bool" Value="@IsResultSurveyRunDisplayed(surveyRunId)"
+                                                 ValueChanged="@((bool selected) => SetResultSurveyRunDisplayed(surveyRunId, selected))"
+                                                 Label="@GetSurveyRunName(surveyRunId)" />
+                                </MudItem>
+                            }
+                        </MudGrid>
+                    </MudPaper>
+                    <MudTable Items="@FilteredResultList" T="SurveyRunMinimumDistanceResult" Height="360px" FixedHeader="true"
+                              Virtualize="true" OverscanCount="3" ItemSize="38"
+                              Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" ReadOnly="true">
+                        <HeaderContent>
+                            <MudTHeadRow>
+                                <MudTh>Reference MD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
+                                <MudTh>Comparison</MudTh>
+                                <MudTh>Comparison MD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
+                                <MudTh>Center Distance [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                                <MudTh>Clearance [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                                <MudTh>Toolface [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                            </MudTHeadRow>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.ReferenceMD" /></MudTd>
+                            <MudTd>@GetSurveyRunName(context.ComparisonSurveyRunID ?? Guid.Empty)</MudTd>
+                            <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.ComparisonMD" /></MudTd>
+                            <MudTd><MudSpanWithUnit QuantityName="PositionDrilling" SIValue="@context.CenterToCenterDistance" /></MudTd>
+                            <MudTd><MudSpanWithUnit QuantityName="PositionDrilling" SIValue="@context.ClearanceDistance" /></MudTd>
+                            <MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Toolface" /></MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+                else
+                {
+                    <MudText>No results loaded</MudText>
+                }
+            </MudExpansionPanel>
+            <MudExpansionPanel Text="Plots" ExpandedChanged="@OnResultsPanelExpandedChanged">
+                @if (isLoadingResults_)
+                {
+                    <MudPaper Class="pa-4" Outlined="true">
+                        <MudText Typo="Typo.body2">@ResultLoadingText</MudText>
+                        <MudProgressLinear Value="@ResultLoadingProgressPercent" Color="Color.Info" Class="mt-2" />
+                    </MudPaper>
+                }
+                else if (currentCalculation_.ResultList is { Count: > 0 })
+                {
+                    <MudGrid Justify="Justify.Center">
+                        <MudItem xs="12" md="6">
+                            <ScatterPlot NameList="@DistanceNameList" ModeFlagList="@DistanceModeFlagList" ColorList="@DistanceColorList"
+                                         XValuesList="@DistanceValuesList" YValuesList="@ReferenceMdValuesList"
+                                         PlotTitle="" XAxisTitle="@SelectedDistanceLabel" YAxisTitle="Reference MD"
+                                         XUnit="PositionDrilling" YUnit="DepthDrilling"
+                                         YAxisReversed="@true"
+                                         YAxisUsesDepthReference="@true">
+                            </ScatterPlot>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <ToolfacePolarPlot NameList="@DistanceNameList"
+                                               ColorList="@DistanceColorList"
+                                               RadiusValuesList="@DistanceValuesList"
+                                               ToolfaceValuesList="@ToolfaceValuesList"
+                                               RadiusUnit="PositionDrilling" />
+                        </MudItem>
+                    </MudGrid>
+                }
+                else
+                {
+                    <MudText>No results loaded</MudText>
+                }
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    }
+</MudUnitAndReferenceChoiceTag>
+
+@code {
+    [CascadingParameter] private MudUnitAndReferenceChoiceTag? Parent { get; set; }
+
+    private const string CenterDistanceMode = "Center";
+    private const string ClearanceDistanceMode = "Clearance";
+    private static readonly string[] PlotColorPalette = ["#1769aa", "#c23b22", "#4f7d20", "#7b3f98", "#bf7f00", "#00838f", "#8d5a3b", "#455a64"];
+    private List<SurveyRunMinimumDistanceCalculationLight> calculationLightList_ = [];
+    private List<SurveyRunMinimumDistanceCalculationLight> selectedCalculationLightList_ = [];
+    private List<SurveyRunLight> SurveyRunLightList_ = [];
+    private List<WellBore>? wellBoreList_;
+    private List<Well>? wellList_;
+    private List<Cluster>? clusterList_;
+    private List<Rig>? rigList_;
+    private SurveyRunMinimumDistanceCalculation? currentCalculation_;
+    private Guid? currentCalculationId_;
+    private Guid? selectedReferenceSurveyRunId_;
+    private string selectedDistanceMode_ = ClearanceDistanceMode;
+    private string? searchString_;
+    private string? comparisonSearchString_;
+    private readonly HashSet<Guid> stagedComparisonSurveyRunIDs_ = [];
+    private readonly HashSet<Guid> displayedResultSurveyRunIds_ = [];
+    private bool isEditing_;
+    private bool isLoadingResults_;
+    private bool resultLoadComplete_;
+    private int resultChunkCount_;
+    private int resultChunksLoaded_;
+    private int resultsLoaded_;
+    private int gridKey_;
+    private CancellationTokenSource? pollingCancellation_;
+
+    private List<SurveyRunLight> AvailableComparisonCandidates =>
+        SurveyRunLightList_
+            .Where(surveyRun => surveyRun.MetaInfo?.ID is Guid id &&
+                                 id != selectedReferenceSurveyRunId_ &&
+                                 IsComparisonSelected(id) == false &&
+                                 MatchesComparisonSearch(surveyRun))
+            .OrderBy(surveyRun => surveyRun.Name)
+            .ToList();
+    private List<SurveyRunLight> SelectedComparisonSurveyRuns =>
+        currentCalculation_?.ComparisonSurveyRunIDList?
+            .Select(id => SurveyRunLightList_.FirstOrDefault(surveyRun => surveyRun.MetaInfo?.ID == id))
+            .Where(surveyRun => surveyRun != null)
+            .Cast<SurveyRunLight>()
+            .OrderBy(surveyRun => surveyRun.Name)
+            .ToList() ?? [];
+
+    private List<IGrouping<Guid, SurveyRunMinimumDistanceResult>> ResultGroups =>
+        currentCalculation_?.ResultList?
+            .Where(result => result.ComparisonSurveyRunID.HasValue)
+            .GroupBy(result => result.ComparisonSurveyRunID!.Value)
+            .OrderBy(group => GetSurveyRunName(group.Key))
+            .ToList() ?? [];
+    private List<string> DistanceNameList => ResultGroups.Select(group => GetSurveyRunName(group.Key)).ToList();
+    private List<int> DistanceModeFlagList => ResultGroups.Select(_ => 3).ToList();
+    private List<string> DistanceColorList => ResultGroups.Select((_, index) => PlotColorPalette[index % PlotColorPalette.Length]).ToList();
+    private List<List<object>> ReferenceMdValuesList => ResultGroups
+        .Select(group => group.OrderBy(result => result.ReferenceMD).Select(result => (object)(result.ReferenceMD ?? double.NaN)).ToList())
+        .ToList();
+    private List<List<object>> DistanceValuesList => ResultGroups
+        .Select(group => group.OrderBy(result => result.ReferenceMD).Select(result => (object)(SelectedDistance(result) ?? double.NaN)).ToList())
+        .ToList();
+    private List<List<object>> ToolfaceValuesList => ResultGroups
+        .Select(group => group.OrderBy(result => result.ReferenceMD).Select(result => (object)(result.Toolface ?? double.NaN)).ToList())
+        .ToList();
+    private List<Guid> ResultComparisonSurveyRunIDs =>
+        currentCalculation_?.ResultList?
+            .Where(result => result.ComparisonSurveyRunID.HasValue)
+            .Select(result => result.ComparisonSurveyRunID!.Value)
+            .Distinct()
+            .OrderBy(GetSurveyRunName)
+            .ToList() ?? [];
+    private List<SurveyRunMinimumDistanceResult> FilteredResultList =>
+        currentCalculation_?.ResultList?
+            .Where(result => result.ComparisonSurveyRunID is Guid id && displayedResultSurveyRunIds_.Contains(id))
+            .ToList() ?? [];
+    private ICollection<MinimumDistanceReferenceInterval> ReferenceIntervals =>
+        currentCalculation_?.ReferenceIntervalList ?? [];
+    private MinimumDistanceAdaptiveRefinementSettings AdaptiveRefinement
+    {
+        get
+        {
+            if (currentCalculation_ == null)
+            {
+                return new MinimumDistanceAdaptiveRefinementSettings();
+            }
+
+            currentCalculation_.AdaptiveRefinementSettings ??= new MinimumDistanceAdaptiveRefinementSettings();
+            return currentCalculation_.AdaptiveRefinementSettings;
+        }
+    }
+    private List<MinimumDistanceReferenceInterval> ValidReferenceIntervals =>
+        ReferenceIntervals
+            .Where(IsValidReferenceInterval)
+            .OrderBy(interval => interval.StartMD)
+            .ToList();
+    private string SelectedDistanceLabel => selectedDistanceMode_ == CenterDistanceMode ? "Center Distance" : "Clearance";
+    private double ResultLoadingProgressPercent => resultChunkCount_ <= 0 ? 0.0 : 100.0 * resultChunksLoaded_ / resultChunkCount_;
+    private string ResultLoadingText => resultChunkCount_ <= 0
+        ? "Loading result chunks..."
+        : $"Loading result chunks {resultChunksLoaded_}/{resultChunkCount_} ({resultsLoaded_:N0} rows)";
+
+    protected override async Task OnInitializedAsync() => await LoadDataAsync();
+
+    private async Task LoadDataAsync()
+    {
+        try
+        {
+            var calculationTask = Api.ClientTrajectory.GetAllSurveyRunMinimumDistanceCalculationLightAsync();
+            var surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
+            var wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
+            var wellTask = Api.ClientWell.GetAllWellAsync();
+            var clusterTask = Api.ClientCluster.GetAllClusterAsync();
+            var rigTask = Api.ClientRig.GetAllRigAsync();
+
+            await Task.WhenAll(calculationTask, surveyRunTask, wellBoreTask, wellTask, clusterTask, rigTask);
+
+            calculationLightList_ = ((ICollection<SurveyRunMinimumDistanceCalculationLight>)await calculationTask).OrderBy(x => x.Name).ToList();
+            SurveyRunLightList_ = ((ICollection<SurveyRunLight>)await surveyRunTask).OrderBy(x => x.Name).ToList();
+            wellBoreList_ = ((ICollection<WellBore>)await wellBoreTask).OrderBy(x => x.Name).ToList();
+            wellList_ = ((ICollection<Well>)await wellTask).OrderBy(x => x.Name).ToList();
+            clusterList_ = ((ICollection<Cluster>)await clusterTask).OrderBy(x => x.Name).ToList();
+            rigList_ = ((ICollection<Rig>)await rigTask).OrderBy(x => x.Name).ToList();
+            StartCalculationPollingIfNeeded();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem loading survey run minimum distance calculations");
+            Snackbar.Add("Failed to load minimum distance calculations.", Severity.Error);
+        }
+
+        gridKey_++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private RenderFragment CalculationStatusContent(SurveyRunMinimumDistanceCalculationLight calculation) => @<div style="min-width: 150px;">
+        @if (IsCalculationActive(calculation))
+        {
+            <MudText Typo="Typo.caption">@calculation.CalculationState</MudText>
+            <MudProgressLinear Value="@(100.0 * calculation.CalculationProgress)" Color="Color.Info" Size="Size.Small" />
+        }
+        else if (calculation.CalculationState == CalculationState.Failed)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Error">@calculation.CalculationState</MudText>
+        }
+        else
+        {
+            <MudText Typo="Typo.caption">@calculation.CalculationState</MudText>
+        }
+    </div>;
+
+    private void StartCalculationPollingIfNeeded()
+    {
+        if (calculationLightList_.Any(IsCalculationActive) || currentCalculation_ != null && IsCalculationActive(currentCalculation_))
+        {
+            if (pollingCancellation_ == null)
+            {
+                pollingCancellation_ = new CancellationTokenSource();
+                _ = PollCalculationProgressAsync(pollingCancellation_.Token);
+            }
+        }
+    }
+
+    private async Task PollCalculationProgressAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                calculationLightList_ = ((ICollection<SurveyRunMinimumDistanceCalculationLight>)await Api.ClientTrajectory.GetAllSurveyRunMinimumDistanceCalculationLightAsync()).OrderBy(x => x.Name).ToList();
+                if (currentCalculation_?.MetaInfo?.ID is Guid id)
+                {
+                    currentCalculation_ = await Api.ClientTrajectory.GetSurveyRunMinimumDistanceCalculationByIdAsync(id);
+                    currentCalculation_.ResultList ??= [];
+                    if (currentCalculation_.CalculationState == CalculationState.Completed)
+                    {
+                        ResetResultLoadingState();
+                    }
+                }
+
+                gridKey_++;
+                await InvokeAsync(StateHasChanged);
+                if (!calculationLightList_.Any(IsCalculationActive) && (currentCalculation_ == null || !IsCalculationActive(currentCalculation_)))
+                {
+                    break;
+                }
+            }
+        }
+        catch (TaskCanceledException)
+        {
+        }
+        finally
+        {
+            pollingCancellation_?.Dispose();
+            pollingCancellation_ = null;
+        }
+    }
+
+    private async Task AddCalculation()
+    {
+        currentCalculationId_ = null;
+        currentCalculation_ = CreateCalculation();
+        currentCalculation_.ReferenceIntervalList ??= [];
+        selectedReferenceSurveyRunId_ = null;
+        ResetResultLoadingState();
+        isEditing_ = true;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task EditCalculation(Guid id)
+    {
+        currentCalculationId_ = id;
+        currentCalculation_ = await Api.ClientTrajectory.GetSurveyRunMinimumDistanceCalculationByIdAsync(id);
+        currentCalculation_.ResultList ??= [];
+        currentCalculation_.ReferenceIntervalList ??= [];
+        selectedReferenceSurveyRunId_ = currentCalculation_.ReferenceSurveyRunID == Guid.Empty ? null : currentCalculation_.ReferenceSurveyRunID;
+        ResetResultLoadingState();
+        ApplySurveyRunReferenceValues();
+        isEditing_ = true;
+        StartCalculationPollingIfNeeded();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SaveCalculation()
+    {
+        if (currentCalculation_ == null)
+        {
+            return;
+        }
+
+        if (selectedReferenceSurveyRunId_ is not Guid referenceId || referenceId == Guid.Empty)
+        {
+            Snackbar.Add("Choose a reference survey run.", Severity.Warning);
+            return;
+        }
+
+        if (currentCalculation_.ComparisonSurveyRunIDList is not { Count: > 0 })
+        {
+            Snackbar.Add("Choose at least one comparison survey run.", Severity.Warning);
+            return;
+        }
+
+        try
+        {
+            currentCalculation_.MetaInfo ??= PseudoConstructors.ConstructMetaInfo();
+            currentCalculation_.ReferenceSurveyRunID = referenceId;
+            currentCalculation_.LastModificationDate = DateTimeOffset.UtcNow;
+            currentCalculation_.ResultList = null;
+            currentCalculation_.IntervalResultList = null;
+            if (currentCalculationId_ is Guid id)
+            {
+                await Api.ClientTrajectory.PutSurveyRunMinimumDistanceCalculationByIdAsync(id, currentCalculation_);
+                currentCalculation_ = await Api.ClientTrajectory.GetSurveyRunMinimumDistanceCalculationByIdAsync(id);
+                Snackbar.Add("Minimum distance calculation updated", Severity.Success);
+            }
+            else
+            {
+                currentCalculation_.MetaInfo.ID = currentCalculation_.MetaInfo.ID == Guid.Empty ? Guid.NewGuid() : currentCalculation_.MetaInfo.ID;
+                currentCalculation_.CreationDate ??= DateTimeOffset.UtcNow;
+                await Api.ClientTrajectory.PostSurveyRunMinimumDistanceCalculationAsync(currentCalculation_);
+                currentCalculationId_ = currentCalculation_.MetaInfo.ID;
+                currentCalculation_ = await Api.ClientTrajectory.GetSurveyRunMinimumDistanceCalculationByIdAsync(currentCalculationId_.Value);
+                Snackbar.Add("Minimum distance calculation created", Severity.Success);
+            }
+
+            currentCalculation_.ResultList ??= [];
+            ResetResultLoadingState();
+            StartCalculationPollingIfNeeded();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error saving survey run minimum distance calculation");
+            Snackbar.Add("Error saving minimum distance calculation: " + ex.Message, Severity.Warning);
+        }
+    }
+
+    private async Task CloseEditor()
+    {
+        isEditing_ = false;
+        currentCalculation_ = null;
+        currentCalculationId_ = null;
+        await LoadDataAsync();
+    }
+
+    private Task OnReferenceSurveyRunChanged(Guid? id)
+    {
+        selectedReferenceSurveyRunId_ = id;
+        if (currentCalculation_ != null)
+        {
+            currentCalculation_.ReferenceSurveyRunID = id ?? Guid.Empty;
+            currentCalculation_.ComparisonSurveyRunIDList = currentCalculation_.ComparisonSurveyRunIDList?.Where(x => x != id).ToList();
+            stagedComparisonSurveyRunIDs_.Remove(id ?? Guid.Empty);
+        }
+
+        ApplySurveyRunReferenceValues();
+        return Task.CompletedTask;
+    }
+
+    private void OnMaximumChordDistanceChanged(double? value)
+    {
+        if (currentCalculation_ != null)
+        {
+            currentCalculation_.MaximumChordArcDistance = value;
+        }
+    }
+
+    private Task OnResultsPanelExpandedChanged(bool expanded)
+    {
+        if (expanded)
+        {
+            StartResultLoading();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void StartResultLoading()
+    {
+        if (currentCalculation_?.MetaInfo?.ID is not Guid id || id == Guid.Empty || resultLoadComplete_ || isLoadingResults_ || IsCalculationActive(currentCalculation_))
+        {
+            return;
+        }
+
+        _ = LoadResultsAsync(id);
+    }
+
+    private async Task LoadResultsAsync(Guid id)
+    {
+        if (currentCalculation_ == null)
+        {
+            return;
+        }
+
+        isLoadingResults_ = true;
+        resultLoadComplete_ = false;
+        resultChunkCount_ = 0;
+        resultChunksLoaded_ = 0;
+        resultsLoaded_ = 0;
+        currentCalculation_.ResultList = [];
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            int chunkCount = await Api.ClientTrajectory.GetSurveyRunMinimumDistanceCalculationResultChunkCountAsync(id);
+            resultChunkCount_ = chunkCount;
+            await InvokeAsync(StateHasChanged);
+            List<SurveyRunMinimumDistanceResult> results = [];
+            for (int chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
+            {
+                SurveyRunMinimumDistanceResultChunk chunk = await Api.ClientTrajectory.GetSurveyRunMinimumDistanceCalculationResultChunkAsync(id, chunkIndex);
+                if (chunk.ResultList is { Count: > 0 })
+                {
+                    results.AddRange(chunk.ResultList);
+                }
+
+                resultChunksLoaded_ = chunkIndex + 1;
+                resultsLoaded_ = results.Count;
+                if (chunkIndex == 0 || resultChunksLoaded_ == chunkCount || resultChunksLoaded_ % 5 == 0)
+                {
+                    await InvokeAsync(StateHasChanged);
+                    await Task.Delay(1);
+                }
+            }
+
+            currentCalculation_.ResultList = results;
+            SelectAllResultSurveyRuns();
+            resultLoadComplete_ = true;
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem loading survey run minimum distance result chunks");
+            Snackbar.Add("Failed to load result chunks.", Severity.Error);
+        }
+        finally
+        {
+            isLoadingResults_ = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private void ResetResultLoadingState()
+    {
+        isLoadingResults_ = false;
+        resultLoadComplete_ = false;
+        resultChunkCount_ = 0;
+        resultChunksLoaded_ = 0;
+        resultsLoaded_ = 0;
+        displayedResultSurveyRunIds_.Clear();
+    }
+
+    private bool IsResultSurveyRunDisplayed(Guid surveyRunId) => displayedResultSurveyRunIds_.Contains(surveyRunId);
+
+    private void SetResultSurveyRunDisplayed(Guid surveyRunId, bool selected)
+    {
+        if (selected)
+        {
+            displayedResultSurveyRunIds_.Add(surveyRunId);
+        }
+        else
+        {
+            displayedResultSurveyRunIds_.Remove(surveyRunId);
+        }
+    }
+
+    private void SelectAllResultSurveyRuns()
+    {
+        displayedResultSurveyRunIds_.Clear();
+        foreach (Guid surveyRunId in ResultComparisonSurveyRunIDs)
+        {
+            displayedResultSurveyRunIds_.Add(surveyRunId);
+        }
+    }
+
+    private void ClearResultSurveyRunFilter() => displayedResultSurveyRunIds_.Clear();
+
+    private bool IsComparisonSelected(Guid id) => currentCalculation_?.ComparisonSurveyRunIDList?.Contains(id) == true;
+
+    private bool IsComparisonCandidateStaged(Guid id) => stagedComparisonSurveyRunIDs_.Contains(id);
+
+    private void SetComparisonCandidateStaged(Guid id, bool selected)
+    {
+        if (selected)
+        {
+            stagedComparisonSurveyRunIDs_.Add(id);
+        }
+        else
+        {
+            stagedComparisonSurveyRunIDs_.Remove(id);
+        }
+    }
+
+    private void AddStagedComparisonSurveyRuns()
+    {
+        AddComparisonSurveyRuns(stagedComparisonSurveyRunIDs_);
+        stagedComparisonSurveyRunIDs_.Clear();
+    }
+
+    private void AddFilteredComparisonSurveyRuns()
+    {
+        AddComparisonSurveyRuns(AvailableComparisonCandidates.Select(surveyRun => surveyRun.MetaInfo.ID));
+        stagedComparisonSurveyRunIDs_.Clear();
+    }
+
+    private void AddComparisonSurveyRuns(IEnumerable<Guid> ids)
+    {
+        if (currentCalculation_ == null)
+        {
+            return;
+        }
+
+        List<Guid> values = currentCalculation_.ComparisonSurveyRunIDList?.ToList() ?? [];
+        foreach (Guid id in ids.Where(id => id != Guid.Empty && id != selectedReferenceSurveyRunId_))
+        {
+            if (!values.Contains(id))
+            {
+                values.Add(id);
+            }
+        }
+
+        currentCalculation_.ComparisonSurveyRunIDList = values;
+    }
+
+    private void AddReferenceInterval()
+    {
+        if (currentCalculation_ == null)
+        {
+            return;
+        }
+
+        currentCalculation_.ReferenceIntervalList ??= [];
+        double? start = currentCalculation_.ReferenceIntervalList
+            .Where(interval => interval.EndMD.HasValue)
+            .Select(interval => interval.EndMD)
+            .Max();
+        currentCalculation_.ReferenceIntervalList.Add(new MinimumDistanceReferenceInterval
+        {
+            ID = Guid.NewGuid(),
+            Name = $"Interval {currentCalculation_.ReferenceIntervalList.Count + 1}",
+            StartMD = start,
+            EndMD = start.HasValue ? start.Value + 100.0 : null
+        });
+    }
+
+    private void RemoveReferenceInterval(MinimumDistanceReferenceInterval interval)
+    {
+        currentCalculation_?.ReferenceIntervalList?.Remove(interval);
+    }
+
+    private void RemoveComparisonSurveyRun(Guid id)
+    {
+        if (currentCalculation_?.ComparisonSurveyRunIDList == null)
+        {
+            return;
+        }
+
+        currentCalculation_.ComparisonSurveyRunIDList = currentCalculation_.ComparisonSurveyRunIDList.Where(value => value != id).ToList();
+        stagedComparisonSurveyRunIDs_.Remove(id);
+    }
+
+    private void ClearComparisonSurveyRuns()
+    {
+        if (currentCalculation_ == null)
+        {
+            return;
+        }
+
+        currentCalculation_.ComparisonSurveyRunIDList = [];
+        stagedComparisonSurveyRunIDs_.Clear();
+    }
+
+    private bool MatchesComparisonSearch(SurveyRunLight surveyRun)
+    {
+        if (string.IsNullOrWhiteSpace(comparisonSearchString_))
+        {
+            return true;
+        }
+
+        return $"{surveyRun.Name} {surveyRun.Description}".Contains(comparisonSearchString_, StringComparison.OrdinalIgnoreCase);
+    }
+
+    private Func<SurveyRunMinimumDistanceCalculationLight, bool> Filter => x =>
+        string.IsNullOrWhiteSpace(searchString_) ||
+        $"{x.Name} {x.Description} {GetSurveyRunName(x.ReferenceSurveyRunID)}".Contains(searchString_, StringComparison.OrdinalIgnoreCase);
+
+    private void SelectedItemsChanged(HashSet<SurveyRunMinimumDistanceCalculationLight> items) => selectedCalculationLightList_ = items.ToList();
+    private async Task RowClicked(DataGridRowClickEventArgs<SurveyRunMinimumDistanceCalculationLight> args) => await EditCalculation(args.Item.MetaInfo.ID);
+    private string GetSurveyRunName(Guid id) => SurveyRunLightList_.FirstOrDefault(t => t.MetaInfo?.ID == id)?.Name ?? "NA";
+    private double? SelectedDistance(SurveyRunMinimumDistanceResult result) =>
+        selectedDistanceMode_ == CenterDistanceMode ? result.CenterToCenterDistance : result.ClearanceDistance;
+
+    private static bool IsCalculationActive(SurveyRunMinimumDistanceCalculationLight calculation) =>
+        calculation.CalculationState == CalculationState.Running ||
+        calculation.CalculationState == CalculationState.Queued;
+
+    private static bool IsCalculationActive(SurveyRunMinimumDistanceCalculation calculation) =>
+        calculation.CalculationState == CalculationState.Running ||
+        calculation.CalculationState == CalculationState.Queued;
+
+    private static SurveyRunMinimumDistanceCalculation CreateCalculation() => new()
+    {
+        MetaInfo = PseudoConstructors.ConstructMetaInfo(),
+        Name = "Default Name",
+        Description = string.Empty,
+        CreationDate = DateTimeOffset.UtcNow,
+        LastModificationDate = DateTimeOffset.UtcNow,
+        ComparisonSurveyRunIDList = [],
+        AccountForBoreholeRadius = true,
+        OctreeMaximumDepth = 8,
+        OctreeMaximumSegmentCountPerLeaf = 32,
+        AdaptiveRefinementSettings = new MinimumDistanceAdaptiveRefinementSettings(),
+        ResultList = []
+    };
+
+    private void OnAdaptiveRefinementEnabledChanged(bool value) => AdaptiveRefinement.Enabled = value;
+    private void OnAdaptivePolarDeviationToleranceChanged(double? value) => AdaptiveRefinement.PolarDeviationTolerance = value;
+    private void OnAdaptivePolarAngularToleranceChanged(double? value) => AdaptiveRefinement.PolarAngularTolerance = value;
+    private void OnAdaptiveMinimumMDStepChanged(double? value) => AdaptiveRefinement.MinimumMDStep = value;
+    private void OnAdaptiveMaximumDepthChanged(int value) => AdaptiveRefinement.MaximumDepth = value;
+    private void OnAdaptiveMaximumExtraSamplesChanged(int value) => AdaptiveRefinement.MaximumExtraSamplesPerComparison = value;
+
+    private static bool IsValidReferenceInterval(MinimumDistanceReferenceInterval interval) =>
+        interval.StartMD is double start &&
+        interval.EndMD is double end &&
+        !double.IsNaN(start) &&
+        !double.IsNaN(end) &&
+        !double.IsInfinity(start) &&
+        !double.IsInfinity(end) &&
+        end > start;
+
+    private SurveyRunMinimumDistanceIntervalResult? GetIntervalResult(Guid intervalId, Guid surveyRunId) =>
+        currentCalculation_?.IntervalResultList?
+            .FirstOrDefault(result => result.IntervalID == intervalId && result.ComparisonSurveyRunID == surveyRunId);
+
+    private string GetIntervalLabel(MinimumDistanceReferenceInterval interval)
+    {
+        string name = string.IsNullOrWhiteSpace(interval.Name) ? "Interval" : interval.Name!;
+        return $"{name} [{FormatDepth(interval.StartMD)} - {FormatDepth(interval.EndMD)}]";
+    }
+
+    private string FormatIntervalResult(SurveyRunMinimumDistanceIntervalResult? result)
+    {
+        if (result == null || result.SampleCount == 0)
+        {
+            return "-";
+        }
+
+        double? average = selectedDistanceMode_ == CenterDistanceMode
+            ? result.AverageCenterToCenterDistance
+            : result.AverageClearanceDistance;
+        double? standardDeviation = selectedDistanceMode_ == CenterDistanceMode
+            ? result.StandardDeviationCenterToCenterDistance
+            : result.StandardDeviationClearanceDistance;
+        return $"{FormatPosition(average)} +/- {FormatPosition(standardDeviation)} ({result.SampleCount})";
+    }
+
+    private string FormatDepth(double? value)
+    {
+        if (value == null)
+        {
+            return "-";
+        }
+
+        double converted = Parent?.FromSI(value.Value, "DepthDrilling") ?? value.Value;
+        return converted.ToString("0.###");
+    }
+
+    private string FormatPosition(double? value)
+    {
+        if (value == null)
+        {
+            return "-";
+        }
+
+        double converted = Parent?.FromSI(value.Value, "PositionDrilling") ?? value.Value;
+        return converted.ToString("0.###");
+    }
+
+    private async Task<bool> ConfirmDeletion()
+    {
+        var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+        var result = await dialog.Result;
+        return result != null && !result.Canceled;
+    }
+
+    private async Task DeleteCalculation(Guid id)
+    {
+        try
+        {
+            if (await ConfirmDeletion())
+            {
+                await Api.ClientTrajectory.DeleteSurveyRunMinimumDistanceCalculationByIdAsync(id);
+                await LoadDataAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Impossible to delete survey run minimum distance calculation");
+            Snackbar.Add("Failed to delete minimum distance calculation.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteSelectedCalculations()
+    {
+        List<SurveyRunMinimumDistanceCalculationLight> toDelete = selectedCalculationLightList_.ToList();
+        if (toDelete.Count == 0)
+        {
+            return;
+        }
+
+        try
+        {
+            if (await ConfirmDeletion())
+            {
+                foreach (SurveyRunMinimumDistanceCalculationLight item in toDelete)
+                {
+                    await Api.ClientTrajectory.DeleteSurveyRunMinimumDistanceCalculationByIdAsync(item.MetaInfo.ID);
+                }
+
+                await LoadDataAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Impossible to delete survey run minimum distance calculations");
+            Snackbar.Add("Failed to delete one or more minimum distance calculations.", Severity.Error);
+        }
+    }
+
+    private void ApplySurveyRunReferenceValues()
+    {
+        DataUtils.ApplySurveyRunReferenceValues(selectedReferenceSurveyRunId_, SurveyRunLightList_, wellBoreList_, wellList_, clusterList_, rigList_);
+    }
+}

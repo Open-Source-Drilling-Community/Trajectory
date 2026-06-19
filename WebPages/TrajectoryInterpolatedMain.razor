@@ -46,6 +46,11 @@
                     <PropertyColumn Property="x => x.Name" Title="Interpolation Case" CellStyle="width: 30%;" Sortable="true" />
                     <PropertyColumn Property="x => x.Description" Title="Description" CellStyle="width: 35%;" Sortable="true" />
                     <PropertyColumn Property="x => GetTrajectoryNameFromId(x.TrajectoryID)" Title="Trajectory" Sortable="true" />
+                    <TemplateColumn Title="Calculation" Sortable="true">
+                        <CellTemplate>
+                            @CalculationStatusContent(context.Item)
+                        </CellTemplate>
+                    </TemplateColumn>
                     <TemplateColumn CellClass="d-flex justify-end">
                         <CellTemplate>
                             <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete"
@@ -86,6 +91,7 @@
     private Guid? interpolatedTrajectoryIdBeingEdited;
     private string? _searchString;
     private int _gridKey = 0;
+    private CancellationTokenSource? calculationPollingCancellation_;
 
     protected override async Task OnInitializedAsync() => await LoadDataAsync();
 
@@ -115,6 +121,7 @@
             clusterList = ((ICollection<Cluster>)await clusterTask).OrderBy(x => x.Name).ToList();
             fieldList = ((ICollection<Field>)await fieldTask).OrderBy(x => x.Name).ToList();
             rigList = ((ICollection<Rig>)await rigTask).OrderBy(x => x.Name).ToList();
+            StartCalculationPollingIfNeeded();
         }
         catch (Exception ex)
         {
@@ -125,6 +132,63 @@
         _gridKey++;
         await InvokeAsync(StateHasChanged);
     }
+
+    private RenderFragment CalculationStatusContent(InterpolatedTrajectoryLight interpolatedTrajectory) => @<div style="min-width: 140px;">
+        @if (interpolatedTrajectory.CalculationState == CalculationState.Running || interpolatedTrajectory.CalculationState == CalculationState.Queued)
+        {
+            <MudText Typo="Typo.caption">@interpolatedTrajectory.CalculationState</MudText>
+            <MudProgressLinear Value="@(100.0 * interpolatedTrajectory.CalculationProgress)" Color="Color.Info" Size="Size.Small" />
+        }
+        else if (interpolatedTrajectory.CalculationState == CalculationState.Failed)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Error">@interpolatedTrajectory.CalculationState</MudText>
+        }
+        else
+        {
+            <MudText Typo="Typo.caption">@interpolatedTrajectory.CalculationState</MudText>
+        }
+    </div>;
+
+    private void StartCalculationPollingIfNeeded()
+    {
+        if (interpolatedTrajectoryList?.Any(IsCalculationActive) != true || calculationPollingCancellation_ != null)
+        {
+            return;
+        }
+
+        calculationPollingCancellation_ = new CancellationTokenSource();
+        _ = PollCalculationProgressAsync(calculationPollingCancellation_.Token);
+    }
+
+    private async Task PollCalculationProgressAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                interpolatedTrajectoryList = ((ICollection<InterpolatedTrajectoryLight>)await Api.ClientTrajectory.GetAllInterpolatedTrajectoryLightAsync()).OrderBy(x => x.Name).ToList();
+                _gridKey++;
+                await InvokeAsync(StateHasChanged);
+                if (!interpolatedTrajectoryList.Any(IsCalculationActive))
+                {
+                    break;
+                }
+            }
+        }
+        catch (TaskCanceledException)
+        {
+        }
+        finally
+        {
+            calculationPollingCancellation_?.Dispose();
+            calculationPollingCancellation_ = null;
+        }
+    }
+
+    private static bool IsCalculationActive(InterpolatedTrajectoryLight interpolatedTrajectory) =>
+        interpolatedTrajectory.CalculationState == CalculationState.Running ||
+        interpolatedTrajectory.CalculationState == CalculationState.Queued;
 
     private async Task AddInterpolatedTrajectory()
     {

@@ -1,0 +1,174 @@
+@code {
+    [CascadingParameter] private MudUnitAndReferenceChoiceTag? Parent { get; set; }
+
+    [Parameter] public List<object>? RadiusValues { get; set; }
+    [Parameter] public List<object>? ToolfaceValues { get; set; }
+    [Parameter] public List<List<object>>? RadiusValuesList { get; set; }
+    [Parameter] public List<List<object>>? ToolfaceValuesList { get; set; }
+    [Parameter] public string RadiusUnit { get; set; } = "PositionDrilling";
+    [Parameter] public string? Name { get; set; }
+    [Parameter] public List<string>? NameList { get; set; }
+    [Parameter] public string? Color { get; set; }
+    [Parameter] public List<string>? ColorList { get; set; }
+    [Parameter] public int PlotHeight { get; set; }
+    [Parameter] public string? PlotTitle { get; set; }
+
+    private const int PolarRayCount = 12;
+    private const int PolarCircleCount = 4;
+    private const string PolarGridColor = "#e5ecf6";
+
+    private List<string> EffectiveNameList => BuildGridNames().Concat(NameList ?? [Name ?? "Minimum approach"]).ToList();
+    private List<int> ModeFlagList => Enumerable.Repeat(1, PolarGridTraceCount).Concat(EffectiveRadiusValuesList.Select(_ => 3)).ToList();
+    private List<string> EffectiveColorList => Enumerable.Repeat(PolarGridColor, PolarGridTraceCount).Concat(ColorList ?? [Color ?? "#1769aa"]).ToList();
+    private List<bool> ShowLegendList => Enumerable.Repeat(false, PolarGridTraceCount).Concat(EffectiveRadiusValuesList.Select(_ => true)).ToList();
+    private List<List<object>> XValuesList => BuildPolarGridXValues().Concat(BuildPolarProjectionList((radius, toolface) => radius * Math.Sin(toolface))).ToList();
+    private List<List<object>> YValuesList => BuildPolarGridYValues().Concat(BuildPolarProjectionList((radius, toolface) => radius * Math.Cos(toolface))).ToList();
+    private List<Annotation> AxisLabelAnnotations = new();
+
+    private List<List<object>> EffectiveRadiusValuesList => RadiusValuesList ?? (RadiusValues == null ? [] : [RadiusValues]);
+    private List<List<object>> EffectiveToolfaceValuesList => ToolfaceValuesList ?? (ToolfaceValues == null ? [] : [ToolfaceValues]);
+    private int PolarGridTraceCount => PolarRayCount + PolarCircleCount;
+    private double PolarGridRadius => Math.Max(1.0, GetMaximumAbsoluteRadius());
+
+    private static List<string> BuildGridNames() =>
+        Enumerable.Range(0, PolarRayCount).Select(index => $"polar_ray_{index}")
+            .Concat(Enumerable.Range(0, PolarCircleCount).Select(index => $"polar_circle_{index}"))
+            .ToList();
+
+    private List<List<object>> BuildPolarGridXValues()
+    {
+        List<List<object>> values = [];
+        double radius = PolarGridRadius;
+        for (int i = 0; i < PolarRayCount; i++)
+        {
+            double toolface = i * 2.0 * Math.PI / PolarRayCount;
+            values.Add([0.0, radius * Math.Sin(toolface)]);
+        }
+
+        values.AddRange(BuildPolarCircleValues((circleRadius, toolface) => circleRadius * Math.Sin(toolface)));
+        return values;
+    }
+
+    private List<List<object>> BuildPolarGridYValues()
+    {
+        List<List<object>> values = [];
+        double radius = PolarGridRadius;
+        for (int i = 0; i < PolarRayCount; i++)
+        {
+            double toolface = i * 2.0 * Math.PI / PolarRayCount;
+            values.Add([0.0, radius * Math.Cos(toolface)]);
+        }
+
+        values.AddRange(BuildPolarCircleValues((circleRadius, toolface) => circleRadius * Math.Cos(toolface)));
+        return values;
+    }
+
+    private List<List<object>> BuildPolarCircleValues(Func<double, double, double> projector)
+    {
+        List<List<object>> values = [];
+        double maximumRadius = PolarGridRadius;
+        for (int circleIndex = 1; circleIndex <= PolarCircleCount; circleIndex++)
+        {
+            double circleRadius = maximumRadius * circleIndex / PolarCircleCount;
+            List<object> circle = [];
+            for (int i = 0; i <= 96; i++)
+            {
+                double toolface = i * 2.0 * Math.PI / 96.0;
+                circle.Add(projector(circleRadius, toolface));
+            }
+
+            values.Add(circle);
+        }
+
+        return values;
+    }
+
+    private double GetMaximumAbsoluteRadius()
+    {
+        double maximum = 0.0;
+        foreach (List<object> radiusValues in EffectiveRadiusValuesList)
+        {
+            foreach (object value in radiusValues)
+            {
+                if (TryGetDouble(value, out double radius))
+                {
+                    maximum = Math.Max(maximum, Math.Abs(radius));
+                }
+            }
+        }
+
+        return maximum;
+    }
+        
+    private double ConvertRadiusForAnnotation(double siRadius)
+    {
+        double? converted = Parent?.FromSI(siRadius, RadiusUnit);
+        return converted ?? siRadius;
+    }
+
+    private List<List<object>> BuildPolarProjectionList(Func<double, double, double> projector)
+    {
+        List<List<object>> values = [];
+        List<List<object>> radiusValuesList = EffectiveRadiusValuesList;
+        List<List<object>> toolfaceValuesList = EffectiveToolfaceValuesList;
+        int traceCount = Math.Min(radiusValuesList.Count, toolfaceValuesList.Count);
+        for (int traceIndex = 0; traceIndex < traceCount; traceIndex++)
+        {
+            values.Add(BuildPolarProjection(radiusValuesList[traceIndex], toolfaceValuesList[traceIndex], projector));
+        }
+
+        return values;
+    }
+
+    private static List<object> BuildPolarProjection(List<object> radiusValues, List<object> toolfaceValues, Func<double, double, double> projector)
+    {
+        List<object> values = [];
+        int count = Math.Min(radiusValues.Count, toolfaceValues.Count);
+        for (int i = 0; i < count; i++)
+        {
+            if (TryGetDouble(radiusValues[i], out double radius) && TryGetDouble(toolfaceValues[i], out double toolface))
+            {
+                values.Add(projector(radius, toolface));
+            }
+        }
+
+        return values;
+    }
+
+    private static bool TryGetDouble(object value, out double result)
+    {
+        switch (value)
+        {
+            case double doubleValue when !double.IsNaN(doubleValue) && !double.IsInfinity(doubleValue):
+                result = doubleValue;
+                return true;
+            case float floatValue when !float.IsNaN(floatValue) && !float.IsInfinity(floatValue):
+                result = floatValue;
+                return true;
+            case decimal decimalValue:
+                result = (double)decimalValue;
+                return true;
+            case int intValue:
+                result = intValue;
+                return true;
+            case long longValue:
+                result = longValue;
+                return true;
+            default:
+                result = default;
+                return false;
+        }
+    }
+}
+
+<ScatterPlot NameList="@EffectiveNameList" ModeFlagList="@ModeFlagList" ColorList="@EffectiveColorList"
+             ShowLegendList="@ShowLegendList"
+             XValuesList="@XValuesList" YValuesList="@YValuesList"
+             PlotHeight="@PlotHeight"
+             PlotTitle="@PlotTitle" XAxisTitle="Clockwise from high side" YAxisTitle="High side"
+             XUnit="@RadiusUnit" YUnit="@RadiusUnit"
+             AspectRatio="1"
+             ShowCartesianGrid="@false"
+             ShowAxisTitles="@false"
+             Annotations="@AxisLabelAnnotations">
+</ScatterPlot>

@@ -1,0 +1,612 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "ModelShared (Service)",
+    "description": "Data model containing model dependencies of the clients of the current microservice (WebApp, ServiceTest)",
+    "version": "1.0"
+  },
+  "paths": {
+    "/GravitationalField": {
+      "get": {
+        "tags": [
+          "GravitationalField"
+        ],
+        "operationId": "GetAllGravitationalFieldId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid",
+                    "nullable": true
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GravitationalField"
+        ],
+        "operationId": "PostGravitationalField",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GravitationalField"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GravitationalField"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/GravitationalField"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/GravitationalField/MetaInfo": {
+      "get": {
+        "tags": [
+          "GravitationalField"
+        ],
+        "operationId": "GetAllGravitationalFieldMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/GravitationalField/{id}": {
+      "get": {
+        "tags": [
+          "GravitationalField"
+        ],
+        "operationId": "GetGravitationalFieldById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GravitationalField"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "GravitationalField"
+        ],
+        "operationId": "PutGravitationalFieldById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GravitationalField"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GravitationalField"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/GravitationalField"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "GravitationalField"
+        ],
+        "operationId": "DeleteGravitationalFieldById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/GravitationalField/HeavyData": {
+      "get": {
+        "tags": [
+          "GravitationalField"
+        ],
+        "operationId": "GetAllGravitationalField",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GravitationalField"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/GravitationalField/Completed": {
+      "get": {
+        "tags": [
+          "GravitationalField"
+        ],
+        "operationId": "GetAllCompletedGravitationalField",
+        "parameters": [
+          {
+            "name": "completedBool",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GravitationalField"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/GravitationalFieldCalculationOrder": {
+      "get": {
+        "tags": [
+          "GravitationalFieldCalculationOrder"
+        ],
+        "operationId": "GetAllGravitationalFieldCalculationOrderId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "GravitationalFieldCalculationOrder"
+        ],
+        "operationId": "PostGravitationalFieldCalculationOrder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/GravitationalFieldCalculationOrder/MetaInfo": {
+      "get": {
+        "tags": [
+          "GravitationalFieldCalculationOrder"
+        ],
+        "operationId": "GetAllGravitationalFieldCalculationOrderMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/GravitationalFieldCalculationOrder/{id}": {
+      "get": {
+        "tags": [
+          "GravitationalFieldCalculationOrder"
+        ],
+        "operationId": "GetGravitationalFieldCalculationOrderById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "GravitationalFieldCalculationOrder"
+        ],
+        "operationId": "PutGravitationalFieldCalculationOrderById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "GravitationalFieldCalculationOrder"
+        ],
+        "operationId": "DeleteGravitationalFieldCalculationOrderById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/GravitationalFieldCalculationOrder/LightData": {
+      "get": {
+        "tags": [
+          "GravitationalFieldCalculationOrder"
+        ],
+        "operationId": "GetAllGravitationalFieldCalculationOrderLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GravitationalFieldCalculationOrderLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/GravitationalFieldCalculationOrder/HeavyData": {
+      "get": {
+        "tags": [
+          "GravitationalFieldCalculationOrder"
+        ],
+        "operationId": "GetAllGravitationalFieldCalculationOrder",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "GravitationalData": {
+        "type": "object",
+        "properties": {
+          "Lattitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "Longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "Depth": {
+            "type": "number",
+            "format": "double"
+          },
+          "GravitatyIntensityX": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GravitatyIntensityY": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GravitatyIntensityZ": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        }
+      },
+      "GravitationalField": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "Type": {
+            "$ref": "#/components/schemas/GravitationalFieldType"
+          },
+          "GravitationalDataTable": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/GravitationalData"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "GravitationalFieldCalculationOrder": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "RawGravitationalField": {
+            "$ref": "#/components/schemas/GravitationalField"
+          },
+          "CompletedGravitationalField": {
+            "$ref": "#/components/schemas/GravitationalField"
+          }
+        }
+      },
+      "GravitationalFieldCalculationOrderLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "GravitationalFieldType": {
+        "enum": [
+          "Raw",
+          "Completed"
+        ],
+        "type": "string"
+      },
+      "MetaInfo": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "HttpHostName": {
+            "type": "string",
+            "nullable": true
+          },
+          "HttpHostBasePath": {
+            "type": "string",
+            "nullable": true
+          },
+          "HttpEndPoint": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      }
+    }
+  }
+}

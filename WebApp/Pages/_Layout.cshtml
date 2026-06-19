@@ -32,7 +32,7 @@
     <script src="_framework/blazor.server.js"></script>
     <script>
         window.trajectoryDownloads = {
-            saveTextFileFromBase64: function (fileName, base64Content, contentType) {
+            saveTextFileFromBase64: async function (fileName, base64Content, contentType) {
                 const binary = atob(base64Content);
                 const bytes = new Uint8Array(binary.length);
                 for (let i = 0; i < binary.length; i++) {
@@ -40,6 +40,27 @@
                 }
 
                 const blob = new Blob([bytes], { type: contentType || "text/plain;charset=utf-8" });
+                if (window.showSaveFilePicker) {
+                    try {
+                        const pickerContentType = (contentType || "text/plain").split(";")[0];
+                        const handle = await window.showSaveFilePicker({
+                            suggestedName: fileName,
+                            types: [{
+                                description: "Text file",
+                                accept: { [pickerContentType]: [".txt", ".csv", ".tsv"] }
+                            }]
+                        });
+                        const writable = await handle.createWritable();
+                        await writable.write(blob);
+                        await writable.close();
+                        return true;
+                    } catch (error) {
+                        if (error && error.name === "AbortError") {
+                            return false;
+                        }
+                    }
+                }
+
                 const url = URL.createObjectURL(blob);
                 const anchor = document.createElement("a");
                 anchor.href = url;
@@ -48,6 +69,7 @@
                 anchor.click();
                 document.body.removeChild(anchor);
                 URL.revokeObjectURL(url);
+                return true;
             }
         };
     </script>

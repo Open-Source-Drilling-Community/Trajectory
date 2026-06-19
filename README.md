@@ -11,14 +11,16 @@ The solution currently contains:
   - source schemas are stored as JSON files following the OpenAPI standard
 - `Model`
   - domain model and trajectory calculation logic
+  - trajectory interpolation and stochastic trajectory realization calculations
 - `Service`
   - ASP.NET Core microservice exposing the Trajectory API
   - depends on `Model`
+  - persists trajectory realization cases and realization chunks in SQLite
 - `ModelSharedOut`
   - auto-generated client-side classes and schemas used by consumers of the Trajectory service
   - includes the Trajectory service schema together with other relevant upstream schemas
 - `WebPages`
-  - Razor class library containing the Trajectory and TrajectoryInterpolation pages and their page-specific support components
+  - Razor class library containing the Trajectory, TrajectoryInterpolation, and TrajectoryRealization pages and their page-specific support components
   - depends on `ModelSharedOut`
 - `WebApp`
   - ASP.NET Core Blazor host application
@@ -30,6 +32,16 @@ The solution currently contains:
   - tests for the service API
 - `home`
   - local persisted data, including the SQLite database at `home/Trajectory.db`
+
+## Main Workflows
+
+The repository supports the following main trajectory workflows:
+
+- trajectory creation, editing, storage, and retrieval
+- trajectory interpolation cases
+- stochastic trajectory realization cases based on survey station wellbore position uncertainty
+
+Trajectory realization cases are defined from a reference trajectory and a requested number of realizations. The model optionally coarsens the reference trajectory before generation, draws realizations from the covariance-defined uncertainty field, completes the generated points with the minimum curvature method, and stores the resulting realized trajectories as lists of survey points. Large realization sets are persisted and retrieved in chunks.
 
 ## Security and Confidentiality
 

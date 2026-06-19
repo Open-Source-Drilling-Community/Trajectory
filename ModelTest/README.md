@@ -8,6 +8,8 @@ This project is intended to validate the trajectory domain model and computation
 
 It is the unit-test project for model-level behavior.
 
+Model-level test coverage should include trajectory interpolation and trajectory realization behavior, especially coarsening, covariance-based realization generation, mirror-candidate selection, retry behavior, and minimum-curvature completion.
+
 ## Dependencies
 
 `ModelTest` depends on:
