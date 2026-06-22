@@ -17,7 +17,6 @@
     [Parameter] public List<string> ColorList { get; set; }
     [Parameter] public List<int?>? MarkerSizeList { get; set; }
     [Parameter] public List<bool>? ShowLegendList { get; set; }
-    [Parameter] public List<double?> MarkerSizeList { get; set; } = [];
 
     [Parameter] public List<List<object>> XValuesList { get; set; }
     [Parameter] public List<List<object>> YValuesList { get; set; }
@@ -257,7 +256,7 @@
         await TraceClicked.InvokeAsync(traceIndex);
     }
 
-    private async Task ManageTracesAsync()
+    private Task ManageTracesAsync()
     {
         if (_disposed) return Task.CompletedTask;
         if (!_plotlyReady || chart == null) return Task.CompletedTask;
@@ -437,7 +436,6 @@
         AppendListSignature(builder, ColorList);
         AppendListSignature(builder, MarkerSizeList);
         AppendListSignature(builder, ShowLegendList);
-        AppendListSignature(builder, MarkerSizeList);
         AppendNestedListSignature(builder, XValuesList);
         AppendNestedListSignature(builder, YValuesList);
         AppendNestedListSignature(builder, ZValuesList);
