@@ -1,7 +1,8 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
   <PropertyGroup>
     <TargetFramework>net8.0</TargetFramework>
+    <RootNamespace>WebAppDebug</RootNamespace>
     <Nullable>enable</Nullable>
     <ImplicitUsings>enable</ImplicitUsings>
     <UserSecretsId>89364871-a9ad-4f1c-b2ab-83cee18de1c9</UserSecretsId>
@@ -10,7 +11,11 @@
 
   <ItemGroup>
     <Content Remove="Pages\_Host.cshtml" />
+    <Content Remove="Pages\_HostDebug.cshtml" />
+    <Content Include="Pages\_HostDebug.cshtml" Link="Pages\_Host.cshtml" />
     <Content Remove="_Imports.razor" />
+    <Content Remove="_ImportsDebug.razor" />
+    <Content Include="_ImportsDebug.razor" Link="_Imports.razor" />
   </ItemGroup>
 
   <ItemGroup>
@@ -28,22 +33,22 @@
   </ItemGroup>
 
   <ItemGroup>
-    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.22.1" />
-    <PackageReference Include="MudBlazor" Version="8.14.0" />
-    <PackageReference Include="NORCE.Drilling.CartographicProjection.WebPages" Version="1.0.4" />
-    <PackageReference Include="NORCE.Drilling.Cluster.WebPages" Version="1.0.4" />
+    <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
+    <PackageReference Include="NORCE.Drilling.CartographicProjection.WebPages" Version="1.0.7" />
+    <PackageReference Include="NORCE.Drilling.Cluster.WebPages" Version="1.0.10" />
     <PackageReference Include="NORCE.Drilling.EarthGeomagneticField.WebPages" Version="1.0.1" />
-    <PackageReference Include="NORCE.Drilling.Field.WebPages" Version="1.0.6" />
-    <PackageReference Include="NORCE.Drilling.GeodeticDatum.WebPages" Version="1.0.4" />
+    <PackageReference Include="NORCE.Drilling.GeodeticDatum.WebPages" Version="1.0.5" />
     <PackageReference Include="NORCE.Drilling.GravitationalField.WebPages" Version="1.0.1" />
-    <PackageReference Include="NORCE.Drilling.Rig.WebPages" Version="1.0.4" />
+    <PackageReference Include="NORCE.Drilling.Rig.WebPages" Version="1.0.7" />
+    <PackageReference Include="NORCE.Drilling.SurveyInstrument.WebPages" Version="1.0.2" />
     <PackageReference Include="NORCE.Drilling.VerticalDatum.WebPage" Version="1.0.1" />
-    <PackageReference Include="NORCE.Drilling.Well.WebPages" Version="1.0.4" />
-    <PackageReference Include="NORCE.Drilling.WellBore.WebPages" Version="1.0.4" />
-    <PackageReference Include="NORCE.Drilling.WellBoreArchitecture.WebPages" Version="1.0.4" />
+    <PackageReference Include="NORCE.Drilling.Well.WebPages" Version="1.0.9" />
+    <PackageReference Include="NORCE.Drilling.WellBore.WebPages" Version="1.0.8" />
+    <PackageReference Include="NORCE.Drilling.WellBoreArchitecture.WebPages" Version="1.0.5" />
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\..\Field\WebPages\FieldWebPagesDebug.csproj" />
     <ProjectReference Include="..\WebPages\WebPagesDebug.csproj" />
   </ItemGroup>
 

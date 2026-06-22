@@ -1,8 +1,10 @@
-﻿using NORCE.Drilling.Trajectory.ModelShared;
+using NORCE.Drilling.Trajectory.ModelShared;
 using OSDC.DotnetLibraries.General.Statistics;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Math;
 using System;
+using System.Collections.Generic;
+using System.Linq;
 using System.Net.Http;
 using System.Reflection;
 using System.Threading.Tasks;
@@ -137,6 +139,24 @@ public static class APIUtils
         {
             msg = ex.Message + ": an exception was raised while retrieving cluster, slot, and wellbore from trajectory";
             return (null, null, msg);
+        }
+    }
+
+    public static async Task<WellBoreArchitecture?> GetWellBoreArchitectureByWellBoreIdAsync(Guid wellBoreId)
+    {
+        if (wellBoreId == Guid.Empty)
+        {
+            return null;
+        }
+
+        try
+        {
+            ICollection<WellBoreArchitecture> architectures = await APIUtils.ClientWellBoreArchitecture.GetAllWellBoreArchitectureAsync();
+            return architectures.FirstOrDefault(architecture => architecture?.WellBoreID == wellBoreId);
+        }
+        catch
+        {
+            return null;
         }
     }
 
