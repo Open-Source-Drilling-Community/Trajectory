@@ -1001,12 +1001,12 @@ else
             row.FileContent = memory.ToArray();
             row.FileName = file.Name;
             ClearInvalidParentSurveyRunSelection(row);
-            row.Status = "File loaded";
+            row.Status = BuildFileLoadedStatus(row);
         }
         catch (Exception ex)
         {
             logger.LogError(ex, "Problem while loading a survey run import file");
-            row.Status = "File loading failed";
+            row.Status = $"File loading failed: {GetUserFacingExceptionMessage(ex)}";
             Snackbar.Add("Error loading survey run file: " + ex.Message, Severity.Warning);
         }
     }
@@ -1044,32 +1044,39 @@ else
         {
             foreach (SurveyRunImportRowState row in candidateRows)
             {
+                string currentUploadStep = "Starting upload";
                 try
                 {
-                    await SetRowStatusAsync(row, "Queued");
+                    async Task SetCurrentRowStatusAsync(string status)
+                    {
+                        currentUploadStep = status;
+                        await SetRowStatusAsync(row, status);
+                    }
+
+                    await SetCurrentRowStatusAsync("Queued");
 
                     if (row.WellBoreId is not Guid wellBoreId)
                     {
-                        await SetRowStatusAsync(row, "Select a wellbore");
+                        await SetCurrentRowStatusAsync("Select a wellbore");
                         failedCount++;
                         continue;
                     }
 
                     if (row.FileContent == null || row.FileContent.Length == 0)
                     {
-                        await SetRowStatusAsync(row, "Select a file");
+                        await SetCurrentRowStatusAsync("Select a file");
                         failedCount++;
                         continue;
                     }
 
                     if (row.SurveyInstrumentId is not Guid surveyInstrumentId)
                     {
-                        await SetRowStatusAsync(row, "Select a survey instrument");
+                        await SetCurrentRowStatusAsync("Select a survey instrument");
                         failedCount++;
                         continue;
                     }
 
-                    await SetRowStatusAsync(row, "Loading context");
+                    await SetCurrentRowStatusAsync("Loading context");
                     WellBore? wellBore = FindWellBoreById(wellBoreId);
                     Well? well = wellBore?.WellID is Guid wellId ? FindWellById(wellId) : null;
                     Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null;
@@ -1077,13 +1084,13 @@ else
                     List<TrajectoryLight> existingTrajectories = (await GetExistingTrajectoriesAsync(wellBoreId)).ToList();
                     List<SurveyRun> existingSurveyRuns = GetExistingSurveyRuns(wellBoreId);
 
-                    await SetRowStatusAsync(row, "Parsing file");
+                    await SetCurrentRowStatusAsync("Parsing file");
                     string content = Encoding.UTF8.GetString(row.FileContent);
                     List<SurveyStation> importedStations = ParseSurveyStations(content, row, cluster, wellBore, out int skippedLines);
 
                     if (importedStations.Count < 3)
                     {
-                        await SetRowStatusAsync(row, "Invalid survey run file");
+                        await SetCurrentRowStatusAsync($"Invalid survey run file ({importedStations.Count} stations, {skippedLines} skipped)");
                         failedCount++;
                         continue;
                     }
@@ -1092,13 +1099,13 @@ else
                     {
                         if (row.ParentSurveyRunId is not Guid parentSurveyRunId || !GetRowParentSurveyRunOptions(row).Any(surveyRun => surveyRun.MetaInfo?.ID == parentSurveyRunId))
                         {
-                            await SetRowStatusAsync(row, "Select a parent survey run");
+                            await SetCurrentRowStatusAsync("Select a parent survey run");
                             failedCount++;
                             continue;
                         }
 
-                        await SetRowStatusAsync(row, "Waiting for parent survey run calculation");
-                        if (!await WaitForSurveyRunCalculationAsync(parentSurveyRunId, status => SetRowStatusAsync(row, status), "Parent survey run"))
+                        await SetCurrentRowStatusAsync("Waiting for parent survey run calculation");
+                        if (!await WaitForSurveyRunCalculationAsync(parentSurveyRunId, SetCurrentRowStatusAsync, "Parent survey run"))
                         {
                             failedCount++;
                             continue;
@@ -1111,7 +1118,7 @@ else
 
                     if (replaceExistingTrajectories_)
                     {
-                        await SetRowStatusAsync(row, "Deleting previous trajectories");
+                        await SetCurrentRowStatusAsync("Deleting previous trajectories");
                         await DeleteExistingTrajectoriesAsync(existingTrajectories);
                         existingTrajectories.Clear();
                     }
@@ -1121,17 +1128,17 @@ else
                     TrajectoryLight? sameNameTrajectory = existingTrajectories.FirstOrDefault(trajectory => string.Equals(trajectory?.Name, baseTrajectoryName, StringComparison.OrdinalIgnoreCase));
                     SurveyRun surveyRun = CreateSurveyRun(row, importedStations, fieldId, cluster, well, surveyRunName, surveyInstrumentId);
 
-                    await SetRowStatusAsync(row, "Uploading survey run");
+                    await SetCurrentRowStatusAsync("Uploading survey run");
                     await Api.ClientTrajectory.PostSurveyRunAsync(surveyRun);
                     existingSurveyRuns.Add(surveyRun);
                     allSurveyRunHeavyList_ ??= [];
                     allSurveyRunHeavyList_.Add(surveyRun);
-                    await SetRowStatusAsync(row, "Uploading survey measurements");
+                    await SetCurrentRowStatusAsync("Uploading survey measurements");
                     await UploadSurveyMeasurementChunksAsync(surveyRun.MetaInfo.ID, importedStations.Select(SurveyMeasurement.FromSurveyStation).ToList());
-                    await SetRowStatusAsync(row, "Committing survey measurements");
+                    await SetCurrentRowStatusAsync("Committing survey measurements");
                     await Api.ClientTrajectory.CommitSurveyRunSurveyMeasurementChunksAsync(surveyRun.MetaInfo.ID);
-                    await SetRowStatusAsync(row, "Waiting for survey run calculation");
-                    if (!await WaitForSurveyRunCalculationAsync(surveyRun.MetaInfo.ID, status => SetRowStatusAsync(row, status), "Survey run"))
+                    await SetCurrentRowStatusAsync("Waiting for survey run calculation");
+                    if (!await WaitForSurveyRunCalculationAsync(surveyRun.MetaInfo.ID, SetCurrentRowStatusAsync, "Survey run"))
                     {
                         failedCount++;
                         continue;
@@ -1142,7 +1149,7 @@ else
                         Trajectory? trajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(existingTrajectoryId);
                         if (trajectory == null)
                         {
-                            await SetRowStatusAsync(row, "Matching trajectory not found");
+                            await SetCurrentRowStatusAsync("Matching trajectory not found");
                             failedCount++;
                             continue;
                         }
@@ -1150,24 +1157,36 @@ else
                         ApplySurveyRunToTrajectory(trajectory, row, surveyRun, importedStations, fieldId, cluster, well, baseTrajectoryName);
                         trajectory.LastModificationDate = DateTimeOffset.UtcNow;
 
-                        await SetRowStatusAsync(row, "Replacing matching trajectory");
+                        await SetCurrentRowStatusAsync("Replacing matching trajectory");
                         await Api.ClientTrajectory.PutTrajectoryByIdAsync(existingTrajectoryId, trajectory);
+                        await SetCurrentRowStatusAsync("Waiting for trajectory calculation");
+                        if (!await WaitForTrajectoryCalculationAsync(existingTrajectoryId, SetCurrentRowStatusAsync, "Trajectory"))
+                        {
+                            failedCount++;
+                            continue;
+                        }
                     }
                     else
                     {
                         string trajectoryName = GenerateTrajectoryName(baseTrajectoryName, existingTrajectories);
                         Trajectory trajectory = CreateTrajectory(row, surveyRun, importedStations, fieldId, cluster, well, trajectoryName);
-                        await SetRowStatusAsync(row, "Uploading default trajectory");
+                        await SetCurrentRowStatusAsync("Uploading default trajectory");
                         await Api.ClientTrajectory.PostTrajectoryAsync(trajectory);
+                        await SetCurrentRowStatusAsync("Waiting for trajectory calculation");
+                        if (!await WaitForTrajectoryCalculationAsync(trajectory.MetaInfo.ID, SetCurrentRowStatusAsync, "Trajectory"))
+                        {
+                            failedCount++;
+                            continue;
+                        }
                     }
 
                     uploadedCount++;
-                    await SetRowStatusAsync(row, $"Uploaded ({importedStations.Count} stations, {skippedLines} skipped)");
+                    await SetCurrentRowStatusAsync($"Uploaded ({importedStations.Count} stations, {skippedLines} skipped)");
                 }
                 catch (Exception ex)
                 {
                     failedCount++;
-                    await SetRowStatusAsync(row, "Upload failed");
+                    await SetRowStatusAsync(row, $"Upload failed during {currentUploadStep}: {GetUserFacingExceptionMessage(ex)}");
                     logger.LogError(ex, "Problem while uploading survey run for row {RowId}", row.RowId);
                 }
             }
@@ -1264,6 +1283,51 @@ else
             catch (Exception ex)
             {
                 logger.LogWarning(ex, "Unable to poll SurveyRun calculation state for {SurveyRunId}", surveyRunId);
+                if (attempt == 0 || attempt % 5 == 0)
+                {
+                    await updateStatusAsync($"Waiting for {statusLabel.ToLowerInvariant()} calculation");
+                }
+            }
+
+            await Task.Delay(delayMilliseconds);
+        }
+
+        await updateStatusAsync($"{statusLabel} calculation timed out");
+        return false;
+    }
+
+    private async Task<bool> WaitForTrajectoryCalculationAsync(Guid trajectoryId, Func<string, Task> updateStatusAsync, string statusLabel)
+    {
+        const int maxAttempts = 300;
+        const int delayMilliseconds = 1000;
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            try
+            {
+                Trajectory trajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(trajectoryId, false);
+                if (trajectory.CalculationState == CalculationState.Completed)
+                {
+                    await updateStatusAsync($"{statusLabel} calculation completed");
+                    return true;
+                }
+
+                if (trajectory.CalculationState == CalculationState.Failed)
+                {
+                    await updateStatusAsync(string.IsNullOrWhiteSpace(trajectory.CalculationMessage)
+                        ? $"{statusLabel} calculation failed"
+                        : $"{statusLabel} calculation failed: {trajectory.CalculationMessage}");
+                    return false;
+                }
+
+                if (attempt == 0 || attempt % 5 == 0)
+                {
+                    await updateStatusAsync($"{statusLabel} calculation {trajectory.CalculationProgress:P0}");
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Unable to poll Trajectory calculation state for {TrajectoryId}", trajectoryId);
                 if (attempt == 0 || attempt % 5 == 0)
                 {
                     await updateStatusAsync($"Waiting for {statusLabel.ToLowerInvariant()} calculation");
@@ -1439,16 +1503,17 @@ else
 
             foreach (SurveyRunBatchDescriptionRow row in package.Rows ?? [])
             {
-                rows_.Add(new SurveyRunImportRowState
+                SurveyRunImportRowState rowState = new()
                 {
                     WellBoreId = row.WellBoreId,
                     SurveyInstrumentId = row.SurveyInstrumentId,
                     ParentSurveyRunId = row.ParentSurveyRunId,
                     DepthReferenceName = string.IsNullOrWhiteSpace(row.DepthReferenceName) ? commonDepthReference_ : row.DepthReferenceName,
                     FileName = row.FileName,
-                    FileContent = string.IsNullOrWhiteSpace(row.FileContentBase64) ? null : Convert.FromBase64String(row.FileContentBase64),
-                    Status = "Imported"
-                });
+                    FileContent = string.IsNullOrWhiteSpace(row.FileContentBase64) ? null : Convert.FromBase64String(row.FileContentBase64)
+                };
+                rowState.Status = rowState.FileContent == null ? "Imported" : BuildFileLoadedStatus(rowState);
+                rows_.Add(rowState);
             }
 
             EnsureAtLeastOneRow();
@@ -1497,6 +1562,45 @@ else
         return importedStations;
     }
 
+    private string BuildFileLoadedStatus(SurveyRunImportRowState row)
+    {
+        if (row.FileContent == null || row.FileContent.Length == 0)
+        {
+            return "File loaded";
+        }
+
+        try
+        {
+            string content = Encoding.UTF8.GetString(row.FileContent);
+            WellBore? wellBore = row.WellBoreId is Guid wellBoreId ? FindWellBoreById(wellBoreId) : null;
+            Well? well = wellBore?.WellID is Guid wellId ? FindWellById(wellId) : null;
+            Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null;
+            List<SurveyStation> stations = ParseSurveyStations(content, row, cluster, wellBore, out int skippedLines);
+            return $"File loaded ({stations.Count} stations, {skippedLines} skipped)";
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Problem while previewing a survey run import file");
+            return $"File loaded; preview failed: {GetUserFacingExceptionMessage(ex)}";
+        }
+    }
+
+    private static string GetUserFacingExceptionMessage(Exception ex)
+    {
+        string message = ex.Message;
+        if (ex is ApiException apiException)
+        {
+            string response = string.IsNullOrWhiteSpace(apiException.Response)
+                ? string.Empty
+                : $": {apiException.Response.Trim()}";
+            message = $"HTTP {apiException.StatusCode} {apiException.Message}{response}";
+        }
+
+        message = Regex.Replace(message, @"\s+", " ").Trim();
+        const int maxLength = 240;
+        return message.Length <= maxLength ? message : message[..maxLength] + "...";
+    }
+
     private bool TryParseSurveyStationLine(string line, DepthReferenceContext depthReferenceContext, out SurveyStation? station)
     {
         station = null;
@@ -1541,7 +1645,28 @@ else
 
     private List<string> SplitDelimitedColumns(string line)
     {
-        return selectedSurveyImportSeparator_ switch
+        List<string> columns = SplitDelimitedColumns(line, selectedSurveyImportSeparator_);
+        int requiredColumnCount = new[] { surveyImportMDColumn_, surveyImportInclinationColumn_, surveyImportAzimuthColumn_ }.Max();
+        if (columns.Count >= requiredColumnCount)
+        {
+            return columns;
+        }
+
+        foreach (string separator in SurveyImportSeparators.Where(separator => separator != selectedSurveyImportSeparator_))
+        {
+            List<string> fallbackColumns = SplitDelimitedColumns(line, separator);
+            if (fallbackColumns.Count >= requiredColumnCount)
+            {
+                return fallbackColumns;
+            }
+        }
+
+        return columns;
+    }
+
+    private static List<string> SplitDelimitedColumns(string line, string separator)
+    {
+        return separator switch
         {
             "Semicolon (;)" => line.Split(';').Select(value => value.Trim()).ToList(),
             "Tab" => line.Split('\t').Select(value => value.Trim()).ToList(),
@@ -1859,9 +1984,10 @@ else
     }
 
     private bool IsSurveyRunParentRequired(SurveyRunImportRowState row, List<SurveyStation> stations) =>
-        GetFirstSurveyStationMd(stations) is { } firstMd &&
+        IsRowSidetrack(row) ||
+        (GetFirstSurveyStationMd(stations) is { } firstMd &&
         GetRowWellheadMd(row) is { } wellheadMd &&
-        firstMd > wellheadMd;
+        firstMd > wellheadMd);
 
     private bool IsParentSurveyRunCandidate(SurveyRunImportRowState row, SurveyRun candidate)
     {
@@ -1882,6 +2008,8 @@ else
             return false;
         }
 
+        double tieInMd = GetRowParentTieInMd(row) ?? firstMd;
+
         List<double> candidateMds = candidateStations
             .Select(station => station.MD ?? station.Abscissa)
             .Where(md => md.HasValue)
@@ -1897,8 +2025,8 @@ else
         const double maxTieInGap = 10.0;
         double firstParentMd = candidateMds.First();
         double lastParentMd = candidateMds.Last();
-        return (firstParentMd <= firstMd && firstMd <= lastParentMd) ||
-               (lastParentMd <= firstMd && firstMd - lastParentMd <= maxTieInGap);
+        return (firstParentMd <= tieInMd && tieInMd <= lastParentMd) ||
+               (lastParentMd <= tieInMd && tieInMd - lastParentMd <= maxTieInGap);
     }
 
     private static double? GetFirstSurveyStationMd(List<SurveyStation> stations) =>
@@ -1916,6 +2044,20 @@ else
         Well? well = wellBore?.WellID is Guid wellId ? FindWellById(wellId) : null;
         Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null;
         return cluster?.ReferenceDepth?.GaussianValue?.Mean;
+    }
+
+    private bool IsRowSidetrack(SurveyRunImportRowState row) =>
+        row.WellBoreId is Guid wellBoreId &&
+        FindWellBoreById(wellBoreId)?.IsSidetrack == true;
+
+    private double? GetRowParentTieInMd(SurveyRunImportRowState row)
+    {
+        if (row.WellBoreId is not Guid wellBoreId)
+        {
+            return null;
+        }
+
+        return FindWellBoreById(wellBoreId)?.TieInPointAlongHoleDepth?.GaussianValue?.Mean;
     }
 
     private void ClearInvalidParentSurveyRunSelection(SurveyRunImportRowState row)

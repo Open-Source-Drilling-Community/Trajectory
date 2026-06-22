@@ -539,7 +539,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
 
         private async Task<bool> ResolveTieInPointAsync(SurveyRun surveyRun)
         {
-            (SurveyStation? wellheadTieInPoint, _, string message) = await APIUtils.GetReferencePointAsync(surveyRun.WellBoreID);
+            (SurveyStation? wellheadTieInPoint, NORCE.Drilling.Trajectory.ModelShared.WellBore? wellBore, string message) = await APIUtils.GetReferencePointAsync(surveyRun.WellBoreID);
             if (wellheadTieInPoint is not { } definedWellheadTieInPoint ||
                 (definedWellheadTieInPoint.MD ?? definedWellheadTieInPoint.Abscissa) is not { } wellheadMd)
             {
@@ -553,6 +553,18 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 .Select(md => md!.Value)
                 .Min();
 
+            if (wellBore?.IsSidetrack == true)
+            {
+                if (wellBore.TieInPointAlongHoleDepth?.GaussianValue?.Mean is not { } parentTieInMd ||
+                    !Numeric.IsDefined(parentTieInMd))
+                {
+                    _logger.LogWarning("The sidetrack SurveyRun must define a valid tie-in point along the parent wellbore");
+                    return false;
+                }
+
+                return ResolveParentSurveyRunTieInPoint(surveyRun, parentTieInMd, firstMd);
+            }
+
             if (Numeric.LE(firstMd, wellheadMd))
             {
                 surveyRun.ParentSurveyRunID = null;
@@ -560,9 +572,14 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 return true;
             }
 
+            return ResolveParentSurveyRunTieInPoint(surveyRun, firstMd, firstMd);
+        }
+
+        private bool ResolveParentSurveyRunTieInPoint(SurveyRun surveyRun, double parentTieInMd, double surveyRunStartMd)
+        {
             if (surveyRun.ParentSurveyRunID is not Guid parentSurveyRunId || parentSurveyRunId == Guid.Empty)
             {
-                _logger.LogWarning("The SurveyRun starts below the wellhead and must define a parent SurveyRun");
+                _logger.LogWarning("The SurveyRun must define a parent SurveyRun");
                 return false;
             }
             if (parentSurveyRunId == surveyRun.MetaInfo!.ID)
@@ -578,10 +595,10 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 return false;
             }
 
-            SurveyStation? tieInPoint = CreateParentSurveyRunTieIn(parentStations, firstMd);
+            SurveyStation? tieInPoint = CreateParentSurveyRunTieIn(parentStations, parentTieInMd, surveyRunStartMd);
             if (tieInPoint == null)
             {
-                _logger.LogWarning("The parent SurveyRun does not cover or end close enough to the first SurveyRun MD");
+                _logger.LogWarning("The parent SurveyRun does not cover or end close enough to the SurveyRun tie-in MD");
                 return false;
             }
 
@@ -589,7 +606,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             return true;
         }
 
-        private static SurveyStation? CreateParentSurveyRunTieIn(List<SurveyStation> parentStations, double firstMd)
+        private static SurveyStation? CreateParentSurveyRunTieIn(List<SurveyStation> parentStations, double parentTieInMd, double surveyRunStartMd)
         {
             List<SurveyStation> sortedStations = parentStations
                 .Where(station => (station.MD ?? station.Abscissa) is { } md && Numeric.IsDefined(md))
@@ -603,25 +620,36 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
 
             double firstParentMd = sortedStations.First().MD ?? sortedStations.First().Abscissa!.Value;
             double lastParentMd = sortedStations.Last().MD ?? sortedStations.Last().Abscissa!.Value;
-            if (Numeric.GE(firstMd, firstParentMd) && Numeric.LE(firstMd, lastParentMd))
+            if (Numeric.GE(parentTieInMd, firstParentMd) && Numeric.LE(parentTieInMd, lastParentMd))
             {
-                return SurveyStation.InterpolateAtAbscissa(sortedStations, firstMd, out SurveyStation? tieInPoint)
-                    ? tieInPoint
+                return SurveyStation.InterpolateAtAbscissa(sortedStations, parentTieInMd, out SurveyStation? tieInPoint)
+                    ? CreateSurveyRunLocalTieInPoint(tieInPoint, surveyRunStartMd)
                     : null;
             }
 
             const double maxTieInGap = 10.0;
-            if (Numeric.GT(firstMd, lastParentMd) && Numeric.LE(firstMd - lastParentMd, maxTieInGap))
+            if (Numeric.GT(parentTieInMd, lastParentMd) && Numeric.LE(parentTieInMd - lastParentMd, maxTieInGap))
             {
                 SurveyStation tieInPoint = new(sortedStations.Last())
                 {
-                    MD = firstMd,
-                    Abscissa = firstMd
+                    MD = parentTieInMd,
+                    Abscissa = parentTieInMd
                 };
-                return tieInPoint;
+                return CreateSurveyRunLocalTieInPoint(tieInPoint, surveyRunStartMd);
             }
 
             return null;
+        }
+
+        private static SurveyStation? CreateSurveyRunLocalTieInPoint(SurveyStation? parentTieInPoint, double surveyRunStartMd)
+        {
+            return parentTieInPoint == null
+                ? null
+                : new SurveyStation(parentTieInPoint)
+                {
+                    MD = surveyRunStartMd,
+                    Abscissa = surveyRunStartMd
+                };
         }
 
         private bool InsertOrUpdateSurveyRun(SurveyRun surveyRun, bool update)

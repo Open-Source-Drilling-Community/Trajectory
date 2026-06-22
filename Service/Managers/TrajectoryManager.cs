@@ -906,6 +906,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     return null;
                 }
 
+                tieInPoint = NormalizeSidetrackTieInPointAbscissa(trajectory, wellBore, tieInPoint);
                 trajectory.TieInPoint = tieInPoint;
                 if (!trajectory.Calculate())
                 {
@@ -930,6 +931,35 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 _logger.LogError(ex, "Unexpected error during trajectory calculation");
                 return null;
             }
+        }
+
+        private static SurveyStation NormalizeSidetrackTieInPointAbscissa(Model.Trajectory trajectory, WellBore wellBore, SurveyStation tieInPoint)
+        {
+            if (!wellBore.IsSidetrack ||
+                trajectory.SurveyStationList is not { Count: > 0 } stations ||
+                (tieInPoint.MD ?? tieInPoint.Abscissa) is not { } tieInAbscissa)
+            {
+                return tieInPoint;
+            }
+
+            double? firstStationAbscissa = stations
+                .Select(station => station.MD ?? station.Abscissa)
+                .Where(abscissa => abscissa.HasValue)
+                .Select(abscissa => abscissa!.Value)
+                .OrderBy(abscissa => abscissa)
+                .Cast<double?>()
+                .FirstOrDefault();
+
+            if (firstStationAbscissa is not { } firstAbscissa || !Numeric.LT(firstAbscissa, tieInAbscissa))
+            {
+                return tieInPoint;
+            }
+
+            return new SurveyStation(tieInPoint)
+            {
+                MD = firstAbscissa,
+                Abscissa = firstAbscissa
+            };
         }
 
         /// <summary>
