@@ -1097,6 +1097,7 @@ else
 
                     if (IsSurveyRunParentRequired(row, importedStations))
                     {
+                        TrySelectOnlyParentSurveyRunCandidate(row);
                         if (row.ParentSurveyRunId is not Guid parentSurveyRunId || !GetRowParentSurveyRunOptions(row).Any(surveyRun => surveyRun.MetaInfo?.ID == parentSurveyRunId))
                         {
                             await SetCurrentRowStatusAsync("Select a parent survey run");
@@ -1143,6 +1144,7 @@ else
                         failedCount++;
                         continue;
                     }
+                    await RefreshCachedSurveyRunAsync(surveyRun.MetaInfo.ID);
 
                     if (!replaceExistingTrajectories_ && replaceTrajectoriesWithSameName_ && sameNameTrajectory?.MetaInfo?.ID is Guid existingTrajectoryId && existingTrajectoryId != Guid.Empty)
                     {
@@ -1294,6 +1296,33 @@ else
 
         await updateStatusAsync($"{statusLabel} calculation timed out");
         return false;
+    }
+
+    private async Task RefreshCachedSurveyRunAsync(Guid surveyRunId)
+    {
+        try
+        {
+            SurveyRun surveyRun = await Api.ClientTrajectory.GetSurveyRunByIdAsync(surveyRunId, false, true);
+            if (surveyRun?.MetaInfo?.ID is not Guid refreshedId || refreshedId == Guid.Empty)
+            {
+                return;
+            }
+
+            allSurveyRunHeavyList_ ??= [];
+            int existingIndex = allSurveyRunHeavyList_.FindIndex(item => item?.MetaInfo?.ID == refreshedId);
+            if (existingIndex >= 0)
+            {
+                allSurveyRunHeavyList_[existingIndex] = surveyRun;
+            }
+            else
+            {
+                allSurveyRunHeavyList_.Add(surveyRun);
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Unable to refresh calculated SurveyRun {SurveyRunId} in batch import cache", surveyRunId);
+        }
     }
 
     private async Task<bool> WaitForTrajectoryCalculationAsync(Guid trajectoryId, Func<string, Task> updateStatusAsync, string statusLabel)
@@ -1998,6 +2027,12 @@ else
 
         string content = Encoding.UTF8.GetString(row.FileContent);
         WellBore? wellBore = row.WellBoreId is Guid wellBoreId ? FindWellBoreById(wellBoreId) : null;
+        if (wellBore?.IsSidetrack == true &&
+            (wellBore.ParentWellBoreID is not Guid parentWellBoreId || candidate.WellBoreID != parentWellBoreId))
+        {
+            return false;
+        }
+
         Well? well = wellBore?.WellID is Guid wellId ? FindWellById(wellId) : null;
         Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null;
         List<SurveyStation> stations = ParseSurveyStations(content, row, cluster, wellBore, out _);
@@ -2073,6 +2108,26 @@ else
         {
             row.ParentSurveyRunId = null;
         }
+
+        TrySelectOnlyParentSurveyRunCandidate(row);
+    }
+
+    private bool TrySelectOnlyParentSurveyRunCandidate(SurveyRunImportRowState row)
+    {
+        if (row.ParentSurveyRunId is Guid parentSurveyRunId &&
+            GetRowParentSurveyRunOptions(row).Any(surveyRun => surveyRun.MetaInfo?.ID == parentSurveyRunId))
+        {
+            return true;
+        }
+
+        List<SurveyRun> options = GetRowParentSurveyRunOptions(row);
+        if (options.Count != 1 || options[0].MetaInfo?.ID is not Guid selectedParentSurveyRunId)
+        {
+            return false;
+        }
+
+        row.ParentSurveyRunId = selectedParentSurveyRunId;
+        return true;
     }
 
     private bool MatchesSelectedField(Well well)
