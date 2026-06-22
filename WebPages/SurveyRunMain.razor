@@ -5,6 +5,7 @@
 @inject IJSRuntime JSRuntime
 @inject ITrajectoryAPIUtils Api
 @using System.Globalization
+@using System.Text.Json
 @using System.Text.RegularExpressions
 @using OSDC.UnitConversion.Conversion.DrillingEngineering
 
@@ -30,7 +31,7 @@
         <MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Survey Run</MudText>
         <MudContainer Class="d-flex flex-row mt-4 mb-4">
             <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveSurveyRunAsync">Save</MudButton>
-            <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditorAsync">Cancel</MudButton>
+            <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditorAsync">Close</MudButton>
         </MudContainer>
         @if (currentSurveyRun_ is { CalculationState: CalculationState.Running or CalculationState.Queued })
         {
@@ -506,7 +507,7 @@
                 </TemplateColumn>
                 <TemplateColumn CellClass="d-flex justify-end">
                     <CellTemplate>
-                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteSurveyRunAsync(context.Item.MetaInfo.ID))" />
+                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteSurveyRunAsync(context.Item))" />
                     </CellTemplate>
                 </TemplateColumn>
             </Columns>
@@ -539,6 +540,7 @@
 
     private bool isEditing_;
     private bool hasRenderedUnitReference_;
+    private string? cleanSurveyRunSnapshot_;
     private Guid? surveyRunIdBeingEdited_;
     private Guid? selectedFieldId_;
     private Guid? selectedClusterId_;
@@ -625,6 +627,10 @@
     private int surveyImportInclinationWidth_ = 12;
     private int surveyImportAzimuthStart_ = 25;
     private int surveyImportAzimuthWidth_ = 12;
+    private static readonly JsonSerializerOptions SurveyRunDirtySnapshotJsonOptions = new()
+    {
+        WriteIndented = false
+    };
 
     private IEnumerable<SurveyMeasurement> SurveyMeasurements => currentSurveyRun_?.SurveyMeasurementList ?? [];
 
@@ -746,6 +752,7 @@
         try
         {
             isEditing_ = false;
+            cleanSurveyRunSnapshot_ = null;
             surveyRunIdBeingEdited_ = null;
             selectedSurveyRunList_ = [];
 
@@ -899,6 +906,7 @@
         EnsureSurveyImportUnitsSelected();
         UpdateSelectedSurveyRunReferenceSource();
         UpdatePlots();
+        MarkSurveyRunClean();
         isEditing_ = true;
     }
 
@@ -923,6 +931,7 @@
             EnsureSurveyImportUnitsSelected();
             UpdateSelectedSurveyRunReferenceSource();
             UpdatePlots();
+            MarkSurveyRunClean();
         }
         catch (Exception ex)
         {
@@ -1135,6 +1144,7 @@
             allSurveyRunHeavyList_ = ((IEnumerable<SurveyRun>)await Api.ClientTrajectory.GetAllSurveyRunAsync()).OrderBy(item => item.Name).ToList();
             surveyRunList_ = ApplySurveyRunFilters();
             UpdatePlots();
+            MarkSurveyRunClean();
             isEditing_ = true;
         }
         catch (ApiException ex)
@@ -1222,41 +1232,127 @@
 
     private async Task CloseEditorAsync()
     {
-        await LoadDataAsync();
-    }
-
-    private async Task DeleteSelectedSurveyRunsAsync()
-    {
-        foreach (SurveyRunLight surveyRun in selectedSurveyRunList_.ToList())
+        if (HasUnsavedSurveyRunChanges() && !await ConfirmCloseWithoutSavingAsync())
         {
-            await DeleteSurveyRunAsync(surveyRun.MetaInfo.ID, false);
+            return;
         }
 
         await LoadDataAsync();
     }
 
-    private async Task DeleteSurveyRunAsync(Guid id)
+    private void MarkSurveyRunClean()
     {
-        await DeleteSurveyRunAsync(id, true);
+        cleanSurveyRunSnapshot_ = BuildSurveyRunDirtySnapshot();
     }
 
-    private async Task DeleteSurveyRunAsync(Guid id, bool reloadAfterDelete)
+    private bool HasUnsavedSurveyRunChanges()
     {
+        return cleanSurveyRunSnapshot_ != null &&
+            !string.Equals(cleanSurveyRunSnapshot_, BuildSurveyRunDirtySnapshot(), StringComparison.Ordinal);
+    }
+
+    private string BuildSurveyRunDirtySnapshot()
+    {
+        return JsonSerializer.Serialize(new
+        {
+            Id = surveyRunIdBeingEdited_,
+            SurveyRunId = currentSurveyRun_?.MetaInfo?.ID,
+            Name = currentSurveyRun_?.Name,
+            Description = currentSurveyRun_?.Description,
+            CreationDate = currentSurveyRun_?.CreationDate,
+            SelectedFieldId = selectedFieldId_,
+            SelectedClusterId = selectedClusterId_,
+            SelectedWellId = selectedWellId_,
+            SelectedWellBoreId = selectedWellBoreId_,
+            SelectedSurveyInstrumentId = selectedSurveyInstrumentId_,
+            SurveyRunType = currentSurveyRun_?.SurveyRunType,
+            CalculationType = currentSurveyRun_?.CalculationType,
+            SelectedParentSurveyRunId = selectedParentSurveyRunId_,
+            SelectedSurveyImportFormat = selectedSurveyImportFormat_,
+            SelectedSurveyImportSeparator = selectedSurveyImportSeparator_,
+            SelectedSurveyImportDecimalMarker = selectedSurveyImportDecimalMarker_,
+            SelectedSurveyImportMDUnit = selectedSurveyImportMDUnit_,
+            SelectedSurveyImportInclinationUnit = selectedSurveyImportInclinationUnit_,
+            SelectedSurveyImportAzimuthUnit = selectedSurveyImportAzimuthUnit_,
+            SurveyImportMDColumn = surveyImportMDColumn_,
+            SurveyImportInclinationColumn = surveyImportInclinationColumn_,
+            SurveyImportAzimuthColumn = surveyImportAzimuthColumn_,
+            SurveyImportMDStart = surveyImportMDStart_,
+            SurveyImportMDWidth = surveyImportMDWidth_,
+            SurveyImportInclinationStart = surveyImportInclinationStart_,
+            SurveyImportInclinationWidth = surveyImportInclinationWidth_,
+            SurveyImportAzimuthStart = surveyImportAzimuthStart_,
+            SurveyImportAzimuthWidth = surveyImportAzimuthWidth_,
+            SurveyImportFileName = surveyImportFileName_,
+            Measurements = currentSurveyRun_?.SurveyMeasurementList?
+                .Select(measurement => new
+                {
+                    measurement.MD,
+                    measurement.Inclination,
+                    measurement.Azimuth,
+                    measurement.Annotation
+                })
+                .ToList()
+        }, SurveyRunDirtySnapshotJsonOptions);
+    }
+
+    private async Task DeleteSelectedSurveyRunsAsync()
+    {
+        List<SurveyRunLight> surveyRuns = selectedSurveyRunList_
+            .Where(surveyRun => surveyRun?.MetaInfo?.ID is Guid id && id != Guid.Empty)
+            .ToList();
+
+        if (surveyRuns.Count == 0)
+        {
+            return;
+        }
+
         try
         {
-            bool? result = await DialogService.ShowMessageBox(
-                "Delete Survey Run",
-                "Do you really want to delete this Survey Run?",
-                yesText: "Delete", cancelText: "Cancel");
+            bool confirmed = await ConfirmSurveyRunDeletionAsync(
+                surveyRuns.Count == 1
+                    ? "Do you really want to delete this Survey Run?"
+                    : "Do you really want to delete these Survey Runs?",
+                surveyRuns.Select(GetSurveyRunDisplayName).ToList());
 
-            if (result == true)
+            if (!confirmed)
+            {
+                return;
+            }
+
+            foreach (SurveyRunLight surveyRun in surveyRuns)
+            {
+                await Api.ClientTrajectory.DeleteSurveyRunByIdAsync(surveyRun.MetaInfo.ID);
+            }
+
+            Snackbar.Add(surveyRuns.Count == 1 ? "Survey Run deleted successfully" : $"{surveyRuns.Count} Survey Runs deleted successfully", Severity.Success);
+            await LoadDataAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem while deleting selected Survey Runs");
+            Snackbar.Add("Problem while deleting selected Survey Runs: " + ex.Message, Severity.Error);
+        }
+    }
+
+    private async Task DeleteSurveyRunAsync(SurveyRunLight surveyRun)
+    {
+        if (surveyRun?.MetaInfo?.ID is not Guid id || id == Guid.Empty)
+        {
+            return;
+        }
+
+        try
+        {
+            bool result = await ConfirmSurveyRunDeletionAsync(
+                "Do you really want to delete this Survey Run?",
+                [GetSurveyRunDisplayName(surveyRun)]);
+
+            if (result)
             {
                 await Api.ClientTrajectory.DeleteSurveyRunByIdAsync(id);
                 Snackbar.Add("Survey Run deleted successfully", Severity.Success);
-                if (reloadAfterDelete)
-                {
-                    await LoadDataAsync();
-                }
+                await LoadDataAsync();
             }
         }
         catch (Exception ex)
@@ -1264,6 +1360,44 @@
             logger.LogError(ex, "Problem while deleting Survey Run {SurveyRunId}", id);
             Snackbar.Add("Problem while deleting Survey Run: " + ex.Message, Severity.Error);
         }
+    }
+
+    private async Task<bool> ConfirmSurveyRunDeletionAsync(string message, List<string> surveyRunNames)
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(DialogDeleteTemplate.Message), message },
+            { nameof(DialogDeleteTemplate.Items), surveyRunNames }
+        };
+        IDialogReference dialog = await DialogService.ShowAsync<DialogDeleteTemplate>(
+            "DELETE",
+            parameters,
+            new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+        DialogResult? result = await dialog.Result;
+        return result != null && !result.Canceled;
+    }
+
+    private async Task<bool> ConfirmCloseWithoutSavingAsync()
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Unsaved changes",
+            "Some changes have not been saved. Close without saving?",
+            yesText: "Close without saving",
+            cancelText: "Stay");
+
+        return result == true;
+    }
+
+    private static string GetSurveyRunDisplayName(SurveyRunLight surveyRun)
+    {
+        if (!string.IsNullOrWhiteSpace(surveyRun?.Name))
+        {
+            return surveyRun.Name;
+        }
+
+        return surveyRun?.MetaInfo?.ID is Guid id && id != Guid.Empty
+            ? id.ToString()
+            : "Unnamed Survey Run";
     }
 
     private void SelectedItemsChanged(HashSet<SurveyRunLight> items)

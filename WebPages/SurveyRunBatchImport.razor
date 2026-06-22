@@ -59,9 +59,8 @@ else
     <div hidden="@isHiddenEditPanel_">
         <MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Batch Import</MudText>
         <MudContainer Class="d-flex flex-row mt-4 mb-4">
-            <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Secondary" OnClick="UploadSurveyRunsAsync" Disabled="@isUploading_">Upload survey runs</MudButton>
             <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveBatchImportAsync">Save</MudButton>
-            <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="HandleEditPanelClosed">Cancel</MudButton>
+            <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditPanelAsync">Close</MudButton>
         </MudContainer>
 
         <MudGrid Class="mb-4">
@@ -78,36 +77,6 @@ else
                 <MudTextField Value="@FormatDate(currentBatchImport_.LastModificationDate)" Label="Last Updated" ReadOnly="true" ShrinkLabel />
             </MudItem>
         </MudGrid>
-
-        <MudPaper Class="pa-4 mb-4" Outlined="true">
-            <MudText Typo="Typo.h6">Selection filters</MudText>
-            <MudGrid Class="mt-2">
-                <MudItem xs="12" md="4">
-                    <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId_" ValueChanged="OnFieldChanged" ShrinkLabel Clearable="true">
-                        @foreach (Field field in AvailableFields)
-                        {
-                            <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" md="4">
-                    <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId_" ValueChanged="OnClusterChanged" ShrinkLabel Clearable="true">
-                        @foreach (Cluster cluster in AvailableClusters)
-                        {
-                            <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" md="4">
-                    <MudSelect Label="Well" T="Guid?" Value="@selectedWellId_" ValueChanged="OnWellChanged" ShrinkLabel Clearable="true">
-                        @foreach (Well well in AvailableWells)
-                        {
-                            <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-            </MudGrid>
-        </MudPaper>
 
         <MudPaper Class="pa-4 mb-4" Outlined="true">
             <MudText Typo="Typo.h6">Survey run file format</MudText>
@@ -223,84 +192,117 @@ else
             </MudGrid>
         </MudPaper>
 
-        <MudToolBar Class="px-0">
-            <MudText Typo="Typo.h6">Association table</MudText>
-            <MudSpacer />
-            <MudButton OnClick="AddRow" Color="Color.Success" Variant="Variant.Filled">Add row</MudButton>
-            <MudButton OnClick="ExportAssociationTableAsync" Color="Color.Primary" Variant="Variant.Outlined" Class="ms-2">Export batch description</MudButton>
-        </MudToolBar>
-
         <MudPaper Class="pa-4 mb-4" Outlined="true">
+            <MudToolBar Class="px-0">
+                <MudText Typo="Typo.h6">Association table</MudText>
+                <MudSpacer />
+                <MudButton OnClick="ExportAssociationTableAsync" Color="Color.Primary" Variant="Variant.Outlined">Export batch description</MudButton>
+                <MudButton OnClick="AddRow" Color="Color.Success" Variant="Variant.Filled" Class="ms-2">Add row</MudButton>
+                <MudButton OnClick="UploadSurveyRunsAsync" Color="Color.Secondary" Variant="Variant.Filled" Class="ms-2" Disabled="@isUploading_">Run import</MudButton>
+            </MudToolBar>
+
+            <MudText Typo="Typo.subtitle2">Selection filters</MudText>
+            <MudGrid Class="mt-2 mb-4">
+                <MudItem xs="12" md="4">
+                    <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId_" ValueChanged="OnFieldChanged" ShrinkLabel Clearable="true">
+                        @foreach (Field field in AvailableFields)
+                        {
+                            <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId_" ValueChanged="OnClusterChanged" ShrinkLabel Clearable="true">
+                        @foreach (Cluster cluster in AvailableClusters)
+                        {
+                            <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="4">
+                    <MudSelect Label="Well" T="Guid?" Value="@selectedWellId_" ValueChanged="OnWellChanged" ShrinkLabel Clearable="true">
+                        @foreach (Well well in AvailableWells)
+                        {
+                            <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+            </MudGrid>
+
             <MudText Typo="Typo.caption">Import a batch description file to restore the table, filters, per-row depth references, upload mode, format settings, and selected survey run files.</MudText>
             <div class="mt-2">
                 <InputFile OnChange="ImportAssociationTableAsync" accept=".json,application/json" />
             </div>
-        </MudPaper>
 
-        <MudTable Items="@rows_" T="SurveyRunImportRowState" Hover="true" Dense="true" Bordered="true" Elevation="1">
-            <HeaderContent>
-                <MudTh>Wellbore</MudTh>
-                <MudTh>Survey instrument</MudTh>
-                <MudTh>Parent survey run</MudTh>
-                <MudTh>Depth reference</MudTh>
-                <MudTh>File name</MudTh>
-                <MudTh>File</MudTh>
-                <MudTh>Status</MudTh>
-                <MudTh />
-            </HeaderContent>
-            <RowTemplate>
-                <MudTd DataLabel="Wellbore">
-                    <MudSelect T="Guid?" Value="@context.WellBoreId" ValueChanged="@(value => OnRowWellBoreChanged(context, value))" ShrinkLabel Dense="true">
-                        @foreach (WellBore option in GetRowWellBoreOptions(context))
-                        {
-                            <MudSelectItem T="Guid?" Value="@((Guid?)option.MetaInfo.ID)">@option.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudTd>
-                <MudTd DataLabel="Survey instrument">
-                    <MudSelect T="Guid?" Value="@context.SurveyInstrumentId" ValueChanged="@(value => OnRowSurveyInstrumentChanged(context, value))" ShrinkLabel Dense="true">
-                        @foreach (SurveyInstrumentLight option in AvailableSurveyInstruments)
-                        {
-                            <MudSelectItem T="Guid?" Value="@((Guid?)option.MetaInfo.ID)">@option.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudTd>
-                <MudTd DataLabel="Parent survey run">
-                    <MudSelect T="Guid?" Value="@context.ParentSurveyRunId" ValueChanged="@(value => OnRowParentSurveyRunChanged(context, value))" ShrinkLabel Dense="true" Clearable="true" Disabled="@(!IsRowParentSurveyRunRequired(context))">
-                        @foreach (SurveyRun option in GetRowParentSurveyRunOptions(context))
-                        {
-                            <MudSelectItem T="Guid?" Value="@((Guid?)option.MetaInfo.ID)">@option.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudTd>
-                <MudTd DataLabel="Depth reference">
-                    <MudSelect T="string" Value="@context.DepthReferenceName" ValueChanged="@(value => OnRowDepthReferenceChanged(context, value))" ShrinkLabel Dense="true">
-                        @foreach (string depthReference in DepthReferenceChoices)
-                        {
-                            <MudSelectItem T="string" Value="@depthReference">@depthReference</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudTd>
-                <MudTd DataLabel="File name">
-                    <MudText>@(string.IsNullOrWhiteSpace(context.FileName) ? "No file selected" : context.FileName)</MudText>
-                </MudTd>
-                <MudTd DataLabel="File">
-                    <div @key="context.RowId">
-                        <InputFile OnChange="@(args => OnSurveyRunFileChangedAsync(context, args))" />
-                    </div>
-                </MudTd>
-                <MudTd DataLabel="Status">
-                    <MudText Color="@GetStatusColor(context.Status)">@context.Status</MudText>
-                </MudTd>
-                <MudTd DataLabel="Actions">
-                    <MudButton OnClick="@(() => ClearRowFile(context))" Color="Color.Warning" Variant="Variant.Text">Clear file</MudButton>
-                    <MudButton OnClick="@(() => RemoveRow(context))" Color="Color.Error" Variant="Variant.Text">Remove</MudButton>
-                </MudTd>
-            </RowTemplate>
-            <NoRecordsContent>
-                <MudText>No rows available</MudText>
-            </NoRecordsContent>
-        </MudTable>
+            <MudTable Class="mt-4" Items="@rows_" T="SurveyRunImportRowState" Hover="true" Dense="true" Bordered="true" Elevation="0">
+                <HeaderContent>
+                    <MudTh>Wellbore</MudTh>
+                    <MudTh>Survey instrument</MudTh>
+                    <MudTh>Parent survey run</MudTh>
+                    <MudTh>Depth reference</MudTh>
+                    <MudTh>File name</MudTh>
+                    <MudTh>File</MudTh>
+                    <MudTh>Status</MudTh>
+                    <MudTh />
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="Wellbore">
+                        <MudSelect T="Guid?" Value="@context.WellBoreId" ValueChanged="@(value => OnRowWellBoreChanged(context, value))" ShrinkLabel Dense="true">
+                            @foreach (WellBore option in GetRowWellBoreOptions(context))
+                            {
+                                <MudSelectItem T="Guid?" Value="@((Guid?)option.MetaInfo.ID)">@option.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudTd>
+                    <MudTd DataLabel="Survey instrument">
+                        <MudSelect T="Guid?" Value="@context.SurveyInstrumentId" ValueChanged="@(value => OnRowSurveyInstrumentChanged(context, value))" ShrinkLabel Dense="true">
+                            @foreach (SurveyInstrumentLight option in AvailableSurveyInstruments)
+                            {
+                                <MudSelectItem T="Guid?" Value="@((Guid?)option.MetaInfo.ID)">@option.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudTd>
+                    <MudTd DataLabel="Parent survey run">
+                        <MudSelect T="Guid?" Value="@context.ParentSurveyRunId" ValueChanged="@(value => OnRowParentSurveyRunChanged(context, value))" ShrinkLabel Dense="true" Clearable="true" Disabled="@(!IsRowParentSurveyRunRequired(context))">
+                            @foreach (SurveyRun option in GetRowParentSurveyRunOptions(context))
+                            {
+                                <MudSelectItem T="Guid?" Value="@((Guid?)option.MetaInfo.ID)">@option.Name</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudTd>
+                    <MudTd DataLabel="Depth reference">
+                        <MudSelect T="string" Value="@context.DepthReferenceName" ValueChanged="@(value => OnRowDepthReferenceChanged(context, value))" ShrinkLabel Dense="true">
+                            @foreach (string depthReference in DepthReferenceChoices)
+                            {
+                                <MudSelectItem T="string" Value="@depthReference">@depthReference</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudTd>
+                    <MudTd DataLabel="File name">
+                        <MudText>@(string.IsNullOrWhiteSpace(context.FileName) ? "No file selected" : context.FileName)</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="File">
+                        <div @key="context.RowId">
+                            <InputFile OnChange="@(args => OnSurveyRunFileChangedAsync(context, args))" />
+                        </div>
+                    </MudTd>
+                    <MudTd DataLabel="Status">
+                        <MudText Color="@GetStatusColor(context.Status)">@context.Status</MudText>
+                    </MudTd>
+                    <MudTd DataLabel="Actions">
+                        <MudButton OnClick="@(() => ClearRowFile(context))" Color="Color.Warning" Variant="Variant.Text">Clear file</MudButton>
+                        <MudButton OnClick="@(() => RemoveRow(context))" Color="Color.Error" Variant="Variant.Text">Remove</MudButton>
+                    </MudTd>
+                </RowTemplate>
+                <NoRecordsContent>
+                    <MudText>No rows available</MudText>
+                </NoRecordsContent>
+            </MudTable>
+
+            <div class="d-flex justify-end mt-3">
+                <MudButton OnClick="AddRow" Color="Color.Success" Variant="Variant.Filled">Add row</MudButton>
+            </div>
+        </MudPaper>
     </div>
 }
 
@@ -326,6 +328,7 @@ else
     private bool isUploading_;
     private bool isHiddenMainPanel_;
     private bool isHiddenEditPanel_ = true;
+    private string? cleanBatchImportSnapshot_;
     private string? _searchString;
     private int _gridKey = 0;
 
@@ -363,6 +366,10 @@ else
     {
         PropertyNameCaseInsensitive = true,
         WriteIndented = true
+    };
+    private static readonly JsonSerializerOptions BatchImportDirtySnapshotJsonOptions = new(BatchImportJsonOptions)
+    {
+        WriteIndented = false
     };
 
     private Func<SharedSurveyRunBatchImportLight, bool> _batchImportFilter => item =>
@@ -517,6 +524,7 @@ else
     private async Task AddBatchImport()
     {
         ResetEditorState();
+        MarkBatchImportClean();
         isHiddenMainPanel_ = true;
         isHiddenEditPanel_ = false;
         await Task.Delay(1);
@@ -534,6 +542,7 @@ else
             }
 
             ApplyStoredBatchImport(batchImport);
+            MarkBatchImportClean();
             isHiddenMainPanel_ = true;
             isHiddenEditPanel_ = false;
             await Task.Delay(1);
@@ -549,7 +558,18 @@ else
     {
         isHiddenMainPanel_ = false;
         isHiddenEditPanel_ = true;
+        cleanBatchImportSnapshot_ = null;
         await LoadDataAsync();
+    }
+
+    private async Task CloseEditPanelAsync()
+    {
+        if (HasUnsavedBatchImportChanges() && !await ConfirmCloseWithoutSavingAsync())
+        {
+            return;
+        }
+
+        await HandleEditPanelClosed();
     }
 
     private async Task SaveBatchImportAsync()
@@ -583,8 +603,9 @@ else
 
             if (success)
             {
+                currentBatchImport_ = snapshot;
+                MarkBatchImportClean();
                 Snackbar.Add("Batch import saved successfully", Severity.Success);
-                await HandleEditPanelClosed();
             }
             else
             {
@@ -605,14 +626,18 @@ else
             currentBatchImport_.MetaInfo = new SharedMetaInfo();
         }
         currentBatchImport_.LastModificationDate = DateTimeOffset.UtcNow;
+        return BuildBatchImportSnapshot(currentBatchImport_.LastModificationDate);
+    }
 
+    private SharedSurveyRunBatchImport BuildBatchImportSnapshot(DateTimeOffset? lastModificationDate)
+    {
         return new SharedSurveyRunBatchImport
         {
             MetaInfo = currentBatchImport_.MetaInfo,
             Name = currentBatchImport_.Name,
             Description = currentBatchImport_.Description,
             CreationDate = currentBatchImport_.CreationDate,
-            LastModificationDate = currentBatchImport_.LastModificationDate,
+            LastModificationDate = lastModificationDate,
             SelectedFieldId = selectedFieldId_,
             SelectedClusterId = selectedClusterId_,
             SelectedWellId = selectedWellId_,
@@ -650,6 +675,23 @@ else
                 })
                 .ToList()
         };
+    }
+
+    private void MarkBatchImportClean()
+    {
+        cleanBatchImportSnapshot_ = BuildBatchImportDirtySnapshot();
+    }
+
+    private bool HasUnsavedBatchImportChanges()
+    {
+        return cleanBatchImportSnapshot_ != null &&
+            !string.Equals(cleanBatchImportSnapshot_, BuildBatchImportDirtySnapshot(), StringComparison.Ordinal);
+    }
+
+    private string BuildBatchImportDirtySnapshot()
+    {
+        SharedSurveyRunBatchImport snapshot = BuildBatchImportSnapshot(currentBatchImport_.LastModificationDate);
+        return JsonSerializer.Serialize(snapshot, BatchImportDirtySnapshotJsonOptions);
     }
 
     private void ApplyStoredBatchImport(SharedSurveyRunBatchImport batchImport)
@@ -799,6 +841,17 @@ else
         var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", options);
         var result = await dialog.Result;
         return result != null && !result.Canceled;
+    }
+
+    private async Task<bool> ConfirmCloseWithoutSavingAsync()
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Unsaved changes",
+            "Some changes have not been saved. Close without saving?",
+            yesText: "Close without saving",
+            cancelText: "Stay");
+
+        return result == true;
     }
 
     [Inject]
@@ -961,7 +1014,12 @@ else
     private async Task UploadSurveyRunsAsync()
     {
         List<SurveyRunImportRowState> candidateRows = rows_
-            .Where(row => row.WellBoreId != null || row.FileContent != null)
+            .Select((row, index) => new { Row = row, Index = index })
+            .Where(item => item.Row.WellBoreId != null || item.Row.FileContent != null)
+            .OrderBy(item => GetWellBoreHierarchyDepth(item.Row.WellBoreId))
+            .ThenBy(item => GetWellBoreHierarchyPath(item.Row.WellBoreId), StringComparer.OrdinalIgnoreCase)
+            .ThenBy(item => item.Index)
+            .Select(item => item.Row)
             .ToList();
 
         if (candidateRows.Count == 0)
@@ -973,6 +1031,14 @@ else
         isUploading_ = true;
         int uploadedCount = 0;
         int failedCount = 0;
+        await InvokeAsync(StateHasChanged);
+
+        async Task SetRowStatusAsync(SurveyRunImportRowState row, string status)
+        {
+            row.Status = status;
+            await InvokeAsync(StateHasChanged);
+            await Task.Yield();
+        }
 
         try
         {
@@ -980,40 +1046,44 @@ else
             {
                 try
                 {
+                    await SetRowStatusAsync(row, "Queued");
+
                     if (row.WellBoreId is not Guid wellBoreId)
                     {
-                        row.Status = "Select a wellbore";
+                        await SetRowStatusAsync(row, "Select a wellbore");
                         failedCount++;
                         continue;
                     }
 
                     if (row.FileContent == null || row.FileContent.Length == 0)
                     {
-                        row.Status = "Select a file";
+                        await SetRowStatusAsync(row, "Select a file");
                         failedCount++;
                         continue;
                     }
 
                     if (row.SurveyInstrumentId is not Guid surveyInstrumentId)
                     {
-                        row.Status = "Select a survey instrument";
+                        await SetRowStatusAsync(row, "Select a survey instrument");
                         failedCount++;
                         continue;
                     }
 
+                    await SetRowStatusAsync(row, "Loading context");
                     WellBore? wellBore = FindWellBoreById(wellBoreId);
                     Well? well = wellBore?.WellID is Guid wellId ? FindWellById(wellId) : null;
                     Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null;
                     Guid? fieldId = cluster?.FieldID ?? FindFieldIdForWell(well);
                     List<TrajectoryLight> existingTrajectories = (await GetExistingTrajectoriesAsync(wellBoreId)).ToList();
+                    List<SurveyRun> existingSurveyRuns = GetExistingSurveyRuns(wellBoreId);
 
-                    row.Status = "Parsing file";
+                    await SetRowStatusAsync(row, "Parsing file");
                     string content = Encoding.UTF8.GetString(row.FileContent);
                     List<SurveyStation> importedStations = ParseSurveyStations(content, row, cluster, wellBore, out int skippedLines);
 
                     if (importedStations.Count < 3)
                     {
-                        row.Status = "Invalid survey run file";
+                        await SetRowStatusAsync(row, "Invalid survey run file");
                         failedCount++;
                         continue;
                     }
@@ -1022,7 +1092,14 @@ else
                     {
                         if (row.ParentSurveyRunId is not Guid parentSurveyRunId || !GetRowParentSurveyRunOptions(row).Any(surveyRun => surveyRun.MetaInfo?.ID == parentSurveyRunId))
                         {
-                            row.Status = "Select a parent survey run";
+                            await SetRowStatusAsync(row, "Select a parent survey run");
+                            failedCount++;
+                            continue;
+                        }
+
+                        await SetRowStatusAsync(row, "Waiting for parent survey run calculation");
+                        if (!await WaitForSurveyRunCalculationAsync(parentSurveyRunId, status => SetRowStatusAsync(row, status), "Parent survey run"))
+                        {
                             failedCount++;
                             continue;
                         }
@@ -1034,26 +1111,38 @@ else
 
                     if (replaceExistingTrajectories_)
                     {
-                        row.Status = "Deleting previous trajectories";
+                        await SetRowStatusAsync(row, "Deleting previous trajectories");
                         await DeleteExistingTrajectoriesAsync(existingTrajectories);
                         existingTrajectories.Clear();
                     }
 
                     string baseTrajectoryName = Path.GetFileNameWithoutExtension(row.FileName ?? "survey-run");
+                    string surveyRunName = GenerateSurveyRunName(baseTrajectoryName, existingSurveyRuns);
                     TrajectoryLight? sameNameTrajectory = existingTrajectories.FirstOrDefault(trajectory => string.Equals(trajectory?.Name, baseTrajectoryName, StringComparison.OrdinalIgnoreCase));
-                    SurveyRun surveyRun = CreateSurveyRun(row, importedStations, fieldId, cluster, well, baseTrajectoryName, surveyInstrumentId);
+                    SurveyRun surveyRun = CreateSurveyRun(row, importedStations, fieldId, cluster, well, surveyRunName, surveyInstrumentId);
 
-                    row.Status = "Uploading survey run";
+                    await SetRowStatusAsync(row, "Uploading survey run");
                     await Api.ClientTrajectory.PostSurveyRunAsync(surveyRun);
+                    existingSurveyRuns.Add(surveyRun);
+                    allSurveyRunHeavyList_ ??= [];
+                    allSurveyRunHeavyList_.Add(surveyRun);
+                    await SetRowStatusAsync(row, "Uploading survey measurements");
                     await UploadSurveyMeasurementChunksAsync(surveyRun.MetaInfo.ID, importedStations.Select(SurveyMeasurement.FromSurveyStation).ToList());
+                    await SetRowStatusAsync(row, "Committing survey measurements");
                     await Api.ClientTrajectory.CommitSurveyRunSurveyMeasurementChunksAsync(surveyRun.MetaInfo.ID);
+                    await SetRowStatusAsync(row, "Waiting for survey run calculation");
+                    if (!await WaitForSurveyRunCalculationAsync(surveyRun.MetaInfo.ID, status => SetRowStatusAsync(row, status), "Survey run"))
+                    {
+                        failedCount++;
+                        continue;
+                    }
 
                     if (!replaceExistingTrajectories_ && replaceTrajectoriesWithSameName_ && sameNameTrajectory?.MetaInfo?.ID is Guid existingTrajectoryId && existingTrajectoryId != Guid.Empty)
                     {
                         Trajectory? trajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(existingTrajectoryId);
                         if (trajectory == null)
                         {
-                            row.Status = "Matching trajectory not found";
+                            await SetRowStatusAsync(row, "Matching trajectory not found");
                             failedCount++;
                             continue;
                         }
@@ -1061,24 +1150,24 @@ else
                         ApplySurveyRunToTrajectory(trajectory, row, surveyRun, importedStations, fieldId, cluster, well, baseTrajectoryName);
                         trajectory.LastModificationDate = DateTimeOffset.UtcNow;
 
-                        row.Status = "Replacing matching trajectory";
+                        await SetRowStatusAsync(row, "Replacing matching trajectory");
                         await Api.ClientTrajectory.PutTrajectoryByIdAsync(existingTrajectoryId, trajectory);
                     }
                     else
                     {
                         string trajectoryName = GenerateTrajectoryName(baseTrajectoryName, existingTrajectories);
                         Trajectory trajectory = CreateTrajectory(row, surveyRun, importedStations, fieldId, cluster, well, trajectoryName);
-                        row.Status = "Uploading default trajectory";
+                        await SetRowStatusAsync(row, "Uploading default trajectory");
                         await Api.ClientTrajectory.PostTrajectoryAsync(trajectory);
                     }
 
                     uploadedCount++;
-                    row.Status = $"Uploaded ({importedStations.Count} stations, {skippedLines} skipped)";
+                    await SetRowStatusAsync(row, $"Uploaded ({importedStations.Count} stations, {skippedLines} skipped)");
                 }
                 catch (Exception ex)
                 {
                     failedCount++;
-                    row.Status = "Upload failed";
+                    await SetRowStatusAsync(row, "Upload failed");
                     logger.LogError(ex, "Problem while uploading survey run for row {RowId}", row.RowId);
                 }
             }
@@ -1086,6 +1175,7 @@ else
         finally
         {
             isUploading_ = false;
+            await InvokeAsync(StateHasChanged);
         }
 
         if (uploadedCount > 0)
@@ -1140,6 +1230,51 @@ else
             await Api.ClientTrajectory.PutSurveyRunSurveyMeasurementChunkAsync(surveyRunId, chunkIndex, chunk);
             chunkIndex++;
         }
+    }
+
+    private async Task<bool> WaitForSurveyRunCalculationAsync(Guid surveyRunId, Func<string, Task> updateStatusAsync, string statusLabel)
+    {
+        const int maxAttempts = 300;
+        const int delayMilliseconds = 1000;
+
+        for (int attempt = 0; attempt < maxAttempts; attempt++)
+        {
+            try
+            {
+                SurveyRun surveyRun = await Api.ClientTrajectory.GetSurveyRunByIdAsync(surveyRunId, false, false);
+                if (surveyRun.CalculationState == CalculationState.Completed)
+                {
+                    await updateStatusAsync($"{statusLabel} calculation completed");
+                    return true;
+                }
+
+                if (surveyRun.CalculationState == CalculationState.Failed)
+                {
+                    await updateStatusAsync(string.IsNullOrWhiteSpace(surveyRun.CalculationMessage)
+                        ? $"{statusLabel} calculation failed"
+                        : $"{statusLabel} calculation failed: {surveyRun.CalculationMessage}");
+                    return false;
+                }
+
+                if (attempt == 0 || attempt % 5 == 0)
+                {
+                    await updateStatusAsync($"{statusLabel} calculation {surveyRun.CalculationProgress:P0}");
+                }
+            }
+            catch (Exception ex)
+            {
+                logger.LogWarning(ex, "Unable to poll SurveyRun calculation state for {SurveyRunId}", surveyRunId);
+                if (attempt == 0 || attempt % 5 == 0)
+                {
+                    await updateStatusAsync($"Waiting for {statusLabel.ToLowerInvariant()} calculation");
+                }
+            }
+
+            await Task.Delay(delayMilliseconds);
+        }
+
+        await updateStatusAsync($"{statusLabel} calculation timed out");
+        return false;
     }
 
     private Trajectory CreateTrajectory(SurveyRunImportRowState row, SurveyRun surveyRun, List<SurveyStation> surveyStations, Guid? fieldId, Cluster? cluster, Well? well, string trajectoryName)
@@ -1604,6 +1739,11 @@ else
         return await Api.ClientTrajectory.GetAllTrajectoryLightAsync(null, null, null, wellBoreId);
     }
 
+    private List<SurveyRun> GetExistingSurveyRuns(Guid wellBoreId) =>
+        allSurveyRunHeavyList_?
+            .Where(surveyRun => surveyRun?.WellBoreID == wellBoreId)
+            .ToList() ?? [];
+
     private async Task DeleteExistingTrajectoriesAsync(IEnumerable<TrajectoryLight> existingTrajectories)
     {
         foreach (TrajectoryLight trajectory in existingTrajectories)
@@ -1620,6 +1760,30 @@ else
         HashSet<string> existingNames = existingTrajectories
             .Where(trajectory => !string.IsNullOrWhiteSpace(trajectory?.Name))
             .Select(trajectory => trajectory!.Name!)
+            .ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        if (!existingNames.Contains(baseName))
+        {
+            return baseName;
+        }
+
+        for (int index = 2; index < int.MaxValue; index++)
+        {
+            string candidate = $"{baseName} ({index})";
+            if (!existingNames.Contains(candidate))
+            {
+                return candidate;
+            }
+        }
+
+        return $"{baseName} ({Guid.NewGuid():N})";
+    }
+
+    private static string GenerateSurveyRunName(string baseName, IEnumerable<SurveyRun> existingSurveyRuns)
+    {
+        HashSet<string> existingNames = existingSurveyRuns
+            .Where(surveyRun => !string.IsNullOrWhiteSpace(surveyRun?.Name))
+            .Select(surveyRun => surveyRun!.Name!)
             .ToHashSet(StringComparer.OrdinalIgnoreCase);
 
         if (!existingNames.Contains(baseName))
@@ -1798,6 +1962,55 @@ else
 
     private WellBore? FindWellBoreById(Guid wellBoreId) =>
         wellBoreList_?.FirstOrDefault(wellBore => wellBore?.MetaInfo?.ID == wellBoreId);
+
+    private int GetWellBoreHierarchyDepth(Guid? wellBoreId)
+    {
+        if (wellBoreId is not Guid currentId || currentId == Guid.Empty)
+        {
+            return int.MaxValue;
+        }
+
+        int depth = 0;
+        HashSet<Guid> visited = [];
+        while (currentId != Guid.Empty && visited.Add(currentId))
+        {
+            WellBore? wellBore = FindWellBoreById(currentId);
+            if (wellBore?.ParentWellBoreID is not Guid parentId || parentId == Guid.Empty)
+            {
+                return depth;
+            }
+
+            currentId = parentId;
+            depth++;
+        }
+
+        return depth;
+    }
+
+    private string GetWellBoreHierarchyPath(Guid? wellBoreId)
+    {
+        if (wellBoreId is not Guid currentId || currentId == Guid.Empty)
+        {
+            return string.Empty;
+        }
+
+        List<string> names = [];
+        HashSet<Guid> visited = [];
+        while (currentId != Guid.Empty && visited.Add(currentId))
+        {
+            WellBore? wellBore = FindWellBoreById(currentId);
+            names.Add(wellBore?.Name ?? currentId.ToString());
+            if (wellBore?.ParentWellBoreID is not Guid parentId || parentId == Guid.Empty)
+            {
+                break;
+            }
+
+            currentId = parentId;
+        }
+
+        names.Reverse();
+        return string.Join("/", names);
+    }
 
     private Color GetStatusColor(string status)
     {

@@ -1,14 +1,16 @@
 ﻿@inject ILogger<TrajectoryInterpolationEdit> logger
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 @inject IJSRuntime JSRuntime
 @inject ITrajectoryAPIUtils Api
 @using System.Globalization
 @using System.Text
+@using System.Text.Json
 
 <MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Interpolated Trajectory</MudText>
 <MudContainer Class="d-flex flex-row mt-4 mb-4">
     <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveInterpolatedTrajectory">Save</MudButton>
-    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="SendMessage">Cancel</MudButton>
+    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditorAsync">Close</MudButton>
 </MudContainer>
 
 @if (currentInterpolatedTrajectory is { } traj)
@@ -211,10 +213,20 @@
             {
                 <MudToolBar>
                     <MudText Typo="Typo.h6">Plot</MudText>
+                    <MudSpacer />
+                    <MudNumericField T="int" Value="@maxDisplayedUncertaintiesInPlots"
+                                     ValueChanged="OnMaxDisplayedUncertaintiesInPlotsChanged"
+                                     Label="Max number of ellipses"
+                                     Min="1"
+                                     Max="100000"
+                                     Step="50"
+                                     ShrinkLabel
+                                     Style="width: 180px;" />
                 </MudToolBar>
                 <MudGrid Justify="Justify.Center">
                     <MudItem xs="12">
                         <Scatter3DPlot NameList="@ThreeDNameList" ModeFlagList="@ThreeDModeFlagList" ColorList="@ThreeDColorList"
+                                       MarkerSizeList="@ThreeDMarkerSizeList"
                                        ShowLegendList="@ThreeDShowLegendList"
                                        XValuesList="@ThreeDNorthValuesList" YValuesList="@ThreeDEastValuesList" ZValuesList="@ThreeDTvdValuesList"
                                        YAxisReversed="@true" ZAxisReversed="@true"
@@ -229,6 +241,7 @@
                     </MudItem>
                     <MudItem xs="12" md="6">
                         <ScatterPlot NameList="@HorizontalNameList" ModeFlagList="@HorizontalModeFlagList" ColorList="@HorizontalColorList"
+                                     MarkerSizeList="@HorizontalMarkerSizeList"
                                      ShowLegendList="@HorizontalShowLegendList"
                                      XValuesList="@HorizontalEastValuesList" YValuesList="@HorizontalNorthValuesList"
                                      PlotTitle="" XAxisTitle="@EastCoordinateLabel" YAxisTitle="@NorthCoordinateLabel"
@@ -242,6 +255,7 @@
                     </MudItem>
                     <MudItem xs="12" md="6">
                         <ScatterPlot NameList="@VerticalNameList" ModeFlagList="@VerticalModeFlagList" ColorList="@VerticalColorList"
+                                     MarkerSizeList="@VerticalMarkerSizeList"
                                      ShowLegendList="@VerticalShowLegendList"
                                      XValuesList="@VerticalSectionValuesList" YValuesList="@VerticalTvdValuesList"
                                      PlotTitle="" XAxisTitle="Vertical Section" YAxisTitle="TVD"
@@ -278,6 +292,8 @@
     private Guid? selectedWellId;
     private Guid? selectedWellBoreId;
     private Guid? selectedTrajectoryId;
+    private Guid? interpolatedTrajectoryIdBeingEdited;
+    private string? cleanInterpolatedTrajectorySnapshot;
     private double? supplementaryInterpolationDepthInput;
     private string? supplementaryInterpolationAnnotationInput;
     private List<WellBoreArchitecture>? wellBoreArchitectureHeavyList;
@@ -292,15 +308,19 @@
     private readonly EllipsePlotData ellipsePlotData = new();
     private List<SurveyStationEllipseResult> ellipseResults = [];
     private SurveyStationEllipseCalculation? ellipseCalculation;
+    private int maxDisplayedUncertaintiesInPlots = 200;
     private bool isLoadingCalculatedStations_;
     private bool calculatedStationLoadComplete_;
+    private bool calculatedStationsPanelExpanded_;
     private int calculatedStationChunkCount_;
     private int calculatedStationChunksLoaded_;
     private int calculatedStationsLoaded_;
+    private static readonly JsonSerializerOptions DirtySnapshotJsonOptions = new() { WriteIndented = false };
 
     private List<string> HorizontalNameList => Combine(nameList, ellipsePlotData.HorizontalNameList);
     private List<int> HorizontalModeFlagList => Combine(modeFlagList, ellipsePlotData.HorizontalModeFlagList);
     private List<string> HorizontalColorList => Combine(colorList, ellipsePlotData.HorizontalColorList);
+    private List<int?> HorizontalMarkerSizeList => Combine(Enumerable.Repeat<int?>(null, nameList.Count), ellipsePlotData.HorizontalMarkerSizeList);
     private List<bool> HorizontalShowLegendList => CombineLegendFlags(nameList.Count, ellipsePlotData.HorizontalShowLegendList);
     private List<List<object>> HorizontalEastValuesList => Combine(eastValuesList, ellipsePlotData.HorizontalEastValuesList);
     private List<List<object>> HorizontalNorthValuesList => Combine(northValuesList, ellipsePlotData.HorizontalNorthValuesList);
@@ -308,6 +328,7 @@
     private List<string> VerticalNameList => Combine(nameList, ellipsePlotData.VerticalNameList);
     private List<int> VerticalModeFlagList => Combine(modeFlagList, ellipsePlotData.VerticalModeFlagList);
     private List<string> VerticalColorList => Combine(colorList, ellipsePlotData.VerticalColorList);
+    private List<int?> VerticalMarkerSizeList => Combine(Enumerable.Repeat<int?>(null, nameList.Count), ellipsePlotData.VerticalMarkerSizeList);
     private List<bool> VerticalShowLegendList => CombineLegendFlags(nameList.Count, ellipsePlotData.VerticalShowLegendList);
     private List<List<object>> VerticalSectionValuesList => Combine(verticalSectionValuesList, ellipsePlotData.VerticalSectionValuesList);
     private List<List<object>> VerticalTvdValuesList => Combine(tvdValuesList, ellipsePlotData.VerticalTvdValuesList);
@@ -315,6 +336,7 @@
     private List<string> ThreeDNameList => Combine(nameList, ellipsePlotData.PerpendicularNameList);
     private List<int> ThreeDModeFlagList => Combine(modeFlagList, ellipsePlotData.PerpendicularModeFlagList);
     private List<string> ThreeDColorList => Combine(colorList, ellipsePlotData.PerpendicularColorList);
+    private List<int?> ThreeDMarkerSizeList => Combine(Enumerable.Repeat<int?>(null, nameList.Count), ellipsePlotData.PerpendicularMarkerSizeList);
     private List<bool> ThreeDShowLegendList => CombineLegendFlags(nameList.Count, ellipsePlotData.PerpendicularShowLegendList);
     private List<List<object>> ThreeDNorthValuesList => Combine(northValuesList, ellipsePlotData.PerpendicularNorthValuesList);
     private List<List<object>> ThreeDEastValuesList => Combine(eastValuesList, ellipsePlotData.PerpendicularEastValuesList);
@@ -334,6 +356,7 @@
 
     private async Task LoadDataAsync()
     {
+        interpolatedTrajectoryIdBeingEdited = InterpolatedTrajectoryId;
         currentInterpolatedTrajectory = InterpolatedTrajectoryId is Guid id ? await Api.ClientTrajectory.GetInterpolatedTrajectoryByIdAsync(id) : CreateInterpolatedTrajectory();
         currentInterpolatedTrajectory.SurveyStationList ??= [];
         ResetCalculatedStationLoadingState();
@@ -341,6 +364,7 @@
         SyncSelectorsFromTrajectory(selectedTrajectoryId);
         UpdateReferenceSources();
         UpdatePlots();
+        MarkInterpolatedTrajectoryClean();
         await InvokeAsync(StateHasChanged);
     }
 
@@ -353,7 +377,7 @@
             currentInterpolatedTrajectory.AdditionalAbscissaList = BuildUserAdditionalAbscissasForSave();
             currentInterpolatedTrajectory.InternalAdditionalAbscissaList = await BuildInternalAdditionalAbscissasForSaveAsync();
             currentInterpolatedTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
-            if (InterpolatedTrajectoryId is Guid id)
+            if (interpolatedTrajectoryIdBeingEdited is Guid id)
             {
                 await Api.ClientTrajectory.PutInterpolatedTrajectoryByIdAsync(id, currentInterpolatedTrajectory);
                 currentInterpolatedTrajectory = await Api.ClientTrajectory.GetInterpolatedTrajectoryByIdAsync(id);
@@ -367,11 +391,24 @@
                 currentInterpolatedTrajectory.CreationDate ??= DateTimeOffset.UtcNow;
                 await Api.ClientTrajectory.PostInterpolatedTrajectoryAsync(currentInterpolatedTrajectory);
                 currentInterpolatedTrajectory = await Api.ClientTrajectory.GetInterpolatedTrajectoryByIdAsync(currentInterpolatedTrajectory.MetaInfo.ID);
+                interpolatedTrajectoryIdBeingEdited = currentInterpolatedTrajectory.MetaInfo.ID;
                 currentInterpolatedTrajectory.SurveyStationList ??= [];
                 ResetCalculatedStationLoadingState();
                 Snackbar.Add("Interpolated trajectory created successfully", Severity.Success);
             }
-            await SendMessage();
+            selectedTrajectoryId = currentInterpolatedTrajectory.TrajectoryID == Guid.Empty ? null : currentInterpolatedTrajectory.TrajectoryID;
+            SyncSelectorsFromTrajectory(selectedTrajectoryId);
+            UpdateReferenceSources();
+            UpdatePlots();
+            MarkInterpolatedTrajectoryClean();
+            if (calculatedStationsPanelExpanded_)
+            {
+                await LoadInterpolatedTrajectoryCalculatedStationsAsync(currentInterpolatedTrajectory);
+            }
+            else
+            {
+                await InvokeAsync(StateHasChanged);
+            }
         }
         catch (Exception ex)
         {
@@ -380,10 +417,64 @@
         }
     }
 
-    private Task SendMessage() => ValueChanged.InvokeAsync();
+    private async Task CloseEditorAsync()
+    {
+        if (HasUnsavedInterpolatedTrajectoryChanges() && !await ConfirmCloseWithoutSavingAsync())
+        {
+            return;
+        }
+
+        await ValueChanged.InvokeAsync();
+    }
+
+    private void MarkInterpolatedTrajectoryClean() => cleanInterpolatedTrajectorySnapshot = BuildInterpolatedTrajectoryDirtySnapshot();
+
+    private bool HasUnsavedInterpolatedTrajectoryChanges() =>
+        cleanInterpolatedTrajectorySnapshot != null &&
+        !string.Equals(cleanInterpolatedTrajectorySnapshot, BuildInterpolatedTrajectoryDirtySnapshot(), StringComparison.Ordinal);
+
+    private string BuildInterpolatedTrajectoryDirtySnapshot()
+    {
+        return JsonSerializer.Serialize(new
+        {
+            Id = interpolatedTrajectoryIdBeingEdited,
+            InterpolatedTrajectoryId = currentInterpolatedTrajectory.MetaInfo?.ID,
+            currentInterpolatedTrajectory.Name,
+            currentInterpolatedTrajectory.Description,
+            currentInterpolatedTrajectory.CreationDate,
+            SelectedFieldId = selectedFieldId,
+            SelectedClusterId = selectedClusterId,
+            SelectedWellId = selectedWellId,
+            SelectedWellBoreId = selectedWellBoreId,
+            SelectedTrajectoryId = selectedTrajectoryId,
+            currentInterpolatedTrajectory.InterpolationStep,
+            currentInterpolatedTrajectory.MaximumChordArcDistance,
+            currentInterpolatedTrajectory.InterpolationReferenceDepth,
+            currentInterpolatedTrajectory.IncludeFirstSurvey,
+            currentInterpolatedTrajectory.IncludeLastSurvey,
+            currentInterpolatedTrajectory.InterpolateAtCasingAndLinerShoeDepths,
+            currentInterpolatedTrajectory.InterpolateAtLinerHangerDepths,
+            currentInterpolatedTrajectory.InterpolateAtCasingChangeOfDiameter,
+            AdditionalAbscissas = AdditionalAbscissas
+                .Select(abscissa => new { abscissa.Abscissa, abscissa.Annotation })
+                .ToList()
+        }, DirtySnapshotJsonOptions);
+    }
+
+    private async Task<bool> ConfirmCloseWithoutSavingAsync()
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Unsaved changes",
+            "Some changes have not been saved. Close without saving?",
+            yesText: "Close without saving",
+            cancelText: "Stay");
+
+        return result == true;
+    }
 
     private Task OnCalculatedStationsPanelExpandedChanged(bool expanded)
     {
+        calculatedStationsPanelExpanded_ = expanded;
         if (expanded)
         {
             StartCalculatedStationLoading();
@@ -429,6 +520,16 @@
         try
         {
             int chunkCount = await Api.ClientTrajectory.GetInterpolatedTrajectorySurveyStationChunkCountAsync(interpolatedTrajectoryId);
+            for (int attempt = 0; attempt < 120 && chunkCount <= 0 && (IsCalculationActive(interpolatedTrajectory) || attempt < 3); attempt++)
+            {
+                currentInterpolatedTrajectory = await Api.ClientTrajectory.GetInterpolatedTrajectoryByIdAsync(interpolatedTrajectoryId);
+                currentInterpolatedTrajectory.SurveyStationList = [];
+                interpolatedTrajectory = currentInterpolatedTrajectory;
+                await InvokeAsync(StateHasChanged);
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                chunkCount = await Api.ClientTrajectory.GetInterpolatedTrajectorySurveyStationChunkCountAsync(interpolatedTrajectoryId);
+            }
+
             calculatedStationChunkCount_ = chunkCount;
             await InvokeAsync(StateHasChanged);
             if (chunkCount <= 0)
@@ -465,6 +566,10 @@
             await InvokeAsync(StateHasChanged);
         }
     }
+
+    private static bool IsCalculationActive(InterpolatedTrajectory interpolatedTrajectory) =>
+        interpolatedTrajectory.CalculationState == CalculationState.Running ||
+        interpolatedTrajectory.CalculationState == CalculationState.Queued;
 
     private static InterpolatedTrajectory CreateInterpolatedTrajectory() => new() { MetaInfo = PseudoConstructors.ConstructMetaInfo(), Name = "Default Name", Description = string.Empty, CreationDate = DateTimeOffset.UtcNow, LastModificationDate = DateTimeOffset.UtcNow, SurveyStationList = [], AdditionalAbscissaList = [], InternalAdditionalAbscissaList = [] };
     private List<AnnotatedAbscissa> AdditionalAbscissas => currentInterpolatedTrajectory.AdditionalAbscissaList?.OrderBy(x => x.Abscissa).ToList() ?? [];
@@ -567,8 +672,15 @@
 
     private void UpdateUncertaintyPlotData()
     {
-        DataUtils.UpdateEllipsePlots(currentInterpolatedTrajectory.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData);
+        DataUtils.UpdateEllipsePlots(currentInterpolatedTrajectory.SurveyStationList?.ToList(), ellipseResults, ellipsePlotData, maxDisplayedUncertaintiesInPlots);
         DataUtils.AddExtremeTvdPathPlots(ellipseCalculation, ellipsePlotData);
+    }
+
+    private Task OnMaxDisplayedUncertaintiesInPlotsChanged(int value)
+    {
+        maxDisplayedUncertaintiesInPlots = Math.Max(1, value);
+        UpdateUncertaintyPlotData();
+        return InvokeAsync(StateHasChanged);
     }
     private string GetCoordinateLabel(PositionDirectionType direction) { string? positionReferenceName = Parent?.PositionReferenceName ?? DataUtils.UnitAndReferenceParameters.PositionReferenceName; if (string.Equals(positionReferenceName, "WGS84", StringComparison.OrdinalIgnoreCase)) return direction == PositionDirectionType.North ? "Riemann North" : "Riemann East"; if (string.Equals(positionReferenceName, "Cartographic", StringComparison.OrdinalIgnoreCase)) return direction == PositionDirectionType.North ? "Northing" : "Easting"; return direction == PositionDirectionType.North ? "North" : "East"; }
     private async Task ExportInterpolatedSurveyPointsAsync() { if (currentInterpolatedTrajectory.SurveyStationList is not { Count: > 0 } stations) { Snackbar.Add("No interpolated survey points to export", Severity.Warning); return; } string[] headers = [$"Measured Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]", $"Inclination [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]", $"Azimuth [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]", $"Vertical Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]", $"{NorthCoordinateLabel} [{Parent?.GetUnitLabel("PositionDrilling")}]", $"{EastCoordinateLabel} [{Parent?.GetUnitLabel("PositionDrilling")}]", $"Vertical Section [{Parent?.GetUnitLabel("DepthDrilling")}]", $"Curvature [{Parent?.GetUnitLabel("CurvatureDrilling")}]", $"BUR [{Parent?.GetUnitLabel("CurvatureDrilling")}]", $"TR [{Parent?.GetUnitLabel("CurvatureDrilling")}]", "Annotation"]; StringBuilder builder = new(); builder.AppendLine(string.Join('\t', headers.Select(SanitizeExportField))); foreach (SurveyStation station in stations) { builder.AppendLine(string.Join('\t', new[] { ConvertDepthForExport(station.MD), ConvertQuantityForExport(station.Inclination, "PlaneAngleDrilling"), ConvertQuantityForExport(station.Azimuth, "PlaneAngleDrilling"), ConvertDepthForExport(station.TVD), ConvertPositionForExport(station.RiemannianNorth, PositionDirectionType.North), ConvertPositionForExport(station.RiemannianEast, PositionDirectionType.East), ConvertQuantityForExport(station.VerticalSection, "DepthDrilling"), ConvertQuantityForExport(station.Curvature, "CurvatureDrilling"), ConvertQuantityForExport(station.BUR, "CurvatureDrilling"), ConvertQuantityForExport(station.TUR, "CurvatureDrilling"), station.Annotation ?? string.Empty }.Select(SanitizeExportField))); } string fileName = $"{SanitizeFileName(string.IsNullOrWhiteSpace(currentInterpolatedTrajectory.Name) ? "interpolated-trajectory" : currentInterpolatedTrajectory.Name)}-survey-points.tsv"; string base64Content = Convert.ToBase64String(Encoding.UTF8.GetBytes(builder.ToString())); await JSRuntime.InvokeVoidAsync("trajectoryDownloads.saveTextFileFromBase64", fileName, base64Content, "text/tab-separated-values;charset=utf-8"); Snackbar.Add("Exported interpolated survey points", Severity.Success); }

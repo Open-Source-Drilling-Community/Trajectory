@@ -1,0 +1,269 @@
+@page "/TrajectoryAggregation"
+@inject ILogger<TrajectoryAggregationMain> logger
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject ITrajectoryAPIUtils Api
+
+<MudUnitAndReferenceChoiceTag HttpHost=@Api.HostNameUnitConversion
+                              HttpBasePath=@Api.HostBasePathUnitConversion
+                              HttpController="UnitSystem/"
+                              UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
+                              UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName"
+                              DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
+                              DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
+                              GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                              SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
+                              RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
+                              PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
+                              PositionReferenceNameChanged="@DataUtils.UpdatePositionReferenceName"
+                              WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
+                              CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
+                              LeaseLinePositionReferenceSource="@DataUtils.LeaseLinePositionReferenceSource"
+                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource">
+    @if (aggregationCaseList == null)
+    {
+        <p><em>Loading...</em></p>
+    }
+    else
+    {
+        <div hidden="@isHiddenMainPanel">
+            <MudDataGrid T="TrajectoryAggregationCaseLight" @key="_gridKey"
+                         MultiSelection="true" Items="@aggregationCaseList" SelectedItemsChanged="@SelectedItemsChanged"
+                         Hover="true" RowClick="@RowClicked"
+                         SortMode="SortMode.Multiple" QuickFilter="@_filter" Filterable="false"
+                         ReadOnly="true" ColumnResizeMode="ResizeMode.Column" Elevation="0">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Trajectory Aggregation</MudText>
+                    <MudButton OnClick="@AddAggregationCase" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
+                    <MudButton OnClick="@DeleteSelectedAggregationCases" Color="@Color.Error" Class="add-item-btn"
+                               Disabled="@(selectedAggregationCaseList.Count == 0)">Delete</MudButton>
+                    <MudSpacer />
+                    <MudTextField @bind-Value="_searchString" Placeholder="Search" Adornment="Adornment.Start" Immediate="true"
+                                  AdornmentIcon="@Icons.Material.Filled.Search" IconSize="Size.Medium" Class="mt-0" />
+                </ToolBarContent>
+                <Columns>
+                    <SelectColumn T="TrajectoryAggregationCaseLight" />
+                    <PropertyColumn Property="x => x.Name" Title="Aggregation Case" CellStyle="width: 25%;" Sortable="true" />
+                    <PropertyColumn Property="x => x.Description" Title="Description" CellStyle="width: 30%;" Sortable="true" />
+                    <PropertyColumn Property="x => GetTrajectoryNameFromCase(x)" Title="Trajectory" Sortable="true" />
+                    <TemplateColumn Title="Calculation" Sortable="true">
+                        <CellTemplate>
+                            @CalculationStatusContent(context.Item)
+                        </CellTemplate>
+                    </TemplateColumn>
+                    <TemplateColumn CellClass="d-flex justify-end">
+                        <CellTemplate>
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete"
+                                           OnClick="(() => DeleteAggregationCase(context.Item.MetaInfo.ID))" />
+                        </CellTemplate>
+                    </TemplateColumn>
+                </Columns>
+                <PagerContent>
+                    <MudDataGridPager T="TrajectoryAggregationCaseLight" />
+                </PagerContent>
+            </MudDataGrid>
+        </div>
+    }
+    @if (isHiddenMainPanel && !isHiddenEditPanel)
+    {
+        <TrajectoryAggregationEdit AggregationCaseId="@aggregationCaseIdBeingEdited"
+                                   RigList="@rigList"
+                                   WellBoreList="@wellBoreList"
+                                   WellList="@wellList"
+                                   ClusterList="@clusterList"
+                                   FieldList="@fieldList"
+                                   TrajectoryList="@trajectoryList"
+                                   ValueChanged="HandleEditPanelClosed" />
+    }
+</MudUnitAndReferenceChoiceTag>
+
+@code {
+    private List<TrajectoryAggregationCaseLight> aggregationCaseList = new();
+    private List<TrajectoryAggregationCaseLight> selectedAggregationCaseList = new();
+    private List<TrajectoryLight>? trajectoryList;
+    private List<WellBore>? wellBoreList;
+    private List<Well>? wellList;
+    private List<Cluster>? clusterList;
+    private List<Field>? fieldList;
+    private List<Rig>? rigList;
+    private bool isHiddenMainPanel;
+    private bool isHiddenEditPanel = true;
+    private Guid? aggregationCaseIdBeingEdited;
+    private string? _searchString;
+    private int _gridKey;
+    private CancellationTokenSource? calculationPollingCancellation_;
+
+    protected override async Task OnInitializedAsync() => await LoadDataAsync();
+
+    private async Task LoadDataAsync()
+    {
+        try
+        {
+            isHiddenMainPanel = false;
+            isHiddenEditPanel = true;
+            aggregationCaseIdBeingEdited = null;
+            selectedAggregationCaseList = [];
+
+            var aggregationTask = Api.ClientTrajectory.GetAllTrajectoryAggregationCaseLightAsync();
+            var trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
+            var wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
+            var wellTask = Api.ClientWell.GetAllWellAsync();
+            var clusterTask = Api.ClientCluster.GetAllClusterAsync();
+            var fieldTask = Api.ClientField.GetAllFieldAsync();
+            var rigTask = Api.ClientRig.GetAllRigAsync();
+
+            await Task.WhenAll(aggregationTask, trajectoryTask, wellBoreTask, wellTask, clusterTask, fieldTask, rigTask);
+
+            aggregationCaseList = ((ICollection<TrajectoryAggregationCaseLight>)await aggregationTask).OrderBy(x => x.Name).ToList();
+            trajectoryList = ((ICollection<TrajectoryLight>)await trajectoryTask).OrderBy(x => x.Name).ToList();
+            wellBoreList = ((ICollection<WellBore>)await wellBoreTask).OrderBy(x => x.Name).ToList();
+            wellList = ((ICollection<Well>)await wellTask).OrderBy(x => x.Name).ToList();
+            clusterList = ((ICollection<Cluster>)await clusterTask).OrderBy(x => x.Name).ToList();
+            fieldList = ((ICollection<Field>)await fieldTask).OrderBy(x => x.Name).ToList();
+            rigList = ((ICollection<Rig>)await rigTask).OrderBy(x => x.Name).ToList();
+            StartCalculationPollingIfNeeded();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem Trajectory Aggregation initialization");
+            Snackbar.Add("Failed to load trajectory aggregations.", Severity.Error);
+        }
+
+        _gridKey++;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private RenderFragment CalculationStatusContent(TrajectoryAggregationCaseLight aggregationCase) => @<div style="min-width: 140px;">
+        @if (aggregationCase.CalculationState == CalculationState.Running || aggregationCase.CalculationState == CalculationState.Queued)
+        {
+            <MudText Typo="Typo.caption">@aggregationCase.CalculationState</MudText>
+            <MudProgressLinear Value="@(100.0 * aggregationCase.CalculationProgress)" Color="Color.Info" Size="Size.Small" />
+        }
+        else if (aggregationCase.CalculationState == CalculationState.Failed)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Error">@aggregationCase.CalculationState</MudText>
+        }
+        else
+        {
+            <MudText Typo="Typo.caption">@aggregationCase.CalculationState</MudText>
+        }
+    </div>;
+
+    private void StartCalculationPollingIfNeeded()
+    {
+        if (aggregationCaseList?.Any(IsCalculationActive) != true || calculationPollingCancellation_ != null)
+        {
+            return;
+        }
+
+        calculationPollingCancellation_ = new CancellationTokenSource();
+        _ = PollCalculationProgressAsync(calculationPollingCancellation_.Token);
+    }
+
+    private async Task PollCalculationProgressAsync(CancellationToken cancellationToken)
+    {
+        try
+        {
+            while (!cancellationToken.IsCancellationRequested)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
+                aggregationCaseList = ((ICollection<TrajectoryAggregationCaseLight>)await Api.ClientTrajectory.GetAllTrajectoryAggregationCaseLightAsync()).OrderBy(x => x.Name).ToList();
+                _gridKey++;
+                await InvokeAsync(StateHasChanged);
+                if (!aggregationCaseList.Any(IsCalculationActive))
+                {
+                    break;
+                }
+            }
+        }
+        catch (TaskCanceledException)
+        {
+        }
+        finally
+        {
+            calculationPollingCancellation_?.Dispose();
+            calculationPollingCancellation_ = null;
+        }
+    }
+
+    private static bool IsCalculationActive(TrajectoryAggregationCaseLight aggregationCase) =>
+        aggregationCase.CalculationState == CalculationState.Running ||
+        aggregationCase.CalculationState == CalculationState.Queued;
+
+    private async Task AddAggregationCase()
+    {
+        isHiddenMainPanel = true;
+        isHiddenEditPanel = false;
+        aggregationCaseIdBeingEdited = null;
+        await Task.Delay(1);
+    }
+
+    private async Task EditAggregationCase(Guid id)
+    {
+        isHiddenMainPanel = true;
+        isHiddenEditPanel = false;
+        aggregationCaseIdBeingEdited = id;
+        await Task.Delay(1);
+    }
+
+    private async Task HandleEditPanelClosed() => await LoadDataAsync();
+
+    private Func<TrajectoryAggregationCaseLight, bool> _filter => x =>
+        string.IsNullOrWhiteSpace(_searchString) ||
+        $"{x.Name} {x.Description} {GetTrajectoryNameFromCase(x)}".Contains(_searchString, StringComparison.OrdinalIgnoreCase);
+
+    private void SelectedItemsChanged(HashSet<TrajectoryAggregationCaseLight> items) => selectedAggregationCaseList = items.ToList();
+    private async Task RowClicked(DataGridRowClickEventArgs<TrajectoryAggregationCaseLight> args) => await EditAggregationCase(args.Item.MetaInfo.ID);
+
+    private string GetTrajectoryNameFromCase(TrajectoryAggregationCaseLight aggregationCase)
+    {
+        Guid trajectoryId = aggregationCase.TrajectoryAggregationList?.FirstOrDefault()?.TrajectoryID ?? Guid.Empty;
+        return trajectoryList?.FirstOrDefault(t => t?.MetaInfo?.ID == trajectoryId)?.Name ?? "NA";
+    }
+
+    private async Task<bool> ConfirmDeletion()
+    {
+        var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+        var result = await dialog.Result;
+        return result != null && !result.Canceled;
+    }
+
+    private async Task DeleteAggregationCase(Guid id)
+    {
+        try
+        {
+            if (await ConfirmDeletion())
+            {
+                await Api.ClientTrajectory.DeleteTrajectoryAggregationCaseByIdAsync(id);
+                await LoadDataAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Impossible to delete TrajectoryAggregationCase");
+            Snackbar.Add("Failed to delete trajectory aggregation.", Severity.Error);
+        }
+    }
+
+    private async Task DeleteSelectedAggregationCases()
+    {
+        var toDelete = selectedAggregationCaseList.ToList();
+        if (toDelete.Count == 0) return;
+        try
+        {
+            if (await ConfirmDeletion())
+            {
+                foreach (TrajectoryAggregationCaseLight item in toDelete)
+                {
+                    await Api.ClientTrajectory.DeleteTrajectoryAggregationCaseByIdAsync(item.MetaInfo.ID);
+                }
+                await LoadDataAsync();
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Impossible to delete all TrajectoryAggregationCase records");
+            Snackbar.Add("Failed to delete one or more trajectory aggregations.", Severity.Error);
+        }
+    }
+}

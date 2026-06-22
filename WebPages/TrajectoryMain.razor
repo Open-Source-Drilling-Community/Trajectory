@@ -81,17 +81,17 @@
                     <SelectColumn T="TrajectoryLight" />
                     <PropertyColumn Property="x => x.Name" Title="Trajectory" CellStyle="width: 25%;" Sortable="true" Editable="false" />
                     <PropertyColumn Property="x => x.Description" Title="Description" CellStyle="width: 35%;" Sortable="true" Editable="false" />
-                    <PropertyColumn Property="x => x.TrajectoryType" Title="Type" Sortable="true" Editable="false" />
-                    <PropertyColumn Property="x => x.IsDefinitive" Title="Definitive" Sortable="true" Editable="false" />
                     <PropertyColumn Property="x => GetWellBoreNameFromID(x.WellBoreID)" Title="WellBore" Sortable="true" />
+                    <PropertyColumn Property="x => x.TrajectoryType" Title="Type" Sortable="true" Editable="false" />
                     <TemplateColumn Title="Calculation" Sortable="true">
                         <CellTemplate>
                             @CalculationStatusContent(context.Item)
                         </CellTemplate>
                     </TemplateColumn>
+                    <PropertyColumn Property="x => x.IsDefinitive" Title="Definitive" Sortable="true" Editable="false" />
                     <TemplateColumn CellClass="d-flex justify-end">
                         <CellTemplate>
-                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteTrajectory(context.Item.MetaInfo.ID))" />
+                            <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteTrajectory(context.Item))" />
                         </CellTemplate>
                     </TemplateColumn>
                 </Columns>
@@ -542,25 +542,20 @@
         await LoadDataAsync();
     }
 
-    private async Task<bool> ConfirmDeletion()
+    private async Task DeleteTrajectory(TrajectoryLight trajectory)
     {
-        var options = new DialogOptions
+        if (trajectory?.MetaInfo?.ID is not Guid id || id == Guid.Empty)
         {
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.Small,
-            FullWidth = true
-        };
-        var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", options);
-        var result = await dialog.Result;
-        if (result == null)
-            return false;
-        return (!result.Canceled);
-    }
-    private async Task DeleteTrajectory(Guid id)
-    {
+            return;
+        }
+
         try
         {
-            if (await ConfirmDeletion())
+            bool confirmed = await ConfirmTrajectoryDeletionAsync(
+                "Do you really want to delete this Trajectory?",
+                [GetTrajectoryDisplayName(trajectory)]);
+
+            if (confirmed)
             {
                 await Api.ClientTrajectory.DeleteTrajectoryByIdAsync(id);
                 await LoadDataAsync();
@@ -634,12 +629,20 @@
     private async Task DeleteSelectedTrajectory()
     {
         // Snapshot the list before async work so the selection can't shift mid-delete.
-        var toDelete = selectedTrajectoryList.ToList();
+        var toDelete = selectedTrajectoryList
+            .Where(trajectory => trajectory?.MetaInfo?.ID is Guid id && id != Guid.Empty)
+            .ToList();
         if (toDelete.Count == 0)
             return;
         try
         {
-            if (await ConfirmDeletion())
+            bool confirmed = await ConfirmTrajectoryDeletionAsync(
+                toDelete.Count == 1
+                    ? "Do you really want to delete this Trajectory?"
+                    : "Do you really want to delete these Trajectories?",
+                toDelete.Select(GetTrajectoryDisplayName).ToList());
+
+            if (confirmed)
             {
                 foreach (TrajectoryLight trajectory in toDelete)
                 {
@@ -655,6 +658,33 @@
             Snackbar.Add("Failed to delete one or more trajectories.", Severity.Error);
         }
 
+    }
+
+    private async Task<bool> ConfirmTrajectoryDeletionAsync(string message, List<string> trajectoryNames)
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(DialogDeleteTemplate.Message), message },
+            { nameof(DialogDeleteTemplate.Items), trajectoryNames }
+        };
+        IDialogReference dialog = await DialogService.ShowAsync<DialogDeleteTemplate>(
+            "DELETE",
+            parameters,
+            new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+        DialogResult? result = await dialog.Result;
+        return result != null && !result.Canceled;
+    }
+
+    private static string GetTrajectoryDisplayName(TrajectoryLight trajectory)
+    {
+        if (!string.IsNullOrWhiteSpace(trajectory?.Name))
+        {
+            return trajectory.Name;
+        }
+
+        return trajectory?.MetaInfo?.ID is Guid id && id != Guid.Empty
+            ? id.ToString()
+            : "Unnamed Trajectory";
     }
 
     //Quick filter - filter gobally across multiple columns with the same input

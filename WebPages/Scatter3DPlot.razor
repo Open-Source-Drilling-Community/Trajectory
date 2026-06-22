@@ -14,6 +14,7 @@
     [Parameter] public List<string> NameList { get; set; }
     [Parameter] public List<int> ModeFlagList { get; set; }   // 1=lines, 2=markers, 3=lines+markers
     [Parameter] public List<string> ColorList { get; set; }
+    [Parameter] public List<int?>? MarkerSizeList { get; set; }
     [Parameter] public List<bool>? ShowLegendList { get; set; }
 
     [Parameter] public List<List<object>> XValuesList { get; set; }
@@ -73,7 +74,7 @@
     private string? _lastPlotSignature;
     private bool _forceReplot = true;
 
-    // Readonly properties for PlotlyChart: since our chart is controlled directly (chart.Clear(), chart.AddTrace(), ...), we don't need two-way binding via @bind-Data, @bind-Layout, @bind-Config.
+    // Readonly properties for PlotlyChart. Traces are rebuilt in this list and applied with one React() call.
     private readonly IList<ITrace> data = new List<ITrace>(); // PlotlyChart uses this list; must be instantiated and not replaced to avoid breaking the reference from PlotlyChart.
     private readonly Config config = new() { Responsive = true };
     private readonly Layout layout = new()
@@ -181,23 +182,15 @@
         }
     }
 
-    private async Task ManageTracesAsync()
+    private Task ManageTracesAsync()
     {
-        if (_disposed) return;
-        if (!_plotlyReady || chart == null) return;
+        if (_disposed) return Task.CompletedTask;
+        if (!_plotlyReady || chart == null) return Task.CompletedTask;
 
-        if (XValuesList == null || YValuesList == null || ZValuesList == null) return;
-        if (!XValuesList.Any() || !YValuesList.Any() || !ZValuesList.Any()) return;
+        if (XValuesList == null || YValuesList == null || ZValuesList == null) return Task.CompletedTask;
+        if (!XValuesList.Any() || !YValuesList.Any() || !ZValuesList.Any()) return Task.CompletedTask;
 
-        // Clear can throw if Plotly JS side not fully initialized (timing/circuit reconnect)
-        try
-        {
-            await chart.Clear();
-        }
-        catch (NullReferenceException)
-        {
-            return;
-        }
+        data.Clear();
 
         int nTraces = new[] { XValuesList.Count, YValuesList.Count, ZValuesList.Count }.Min();
 
@@ -252,6 +245,10 @@
                 marker = (ColorList != null && i < ColorList.Count)
                     ? new Plotly.Blazor.Traces.Scatter3DLib.Marker { Color = ColorList[i] }
                     : new Plotly.Blazor.Traces.Scatter3DLib.Marker { AutoColorScale = true };
+                if (MarkerSizeList != null && i < MarkerSizeList.Count && MarkerSizeList[i] is int markerSize)
+                {
+                    marker.Size = markerSize;
+                }
             }
 
             // Line config only when lines requested
@@ -276,11 +273,10 @@
             if (wantsMarkers && marker != null) trace.Marker = marker;
             if (wantsLines && line != null) trace.Line = line;
 
-            await chart.AddTrace(trace);
-
-            // Small delay optional; usually not needed once async is correct
-            // await Task.Delay(1);
+            data.Add(trace);
         }
+
+        return Task.CompletedTask;
     }
 
     private void ManageLayout()
@@ -362,6 +358,7 @@
         AppendListSignature(builder, NameList);
         AppendListSignature(builder, ModeFlagList);
         AppendListSignature(builder, ColorList);
+        AppendListSignature(builder, MarkerSizeList);
         AppendListSignature(builder, ShowLegendList);
         AppendNestedListSignature(builder, XValuesList);
         AppendNestedListSignature(builder, YValuesList);

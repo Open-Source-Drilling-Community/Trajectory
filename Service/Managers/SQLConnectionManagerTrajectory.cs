@@ -129,6 +129,40 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     "EndMD real",
                     "TrajectoryRealizationChunk text" }
                 },
+                { "TrajectoryAggregationCaseTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
+                    "EpsilonL real",
+                    "EpsilonKappa real",
+                    "Alpha real",
+                    "InterpolationInterval real",
+                    "DistanceReferenceCoarseningThreshold real",
+                    "TrajectoryAggregationCase text" }
+                },
+                { "SurveyPointChunkTable", new string[] {
+                    "ID text primary key",
+                    "OwnerID text",
+                    "OwnerType text",
+                    "ChunkIndex integer",
+                    "PointCount integer",
+                    "StartMD real",
+                    "EndMD real",
+                    "SurveyPointChunk text" }
+                },
+                { "TrajectoryAggregationDistanceResultChunkTable", new string[] {
+                    "ID text primary key",
+                    "OwnerID text",
+                    "ChunkIndex integer",
+                    "ResultCount integer",
+                    "StartReferenceMD real",
+                    "EndReferenceMD real",
+                    "TrajectoryAggregationDistanceResultChunk text" }
+                },
                 { "SurveyRunBatchImportTable", new string[] {
                     "ID text primary key",
                     "MetaInfo text",

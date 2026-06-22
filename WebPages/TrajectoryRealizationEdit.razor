@@ -1,14 +1,16 @@
 @inject ILogger<TrajectoryRealizationEdit> logger
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 @inject ITrajectoryAPIUtils Api
 @inject IJSRuntime JSRuntime
 @using System.Globalization
 @using System.Text
+@using System.Text.Json
 
 <MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Trajectory Realization Case</MudText>
 <MudContainer Class="d-flex flex-row mt-4 mb-4">
     <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveCase">Save</MudButton>
-    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="SendMessage">Cancel</MudButton>
+    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditorAsync">Close</MudButton>
 </MudContainer>
 
 @if (currentCase is { } item)
@@ -235,13 +237,15 @@
     private Guid? selectedWellId;
     private Guid? selectedWellBoreId;
     private Guid? selectedTrajectoryId;
+    private Guid? caseIdBeingEdited;
+    private string? cleanCaseSnapshot;
     private bool advancedMode;
     private List<List<SurveyPoint>> realizedTrajectories = [];
     private bool isLoadingRealizations;
     private bool realizationsLoaded;
     private int realizationChunkCount;
     private int realizationChunksLoaded;
-    private int maxDisplayedRealizations = 50;
+    private int maxDisplayedRealizations = 100;
     private string realizationLoadingText = string.Empty;
     private string exportFileName = "trajectory-realizations.tsv";
     private string exportSeparatorKey = "Tab";
@@ -261,6 +265,7 @@
     private readonly List<List<object>> plotEastValuesList = [];
     private readonly List<List<object>> plotTvdValuesList = [];
     private readonly List<List<object>> plotVerticalSectionValuesList = [];
+    private static readonly JsonSerializerOptions DirtySnapshotJsonOptions = new() { WriteIndented = false };
 
     private double? CoarseningMaximumDistanceValue => currentCase.CoarseningMaximumDistance;
     private bool CanUseRealizations => realizedTrajectories.Count > 0;
@@ -275,16 +280,19 @@
         {
             if (CaseId is Guid id && id != Guid.Empty)
             {
+                caseIdBeingEdited = id;
                 currentCase = await Api.ClientTrajectory.GetTrajectoryRealizationCaseByIdAsync(id, false);
                 SyncSelectorsFromTrajectory(currentCase.TrajectoryID);
             }
             else
             {
+                caseIdBeingEdited = null;
                 currentCase = CreateCase();
             }
 
             exportFileName = $"{SanitizeFileName(string.IsNullOrWhiteSpace(currentCase.Name) ? "trajectory-realizations" : currentCase.Name)}.tsv";
             UpdateReferenceSources();
+            MarkCaseClean();
         }
         catch (Exception ex)
         {
@@ -347,17 +355,20 @@
 
         try
         {
-            if (CaseId is Guid id && id != Guid.Empty)
+            if (caseIdBeingEdited is Guid id && id != Guid.Empty)
             {
                 await Api.ClientTrajectory.PutTrajectoryRealizationCaseByIdAsync(id, currentCase);
             }
             else
             {
                 await Api.ClientTrajectory.PostTrajectoryRealizationCaseAsync(currentCase);
+                caseIdBeingEdited = currentCase.MetaInfo.ID;
             }
 
             Snackbar.Add("Trajectory realization case saved.", Severity.Success);
-            await SendMessage();
+            SyncSelectorsFromTrajectory(currentCase.TrajectoryID);
+            UpdateReferenceSources();
+            MarkCaseClean();
         }
         catch (Exception ex)
         {
@@ -366,7 +377,52 @@
         }
     }
 
-    private async Task SendMessage() => await ValueChanged.InvokeAsync();
+    private async Task CloseEditorAsync()
+    {
+        if (HasUnsavedCaseChanges() && !await ConfirmCloseWithoutSavingAsync())
+        {
+            return;
+        }
+
+        await ValueChanged.InvokeAsync();
+    }
+
+    private void MarkCaseClean() => cleanCaseSnapshot = BuildCaseDirtySnapshot();
+
+    private bool HasUnsavedCaseChanges() =>
+        cleanCaseSnapshot != null &&
+        !string.Equals(cleanCaseSnapshot, BuildCaseDirtySnapshot(), StringComparison.Ordinal);
+
+    private string BuildCaseDirtySnapshot()
+    {
+        return JsonSerializer.Serialize(new
+        {
+            Id = caseIdBeingEdited,
+            CaseId = currentCase.MetaInfo?.ID,
+            currentCase.Name,
+            currentCase.Description,
+            currentCase.CreationDate,
+            SelectedFieldId = selectedFieldId,
+            SelectedClusterId = selectedClusterId,
+            SelectedWellId = selectedWellId,
+            SelectedWellBoreId = selectedWellBoreId,
+            SelectedTrajectoryId = selectedTrajectoryId,
+            currentCase.RealizationCount,
+            currentCase.CoarseningMaximumDistance,
+            currentCase.RandomSeed
+        }, DirtySnapshotJsonOptions);
+    }
+
+    private async Task<bool> ConfirmCloseWithoutSavingAsync()
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Unsaved changes",
+            "Some changes have not been saved. Close without saving?",
+            yesText: "Close without saving",
+            cancelText: "Stay");
+
+        return result == true;
+    }
 
     private async Task OnRealizationsPanelExpandedChanged(bool expanded)
     {
@@ -576,7 +632,7 @@
 
     private List<string> GetTrajectoryHeaders() =>
     [
-        LengthHeader("MD"),
+        DepthReferenceHeader("MD"),
         InclinationHeader("Incl"),
         AzimuthHeader("Az"),
         DepthReferenceHeader("TVD"),
@@ -590,7 +646,7 @@
 
     private List<string> GetSurveyPointExportValues(SurveyPoint point) =>
     [
-        ConvertLengthForExport(point.MD ?? point.Abscissa),
+        ConvertDepthReferenceForExport(point.MD ?? point.Abscissa),
         ConvertInclinationForExport(point.Inclination),
         ConvertAzimuthForExport(point.Azimuth),
         ConvertDepthReferenceForExport(GetTvd(point)),

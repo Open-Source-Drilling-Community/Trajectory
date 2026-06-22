@@ -18,6 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <PackageReference Include="OSDC.DotnetLibraries.Drilling.Section" Version="1.0.0" />
 	  <PackageReference Include="OSDC.DotnetLibraries.Drilling.Surveying" Version="1.2.19" />
 	</ItemGroup>
 

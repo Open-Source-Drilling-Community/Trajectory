@@ -24,6 +24,8 @@
     [Parameter]
     public List<string>? ColorList { get; set; }
     [Parameter]
+    public List<int?>? MarkerSizeList { get; set; }
+    [Parameter]
     public List<bool>? ShowLegendList { get; set; }
 
     [Parameter]
@@ -195,26 +197,19 @@
         }
     }
 
-    private async Task ManageTracesAsync()
+    private Task ManageTracesAsync()
     {
         if (_disposed || !_plotlyReady || chart == null || Parent == null || XUnit == null || YUnit == null)
         {
-            return;
+            return Task.CompletedTask;
         }
 
         if (XValuesList == null || YValuesList == null || !XValuesList.Any() || XValuesList.Count != YValuesList.Count)
         {
-            return;
+            return Task.CompletedTask;
         }
 
-        try
-        {
-            await chart.Clear();
-        }
-        catch (NullReferenceException)
-        {
-            return;
-        }
+        data.Clear();
 
         for (int i = 0; i < XValuesList.Count; i++)
         {
@@ -267,11 +262,15 @@
             Marker marker = ColorList != null && i < ColorList.Count
                 ? new Marker { Color = ColorList[i] }
                 : new Marker { AutoColorScale = true };
+            if (MarkerSizeList != null && i < MarkerSizeList.Count && MarkerSizeList[i] is int markerSize)
+            {
+                marker.Size = markerSize;
+            }
             Line line = ColorList != null && i < ColorList.Count
                 ? new Line { Color = ColorList[i] }
                 : new Line();
 
-            await chart.AddTrace(new Scatter
+            data.Add(new Scatter
             {
                 Name = name,
                 Mode = modeFlag,
@@ -282,6 +281,8 @@
                 Y = yValuesInUserUnit
             });
         }
+
+        return Task.CompletedTask;
     }
 
     private void ManageLayout()
@@ -425,6 +426,7 @@
         AppendListSignature(builder, NameList);
         AppendListSignature(builder, ModeFlagList);
         AppendListSignature(builder, ColorList);
+        AppendListSignature(builder, MarkerSizeList);
         AppendListSignature(builder, ShowLegendList);
         AppendNestedListSignature(builder, XValuesList);
         AppendNestedListSignature(builder, YValuesList);

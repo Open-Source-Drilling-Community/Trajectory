@@ -1,31 +1,53 @@
-﻿<MudNavMenu>
-    <MudNavLink Href="/Trajectory/webapp/Home" Match="NavLinkMatch.Prefix">Home</MudNavLink>    
-    <MudNavLink Href="/Trajectory/webapp/SurveyRun" Match="NavLinkMatch.All">Survey Run</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/Trajectory" Match="NavLinkMatch.All">Trajectory</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/TrajectoryInterpolated" Match="NavLinkMatch.All">Interpolated Trajectory</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/TrajectoryRealization" Match="NavLinkMatch.All">Trajectory Realizations</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/TrajectoryMinimumDistanceCalculation" Match="NavLinkMatch.All">Trajectory Minimum Distance</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/SurveyRunMinimumDistanceCalculation" Match="NavLinkMatch.All">Survey Run Minimum Distance</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/SurveyRunBatchImport" Match="NavLinkMatch.All">Survey Run Batch Import</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/WellBoreArchitecture" Match="NavLinkMatch.All">Wellbore Architecture</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/Rig" Match="NavLinkMatch.All">Rig</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/WellBore" Match="NavLinkMatch.All">Wellbore</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/WellBoreTrajectories" Match="NavLinkMatch.All">Wellbore Trajectories</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/WellBoreSurveyRuns" Match="NavLinkMatch.All">Wellbore Survey Runs</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/Well" Match="NavLinkMatch.All">Well</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/WellTrajectories" Match="NavLinkMatch.All">Well Trajectories</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/WellSurveyRuns" Match="NavLinkMatch.All">Well Survey Runs</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/Cluster" Match="NavLinkMatch.All">Cluster</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/ClusterTrajectories" Match="NavLinkMatch.All">Cluster Trajectories</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/ClusterSurveyRuns" Match="NavLinkMatch.All">Cluster Survey Runs</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/Field" Match="NavLinkMatch.All">Field</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/FieldTrajectories" Match="NavLinkMatch.All">Field Trajectories</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/FieldSurveyRuns" Match="NavLinkMatch.All">Field Survey Runs</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/CartographicProjection" Match="NavLinkMatch.All">Cartographic Projection</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/GeodeticDatum" Match="NavLinkMatch.All">Geodetic Datum</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/Spheroid" Match="NavLinkMatch.All">Spheroid</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/EarthMagneticField" Match="NavLinkMatch.All">Earth Magnetic Field</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/GravitationalField" Match="NavLinkMatch.All">Gravitational Field</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/VerticalDatum" Match="NavLinkMatch.All">Vertical Datum</MudNavLink>
-    <MudNavLink Href="/Trajectory/webapp/StatisticsTrajectory" Match="NavLinkMatch.All">Usage Statistics</MudNavLink>
+<MudNavMenu>
+    <MudNavLink Href="/Trajectory/webapp/Home" Match="NavLinkMatch.Prefix">Home</MudNavLink>
+
+    <MudNavGroup Title="Survey Management" Expanded="true">
+        <MudNavLink Href="/Trajectory/webapp/SurveyRun" Match="NavLinkMatch.All">Survey Run</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/Trajectory" Match="NavLinkMatch.All">Trajectory</MudNavLink>
+    </MudNavGroup>
+
+    <MudNavGroup Title="Survey Calculations" Expanded="false">
+        <MudNavLink Href="/Trajectory/webapp/TrajectoryInterpolated" Match="NavLinkMatch.All">Interpolated Trajectory</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/TrajectoryRealization" Match="NavLinkMatch.All">Trajectory Realizations</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/TrajectoryAggregation" Match="NavLinkMatch.All">Trajectory Aggregation</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/SurveyRunMinimumDistanceCalculation" Match="NavLinkMatch.All">Survey Run Distance</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/TrajectoryMinimumDistanceCalculation" Match="NavLinkMatch.All">Trajectory Distance</MudNavLink>
+    </MudNavGroup>
+
+    <MudNavGroup Title="Import/Export" Expanded="false">
+        <MudNavLink Href="/Trajectory/webapp/SurveyRunBatchImport" Match="NavLinkMatch.All">Batch Import</MudNavLink>
+    </MudNavGroup>
+
+    <MudNavGroup Title="Survey Display" Expanded="false">
+        <MudNavLink Href="/Trajectory/webapp/WellBoreSurveyRuns" Match="NavLinkMatch.All">Wellbore Survey Runs</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/WellBoreTrajectories" Match="NavLinkMatch.All">Wellbore Trajectories</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/WellSurveyRuns" Match="NavLinkMatch.All">Well Survey Runs</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/WellTrajectories" Match="NavLinkMatch.All">Well Trajectories</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/ClusterSurveyRuns" Match="NavLinkMatch.All">Cluster Survey Runs</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/ClusterTrajectories" Match="NavLinkMatch.All">Cluster Trajectories</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/FieldSurveyRuns" Match="NavLinkMatch.All">Field Survey Runs</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/FieldTrajectories" Match="NavLinkMatch.All">Field Trajectories</MudNavLink>
+    </MudNavGroup>
+
+    <MudNavGroup Title="Contextual Data" Expanded="false">
+        <MudNavLink Href="/Trajectory/webapp/Rig" Match="NavLinkMatch.All">Rig</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/WellBoreArchitecture" Match="NavLinkMatch.All">Wellbore Architecture</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/WellBore" Match="NavLinkMatch.All">Wellbore</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/Well" Match="NavLinkMatch.All">Well</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/Cluster" Match="NavLinkMatch.All">Cluster</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/Field" Match="NavLinkMatch.All">Field</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/CartographicProjection" Match="NavLinkMatch.All">Cartographic Projections</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/GeodeticDatum" Match="NavLinkMatch.All">Geodetic Datums</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/Spheroid" Match="NavLinkMatch.All">Spheroid</MudNavLink>
+    </MudNavGroup>
+
+    <MudNavGroup Title="Calculators" Expanded="false">
+        <MudNavLink Href="/Trajectory/webapp/VerticalDatum" Match="NavLinkMatch.All">Vertical Datum Conversion</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/GravitationalField" Match="NavLinkMatch.All">Gravitational Field</MudNavLink>
+        <MudNavLink Href="/Trajectory/webapp/EarthMagneticField" Match="NavLinkMatch.All">Magnetic Field</MudNavLink>
+    </MudNavGroup>
+
+    <MudNavGroup Title="Statistics" Expanded="false">
+        <MudNavLink Href="/Trajectory/webapp/StatisticsTrajectory" Match="NavLinkMatch.All">Usage Statistics</MudNavLink>
+    </MudNavGroup>
 </MudNavMenu>

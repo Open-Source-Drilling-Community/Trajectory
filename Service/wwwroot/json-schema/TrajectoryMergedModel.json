@@ -5588,6 +5588,549 @@
         }
       }
     },
+    "/TrajectoryAggregationCase": {
+      "get": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "GetAllTrajectoryAggregationCaseId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "PostTrajectoryAggregationCase",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryAggregationCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryAggregationCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryAggregationCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryAggregationCase/MetaInfo": {
+      "get": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "GetAllTrajectoryAggregationCaseMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryAggregationCase/{id}": {
+      "get": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "GetTrajectoryAggregationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeResults",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryAggregationCase"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "PutTrajectoryAggregationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryAggregationCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryAggregationCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryAggregationCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "DeleteTrajectoryAggregationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryAggregationCase/{caseId}/Trajectories/{trajectoryId}": {
+      "get": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "GetTrajectoryAggregationByCaseAndTrajectoryId",
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "trajectoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeResults",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryAggregation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryAggregationCase/{caseId}/Trajectories/{trajectoryId}/AggregatedSurveyPoints/ChunkCount": {
+      "get": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "GetTrajectoryAggregationAggregatedSurveyPointChunkCount",
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "trajectoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryAggregationCase/{caseId}/Trajectories/{trajectoryId}/AggregatedSurveyPoints/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "GetTrajectoryAggregationAggregatedSurveyPointChunk",
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "trajectoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyPointChunk"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryAggregationCase/{caseId}/Trajectories/{trajectoryId}/CoarsenedReferencePoints/ChunkCount": {
+      "get": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "GetTrajectoryAggregationCoarsenedReferencePointChunkCount",
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "trajectoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryAggregationCase/{caseId}/Trajectories/{trajectoryId}/CoarsenedReferencePoints/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "GetTrajectoryAggregationCoarsenedReferencePointChunk",
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "trajectoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyPointChunk"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryAggregationCase/{caseId}/Trajectories/{trajectoryId}/DistanceResults/ChunkCount": {
+      "get": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "GetTrajectoryAggregationDistanceResultChunkCount",
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "trajectoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryAggregationCase/{caseId}/Trajectories/{trajectoryId}/DistanceResults/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "GetTrajectoryAggregationDistanceResultChunk",
+        "parameters": [
+          {
+            "name": "caseId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "trajectoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryAggregationDistanceResultChunk"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryAggregationCase/LightData": {
+      "get": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "GetAllTrajectoryAggregationCaseLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrajectoryAggregationCaseLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryAggregationCase/HeavyData": {
+      "get": {
+        "tags": [
+          "TrajectoryAggregationCase"
+        ],
+        "operationId": "GetAllTrajectoryAggregationCase",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrajectoryAggregationCase"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/TrajectoryMinimumDistanceCalculation": {
       "get": {
         "tags": [
@@ -14101,6 +14644,44 @@
           }
         }
       },
+      "SurveyPointChunk": {
+        "type": "object",
+        "properties": {
+          "OwnerID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "OwnerType": {
+            "type": "string",
+            "nullable": true
+          },
+          "ChunkIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "PointCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "StartMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "SurveyPointList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyPoint"
+            },
+            "nullable": true
+          }
+        }
+      },
       "SurveyRun": {
         "type": "object",
         "properties": {
@@ -14978,6 +15559,398 @@
             "format": "double"
           }
         }
+      },
+      "TrajectoryAggregation": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "TrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "OriginalReferenceStationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CoarsenedReferencePointCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SectionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "AggregatedSurveyPointCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "DistanceResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SectionList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryAggregationSection"
+            },
+            "nullable": true
+          },
+          "AggregatedSurveyPointList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyPoint"
+            },
+            "nullable": true
+          },
+          "CoarsenedReferenceTrajectory": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyPoint"
+            },
+            "nullable": true
+          },
+          "DistanceResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryAggregationDistanceResult"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryAggregationCase": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "EpsilonL": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EpsilonKappa": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Alpha": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "InterpolationInterval": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "DistanceReferenceCoarseningThreshold": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TrajectoryAggregationList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryAggregation"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryAggregationCaseLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "EpsilonL": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EpsilonKappa": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Alpha": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "InterpolationInterval": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "DistanceReferenceCoarseningThreshold": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TrajectoryAggregationList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryAggregation"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryAggregationDistanceResult": {
+        "type": "object",
+        "properties": {
+          "ReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceTVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ClosestMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ClosestTVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ClosestNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ClosestEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "CenterToCenterDistance": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ClosestSectionIndex": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "ClosestSectionType": {
+            "$ref": "#/components/schemas/TrajectoryAggregationSectionType"
+          },
+          "SectionParameter": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryAggregationDistanceResultChunk": {
+        "type": "object",
+        "properties": {
+          "OwnerID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ChunkIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ResultCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "StartReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ResultList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryAggregationDistanceResult"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryAggregationSection": {
+        "type": "object",
+        "properties": {
+          "SectionIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SectionType": {
+            "$ref": "#/components/schemas/TrajectoryAggregationSectionType"
+          },
+          "StartMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StartInclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StartAzimuth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StartTVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StartNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StartEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "CircularArcCurvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "CircularArcStartToolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ConstantCurvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ConstantToolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "BuildRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TurnRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryAggregationSectionType": {
+        "enum": [
+          "CircularArc",
+          "ConstantBuildAndTurn",
+          "ConstantCurvatureAndToolface"
+        ],
+        "type": "string"
       },
       "TrajectoryLight": {
         "type": "object",

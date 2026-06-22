@@ -2033,6 +2033,22 @@ namespace NORCE.Drilling.Trajectory.ModelShared
 					},
 			};
 		}
+		public static SurveyPointChunk ConstructSurveyPointChunk()
+		{
+			return new SurveyPointChunk
+			{
+				OwnerID = new Guid(),
+				OwnerType = "Default OwnerType",
+				ChunkIndex = 0, 
+				PointCount = 0, 
+				StartMD = null, 
+				EndMD = null, 
+				SurveyPointList = new List<SurveyPoint>
+					{
+						ConstructSurveyPoint(),
+					},
+			};
+		}
 		public static SurveyRun ConstructSurveyRun()
 		{
 			return new SurveyRun
@@ -2292,6 +2308,115 @@ namespace NORCE.Drilling.Trajectory.ModelShared
 				TieInPoint = ConstructSurveyStation(),
 				CalculationType = (TrajectoryCalculationType)0,
 				MDStep = 0.0, 
+			};
+		}
+		public static TrajectoryAggregation ConstructTrajectoryAggregation()
+		{
+			return new TrajectoryAggregation
+			{
+				ID = new Guid(),
+				TrajectoryID = new Guid(),
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0, 
+				CalculationMessage = "Default CalculationMessage",
+				OriginalReferenceStationCount = 0, 
+				CoarsenedReferencePointCount = 0, 
+				SectionCount = 0, 
+				AggregatedSurveyPointCount = 0, 
+				DistanceResultCount = 0, 
+				SectionList = new List<TrajectoryAggregationSection>
+					{
+						ConstructTrajectoryAggregationSection(),
+					},
+				AggregatedSurveyPointList = new List<SurveyPoint>
+					{
+						ConstructSurveyPoint(),
+					},
+				CoarsenedReferenceTrajectory = new List<SurveyPoint>
+					{
+						ConstructSurveyPoint(),
+					},
+				DistanceResultList = new List<TrajectoryAggregationDistanceResult>
+					{
+						ConstructTrajectoryAggregationDistanceResult(),
+					},
+			};
+		}
+		public static TrajectoryAggregationCase ConstructTrajectoryAggregationCase()
+		{
+			return new TrajectoryAggregationCase
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0, 
+				CalculationMessage = "Default CalculationMessage",
+				EpsilonL = null, 
+				EpsilonKappa = null, 
+				Alpha = null, 
+				InterpolationInterval = null, 
+				DistanceReferenceCoarseningThreshold = null, 
+				TrajectoryAggregationList = new List<TrajectoryAggregation>
+					{
+						ConstructTrajectoryAggregation(),
+					},
+			};
+		}
+		public static TrajectoryAggregationDistanceResult ConstructTrajectoryAggregationDistanceResult()
+		{
+			return new TrajectoryAggregationDistanceResult
+			{
+				ReferenceMD = null, 
+				ReferenceTVD = null, 
+				ReferenceNorth = null, 
+				ReferenceEast = null, 
+				ClosestMD = null, 
+				ClosestTVD = null, 
+				ClosestNorth = null, 
+				ClosestEast = null, 
+				CenterToCenterDistance = null, 
+				ClosestSectionIndex = null, 
+				ClosestSectionType = (TrajectoryAggregationSectionType)0,
+				SectionParameter = null, 
+			};
+		}
+		public static TrajectoryAggregationDistanceResultChunk ConstructTrajectoryAggregationDistanceResultChunk()
+		{
+			return new TrajectoryAggregationDistanceResultChunk
+			{
+				OwnerID = new Guid(),
+				ChunkIndex = 0, 
+				ResultCount = 0, 
+				StartReferenceMD = null, 
+				EndReferenceMD = null, 
+				ResultList = new List<TrajectoryAggregationDistanceResult>
+					{
+						ConstructTrajectoryAggregationDistanceResult(),
+					},
+			};
+		}
+		public static TrajectoryAggregationSection ConstructTrajectoryAggregationSection()
+		{
+			return new TrajectoryAggregationSection
+			{
+				SectionIndex = 0, 
+				SectionType = (TrajectoryAggregationSectionType)0,
+				StartMD = null, 
+				EndMD = null, 
+				StartInclination = null, 
+				StartAzimuth = null, 
+				StartTVD = null, 
+				StartNorth = null, 
+				StartEast = null, 
+				CircularArcCurvature = null, 
+				CircularArcStartToolface = null, 
+				ConstantCurvature = null, 
+				ConstantToolface = null, 
+				BuildRate = null, 
+				TurnRate = null, 
 			};
 		}
 		public static TrajectoryMinimumDistanceCalculation ConstructTrajectoryMinimumDistanceCalculation()

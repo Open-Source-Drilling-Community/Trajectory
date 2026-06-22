@@ -6,7 +6,9 @@ namespace NORCE.Drilling.Trajectory.WebPages;
 
 public static class DataUtils
 {
-    private const int MaxDisplayedUncertaintyEllipses = 200;
+    private const int DefaultMaxDisplayedUncertaintyEllipses = 200;
+    private const int ExtremeTvdPathMarkerSize2D = 4;
+    private const int ExtremeTvdPathMarkerSize3D = 2;
 
     // default values
     public static string FLOATING_COLOUR = "rgba(70, 50, 240, 0.86)";
@@ -384,7 +386,8 @@ public static class DataUtils
     public static void UpdateEllipsePlots(
         IReadOnlyCollection<SurveyStation>? surveyStations,
         IReadOnlyCollection<SurveyStationEllipseResult>? ellipseResults,
-        EllipsePlotData ellipsePlotData)
+        EllipsePlotData ellipsePlotData,
+        int maxDisplayedUncertaintyEllipses = DefaultMaxDisplayedUncertaintyEllipses)
     {
         ellipsePlotData.Clear();
         if (surveyStations is not { Count: > 0 } || ellipseResults is not { Count: > 0 })
@@ -404,7 +407,7 @@ public static class DataUtils
             plotCandidates.Add((station, result));
         }
 
-        foreach ((SurveyStation station, SurveyStationEllipseResult result) in SelectEvenlySpacedEllipses(plotCandidates))
+        foreach ((SurveyStation station, SurveyStationEllipseResult result) in SelectEvenlySpacedEllipses(plotCandidates, maxDisplayedUncertaintyEllipses))
         {
             AddHorizontalEllipseTrace(station, result.HorizontalEllipse, ellipsePlotData);
             AddVerticalEllipseTrace(station, result.VerticalEllipse, ellipsePlotData);
@@ -426,9 +429,11 @@ public static class DataUtils
     }
 
     private static IReadOnlyList<(SurveyStation Station, SurveyStationEllipseResult Result)> SelectEvenlySpacedEllipses(
-        IReadOnlyList<(SurveyStation Station, SurveyStationEllipseResult Result)> candidates)
+        IReadOnlyList<(SurveyStation Station, SurveyStationEllipseResult Result)> candidates,
+        int maxDisplayedUncertaintyEllipses)
     {
-        if (candidates.Count <= MaxDisplayedUncertaintyEllipses)
+        int displayCount = System.Math.Max(1, maxDisplayedUncertaintyEllipses);
+        if (candidates.Count <= displayCount)
         {
             return candidates;
         }
@@ -437,9 +442,11 @@ public static class DataUtils
             .OrderBy(candidate => candidate.Result.MD ?? candidate.Station.MD ?? candidate.Station.Abscissa ?? double.MaxValue)
             .ToList();
         HashSet<int> selectedIndexes = [];
-        for (int sampleIndex = 0; sampleIndex < MaxDisplayedUncertaintyEllipses; sampleIndex++)
+        for (int sampleIndex = 0; sampleIndex < displayCount; sampleIndex++)
         {
-            int sourceIndex = (int)System.Math.Round(sampleIndex * (orderedCandidates.Count - 1.0) / (MaxDisplayedUncertaintyEllipses - 1.0));
+            int sourceIndex = displayCount == 1
+                ? 0
+                : (int)System.Math.Round(sampleIndex * (orderedCandidates.Count - 1.0) / (displayCount - 1.0));
             selectedIndexes.Add(System.Math.Clamp(sourceIndex, 0, orderedCandidates.Count - 1));
         }
 
@@ -491,6 +498,7 @@ public static class DataUtils
         plotData.HorizontalNameList.Add("Horizontal ellipses");
         plotData.HorizontalModeFlagList.Add(1);
         plotData.HorizontalColorList.Add(COLORSCALE[0]);
+        plotData.HorizontalMarkerSizeList.Add(null);
         plotData.HorizontalShowLegendList.Add(showLegend);
         plotData.HorizontalNorthValuesList.Add(northValues);
         plotData.HorizontalEastValuesList.Add(eastValues);
@@ -524,6 +532,7 @@ public static class DataUtils
         plotData.VerticalNameList.Add("Vertical ellipses");
         plotData.VerticalModeFlagList.Add(1);
         plotData.VerticalColorList.Add(COLORSCALE[0]);
+        plotData.VerticalMarkerSizeList.Add(null);
         plotData.VerticalShowLegendList.Add(showLegend);
         plotData.VerticalSectionValuesList.Add(verticalSectionValues);
         plotData.VerticalTvdValuesList.Add(tvdValues);
@@ -574,6 +583,7 @@ public static class DataUtils
         plotData.PerpendicularNameList.Add("Perpendicular ellipses");
         plotData.PerpendicularModeFlagList.Add(1);
         plotData.PerpendicularColorList.Add(COLORSCALE[0]);
+        plotData.PerpendicularMarkerSizeList.Add(null);
         plotData.PerpendicularShowLegendList.Add(showLegend);
         plotData.PerpendicularNorthValuesList.Add(northValues);
         plotData.PerpendicularEastValuesList.Add(eastValues);
@@ -620,6 +630,7 @@ public static class DataUtils
         plotData.HorizontalNameList.Add(name);
         plotData.HorizontalModeFlagList.Add(3);
         plotData.HorizontalColorList.Add(color);
+        plotData.HorizontalMarkerSizeList.Add(ExtremeTvdPathMarkerSize2D);
         plotData.HorizontalShowLegendList.Add(true);
         plotData.HorizontalNorthValuesList.Add(northValues);
         plotData.HorizontalEastValuesList.Add(eastValues);
@@ -627,6 +638,7 @@ public static class DataUtils
         plotData.VerticalNameList.Add(name);
         plotData.VerticalModeFlagList.Add(3);
         plotData.VerticalColorList.Add(color);
+        plotData.VerticalMarkerSizeList.Add(ExtremeTvdPathMarkerSize2D);
         plotData.VerticalShowLegendList.Add(true);
         plotData.VerticalSectionValuesList.Add(verticalSectionValues);
         plotData.VerticalTvdValuesList.Add(tvdValues);
@@ -634,6 +646,7 @@ public static class DataUtils
         plotData.PerpendicularNameList.Add(name);
         plotData.PerpendicularModeFlagList.Add(3);
         plotData.PerpendicularColorList.Add(color);
+        plotData.PerpendicularMarkerSizeList.Add(ExtremeTvdPathMarkerSize3D);
         plotData.PerpendicularShowLegendList.Add(true);
         plotData.PerpendicularNorthValuesList.Add(northValues);
         plotData.PerpendicularEastValuesList.Add(eastValues);
@@ -655,6 +668,7 @@ public class EllipsePlotData
     public List<string> HorizontalNameList { get; } = [];
     public List<int> HorizontalModeFlagList { get; } = [];
     public List<string> HorizontalColorList { get; } = [];
+    public List<int?> HorizontalMarkerSizeList { get; } = [];
     public List<bool> HorizontalShowLegendList { get; } = [];
     public List<List<object>> HorizontalNorthValuesList { get; } = [];
     public List<List<object>> HorizontalEastValuesList { get; } = [];
@@ -662,6 +676,7 @@ public class EllipsePlotData
     public List<string> VerticalNameList { get; } = [];
     public List<int> VerticalModeFlagList { get; } = [];
     public List<string> VerticalColorList { get; } = [];
+    public List<int?> VerticalMarkerSizeList { get; } = [];
     public List<bool> VerticalShowLegendList { get; } = [];
     public List<List<object>> VerticalSectionValuesList { get; } = [];
     public List<List<object>> VerticalTvdValuesList { get; } = [];
@@ -669,6 +684,7 @@ public class EllipsePlotData
     public List<string> PerpendicularNameList { get; } = [];
     public List<int> PerpendicularModeFlagList { get; } = [];
     public List<string> PerpendicularColorList { get; } = [];
+    public List<int?> PerpendicularMarkerSizeList { get; } = [];
     public List<bool> PerpendicularShowLegendList { get; } = [];
     public List<List<object>> PerpendicularNorthValuesList { get; } = [];
     public List<List<object>> PerpendicularEastValuesList { get; } = [];
@@ -679,18 +695,21 @@ public class EllipsePlotData
         HorizontalNameList.Clear();
         HorizontalModeFlagList.Clear();
         HorizontalColorList.Clear();
+        HorizontalMarkerSizeList.Clear();
         HorizontalShowLegendList.Clear();
         HorizontalNorthValuesList.Clear();
         HorizontalEastValuesList.Clear();
         VerticalNameList.Clear();
         VerticalModeFlagList.Clear();
         VerticalColorList.Clear();
+        VerticalMarkerSizeList.Clear();
         VerticalShowLegendList.Clear();
         VerticalSectionValuesList.Clear();
         VerticalTvdValuesList.Clear();
         PerpendicularNameList.Clear();
         PerpendicularModeFlagList.Clear();
         PerpendicularColorList.Clear();
+        PerpendicularMarkerSizeList.Clear();
         PerpendicularShowLegendList.Clear();
         PerpendicularNorthValuesList.Clear();
         PerpendicularEastValuesList.Clear();

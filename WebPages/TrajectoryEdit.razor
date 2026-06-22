@@ -1,18 +1,19 @@
 ﻿@inject ILogger<TrajectoryEdit> logger
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 @inject IJSRuntime JSRuntime
 @inject ITrajectoryAPIUtils Api
 @using System.Net.Http.Json
 @using System.Globalization
 @using System.Reflection
 @using System.Text
+@using System.Text.Json
 @using System.Text.RegularExpressions
 
 <MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Trajectory</MudText>
 <MudContainer Class="d-flex flex-row mt-4 mb-4">
-    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Secondary" OnClick="DuplicateTrajectory">Duplicate</MudButton>
     <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveTrajectory">Save</MudButton>
-    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="SendMessage">Cancel</MudButton>
+    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditorAsync">Close</MudButton>
 </MudContainer>
 
 @if (currentTrajectory is { } traj)
@@ -372,8 +373,14 @@
     private Guid? selectedClusterId;
     private Guid? selectedWellId;
     private Guid? selectedWellBoreId;
+    private Guid? trajectoryIdBeingEdited;
+    private string? cleanTrajectorySnapshot;
     private static readonly TrajectoryType[] TrajectoryTypes = Enum.GetValues<TrajectoryType>();
     private static readonly TrajectoryCalculationType[] TrajectoryCalculationTypes = Enum.GetValues<TrajectoryCalculationType>();
+    private static readonly JsonSerializerOptions TrajectoryDirtySnapshotJsonOptions = new()
+    {
+        WriteIndented = false
+    };
     private static readonly string[] CalculationMethods =
     [
         "Minimum Curvature Method",
@@ -479,6 +486,7 @@
             interpolateAtCasingAndLinerShoeDepths = false;
             interpolateAtLinerHangingDepths = false;
             interpolateAtCasingDiameterChangeDepths = false;
+            trajectoryIdBeingEdited = TrajectoryId;
 
             if (WellBoreList == null || WellBoreList.Count == 0)
             {
@@ -512,14 +520,70 @@
         }
         //Plot is updated at each reload of the Single Page Application to make sure the chart is not disposed
         UpdatePlots();
+        MarkTrajectoryClean();
         await InvokeAsync(() => { StateHasChanged(); });
     }
 
-    //Send message to parent component
-    private async Task SendMessage()
+    private async Task CloseEditorAsync()
     {
+        if (HasUnsavedTrajectoryChanges() && !await ConfirmCloseWithoutSavingAsync())
+        {
+            return;
+        }
+
         await ValueChanged.InvokeAsync();
     }
+
+    private void MarkTrajectoryClean()
+    {
+        cleanTrajectorySnapshot = BuildTrajectoryDirtySnapshot();
+    }
+
+    private bool HasUnsavedTrajectoryChanges()
+    {
+        return cleanTrajectorySnapshot != null &&
+            !string.Equals(cleanTrajectorySnapshot, BuildTrajectoryDirtySnapshot(), StringComparison.Ordinal);
+    }
+
+    private string BuildTrajectoryDirtySnapshot()
+    {
+        return JsonSerializer.Serialize(new
+        {
+            Id = trajectoryIdBeingEdited,
+            TrajectoryId = currentTrajectory.MetaInfo?.ID,
+            currentTrajectory.Name,
+            currentTrajectory.Description,
+            currentTrajectory.CreationDate,
+            SelectedFieldId = selectedFieldId,
+            SelectedClusterId = selectedClusterId,
+            SelectedWellId = selectedWellId,
+            SelectedWellBoreId = selectedWellBoreId,
+            currentTrajectory.TrajectoryType,
+            currentTrajectory.IsDefinitive,
+            currentTrajectory.CalculationType,
+            currentTrajectory.MDStep,
+            Sections = currentTrajectory.SurveyRunSectionList?
+                .OrderBy(section => section.StartAbscissa)
+                .Select(section => new
+                {
+                    section.SurveyRunID,
+                    section.StartAbscissa
+                })
+                .ToList()
+        }, TrajectoryDirtySnapshotJsonOptions);
+    }
+
+    private async Task<bool> ConfirmCloseWithoutSavingAsync()
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Unsaved changes",
+            "Some changes have not been saved. Close without saving?",
+            yesText: "Close without saving",
+            cancelText: "Stay");
+
+        return result == true;
+    }
+
     //Add/Edit panel controls
     private async Task SaveTrajectory()
     {
@@ -529,15 +593,16 @@
             {
                 ApplySelectedContext();
                 NormalizeSurveyRunSections();
-                if (TrajectoryId != null)
+                if (trajectoryIdBeingEdited is Guid trajectoryId)
                 {
                     currentTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
-                    await Api.ClientTrajectory.PutTrajectoryByIdAsync(TrajectoryId.Value, currentTrajectory);
-                    currentTrajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(TrajectoryId.Value);
+                    await Api.ClientTrajectory.PutTrajectoryByIdAsync(trajectoryId, currentTrajectory);
+                    currentTrajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(trajectoryId);
                     currentTrajectory.SurveyStationList ??= [];
                     ResetCalculatedStationLoadingState();
+                    SyncSelectorsFromWellBore(currentTrajectory.WellBoreID);
+                    MarkTrajectoryClean();
                     Snackbar.Add("Trajectory updated successfully", Severity.Success);
-                    await SendMessage();
                 }
                 else
                 {
@@ -547,10 +612,12 @@
                     currentTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
                     await Api.ClientTrajectory.PostTrajectoryAsync(currentTrajectory);
                     currentTrajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(currentTrajectory.MetaInfo.ID);
+                    trajectoryIdBeingEdited = currentTrajectory.MetaInfo.ID;
                     currentTrajectory.SurveyStationList ??= [];
                     ResetCalculatedStationLoadingState();
+                    SyncSelectorsFromWellBore(currentTrajectory.WellBoreID);
+                    MarkTrajectoryClean();
                     Snackbar.Add("Trajectory created successfully", Severity.Success);
-                    await SendMessage();
                 }
             }
             else
@@ -648,36 +715,6 @@
             await InvokeAsync(StateHasChanged);
         }
     }
-    private async Task DuplicateTrajectory()
-    {
-        try
-        {
-            if (currentTrajectory is { } && IsValidTrajectory(currentTrajectory))
-            {
-                ApplySelectedContext();
-                NormalizeSurveyRunSections();
-                Trajectory newTraj = DeepCopyTrajectory(currentTrajectory);
-                var nowDate = DateTimeOffset.UtcNow;
-                newTraj.CreationDate = nowDate;
-                newTraj.LastModificationDate = nowDate;
-                newTraj.MetaInfo.ID = Guid.NewGuid();
-                newTraj.Name += "-copy";
-                await Api.ClientTrajectory.PostTrajectoryAsync(newTraj);
-                Snackbar.Add("Trajectory duplicated successfully", Severity.Success);
-                await SendMessage();
-            }
-            else
-            {
-                Snackbar.Add("Trajectory badly configured (select a WellBore and define an ordered list of Survey Run sections)", Severity.Error);
-            }
-        }
-        catch (Exception ex)
-        {
-            logger.LogError(ex, "Error duplicating Trajectory");
-            Snackbar.Add("Error duplicating Trajectory: " + ex.Message, Severity.Warning);
-        }
-    }
-
     /// <summary>
     /// Tracks plot panel state AND triggers a re-render so that
     /// Plotly's OnAfterRenderAsync runs and mounts the chart canvas on first open.
@@ -1870,7 +1907,6 @@
         DataUtils.AddExtremeTvdPathPlots(ellipseCalculation, ellipsePlotData);
     }
 
-    // Deep copy constructor
     private async Task EnsureWellBoreArchitectureDataLoadedAsync()
     {
         if (wellBoreArchitectureHeavyList != null || isLoadingWellBoreArchitectureData)
@@ -1892,44 +1928,6 @@
         {
             isLoadingWellBoreArchitectureData = false;
         }
-    }
-
-    private static Trajectory DeepCopyTrajectory(Trajectory source)
-    {
-        return new Trajectory
-        {
-            MetaInfo = new MetaInfo { ID = source.MetaInfo.ID },
-            Name = source.Name,
-            Description = source.Description,
-            CreationDate = source.CreationDate,
-            LastModificationDate = source.LastModificationDate,
-            FieldID = source.FieldID,
-            ClusterID = source.ClusterID,
-            WellID = source.WellID,
-            WellBoreID = source.WellBoreID,
-            TrajectoryType = source.TrajectoryType,
-            IsDefinitive = false,
-            CalculationType = source.CalculationType,
-            MDStep = source.MDStep,
-            SurveyRunSectionList = source.SurveyRunSectionList?
-                .Select(section => new TrajectorySurveyRunSection
-                {
-                    SurveyRunID = section.SurveyRunID,
-                    StartAbscissa = section.StartAbscissa
-                })
-                .ToList() ?? new List<TrajectorySurveyRunSection>(),
-            SurveyStationList = source.SurveyStationList?
-                .Select(ss => new SurveyStation
-                {
-                    MD = ss.MD,
-                    Inclination = ss.Inclination,
-                    Azimuth = ss.Azimuth,
-                    RiemannianNorth = ss.RiemannianNorth,
-                    RiemannianEast = ss.RiemannianEast,
-                    TVD = ss.TVD
-                })
-                .ToList() ?? new List<SurveyStation>()
-        };
     }
 
 }

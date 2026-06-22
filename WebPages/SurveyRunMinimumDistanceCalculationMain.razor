@@ -3,8 +3,10 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject ITrajectoryAPIUtils Api
+@using System.Text.Json
 
-<MudUnitAndReferenceChoiceTag HttpHost=@Api.HostNameUnitConversion
+<MudUnitAndReferenceChoiceTag @ref="unitReferenceTag_"
+                              HttpHost=@Api.HostNameUnitConversion
                               HttpBasePath=@Api.HostBasePathUnitConversion
                               HttpController="UnitSystem/"
                               UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
@@ -64,36 +66,56 @@
         <MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Minimum Distance Calculation</MudText>
         <MudContainer Class="d-flex flex-row mt-4 mb-4">
             <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveCalculation">Save</MudButton>
-            <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditor">Cancel</MudButton>
+            <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditor">Close</MudButton>
         </MudContainer>
 
         <MudGrid>
             <MudItem xs="12" md="3"><MudTextField @bind-Value="currentCalculation_.Name" Label="Name" Required="true" ShrinkLabel /></MudItem>
             <MudItem xs="12" md="3"><MudTextField @bind-Value="currentCalculation_.Description" Label="Description" ShrinkLabel /></MudItem>
+            <MudItem xs="12" />
+            <MudItem xs="12" md="3">
+                <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId_" ValueChanged="OnFieldChanged" ShrinkLabel Clearable="true">
+                    @foreach (Field field in AvailableFields)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId_" ValueChanged="OnClusterChanged" ShrinkLabel Clearable="true">
+                    @foreach (Cluster cluster in AvailableClusters)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudSelect Label="Well" T="Guid?" Value="@selectedWellId_" ValueChanged="OnWellChanged" ShrinkLabel Clearable="true">
+                    @foreach (Well well in AvailableWells)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="3">
+                <MudSelect Label="WellBore" T="Guid?" Value="@selectedWellBoreId_" ValueChanged="OnWellBoreChanged" ShrinkLabel Clearable="true">
+                    @foreach (WellBore wellBore in AvailableWellBores)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)wellBore.MetaInfo.ID)">@wellBore.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
             <MudItem xs="12" md="3">
                 <MudSelect Label="Reference Survey Run" T="Guid?" Value="@selectedReferenceSurveyRunId_" ValueChanged="OnReferenceSurveyRunChanged" ShrinkLabel Clearable="true">
-                    @foreach (SurveyRunLight surveyRun in SurveyRunLightList_)
+                    @foreach (SurveyRunLight surveyRun in AvailableReferenceSurveyRuns)
                     {
                         <MudSelectItem T="Guid?" Value="@((Guid?)surveyRun.MetaInfo.ID)">@surveyRun.Name</MudSelectItem>
                     }
                 </MudSelect>
             </MudItem>
-            <MudItem xs="12" md="3">
-                <MudInputWithUnit QuantityLabel="Chord Distance" QuantityName="DepthDrilling"
-                                  SIValueNullable="@currentCalculation_.MaximumChordArcDistance"
-                                  SIValueNullableChanged="@OnMaximumChordDistanceChanged" />
-            </MudItem>
+            <MudItem xs="12" />
             <MudItem xs="12" md="3" Class="d-flex align-center">
                 <MudCheckBox T="bool" @bind-Value="currentCalculation_.AccountForBoreholeRadius" Label="Use borehole radius" />
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudNumericField T="int" @bind-Value="currentCalculation_.OctreeMaximumDepth" Label="Octree Depth" Min="1" Max="12" ShrinkLabel />
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudNumericField T="int" @bind-Value="currentCalculation_.OctreeMaximumSegmentCountPerLeaf" Label="Segments per Leaf" Min="4" Max="256" ShrinkLabel />
-            </MudItem>
-            <MudItem xs="12" md="3" Class="d-flex align-center">
-                <MudCheckBox T="bool" Value="@AdaptiveRefinement.Enabled" ValueChanged="@OnAdaptiveRefinementEnabledChanged" Label="Adaptive polar refinement" />
             </MudItem>
             <MudItem xs="12" md="3">
                 <MudSelect Label="Displayed Distance" T="string" @bind-Value="selectedDistanceMode_" ShrinkLabel>
@@ -101,41 +123,90 @@
                     <MudSelectItem T="string" Value="@ClearanceDistanceMode">Clearance</MudSelectItem>
                 </MudSelect>
             </MudItem>
-            <MudItem xs="12">
-                <MudExpansionPanels Elevation="0">
-                    <MudExpansionPanel Text="Advanced adaptive refinement settings">
-                        <MudGrid>
-                            <MudItem xs="12" md="3">
-                                <MudInputWithUnit QuantityLabel="Polar Deviation" QuantityName="PositionDrilling"
-                                                  SIValueNullable="@AdaptiveRefinement.PolarDeviationTolerance"
-                                                  SIValueNullableChanged="@OnAdaptivePolarDeviationToleranceChanged" />
-                            </MudItem>
-                            <MudItem xs="12" md="3">
-                                <MudInputWithUnit QuantityLabel="Angular Deviation" QuantityName="PlaneAngleDrilling"
-                                                  SIValueNullable="@AdaptiveRefinement.PolarAngularTolerance"
-                                                  SIValueNullableChanged="@OnAdaptivePolarAngularToleranceChanged" />
-                            </MudItem>
-                            <MudItem xs="12" md="3">
-                                <MudInputWithUnit QuantityLabel="Minimum MD Step" QuantityName="DepthDrilling"
-                                                  SIValueNullable="@AdaptiveRefinement.MinimumMDStep"
-                                                  SIValueNullableChanged="@OnAdaptiveMinimumMDStepChanged" />
-                            </MudItem>
-                            <MudItem xs="12" md="3">
-                                <MudNumericField T="int" Value="@AdaptiveRefinement.MaximumDepth" ValueChanged="@OnAdaptiveMaximumDepthChanged" Label="Maximum Refinement Depth" Min="1" Max="12" ShrinkLabel />
-                            </MudItem>
-                            <MudItem xs="12" md="3">
-                                <MudNumericField T="int" Value="@AdaptiveRefinement.MaximumExtraSamplesPerComparison" ValueChanged="@OnAdaptiveMaximumExtraSamplesChanged" Label="Max Extra Samples" Min="0" Max="100000" ShrinkLabel />
-                            </MudItem>
-                        </MudGrid>
-                    </MudExpansionPanel>
-                </MudExpansionPanels>
+            <MudItem xs="12" md="3" Class="d-flex align-center">
+                <MudSwitch T="bool" @bind-Value="advancedMode_" Color="Color.Primary" Label="Advanced" />
             </MudItem>
+            @if (advancedMode_)
+            {
+                <MudItem xs="12" md="3">
+                    <MudInputWithUnit QuantityLabel="Chord Distance" QuantityName="DepthDrilling"
+                                      SIValueNullable="@currentCalculation_.MaximumChordArcDistance"
+                                      SIValueNullableChanged="@OnMaximumChordDistanceChanged" />
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudNumericField T="int" @bind-Value="currentCalculation_.OctreeMaximumDepth" Label="Octree Depth" Min="1" Max="12" ShrinkLabel />
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudNumericField T="int" @bind-Value="currentCalculation_.OctreeMaximumSegmentCountPerLeaf" Label="Segments per Leaf" Min="4" Max="256" ShrinkLabel />
+                </MudItem>
+                <MudItem xs="12" md="3" Class="d-flex align-center">
+                    <MudCheckBox T="bool" Value="@AdaptiveRefinement.Enabled" ValueChanged="@OnAdaptiveRefinementEnabledChanged" Label="Adaptive polar refinement" />
+                </MudItem>
+                @if (AdaptiveRefinement.Enabled)
+                {
+                    <MudItem xs="12" md="3">
+                        <MudInputWithUnit QuantityLabel="Polar Deviation" QuantityName="PositionDrilling"
+                                          SIValueNullable="@AdaptiveRefinement.PolarDeviationTolerance"
+                                          SIValueNullableChanged="@OnAdaptivePolarDeviationToleranceChanged" />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudInputWithUnit QuantityLabel="Angular Deviation" QuantityName="PlaneAngleDrilling"
+                                          SIValueNullable="@AdaptiveRefinement.PolarAngularTolerance"
+                                          SIValueNullableChanged="@OnAdaptivePolarAngularToleranceChanged" />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudInputWithUnit QuantityLabel="Minimum MD Step" QuantityName="DepthDrilling"
+                                          SIValueNullable="@AdaptiveRefinement.MinimumMDStep"
+                                          SIValueNullableChanged="@OnAdaptiveMinimumMDStepChanged" />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudNumericField T="int" Value="@AdaptiveRefinement.MaximumDepth" ValueChanged="@OnAdaptiveMaximumDepthChanged" Label="Maximum Refinement Depth" Min="1" Max="12" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudNumericField T="int" Value="@AdaptiveRefinement.MaximumExtraSamplesPerComparison" ValueChanged="@OnAdaptiveMaximumExtraSamplesChanged" Label="Max Extra Samples" Min="0" Max="100000" ShrinkLabel />
+                    </MudItem>
+                }
+            }
         </MudGrid>
 
         <MudPaper Class="pa-4 mt-4" Outlined="true">
             <MudText Typo="Typo.subtitle1">Comparison Survey Runs</MudText>
             <MudGrid Class="mt-1">
                 <MudItem xs="12" md="5">
+                    <MudGrid>
+                        <MudItem xs="12" md="6">
+                            <MudSelect Label="Field" T="Guid?" Value="@comparisonFieldId_" ValueChanged="OnComparisonFieldChanged" ShrinkLabel Clearable="true">
+                                @foreach (Field field in AvailableFields)
+                                {
+                                    <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudSelect Label="Cluster" T="Guid?" Value="@comparisonClusterId_" ValueChanged="OnComparisonClusterChanged" ShrinkLabel Clearable="true">
+                                @foreach (Cluster cluster in AvailableComparisonClusters)
+                                {
+                                    <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudSelect Label="Well" T="Guid?" Value="@comparisonWellId_" ValueChanged="OnComparisonWellChanged" ShrinkLabel Clearable="true">
+                                @foreach (Well well in AvailableComparisonWells)
+                                {
+                                    <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <MudSelect Label="WellBore" T="Guid?" Value="@comparisonWellBoreId_" ValueChanged="OnComparisonWellBoreChanged" ShrinkLabel Clearable="true">
+                                @foreach (WellBore wellBore in AvailableComparisonWellBores)
+                                {
+                                    <MudSelectItem T="Guid?" Value="@((Guid?)wellBore.MetaInfo.ID)">@wellBore.Name</MudSelectItem>
+                                }
+                            </MudSelect>
+                        </MudItem>
+                    </MudGrid>
                     <MudTextField @bind-Value="comparisonSearchString_" Label="Filter available survey runs" ShrinkLabel Immediate="true"
                                   Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
                     <MudToolBar Dense="true" Class="px-0">
@@ -143,13 +214,15 @@
                         <MudSpacer />
                         <MudButton OnClick="AddStagedComparisonSurveyRuns" Color="Color.Primary" Variant="Variant.Outlined"
                                    Disabled="@(!stagedComparisonSurveyRunIDs_.Any())">Add Selected</MudButton>
-                        <MudButton OnClick="AddFilteredComparisonSurveyRuns" Color="Color.Primary" Variant="Variant.Text"
-                                   Disabled="@(!AvailableComparisonCandidates.Any())">Add Filtered</MudButton>
                     </MudToolBar>
                     <MudTable Items="@AvailableComparisonCandidates" T="SurveyRunLight" Dense="true" Hover="true"
                               Height="320px" FixedHeader="true" Elevation="0">
                         <HeaderContent>
-                            <MudTh></MudTh>
+                            <MudTh>
+                                <MudCheckBox T="bool" Value="@AreAllAvailableComparisonCandidatesStaged"
+                                             ValueChanged="SetAllAvailableComparisonCandidatesStaged"
+                                             Disabled="@(!AvailableComparisonCandidates.Any())" />
+                            </MudTh>
                             <MudTh>Name</MudTh>
                             <MudTh>Description</MudTh>
                         </HeaderContent>
@@ -243,9 +316,22 @@
                 }
                 else if (currentCalculation_.ResultList is { Count: > 0 } results)
                 {
-                    <MudText Typo="Typo.body2" Class="mb-2">
-                        Global minimum clearance: <MudSpanWithUnit QuantityName="PositionDrilling" SIValue="@currentCalculation_.GlobalMinimumClearanceDistance" />
-                        at MD <MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@currentCalculation_.GlobalMinimumReferenceMD" />
+                    <MudText Typo="Typo.body2" Class="mb-2 d-flex align-center flex-nowrap" Style="gap: 16px; overflow: hidden;">
+                        <span class="d-inline-flex align-center flex-shrink-0" style="gap: 4px;">
+                            <span>Global minimum clearance:</span>
+                            <span style="display: inline-flex; width: max-content;">
+                                <MudSpanWithUnit QuantityName="LengthStandard" SIValue="@currentCalculation_.GlobalMinimumClearanceDistance" />
+                            </span>
+                        </span>
+                        <span class="d-inline-flex align-center flex-shrink-0" style="gap: 4px;">
+                            <span>at MD</span>
+                            <span style="display: inline-flex; width: max-content;">
+                                <MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@currentCalculation_.GlobalMinimumReferenceMD" />
+                            </span>
+                        </span>
+                        <span class="text-truncate">
+                            for @GetSurveyRunName(currentCalculation_.GlobalMinimumComparisonSurveyRunID ?? Guid.Empty)
+                        </span>
                     </MudText>
                     @if (currentCalculation_.IntervalResultList is { Count: > 0 } && ValidReferenceIntervals.Count > 0)
                     {
@@ -271,6 +357,10 @@
                         <MudToolBar Dense="true" Class="px-0">
                             <MudText Typo="Typo.caption">@FilteredResultList.Count/@results.Count result rows displayed</MudText>
                             <MudSpacer />
+                            <MudSelect T="string" Label="Table mode" @bind-Value="resultTableMode_" Dense="true" ShrinkLabel Style="width: 230px;">
+                                <MudSelectItem T="string" Value="@ResultTableBySurveyRunMode">By survey run</MudSelectItem>
+                                <MudSelectItem T="string" Value="@ResultTableByReferenceMdMode">By reference MD</MudSelectItem>
+                            </MudSelect>
                             <MudButton OnClick="SelectAllResultSurveyRuns" Color="Color.Primary" Variant="Variant.Text">All</MudButton>
                             <MudButton OnClick="ClearResultSurveyRunFilter" Color="Color.Primary" Variant="Variant.Text">None</MudButton>
                         </MudToolBar>
@@ -285,17 +375,17 @@
                             }
                         </MudGrid>
                     </MudPaper>
-                    <MudTable Items="@FilteredResultList" T="SurveyRunMinimumDistanceResult" Height="360px" FixedHeader="true"
+                    <MudTable Items="@DisplayedResultList" T="SurveyRunMinimumDistanceResult" Height="360px" FixedHeader="true"
                               Virtualize="true" OverscanCount="3" ItemSize="38"
                               Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" ReadOnly="true">
                         <HeaderContent>
                             <MudTHeadRow>
-                                <MudTh>Reference MD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
+                                <MudTh>Reference MD [@ReferencedDepthUnitLabel]</MudTh>
                                 <MudTh>Comparison</MudTh>
-                                <MudTh>Comparison MD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
-                                <MudTh>Center Distance [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
-                                <MudTh>Clearance [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
-                                <MudTh>Toolface [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                                <MudTh>Comparison MD [@ReferencedDepthUnitLabel]</MudTh>
+                                <MudTh>Center Distance [@PositionUnitLabel]</MudTh>
+                                <MudTh>Clearance [@StandardLengthUnitLabel]</MudTh>
+                                <MudTh>Toolface [@PlaneAngleUnitLabel]</MudTh>
                             </MudTHeadRow>
                         </HeaderContent>
                         <RowTemplate>
@@ -303,7 +393,7 @@
                             <MudTd>@GetSurveyRunName(context.ComparisonSurveyRunID ?? Guid.Empty)</MudTd>
                             <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.ComparisonMD" /></MudTd>
                             <MudTd><MudSpanWithUnit QuantityName="PositionDrilling" SIValue="@context.CenterToCenterDistance" /></MudTd>
-                            <MudTd><MudSpanWithUnit QuantityName="PositionDrilling" SIValue="@context.ClearanceDistance" /></MudTd>
+                            <MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.ClearanceDistance" /></MudTd>
                             <MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Toolface" /></MudTd>
                         </RowTemplate>
                     </MudTable>
@@ -356,39 +446,126 @@
 
     private const string CenterDistanceMode = "Center";
     private const string ClearanceDistanceMode = "Clearance";
+    private const string ResultTableBySurveyRunMode = "BySurveyRun";
+    private const string ResultTableByReferenceMdMode = "ByReferenceMD";
     private static readonly string[] PlotColorPalette = ["#1769aa", "#c23b22", "#4f7d20", "#7b3f98", "#bf7f00", "#00838f", "#8d5a3b", "#455a64"];
     private List<SurveyRunMinimumDistanceCalculationLight> calculationLightList_ = [];
     private List<SurveyRunMinimumDistanceCalculationLight> selectedCalculationLightList_ = [];
     private List<SurveyRunLight> SurveyRunLightList_ = [];
+    private MudUnitAndReferenceChoiceTag? unitReferenceTag_;
+    private List<Field>? fieldList_;
     private List<WellBore>? wellBoreList_;
     private List<Well>? wellList_;
     private List<Cluster>? clusterList_;
     private List<Rig>? rigList_;
     private SurveyRunMinimumDistanceCalculation? currentCalculation_;
     private Guid? currentCalculationId_;
+    private Guid? selectedFieldId_;
+    private Guid? selectedClusterId_;
+    private Guid? selectedWellId_;
+    private Guid? selectedWellBoreId_;
     private Guid? selectedReferenceSurveyRunId_;
+    private Guid? comparisonFieldId_;
+    private Guid? comparisonClusterId_;
+    private Guid? comparisonWellId_;
+    private Guid? comparisonWellBoreId_;
     private string selectedDistanceMode_ = ClearanceDistanceMode;
+    private string resultTableMode_ = ResultTableBySurveyRunMode;
     private string? searchString_;
     private string? comparisonSearchString_;
     private readonly HashSet<Guid> stagedComparisonSurveyRunIDs_ = [];
     private readonly HashSet<Guid> displayedResultSurveyRunIds_ = [];
+    private string? cleanCalculationSnapshot_;
+    private bool advancedMode_;
     private bool isEditing_;
     private bool isLoadingResults_;
     private bool resultLoadComplete_;
+    private bool hasRenderedUnitReference_;
     private int resultChunkCount_;
     private int resultChunksLoaded_;
     private int resultsLoaded_;
     private int gridKey_;
     private CancellationTokenSource? pollingCancellation_;
+    private static readonly JsonSerializerOptions DirtySnapshotJsonOptions = new() { WriteIndented = false };
+
+    private List<Field> AvailableFields =>
+        fieldList_?
+            .Where(field => field?.MetaInfo != null)
+            .OrderBy(field => field.Name)
+            .ToList() ?? [];
+
+    private List<Cluster> AvailableClusters =>
+        clusterList_?
+            .Where(cluster =>
+                cluster?.MetaInfo != null &&
+                !cluster.IsSingleWell &&
+                (selectedFieldId_ == null || cluster.FieldID == selectedFieldId_))
+            .OrderBy(cluster => cluster.Name)
+            .ToList() ?? [];
+
+    private List<Well> AvailableWells =>
+        wellList_?
+            .Where(well =>
+                well?.MetaInfo != null &&
+                (selectedFieldId_ == null || MatchesSelectedField(well)) &&
+                (selectedClusterId_ == null || well.IsSingleWell || well.ClusterID == selectedClusterId_))
+            .OrderBy(well => well.Name)
+            .ToList() ?? [];
+
+    private List<WellBore> AvailableWellBores =>
+        wellBoreList_?
+            .Where(wellBore =>
+                wellBore?.MetaInfo != null &&
+                (selectedWellId_ == null || wellBore.WellID == selectedWellId_))
+            .OrderBy(wellBore => wellBore.Name)
+            .ToList() ?? [];
+
+    private List<SurveyRunLight> AvailableReferenceSurveyRuns =>
+        SurveyRunLightList_
+            .Where(surveyRun =>
+                surveyRun?.MetaInfo != null &&
+                (selectedFieldId_ == null || MatchesSelectedField(surveyRun)) &&
+                (selectedClusterId_ == null || MatchesSelectedCluster(surveyRun)) &&
+                (selectedWellId_ == null || surveyRun.WellID == selectedWellId_) &&
+                (selectedWellBoreId_ == null || surveyRun.WellBoreID == selectedWellBoreId_))
+            .OrderBy(surveyRun => surveyRun.Name)
+            .ToList();
 
     private List<SurveyRunLight> AvailableComparisonCandidates =>
         SurveyRunLightList_
             .Where(surveyRun => surveyRun.MetaInfo?.ID is Guid id &&
                                  id != selectedReferenceSurveyRunId_ &&
                                  IsComparisonSelected(id) == false &&
+                                 MatchesComparisonHierarchy(surveyRun) &&
                                  MatchesComparisonSearch(surveyRun))
             .OrderBy(surveyRun => surveyRun.Name)
             .ToList();
+    private List<Cluster> AvailableComparisonClusters =>
+        clusterList_?
+            .Where(cluster =>
+                cluster?.MetaInfo != null &&
+                !cluster.IsSingleWell &&
+                (comparisonFieldId_ == null || cluster.FieldID == comparisonFieldId_))
+            .OrderBy(cluster => cluster.Name)
+            .ToList() ?? [];
+    private List<Well> AvailableComparisonWells =>
+        wellList_?
+            .Where(well =>
+                well?.MetaInfo != null &&
+                (comparisonFieldId_ == null || MatchesComparisonField(well)) &&
+                (comparisonClusterId_ == null || well.IsSingleWell || well.ClusterID == comparisonClusterId_))
+            .OrderBy(well => well.Name)
+            .ToList() ?? [];
+    private List<WellBore> AvailableComparisonWellBores =>
+        wellBoreList_?
+            .Where(wellBore =>
+                wellBore?.MetaInfo != null &&
+                (comparisonWellId_ == null || wellBore.WellID == comparisonWellId_))
+            .OrderBy(wellBore => wellBore.Name)
+            .ToList() ?? [];
+    private bool AreAllAvailableComparisonCandidatesStaged =>
+        AvailableComparisonCandidates.Count > 0 &&
+        AvailableComparisonCandidates.All(surveyRun => surveyRun.MetaInfo?.ID is Guid id && stagedComparisonSurveyRunIDs_.Contains(id));
     private List<SurveyRunLight> SelectedComparisonSurveyRuns =>
         currentCalculation_?.ComparisonSurveyRunIDList?
             .Select(id => SurveyRunLightList_.FirstOrDefault(surveyRun => surveyRun.MetaInfo?.ID == id))
@@ -426,6 +603,18 @@
         currentCalculation_?.ResultList?
             .Where(result => result.ComparisonSurveyRunID is Guid id && displayedResultSurveyRunIds_.Contains(id))
             .ToList() ?? [];
+    private List<SurveyRunMinimumDistanceResult> DisplayedResultList =>
+        resultTableMode_ == ResultTableByReferenceMdMode
+            ? FilteredResultList
+                .OrderBy(result => result.ReferenceMD ?? double.MaxValue)
+                .ThenBy(result => GetSurveyRunName(result.ComparisonSurveyRunID ?? Guid.Empty))
+                .ThenBy(result => result.ComparisonMD ?? double.MaxValue)
+                .ToList()
+            : FilteredResultList
+                .OrderBy(result => GetSurveyRunName(result.ComparisonSurveyRunID ?? Guid.Empty))
+                .ThenBy(result => result.ReferenceMD ?? double.MaxValue)
+                .ThenBy(result => result.ComparisonMD ?? double.MaxValue)
+                .ToList();
     private ICollection<MinimumDistanceReferenceInterval> ReferenceIntervals =>
         currentCalculation_?.ReferenceIntervalList ?? [];
     private MinimumDistanceAdaptiveRefinementSettings AdaptiveRefinement
@@ -446,6 +635,11 @@
             .Where(IsValidReferenceInterval)
             .OrderBy(interval => interval.StartMD)
             .ToList();
+    private MudUnitAndReferenceChoiceTag? UnitReference => unitReferenceTag_ ?? Parent;
+    private string ReferencedDepthUnitLabel => UnitReference?.GetDepthUnitLabel("DepthDrilling") ?? string.Empty;
+    private string PositionUnitLabel => UnitReference?.GetUnitLabel("PositionDrilling") ?? string.Empty;
+    private string StandardLengthUnitLabel => UnitReference?.GetUnitLabel("LengthStandard") ?? string.Empty;
+    private string PlaneAngleUnitLabel => UnitReference?.GetUnitLabel("PlaneAngleDrilling") ?? string.Empty;
     private string SelectedDistanceLabel => selectedDistanceMode_ == CenterDistanceMode ? "Center Distance" : "Clearance";
     private double ResultLoadingProgressPercent => resultChunkCount_ <= 0 ? 0.0 : 100.0 * resultChunksLoaded_ / resultChunkCount_;
     private string ResultLoadingText => resultChunkCount_ <= 0
@@ -454,21 +648,34 @@
 
     protected override async Task OnInitializedAsync() => await LoadDataAsync();
 
+    protected override Task OnAfterRenderAsync(bool firstRender)
+    {
+        if (!hasRenderedUnitReference_ && unitReferenceTag_ != null)
+        {
+            hasRenderedUnitReference_ = true;
+            return InvokeAsync(StateHasChanged);
+        }
+
+        return Task.CompletedTask;
+    }
+
     private async Task LoadDataAsync()
     {
         try
         {
             var calculationTask = Api.ClientTrajectory.GetAllSurveyRunMinimumDistanceCalculationLightAsync();
             var surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
+            var fieldTask = Api.ClientField.GetAllFieldAsync();
             var wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
             var wellTask = Api.ClientWell.GetAllWellAsync();
             var clusterTask = Api.ClientCluster.GetAllClusterAsync();
             var rigTask = Api.ClientRig.GetAllRigAsync();
 
-            await Task.WhenAll(calculationTask, surveyRunTask, wellBoreTask, wellTask, clusterTask, rigTask);
+            await Task.WhenAll(calculationTask, surveyRunTask, fieldTask, wellBoreTask, wellTask, clusterTask, rigTask);
 
             calculationLightList_ = ((ICollection<SurveyRunMinimumDistanceCalculationLight>)await calculationTask).OrderBy(x => x.Name).ToList();
             SurveyRunLightList_ = ((ICollection<SurveyRunLight>)await surveyRunTask).OrderBy(x => x.Name).ToList();
+            fieldList_ = ((ICollection<Field>)await fieldTask).OrderBy(x => x.Name).ToList();
             wellBoreList_ = ((ICollection<WellBore>)await wellBoreTask).OrderBy(x => x.Name).ToList();
             wellList_ = ((ICollection<Well>)await wellTask).OrderBy(x => x.Name).ToList();
             clusterList_ = ((ICollection<Cluster>)await clusterTask).OrderBy(x => x.Name).ToList();
@@ -554,8 +761,14 @@
         currentCalculationId_ = null;
         currentCalculation_ = CreateCalculation();
         currentCalculation_.ReferenceIntervalList ??= [];
+        selectedFieldId_ = null;
+        selectedClusterId_ = null;
+        selectedWellId_ = null;
+        selectedWellBoreId_ = null;
         selectedReferenceSurveyRunId_ = null;
+        advancedMode_ = false;
         ResetResultLoadingState();
+        MarkCalculationClean();
         isEditing_ = true;
         await InvokeAsync(StateHasChanged);
     }
@@ -567,8 +780,11 @@
         currentCalculation_.ResultList ??= [];
         currentCalculation_.ReferenceIntervalList ??= [];
         selectedReferenceSurveyRunId_ = currentCalculation_.ReferenceSurveyRunID == Guid.Empty ? null : currentCalculation_.ReferenceSurveyRunID;
+        SyncSelectorsFromSurveyRun(selectedReferenceSurveyRunId_);
+        advancedMode_ = false;
         ResetResultLoadingState();
         ApplySurveyRunReferenceValues();
+        MarkCalculationClean();
         isEditing_ = true;
         StartCalculationPollingIfNeeded();
         await InvokeAsync(StateHasChanged);
@@ -617,7 +833,9 @@
             }
 
             currentCalculation_.ResultList ??= [];
+            selectedReferenceSurveyRunId_ = currentCalculation_.ReferenceSurveyRunID == Guid.Empty ? null : currentCalculation_.ReferenceSurveyRunID;
             ResetResultLoadingState();
+            MarkCalculationClean();
             StartCalculationPollingIfNeeded();
         }
         catch (Exception ex)
@@ -629,10 +847,60 @@
 
     private async Task CloseEditor()
     {
+        if (HasUnsavedCalculationChanges() && !await ConfirmCloseWithoutSavingAsync())
+        {
+            return;
+        }
+
         isEditing_ = false;
         currentCalculation_ = null;
         currentCalculationId_ = null;
+        cleanCalculationSnapshot_ = null;
         await LoadDataAsync();
+    }
+
+    private void MarkCalculationClean() => cleanCalculationSnapshot_ = BuildCalculationDirtySnapshot();
+
+    private bool HasUnsavedCalculationChanges() =>
+        cleanCalculationSnapshot_ != null &&
+        !string.Equals(cleanCalculationSnapshot_, BuildCalculationDirtySnapshot(), StringComparison.Ordinal);
+
+    private string BuildCalculationDirtySnapshot()
+    {
+        return JsonSerializer.Serialize(new
+        {
+            Id = currentCalculationId_,
+            CalculationId = currentCalculation_?.MetaInfo?.ID,
+            currentCalculation_?.Name,
+            currentCalculation_?.Description,
+            currentCalculation_?.CreationDate,
+            SelectedReferenceSurveyRunId = selectedReferenceSurveyRunId_,
+            ComparisonSurveyRunIds = currentCalculation_?.ComparisonSurveyRunIDList?.OrderBy(id => id).ToList(),
+            ReferenceIntervals = currentCalculation_?.ReferenceIntervalList?
+                .OrderBy(interval => interval.StartMD)
+                .Select(interval => new { interval.StartMD, interval.EndMD })
+                .ToList(),
+            AdaptiveRefinement = currentCalculation_?.AdaptiveRefinementSettings == null ? null : new
+            {
+                currentCalculation_.AdaptiveRefinementSettings.Enabled,
+                currentCalculation_.AdaptiveRefinementSettings.PolarDeviationTolerance,
+                currentCalculation_.AdaptiveRefinementSettings.PolarAngularTolerance,
+                currentCalculation_.AdaptiveRefinementSettings.MinimumMDStep,
+                currentCalculation_.AdaptiveRefinementSettings.MaximumDepth,
+                currentCalculation_.AdaptiveRefinementSettings.MaximumExtraSamplesPerComparison
+            }
+        }, DirtySnapshotJsonOptions);
+    }
+
+    private async Task<bool> ConfirmCloseWithoutSavingAsync()
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Unsaved changes",
+            "Some changes have not been saved. Close without saving?",
+            yesText: "Close without saving",
+            cancelText: "Stay");
+
+        return result == true;
     }
 
     private Task OnReferenceSurveyRunChanged(Guid? id)
@@ -647,6 +915,163 @@
 
         ApplySurveyRunReferenceValues();
         return Task.CompletedTask;
+    }
+
+    private Task OnFieldChanged(Guid? fieldId)
+    {
+        selectedFieldId_ = fieldId;
+        NormalizeReferenceSelectionChain();
+        return Task.CompletedTask;
+    }
+
+    private Task OnClusterChanged(Guid? clusterId)
+    {
+        selectedClusterId_ = clusterId;
+        NormalizeReferenceSelectionChain();
+        return Task.CompletedTask;
+    }
+
+    private Task OnWellChanged(Guid? wellId)
+    {
+        selectedWellId_ = wellId;
+        if (wellId is Guid selectedId && FindWellById(selectedId) is Well well)
+        {
+            selectedClusterId_ = well.IsSingleWell ? null : well.ClusterID;
+            selectedFieldId_ ??= FindFieldIdForWell(well);
+        }
+        NormalizeReferenceSelectionChain();
+        return Task.CompletedTask;
+    }
+
+    private Task OnWellBoreChanged(Guid? wellBoreId)
+    {
+        selectedWellBoreId_ = wellBoreId;
+        if (wellBoreId is Guid selectedId && FindWellBoreById(selectedId) is WellBore wellBore)
+        {
+            selectedWellId_ = wellBore.WellID;
+            if (wellBore.WellID is Guid resolvedWellId && FindWellById(resolvedWellId) is Well well)
+            {
+                selectedClusterId_ = well.IsSingleWell ? null : well.ClusterID;
+                selectedFieldId_ ??= FindFieldIdForWell(well);
+            }
+        }
+        NormalizeReferenceSelectionChain();
+        return Task.CompletedTask;
+    }
+
+    private void NormalizeReferenceSelectionChain()
+    {
+        if (selectedClusterId_ != null && !AvailableClusters.Any(cluster => cluster.MetaInfo.ID == selectedClusterId_))
+        {
+            selectedClusterId_ = null;
+        }
+
+        if (selectedWellId_ != null && !AvailableWells.Any(well => well.MetaInfo.ID == selectedWellId_))
+        {
+            selectedWellId_ = null;
+        }
+
+        if (selectedWellBoreId_ != null && !AvailableWellBores.Any(wellBore => wellBore.MetaInfo.ID == selectedWellBoreId_))
+        {
+            selectedWellBoreId_ = null;
+        }
+
+        if (selectedReferenceSurveyRunId_ != null && !AvailableReferenceSurveyRuns.Any(surveyRun => surveyRun.MetaInfo.ID == selectedReferenceSurveyRunId_))
+        {
+            selectedReferenceSurveyRunId_ = null;
+            if (currentCalculation_ != null)
+            {
+                currentCalculation_.ReferenceSurveyRunID = Guid.Empty;
+            }
+            ApplySurveyRunReferenceValues();
+        }
+    }
+
+    private Task OnComparisonFieldChanged(Guid? fieldId)
+    {
+        comparisonFieldId_ = fieldId;
+        NormalizeComparisonSelectionChain();
+        return Task.CompletedTask;
+    }
+
+    private Task OnComparisonClusterChanged(Guid? clusterId)
+    {
+        comparisonClusterId_ = clusterId;
+        NormalizeComparisonSelectionChain();
+        return Task.CompletedTask;
+    }
+
+    private Task OnComparisonWellChanged(Guid? wellId)
+    {
+        comparisonWellId_ = wellId;
+        if (wellId is Guid selectedId && FindWellById(selectedId) is Well well)
+        {
+            comparisonClusterId_ = well.IsSingleWell ? null : well.ClusterID;
+            comparisonFieldId_ ??= FindFieldIdForWell(well);
+        }
+        NormalizeComparisonSelectionChain();
+        return Task.CompletedTask;
+    }
+
+    private Task OnComparisonWellBoreChanged(Guid? wellBoreId)
+    {
+        comparisonWellBoreId_ = wellBoreId;
+        if (wellBoreId is Guid selectedId && FindWellBoreById(selectedId) is WellBore wellBore)
+        {
+            comparisonWellId_ = wellBore.WellID;
+            if (wellBore.WellID is Guid resolvedWellId && FindWellById(resolvedWellId) is Well well)
+            {
+                comparisonClusterId_ = well.IsSingleWell ? null : well.ClusterID;
+                comparisonFieldId_ ??= FindFieldIdForWell(well);
+            }
+        }
+        NormalizeComparisonSelectionChain();
+        return Task.CompletedTask;
+    }
+
+    private void NormalizeComparisonSelectionChain()
+    {
+        if (comparisonClusterId_ != null && !AvailableComparisonClusters.Any(cluster => cluster.MetaInfo.ID == comparisonClusterId_))
+        {
+            comparisonClusterId_ = null;
+        }
+
+        if (comparisonWellId_ != null && !AvailableComparisonWells.Any(well => well.MetaInfo.ID == comparisonWellId_))
+        {
+            comparisonWellId_ = null;
+        }
+
+        if (comparisonWellBoreId_ != null && !AvailableComparisonWellBores.Any(wellBore => wellBore.MetaInfo.ID == comparisonWellBoreId_))
+        {
+            comparisonWellBoreId_ = null;
+        }
+
+        stagedComparisonSurveyRunIDs_.RemoveWhere(id => !AvailableComparisonCandidates.Any(surveyRun => surveyRun.MetaInfo?.ID == id));
+    }
+
+    private void SyncSelectorsFromSurveyRun(Guid? surveyRunId)
+    {
+        selectedFieldId_ = null;
+        selectedClusterId_ = null;
+        selectedWellId_ = null;
+        selectedWellBoreId_ = null;
+
+        if (surveyRunId is not Guid id || SurveyRunLightList_.FirstOrDefault(surveyRun => surveyRun.MetaInfo?.ID == id) is not SurveyRunLight surveyRun)
+        {
+            return;
+        }
+
+        selectedReferenceSurveyRunId_ = id;
+        selectedWellBoreId_ = surveyRun.WellBoreID == Guid.Empty ? null : surveyRun.WellBoreID;
+        selectedWellId_ = surveyRun.WellID;
+        selectedClusterId_ = surveyRun.ClusterID;
+        selectedFieldId_ = surveyRun.FieldID;
+
+        if (selectedWellId_ is Guid wellId && FindWellById(wellId) is Well well)
+        {
+            selectedClusterId_ = well.IsSingleWell ? null : well.ClusterID;
+            selectedFieldId_ ??= FindFieldIdForWell(well);
+        }
     }
 
     private void OnMaximumChordDistanceChanged(double? value)
@@ -782,15 +1207,29 @@
         }
     }
 
+    private void SetAllAvailableComparisonCandidatesStaged(bool selected)
+    {
+        foreach (SurveyRunLight surveyRun in AvailableComparisonCandidates)
+        {
+            if (surveyRun.MetaInfo?.ID is not Guid id || id == Guid.Empty)
+            {
+                continue;
+            }
+
+            if (selected)
+            {
+                stagedComparisonSurveyRunIDs_.Add(id);
+            }
+            else
+            {
+                stagedComparisonSurveyRunIDs_.Remove(id);
+            }
+        }
+    }
+
     private void AddStagedComparisonSurveyRuns()
     {
         AddComparisonSurveyRuns(stagedComparisonSurveyRunIDs_);
-        stagedComparisonSurveyRunIDs_.Clear();
-    }
-
-    private void AddFilteredComparisonSurveyRuns()
-    {
-        AddComparisonSurveyRuns(AvailableComparisonCandidates.Select(surveyRun => surveyRun.MetaInfo.ID));
         stagedComparisonSurveyRunIDs_.Clear();
     }
 
@@ -1023,4 +1462,107 @@
     {
         DataUtils.ApplySurveyRunReferenceValues(selectedReferenceSurveyRunId_, SurveyRunLightList_, wellBoreList_, wellList_, clusterList_, rigList_);
     }
+
+    private bool MatchesSelectedField(Well well)
+    {
+        if (selectedFieldId_ == null)
+        {
+            return true;
+        }
+
+        if (well.IsSingleWell)
+        {
+            return well.ClusterID == selectedFieldId_;
+        }
+
+        return well.ClusterID is Guid clusterId && FindClusterById(clusterId)?.FieldID == selectedFieldId_;
+    }
+
+    private bool MatchesSelectedField(SurveyRunLight surveyRun)
+    {
+        if (selectedFieldId_ == null)
+        {
+            return true;
+        }
+
+        return surveyRun.FieldID == selectedFieldId_ ||
+            (surveyRun.WellID is Guid wellId && FindWellById(wellId) is Well well && MatchesSelectedField(well));
+    }
+
+    private bool MatchesSelectedCluster(SurveyRunLight surveyRun)
+    {
+        if (selectedClusterId_ == null)
+        {
+            return true;
+        }
+
+        return surveyRun.ClusterID == selectedClusterId_ ||
+            (surveyRun.WellID is Guid wellId && FindWellById(wellId)?.ClusterID == selectedClusterId_);
+    }
+
+    private bool MatchesComparisonHierarchy(SurveyRunLight surveyRun)
+    {
+        return (comparisonFieldId_ == null || MatchesComparisonField(surveyRun)) &&
+            (comparisonClusterId_ == null || MatchesComparisonCluster(surveyRun)) &&
+            (comparisonWellId_ == null || surveyRun.WellID == comparisonWellId_) &&
+            (comparisonWellBoreId_ == null || surveyRun.WellBoreID == comparisonWellBoreId_);
+    }
+
+    private bool MatchesComparisonField(Well well)
+    {
+        if (comparisonFieldId_ == null)
+        {
+            return true;
+        }
+
+        if (well.IsSingleWell)
+        {
+            return well.ClusterID == comparisonFieldId_;
+        }
+
+        return well.ClusterID is Guid clusterId && FindClusterById(clusterId)?.FieldID == comparisonFieldId_;
+    }
+
+    private bool MatchesComparisonField(SurveyRunLight surveyRun)
+    {
+        if (comparisonFieldId_ == null)
+        {
+            return true;
+        }
+
+        return surveyRun.FieldID == comparisonFieldId_ ||
+            (surveyRun.WellID is Guid wellId && FindWellById(wellId) is Well well && MatchesComparisonField(well));
+    }
+
+    private bool MatchesComparisonCluster(SurveyRunLight surveyRun)
+    {
+        if (comparisonClusterId_ == null)
+        {
+            return true;
+        }
+
+        return surveyRun.ClusterID == comparisonClusterId_ ||
+            (surveyRun.WellID is Guid wellId && FindWellById(wellId)?.ClusterID == comparisonClusterId_);
+    }
+
+    private Guid? FindFieldIdForWell(Well? well)
+    {
+        if (well == null)
+        {
+            return null;
+        }
+
+        if (well.IsSingleWell)
+        {
+            return well.ClusterID;
+        }
+
+        return well.ClusterID is Guid clusterId ? FindClusterById(clusterId)?.FieldID : null;
+    }
+
+    private Well? FindWellById(Guid id) => wellList_?.FirstOrDefault(well => well?.MetaInfo?.ID == id);
+
+    private WellBore? FindWellBoreById(Guid id) => wellBoreList_?.FirstOrDefault(wellBore => wellBore?.MetaInfo?.ID == id);
+
+    private Cluster? FindClusterById(Guid id) => clusterList_?.FirstOrDefault(cluster => cluster?.MetaInfo?.ID == id);
 }

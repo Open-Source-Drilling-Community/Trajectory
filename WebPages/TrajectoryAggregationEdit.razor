@@ -1,0 +1,698 @@
+@inject ILogger<TrajectoryAggregationEdit> logger
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject ITrajectoryAPIUtils Api
+@using System.Text.Json
+
+<MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Trajectory Aggregation</MudText>
+<MudContainer Class="d-flex flex-row mt-4 mb-4">
+    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveAggregationCase">Save</MudButton>
+    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditorAsync">Close</MudButton>
+</MudContainer>
+
+@if (currentAggregationCase is { } aggregationCase)
+{
+    <MudGrid>
+        <MudItem xs="3"><MudTextField @bind-Value="aggregationCase.Name" Label="Name" Required="true" ShrinkLabel /></MudItem>
+        <MudItem xs="3"><MudTextField @bind-Value="aggregationCase.Description" Label="Description" ShrinkLabel /></MudItem>
+        <MudItem xs="3"><MudTextField Value="@FormatDate(aggregationCase.CreationDate)" Label="Created" ReadOnly="true" ShrinkLabel /></MudItem>
+        <MudItem xs="3"><MudTextField Value="@FormatDate(aggregationCase.LastModificationDate)" Label="Last Updated" ReadOnly="true" ShrinkLabel /></MudItem>
+        <MudItem xs="2">
+            <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId" ValueChanged="OnFieldChanged" ShrinkLabel Clearable="true">
+                @foreach (Field field in AvailableFields)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="2">
+            <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId" ValueChanged="OnClusterChanged" ShrinkLabel Clearable="true">
+                @foreach (Cluster cluster in AvailableClusters)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="2">
+            <MudSelect Label="Well" T="Guid?" Value="@selectedWellId" ValueChanged="OnWellChanged" ShrinkLabel Clearable="true">
+                @foreach (Well well in AvailableWells)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="3">
+            <MudSelect Label="WellBore" T="Guid?" Value="@selectedWellBoreId" ValueChanged="OnWellBoreChanged" ShrinkLabel Clearable="true">
+                @foreach (WellBore wellBore in AvailableWellBores)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)wellBore.MetaInfo.ID)">@wellBore.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="3">
+            <MudSelect Label="Trajectory" T="Guid?" Value="@selectedTrajectoryId" ValueChanged="OnTrajectoryChanged" ShrinkLabel Clearable="true">
+                @foreach (TrajectoryLight trajectory in AvailableTrajectories)
+                {
+                    <MudSelectItem T="Guid?" Value="@((Guid?)trajectory.MetaInfo.ID)">@trajectory.Name</MudSelectItem>
+                }
+            </MudSelect>
+        </MudItem>
+        <MudItem xs="3"><MudTextField Value="@AssociatedRigName" Label="Rig" ReadOnly="true" ShrinkLabel /></MudItem>
+    </MudGrid>
+
+    <MudPaper Class="pa-4 mt-4 mb-4" Outlined="true">
+        <MudGrid>
+            <MudItem xs="12" md="3">
+                <MudInputWithUnit QuantityLabel="Interpolation Interval" QuantityName="DepthDrilling"
+                                  @key="DepthReferenceRenderKey"
+                                  SIValueNullable="@aggregationCase.InterpolationInterval"
+                                  SIValueNullableChanged="@(value => aggregationCase.InterpolationInterval = value)" />
+            </MudItem>
+            <MudItem xs="12" md="3" Class="d-flex align-center">
+                <MudSwitch T="bool" @bind-Value="showDetailedSettings" Color="Color.Primary" Label="Advanced" />
+            </MudItem>
+            @if (showDetailedSettings)
+            {
+                <MudItem xs="12" md="3">
+                    <MudInputWithUnit QuantityLabel="epsilonL" QuantityName="DepthDrilling"
+                                      SIValueNullable="@aggregationCase.EpsilonL"
+                                      SIValueNullableChanged="@(value => aggregationCase.EpsilonL = value)" />
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudInputWithUnit QuantityLabel="epsilonKappa" QuantityName="CurvatureDrilling"
+                                      SIValueNullable="@aggregationCase.EpsilonKappa"
+                                      SIValueNullableChanged="@(value => aggregationCase.EpsilonKappa = value)" />
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudNumericField T="double?" @bind-Value="aggregationCase.Alpha" Label="alpha" ShrinkLabel />
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudInputWithUnit QuantityLabel="Distance Coarsening Threshold" QuantityName="DepthDrilling"
+                                      SIValueNullable="@aggregationCase.DistanceReferenceCoarseningThreshold"
+                                      SIValueNullableChanged="@(value => aggregationCase.DistanceReferenceCoarseningThreshold = value)" />
+                </MudItem>
+            }
+            <MudItem xs="12" md="6">
+                @CalculationStatusContent(aggregationCase)
+            </MudItem>
+        </MudGrid>
+    </MudPaper>
+
+    @if (SelectedAggregation is { } aggregation)
+    {
+        <MudExpansionPanels Class="mt-4" Style="overflow-y: auto; max-height: none;">
+            <MudExpansionPanel Text="Sections">
+                @if (aggregation.SectionList is { Count: > 0 } sections)
+                {
+                    <MudTable Items="@sections" T="TrajectoryAggregationSection" Height="400px" FixedHeader="true"
+                              Virtualize="true" OverscanCount="3" ItemSize="38"
+                              Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" ReadOnly="true">
+                        <HeaderContent>
+                            <MudTHeadRow>
+                                <MudTh>MD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
+                                <MudTh>Incl [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                                <MudTh>Az [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                                <MudTh>TVD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
+                                <MudTh>North [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                                <MudTh>East [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                                <MudTh>CA DLS [@Parent?.GetUnitLabel("CurvatureDrilling")]</MudTh>
+                                <MudTh>CA Start Toolface [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                                <MudTh>CTC DLS [@Parent?.GetUnitLabel("CurvatureDrilling")]</MudTh>
+                                <MudTh>CTC Toolface [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                                <MudTh>BUR [@Parent?.GetUnitLabel("CurvatureDrilling")]</MudTh>
+                                <MudTh>TUR [@Parent?.GetUnitLabel("CurvatureDrilling")]</MudTh>
+                            </MudTHeadRow>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.StartMD" /></MudTd>
+                            <MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.StartInclination" /></MudTd>
+                            <MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.StartAzimuth" /></MudTd>
+                            <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.StartTVD" /></MudTd>
+                            <MudTd><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Position" PositionDirection="@PositionDirectionType.North" SIValue="@context.StartNorth" /></MudTd>
+                            <MudTd><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Position" PositionDirection="@PositionDirectionType.East" SIValue="@context.StartEast" /></MudTd>
+                            <MudTd>@SectionValue(context, context.CircularArcCurvature, TrajectoryAggregationSectionType.CircularArc, "CurvatureDrilling")</MudTd>
+                            <MudTd>@SectionValue(context, context.CircularArcStartToolface, TrajectoryAggregationSectionType.CircularArc, "PlaneAngleDrilling")</MudTd>
+                            <MudTd>@SectionValue(context, context.ConstantCurvature, TrajectoryAggregationSectionType.ConstantCurvatureAndToolface, "CurvatureDrilling")</MudTd>
+                            <MudTd>@SectionValue(context, context.ConstantToolface, TrajectoryAggregationSectionType.ConstantCurvatureAndToolface, "PlaneAngleDrilling")</MudTd>
+                            <MudTd>@SectionValue(context, context.BuildRate, TrajectoryAggregationSectionType.ConstantBuildAndTurn, "CurvatureDrilling")</MudTd>
+                            <MudTd>@SectionValue(context, context.TurnRate, TrajectoryAggregationSectionType.ConstantBuildAndTurn, "CurvatureDrilling")</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+                else
+                {
+                    <MudText>No sections</MudText>
+                }
+            </MudExpansionPanel>
+            <MudExpansionPanel Text="Distance to section list" ExpandedChanged="@OnResultsPanelExpandedChanged">
+                @if (isLoadingResults_)
+                {
+                    <MudPaper Class="pa-4" Outlined="true">
+                        <MudText Typo="Typo.body2">@ResultLoadingText</MudText>
+                        <MudProgressLinear Value="@ResultLoadingProgressPercent" Color="Color.Info" Class="mt-2" />
+                    </MudPaper>
+                }
+                else if (aggregation.DistanceResultList is { Count: > 0 } distances)
+                {
+                    <MudTable Items="@distances" T="TrajectoryAggregationDistanceResult" Height="400px" FixedHeader="true"
+                              Virtualize="true" OverscanCount="3" ItemSize="38"
+                              Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" ReadOnly="true">
+                        <HeaderContent>
+                            <MudTHeadRow>
+                                <MudTh>Reference MD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
+                                <MudTh>Distance [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
+                                <MudTh>Closest MD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
+                                <MudTh>Section</MudTh>
+                                <MudTh>Section Type</MudTh>
+                            </MudTHeadRow>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.ReferenceMD" /></MudTd>
+                            <MudTd><MudSpanWithUnit QuantityName="PositionDrilling" SIValue="@context.CenterToCenterDistance" /></MudTd>
+                            <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.ClosestMD" /></MudTd>
+                            <MudTd>@context.ClosestSectionIndex</MudTd>
+                            <MudTd>@context.ClosestSectionType</MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+                else
+                {
+                    <MudText>No distance results</MudText>
+                }
+            </MudExpansionPanel>
+            <MudExpansionPanel Text="Plots" Style="overflow: visible;" ExpandedChanged="@OnResultsPanelExpandedChanged">
+                @if (isLoadingResults_)
+                {
+                    <MudPaper Class="pa-4" Outlined="true">
+                        <MudText Typo="Typo.body2">@ResultLoadingText</MudText>
+                        <MudProgressLinear Value="@ResultLoadingProgressPercent" Color="Color.Info" Class="mt-2" />
+                    </MudPaper>
+                }
+                else if (CanPlot)
+                {
+                    <MudToolBar>
+                        <MudText Typo="Typo.h6">Plot</MudText>
+                    </MudToolBar>
+                    <MudGrid Justify="Justify.Center">
+                        <MudItem xs="12">
+                            <Scatter3DPlot NameList="@plotNameList" ModeFlagList="@plotModeFlagList" ColorList="@plotColorList"
+                                           ShowLegendList="@plotShowLegendList"
+                                           XValuesList="@plotNorthValuesList" YValuesList="@plotEastValuesList" ZValuesList="@plotTvdValuesList"
+                                           YAxisReversed="@true" ZAxisReversed="@true"
+                                           PlotTitle="" XAxisTitle="@NorthCoordinateLabel" YAxisTitle="@EastCoordinateLabel" ZAxisTitle="TVD"
+                                           XUnit="PositionDrilling" YUnit="PositionDrilling" ZUnit="DepthDrilling"
+                                           XAxisUsesPositionReference="@true"
+                                           YAxisUsesPositionReference="@true"
+                                           ZAxisUsesDepthReference="@true"
+                                           XAxisPositionDirection="@PositionDirectionType.North"
+                                           YAxisPositionDirection="@PositionDirectionType.East">
+                            </Scatter3DPlot>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <ScatterPlot NameList="@plotNameList" ModeFlagList="@plotModeFlagList" ColorList="@plotColorList"
+                                         ShowLegendList="@plotShowLegendList"
+                                         XValuesList="@plotEastValuesList" YValuesList="@plotNorthValuesList"
+                                         PlotTitle="" XAxisTitle="@EastCoordinateLabel" YAxisTitle="@NorthCoordinateLabel"
+                                         XUnit="PositionDrilling" YUnit="PositionDrilling"
+                                         XAxisUsesPositionReference="@true"
+                                         YAxisUsesPositionReference="@true"
+                                         XAxisPositionDirection="@PositionDirectionType.East"
+                                         YAxisPositionDirection="@PositionDirectionType.North"
+                                         AspectRatio="1">
+                            </ScatterPlot>
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <ScatterPlot NameList="@plotNameList" ModeFlagList="@plotModeFlagList" ColorList="@plotColorList"
+                                         ShowLegendList="@plotShowLegendList"
+                                         XValuesList="@plotVerticalSectionValuesList" YValuesList="@plotTvdValuesList"
+                                         PlotTitle="" XAxisTitle="Vertical Section" YAxisTitle="TVD"
+                                         XUnit="DepthDrilling" YUnit="DepthDrilling"
+                                         YAxisReversed="@true"
+                                         YAxisUsesDepthReference="@true"
+                                         XAxisStartsAtZero="@true">
+                            </ScatterPlot>
+                        </MudItem>
+                    </MudGrid>
+                }
+                else
+                {
+                    <MudText>No plot data</MudText>
+                }
+            </MudExpansionPanel>
+        </MudExpansionPanels>
+    }
+}
+
+@code {
+    [CascadingParameter] private MudUnitAndReferenceChoiceTag? Parent { get; set; }
+    [Parameter] public Guid? AggregationCaseId { get; set; }
+    [Parameter] public List<Rig>? RigList { get; set; }
+    [Parameter] public List<WellBore>? WellBoreList { get; set; }
+    [Parameter] public List<Well>? WellList { get; set; }
+    [Parameter] public List<Cluster>? ClusterList { get; set; }
+    [Parameter] public List<Field>? FieldList { get; set; }
+    [Parameter] public List<TrajectoryLight>? TrajectoryList { get; set; }
+    [Parameter] public EventCallback ValueChanged { get; set; }
+
+    private TrajectoryAggregationCase currentAggregationCase = CreateAggregationCase();
+    private Guid? selectedFieldId;
+    private Guid? selectedClusterId;
+    private Guid? selectedWellId;
+    private Guid? selectedWellBoreId;
+    private Guid? selectedTrajectoryId;
+    private Guid? aggregationCaseIdBeingEdited;
+    private string? cleanAggregationCaseSnapshot;
+    private bool showDetailedSettings;
+    private bool isLoadingResults_;
+    private bool resultLoadComplete_;
+    private bool isPollingCalculation_;
+    private int resultChunkCount_;
+    private int resultChunksLoaded_;
+    private int resultItemCount_;
+    private readonly List<string> plotNameList = [];
+    private readonly List<int> plotModeFlagList = [];
+    private readonly List<string> plotColorList = [];
+    private readonly List<bool> plotShowLegendList = [];
+    private readonly List<List<object>> plotNorthValuesList = [];
+    private readonly List<List<object>> plotEastValuesList = [];
+    private readonly List<List<object>> plotTvdValuesList = [];
+    private readonly List<List<object>> plotVerticalSectionValuesList = [];
+    private static readonly JsonSerializerOptions DirtySnapshotJsonOptions = new() { WriteIndented = false };
+
+    private TrajectoryAggregation? SelectedAggregation => currentAggregationCase.TrajectoryAggregationList?.FirstOrDefault();
+    private string ResultLoadingText => resultChunkCount_ <= 0
+        ? "Loading trajectory aggregation results"
+        : $"Loading trajectory aggregation chunks {resultChunksLoaded_}/{resultChunkCount_} ({resultItemCount_:N0} results)";
+    private double ResultLoadingProgressPercent => resultChunkCount_ <= 0 ? 0.0 : 100.0 * resultChunksLoaded_ / resultChunkCount_;
+    private bool CanPlot => plotNorthValuesList.Count > 0 && plotEastValuesList.Count == plotNorthValuesList.Count && plotTvdValuesList.Count == plotNorthValuesList.Count;
+
+    protected override async Task OnParametersSetAsync() => await LoadDataAsync();
+
+    private async Task LoadDataAsync()
+    {
+        aggregationCaseIdBeingEdited = AggregationCaseId;
+        currentAggregationCase = AggregationCaseId is Guid id
+            ? await Api.ClientTrajectory.GetTrajectoryAggregationCaseByIdAsync(id, true)
+            : CreateAggregationCase();
+
+        EnsureAggregationShell();
+
+        selectedTrajectoryId = SelectedAggregation?.TrajectoryID == Guid.Empty ? null : SelectedAggregation?.TrajectoryID;
+        SyncSelectorsFromTrajectory(selectedTrajectoryId);
+        UpdateReferenceSources();
+        ResetResultLoadingState();
+        MarkAggregationCaseClean();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task SaveAggregationCase()
+    {
+        try
+        {
+            if (selectedTrajectoryId is not Guid trajectoryId || trajectoryId == Guid.Empty)
+            {
+                Snackbar.Add("Select a trajectory before saving.", Severity.Warning);
+                return;
+            }
+
+            currentAggregationCase.MetaInfo ??= PseudoConstructors.ConstructMetaInfo();
+            currentAggregationCase.LastModificationDate = DateTimeOffset.UtcNow;
+            currentAggregationCase.TrajectoryAggregationList = [new TrajectoryAggregation { ID = SelectedAggregation?.ID == Guid.Empty ? Guid.NewGuid() : SelectedAggregation?.ID ?? Guid.NewGuid(), TrajectoryID = trajectoryId }];
+
+            if (aggregationCaseIdBeingEdited is Guid id)
+            {
+                await Api.ClientTrajectory.PutTrajectoryAggregationCaseByIdAsync(id, currentAggregationCase);
+                currentAggregationCase = await Api.ClientTrajectory.GetTrajectoryAggregationCaseByIdAsync(id, false);
+                Snackbar.Add("Trajectory aggregation updated successfully", Severity.Success);
+            }
+            else
+            {
+                currentAggregationCase.MetaInfo.ID = currentAggregationCase.MetaInfo.ID == Guid.Empty ? Guid.NewGuid() : currentAggregationCase.MetaInfo.ID;
+                currentAggregationCase.CreationDate ??= DateTimeOffset.UtcNow;
+                await Api.ClientTrajectory.PostTrajectoryAggregationCaseAsync(currentAggregationCase);
+                currentAggregationCase = await Api.ClientTrajectory.GetTrajectoryAggregationCaseByIdAsync(currentAggregationCase.MetaInfo.ID, false);
+                aggregationCaseIdBeingEdited = currentAggregationCase.MetaInfo.ID;
+                Snackbar.Add("Trajectory aggregation created successfully", Severity.Success);
+            }
+
+            EnsureAggregationShell();
+
+            selectedTrajectoryId = SelectedAggregation?.TrajectoryID == Guid.Empty ? null : SelectedAggregation?.TrajectoryID;
+            SyncSelectorsFromTrajectory(selectedTrajectoryId);
+            UpdateReferenceSources();
+            ResetResultLoadingState();
+            MarkAggregationCaseClean();
+            StartCalculationPolling();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Error saving trajectory aggregation");
+            Snackbar.Add("Error saving trajectory aggregation: " + ex.Message, Severity.Warning);
+        }
+    }
+
+    private async Task CloseEditorAsync()
+    {
+        if (HasUnsavedAggregationCaseChanges() && !await ConfirmCloseWithoutSavingAsync())
+        {
+            return;
+        }
+
+        await ValueChanged.InvokeAsync();
+    }
+
+    private void MarkAggregationCaseClean() => cleanAggregationCaseSnapshot = BuildAggregationCaseDirtySnapshot();
+
+    private bool HasUnsavedAggregationCaseChanges() =>
+        cleanAggregationCaseSnapshot != null &&
+        !string.Equals(cleanAggregationCaseSnapshot, BuildAggregationCaseDirtySnapshot(), StringComparison.Ordinal);
+
+    private string BuildAggregationCaseDirtySnapshot()
+    {
+        return JsonSerializer.Serialize(new
+        {
+            Id = aggregationCaseIdBeingEdited,
+            CaseId = currentAggregationCase.MetaInfo?.ID,
+            currentAggregationCase.Name,
+            currentAggregationCase.Description,
+            currentAggregationCase.CreationDate,
+            SelectedFieldId = selectedFieldId,
+            SelectedClusterId = selectedClusterId,
+            SelectedWellId = selectedWellId,
+            SelectedWellBoreId = selectedWellBoreId,
+            SelectedTrajectoryId = selectedTrajectoryId,
+            currentAggregationCase.EpsilonL,
+            currentAggregationCase.EpsilonKappa,
+            currentAggregationCase.Alpha,
+            currentAggregationCase.InterpolationInterval,
+            currentAggregationCase.DistanceReferenceCoarseningThreshold
+        }, DirtySnapshotJsonOptions);
+    }
+
+    private async Task<bool> ConfirmCloseWithoutSavingAsync()
+    {
+        bool? result = await DialogService.ShowMessageBox(
+            "Unsaved changes",
+            "Some changes have not been saved. Close without saving?",
+            yesText: "Close without saving",
+            cancelText: "Stay");
+
+        return result == true;
+    }
+
+    private Task OnResultsPanelExpandedChanged(bool expanded)
+    {
+        if (expanded)
+        {
+            StartResultLoading();
+        }
+
+        return Task.CompletedTask;
+    }
+
+    private void StartResultLoading()
+    {
+        if (resultLoadComplete_ || isLoadingResults_)
+        {
+            return;
+        }
+
+        _ = LoadAggregationResultsAsync();
+    }
+
+    private void ResetResultLoadingState()
+    {
+        resultLoadComplete_ = false;
+        isLoadingResults_ = false;
+        resultChunkCount_ = 0;
+        resultChunksLoaded_ = 0;
+        resultItemCount_ = 0;
+        UpdatePlots();
+    }
+
+    private void StartCalculationPolling()
+    {
+        if (isPollingCalculation_ || currentAggregationCase.MetaInfo?.ID is not Guid caseId || caseId == Guid.Empty)
+        {
+            return;
+        }
+
+        _ = PollCalculationAsync(caseId);
+    }
+
+    private async Task PollCalculationAsync(Guid caseId)
+    {
+        try
+        {
+            isPollingCalculation_ = true;
+            for (int attempt = 0; attempt < 120; attempt++)
+            {
+                currentAggregationCase = await Api.ClientTrajectory.GetTrajectoryAggregationCaseByIdAsync(caseId, false);
+                EnsureAggregationShell();
+                selectedTrajectoryId = SelectedAggregation?.TrajectoryID == Guid.Empty ? null : SelectedAggregation?.TrajectoryID;
+                await InvokeAsync(StateHasChanged);
+
+                if (!IsCalculationActive(currentAggregationCase))
+                {
+                    return;
+                }
+
+                await Task.Delay(TimeSpan.FromSeconds(2));
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Problem while polling trajectory aggregation calculation");
+        }
+        finally
+        {
+            isPollingCalculation_ = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private static bool IsCalculationActive(TrajectoryAggregationCase aggregationCase) =>
+        aggregationCase.CalculationState == CalculationState.Running ||
+        aggregationCase.CalculationState == CalculationState.Queued;
+
+    private void EnsureAggregationShell()
+    {
+        currentAggregationCase.TrajectoryAggregationList ??= [];
+        if (currentAggregationCase.TrajectoryAggregationList.Count == 0)
+        {
+            currentAggregationCase.TrajectoryAggregationList.Add(new TrajectoryAggregation { ID = Guid.NewGuid(), SectionList = [], AggregatedSurveyPointList = [], CoarsenedReferenceTrajectory = [], DistanceResultList = [] });
+        }
+    }
+
+    private async Task LoadAggregationResultsAsync()
+    {
+        if (currentAggregationCase.MetaInfo?.ID is not Guid caseId || caseId == Guid.Empty ||
+            SelectedAggregation?.TrajectoryID is not Guid trajectoryId || trajectoryId == Guid.Empty)
+        {
+            return;
+        }
+
+        isLoadingResults_ = true;
+        resultLoadComplete_ = false;
+        resultChunkCount_ = 0;
+        resultChunksLoaded_ = 0;
+        resultItemCount_ = 0;
+        await InvokeAsync(StateHasChanged);
+
+        try
+        {
+            TrajectoryAggregation? aggregation = SelectedAggregation;
+            if (aggregation == null)
+            {
+                return;
+            }
+
+            await WaitForCalculationCompletionAsync(caseId);
+
+            aggregation.AggregatedSurveyPointList = await LoadSurveyPointChunksAsync(
+                () => Api.ClientTrajectory.GetTrajectoryAggregationAggregatedSurveyPointChunkCountAsync(caseId, trajectoryId),
+                chunkIndex => Api.ClientTrajectory.GetTrajectoryAggregationAggregatedSurveyPointChunkAsync(caseId, trajectoryId, chunkIndex));
+
+            aggregation.CoarsenedReferenceTrajectory = await LoadSurveyPointChunksAsync(
+                () => Api.ClientTrajectory.GetTrajectoryAggregationCoarsenedReferencePointChunkCountAsync(caseId, trajectoryId),
+                chunkIndex => Api.ClientTrajectory.GetTrajectoryAggregationCoarsenedReferencePointChunkAsync(caseId, trajectoryId, chunkIndex));
+
+            int distanceChunkCount = await Api.ClientTrajectory.GetTrajectoryAggregationDistanceResultChunkCountAsync(caseId, trajectoryId);
+            resultChunkCount_ += distanceChunkCount;
+            List<TrajectoryAggregationDistanceResult> distances = [];
+            for (int chunkIndex = 0; chunkIndex < distanceChunkCount; chunkIndex++)
+            {
+                TrajectoryAggregationDistanceResultChunk chunk = await Api.ClientTrajectory.GetTrajectoryAggregationDistanceResultChunkAsync(caseId, trajectoryId, chunkIndex);
+                if (chunk.ResultList is { Count: > 0 } chunkResults)
+                {
+                    distances.AddRange(chunkResults);
+                }
+
+                resultChunksLoaded_++;
+                resultItemCount_ = distances.Count;
+                await InvokeAsync(StateHasChanged);
+            }
+
+            aggregation.DistanceResultList = distances;
+            resultLoadComplete_ = true;
+            UpdatePlots();
+        }
+        finally
+        {
+            isLoadingResults_ = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task WaitForCalculationCompletionAsync(Guid caseId)
+    {
+        for (int attempt = 0; attempt < 120 && IsCalculationActive(currentAggregationCase); attempt++)
+        {
+            currentAggregationCase = await Api.ClientTrajectory.GetTrajectoryAggregationCaseByIdAsync(caseId, false);
+            EnsureAggregationShell();
+            await InvokeAsync(StateHasChanged);
+            if (!IsCalculationActive(currentAggregationCase))
+            {
+                return;
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
+        }
+    }
+
+    private async Task<List<SurveyPoint>> LoadSurveyPointChunksAsync(Func<Task<int>> countLoader, Func<int, Task<SurveyPointChunk>> chunkLoader)
+    {
+        int chunkCount = await countLoader();
+        resultChunkCount_ += chunkCount;
+        List<SurveyPoint> points = [];
+        for (int chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
+        {
+            SurveyPointChunk chunk = await chunkLoader(chunkIndex);
+            if (chunk.SurveyPointList is { Count: > 0 } chunkPoints)
+            {
+                points.AddRange(chunkPoints);
+            }
+
+            resultChunksLoaded_++;
+            resultItemCount_ += chunk.PointCount;
+            if (chunkIndex == 0 || resultChunksLoaded_ == resultChunkCount_ || resultChunksLoaded_ % 5 == 0)
+            {
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+
+        return points;
+    }
+
+    private static TrajectoryAggregationCase CreateAggregationCase() => new()
+    {
+        MetaInfo = PseudoConstructors.ConstructMetaInfo(),
+        Name = "Default Name",
+        Description = string.Empty,
+        CreationDate = DateTimeOffset.UtcNow,
+        LastModificationDate = DateTimeOffset.UtcNow,
+        EpsilonL = 250.0,
+        EpsilonKappa = 0.65 * Math.PI / (30.0 * 180.0),
+        Alpha = 0.9,
+        InterpolationInterval = 10.0,
+        DistanceReferenceCoarseningThreshold = 0.1,
+        TrajectoryAggregationList = [new TrajectoryAggregation { ID = Guid.NewGuid(), SectionList = [], AggregatedSurveyPointList = [], CoarsenedReferenceTrajectory = [], DistanceResultList = [] }]
+    };
+
+    private RenderFragment CalculationStatusContent(TrajectoryAggregationCase aggregationCase) => @<div style="min-width: 180px;">
+        @if (aggregationCase.CalculationState == CalculationState.Running || aggregationCase.CalculationState == CalculationState.Queued)
+        {
+            <MudText Typo="Typo.caption">@aggregationCase.CalculationState</MudText>
+            <MudProgressLinear Value="@(100.0 * aggregationCase.CalculationProgress)" Color="Color.Info" Size="Size.Small" />
+        }
+        else if (aggregationCase.CalculationState == CalculationState.Failed)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Error">@aggregationCase.CalculationState: @aggregationCase.CalculationMessage</MudText>
+        }
+        else
+        {
+            <MudText Typo="Typo.caption">@aggregationCase.CalculationState</MudText>
+        }
+    </div>;
+
+    private RenderFragment SectionValue(TrajectoryAggregationSection section, double? value, TrajectoryAggregationSectionType sectionType, string quantityName) => @<span>
+        @if (section.SectionType == sectionType && value is { })
+        {
+            <MudSpanWithUnit QuantityName="@quantityName" SIValue="@value" />
+        }
+    </span>;
+
+    private List<Field> AvailableFields => FieldList?.Where(x => x?.MetaInfo != null).OrderBy(x => x.Name).ToList() ?? [];
+    private List<Cluster> AvailableClusters => ClusterList?.Where(cluster => cluster?.MetaInfo != null && !cluster.IsSingleWell && (selectedFieldId == null || cluster.FieldID == selectedFieldId)).OrderBy(cluster => cluster.Name).ToList() ?? [];
+    private List<Well> AvailableWells => WellList?.Where(well => well?.MetaInfo != null && (selectedFieldId == null || MatchesSelectedField(well)) && (selectedClusterId == null || well.IsSingleWell || well.ClusterID == selectedClusterId)).OrderBy(well => well.Name).ToList() ?? [];
+    private List<WellBore> AvailableWellBores => WellBoreList?.Where(wb => wb?.MetaInfo != null && (selectedWellId == null || wb.WellID == selectedWellId)).OrderBy(wb => wb.Name).ToList() ?? [];
+    private List<TrajectoryLight> AvailableTrajectories => TrajectoryList?.Where(t => t?.MetaInfo != null && selectedWellBoreId != null && GetTrajectoryWellBoreId(t.MetaInfo.ID) == selectedWellBoreId).OrderBy(t => t.Name).ToList() ?? [];
+    private Task OnFieldChanged(Guid? fieldId) { selectedFieldId = fieldId; NormalizeSelectionChain(); return Task.CompletedTask; }
+    private Task OnClusterChanged(Guid? clusterId) { selectedClusterId = clusterId; NormalizeSelectionChain(); return Task.CompletedTask; }
+    private Task OnWellChanged(Guid? wellId) { selectedWellId = wellId; NormalizeSelectionChain(); return Task.CompletedTask; }
+    private Task OnWellBoreChanged(Guid? wellBoreId) { selectedWellBoreId = wellBoreId; NormalizeSelectionChain(); return Task.CompletedTask; }
+    private Task OnTrajectoryChanged(Guid? trajectoryId) { selectedTrajectoryId = trajectoryId; if (SelectedAggregation != null) SelectedAggregation.TrajectoryID = trajectoryId ?? Guid.Empty; UpdateReferenceSources(); return Task.CompletedTask; }
+    private void NormalizeSelectionChain() { if (selectedClusterId != null && !AvailableClusters.Any(x => x.MetaInfo.ID == selectedClusterId)) selectedClusterId = null; if (selectedWellId != null && !AvailableWells.Any(x => x.MetaInfo.ID == selectedWellId)) selectedWellId = null; if (selectedWellBoreId != null && !AvailableWellBores.Any(x => x.MetaInfo.ID == selectedWellBoreId)) selectedWellBoreId = null; if (selectedTrajectoryId != null && !AvailableTrajectories.Any(x => x.MetaInfo.ID == selectedTrajectoryId)) selectedTrajectoryId = null; if (SelectedAggregation != null) SelectedAggregation.TrajectoryID = selectedTrajectoryId ?? Guid.Empty; UpdateReferenceSources(); }
+    private void SyncSelectorsFromTrajectory(Guid? trajectoryId) { selectedFieldId = null; selectedClusterId = null; selectedWellId = null; selectedWellBoreId = null; if (trajectoryId is not Guid id || id == Guid.Empty) return; selectedTrajectoryId = id; selectedWellBoreId = GetTrajectoryWellBoreId(id); WellBore? wb = selectedWellBoreId is Guid wbId ? FindWellBoreById(wbId) : null; Well? well = wb?.WellID is Guid wellId ? FindWellById(wellId) : null; Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null; selectedWellId = well?.MetaInfo.ID; selectedClusterId = well is { IsSingleWell: true } ? null : cluster?.MetaInfo.ID; selectedFieldId = cluster?.FieldID ?? FindFieldIdForWell(well); }
+    private Guid? GetTrajectoryWellBoreId(Guid trajectoryId) => TrajectoryList?.FirstOrDefault(t => t?.MetaInfo?.ID == trajectoryId)?.WellBoreID;
+    private Well? FindWellById(Guid wellId) => WellList?.FirstOrDefault(well => well?.MetaInfo?.ID == wellId);
+    private Cluster? FindClusterById(Guid clusterId) => ClusterList?.FirstOrDefault(cluster => cluster?.MetaInfo?.ID == clusterId);
+    private WellBore? FindWellBoreById(Guid wellBoreId) => WellBoreList?.FirstOrDefault(wb => wb?.MetaInfo?.ID == wellBoreId);
+    private Guid? FindFieldIdForWell(Well? well) => well?.ClusterID is Guid clusterId ? FindClusterById(clusterId)?.FieldID : null;
+    private bool MatchesSelectedField(Well well) => selectedFieldId == null || FindFieldIdForWell(well) == selectedFieldId;
+    private string AssociatedRigName { get { Guid? wellBoreId = selectedWellBoreId ?? (selectedTrajectoryId is Guid trajectoryId ? GetTrajectoryWellBoreId(trajectoryId) : null); WellBore? wellBore = wellBoreId is Guid wbId ? FindWellBoreById(wbId) : null; Guid? rigId = wellBore?.RigID; if (rigId == null && wellBore?.WellID is Guid wellId) { Well? well = FindWellById(wellId); if (well?.ClusterID is Guid clusterId) rigId = FindClusterById(clusterId)?.RigID; } return rigId is Guid resolvedRigId ? RigList?.FirstOrDefault(rig => rig?.MetaInfo?.ID == resolvedRigId)?.Name ?? "NA" : "NA"; } }
+    private static string FormatDate(DateTimeOffset? value) => value?.ToString("yyyy-MM-dd HH:mm") ?? string.Empty;
+    private string NorthCoordinateLabel => GetCoordinateLabel(PositionDirectionType.North);
+    private string EastCoordinateLabel => GetCoordinateLabel(PositionDirectionType.East);
+    private string DepthReferenceRenderKey => Parent?.DepthReferenceName ?? DataUtils.UnitAndReferenceParameters.DepthReferenceName ?? "DepthReference";
+    private void UpdateReferenceSources() => DataUtils.ApplyTrajectoryReferenceValues(selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList, RigList);
+
+    private void UpdatePlots()
+    {
+        plotNameList.Clear();
+        plotModeFlagList.Clear();
+        plotColorList.Clear();
+        plotShowLegendList.Clear();
+        plotNorthValuesList.Clear();
+        plotEastValuesList.Clear();
+        plotTvdValuesList.Clear();
+        plotVerticalSectionValuesList.Clear();
+
+        AddSurveyPointTrace("Coarsened reference", "#1769aa", SelectedAggregation?.CoarsenedReferenceTrajectory);
+        AddSurveyPointTrace("Aggregated sections", "#c23b22", SelectedAggregation?.AggregatedSurveyPointList);
+    }
+
+    private void AddSurveyPointTrace(string name, string color, ICollection<SurveyPoint>? points)
+    {
+        List<SurveyPoint> validPoints = points?.Where(point => point?.RiemannianNorth is { } && point.RiemannianEast is { } && point.TVD is { }).OrderBy(point => point.MD).ToList() ?? [];
+        if (validPoints.Count == 0)
+        {
+            return;
+        }
+
+        plotNameList.Add(name);
+        plotModeFlagList.Add(1);
+        plotColorList.Add(color);
+        plotShowLegendList.Add(true);
+        plotNorthValuesList.Add(validPoints.Select(point => (object)(point.RiemannianNorth ?? 0.0)).ToList());
+        plotEastValuesList.Add(validPoints.Select(point => (object)(point.RiemannianEast ?? 0.0)).ToList());
+        plotTvdValuesList.Add(validPoints.Select(point => (object)(point.TVD ?? 0.0)).ToList());
+        plotVerticalSectionValuesList.Add(validPoints.Select(point => (object)(point.VerticalSection ?? point.MD ?? 0.0)).ToList());
+    }
+
+    private string GetCoordinateLabel(PositionDirectionType direction)
+    {
+        string? positionReferenceName = Parent?.PositionReferenceName ?? DataUtils.UnitAndReferenceParameters.PositionReferenceName;
+        if (string.Equals(positionReferenceName, "WGS84", StringComparison.OrdinalIgnoreCase))
+        {
+            return direction == PositionDirectionType.North ? "Riemann North" : "Riemann East";
+        }
+
+        if (string.Equals(positionReferenceName, "Cartographic", StringComparison.OrdinalIgnoreCase))
+        {
+            return direction == PositionDirectionType.North ? "Northing" : "Easting";
+        }
+
+        return direction == PositionDirectionType.North ? "North" : "East";
+    }
+}
