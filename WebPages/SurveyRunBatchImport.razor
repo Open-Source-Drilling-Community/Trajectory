@@ -339,6 +339,7 @@ else
     private bool replaceExistingTrajectories_;
     private bool replaceTrajectoriesWithSameName_;
     private const int SurveyMeasurementChunkSize = 5000;
+    private const string SidetrackTieInAnnotation = "Sidetrack tie-in";
 
     private string selectedSurveyImportFormat_ = "Separated";
     private static readonly string[] SurveyImportFormats = ["Separated", "Fixed width"];
@@ -361,7 +362,7 @@ else
 
     private bool IsDelimitedImportFormat => selectedSurveyImportFormat_ == "Separated";
     private bool IsFixedWidthImportFormat => selectedSurveyImportFormat_ == "Fixed width";
-    private static readonly string[] DepthReferenceChoices = ["Rotary table", "Ground/Mud line", "Sea water level"];
+    private static readonly string[] DepthReferenceChoices = ["Rotary table", "Ground/Mud line", "Sea water level", "MSL"];
     private static readonly JsonSerializerOptions BatchImportJsonOptions = new()
     {
         PropertyNameCaseInsensitive = true,
@@ -1086,7 +1087,10 @@ else
 
                     await SetCurrentRowStatusAsync("Parsing file");
                     string content = Encoding.UTF8.GetString(row.FileContent);
-                    List<SurveyStation> importedStations = ParseSurveyStations(content, row, cluster, wellBore, out int skippedLines);
+                    DepthReferenceContext depthReferenceContext = await BuildDepthReferenceContextAsync(row.DepthReferenceName, cluster, wellBore);
+                    List<SurveyStation> importedStations = ParseSurveyStations(content, row, depthReferenceContext, out int skippedLines);
+                    int truncatedSidetrackStations = NormalizeSidetrackSurveyStations(row, importedStations, out importedStations);
+                    skippedLines += truncatedSidetrackStations;
 
                     if (importedStations.Count < 3)
                     {
@@ -1558,11 +1562,15 @@ else
 
     private List<SurveyStation> ParseSurveyStations(string content, SurveyRunImportRowState row, Cluster? cluster, WellBore? wellBore, out int skippedLines)
     {
+        return ParseSurveyStations(content, row, BuildDepthReferenceContext(row.DepthReferenceName, cluster, wellBore), out skippedLines);
+    }
+
+    private List<SurveyStation> ParseSurveyStations(string content, SurveyRunImportRowState row, DepthReferenceContext depthReferenceContext, out int skippedLines)
+    {
         string[] lines = content.Split(["\r\n", "\n", "\r"], StringSplitOptions.None);
         List<SurveyStation> importedStations = [];
         skippedLines = 0;
         double? previousMD = null;
-        DepthReferenceContext depthReferenceContext = BuildDepthReferenceContext(row.DepthReferenceName, cluster, wellBore);
 
         foreach (string line in lines)
         {
@@ -1591,6 +1599,116 @@ else
         return importedStations;
     }
 
+    private int NormalizeSidetrackSurveyStations(SurveyRunImportRowState row, List<SurveyStation> stations, out List<SurveyStation> normalizedStations)
+    {
+        normalizedStations = stations;
+        if (!IsRowSidetrack(row) ||
+            stations.Count < 2 ||
+            GetRowParentTieInMd(row) is not { } tieInMd)
+        {
+            return 0;
+        }
+
+        List<SurveyStation> sortedStations = stations
+            .Where(station => (station.MD ?? station.Abscissa) is { } md && double.IsFinite(md))
+            .OrderBy(station => station.MD ?? station.Abscissa)
+            .ToList();
+
+        if (sortedStations.Count < 2)
+        {
+            return 0;
+        }
+
+        double firstMd = sortedStations.First().MD ?? sortedStations.First().Abscissa!.Value;
+        double lastMd = sortedStations.Last().MD ?? sortedStations.Last().Abscissa!.Value;
+        if (firstMd >= tieInMd || lastMd <= tieInMd)
+        {
+            return 0;
+        }
+
+        if (!TryInterpolateImportedStation(sortedStations, tieInMd, out SurveyStation? tieInStation) || tieInStation == null)
+        {
+            return 0;
+        }
+
+        SurveyStation tieInStationAtSidetrackDepth = CopySurveyStation(tieInStation);
+        tieInStationAtSidetrackDepth.MD = tieInMd;
+        tieInStationAtSidetrackDepth.Abscissa = tieInMd;
+        tieInStationAtSidetrackDepth.Annotation = SidetrackTieInAnnotation;
+        List<SurveyStation> trimmedStations = [tieInStationAtSidetrackDepth];
+
+        int truncatedStations = 0;
+        foreach (SurveyStation station in sortedStations)
+        {
+            double md = station.MD ?? station.Abscissa!.Value;
+            if (md <= tieInMd)
+            {
+                if (md < tieInMd)
+                {
+                    truncatedStations++;
+                }
+                continue;
+            }
+
+            SurveyStation trimmedStation = CopySurveyStation(station);
+            trimmedStation.MD = md;
+            trimmedStation.Abscissa = md;
+            trimmedStations.Add(trimmedStation);
+        }
+
+        normalizedStations = trimmedStations;
+        return truncatedStations;
+    }
+
+    private static bool TryInterpolateImportedStation(List<SurveyStation> sortedStations, double md, out SurveyStation? station)
+    {
+        station = null;
+        for (int i = 1; i < sortedStations.Count; i++)
+        {
+            SurveyStation previous = sortedStations[i - 1];
+            SurveyStation next = sortedStations[i];
+            if ((previous.MD ?? previous.Abscissa) is not { } previousMd ||
+                (next.MD ?? next.Abscissa) is not { } nextMd ||
+                previousMd > md ||
+                nextMd < md)
+            {
+                continue;
+            }
+
+            if (Math.Abs(nextMd - previousMd) < double.Epsilon)
+            {
+                return false;
+            }
+
+            double fraction = (md - previousMd) / (nextMd - previousMd);
+            station = new SurveyStation
+            {
+                MD = md,
+                Abscissa = md,
+                Inclination = InterpolateNullable(previous.Inclination, next.Inclination, fraction),
+                Azimuth = InterpolateNullable(previous.Azimuth, next.Azimuth, fraction)
+            };
+            return true;
+        }
+
+        return false;
+    }
+
+    private static double? InterpolateNullable(double? start, double? end, double fraction) =>
+        start.HasValue && end.HasValue
+            ? start.Value + (end.Value - start.Value) * fraction
+            : null;
+
+    private static SurveyStation CopySurveyStation(SurveyStation source) =>
+        new()
+        {
+            MD = source.MD,
+            Abscissa = source.Abscissa,
+            Inclination = source.Inclination,
+            Azimuth = source.Azimuth,
+            Annotation = source.Annotation
+        };
+
     private string BuildFileLoadedStatus(SurveyRunImportRowState row)
     {
         if (row.FileContent == null || row.FileContent.Length == 0)
@@ -1605,6 +1723,7 @@ else
             Well? well = wellBore?.WellID is Guid wellId ? FindWellById(wellId) : null;
             Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null;
             List<SurveyStation> stations = ParseSurveyStations(content, row, cluster, wellBore, out int skippedLines);
+            skippedLines += NormalizeSidetrackSurveyStations(row, stations, out stations);
             return $"File loaded ({stations.Count} stations, {skippedLines} skipped)";
         }
         catch (Exception ex)
@@ -1834,6 +1953,13 @@ else
             value = DepthDrillingQuantity.Instance.ToSI(value, unitChoice.ID);
         }
 
+        if (Parent != null)
+        {
+            ApplyDepthReferenceContext(depthReferenceContext);
+            value = Parent.FromSI(value, "DepthDrilling");
+            return Parent.ToWGS84DepthSI(value, "DepthDrilling");
+        }
+
         return value - depthReferenceContext.OffsetToWgs84;
     }
 
@@ -1841,20 +1967,23 @@ else
     {
         DataUtils.UpdateDepthReferenceName(context.DepthReferenceName);
         DataUtils.GroundMudLineDepthReferenceSource.GroundMudLineDepthReference = context.GroundMudLineDepthReference;
+        DataUtils.MeanSeaLevelDepthReferenceSource.MeanSeaLevelDepthReference = context.MeanSeaLevelDepthReference;
         DataUtils.SeaWaterLevelDepthReferenceSource.SeaWaterLevelDepthReference = context.SeaWaterLevelDepthReference;
         DataUtils.RotaryTableDepthReferenceSource.RotaryTableDepthReference = context.RotaryTableDepthReference;
     }
 
-    private DepthReferenceContext BuildDepthReferenceContext(string? depthReferenceName, Cluster? cluster, WellBore? wellBore)
+    private async Task<DepthReferenceContext> BuildDepthReferenceContextAsync(string? depthReferenceName, Cluster? cluster, WellBore? wellBore)
     {
         string normalizedDepthReference = string.IsNullOrWhiteSpace(depthReferenceName) ? commonDepthReference_ : depthReferenceName;
         double groundMudLineOffset = cluster?.GroundMudLineDepth?.GaussianValue?.Mean is double gml ? -gml : 0.0;
+        double meanSeaLevelOffset = await ResolveMeanSeaLevelOffsetAsync(wellBore, cluster) ?? 0.0;
         double seaWaterLevelOffset = cluster?.TopWaterDepth?.GaussianValue?.Mean is double swl ? -swl : 0.0;
         double rotaryTableOffset = ResolveRotaryTableOffset(wellBore, cluster);
 
         double offsetToWgs84 = normalizedDepthReference switch
         {
             "Ground/Mud line" => groundMudLineOffset,
+            "MSL" or "Mean sea level" => meanSeaLevelOffset,
             "Sea water level" => seaWaterLevelOffset,
             _ => rotaryTableOffset
         };
@@ -1864,9 +1993,47 @@ else
             DepthReferenceName = normalizedDepthReference,
             OffsetToWgs84 = offsetToWgs84,
             GroundMudLineDepthReference = groundMudLineOffset,
+            MeanSeaLevelDepthReference = meanSeaLevelOffset,
             SeaWaterLevelDepthReference = seaWaterLevelOffset,
             RotaryTableDepthReference = rotaryTableOffset
         };
+    }
+
+    private DepthReferenceContext BuildDepthReferenceContext(string? depthReferenceName, Cluster? cluster, WellBore? wellBore)
+    {
+        string normalizedDepthReference = string.IsNullOrWhiteSpace(depthReferenceName) ? commonDepthReference_ : depthReferenceName;
+        double groundMudLineOffset = cluster?.GroundMudLineDepth?.GaussianValue?.Mean is double gml ? -gml : 0.0;
+        double meanSeaLevelOffset = DataUtils.MeanSeaLevelDepthReferenceSource.MeanSeaLevelDepthReference ?? 0.0;
+        double seaWaterLevelOffset = cluster?.TopWaterDepth?.GaussianValue?.Mean is double swl ? -swl : 0.0;
+        double rotaryTableOffset = ResolveRotaryTableOffset(wellBore, cluster);
+
+        double offsetToWgs84 = normalizedDepthReference switch
+        {
+            "Ground/Mud line" => groundMudLineOffset,
+            "MSL" or "Mean sea level" => meanSeaLevelOffset,
+            "Sea water level" => seaWaterLevelOffset,
+            _ => rotaryTableOffset
+        };
+
+        return new DepthReferenceContext
+        {
+            DepthReferenceName = normalizedDepthReference,
+            OffsetToWgs84 = offsetToWgs84,
+            GroundMudLineDepthReference = groundMudLineOffset,
+            MeanSeaLevelDepthReference = meanSeaLevelOffset,
+            SeaWaterLevelDepthReference = seaWaterLevelOffset,
+            RotaryTableDepthReference = rotaryTableOffset
+        };
+    }
+
+    private Task<double?> ResolveMeanSeaLevelOffsetAsync(WellBore? wellBore, Cluster? cluster)
+    {
+        if (wellBore?.MetaInfo?.ID is Guid wellBoreId)
+        {
+            return MslDepthReferenceUtils.ResolveMeanSeaLevelDepthReferenceForWellBoreAsync(Api, wellBoreId, wellBoreList_, wellList_, clusterList_);
+        }
+
+        return MslDepthReferenceUtils.ResolveMeanSeaLevelDepthReferenceForWellBoreAsync(Api, null, wellBoreList_, wellList_, cluster is null ? clusterList_ : [cluster]);
     }
 
     private double ResolveRotaryTableOffset(WellBore? wellBore, Cluster? cluster)
@@ -2027,8 +2194,8 @@ else
 
         string content = Encoding.UTF8.GetString(row.FileContent);
         WellBore? wellBore = row.WellBoreId is Guid wellBoreId ? FindWellBoreById(wellBoreId) : null;
-        if (wellBore?.IsSidetrack == true &&
-            (wellBore.ParentWellBoreID is not Guid parentWellBoreId || candidate.WellBoreID != parentWellBoreId))
+        if (IsRowSidetrack(row) &&
+            (wellBore?.ParentWellBoreID is not Guid parentWellBoreId || candidate.WellBoreID != parentWellBoreId))
         {
             return false;
         }
@@ -2083,7 +2250,10 @@ else
 
     private bool IsRowSidetrack(SurveyRunImportRowState row) =>
         row.WellBoreId is Guid wellBoreId &&
-        FindWellBoreById(wellBoreId)?.IsSidetrack == true;
+        FindWellBoreById(wellBoreId) is { } wellBore &&
+        (wellBore.IsSidetrack ||
+        (wellBore.ParentWellBoreID is Guid parentWellBoreId && parentWellBoreId != Guid.Empty &&
+        wellBore.TieInPointAlongHoleDepth?.GaussianValue?.Mean is not null));
 
     private double? GetRowParentTieInMd(SurveyRunImportRowState row)
     {
@@ -2298,6 +2468,7 @@ else
         public string DepthReferenceName { get; set; } = "Rotary table";
         public double OffsetToWgs84 { get; set; }
         public double? GroundMudLineDepthReference { get; set; }
+        public double? MeanSeaLevelDepthReference { get; set; }
         public double? SeaWaterLevelDepthReference { get; set; }
         public double? RotaryTableDepthReference { get; set; }
     }

@@ -18,6 +18,7 @@
                               DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
                               DepthReferenceNameChanged="@OnDepthReferenceNameChanged"
                               GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                              MeanSeaLevelDepthReferenceSource="@DataUtils.MeanSeaLevelDepthReferenceSource"
                               SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
                               RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
                               PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
@@ -25,7 +26,11 @@
                               WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
                               CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
                               LeaseLinePositionReferenceSource="@DataUtils.LeaseLinePositionReferenceSource"
-                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource">
+                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource"
+                              AzimuthReferenceName="@DataUtils.UnitAndReferenceParameters.AzimuthReferenceName"
+                              AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName"
+                              GridConvergenceSource="@DataUtils.GridConvergenceSource"
+                              MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource">
     @if (isEditing_)
     {
         <MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Survey Run</MudText>
@@ -236,7 +241,7 @@
                     <MudTh></MudTh>
                     <MudTh>Measured Depth [@DepthUnitLabel]</MudTh>
                     <MudTh>Inclination [@AngleUnitLabel]</MudTh>
-                    <MudTh>Azimuth [@AngleUnitLabel]</MudTh>
+                    <MudTh>Azimuth [@AzimuthUnitLabel]</MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
@@ -254,6 +259,7 @@
                     </MudTd>
                     <MudTd DataLabel="Azimuth">
                         <MudInputWithUnit QuantityName="PlaneAngleDrilling"
+                                          DrillingSignalReference="@DrillingSignalReferenceType.Azimuth"
                                           SIValueNullable="@context.Azimuth"
                                           SIValueNullableChanged="@(val => OnSurveyStationAzimuthChanged(context, val))" />
                     </MudTd>
@@ -283,7 +289,7 @@
                                 <MudText>Inclination: @FormatAngleValue(tieInPoint.Inclination)</MudText>
                             </MudItem>
                             <MudItem xs="6" md="2">
-                                <MudText>Azimuth: @FormatAngleValue(tieInPoint.Azimuth)</MudText>
+                                <MudText>Azimuth: @FormatAzimuthValue(tieInPoint.Azimuth)</MudText>
                             </MudItem>
                             <MudItem xs="6" md="2">
                                 <MudText>Vertical Depth: @FormatDepthValue(tieInPoint.TVD)</MudText>
@@ -313,7 +319,7 @@
                                 <MudTHeadRow>
                                     <MudTh>Measured Depth [@DepthUnitLabel]</MudTh>
                                     <MudTh>Inclination [@AngleUnitLabel]</MudTh>
-                                    <MudTh>Azimuth [@AngleUnitLabel]</MudTh>
+                                    <MudTh>Azimuth [@AzimuthUnitLabel]</MudTh>
                                     <MudTh>Vertical Depth [@DepthUnitLabel]</MudTh>
                                     <MudTh>@NorthCoordinateLabel [@PositionUnitLabel]</MudTh>
                                     <MudTh>@EastCoordinateLabel [@PositionUnitLabel]</MudTh>
@@ -331,7 +337,7 @@
                                     <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Inclination" />
                                 </MudTd>
                                 <MudTd DataLabel="Azimuth">
-                                    <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Azimuth" />
+                                    <MudSpanWithUnit QuantityName="PlaneAngleDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Azimuth" SIValue="@context.Azimuth" />
                                 </MudTd>
                                 <MudTd DataLabel="Vertical Depth">
                                     <MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.TVD" />
@@ -563,6 +569,7 @@
     private int calculatedStationsLoaded_;
     private HashSet<SurveyMeasurement> selectedSurveyStations_ = [];
     private const int SurveyMeasurementChunkSize = 5000;
+    private const string SidetrackTieInAnnotation = "Sidetrack tie-in";
 
     private readonly List<string> nameList = [];
     private readonly List<int> modeFlagList = [];
@@ -635,12 +642,13 @@
     private IEnumerable<SurveyMeasurement> SurveyMeasurements => currentSurveyRun_?.SurveyMeasurementList ?? [];
 
     private string MeasurementReferenceRenderKey =>
-        $"{DataUtils.UnitAndReferenceParameters.UnitSystemName}|{DataUtils.UnitAndReferenceParameters.DepthReferenceName}|{measurementReferenceRenderVersion_}";
+        $"{DataUtils.UnitAndReferenceParameters.UnitSystemName}|{DataUtils.UnitAndReferenceParameters.DepthReferenceName}|{DataUtils.UnitAndReferenceParameters.AzimuthReferenceName}|{measurementReferenceRenderVersion_}";
 
     private MudUnitAndReferenceChoiceTag? UnitReference => unitReferenceTag_ ?? Parent;
     private string DepthUnitLabel => UnitReference?.GetDepthUnitLabel("DepthDrilling") ?? string.Empty;
     private string LengthUnitLabel => UnitReference?.GetUnitLabel("DepthDrilling") ?? string.Empty;
     private string AngleUnitLabel => UnitReference?.GetUnitLabel("PlaneAngleDrilling") ?? string.Empty;
+    private string AzimuthUnitLabel => UnitReference?.GetAzimuthUnitLabel("PlaneAngleDrilling") ?? string.Empty;
     private string PositionUnitLabel => UnitReference?.GetUnitLabel("PositionDrilling") ?? string.Empty;
     private string CurvatureUnitLabel => UnitReference?.GetUnitLabel("CurvatureDrilling") ?? string.Empty;
 
@@ -718,9 +726,10 @@
 
     private bool IsParentSurveyRunRequired =>
         currentSurveyRun_?.SurveyMeasurementList is { Count: > 0 } &&
-        GetFirstSurveyStationMd(currentSurveyRun_) is { } firstMd &&
+        (IsSelectedWellBoreSidetrack() ||
+        (GetFirstSurveyStationMd(currentSurveyRun_) is { } firstMd &&
         GetSelectedWellheadMd() is { } wellheadMd &&
-        firstMd > wellheadMd;
+        firstMd > wellheadMd));
 
     private List<SurveyRun> AvailableParentSurveyRuns =>
         allSurveyRunHeavyList_?
@@ -868,7 +877,7 @@
         return query.OrderBy(surveyRun => surveyRun.Name).ToList();
     }
 
-    private void AddSurveyRun()
+    private async Task AddSurveyRun()
     {
         DateTimeOffset now = DateTimeOffset.UtcNow;
         currentSurveyRun_ = new SurveyRun
@@ -904,7 +913,7 @@
         selectedSurveyStations_.Clear();
         ResetCalculatedStationLoadingState();
         EnsureSurveyImportUnitsSelected();
-        UpdateSelectedSurveyRunReferenceSource();
+        await UpdateSelectedSurveyRunReferenceSourceAsync();
         UpdatePlots();
         MarkSurveyRunClean();
         isEditing_ = true;
@@ -929,7 +938,7 @@
             currentSurveyRun_.SurveyStationList ??= new List<SurveyStation>();
             ResetCalculatedStationLoadingState();
             EnsureSurveyImportUnitsSelected();
-            UpdateSelectedSurveyRunReferenceSource();
+            await UpdateSelectedSurveyRunReferenceSourceAsync();
             UpdatePlots();
             MarkSurveyRunClean();
         }
@@ -1481,10 +1490,10 @@
         selectedWellBoreId_ = null;
     }
 
-    private void OnEditorWellBoreChanged(Guid? wellBoreId)
+    private async Task OnEditorWellBoreChanged(Guid? wellBoreId)
     {
         selectedWellBoreId_ = wellBoreId;
-        UpdateSelectedSurveyRunReferenceSource();
+        await UpdateSelectedSurveyRunReferenceSourceAsync();
         ClearInvalidParentSurveyRunSelection();
         ClearCalculatedSurveyRunData();
         UpdatePlots();
@@ -1501,10 +1510,15 @@
     private Task OnDepthReferenceNameChanged(string depthReferenceName)
     {
         DataUtils.UpdateDepthReferenceName(depthReferenceName);
-        UpdateSelectedSurveyRunReferenceSource();
+        return OnDepthReferenceNameChangedAsync();
+    }
+
+    private async Task OnDepthReferenceNameChangedAsync()
+    {
+        await UpdateSelectedSurveyRunReferenceSourceAsync();
         measurementReferenceRenderVersion_++;
         UpdatePlots();
-        return InvokeAsync(StateHasChanged);
+        await InvokeAsync(StateHasChanged);
     }
 
     private Task OnPositionReferenceNameChanged(string positionReferenceName)
@@ -1584,9 +1598,115 @@
         return cluster?.ReferenceDepth?.GaussianValue?.Mean;
     }
 
-    private void UpdateSelectedSurveyRunReferenceSource()
+    private WellBore? GetSelectedWellBore() =>
+        selectedWellBoreId_ is Guid wellBoreId
+            ? wellBoreList_?.FirstOrDefault(item => item?.MetaInfo?.ID == wellBoreId)
+            : null;
+
+    private bool IsSelectedWellBoreSidetrack()
+    {
+        WellBore? wellBore = GetSelectedWellBore();
+        return wellBore != null &&
+            (wellBore.IsSidetrack ||
+            (wellBore.ParentWellBoreID is Guid parentWellBoreId && parentWellBoreId != Guid.Empty &&
+            wellBore.TieInPointAlongHoleDepth?.GaussianValue?.Mean is not null));
+    }
+
+    private double? GetSelectedParentTieInMd() =>
+        GetSelectedWellBore()?.TieInPointAlongHoleDepth?.GaussianValue?.Mean;
+
+    private int TrimSidetrackSurveyMeasurements(List<SurveyMeasurement> measurements)
+    {
+        if (!IsSelectedWellBoreSidetrack() ||
+            GetSelectedParentTieInMd() is not { } tieInMd ||
+            measurements.Count == 0)
+        {
+            return 0;
+        }
+
+        List<SurveyMeasurement> sortedMeasurements = measurements
+            .Where(measurement => measurement?.MD is { } md && double.IsFinite(md))
+            .OrderBy(measurement => measurement.MD)
+            .ToList();
+
+        if (sortedMeasurements.Count == 0)
+        {
+            int invalidCount = measurements.Count;
+            measurements.Clear();
+            return invalidCount;
+        }
+
+        double firstMd = sortedMeasurements.First().MD!.Value;
+        double lastMd = sortedMeasurements.Last().MD!.Value;
+        if (firstMd >= tieInMd)
+        {
+            return 0;
+        }
+
+        int trimmedCount = sortedMeasurements.Count(measurement => measurement.MD < tieInMd);
+        if (lastMd < tieInMd)
+        {
+            measurements.Clear();
+            return trimmedCount;
+        }
+
+        List<SurveyMeasurement> keptMeasurements = [];
+        if (TryInterpolateSurveyMeasurement(sortedMeasurements, tieInMd, out SurveyMeasurement? tieInMeasurement) &&
+            tieInMeasurement != null)
+        {
+            tieInMeasurement.Annotation = SidetrackTieInAnnotation;
+            keptMeasurements.Add(tieInMeasurement);
+        }
+
+        keptMeasurements.AddRange(sortedMeasurements.Where(measurement => measurement.MD > tieInMd));
+        measurements.Clear();
+        measurements.AddRange(keptMeasurements);
+        return trimmedCount;
+    }
+
+    private static bool TryInterpolateSurveyMeasurement(List<SurveyMeasurement> sortedMeasurements, double md, out SurveyMeasurement? measurement)
+    {
+        measurement = null;
+        for (int i = 1; i < sortedMeasurements.Count; i++)
+        {
+            SurveyMeasurement previous = sortedMeasurements[i - 1];
+            SurveyMeasurement next = sortedMeasurements[i];
+            if (previous.MD is not { } previousMd ||
+                next.MD is not { } nextMd ||
+                previousMd > md ||
+                nextMd < md)
+            {
+                continue;
+            }
+
+            double interval = nextMd - previousMd;
+            if (!double.IsFinite(interval) || Math.Abs(interval) < double.Epsilon)
+            {
+                return false;
+            }
+
+            double fraction = (md - previousMd) / interval;
+            measurement = new SurveyMeasurement
+            {
+                MD = md,
+                Inclination = InterpolateNullable(previous.Inclination, next.Inclination, fraction),
+                Azimuth = InterpolateNullable(previous.Azimuth, next.Azimuth, fraction)
+            };
+            return true;
+        }
+
+        return false;
+    }
+
+    private static double? InterpolateNullable(double? start, double? end, double fraction) =>
+        start.HasValue && end.HasValue
+            ? start.Value + (end.Value - start.Value) * fraction
+            : null;
+
+    private async Task UpdateSelectedSurveyRunReferenceSourceAsync()
     {
         DataUtils.GroundMudLineDepthReferenceSource.GroundMudLineDepthReference = 0;
+        DataUtils.MeanSeaLevelDepthReferenceSource.MeanSeaLevelDepthReference = null;
         DataUtils.SeaWaterLevelDepthReferenceSource.SeaWaterLevelDepthReference = 0;
         DataUtils.RotaryTableDepthReferenceSource.RotaryTableDepthReference = 0;
         DataUtils.WellHeadPositionReferenceSource.WellHeadNorthPositionReference = 0;
@@ -1616,6 +1736,8 @@
             DataUtils.ApplyTopWaterDepthWGS84(topWaterDepth);
         }
         DataUtils.ApplyRotaryTableDepthnWGS84(rig?.DrillFloorElevation);
+        TrajectoryReferenceDatumUtils.Apply(
+            await TrajectoryReferenceDatumUtils.ResolveForWellBoreAsync(Api, wellBoreId, wellBoreList_, wellList_, clusterList_));
 
         UpdateWellheadPositionReference(well, cluster);
         measurementReferenceRenderVersion_++;
@@ -1661,8 +1783,19 @@
     private bool IsParentSurveyRunCandidate(SurveyRun candidate)
     {
         if (currentSurveyRun_ == null ||
-            GetFirstSurveyStationMd(currentSurveyRun_) is not { } firstMd ||
             candidate.SurveyStationList is not { Count: > 0 } stations)
+        {
+            return false;
+        }
+
+        if (IsSelectedWellBoreSidetrack() &&
+            (GetSelectedWellBore()?.ParentWellBoreID is not Guid parentWellBoreId || candidate.WellBoreID != parentWellBoreId))
+        {
+            return false;
+        }
+
+        double? candidateTieInMd = GetSelectedParentTieInMd() ?? GetFirstSurveyStationMd(currentSurveyRun_);
+        if (candidateTieInMd is not { } tieInMd || !double.IsFinite(tieInMd))
         {
             return false;
         }
@@ -1682,8 +1815,8 @@
         const double maxTieInGap = 10.0;
         double firstParentMd = candidateMds.First();
         double lastParentMd = candidateMds.Last();
-        return (firstParentMd <= firstMd && firstMd <= lastParentMd) ||
-               (lastParentMd <= firstMd && firstMd - lastParentMd <= maxTieInGap);
+        return (firstParentMd <= tieInMd && tieInMd <= lastParentMd) ||
+               (lastParentMd <= tieInMd && tieInMd - lastParentMd <= maxTieInGap);
     }
 
     private void ClearInvalidParentSurveyRunSelection()
@@ -1809,7 +1942,7 @@
 
         try
         {
-            UpdateSelectedSurveyRunReferenceSource();
+            await UpdateSelectedSurveyRunReferenceSourceAsync();
             using System.IO.Stream stream = surveyImportFile_.OpenReadStream(128 * 1024 * 1024);
             using System.IO.StreamReader reader = new(stream);
             string content = await reader.ReadToEndAsync();
@@ -1843,12 +1976,19 @@
                 return;
             }
 
+            int trimmedSidetrackMeasurements = TrimSidetrackSurveyMeasurements(importedMeasurements);
+            if (importedMeasurements.Count == 0)
+            {
+                Snackbar.Add("No survey measurements remain below the sidetrack depth", Severity.Warning);
+                return;
+            }
+
             currentSurveyRun_.SurveyMeasurementList = importedMeasurements;
             ClearInvalidParentSurveyRunSelection();
             ClearCalculatedSurveyRunData();
             UpdatePlots();
             selectedSurveyStations_.Clear();
-            Snackbar.Add($"Imported {importedMeasurements.Count} survey measurements. Skipped {skippedLines} lines.", Severity.Success);
+            Snackbar.Add($"Imported {importedMeasurements.Count} survey measurements. Skipped {skippedLines + trimmedSidetrackMeasurements} lines.", Severity.Success);
         }
         catch (Exception ex)
         {
@@ -2001,8 +2141,13 @@
             value = DepthDrillingQuantity.Instance.ToSI(value, unitChoice.ID);
         }
 
-        value -= GetSelectedDepthReferenceDelta();
-        return value;
+        if (UnitReference != null)
+        {
+            value = UnitReference.FromSI(value, "DepthDrilling");
+            return UnitReference.ToWGS84DepthSI(value, "DepthDrilling");
+        }
+
+        return value + GetSelectedDepthReferenceDelta();
     }
 
     private static double GetSelectedDepthReferenceDelta()
@@ -2010,6 +2155,7 @@
         return DataUtils.UnitAndReferenceParameters.DepthReferenceName switch
         {
             "Ground/Mud line" or "Mud-line/Ground Level" => DataUtils.GroundMudLineDepthReferenceSource.GroundMudLineDepthReference ?? 0.0,
+            "MSL" or "Mean sea level" => DataUtils.MeanSeaLevelDepthReferenceSource.MeanSeaLevelDepthReference ?? 0.0,
             "Sea water level" or "Sea/Water Level" => DataUtils.SeaWaterLevelDepthReferenceSource.SeaWaterLevelDepthReference ?? 0.0,
             "Rotary table" => DataUtils.RotaryTableDepthReferenceSource.RotaryTableDepthReference ?? 0.0,
             _ => 0.0
@@ -2111,6 +2257,11 @@
             ? UnitReference.FromWGS84DepthSI(value, "DepthDrilling", true)
             : string.Empty;
 
+    private string FormatLengthValue(double? value) =>
+        UnitReference != null && value is not null
+            ? UnitReference.FromSI(value, "DepthDrilling", true)
+            : string.Empty;
+
     private string FormatPositionValue(double? value, PositionDirectionType direction) =>
         UnitReference != null && value is not null
             ? UnitReference.FromWGS84PositionSI(value, "PositionDrilling", true, direction)
@@ -2121,9 +2272,24 @@
             ? UnitReference.FromSI(value, "PlaneAngleDrilling", true)
             : string.Empty;
 
+    private string FormatAzimuthValue(double? value) =>
+        UnitReference != null && value is not null
+            ? UnitReference.FromTrueNorthAzimuthSI(value, "PlaneAngleDrilling", true)
+            : string.Empty;
+
     private string ConvertDepthForExport(double? value) =>
         UnitReference != null && value is not null
             ? UnitReference.FromWGS84DepthSI(value, "DepthDrilling", false)
+            : FormatExportNumber(value);
+
+    private string ConvertLengthForExport(double? value) =>
+        UnitReference != null && value is not null
+            ? UnitReference.FromSI(value, "DepthDrilling", false)
+            : FormatExportNumber(value);
+
+    private string ConvertAzimuthForExport(double? value) =>
+        UnitReference != null && value is not null
+            ? UnitReference.FromTrueNorthAzimuthSI(value, "PlaneAngleDrilling", false)
             : FormatExportNumber(value);
 
     private string ConvertPositionForExport(double? value, PositionDirectionType direction) =>
@@ -2187,7 +2353,7 @@
         [
             $"Measured Depth [{DepthUnitLabel}]",
             $"Inclination [{AngleUnitLabel}]",
-            $"Azimuth [{AngleUnitLabel}]",
+            $"Azimuth [{AzimuthUnitLabel}]",
             $"Vertical Depth [{DepthUnitLabel}]",
             $"{NorthCoordinateLabel} [{PositionUnitLabel}]",
             $"{EastCoordinateLabel} [{PositionUnitLabel}]",
@@ -2203,7 +2369,7 @@
             {
                 ConvertDepthForExport(station.MD),
                 ConvertQuantityForExport(station.Inclination, "PlaneAngleDrilling"),
-                ConvertQuantityForExport(station.Azimuth, "PlaneAngleDrilling"),
+                ConvertAzimuthForExport(station.Azimuth),
                 ConvertDepthForExport(station.TVD),
                 ConvertPositionForExport(station.RiemannianNorth, PositionDirectionType.North),
                 ConvertPositionForExport(station.RiemannianEast, PositionDirectionType.East),

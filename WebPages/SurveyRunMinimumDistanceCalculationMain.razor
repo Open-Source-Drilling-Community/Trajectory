@@ -14,6 +14,7 @@
                               DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
                               DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
                               GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                              MeanSeaLevelDepthReferenceSource="@DataUtils.MeanSeaLevelDepthReferenceSource"
                               SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
                               RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
                               PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
@@ -21,7 +22,11 @@
                               WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
                               CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
                               LeaseLinePositionReferenceSource="@DataUtils.LeaseLinePositionReferenceSource"
-                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource">
+                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource"
+                              AzimuthReferenceName="@DataUtils.UnitAndReferenceParameters.AzimuthReferenceName"
+                              AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName"
+                              GridConvergenceSource="@DataUtils.GridConvergenceSource"
+                              MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource">
     @if (!isEditing_)
     {
         <MudDataGrid T="SurveyRunMinimumDistanceCalculationLight" @key="gridKey_"
@@ -783,7 +788,7 @@
         SyncSelectorsFromSurveyRun(selectedReferenceSurveyRunId_);
         advancedMode_ = false;
         ResetResultLoadingState();
-        ApplySurveyRunReferenceValues();
+        await ApplySurveyRunReferenceValuesAsync();
         MarkCalculationClean();
         isEditing_ = true;
         StartCalculationPollingIfNeeded();
@@ -903,7 +908,7 @@
         return result == true;
     }
 
-    private Task OnReferenceSurveyRunChanged(Guid? id)
+    private async Task OnReferenceSurveyRunChanged(Guid? id)
     {
         selectedReferenceSurveyRunId_ = id;
         if (currentCalculation_ != null)
@@ -913,8 +918,7 @@
             stagedComparisonSurveyRunIDs_.Remove(id ?? Guid.Empty);
         }
 
-        ApplySurveyRunReferenceValues();
-        return Task.CompletedTask;
+        await ApplySurveyRunReferenceValuesAsync();
     }
 
     private Task OnFieldChanged(Guid? fieldId)
@@ -983,7 +987,7 @@
             {
                 currentCalculation_.ReferenceSurveyRunID = Guid.Empty;
             }
-            ApplySurveyRunReferenceValues();
+            _ = ApplySurveyRunReferenceValuesAsync();
         }
     }
 
@@ -1458,9 +1462,11 @@
         }
     }
 
-    private void ApplySurveyRunReferenceValues()
+    private async Task ApplySurveyRunReferenceValuesAsync()
     {
         DataUtils.ApplySurveyRunReferenceValues(selectedReferenceSurveyRunId_, SurveyRunLightList_, wellBoreList_, wellList_, clusterList_, rigList_);
+        TrajectoryReferenceDatumUtils.Apply(
+            await TrajectoryReferenceDatumUtils.ResolveForSurveyRunAsync(Api, selectedReferenceSurveyRunId_, SurveyRunLightList_, wellBoreList_, wellList_, clusterList_));
     }
 
     private bool MatchesSelectedField(Well well)

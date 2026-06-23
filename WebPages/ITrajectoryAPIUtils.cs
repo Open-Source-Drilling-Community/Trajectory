@@ -49,6 +49,10 @@ public interface ITrajectoryAPIUtils
     HttpClient HttpClientEarthMagneticField { get; }
     Client ClientEarthMagneticField { get; }
 
+    string HostNameVerticalDatum { get; }
+    string HostBasePathVerticalDatum { get; }
+    HttpClient HttpClientVerticalDatum { get; }
+
     string HostNameUnitConversion { get; }
     string HostBasePathUnitConversion { get; }
 }

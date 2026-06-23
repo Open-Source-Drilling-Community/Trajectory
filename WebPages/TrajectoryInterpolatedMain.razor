@@ -12,6 +12,7 @@
                               DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
                               DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
                               GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                              MeanSeaLevelDepthReferenceSource="@DataUtils.MeanSeaLevelDepthReferenceSource"
                               SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
                               RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
                               PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
@@ -19,7 +20,11 @@
                               WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
                               CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
                               LeaseLinePositionReferenceSource="@DataUtils.LeaseLinePositionReferenceSource"
-                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource">
+                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource"
+                              AzimuthReferenceName="@DataUtils.UnitAndReferenceParameters.AzimuthReferenceName"
+                              AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName"
+                              GridConvergenceSource="@DataUtils.GridConvergenceSource"
+                              MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource">
     @if (interpolatedTrajectoryList == null)
     {
         <p><em>Loading...</em></p>
