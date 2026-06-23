@@ -124,7 +124,7 @@
                 <HeaderContent>
                     <MudTHeadRow IsCheckable="true">
                         <MudTh>Survey Run</MudTh>
-                        <MudTh>Start Abscissa [@Parent?.GetUnitLabel("DepthDrilling")]</MudTh>
+                        <MudTh>Start MD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
                         <MudTh />
                     </MudTHeadRow>
                 </HeaderContent>
@@ -137,8 +137,9 @@
                             }
                         </MudSelect>
                     </MudTd>
-                    <MudTd DataLabel="Start Abscissa">
+                    <MudTd DataLabel="Start MD">
                         <MudInputWithUnit QuantityName="DepthDrilling"
+                                          DrillingSignalReference="@DrillingSignalReferenceType.Depth"
                                           SIValueNullable="@context.StartAbscissa"
                                           SIValueNullableChanged="@(value => OnSurveyRunSectionStartChanged(context, value))" />
                     </MudTd>
@@ -178,7 +179,7 @@
                         <MudText>Inclination: @FormatAngleValue(tieInPoint.Inclination)</MudText>
                     </MudItem>
                     <MudItem xs="6" md="2">
-                        <MudText>Azimuth: @FormatAngleValue(tieInPoint.Azimuth)</MudText>
+                        <MudText>Azimuth: @FormatAzimuthValue(tieInPoint.Azimuth)</MudText>
                     </MudItem>
                     <MudItem xs="6" md="2">
                         <MudText>Vertical Depth: @FormatDepthValue(tieInPoint.TVD)</MudText>
@@ -207,7 +208,7 @@
                         <MudTHeadRow>
                             <MudTh>Measured Depth [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
                             <MudTh>Inclination [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
-                            <MudTh>Azimuth [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                            <MudTh>Azimuth [@Parent?.GetAzimuthUnitLabel("PlaneAngleDrilling")]</MudTh>
                             <MudTh>Vertical Depth [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
                             <MudTh>@NorthCoordinateLabel [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
                             <MudTh>@EastCoordinateLabel [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
@@ -225,7 +226,7 @@
                             <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Inclination" />
                         </MudTd>
                         <MudTd DataLabel="Azimuth">
-                            <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Azimuth" />
+                            <MudSpanWithUnit QuantityName="PlaneAngleDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Azimuth" SIValue="@context.Azimuth" />
                         </MudTd>
                         <MudTd DataLabel="Vertical Depth">
                             <MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.TVD" />
@@ -1535,6 +1536,18 @@
         }
     }
 
+    private string FormatAzimuthValue(double? value)
+    {
+        if (Parent != null && value != null)
+        {
+            return Parent.FromTrueNorthAzimuthSI(value, "PlaneAngleDrilling", true);
+        }
+        else
+        {
+            return string.Empty;
+        }
+    }
+
     private string FormatCurvatureValue(double? value)
     {
         if (Parent != null && value != null)
@@ -1559,7 +1572,7 @@
         [
             $"Measured Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]",
             $"Inclination [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]",
-            $"Azimuth [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]"
+            $"Azimuth [{Parent?.GetAzimuthUnitLabel("PlaneAngleDrilling")}]"
         ];
 
         string content = BuildTabSeparatedContent(
@@ -1568,7 +1581,7 @@
             {
                 ConvertDepthForExport(station.MD),
                 ConvertQuantityForExport(station.Inclination, "PlaneAngleDrilling"),
-                ConvertQuantityForExport(station.Azimuth, "PlaneAngleDrilling")
+                ConvertAzimuthForExport(station.Azimuth)
             }));
 
         await DownloadExportAsync("survey-stations", content);
@@ -1586,7 +1599,7 @@
         [
             $"Measured Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]",
             $"Inclination [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]",
-            $"Azimuth [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]",
+            $"Azimuth [{Parent?.GetAzimuthUnitLabel("PlaneAngleDrilling")}]",
             $"Vertical Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]",
             $"{NorthCoordinateLabel} [{Parent?.GetUnitLabel("PositionDrilling")}]",
             $"{EastCoordinateLabel} [{Parent?.GetUnitLabel("PositionDrilling")}]",
@@ -1602,7 +1615,7 @@
             {
                 ConvertDepthForExport(station.MD),
                 ConvertQuantityForExport(station.Inclination, "PlaneAngleDrilling"),
-                ConvertQuantityForExport(station.Azimuth, "PlaneAngleDrilling"),
+                ConvertAzimuthForExport(station.Azimuth),
                 ConvertDepthForExport(station.TVD),
                 ConvertPositionForExport(station.RiemannianNorth, PositionDirectionType.North),
                 ConvertPositionForExport(station.RiemannianEast, PositionDirectionType.East),
@@ -1668,6 +1681,11 @@
         Parent == null || value is not { } quantityValue
             ? string.Empty
             : NormalizeExportNumber(Parent.FromSI(quantityValue, quantityName, false));
+
+    private string ConvertAzimuthForExport(double? value) =>
+        Parent == null || value is not { } azimuth
+            ? string.Empty
+            : NormalizeExportNumber(Parent.FromTrueNorthAzimuthSI(azimuth, "PlaneAngleDrilling", false));
 
     private static string NormalizeExportNumber(string? value)
     {
@@ -1744,17 +1762,36 @@
             return;
         }
 
+        double defaultStartMd = GetSelectedWellheadMd() ?? 0.0;
         double startAbscissa = currentTrajectory.SurveyRunSectionList
             .Select(section => section.StartAbscissa)
-            .DefaultIfEmpty(0.0)
+            .DefaultIfEmpty(defaultStartMd)
             .Max();
 
         currentTrajectory.SurveyRunSectionList.Add(new TrajectorySurveyRunSection
         {
             SurveyRunID = surveyRun.MetaInfo.ID,
-            StartAbscissa = currentTrajectory.SurveyRunSectionList.Count == 0 ? 0.0 : startAbscissa + currentTrajectory.MDStep
+            StartAbscissa = currentTrajectory.SurveyRunSectionList.Count == 0 ? defaultStartMd : startAbscissa + currentTrajectory.MDStep
         });
         ClearCalculatedTrajectoryData();
+    }
+
+    private double? GetSelectedWellheadMd()
+    {
+        Well? well = selectedWellId is Guid wellId
+            ? FindWellById(wellId)
+            : currentTrajectory.WellID is Guid trajectoryWellId
+                ? FindWellById(trajectoryWellId)
+                : null;
+        Cluster? cluster = well?.ClusterID is Guid clusterId
+            ? FindClusterById(clusterId)
+            : selectedClusterId is Guid selectedClusterIdValue
+                ? FindClusterById(selectedClusterIdValue)
+                : currentTrajectory.ClusterID is Guid trajectoryClusterId
+                    ? FindClusterById(trajectoryClusterId)
+                    : null;
+
+        return cluster?.ReferenceDepth?.GaussianValue?.Mean;
     }
 
     private void DeleteSurveyRunSection(TrajectorySurveyRunSection section)

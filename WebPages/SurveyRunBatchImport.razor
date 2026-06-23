@@ -1405,10 +1405,13 @@ else
             new TrajectorySurveyRunSection
             {
                 SurveyRunID = surveyRun.MetaInfo?.ID ?? Guid.Empty,
-                StartAbscissa = surveyStations.FirstOrDefault()?.MD ?? surveyStations.FirstOrDefault()?.Abscissa ?? 0.0
+                StartAbscissa = GetWellheadMd(cluster) ?? surveyStations.FirstOrDefault()?.MD ?? surveyStations.FirstOrDefault()?.Abscissa ?? 0.0
             }
         ];
     }
+
+    private static double? GetWellheadMd(Cluster? cluster) =>
+        cluster?.ReferenceDepth?.GaussianValue?.Mean;
 
     private static double EstimateMdStep(List<SurveyStation> surveyStations)
     {

@@ -111,7 +111,7 @@
                             <MudTHeadRow>
                                 <MudTh>MD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
                                 <MudTh>Incl [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
-                                <MudTh>Az [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                                <MudTh>Az [@Parent?.GetAzimuthUnitLabel("PlaneAngleDrilling")]</MudTh>
                                 <MudTh>TVD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
                                 <MudTh>North [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
                                 <MudTh>East [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
@@ -126,7 +126,7 @@
                         <RowTemplate>
                             <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.StartMD" /></MudTd>
                             <MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.StartInclination" /></MudTd>
-                            <MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.StartAzimuth" /></MudTd>
+                            <MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Azimuth" SIValue="@context.StartAzimuth" /></MudTd>
                             <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.StartTVD" /></MudTd>
                             <MudTd><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Position" PositionDirection="@PositionDirectionType.North" SIValue="@context.StartNorth" /></MudTd>
                             <MudTd><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Position" PositionDirection="@PositionDirectionType.East" SIValue="@context.StartEast" /></MudTd>
@@ -229,7 +229,8 @@
                                          XUnit="DepthDrilling" YUnit="DepthDrilling"
                                          YAxisReversed="@true"
                                          YAxisUsesDepthReference="@true"
-                                         XAxisStartsAtZero="@true">
+                                         XAxisStartsAtZero="@true"
+                                         AspectRatio="1">
                             </ScatterPlot>
                         </MudItem>
                     </MudGrid>
