@@ -14,6 +14,7 @@ using System.Text;
 using System.Text.Json;
 
 using GlobalAntiCollisionModel = NORCE.Drilling.GlobalAntiCollision.GlobalAntiCollision;
+using SurveyStationChunkModel = NORCE.Drilling.Trajectory.Model.SurveyStationChunk;
 using TrajectoryModel = NORCE.Drilling.Trajectory.Model.Trajectory;
 using WellBoreArchitecture = NORCE.Drilling.Trajectory.ModelShared.WellBoreArchitecture;
 
@@ -33,8 +34,8 @@ internal static class Program
 
         bool deleteOctreesAfterRun = false; // Set to true to delete cached octrees at the end of the run.
         int referenceTrajectoryIndex = 0; // Zero-based index into the loaded trajectory list.
-        string referenceTrajectoryName = "U5A Extrapolated Drop"; // If a trajectory name contains this value, use its first match as the reference trajectory.
-        List<string> comparisonTrajectoryNameFilters = ["U8"]; // If non-empty, only trajectories whose names contain one of these values will be used as comparisons.
+        string referenceTrajectoryName = "U3"; // If a trajectory name contains this value, use its first match as the reference trajectory.
+        List<string> comparisonTrajectoryNameFilters = [""]; // If non-empty, only trajectories whose names contain one of these values will be used as comparisons.
         bool forceSymmetricSeparationFactorCalculation = false; // Set to true for slower two-direction calculations with less direction-dependent minima.
         bool fillBoreholeRadiusFromWellboreArchitecture = true; // Set to false to use the remote trajectory source exactly as returned.
         bool allowBoreholeRadiusArchitectureFallbackByTrajectoryName = false; // Set to true to try similarly named trajectories when a WellBoreID has no architecture. This changes anti-collision inputs.
@@ -370,6 +371,7 @@ internal static class Program
         foreach (Guid remoteId in remoteIds)
         {
             TrajectoryModel trajectory = await GetJsonAsync<TrajectoryModel>(remoteTrajectoryClient, $"Trajectory/{remoteId}");
+            await LoadRemoteSurveyStationChunksAsync(remoteTrajectoryClient, remoteId, trajectory);
             trajectories.Add(new TestTrajectory(remoteId, trajectory, false));
         }
 
@@ -382,6 +384,46 @@ internal static class Program
         }
 
         return trajectories;
+    }
+
+    private static async Task LoadRemoteSurveyStationChunksAsync(HttpClient remoteTrajectoryClient, Guid remoteId, TrajectoryModel trajectory)
+    {
+        if (trajectory.SurveyStationList is { Count: > 0 })
+        {
+            return;
+        }
+
+        int chunkCount;
+        try
+        {
+            chunkCount = await GetJsonAsync<int>(remoteTrajectoryClient, $"Trajectory/{remoteId}/SurveyStations/ChunkCount");
+        }
+        catch
+        {
+            return;
+        }
+
+        if (chunkCount <= 0)
+        {
+            return;
+        }
+
+        List<SurveyStation> stations = [];
+        for (int chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
+        {
+            SurveyStationChunkModel? chunk = await GetJsonAsync<SurveyStationChunkModel>(
+                remoteTrajectoryClient,
+                $"Trajectory/{remoteId}/SurveyStations/Chunks/{chunkIndex}");
+            if (chunk?.SurveyStationList is { Count: > 0 } chunkStations)
+            {
+                stations.AddRange(chunkStations);
+            }
+        }
+
+        if (stations.Count > 0)
+        {
+            trajectory.SurveyStationList = stations;
+        }
     }
 
     private static async Task FillBoreholeRadiusFromWellboreArchitectureAsync(
@@ -586,6 +628,7 @@ internal static class Program
         ServiceConfiguration.WellHostURL = host;
         ServiceConfiguration.WellBoreHostURL = host;
         ServiceConfiguration.WellBoreArchitectureHostURL = host;
+        ServiceConfiguration.SurveyInstrumentHostURL = host;
     }
 
     private static string InitializeLocalRuntimeDirectory()

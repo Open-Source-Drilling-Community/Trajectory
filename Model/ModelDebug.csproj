@@ -18,6 +18,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
+	  <ProjectReference Include="..\..\DotNetLibraries\OSDC.DotnetLibraries.General\OSDC.DotnetLibraries.Drilling.Section\OSDC.DotnetLibraries.Drilling.SectionDebug.csproj" />
 	  <ProjectReference Include="..\..\DotNetLibraries\OSDC.DotnetLibraries.General\OSDC.DotnetLibraries.Drilling.Surveying\OSDC.DotnetLibraries.Drilling.SurveyingDebug.csproj" />
 	  <ProjectReference Include="..\ModelSharedIn\ModelSharedIn.csproj" />
 	</ItemGroup>

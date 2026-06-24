@@ -47,6 +47,8 @@ Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "WebAppDebug", "WebApp\WebAp
 EndProject
 Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "FieldWebPagesDebug", "..\Field\WebPages\FieldWebPagesDebug.csproj", "{4A338CEF-98F3-401E-85CA-477DF94205A5}"
 EndProject
+Project("{FAE04EC0-301F-11D3-BF4B-00C04F79EFBC}") = "OSDC.DotnetLibraries.Drilling.SectionDebug", "..\DotNetLibraries\OSDC.DotnetLibraries.General\OSDC.DotnetLibraries.Drilling.Section\OSDC.DotnetLibraries.Drilling.SectionDebug.csproj", "{93227A68-84CF-F832-66EE-01198EA2120B}"
+EndProject
 Global
 	GlobalSection(SolutionConfigurationPlatforms) = preSolution
 		Debug|Any CPU = Debug|Any CPU
@@ -113,6 +115,10 @@ Global
 		{4A338CEF-98F3-401E-85CA-477DF94205A5}.Debug|Any CPU.Build.0 = Debug|Any CPU
 		{4A338CEF-98F3-401E-85CA-477DF94205A5}.Release|Any CPU.ActiveCfg = Release|Any CPU
 		{4A338CEF-98F3-401E-85CA-477DF94205A5}.Release|Any CPU.Build.0 = Release|Any CPU
+		{93227A68-84CF-F832-66EE-01198EA2120B}.Debug|Any CPU.ActiveCfg = Debug|Any CPU
+		{93227A68-84CF-F832-66EE-01198EA2120B}.Debug|Any CPU.Build.0 = Debug|Any CPU
+		{93227A68-84CF-F832-66EE-01198EA2120B}.Release|Any CPU.ActiveCfg = Release|Any CPU
+		{93227A68-84CF-F832-66EE-01198EA2120B}.Release|Any CPU.Build.0 = Release|Any CPU
 	EndGlobalSection
 	GlobalSection(SolutionProperties) = preSolution
 		HideSolutionNode = FALSE
