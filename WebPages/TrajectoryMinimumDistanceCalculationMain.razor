@@ -14,6 +14,7 @@
                               DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
                               DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
                               GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                              MeanSeaLevelDepthReferenceSource="@DataUtils.MeanSeaLevelDepthReferenceSource"
                               SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
                               RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
                               PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
@@ -21,7 +22,11 @@
                               WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
                               CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
                               LeaseLinePositionReferenceSource="@DataUtils.LeaseLinePositionReferenceSource"
-                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource">
+                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource"
+                              AzimuthReferenceName="@DataUtils.UnitAndReferenceParameters.AzimuthReferenceName"
+                              AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName"
+                              GridConvergenceSource="@DataUtils.GridConvergenceSource"
+                              MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource">
     @if (!isEditing_)
     {
         <MudDataGrid T="TrajectoryMinimumDistanceCalculationLight" @key="gridKey_"
@@ -791,7 +796,7 @@
         comparisonWellBoreId_ = null;
         advancedMode_ = false;
         ResetResultLoadingState();
-        ApplyTrajectoryReferenceValues();
+        await ApplyTrajectoryReferenceValuesAsync();
         MarkCalculationClean();
         isEditing_ = true;
         StartCalculationPollingIfNeeded();
@@ -911,7 +916,7 @@
         return result == true;
     }
 
-    private Task OnReferenceTrajectoryChanged(Guid? id)
+    private async Task OnReferenceTrajectoryChanged(Guid? id)
     {
         selectedReferenceTrajectoryId_ = id;
         if (currentCalculation_ != null)
@@ -922,8 +927,7 @@
         }
 
         SyncSelectorsFromTrajectory(id);
-        ApplyTrajectoryReferenceValues();
-        return Task.CompletedTask;
+        await ApplyTrajectoryReferenceValuesAsync();
     }
 
     private Task OnFieldChanged(Guid? fieldId)
@@ -992,7 +996,7 @@
             {
                 currentCalculation_.ReferenceTrajectoryID = Guid.Empty;
             }
-            ApplyTrajectoryReferenceValues();
+            _ = ApplyTrajectoryReferenceValuesAsync();
         }
     }
 
@@ -1466,9 +1470,11 @@
         }
     }
 
-    private void ApplyTrajectoryReferenceValues()
+    private async Task ApplyTrajectoryReferenceValuesAsync()
     {
         DataUtils.ApplyTrajectoryReferenceValues(selectedReferenceTrajectoryId_, trajectoryLightList_, wellBoreList_, wellList_, clusterList_, rigList_);
+        TrajectoryReferenceDatumUtils.Apply(
+            await TrajectoryReferenceDatumUtils.ResolveForTrajectoryAsync(Api, selectedReferenceTrajectoryId_, trajectoryLightList_, wellBoreList_, wellList_, clusterList_));
     }
 
     private bool MatchesSelectedField(Well well)

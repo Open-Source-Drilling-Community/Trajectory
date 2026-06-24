@@ -19,6 +19,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
         private readonly SqlConnectionManager _connectionManager;
         private const int DefaultSurveyMeasurementChunkSize = 5000;
         private const string SurveyStationOwnerType = "SurveyRun";
+        private const string SidetrackTieInAnnotation = "Sidetrack tie-in";
 
         private SurveyRunManager(ILogger<SurveyRunManager> logger, SqlConnectionManager connectionManager)
         {
@@ -547,24 +548,21 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 return false;
             }
 
-            double firstMd = surveyRun.SurveyMeasurementList!
-                .Select(measurement => measurement.MD)
-                .Where(md => md.HasValue)
-                .Select(md => md!.Value)
-                .Min();
-
-            if (wellBore?.IsSidetrack == true)
+            if (wellBore != null && IsSidetrackOrLateral(wellBore))
             {
                 if (wellBore.TieInPointAlongHoleDepth?.GaussianValue?.Mean is not { } parentTieInMd ||
                     !Numeric.IsDefined(parentTieInMd))
                 {
-                    _logger.LogWarning("The sidetrack SurveyRun must define a valid tie-in point along the parent wellbore");
+                    _logger.LogWarning("The sidetrack or lateral SurveyRun must define a valid tie-in point along the parent wellbore");
                     return false;
                 }
 
-                return ResolveParentSurveyRunTieInPoint(surveyRun, parentTieInMd, firstMd);
+                NormalizeSidetrackSurveyMeasurements(surveyRun, parentTieInMd);
+                double sidetrackStartMd = GetFirstSurveyMeasurementMd(surveyRun.SurveyMeasurementList);
+                return ResolveParentSurveyRunTieInPoint(surveyRun, parentTieInMd, sidetrackStartMd);
             }
 
+            double firstMd = GetFirstSurveyMeasurementMd(surveyRun.SurveyMeasurementList);
             if (Numeric.LE(firstMd, wellheadMd))
             {
                 surveyRun.ParentSurveyRunID = null;
@@ -574,6 +572,128 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
 
             return ResolveParentSurveyRunTieInPoint(surveyRun, firstMd, firstMd);
         }
+
+        private static bool IsSidetrackOrLateral(NORCE.Drilling.Trajectory.ModelShared.WellBore? wellBore)
+        {
+            return wellBore != null &&
+                (wellBore.IsSidetrack ||
+                (wellBore.ParentWellBoreID is Guid parentWellBoreId && parentWellBoreId != Guid.Empty &&
+                wellBore.TieInPointAlongHoleDepth?.GaussianValue?.Mean is not null));
+        }
+
+        private static double GetFirstSurveyMeasurementMd(List<SurveyMeasurement>? measurements)
+        {
+            return measurements!
+                .Select(measurement => measurement.MD)
+                .Where(md => md.HasValue)
+                .Select(md => md!.Value)
+                .Min();
+        }
+
+        private static void NormalizeSidetrackSurveyMeasurements(SurveyRun surveyRun, double parentTieInMd)
+        {
+            if (surveyRun.SurveyMeasurementList is not { Count: > 1 } measurements)
+            {
+                return;
+            }
+
+            if (measurements.FirstOrDefault() is { MD: 0.0, Annotation: SidetrackTieInAnnotation })
+            {
+                return;
+            }
+
+            List<SurveyMeasurement> sortedMeasurements = measurements
+                .Where(measurement => measurement?.MD is { } md && Numeric.IsDefined(md))
+                .OrderBy(measurement => measurement.MD)
+                .ToList();
+
+            if (sortedMeasurements.Count < 2)
+            {
+                return;
+            }
+
+            double firstMd = sortedMeasurements.First().MD!.Value;
+            double lastMd = sortedMeasurements.Last().MD!.Value;
+            if (Numeric.GE(firstMd, parentTieInMd) || Numeric.LE(lastMd, parentTieInMd))
+            {
+                return;
+            }
+
+            if (!TryInterpolateSurveyMeasurement(sortedMeasurements, parentTieInMd, out SurveyMeasurement? tieInMeasurement) ||
+                tieInMeasurement == null)
+            {
+                return;
+            }
+
+            List<SurveyMeasurement> normalizedMeasurements =
+            [
+                new()
+                {
+                    MD = 0.0,
+                    Inclination = tieInMeasurement.Inclination,
+                    Azimuth = tieInMeasurement.Azimuth,
+                    Annotation = SidetrackTieInAnnotation
+                }
+            ];
+
+            foreach (SurveyMeasurement measurement in sortedMeasurements)
+            {
+                double md = measurement.MD!.Value;
+                if (Numeric.LE(md, parentTieInMd))
+                {
+                    continue;
+                }
+
+                normalizedMeasurements.Add(new SurveyMeasurement
+                {
+                    MD = md - parentTieInMd,
+                    Inclination = measurement.Inclination,
+                    Azimuth = measurement.Azimuth,
+                    Annotation = measurement.Annotation
+                });
+            }
+
+            surveyRun.SurveyMeasurementList = normalizedMeasurements;
+        }
+
+        private static bool TryInterpolateSurveyMeasurement(List<SurveyMeasurement> sortedMeasurements, double md, out SurveyMeasurement? measurement)
+        {
+            measurement = null;
+            for (int i = 1; i < sortedMeasurements.Count; i++)
+            {
+                SurveyMeasurement previous = sortedMeasurements[i - 1];
+                SurveyMeasurement next = sortedMeasurements[i];
+                if (previous.MD is not { } previousMd ||
+                    next.MD is not { } nextMd ||
+                    Numeric.GT(previousMd, md) ||
+                    Numeric.LT(nextMd, md))
+                {
+                    continue;
+                }
+
+                double interval = nextMd - previousMd;
+                if (!Numeric.IsDefined(interval) || Numeric.EQ(interval, 0.0))
+                {
+                    return false;
+                }
+
+                double fraction = (md - previousMd) / interval;
+                measurement = new SurveyMeasurement
+                {
+                    MD = md,
+                    Inclination = InterpolateNullable(previous.Inclination, next.Inclination, fraction),
+                    Azimuth = InterpolateNullable(previous.Azimuth, next.Azimuth, fraction)
+                };
+                return true;
+            }
+
+            return false;
+        }
+
+        private static double? InterpolateNullable(double? start, double? end, double fraction) =>
+            start.HasValue && end.HasValue
+                ? start.Value + (end.Value - start.Value) * fraction
+                : null;
 
         private bool ResolveParentSurveyRunTieInPoint(SurveyRun surveyRun, double parentTieInMd, double surveyRunStartMd)
         {

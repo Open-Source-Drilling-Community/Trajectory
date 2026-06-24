@@ -11,6 +11,7 @@
                               DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
                               DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
                               GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                              MeanSeaLevelDepthReferenceSource="@DataUtils.MeanSeaLevelDepthReferenceSource"
                               SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
                               RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
                               PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
@@ -18,7 +19,11 @@
                               WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
                               CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
                               LeaseLinePositionReferenceSource="@DataUtils.LeaseLinePositionReferenceSource"
-                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource">
+                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource"
+                              AzimuthReferenceName="@DataUtils.UnitAndReferenceParameters.AzimuthReferenceName"
+                              AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName"
+                              GridConvergenceSource="@DataUtils.GridConvergenceSource"
+                              MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource">
     @if (trajectoryList == null)
     {
         <p><em>Loading...</em></p>
@@ -521,7 +526,7 @@
         isHiddenMainPanel = true;
         isHiddenEditPanel = false;
         trajectoryIdBeingEdited = null;
-        UpdateSelectedTrajectoryDepthReferenceSource();
+        await UpdateSelectedTrajectoryDepthReferenceSourceAsync();
         await Task.Delay(1);
     }
 
@@ -530,7 +535,7 @@
         isHiddenMainPanel = true;
         isHiddenEditPanel = false;
         trajectoryIdBeingEdited = id;
-        UpdateSelectedTrajectoryDepthReferenceSource();
+        await UpdateSelectedTrajectoryDepthReferenceSourceAsync();
         await Task.Delay(1);
     }
     private async Task HandleEditPanelClosed()
@@ -538,7 +543,7 @@
         isHiddenMainPanel = false;
         isHiddenEditPanel = true;
         trajectoryIdBeingEdited = null;
-        UpdateSelectedTrajectoryDepthReferenceSource();
+        await UpdateSelectedTrajectoryDepthReferenceSourceAsync();
         await LoadDataAsync();
     }
 
@@ -743,6 +748,11 @@
         }
         return "NA";
     }
-    private void UpdateSelectedTrajectoryDepthReferenceSource() => DataUtils.ApplyTrajectoryReferenceValues(trajectoryIdBeingEdited, allTrajectoryList, wellBoreList, wellList, clusterList, rigList);
+    private async Task UpdateSelectedTrajectoryDepthReferenceSourceAsync()
+    {
+        DataUtils.ApplyTrajectoryReferenceValues(trajectoryIdBeingEdited, allTrajectoryList, wellBoreList, wellList, clusterList, rigList);
+        TrajectoryReferenceDatumUtils.Apply(
+            await TrajectoryReferenceDatumUtils.ResolveForTrajectoryAsync(Api, trajectoryIdBeingEdited, allTrajectoryList, wellBoreList, wellList, clusterList));
+    }
 
 }

@@ -19,7 +19,7 @@ public static class DataUtils
         public static string? UnitSystemName { get; set; } = "Metric";
         public static string? DepthReferenceName { get; set; } = "Rotary table";
         public static string? PositionReferenceName { get; set; } = "Well-head";
-        public static string? AzimuthReferenceName { get; set; }
+        public static string? AzimuthReferenceName { get; set; } = "True North";
         public static string? PressureReferenceName { get; set; }
         public static string? DateReferenceName { get; set; }
     }
@@ -27,8 +27,11 @@ public static class DataUtils
     public static void ApplyTrajectoryReferenceValues(Guid? trajectoryID, List<TrajectoryLight>? trajectoryList, List<WellBore>? wellBores, List<Well>? wells, List<Cluster>? clusters, List<Rig>? rigs)
     {
         DataUtils.GroundMudLineDepthReferenceSource.GroundMudLineDepthReference = 0;
+        DataUtils.MeanSeaLevelDepthReferenceSource.MeanSeaLevelDepthReference = null;
         DataUtils.SeaWaterLevelDepthReferenceSource.SeaWaterLevelDepthReference = 0;
         DataUtils.RotaryTableDepthReferenceSource.RotaryTableDepthReference = 0;
+        DataUtils.GridConvergenceSource.GridConvergence = null;
+        DataUtils.MagneticDeclinationSource.MagneticDeclination = null;
         DataUtils.WellHeadPositionReferenceSource.WellHeadNorthPositionReference = 0;
         DataUtils.WellHeadPositionReferenceSource.WellHeadEastPositionReference = 0;
         DataUtils.CartographicGridPositionReferenceSource.CartographicGridNorthPositionReference = 0;
@@ -284,8 +287,11 @@ public static class DataUtils
         }
     }
     public static GroundMudLineDepthReferenceSource GroundMudLineDepthReferenceSource { get; set; } = new GroundMudLineDepthReferenceSource();
+    public static MeanSeaLevelDepthReferenceSource MeanSeaLevelDepthReferenceSource { get; set; } = new MeanSeaLevelDepthReferenceSource();
     public static SeaWaterLevelDepthReferenceSource SeaWaterLevelDepthReferenceSource { get; set; } = new SeaWaterLevelDepthReferenceSource();
     public static RotaryTableDepthReferenceSource RotaryTableDepthReferenceSource { get; set; } = new RotaryTableDepthReferenceSource();
+    public static GridConvergenceSource GridConvergenceSource { get; set; } = new GridConvergenceSource();
+    public static MagneticDeclinationSource MagneticDeclinationSource { get; set; } = new MagneticDeclinationSource();
     public static WellHeadPositionReferenceSource WellHeadPositionReferenceSource { get; set; } = new WellHeadPositionReferenceSource();
     public static CartographicGridPositionReferenceSource CartographicGridPositionReferenceSource { get; set; } = new CartographicGridPositionReferenceSource();
     public static LeaseLinePositionReferenceSource LeaseLinePositionReferenceSource { get; set; } = new LeaseLinePositionReferenceSource();
@@ -294,6 +300,7 @@ public static class DataUtils
     public static void UpdateUnitSystemName(string value) => UnitAndReferenceParameters.UnitSystemName = value;
     public static void UpdateDepthReferenceName(string value) => UnitAndReferenceParameters.DepthReferenceName = value;
     public static void UpdatePositionReferenceName(string value) => UnitAndReferenceParameters.PositionReferenceName = value;
+    public static void UpdateAzimuthReferenceName(string value) => UnitAndReferenceParameters.AzimuthReferenceName = value;
 
     public static string[] COLORSCALE = ["black", "blue", "grey", "red", "orange", "green", "yellow", "pink", "brown", "purple"];
 
@@ -721,6 +728,11 @@ public class GroundMudLineDepthReferenceSource : IGroundMudLineDepthReferenceSou
     public double? GroundMudLineDepthReference { get; set; }
 }
 
+public class MeanSeaLevelDepthReferenceSource : IMeanSeaLevelDepthReferenceSource
+{
+    public double? MeanSeaLevelDepthReference { get; set; }
+}
+
 public class RotaryTableDepthReferenceSource : IRotaryTableDepthReferenceSource
 {
     public double? RotaryTableDepthReference { get; set; }
@@ -729,6 +741,16 @@ public class RotaryTableDepthReferenceSource : IRotaryTableDepthReferenceSource
 public class SeaWaterLevelDepthReferenceSource : ISeaWaterLevelDepthReferenceSource
 {
     public double? SeaWaterLevelDepthReference { get; set; }
+}
+
+public class GridConvergenceSource : IGridConvergenceSource
+{
+    public double? GridConvergence { get; set; }
+}
+
+public class MagneticDeclinationSource : IMagneticDeclinationSource
+{
+    public double? MagneticDeclination { get; set; }
 }
 
 public class WellHeadPositionReferenceSource : IWellHeadPositionReferenceSource

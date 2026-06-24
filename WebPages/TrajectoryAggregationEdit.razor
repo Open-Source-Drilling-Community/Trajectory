@@ -111,7 +111,7 @@
                             <MudTHeadRow>
                                 <MudTh>MD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
                                 <MudTh>Incl [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
-                                <MudTh>Az [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                                <MudTh>Az [@Parent?.GetAzimuthUnitLabel("PlaneAngleDrilling")]</MudTh>
                                 <MudTh>TVD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
                                 <MudTh>North [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
                                 <MudTh>East [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
@@ -126,7 +126,7 @@
                         <RowTemplate>
                             <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.StartMD" /></MudTd>
                             <MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.StartInclination" /></MudTd>
-                            <MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.StartAzimuth" /></MudTd>
+                            <MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Azimuth" SIValue="@context.StartAzimuth" /></MudTd>
                             <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.StartTVD" /></MudTd>
                             <MudTd><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Position" PositionDirection="@PositionDirectionType.North" SIValue="@context.StartNorth" /></MudTd>
                             <MudTd><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Position" PositionDirection="@PositionDirectionType.East" SIValue="@context.StartEast" /></MudTd>
@@ -229,7 +229,8 @@
                                          XUnit="DepthDrilling" YUnit="DepthDrilling"
                                          YAxisReversed="@true"
                                          YAxisUsesDepthReference="@true"
-                                         XAxisStartsAtZero="@true">
+                                         XAxisStartsAtZero="@true"
+                                         AspectRatio="1">
                             </ScatterPlot>
                         </MudItem>
                     </MudGrid>
@@ -299,7 +300,7 @@
 
         selectedTrajectoryId = SelectedAggregation?.TrajectoryID == Guid.Empty ? null : SelectedAggregation?.TrajectoryID;
         SyncSelectorsFromTrajectory(selectedTrajectoryId);
-        UpdateReferenceSources();
+        await UpdateReferenceSourcesAsync();
         ResetResultLoadingState();
         MarkAggregationCaseClean();
         await InvokeAsync(StateHasChanged);
@@ -339,7 +340,7 @@
 
             selectedTrajectoryId = SelectedAggregation?.TrajectoryID == Guid.Empty ? null : SelectedAggregation?.TrajectoryID;
             SyncSelectorsFromTrajectory(selectedTrajectoryId);
-            UpdateReferenceSources();
+            await UpdateReferenceSourcesAsync();
             ResetResultLoadingState();
             MarkAggregationCaseClean();
             StartCalculationPolling();
@@ -631,8 +632,8 @@
     private Task OnClusterChanged(Guid? clusterId) { selectedClusterId = clusterId; NormalizeSelectionChain(); return Task.CompletedTask; }
     private Task OnWellChanged(Guid? wellId) { selectedWellId = wellId; NormalizeSelectionChain(); return Task.CompletedTask; }
     private Task OnWellBoreChanged(Guid? wellBoreId) { selectedWellBoreId = wellBoreId; NormalizeSelectionChain(); return Task.CompletedTask; }
-    private Task OnTrajectoryChanged(Guid? trajectoryId) { selectedTrajectoryId = trajectoryId; if (SelectedAggregation != null) SelectedAggregation.TrajectoryID = trajectoryId ?? Guid.Empty; UpdateReferenceSources(); return Task.CompletedTask; }
-    private void NormalizeSelectionChain() { if (selectedClusterId != null && !AvailableClusters.Any(x => x.MetaInfo.ID == selectedClusterId)) selectedClusterId = null; if (selectedWellId != null && !AvailableWells.Any(x => x.MetaInfo.ID == selectedWellId)) selectedWellId = null; if (selectedWellBoreId != null && !AvailableWellBores.Any(x => x.MetaInfo.ID == selectedWellBoreId)) selectedWellBoreId = null; if (selectedTrajectoryId != null && !AvailableTrajectories.Any(x => x.MetaInfo.ID == selectedTrajectoryId)) selectedTrajectoryId = null; if (SelectedAggregation != null) SelectedAggregation.TrajectoryID = selectedTrajectoryId ?? Guid.Empty; UpdateReferenceSources(); }
+    private async Task OnTrajectoryChanged(Guid? trajectoryId) { selectedTrajectoryId = trajectoryId; if (SelectedAggregation != null) SelectedAggregation.TrajectoryID = trajectoryId ?? Guid.Empty; await UpdateReferenceSourcesAsync(); }
+    private void NormalizeSelectionChain() { if (selectedClusterId != null && !AvailableClusters.Any(x => x.MetaInfo.ID == selectedClusterId)) selectedClusterId = null; if (selectedWellId != null && !AvailableWells.Any(x => x.MetaInfo.ID == selectedWellId)) selectedWellId = null; if (selectedWellBoreId != null && !AvailableWellBores.Any(x => x.MetaInfo.ID == selectedWellBoreId)) selectedWellBoreId = null; if (selectedTrajectoryId != null && !AvailableTrajectories.Any(x => x.MetaInfo.ID == selectedTrajectoryId)) selectedTrajectoryId = null; if (SelectedAggregation != null) SelectedAggregation.TrajectoryID = selectedTrajectoryId ?? Guid.Empty; _ = UpdateReferenceSourcesAsync(); }
     private void SyncSelectorsFromTrajectory(Guid? trajectoryId) { selectedFieldId = null; selectedClusterId = null; selectedWellId = null; selectedWellBoreId = null; if (trajectoryId is not Guid id || id == Guid.Empty) return; selectedTrajectoryId = id; selectedWellBoreId = GetTrajectoryWellBoreId(id); WellBore? wb = selectedWellBoreId is Guid wbId ? FindWellBoreById(wbId) : null; Well? well = wb?.WellID is Guid wellId ? FindWellById(wellId) : null; Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null; selectedWellId = well?.MetaInfo.ID; selectedClusterId = well is { IsSingleWell: true } ? null : cluster?.MetaInfo.ID; selectedFieldId = cluster?.FieldID ?? FindFieldIdForWell(well); }
     private Guid? GetTrajectoryWellBoreId(Guid trajectoryId) => TrajectoryList?.FirstOrDefault(t => t?.MetaInfo?.ID == trajectoryId)?.WellBoreID;
     private Well? FindWellById(Guid wellId) => WellList?.FirstOrDefault(well => well?.MetaInfo?.ID == wellId);
@@ -645,7 +646,12 @@
     private string NorthCoordinateLabel => GetCoordinateLabel(PositionDirectionType.North);
     private string EastCoordinateLabel => GetCoordinateLabel(PositionDirectionType.East);
     private string DepthReferenceRenderKey => Parent?.DepthReferenceName ?? DataUtils.UnitAndReferenceParameters.DepthReferenceName ?? "DepthReference";
-    private void UpdateReferenceSources() => DataUtils.ApplyTrajectoryReferenceValues(selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList, RigList);
+    private async Task UpdateReferenceSourcesAsync()
+    {
+        DataUtils.ApplyTrajectoryReferenceValues(selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList, RigList);
+        TrajectoryReferenceDatumUtils.Apply(
+            await TrajectoryReferenceDatumUtils.ResolveForTrajectoryAsync(Api, selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList));
+    }
 
     private void UpdatePlots()
     {

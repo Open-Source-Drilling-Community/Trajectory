@@ -23,6 +23,8 @@ WebPagesHostConfiguration webPagesConfiguration = new()
     VerticalDatumHostURL = builder.Configuration["VerticalDatumHostURL"] ?? string.Empty
 };
 
+OSDC.UnitConversion.WebPages.Configuration.UnitConversionHostURL = webPagesConfiguration.UnitConversionHostURL;
+
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
 builder.Services.AddSingleton<ITrajectoryWebPagesConfiguration>(webPagesConfiguration);

@@ -14,4 +14,5 @@ public interface ITrajectoryWebPagesConfiguration :
     ISurveyInstrumentHostURL
 {
     string EarthMagneticFieldHostURL { get; }
+    string VerticalDatumHostURL { get; }
 }

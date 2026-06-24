@@ -142,6 +142,7 @@
                                                           DepthReferenceName="@exportDepthReferenceName"
                                                           DepthReferenceNameChanged="OnExportDepthReferenceNameChanged"
                                                           GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                                                          MeanSeaLevelDepthReferenceSource="@DataUtils.MeanSeaLevelDepthReferenceSource"
                                                           SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
                                                           RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
                                                           PositionReferenceName="@exportPositionReferenceName"
@@ -151,7 +152,9 @@
                                                           LeaseLinePositionReferenceSource="@DataUtils.LeaseLinePositionReferenceSource"
                                                           ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource"
                                                           AzimuthReferenceName="@exportAzimuthReferenceName"
-                                                          AzimuthReferenceNameChanged="OnExportAzimuthReferenceNameChanged" />
+                                                          AzimuthReferenceNameChanged="OnExportAzimuthReferenceNameChanged"
+                                                          GridConvergenceSource="@DataUtils.GridConvergenceSource"
+                                                          MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource" />
                         </MudItem>
                     }
                     <MudItem xs="12" md="3">
@@ -207,7 +210,8 @@
                                      XUnit="DepthDrilling" YUnit="DepthDrilling"
                                      YAxisReversed="@true"
                                      YAxisUsesDepthReference="@true"
-                                     XAxisStartsAtZero="@true">
+                                     XAxisStartsAtZero="@true"
+                                     AspectRatio="1">
                         </ScatterPlot>
                     </MudItem>
                 </MudGrid>
@@ -291,7 +295,7 @@
             }
 
             exportFileName = $"{SanitizeFileName(string.IsNullOrWhiteSpace(currentCase.Name) ? "trajectory-realizations" : currentCase.Name)}.tsv";
-            UpdateReferenceSources();
+            await UpdateReferenceSourcesAsync();
             MarkCaseClean();
         }
         catch (Exception ex)
@@ -367,7 +371,7 @@
 
             Snackbar.Add("Trajectory realization case saved.", Severity.Success);
             SyncSelectorsFromTrajectory(currentCase.TrajectoryID);
-            UpdateReferenceSources();
+            await UpdateReferenceSourcesAsync();
             MarkCaseClean();
         }
         catch (Exception ex)
@@ -679,7 +683,7 @@
     private Task OnClusterChanged(Guid? clusterId) { selectedClusterId = clusterId; NormalizeSelectionChain(); return Task.CompletedTask; }
     private Task OnWellChanged(Guid? wellId) { selectedWellId = wellId; NormalizeSelectionChain(); return Task.CompletedTask; }
     private Task OnWellBoreChanged(Guid? wellBoreId) { selectedWellBoreId = wellBoreId; NormalizeSelectionChain(); return Task.CompletedTask; }
-    private Task OnTrajectoryChanged(Guid? trajectoryId) { selectedTrajectoryId = trajectoryId; currentCase.TrajectoryID = trajectoryId ?? Guid.Empty; UpdateReferenceSources(); return Task.CompletedTask; }
+    private async Task OnTrajectoryChanged(Guid? trajectoryId) { selectedTrajectoryId = trajectoryId; currentCase.TrajectoryID = trajectoryId ?? Guid.Empty; await UpdateReferenceSourcesAsync(); }
 
     private void NormalizeSelectionChain()
     {
@@ -688,7 +692,7 @@
         if (selectedWellBoreId != null && !AvailableWellBores.Any(x => x.MetaInfo.ID == selectedWellBoreId)) selectedWellBoreId = null;
         if (selectedTrajectoryId != null && !AvailableTrajectories.Any(x => x.MetaInfo.ID == selectedTrajectoryId)) selectedTrajectoryId = null;
         currentCase.TrajectoryID = selectedTrajectoryId ?? Guid.Empty;
-        UpdateReferenceSources();
+        _ = UpdateReferenceSourcesAsync();
     }
 
     private void SyncSelectorsFromTrajectory(Guid? trajectoryId)
@@ -738,7 +742,12 @@
         }
     }
 
-    private void UpdateReferenceSources() => DataUtils.ApplyTrajectoryReferenceValues(selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList, RigList);
+    private async Task UpdateReferenceSourcesAsync()
+    {
+        DataUtils.ApplyTrajectoryReferenceValues(selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList, RigList);
+        TrajectoryReferenceDatumUtils.Apply(
+            await TrajectoryReferenceDatumUtils.ResolveForTrajectoryAsync(Api, selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList));
+    }
     private static string FormatDate(DateTimeOffset? value) => value?.ToString("yyyy-MM-dd HH:mm") ?? string.Empty;
     private string NorthCoordinateLabel => GetCoordinateLabel(PositionDirectionType.North);
     private string EastCoordinateLabel => GetCoordinateLabel(PositionDirectionType.East);

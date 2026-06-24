@@ -167,7 +167,7 @@
             <HeaderContent>
                 <MudTh>Measured Depth [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
                 <MudTh>Inclination [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
-                <MudTh>Azimuth [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                <MudTh>Azimuth [@Parent?.GetAzimuthUnitLabel("PlaneAngleDrilling")]</MudTh>
                 <MudTh>TVD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
                 <MudTh>North [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
                 <MudTh>East [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
@@ -181,7 +181,7 @@
                     <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Inclination" />
                 </MudTd>
                 <MudTd DataLabel="Azimuth">
-                    <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Azimuth" />
+                    <MudSpanWithUnit QuantityName="PlaneAngleDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Azimuth" SIValue="@context.Azimuth" />
                 </MudTd>
                 <MudTd DataLabel="TVD">
                     <MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.Z" />
