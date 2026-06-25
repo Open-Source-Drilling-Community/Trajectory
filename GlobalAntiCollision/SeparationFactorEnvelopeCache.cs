@@ -14,6 +14,8 @@ namespace NORCE.Drilling.GlobalAntiCollision
         private readonly double _confidenceFactor;
         private readonly UncertaintyEnvelope.ErrorModelType _errorModelTypeRef;
         private readonly UncertaintyEnvelope.ErrorModelType _errorModelTypeCmp;
+        private readonly double? _referenceMinimumMD;
+        private readonly double? _comparisonMinimumMD;
         private readonly SeparationFactorEnvelopeCache? _sharedReferenceCache;
         private readonly object _syncLock = new();
         private readonly Dictionary<double, List<UncertaintyEllipse>?> _referenceCache = [];
@@ -41,6 +43,8 @@ namespace NORCE.Drilling.GlobalAntiCollision
             UncertaintyEnvelope.ErrorModelType errorModelTypeRef,
             UncertaintyEnvelope.ErrorModelType errorModelTypeCmp,
             int? meshSectorCount = null,
+            double? referenceMinimumMD = null,
+            double? comparisonMinimumMD = null,
             SeparationFactorEnvelopeCache? sharedReferenceCache = null)
         {
             _surveysRef = surveysRef;
@@ -48,6 +52,8 @@ namespace NORCE.Drilling.GlobalAntiCollision
             _confidenceFactor = confidenceFactor;
             _errorModelTypeRef = errorModelTypeRef;
             _errorModelTypeCmp = errorModelTypeCmp;
+            _referenceMinimumMD = NormalizeMinimumMD(referenceMinimumMD);
+            _comparisonMinimumMD = NormalizeMinimumMD(comparisonMinimumMD);
             _sharedReferenceCache = sharedReferenceCache;
             _meshSectorCount = meshSectorCount ?? PerpendicularEllipseEnvelopeBuilder.DefaultMeshSectorCount;
             ComparisonMeshLongitudinalLength = GetPairComparisonMeshLongitudinalLength(_surveysRef, _surveysCmp);
@@ -74,6 +80,11 @@ namespace NORCE.Drilling.GlobalAntiCollision
         public double? ComparisonMeshLongitudinalLength { get; }
 
         public bool IsValid => ComparisonMeshLongitudinalLength.HasValue && ComparisonMeshLongitudinalLength.Value > 0;
+
+        public double? ComparisonMinimumMD => _comparisonMinimumMD;
+
+        public bool IsReferenceMDIncluded(double md) =>
+            !_referenceMinimumMD.HasValue || md >= _referenceMinimumMD.Value;
 
         public bool TryGetEllipses(double separationFactor, out List<UncertaintyEllipse>? ellipseRef, out List<UncertaintyEllipse>? ellipseCmp)
         {
@@ -120,7 +131,9 @@ namespace NORCE.Drilling.GlobalAntiCollision
             for (int i = 0; i < ellipseCmp.Count; i++)
             {
                 var boundingBox = ellipseCmp[i].BoundingBox;
-                if (boundingBox != null && BoundsOverlap(reducedReferenceBounds, boundingBox))
+                if (boundingBox != null &&
+                    IsEllipseAtOrAfterMinimumMD(ellipseCmp[i], _comparisonMinimumMD) &&
+                    BoundsOverlap(reducedReferenceBounds, boundingBox))
                 {
                     pointIndices.Add(i);
                 }
@@ -132,6 +145,11 @@ namespace NORCE.Drilling.GlobalAntiCollision
                 var firstBoundingBox = ellipseCmp[i].BoundingBox;
                 var secondBoundingBox = ellipseCmp[i + 1].BoundingBox;
                 if (firstBoundingBox == null || secondBoundingBox == null)
+                {
+                    continue;
+                }
+                if (!IsEllipseAtOrAfterMinimumMD(ellipseCmp[i], _comparisonMinimumMD) ||
+                    !IsEllipseAtOrAfterMinimumMD(ellipseCmp[i + 1], _comparisonMinimumMD))
                 {
                     continue;
                 }
@@ -529,6 +547,22 @@ namespace NORCE.Drilling.GlobalAntiCollision
         private static double NormalizeScale(double separationFactor)
         {
             return Math.Round(separationFactor, 6, MidpointRounding.AwayFromZero);
+        }
+
+        private static double? NormalizeMinimumMD(double? minimumMD)
+        {
+            return minimumMD.HasValue && Numeric.IsDefined(minimumMD.Value)
+                ? minimumMD.Value
+                : null;
+        }
+
+        private static bool IsEllipseAtOrAfterMinimumMD(
+            UncertaintyEllipse ellipse,
+            double? minimumMD)
+        {
+            return !minimumMD.HasValue ||
+                (TryGetCoordinate(ellipse.EllipseCenter, static point => point.MD, out double md) &&
+                 md >= minimumMD.Value);
         }
 
         private static Bounds? GetReducedReferenceBounds(List<UncertaintyEllipse> ellipseRef, int ellipseRefIndex)

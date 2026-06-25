@@ -100,6 +100,10 @@ namespace NORCE.Drilling.GlobalAntiCollision
                     {
                         continue;
                     }
+                    if (!envelopeCache.IsReferenceMDIncluded(refMD))
+                    {
+                        continue;
+                    }
                     if (!candidateIndices.HasCandidates)
                     {
                         separationFactors.Add(new SeparationFactorPoint(refMD, -1.0, maxSeparationFactor));
@@ -121,7 +125,11 @@ namespace NORCE.Drilling.GlobalAntiCollision
                             {
                                 if (Numeric.IsUndefined(cmpMD))
                                 {
-                                    if (!TryGetMD(surveysCmp[0], out cmpMD))
+                                    if (envelopeCache.ComparisonMinimumMD is double comparisonMinimumMD)
+                                    {
+                                        cmpMD = comparisonMinimumMD;
+                                    }
+                                    else if (!TryGetMD(surveysCmp[0], out cmpMD))
                                     {
                                         cmpMD = -1.0;
                                     }
@@ -161,7 +169,11 @@ namespace NORCE.Drilling.GlobalAntiCollision
                                 } while (System.Math.Abs(maxSeparationFactor - minSeparationFactor) > 0.01 && cc++ < 50);
                                 if (Numeric.IsUndefined(cmpMD))
                                 {
-                                    if (!TryGetMD(surveysCmp[0], out cmpMD))
+                                    if (envelopeCache.ComparisonMinimumMD is double comparisonMinimumMD)
+                                    {
+                                        cmpMD = comparisonMinimumMD;
+                                    }
+                                    else if (!TryGetMD(surveysCmp[0], out cmpMD))
                                     {
                                         cmpMD = -1.0;
                                     }

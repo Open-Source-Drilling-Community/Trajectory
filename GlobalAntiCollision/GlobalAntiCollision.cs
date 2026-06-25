@@ -111,7 +111,9 @@ namespace NORCE.Drilling.GlobalAntiCollision
             List<SurveyStation>? referenceSurveyList,
             List<List<SurveyStation>>? comparisonSurveyLists,
             List<MeasuredDepthRange?>? referenceMdRanges = null,
-            List<MeasuredDepthRange?>? comparisonMdRanges = null)
+            List<MeasuredDepthRange?>? comparisonMdRanges = null,
+            List<double?>? referenceMinimumMDs = null,
+            List<double?>? comparisonMinimumMDs = null)
         {
             if (comparisonSurveyLists != null && referenceSurveyList != null)
             {
@@ -124,8 +126,14 @@ namespace NORCE.Drilling.GlobalAntiCollision
                     UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt);
                 for (int i = 0; i < comparisonSurveyLists.Count; i++)
                 {
-                    List<SurveyStation> surveysRef = referenceSurveyList;
-                    List<SurveyStation> surveysCmp = comparisonSurveyLists[i];
+                    double? referenceMinimumMD = referenceMinimumMDs != null && i < referenceMinimumMDs.Count
+                        ? referenceMinimumMDs[i]
+                        : null;
+                    double? comparisonMinimumMD = comparisonMinimumMDs != null && i < comparisonMinimumMDs.Count
+                        ? comparisonMinimumMDs[i]
+                        : null;
+                    List<SurveyStation> surveysRef = GetSurveyWithTieInStation(referenceSurveyList, referenceMinimumMD);
+                    List<SurveyStation> surveysCmp = GetSurveyWithTieInStation(comparisonSurveyLists[i], comparisonMinimumMD);
 
                     if (surveysRef.Count == 0 || surveysCmp.Count == 0)
                     {
@@ -133,18 +141,24 @@ namespace NORCE.Drilling.GlobalAntiCollision
                     }
 
                     SeparationFactorResult sfr = new SeparationFactorResult((Guid)ComparisonTrajectoryIDs[i]);
-                    sfr.ReferenceMDRange = referenceMdRanges != null && i < referenceMdRanges.Count
-                        ? referenceMdRanges[i]
-                        : RelevantMdRangeCalculator.GetSurveyMdRange(surveysRef);
-                    sfr.ComparisonMDRange = comparisonMdRanges != null && i < comparisonMdRanges.Count
-                        ? comparisonMdRanges[i]
-                        : RelevantMdRangeCalculator.GetSurveyMdRange(surveysCmp);
+                    sfr.ReferenceMDRange = ClampRangeMinimum(
+                        referenceMdRanges != null && i < referenceMdRanges.Count
+                            ? referenceMdRanges[i]
+                            : RelevantMdRangeCalculator.GetSurveyMdRange(surveysRef),
+                        referenceMinimumMD);
+                    sfr.ComparisonMDRange = ClampRangeMinimum(
+                        comparisonMdRanges != null && i < comparisonMdRanges.Count
+                            ? comparisonMdRanges[i]
+                            : RelevantMdRangeCalculator.GetSurveyMdRange(surveysCmp),
+                        comparisonMinimumMD);
 
                     List<SeparationFactorPoint>? directionalProfile = CalculateDirectionalProfile(
                         surveysRef,
                         surveysCmp,
                         sfr.ReferenceMDRange,
-                        sharedReferenceCache);
+                        referenceMinimumMD,
+                        comparisonMinimumMD,
+                        referenceMinimumMD.HasValue ? null : sharedReferenceCache);
                     if (directionalProfile == null)
                     {
                         continue;
@@ -157,6 +171,8 @@ namespace NORCE.Drilling.GlobalAntiCollision
                             surveysCmp,
                             surveysRef,
                             sfr.ComparisonMDRange,
+                            comparisonMinimumMD,
+                            referenceMinimumMD,
                             null);
                         if (reverseDirectionalProfile != null)
                         {
@@ -170,10 +186,63 @@ namespace NORCE.Drilling.GlobalAntiCollision
             }
         }
 
+        private static List<SurveyStation> GetSurveyWithTieInStation(
+            List<SurveyStation> surveyStations,
+            double? tieInMD)
+        {
+            if (!tieInMD.HasValue || !double.IsFinite(tieInMD.Value))
+            {
+                return surveyStations;
+            }
+
+            double threshold = tieInMD.Value;
+            int firstStationAtOrAfterTieIn = surveyStations.FindIndex(
+                station => station.MD is double md && double.IsFinite(md) && md >= threshold);
+            if (firstStationAtOrAfterTieIn < 0)
+            {
+                return surveyStations;
+            }
+
+            if (surveyStations[firstStationAtOrAfterTieIn].MD is double stationMD &&
+                Math.Abs(stationMD - threshold) <= 1e-9)
+            {
+                return surveyStations;
+            }
+
+            List<SurveyStation> surveyWithTieIn = [.. surveyStations];
+            if (firstStationAtOrAfterTieIn > 0 &&
+                SurveyStation.InterpolateAtAbscissa(
+                    surveyStations,
+                    threshold,
+                    out SurveyStation? tieInStation) &&
+                tieInStation != null)
+            {
+                tieInStation.MD = threshold;
+                tieInStation.Abscissa = threshold;
+                surveyWithTieIn.Insert(firstStationAtOrAfterTieIn, tieInStation);
+            }
+
+            return surveyWithTieIn;
+        }
+
+        private static MeasuredDepthRange? ClampRangeMinimum(MeasuredDepthRange? range, double? minimumMD)
+        {
+            if (range == null || !minimumMD.HasValue || !double.IsFinite(minimumMD.Value))
+            {
+                return range;
+            }
+
+            return new MeasuredDepthRange(
+                Math.Max(range.StartMD, minimumMD.Value),
+                range.EndMD);
+        }
+
         private List<SeparationFactorPoint>? CalculateDirectionalProfile(
             List<SurveyStation> surveysRef,
             List<SurveyStation> surveysCmp,
             MeasuredDepthRange? referenceMDRange,
+            double? referenceMinimumMD,
+            double? comparisonMinimumMD,
             SeparationFactorEnvelopeCache? sharedReferenceCache)
         {
             SeparationFactorEnvelopeCache envelopeCache = new(
@@ -182,6 +251,8 @@ namespace NORCE.Drilling.GlobalAntiCollision
                 ConfidenceFactor,
                 UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
                 UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
+                referenceMinimumMD: referenceMinimumMD,
+                comparisonMinimumMD: comparisonMinimumMD,
                 sharedReferenceCache: sharedReferenceCache);
             if (!envelopeCache.IsValid)
             {
