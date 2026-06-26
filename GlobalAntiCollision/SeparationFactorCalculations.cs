@@ -134,6 +134,7 @@ namespace NORCE.Drilling.GlobalAntiCollision
                             // Since the Intersect loops over ellipseRef and k is an index on the survey stations, we need to use k * MinNumberInterpolations as start index
                             if (Intersect(ellipseRef, ellipseCmp, ellipseRefIndex, minSeparationFactor, envelopeCache, out cmpMD, candidateIndices.PointIndices, candidateIndices.SegmentIndices))
                             {
+                                refMD = ResolveReferenceMD(ellipseRef, ellipseRefIndex, refMD);
                                 if (Numeric.IsUndefined(cmpMD))
                                 {
                                     if (envelopeCache.ComparisonMinimumMD is double comparisonMinimumMD)
@@ -189,13 +190,37 @@ namespace NORCE.Drilling.GlobalAntiCollision
                                         cmpMD = -1.0;
                                     }
                                 }
-                                separationFactors.Add(new SeparationFactorPoint(refMD, cmpMD, 0.5 * (minSeparationFactor + maxSeparationFactor)));
+                                double finalSeparationFactor = 0.5 * (minSeparationFactor + maxSeparationFactor);
+                                if (envelopeCache.TryGetEllipses(finalSeparationFactor, out var finalEllipseRef, out var finalEllipseCmp) &&
+                                    finalEllipseRef != null &&
+                                    finalEllipseCmp != null)
+                                {
+                                    refMD = ResolveReferenceMD(finalEllipseRef, ellipseRefIndex, refMD);
+                                    if (Intersect(finalEllipseRef, finalEllipseCmp, ellipseRefIndex, finalSeparationFactor, envelopeCache, out double finalCmpMD, candidateIndices.PointIndices, candidateIndices.SegmentIndices) &&
+                                        Numeric.IsDefined(finalCmpMD))
+                                    {
+                                        cmpMD = finalCmpMD;
+                                    }
+                                }
+                                separationFactors.Add(new SeparationFactorPoint(refMD, cmpMD, finalSeparationFactor));
                             }
                         }
                     }
                 }
             }
             return separationFactors;
+        }
+
+        private static double ResolveReferenceMD(List<UncertaintyEllipse> ellipses, int ellipseRefIndex, double fallbackMD)
+        {
+            if (ellipseRefIndex >= 0 &&
+                ellipseRefIndex < ellipses.Count &&
+                TryGetMD(ellipses[ellipseRefIndex], out double md))
+            {
+                return md;
+            }
+
+            return fallbackMD;
         }
 
         /// <summary>

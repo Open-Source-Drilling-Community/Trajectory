@@ -168,7 +168,7 @@ namespace NORCE.Drilling.GlobalAntiCollision
             {
                 return PerpendicularEllipseEnvelopeBuilder.TryBuildMeshedEllipseList(
                     surveyStations,
-                    UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
+                    PerpendicularEllipseEnvelopeBuilder.InferErrorModelType(surveyStations),
                     clampedConfidenceFactor,
                     SeparationFactorCalculations.MaxSeparationFactor,
                     MeshSectorCount,
@@ -179,7 +179,7 @@ namespace NORCE.Drilling.GlobalAntiCollision
 
             return PerpendicularEllipseEnvelopeBuilder.TryBuildMeshedEllipseList(
                 surveyStations,
-                UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
+                PerpendicularEllipseEnvelopeBuilder.InferErrorModelType(surveyStations),
                 clampedConfidenceFactor,
                 SeparationFactorCalculations.MaxSeparationFactor,
                 MeshSectorCount,

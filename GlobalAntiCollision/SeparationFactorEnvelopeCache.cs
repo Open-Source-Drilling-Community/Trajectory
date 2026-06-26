@@ -462,7 +462,17 @@ namespace NORCE.Drilling.GlobalAntiCollision
                 unitScaleEllipse.EllipseRadii[0] is not double unitFirstRadius ||
                 zeroScaleEllipse.EllipseRadii[1] is not double zeroSecondRadius ||
                 unitScaleEllipse.EllipseRadii[1] is not double unitSecondRadius ||
+                zeroScaleEllipse.EllipseCenter == null ||
                 unitScaleEllipse.EllipseCenter == null)
+            {
+                return null;
+            }
+
+            SurveyPoint? scaledCenter = CreateScaledCenter(
+                zeroScaleEllipse.EllipseCenter,
+                unitScaleEllipse.EllipseCenter,
+                separationFactor);
+            if (scaledCenter == null)
             {
                 return null;
             }
@@ -472,7 +482,7 @@ namespace NORCE.Drilling.GlobalAntiCollision
             radii[1] = ScaleValue(zeroSecondRadius, unitSecondRadius, separationFactor);
             UncertaintyEllipse scaledEllipse = new()
             {
-                EllipseCenter = unitScaleEllipse.EllipseCenter,
+                EllipseCenter = scaledCenter,
                 EllipseOrientationAngle = unitScaleEllipse.EllipseOrientationAngle,
                 EllipseRadii = radii,
             };
@@ -483,6 +493,35 @@ namespace NORCE.Drilling.GlobalAntiCollision
             }
 
             return scaledEllipse;
+        }
+
+        private static SurveyPoint? CreateScaledCenter(
+            SurveyPoint zeroScaleCenter,
+            SurveyPoint unitScaleCenter,
+            double separationFactor)
+        {
+            if (!TryGetCoordinates(zeroScaleCenter, out double zeroX, out double zeroY, out double zeroZ) ||
+                !TryGetCoordinates(unitScaleCenter, out double unitX, out double unitY, out double unitZ))
+            {
+                return null;
+            }
+
+            SurveyPoint scaledCenter = new()
+            {
+                X = ScaleValue(zeroX, unitX, separationFactor),
+                Y = ScaleValue(zeroY, unitY, separationFactor),
+                Z = ScaleValue(zeroZ, unitZ, separationFactor),
+                Inclination = unitScaleCenter.Inclination,
+                Azimuth = unitScaleCenter.Azimuth
+            };
+
+            if (TryGetCoordinate(zeroScaleCenter, static point => point.MD, out double zeroMD) &&
+                TryGetCoordinate(unitScaleCenter, static point => point.MD, out double unitMD))
+            {
+                scaledCenter.MD = ScaleValue(zeroMD, unitMD, separationFactor);
+            }
+
+            return scaledCenter;
         }
 
         private static bool TryCreateScaledVertices(

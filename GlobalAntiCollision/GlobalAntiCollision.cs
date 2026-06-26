@@ -118,14 +118,16 @@ namespace NORCE.Drilling.GlobalAntiCollision
             if (comparisonSurveyLists != null && referenceSurveyList != null)
             {
                 SeparationFactorResults.Clear();
+                UncertaintyEnvelope.ErrorModelType referenceErrorModelType = PerpendicularEllipseEnvelopeBuilder.InferErrorModelType(referenceSurveyList);
                 SeparationFactorEnvelopeCache sharedReferenceCache = new(
                     referenceSurveyList,
                     referenceSurveyList,
                     ConfidenceFactor,
-                    UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
-                    UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt);
+                    referenceErrorModelType,
+                    referenceErrorModelType);
                 for (int i = 0; i < comparisonSurveyLists.Count; i++)
                 {
+                    UncertaintyEnvelope.ErrorModelType comparisonErrorModelType = PerpendicularEllipseEnvelopeBuilder.InferErrorModelType(comparisonSurveyLists[i]);
                     double? referenceMinimumMD = referenceMinimumMDs != null && i < referenceMinimumMDs.Count
                         ? referenceMinimumMDs[i]
                         : null;
@@ -158,6 +160,8 @@ namespace NORCE.Drilling.GlobalAntiCollision
                         sfr.ReferenceMDRange,
                         referenceMinimumMD,
                         comparisonMinimumMD,
+                        referenceErrorModelType,
+                        comparisonErrorModelType,
                         referenceMinimumMD.HasValue ? null : sharedReferenceCache);
                     if (directionalProfile == null)
                     {
@@ -173,6 +177,8 @@ namespace NORCE.Drilling.GlobalAntiCollision
                             sfr.ComparisonMDRange,
                             comparisonMinimumMD,
                             referenceMinimumMD,
+                            comparisonErrorModelType,
+                            referenceErrorModelType,
                             null);
                         if (reverseDirectionalProfile != null)
                         {
@@ -245,14 +251,16 @@ namespace NORCE.Drilling.GlobalAntiCollision
             MeasuredDepthRange? referenceMDRange,
             double? referenceMinimumMD,
             double? comparisonMinimumMD,
+            UncertaintyEnvelope.ErrorModelType referenceErrorModelType,
+            UncertaintyEnvelope.ErrorModelType comparisonErrorModelType,
             SeparationFactorEnvelopeCache? sharedReferenceCache)
         {
             SeparationFactorEnvelopeCache envelopeCache = new(
                 surveysRef,
                 surveysCmp,
                 ConfidenceFactor,
-                UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
-                UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
+                referenceErrorModelType,
+                comparisonErrorModelType,
                 referenceMinimumMD: referenceMinimumMD,
                 comparisonMinimumMD: comparisonMinimumMD,
                 sharedReferenceCache: sharedReferenceCache);
@@ -282,8 +290,8 @@ namespace NORCE.Drilling.GlobalAntiCollision
                     surveysCmp,
                     k,
                     ConfidenceFactor,
-                    UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
-                    UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt,
+                    referenceErrorModelType,
+                    comparisonErrorModelType,
                     envelopeCache);
                 resultsByStation[offset] = safetyFactorResults;
             });

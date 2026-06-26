@@ -9,6 +9,27 @@ namespace NORCE.Drilling.GlobalAntiCollision
     {
         public static int DefaultMeshSectorCount { get; } = new UncertaintyEnvelope().MeshSectorCount ?? 32;
 
+        public static UncertaintyEnvelope.ErrorModelType InferErrorModelType(IReadOnlyList<SurveyStation>? surveyStations)
+        {
+            if (surveyStations != null)
+            {
+                foreach (SurveyStation station in surveyStations)
+                {
+                    switch (station?.SurveyTool?.ModelType)
+                    {
+                        case SurveyInstrumentModelType.MWD_ISCWSA:
+                        case SurveyInstrumentModelType.Gyro_ISCWSA:
+                            return UncertaintyEnvelope.ErrorModelType.ISCWSA;
+                        case SurveyInstrumentModelType.MWD_WolffDeWardt:
+                        case SurveyInstrumentModelType.Gyro_WolffDeWardt:
+                            return UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt;
+                    }
+                }
+            }
+
+            return UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt;
+        }
+
         public static bool TryBuildMeshedEllipseList(
             List<SurveyStation> surveyStations,
             UncertaintyEnvelope.ErrorModelType errorModelType,
@@ -222,8 +243,7 @@ namespace NORCE.Drilling.GlobalAntiCollision
 
             tangentVariance = Math.Max(0.0, tangentVariance);
             double chiSquare = Statistics.GetChiSquare3D(confidenceFactor);
-            double boreholeRadius = station.BoreholeRadius ?? 0.0;
-            tangentSemiAxis = scalingFactor * Math.Sqrt(chiSquare * tangentVariance) + boreholeRadius;
+            tangentSemiAxis = scalingFactor * Math.Sqrt(chiSquare * tangentVariance);
             return double.IsFinite(tangentSemiAxis);
         }
 
