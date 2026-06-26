@@ -181,6 +181,8 @@ namespace NORCE.Drilling.GlobalAntiCollision
                         }
                     }
 
+                    ExpandMdRangesToProfile(sfr);
+
                     SeparationFactorResults.Add(sfr);
                 }
             }
@@ -330,6 +332,33 @@ namespace NORCE.Drilling.GlobalAntiCollision
 
                 return left.SeparationFactor.CompareTo(right.SeparationFactor);
             });
+        }
+
+        private static void ExpandMdRangesToProfile(SeparationFactorResult result)
+        {
+            foreach (SeparationFactorPoint point in result.SeparationFactorProfile)
+            {
+                if (double.IsFinite(point.ReferenceMD))
+                {
+                    result.ReferenceMDRange = ExpandRange(result.ReferenceMDRange, point.ReferenceMD);
+                }
+                if (double.IsFinite(point.ComparisonMD) && point.ComparisonMD != -1.0)
+                {
+                    result.ComparisonMDRange = ExpandRange(result.ComparisonMDRange, point.ComparisonMD);
+                }
+            }
+        }
+
+        private static MeasuredDepthRange ExpandRange(MeasuredDepthRange? range, double md)
+        {
+            if (range == null)
+            {
+                return new MeasuredDepthRange(md, md);
+            }
+
+            return new MeasuredDepthRange(
+                Math.Min(range.StartMD, md),
+                Math.Max(range.EndMD, md));
         }
 
         private static int GetMaxSeparationFactorParallelism(int stationCount)

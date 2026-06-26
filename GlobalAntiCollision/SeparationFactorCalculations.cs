@@ -79,16 +79,27 @@ namespace NORCE.Drilling.GlobalAntiCollision
             }
 
             List<SeparationFactorPoint> separationFactors = [];
-            // Since the Intersect loops over ellipseRef and k is an index on the survey stations, we need to use k * MinNumberInterpolations as start index
-            for (int i = 0; i < MinNumberInterpolations; i++)
+            // Since the Intersect loops over ellipseRef and k is an index on the survey stations, we need to use k * MinNumberInterpolations as start index.
+            // The last station may have extra terminal half-ellipsoid slices appended beyond the regular longitudinal mesh.
+            for (int i = 0; ; i++)
             {
+                bool includeTerminalCapSlices = k == surveysRef.Count - 1;
+                if (!includeTerminalCapSlices && i >= MinNumberInterpolations)
+                {
+                    break;
+                }
+
                 double minSeparationFactor = 0.01;
                 var maxSeparationFactor = MaxSeparationFactor;
 
                 List<UncertaintyEllipse>? ellipseRef;
                 List<UncertaintyEllipse>? ellipseCmp;
                 bool ok = envelopeCache.TryGetEllipses(maxSeparationFactor, out ellipseRef, out ellipseCmp);
-                if (ok && ellipseRef != null && ellipseCmp != null)
+                if (!ok || ellipseRef == null || ellipseCmp == null)
+                {
+                    break;
+                }
+
                 {
                     var ellipseRefIndex = k * MinNumberInterpolations + i;
                     if (ellipseRefIndex >= ellipseRef.Count)
@@ -238,7 +249,7 @@ namespace NORCE.Drilling.GlobalAntiCollision
             List<int>? candidateSegmentIndices = null)
         {
             cmpMD = Numeric.UNDEF_DOUBLE;
-            if (k >= 0 && k < ellipseRef.Count - 1 && ellipseRef.Count > 2)
+            if (k >= 0 && k < ellipseRef.Count && ellipseRef.Count > 2)
             {
                 Func<UncertaintyEllipse, List<SurveyPoint>> rotateEllipse = envelopeCache != null
                     ? envelopeCache.GetOrCreateRotatedEllipseVertices
@@ -351,6 +362,47 @@ namespace NORCE.Drilling.GlobalAntiCollision
                                     }
                                 }
                             }
+
+                            IEnumerable<int> capIndices = candidatePointIndices ?? Enumerable.Range(0, ellipseCmp.Count);
+                            foreach (int i in capIndices)
+                            {
+                                if (i != 0 && i != ellipseCmp.Count - 1)
+                                {
+                                    continue;
+                                }
+
+                                if (!BoundsOverlap(reducedEllipseRefBounds, ellipseCmp[i].BoundingBox!))
+                                {
+                                    continue;
+                                }
+
+                                List<LineSegment3D> capLineSegments = CreateCapLineSegments(ellipseCmp[i], rotateEllipse);
+                                foreach (LineSegment3D lineSegment in capLineSegments)
+                                {
+                                    foreach (Triangle3D triangle in trianglesAbove)
+                                    {
+                                        if (lineSegment.IntersectsTriangle(triangle))
+                                        {
+                                            if (TryGetMD(ellipseCmp[i], out double ellipseCmpMd))
+                                            {
+                                                cmpMD = ellipseCmpMd;
+                                            }
+                                            return true;
+                                        }
+                                    }
+                                    foreach (Triangle3D triangle in trianglesBelow)
+                                    {
+                                        if (lineSegment.IntersectsTriangle(triangle))
+                                        {
+                                            if (TryGetMD(ellipseCmp[i], out double ellipseCmpMd))
+                                            {
+                                                cmpMD = ellipseCmpMd;
+                                            }
+                                            return true;
+                                        }
+                                    }
+                                }
+                            }
                         }
                         #endregion
                         return false;
@@ -442,8 +494,43 @@ namespace NORCE.Drilling.GlobalAntiCollision
 
             // We need to split into two closed volumes. A point in the upper volume may be outside the
             // side-planes of the lower volume, so the upper and lower halves are tested separately.
-            Pair<List<Plane3D>?, List<Triangle3D?>?> planesAndTrianglesAbove = ExtractBoundingPlanes(reducedEllipseRef.GetRange(0, 2), rotateEllipse);
-            Pair<List<Plane3D>?, List<Triangle3D?>?> planesAndTrianglesBelow = ExtractBoundingPlanes(reducedEllipseRef.GetRange(1, 2), rotateEllipse);
+            int lastReferenceIndex = ellipseRef.Count - 1;
+            int aboveFirstIndex;
+            int aboveLastIndex;
+            int belowFirstIndex;
+            int belowLastIndex;
+            if (k == 0)
+            {
+                aboveFirstIndex = 0;
+                aboveLastIndex = 1;
+                belowFirstIndex = 1;
+                belowLastIndex = 2;
+            }
+            else if (k == lastReferenceIndex)
+            {
+                aboveFirstIndex = lastReferenceIndex - 2;
+                aboveLastIndex = lastReferenceIndex - 1;
+                belowFirstIndex = lastReferenceIndex - 1;
+                belowLastIndex = lastReferenceIndex;
+            }
+            else
+            {
+                aboveFirstIndex = k - 1;
+                aboveLastIndex = k;
+                belowFirstIndex = k;
+                belowLastIndex = k + 1;
+            }
+
+            Pair<List<Plane3D>?, List<Triangle3D?>?> planesAndTrianglesAbove = ExtractBoundingPlanes(
+                [ellipseRef[aboveFirstIndex], ellipseRef[aboveLastIndex]],
+                rotateEllipse,
+                includeFirstCapTriangles: aboveFirstIndex == 0,
+                includeLastCapTriangles: aboveLastIndex == lastReferenceIndex);
+            Pair<List<Plane3D>?, List<Triangle3D?>?> planesAndTrianglesBelow = ExtractBoundingPlanes(
+                [ellipseRef[belowFirstIndex], ellipseRef[belowLastIndex]],
+                rotateEllipse,
+                includeFirstCapTriangles: belowFirstIndex == 0,
+                includeLastCapTriangles: belowLastIndex == lastReferenceIndex);
             if (planesAndTrianglesAbove.Left == null ||
                 planesAndTrianglesBelow.Left == null ||
                 planesAndTrianglesAbove.Right == null ||
@@ -494,7 +581,11 @@ namespace NORCE.Drilling.GlobalAntiCollision
                 left.MaxZ >= right.MinZ;
         }
 
-        private static Pair<List<Plane3D>?, List<Triangle3D?>?> ExtractBoundingPlanes(List<UncertaintyEllipse> ellipses, Func<UncertaintyEllipse, List<SurveyPoint>> rotateEllipse)
+        private static Pair<List<Plane3D>?, List<Triangle3D?>?> ExtractBoundingPlanes(
+            List<UncertaintyEllipse> ellipses,
+            Func<UncertaintyEllipse, List<SurveyPoint>> rotateEllipse,
+            bool includeFirstCapTriangles = false,
+            bool includeLastCapTriangles = false)
         {
             if (ellipses != null && ellipses.Count >= 2)
             {
@@ -512,9 +603,14 @@ namespace NORCE.Drilling.GlobalAntiCollision
                     int idx2 = 2 * firstVertices.Count / 3;
                     planes.Add(new Plane3D(firstVertices[0], firstVertices[idx2], firstVertices[idx1]));
                     planes.Add(new Plane3D(lastVertices[0], lastVertices[idx1], lastVertices[idx2]));
-                    // We don't extract the triangles for the top and bottom plane since these are not part of the envelope. Add null to keep the planes and triangles at the same length
-                    triangles.Add(null);
-                    triangles.Add(null);
+                    if (includeFirstCapTriangles)
+                    {
+                        triangles.AddRange(CreateCapTriangles(ellipses[0], rotateEllipse, reverseWinding: false));
+                    }
+                    if (includeLastCapTriangles)
+                    {
+                        triangles.AddRange(CreateCapTriangles(ellipses[last], rotateEllipse, reverseWinding: true));
+                    }
                 }
                 // Sides planes - here we try to match the coordinates of the two ellipses such that corresponding indexes refer to points which are 'aligned'. We also need to account for reverse indexing and inclination above 90 deg.
                 for (int i = 0; i < ellipses.Count - 1; i++)
@@ -554,6 +650,58 @@ namespace NORCE.Drilling.GlobalAntiCollision
             {
                 return new Pair<List<Plane3D>?, List<Triangle3D?>?>(null, null);
             }
+        }
+
+        private static List<Triangle3D> CreateCapTriangles(
+            UncertaintyEllipse ellipse,
+            Func<UncertaintyEllipse, List<SurveyPoint>> rotateEllipse,
+            bool reverseWinding)
+        {
+            if (!TryGetPoint3D(ellipse.EllipseCenter, out Point3D center))
+            {
+                return [];
+            }
+
+            List<SurveyPoint> vertices = rotateEllipse(ellipse);
+            if (vertices.Count < 3)
+            {
+                return [];
+            }
+
+            List<Triangle3D> triangles = [];
+            for (int i = 0; i < vertices.Count - 1; i++)
+            {
+                triangles.Add(reverseWinding
+                    ? new Triangle3D(center, vertices[i + 1], vertices[i])
+                    : new Triangle3D(center, vertices[i], vertices[i + 1]));
+            }
+
+            return triangles;
+        }
+
+        private static List<LineSegment3D> CreateCapLineSegments(
+            UncertaintyEllipse ellipse,
+            Func<UncertaintyEllipse, List<SurveyPoint>> rotateEllipse)
+        {
+            if (!TryGetPoint3D(ellipse.EllipseCenter, out Point3D center))
+            {
+                return [];
+            }
+
+            List<SurveyPoint> vertices = rotateEllipse(ellipse);
+            if (vertices.Count < 3)
+            {
+                return [];
+            }
+
+            List<LineSegment3D> lineSegments = [];
+            for (int i = 0; i < vertices.Count - 1; i++)
+            {
+                lineSegments.Add(new LineSegment3D(center, vertices[i]));
+                lineSegments.Add(new LineSegment3D(vertices[i], vertices[i + 1]));
+            }
+
+            return lineSegments;
         }
 
         internal static List<SurveyPoint> RotateEllipse(UncertaintyEllipse ellipse)
