@@ -58,7 +58,10 @@ internal static class Program
             trajectories = await LoadTestTrajectoriesAsync(remoteTrajectoryClient);
             if (fillBoreholeRadiusFromWellboreArchitecture)
             {
-                await FillBoreholeRadiusFromWellboreArchitectureAsync(trajectories, allowBoreholeRadiusArchitectureFallbackByTrajectoryName);
+                await FillBoreholeRadiusFromWellboreArchitectureAsync(
+                    harness.TrajectoryManager,
+                    trajectories,
+                    allowBoreholeRadiusArchitectureFallbackByTrajectoryName);
             }
 
             referenceTrajectoryIndex = ResolveReferenceTrajectoryIndex(trajectories, referenceTrajectoryIndex, referenceTrajectoryName);
@@ -432,11 +435,47 @@ internal static class Program
     }
 
     private static async Task FillBoreholeRadiusFromWellboreArchitectureAsync(
+        TrajectoryManager trajectoryManager,
         IReadOnlyList<TestTrajectory> trajectories,
         bool allowFallbackByTrajectoryName)
     {
         Console.WriteLine("Filling survey station borehole radii from WellBoreArchitecture...");
         Stopwatch stopwatch = Stopwatch.StartNew();
+
+        if (!allowFallbackByTrajectoryName)
+        {
+            int managerFilledTrajectoryCount = 0;
+            int managerFilledStationCount = 0;
+            int unchangedTrajectoryCount = 0;
+
+            foreach (TestTrajectory testTrajectory in trajectories)
+            {
+                int beforeFilledCount = CountDefinedBoreholeRadiusStations(testTrajectory.Trajectory);
+                await trajectoryManager.EnsureBoreholeRadiiAsync(testTrajectory.Trajectory);
+                int afterFilledCount = CountDefinedBoreholeRadiusStations(testTrajectory.Trajectory);
+                if (afterFilledCount > beforeFilledCount)
+                {
+                    managerFilledTrajectoryCount++;
+                    managerFilledStationCount += afterFilledCount - beforeFilledCount;
+                }
+                else
+                {
+                    unchangedTrajectoryCount++;
+                }
+            }
+
+            stopwatch.Stop();
+            Console.WriteLine(
+                $"\tFilled borehole radius for {managerFilledStationCount} additional survey stations across {managerFilledTrajectoryCount}/{trajectories.Count} trajectories " +
+                $"in {stopwatch.Elapsed.TotalSeconds:F2} s.");
+            if (unchangedTrajectoryCount > 0)
+            {
+                Console.WriteLine($"\tUnchanged trajectories: {unchangedTrajectoryCount}.");
+            }
+
+            Console.WriteLine();
+            return;
+        }
 
         ICollection<WellBoreArchitecture> architectures = await APIUtils.ClientWellBoreArchitecture.GetAllWellBoreArchitectureAsync();
         Dictionary<Guid, WellBoreArchitecture> architecturesByWellBoreId = architectures
@@ -1160,6 +1199,9 @@ internal static class Program
 
     private static string FormatBoreholeRadiusCoverage(BoreholeRadiusCoverage coverage) =>
         $"{coverage.FilledStationCount}/{coverage.TotalStationCount} stations";
+
+    private static int CountDefinedBoreholeRadiusStations(TrajectoryModel trajectory) =>
+        trajectory.SurveyStationList?.Count(station => GetFiniteNullableValue(station.BoreholeRadius).HasValue) ?? 0;
 
     private static double? GetConservativeBoreholeRadius(SurveyStation start, SurveyStation end)
     {
