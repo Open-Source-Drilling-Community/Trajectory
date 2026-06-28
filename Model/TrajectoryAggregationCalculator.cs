@@ -905,7 +905,14 @@ namespace NORCE.Drilling.Trajectory.Model
                         idx++;
                     }
 
-                    for (int j = start; j <= end; j++)
+                    // Adjacent constant periods share a boundary index (FindConstantPeriods
+                    // recurses with startIndex = lastIndex, not lastIndex + 1). Walking by the
+                    // output cursor `idx` (instead of `for j = start..end`) emits that shared
+                    // boundary exactly once, keeping result.Count == values.Count. Otherwise the
+                    // boundary is double-counted, the *Equivalents lists for the six series end up
+                    // with different lengths, and the equivalence loop below throws
+                    // IndexOutOfRangeException (reproducible on the ISCWSA #3 reference well).
+                    while (idx <= end)
                     {
                         result.Add(valueIndex);
                         idx++;
