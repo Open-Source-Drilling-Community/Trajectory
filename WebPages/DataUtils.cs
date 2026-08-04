@@ -36,8 +36,8 @@ public static class DataUtils
         DataUtils.WellHeadPositionReferenceSource.WellHeadEastPositionReference = 0;
         DataUtils.CartographicGridPositionReferenceSource.CartographicGridNorthPositionReference = 0;
         DataUtils.CartographicGridPositionReferenceSource.CartographicGridEastPositionReference = 0;
-        DataUtils.LeaseLinePositionReferenceSource.LeaseLineNorthPositionReference = 0;
-        DataUtils.LeaseLinePositionReferenceSource.LeaseLineEastPositionReference = 0;
+        DataUtils.FieldPositionReferenceSource.FieldNorthPositionReference = 0;
+        DataUtils.FieldPositionReferenceSource.FieldEastPositionReference = 0;
         DataUtils.ClusterPositionReferenceSource.ClusterNorthPositionReference = 0;
         DataUtils.ClusterPositionReferenceSource.ClusterEastPositionReference = 0;
         TrajectoryLight? trajectory = null;
@@ -294,7 +294,7 @@ public static class DataUtils
     public static MagneticDeclinationSource MagneticDeclinationSource { get; set; } = new MagneticDeclinationSource();
     public static WellHeadPositionReferenceSource WellHeadPositionReferenceSource { get; set; } = new WellHeadPositionReferenceSource();
     public static CartographicGridPositionReferenceSource CartographicGridPositionReferenceSource { get; set; } = new CartographicGridPositionReferenceSource();
-    public static LeaseLinePositionReferenceSource LeaseLinePositionReferenceSource { get; set; } = new LeaseLinePositionReferenceSource();
+    public static FieldPositionReferenceSource FieldPositionReferenceSource { get; set; } = new FieldPositionReferenceSource();
     public static ClusterPositionReferenceSource ClusterPositionReferenceSource { get; set; } = new ClusterPositionReferenceSource();
 
     public static void UpdateUnitSystemName(string value) => UnitAndReferenceParameters.UnitSystemName = value;
@@ -765,10 +765,10 @@ public class CartographicGridPositionReferenceSource : ICartographicGridPosition
     public double? CartographicGridEastPositionReference { get; set; }
 }
 
-public class LeaseLinePositionReferenceSource : ILeaseLinePositionReferenceSource
+public class FieldPositionReferenceSource : IFieldPositionReferenceSource
 {
-    public double? LeaseLineNorthPositionReference { get; set; }
-    public double? LeaseLineEastPositionReference { get; set; }
+    public double? FieldNorthPositionReference { get; set; }
+    public double? FieldEastPositionReference { get; set; }
 }
 
 public class ClusterPositionReferenceSource : IClusterPositionReferenceSource
