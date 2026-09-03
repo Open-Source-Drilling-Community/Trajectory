@@ -133,7 +133,7 @@ public class OpenApiSchemaReferenceUpdater
     /// <returns></returns>
     private OpenApiSchema CloneSchema(OpenApiSchema source)
     {
-        if (source == null) return null;
+        ArgumentNullException.ThrowIfNull(source);
 
         var clone = new OpenApiSchema
         {
@@ -149,7 +149,9 @@ public class OpenApiSchemaReferenceUpdater
             Example = source.Example,
             Default = source.Default,
             Enum = new List<IOpenApiAny>(source.Enum),
-            Reference = source.Reference != null
+            // OpenAPI 3.0 ignores siblings next to $ref. Preserve a nullable reference
+            // as an allOf wrapper; otherwise serialization drops the nullable flag.
+            Reference = source.Reference != null && !source.Nullable
                 ? new OpenApiReference
                 {
                     Id = source.Reference.Id,
@@ -170,6 +172,21 @@ public class OpenApiSchemaReferenceUpdater
             Extensions = new Dictionary<string, IOpenApiExtension>(source.Extensions)
         };
 
+        if (source.Reference != null && source.Nullable)
+        {
+            clone.AllOf =
+            [
+                new OpenApiSchema
+                {
+                    Reference = new OpenApiReference
+                    {
+                        Id = source.Reference.Id,
+                        Type = source.Reference.Type
+                    }
+                }
+            ];
+        }
+
         // Deep clone properties
         foreach (var kvp in source.Properties)
         {
@@ -188,7 +205,7 @@ public class OpenApiSchemaReferenceUpdater
             };
         }
 
-        if (source.AllOf != null)
+        if (source.AllOf != null && source.AllOf.Count > 0)
         {
             clone.AllOf = new List<OpenApiSchema>();
             foreach (var s in source.AllOf)

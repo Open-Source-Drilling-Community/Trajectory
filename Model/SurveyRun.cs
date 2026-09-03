@@ -3,6 +3,8 @@ using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Common;
 using System.Collections.Generic;
 using System.Linq;
+using SurveyStation = OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation;
+using SurveyPoint = OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint;
 
 namespace OSDC.Drilling.Trajectory.Model
 {

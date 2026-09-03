@@ -18,6 +18,7 @@ public interface ITrajectoryAPIUtils
     string HostBasePathRig { get; }
     HttpClient HttpClientRig { get; }
     Client ClientRig { get; }
+    Task<ICollection<Rig>> GetAllRigReferencesAsync(CancellationToken cancellationToken = default);
 
     string HostNameWell { get; }
     string HostBasePathWell { get; }

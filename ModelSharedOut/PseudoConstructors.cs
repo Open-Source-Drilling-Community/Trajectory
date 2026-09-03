@@ -23,6 +23,373 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					HttpEndPoint = "Trajectory/",
 				};
 			}
+		public static EarthMagneticFieldEvaluationPoint ConstructEarthMagneticFieldEvaluationPoint()
+		{
+			return new EarthMagneticFieldEvaluationPoint
+			{
+				Latitude = 0.0, 
+				Longitude = 0.0, 
+				Depth = 0.0, 
+				DateTimeUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static EarthMagneticFieldSample ConstructEarthMagneticFieldSample()
+		{
+			return new EarthMagneticFieldSample
+			{
+				Input = ConstructEarthMagneticFieldEvaluationPoint(),
+				North = 0.0, 
+				East = 0.0, 
+				Down = 0.0, 
+				HorizontalIntensity = 0.0, 
+				TotalIntensity = 0.0, 
+				Declination = null, 
+				Inclination = null, 
+			};
+		}
+		public static EarthMagneticFieldServiceInfo ConstructEarthMagneticFieldServiceInfo()
+		{
+			return new EarthMagneticFieldServiceInfo
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				CoordinateFrame = "Default CoordinateFrame",
+				TimeConvention = "Default TimeConvention",
+				DepthReference = "Default DepthReference",
+				DepthPositiveDirection = "Default DepthPositiveDirection",
+				Models = new List<EarthMagneticModelInfo>
+					{
+						ConstructEarthMagneticModelInfo(),
+					},
+			};
+		}
+		public static EarthMagneticFieldValidationError ConstructEarthMagneticFieldValidationError()
+		{
+			return new EarthMagneticFieldValidationError
+			{
+				SampleIndex = null, 
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static EarthMagneticFieldValidationProblem ConstructEarthMagneticFieldValidationProblem()
+		{
+			return new EarthMagneticFieldValidationProblem
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<EarthMagneticFieldValidationError>
+					{
+						ConstructEarthMagneticFieldValidationError(),
+					},
+			};
+		}
+		public static EarthMagneticModelInfo ConstructEarthMagneticModelInfo()
+		{
+			return new EarthMagneticModelInfo
+			{
+				Model = (EarthMagneticFieldModel)0,
+				Name = "Default Name",
+				ID = "Default ID",
+				Description = "Default Description",
+				ReleaseDate = DateTimeOffset.UtcNow,
+				MinimumUtc = DateTimeOffset.UtcNow,
+				MaximumUtc = DateTimeOffset.UtcNow,
+				MinimumDepth = 0.0, 
+				MaximumDepth = 0.0, 
+				Degree = 0, 
+				Order = 0, 
+				GeographicLibVersion = "Default GeographicLibVersion",
+				ReferenceEllipsoid = "Default ReferenceEllipsoid",
+				CoordinateFrame = "Default CoordinateFrame",
+				MagneticFluxDensityUnit = "Default MagneticFluxDensityUnit",
+				AngleUnit = "Default AngleUnit",
+				DepthPositiveDirection = "Default DepthPositiveDirection",
+				ConcurrentEvaluationEnabled = false, 
+				MetadataSHA256 = "Default MetadataSHA256",
+				CoefficientSHA256 = "Default CoefficientSHA256",
+			};
+		}
+		public static EvaluateEarthMagneticFieldRequest ConstructEvaluateEarthMagneticFieldRequest()
+		{
+			return new EvaluateEarthMagneticFieldRequest
+			{
+				Model = (EarthMagneticFieldModel)0,
+				Samples = new List<EarthMagneticFieldEvaluationPoint>
+					{
+						ConstructEarthMagneticFieldEvaluationPoint(),
+					},
+			};
+		}
+		public static EvaluateEarthMagneticFieldResponse ConstructEvaluateEarthMagneticFieldResponse()
+		{
+			return new EvaluateEarthMagneticFieldResponse
+			{
+				Model = ConstructEarthMagneticModelInfo(),
+				Samples = new List<EarthMagneticFieldSample>
+					{
+						ConstructEarthMagneticFieldSample(),
+					},
+			};
+		}
+		public static UsageStatisticsEarthMagneticField ConstructUsageStatisticsEarthMagneticField()
+		{
+			return new UsageStatisticsEarthMagneticField
+			{
+				StartedAt = DateTimeOffset.UtcNow,
+				Scope = "Default Scope",
+				RestEvaluations = 0, 
+				MCPEvaluations = 0, 
+				FailedEvaluations = 0, 
+				SamplesEvaluated = 0, 
+				ModelInfoRequests = 0, 
+				StatisticsRequests = 0, 
+			};
+		}
+		public static EarthGravityEvaluationRequest ConstructEarthGravityEvaluationRequest()
+		{
+			return new EarthGravityEvaluationRequest
+			{
+				Positions = new List<EarthGravityPosition>
+					{
+						ConstructEarthGravityPosition(),
+					},
+			};
+		}
+		public static EarthGravityEvaluationResponse ConstructEarthGravityEvaluationResponse()
+		{
+			return new EarthGravityEvaluationResponse
+			{
+				Model = ConstructEarthGravityModelInfo(),
+				Samples = new List<EarthGravitySample>
+					{
+						ConstructEarthGravitySample(),
+					},
+			};
+		}
+		public static EarthGravityModelInfo ConstructEarthGravityModelInfo()
+		{
+			return new EarthGravityModelInfo
+			{
+				Name = "Default Name",
+				ID = "Default ID",
+				Publisher = "Default Publisher",
+				ReleaseDate = "Default ReleaseDate",
+				DataVersion = "Default DataVersion",
+				Degree = 0, 
+				Order = 0, 
+				GeographicLibVersion = "Default GeographicLibVersion",
+				ReferenceEllipsoid = "Default ReferenceEllipsoid",
+				IncludesCentrifugalAcceleration = false, 
+				CoefficientSHA256 = "Default CoefficientSHA256",
+			};
+		}
+		public static EarthGravityPosition ConstructEarthGravityPosition()
+		{
+			return new EarthGravityPosition
+			{
+				Latitude = 0.0, 
+				Longitude = 0.0, 
+				Depth = 0.0, 
+			};
+		}
+		public static EarthGravitySample ConstructEarthGravitySample()
+		{
+			return new EarthGravitySample
+			{
+				Position = ConstructEarthGravityPosition(),
+				Gravity = ConstructEarthGravityVector(),
+			};
+		}
+		public static EarthGravityValidationError ConstructEarthGravityValidationError()
+		{
+			return new EarthGravityValidationError
+			{
+				PositionIndex = null, 
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static EarthGravityValidationProblem ConstructEarthGravityValidationProblem()
+		{
+			return new EarthGravityValidationProblem
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<EarthGravityValidationError>
+					{
+						ConstructEarthGravityValidationError(),
+					},
+			};
+		}
+		public static EarthGravityVector ConstructEarthGravityVector()
+		{
+			return new EarthGravityVector
+			{
+				North = 0.0, 
+				East = 0.0, 
+				Down = 0.0, 
+				Magnitude = 0.0, 
+				TotalPotential = 0.0, 
+			};
+		}
+		public static UsageStatisticsEarthGravity ConstructUsageStatisticsEarthGravity()
+		{
+			return new UsageStatisticsEarthGravity
+			{
+				StartedAt = DateTimeOffset.UtcNow,
+				Scope = "Default Scope",
+				RestEvaluations = 0, 
+				MCPEvaluations = 0, 
+				FailedEvaluations = 0, 
+				PositionsEvaluated = 0, 
+				ModelInfoRequests = 0, 
+				StatisticsRequests = 0, 
+			};
+		}
+		public static EarthVerticalDatumModelInfo ConstructEarthVerticalDatumModelInfo()
+		{
+			return new EarthVerticalDatumModelInfo
+			{
+				Name = "Default Name",
+				ID = "Default ID",
+				Description = "Default Description",
+				DataDateTime = DateTimeOffset.UtcNow,
+				GridResolutionMinutes = 0.0, 
+				Interpolation = "Default Interpolation",
+				MaximumInterpolationError = 0.0, 
+				RMSInterpolationError = 0.0, 
+				GeographicLibVersion = "Default GeographicLibVersion",
+				ReferenceEllipsoid = "Default ReferenceEllipsoid",
+				SupportedVerticalDatums = new List<string>
+					{
+						"",
+					},
+				SupportedConversionDirections = new List<string>
+					{
+						"",
+					},
+				DepthPositiveDirection = "Default DepthPositiveDirection",
+				IsThreadSafe = false, 
+				CoefficientSHA256 = "Default CoefficientSHA256",
+			};
+		}
+		public static EarthVerticalDatumPosition ConstructEarthVerticalDatumPosition()
+		{
+			return new EarthVerticalDatumPosition
+			{
+				Latitude = 0.0, 
+				Longitude = 0.0, 
+				MeanSeaLevelDepth = 0.0, 
+			};
+		}
+		public static EarthVerticalDatumSample ConstructEarthVerticalDatumSample()
+		{
+			return new EarthVerticalDatumSample
+			{
+				Position = ConstructEarthVerticalDatumPosition(),
+				Wgs84EllipsoidalDepth = 0.0, 
+				GeoidUndulation = 0.0, 
+			};
+		}
+		public static EarthVerticalDatumValidationError ConstructEarthVerticalDatumValidationError()
+		{
+			return new EarthVerticalDatumValidationError
+			{
+				PositionIndex = null, 
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static EarthVerticalDatumValidationProblem ConstructEarthVerticalDatumValidationProblem()
+		{
+			return new EarthVerticalDatumValidationProblem
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<EarthVerticalDatumValidationError>
+					{
+						ConstructEarthVerticalDatumValidationError(),
+					},
+			};
+		}
+		public static MeanSeaLevelToWgs84Request ConstructMeanSeaLevelToWgs84Request()
+		{
+			return new MeanSeaLevelToWgs84Request
+			{
+				Positions = new List<EarthVerticalDatumPosition>
+					{
+						ConstructEarthVerticalDatumPosition(),
+					},
+			};
+		}
+		public static MeanSeaLevelToWgs84Response ConstructMeanSeaLevelToWgs84Response()
+		{
+			return new MeanSeaLevelToWgs84Response
+			{
+				Model = ConstructEarthVerticalDatumModelInfo(),
+				Samples = new List<EarthVerticalDatumSample>
+					{
+						ConstructEarthVerticalDatumSample(),
+					},
+			};
+		}
+		public static UsageStatisticsEarthVerticalDatum ConstructUsageStatisticsEarthVerticalDatum()
+		{
+			return new UsageStatisticsEarthVerticalDatum
+			{
+				StartedAt = DateTimeOffset.UtcNow,
+				Scope = "Default Scope",
+				RestConversions = 0, 
+				MCPConversions = 0, 
+				FailedConversions = 0, 
+				PositionsConverted = 0, 
+				ModelInfoRequests = 0, 
+				StatisticsRequests = 0, 
+			};
+		}
+		public static Wgs84ToMeanSeaLevelPosition ConstructWgs84ToMeanSeaLevelPosition()
+		{
+			return new Wgs84ToMeanSeaLevelPosition
+			{
+				Latitude = 0.0, 
+				Longitude = 0.0, 
+				Wgs84EllipsoidalDepth = 0.0, 
+			};
+		}
+		public static Wgs84ToMeanSeaLevelRequest ConstructWgs84ToMeanSeaLevelRequest()
+		{
+			return new Wgs84ToMeanSeaLevelRequest
+			{
+				Positions = new List<Wgs84ToMeanSeaLevelPosition>
+					{
+						ConstructWgs84ToMeanSeaLevelPosition(),
+					},
+			};
+		}
+		public static Wgs84ToMeanSeaLevelResponse ConstructWgs84ToMeanSeaLevelResponse()
+		{
+			return new Wgs84ToMeanSeaLevelResponse
+			{
+				Model = ConstructEarthVerticalDatumModelInfo(),
+				Samples = new List<Wgs84ToMeanSeaLevelSample>
+					{
+						ConstructWgs84ToMeanSeaLevelSample(),
+					},
+			};
+		}
+		public static Wgs84ToMeanSeaLevelSample ConstructWgs84ToMeanSeaLevelSample()
+		{
+			return new Wgs84ToMeanSeaLevelSample
+			{
+				Position = ConstructWgs84ToMeanSeaLevelPosition(),
+				MeanSeaLevelDepth = 0.0, 
+				GeoidUndulation = 0.0, 
+			};
+		}
 		public static Cluster ConstructCluster()
 		{
 			return new Cluster
@@ -320,20 +687,46 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new GeodeticDatum
 			{
-				MetaInfo = ConstructMetaInfo(),
+				Id = new Guid(),
 				Name = "Default Name",
 				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
+				ReferenceEllipsoidId = new Guid(),
+				Identifier = ConstructAuthorityIdentifier(),
+				IsBuiltIn = false, 
 				IsDefault = false, 
-				Spheroid = ConstructSpheroid(),
-				DeltaX = ConstructScalarDrillingProperty(),
-				DeltaY = ConstructScalarDrillingProperty(),
-				DeltaZ = ConstructScalarDrillingProperty(),
-				RotationX = ConstructScalarDrillingProperty(),
-				RotationY = ConstructScalarDrillingProperty(),
-				RotationZ = ConstructScalarDrillingProperty(),
-				ScaleFactor = ConstructScalarDrillingProperty(),
+				Provenance = ConstructCatalogProvenance(),
+				CreatedUtc = DateTimeOffset.UtcNow,
+				ModifiedUtc = DateTimeOffset.UtcNow,
+				Aliases = new List<string>
+					{
+						"",
+					},
+				ReferenceObjectType = (GeodeticReferenceObjectType)0,
+				IsDeprecated = false, 
+				IsSuperseded = false, 
+				PrimeMeridianName = "Default PrimeMeridianName",
+				PrimeMeridianIdentifier = ConstructAuthorityIdentifier(),
+				PrimeMeridianLongitude = 0.0, 
+				Origin = "Default Origin",
+				PublicationDate = "Default PublicationDate",
+				RealizationEpoch = "Default RealizationEpoch",
+				FrameReferenceEpoch = null, 
+				AnchorEpoch = null, 
+				ConventionalReferenceSystem = "Default ConventionalReferenceSystem",
+				RealizationMethod = "Default RealizationMethod",
+				EnsembleAccuracy = null, 
+				MemberDatumIds = new List<Guid>
+					{
+						new Guid(),
+					},
+				Usage = new List<GeodeticUsage>
+					{
+						ConstructGeodeticUsage(),
+					},
+				Remarks = "Default Remarks",
+				InformationSource = "Default InformationSource",
+				RevisionDate = DateTimeOffset.UtcNow,
+				CatalogStatus = (CatalogEntryStatus)0,
 			};
 		}
 		public static Spheroid ConstructSpheroid()
@@ -460,13 +853,26 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new Accumulator
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				AccumulatorClass = (AccumulatorClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				AccumulatorClass = (AccumulatorClass?)0,
 				Capacity = null, 
 				MaxLimitDesignPressure = null, 
 				MaxLimitOperatingPressure = null, 
@@ -476,13 +882,26 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new AutoDriller
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				ControlMode = (AutodrillerControlMode)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				ControlMode = (AutodrillerControlMode?)0,
 				MaxLimitRop = null, 
 				MinLimitRop = null, 
 				MaxLimitWob = null, 
@@ -491,34 +910,39 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				MinLimitDifferentialPressure = null, 
 				MaxLimitTrq = null, 
 				MinLimitTrq = null, 
-				SetpointWob = null, 
-				SetpointRop = null, 
-				SetpointDiffp = null, 
-				SetpointTrq = null, 
 			};
 		}
 		public static AuxSolidsControl ConstructAuxSolidsControl()
 		{
 			return new AuxSolidsControl
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				SolidsControlClass = (SolidsControlClass)0,
-				DesanderOn = null, 
-				DesilterOn = null, 
-				DegasserOn = null, 
-				CentrifugeOn = null, 
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				SolidsControlClass = (SolidsControlClass?)0,
 			};
 		}
 		public static BopLineDefinition ConstructBopLineDefinition()
 		{
 			return new BopLineDefinition
 			{
-				BopLinesClass = (BopLineClass)0,
+				BopLinesClass = (BopLineClass?)0,
 				LineOd = null, 
 				LineId = null, 
 				Length = null, 
@@ -528,15 +952,31 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new BopStack
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				BopStackClass = (BopStackClass)0,
-				UnitReferenceList = "Default UnitReferenceList",
-				BopControlType = (ControllerType)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				BopStackClass = (BopStackClass?)0,
+				UnitReferences = new List<string>
+					{
+						"",
+					},
+				BopControlType = (ControllerType?)0,
 				BoreDiameter = null, 
 				Height = null, 
 				Weight = null, 
@@ -553,17 +993,13 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				MinLimitOperatingPressure = null, 
 				BopLineMaxLimitDesignPressure = null, 
 				BopLineMaxLimitOperatingPressure = null, 
-				CasingPressure = null, 
-				KillLinePressure = null, 
-				ChokeLinePressure = null, 
-				ShutInDrillpipePressure = null, 
 			};
 		}
 		public static BopStackComponentDefinition ConstructBopStackComponentDefinition()
 		{
 			return new BopStackComponentDefinition
 			{
-				BopStackComponentClass = (BopComponentClass)0,
+				BopStackComponentClass = (BopComponentClass?)0,
 				BoreDiameter = null, 
 				Height = null, 
 			};
@@ -572,13 +1008,26 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new CasingDriveSystem
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				CsgDrvClass = (CasingDriveClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				CsgDrvClass = (CasingDriveClass?)0,
 				HoistingCapacity = null, 
 				Length = null, 
 				MaxLimitDesignTorque = null, 
@@ -594,6 +1043,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new CasingRunningTool
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -602,6 +1052,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new CasingTongs
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -610,6 +1061,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new CatWalk
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -618,13 +1070,26 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new CementPump
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				PumpClass = (PumpClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				PumpClass = (PumpClass?)0,
 				PlungerDiameter = null, 
 				StrokeLength = null, 
 				CementPumpDisplacement = new List<CementPumpDisplacementPoint>
@@ -648,14 +1113,30 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new CementUnit
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				Mounting = (MountingType)0,
-				Features = "Default Features",
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				Mounting = (MountingType?)0,
+				Capabilities = new List<string>
+					{
+						"",
+					},
 				NumberOfPumps = null, 
 			};
 		}
@@ -663,6 +1144,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new Centrifuge
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -679,13 +1161,26 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new ChokeManifold
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				ChokeControlClass = (ControlClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				ChokeControlClass = (ControlClass?)0,
 				MaxLimitDesignPressure = null, 
 				MaxLimitOperatingPressure = null, 
 				MinLimitOperatingPressure = null, 
@@ -698,16 +1193,28 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new CoilDriveSystem
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				CoilDrvClass = (MountingType)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				CoilDrvClass = (MountingType?)0,
 				ReelPayloadCapacity = null, 
 				ReelPayloadLength = null, 
-				ReelRemainingLength = null, 
 				InjectorHeadRadius = null, 
 				InjectorHeadMinTubingOd = null, 
 				InjHeadDesignPullCapacity = null, 
@@ -715,28 +1222,32 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				InjHeadPullCapacity = null, 
 				InjHeadSnubCapacity = null, 
 				InjHeadMaxSpeed = null, 
-				CtLoad = null, 
-				CtWeightOnBit = null, 
-				CtCoilSpeed = null, 
-				CtCircPressure = null, 
-				CtWellheadPressure = null, 
-				CtEngineSpeed = null, 
-				CtInjHeadDrivePressure = null, 
-				CtInjTubingReelDrivePress = null, 
-				CtChainTension = null, 
 			};
 		}
 		public static ContinuousCirculationDevice ConstructContinuousCirculationDevice()
 		{
 			return new ContinuousCirculationDevice
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				CcdControlClass = (ControlClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				CcdControlClass = (ControlClass?)0,
 				WorkingPumpPressure = null, 
 				MaxLimitDesignPressure = null, 
 				MaxLimitOperatingPressure = null, 
@@ -752,25 +1263,38 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new CrownBlock
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
 				SheaveDiameter = null, 
 				GrooveDiameter = null, 
 				NumberOfSheaves = null, 
 				MaxLimitDesignLoad = null, 
 				MaxLimitOperatingLoad = null, 
 				MaxLimitCompensatorStroke = null, 
-				Hookload = null, 
 			};
 		}
 		public static CuttingsDryer ConstructCuttingsDryer()
 		{
 			return new CuttingsDryer
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -779,6 +1303,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new CuttingsTransportSystem
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -787,6 +1312,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new Degasser
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -795,13 +1321,26 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new Derrick
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				DerrickClass = (DerrickClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				DerrickClass = (DerrickClass?)0,
 				Height = null, 
 				MaxLimitJointsPerStand = null, 
 				MaxLimitDesignLoad = null, 
@@ -813,6 +1352,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new Desander
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -821,6 +1361,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new Desilter
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -829,13 +1370,26 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new Drawworks
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				DrawworksClass = (DrawworksClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				DrawworksClass = (DrawworksClass?)0,
 				MaxLimitDesignLoad = null, 
 				MaxLimitOperatingLoad = null, 
 				MaxLimitContinuousDrumPower = null, 
@@ -846,41 +1400,66 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new DrillLine
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
 				Number = null, 
 				Diameter = null, 
 				LinearWeight = null, 
 				MaxLimitDesignBreakingLoad = null, 
 				MaxLimitOperatingBreakingLoad = null, 
-				Hookload = null, 
 			};
 		}
 		public static DrillingChokeManifold ConstructDrillingChokeManifold()
 		{
 			return new DrillingChokeManifold
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				ManifoldType = (ManifoldClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				ManifoldType = (ManifoldClass?)0,
 				TrimSize = null, 
 				FlowMeter = "Default FlowMeter",
 				FlowMeterSize = null, 
 				FlowMeterPressureRating = null, 
 				JunkBasket = null, 
-				ChokeCount = "Default ChokeCount",
-				FlowMeterCount = "Default FlowMeterCount",
-				PressureSensorVotingNumber = "Default PressureSensorVotingNumber",
-				ChokeNumber = (ChokeNumber)0,
-				ChokeFunction = (ChokeFunction)0,
+				ChokeCount = null, 
+				FlowMeterCount = null, 
+				PressureSensorVotingNumber = null, 
+				ChokeNumber = (ChokeNumber?)0,
+				ChokeFunction = (ChokeFunction?)0,
 				ChokeCvCurves = new List<ChokeCvCurvePoint>
 					{
 						ConstructChokeCvCurvePoint(),
@@ -893,44 +1472,43 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				MaxLimitBackPressure = null, 
 				MinLimitFlowrate = null, 
 				MaxLimitFlowrate = null, 
-				PressureBeforeChoke = null, 
-				PressureAfterChoke = null, 
-				CvValue = null, 
-				CloggingOccuring = null, 
-				TemperatureBeforeChoke = null, 
-				TemperatureAfterChoke = null, 
-				FlowThroughChoke = null, 
-				MudDensityOut = null, 
-				MudDensityIn = null, 
-				ReliefValvePressure = null, 
-				PressureBeforeFlowMeter = null, 
-				PressureAfterFlowMeter = null, 
-				InletPressure = null, 
-				OutletPressure = null, 
-				VotingSensorsFailed = null, 
 			};
 		}
 		public static DrillingFluidTypeDescriptor ConstructDrillingFluidTypeDescriptor()
 		{
 			return new DrillingFluidTypeDescriptor
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
-				DrillingFluidClass = (DrillingFluidClass)0,
-				DrillingFluidType = (DrillingFluidType)0,
+				DrillingFluidClass = (DrillingFluidClass?)0,
+				DrillingFluidType = (DrillingFluidType?)0,
 			};
 		}
 		public static DrillingMarineRiser ConstructDrillingMarineRiser()
 		{
 			return new DrillingMarineRiser
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				RiserClass = (RiserClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				RiserClass = (RiserClass?)0,
 				JointWeight = null, 
 				RiserInsideDiameter = null, 
 				RiserOuterDiameter = null, 
@@ -951,15 +1529,27 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new DrillstringHeaveCompensator
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				HeaveCompClass = (HeaveCompensatorClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				HeaveCompClass = (HeaveCompensatorClass?)0,
 				CompensatorCapacity = null, 
-				CompensatorStatus = (CompensatorStatus)0,
 				MaxLimitCompensatorStroke = null, 
 			};
 		}
@@ -967,26 +1557,52 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new DriveMode
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				DriveModeClass = (DriveModeClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				DriveModeClass = (DriveModeClass?)0,
 			};
 		}
 		public static FloatValve ConstructFloatValve()
 		{
 			return new FloatValve
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				FloatValveClass = (FloatValveClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				FloatValveClass = (FloatValveClass?)0,
 				Diameter = null, 
 				Length = null, 
 				MaxLimitDesignPressure = null, 
@@ -997,18 +1613,31 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new FlowRoutingManifold
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				ManifoldType = (ManifoldClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				ManifoldType = (ManifoldClass?)0,
 				FlangeSize = null, 
 				ReliefLineDiameter = null, 
 				EqualizationLineDiameter = null, 
 				PressureReliefValveTrim = null, 
-				ManifoldFlowPath = (ManifoldFlowPath)0,
+				ManifoldFlowPath = (ManifoldFlowPath?)0,
 				ManifoldFlowcurves = new List<RoutingManifoldCurvePoint>
 					{
 						ConstructRoutingManifoldCurvePoint(),
@@ -1018,53 +1647,71 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				MaxLimitOperatingTemperature = null, 
 				MinLimitOperatingTemperature = null, 
 				MaxLimitFlowrate = null, 
-				InletPressure = null, 
-				OutletPressure = null, 
-				ReliefValvePressure = null, 
-				CloggingOccuring = null, 
-				TemperatureInlet = null, 
-				TemperatureOutlet = null, 
 			};
 		}
 		public static FlowSensor ConstructFlowSensor()
 		{
 			return new FlowSensor
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				FlowTransducer = (FlowSensorType)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				FlowTransducer = (FlowSensorType?)0,
 				FlowOutOfBorehole = null, 
-				MudFlowrateOut = null, 
-				MudFlowrateIn = null, 
 			};
 		}
 		public static Generator ConstructGenerator()
 		{
 			return new Generator
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				GeneratorClass = (GeneratorClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				GeneratorClass = (GeneratorClass?)0,
 				Speed = null, 
 				Power = null, 
 				Voltage = null, 
 				PowerFactor = null, 
-				SpeedMode = (SpeedMode)0,
-				EngineModel = (EngineModelType)0,
+				SpeedMode = (SpeedMode?)0,
+				EngineModel = (EngineModelType?)0,
 				PowerplantGeneratorNumber = null, 
 				PowerplantTotalPower = null, 
 				StartupTimeCold = null, 
 				StartupTimeWarm = null, 
-				CoolingMedium = (GeneratorCooling)0,
-				Phases = (GeneratorPhases)0,
+				CoolingMedium = (GeneratorCooling?)0,
+				Phases = (GeneratorPhases?)0,
 				MaxLimitPower = null, 
 				MaxLimitPowerIncrease = null, 
 				MaxLimitSpeedIncrease = null, 
@@ -1073,26 +1720,16 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				MinLimitVoltage = null, 
 				MaxLimitFrequency = null, 
 				MinLimitFrequency = null, 
-				EnginePower = null, 
-				GeneratorPower = null, 
-				EngineFuelConsumption = null, 
-				EngineSpecificFuelConsumption = null, 
-				RunningHours = null, 
-				EngineSpeed = null, 
-				GeneratorVoltage = null, 
-				GridVoltage = null, 
-				GridFrequency = null, 
-				GeneratorFrequency = null, 
-				EngineTemperature = null, 
 			};
 		}
 		public static HoistingSystem ConstructHoistingSystem()
 		{
 			return new HoistingSystem
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
-				HoistingSystemType = (HoistingSystemType)0,
+				HoistingSystemType = (HoistingSystemType?)0,
 				Drawworks = ConstructDrawworks(),
 				CrownBlock = ConstructCrownBlock(),
 				TravellingBlock = ConstructTravellingBlock(),
@@ -1103,6 +1740,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new IronRoughneck
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -1111,39 +1749,62 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new Kelly
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				KellyClass = (KellyClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				KellyClass = (KellyClass?)0,
 				KellyJointLength = null, 
 				MaxLimitDesignRotationSpeed = null, 
 				MaxLimitDesignTorque = null, 
 				MaxLimitIbopPressure = null, 
 				MaxLimitRotationSpeed = null, 
 				MaxLimitTorque = null, 
-				SurfaceRotation = null, 
-				SurfaceTorque = null, 
-				KellyHeight = null, 
 			};
 		}
 		public static MarineMpdEquipment ConstructMarineMpdEquipment()
 		{
 			return new MarineMpdEquipment
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				MarineMpdClass = (MarineMpdClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				MarineMpdClass = (MarineMpdClass?)0,
 				Length = null, 
 				Weight = null, 
 				ThroughBoreDiameter = null, 
-				ControlMeans = (ControllerType)0,
+				ControlMeans = (ControllerType?)0,
 				ContainsFlowSpool = null, 
 				ContainsNonRotatingDevice = null, 
 				ContainsDrillstringIsolation = null, 
@@ -1156,37 +1817,52 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new MeasurementAfm
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				UpdateRate = null, 
-				Active = null, 
-				AfmMudDensity = null, 
-				AfmMudTemperature = null, 
-				AfmPv = null, 
-				AfmYp = null, 
-				AfmRheometerMeasurements = new List<RheometerAfmMeasurement>
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
 					{
-						ConstructRheometerAfmMeasurement(),
+						"",
 					},
-				RtViscConsistencyIndex = null, 
-				RtViscFlowBehaviorIndex = null, 
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				UpdateRate = null, 
 			};
 		}
 		public static MpdControlDevice ConstructMpdControlDevice()
 		{
 			return new MpdControlDevice
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				MpdControlDeviceClass = (MpdControlDeviceClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				MpdControlDeviceClass = (MpdControlDeviceClass?)0,
 				NominalSize = null, 
 				ThroughBoreDiameter = null, 
 				SealingElementMaterial = "Default SealingElementMaterial",
@@ -1201,28 +1877,37 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new MpdController
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				MpdGradientMode = (MpdGradientMode)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				MpdGradientMode = (MpdGradientMode?)0,
 				PrimaryChokeTrim = null, 
 				SecondaryChokeTrim = null, 
 				MaxLimitPressure = null, 
 				MinLimitMudPumpFlowrate = null, 
-				ManipulatedMpdChoke = null, 
-				ManipulatedLiftPumpRate = null, 
-				ControlledDownholePressure = null, 
-				BackpressureFlowrate = null, 
-				AnnulusRefillFlowrate = null, 
 			};
 		}
 		public static MudGasSeparator ConstructMudGasSeparator()
 		{
 			return new MudGasSeparator
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -1231,42 +1916,66 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new MudPump
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
 				Type = (MudPumpType)0,
-				PumpClass = (PumpClass)0,
+				PumpClass = (PumpClass?)0,
 				PumpAction = null, 
 				PumpEfficiency = null, 
-				PumpDisplacement = null, 
-				LinerId = null, 
 				Stroke = null, 
+				LinerConfigurations = new List<MudPumpLinerConfiguration>
+					{
+						ConstructMudPumpLinerConfiguration(),
+					},
 				PulsationDamperPressure = null, 
 				PulsationDamperVolume = null, 
 				MaxLimitDesignPressure = null, 
-				MaxLimitOperatingPressure = null, 
 				MaxLimitOperatingPower = null, 
-				MaxLimitOperatingFlowRate = null, 
 				MaxLimitOperatingSpeed = null, 
-				MudPumpStrokeRate = null, 
-				MudPumpFlowRate = null, 
 			};
 		}
 		public static MudTank ConstructMudTank()
 		{
 			return new MudTank
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				TankClass = (TankClass)0,
-				TankFluidType = (TankFluidType)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				TankClass = (TankClass?)0,
+				TankFluidType = (TankFluidType?)0,
 				MaxLimitOperatingVolume = null, 
 			};
 		}
@@ -1274,30 +1983,42 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new MultiPhaseSeparator
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				SeparatorClass = (SeparatorPhaseClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				SeparatorClass = (SeparatorPhaseClass?)0,
 				MaximumOperatingPressure = null, 
 				MaximumOperatingFlowrate = null, 
 				SeparationEfficiency = null, 
-				SeparatorMedium = (SeparatorMedium)0,
+				SeparatorMedium = (SeparatorMedium?)0,
 				MaxLimitDesignPressure = null, 
 				MaxLimitOperatingPressure = null, 
 				MaxLimitFlowrate = null, 
 				MaxLimitOperatingTemperature = null, 
 				MinLimitOperatingTemperature = null, 
-				PressureSeparator = null, 
-				TemperatureSeparator = null, 
 			};
 		}
 		public static PipeDeck ConstructPipeDeck()
 		{
 			return new PipeDeck
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -1306,6 +2027,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new PipeRack
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -1314,6 +2036,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new ReturnFlowLine
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -1335,6 +2058,22 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				Description = "Default Description",
 				CreationDate = DateTimeOffset.UtcNow,
 				LastModificationDate = DateTimeOffset.UtcNow,
+				Identification = ConstructRigIdentification(),
+				RigType = (RigType?)0,
+				OperatingEnvironment = (RigEnvironment?)0,
+				MobilityType = (RigMobilityType?)0,
+				OperatingEnvelope = ConstructRigOperatingEnvelope(),
+				MarineUnitProfile = ConstructMarineUnitProfile(),
+				JackUpProfile = ConstructJackUpProfile(),
+				StationKeepingSystem = ConstructStationKeepingSystem(),
+				StorageCapacities = new List<RigStorageCapacity>
+					{
+						ConstructRigStorageCapacity(),
+					},
+				FeatureAssignments = new List<RigFeatureAssignment>
+					{
+						ConstructRigFeatureAssignment(),
+					},
 				MudPumpList = new List<MudPump>
 					{
 						ConstructMudPump(),
@@ -1414,6 +2153,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new RigChoke
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -1422,6 +2162,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new RigMast
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				HoistingSystem = ConstructHoistingSystem(),
@@ -1452,15 +2193,27 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new RiserHeaveCompensator
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				RiserCompensatorClass = (RiserCompensatorClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				RiserCompensatorClass = (RiserCompensatorClass?)0,
 				CompensatorCapacity = null, 
-				CompensatorStatus = (CompensatorStatus)0,
 				MaxLimitCompensatorStroke = null, 
 			};
 		}
@@ -1468,6 +2221,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new RotaryHose
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -1476,15 +2230,28 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new RotaryTable
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				RotaryTableType = (RotaryTableType)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				RotaryTableType = (RotaryTableType?)0,
 				TableOpeningDiameter = null, 
-				BushingType = (RotaryTableBushingType)0,
+				BushingType = (RotaryTableBushingType?)0,
 				BushingSize = null, 
 				Height = null, 
 				Mass = null, 
@@ -1518,14 +2285,26 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new ShaleShaker
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				ShakerClass = (ShakerClass)0,
-				ActiveShakers = "Default ActiveShakers",
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				ShakerClass = (ShakerClass?)0,
 				ShakerScreens = new List<ShakerScreenDefinition>
 					{
 						ConstructShakerScreenDefinition(),
@@ -1537,6 +2316,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new Slips
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 			};
@@ -1545,6 +2325,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new StandPipe
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				PressureMeasurementElevation = null, 
@@ -1555,14 +2336,27 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new StandPipeManifold
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
 				PipeDiameter = null, 
-				StandpipeSpecLevel = (StandpipeSpecLevel)0,
+				StandpipeSpecLevel = (StandpipeSpecLevel?)0,
 				MaxLimitDesignPressure = null, 
 				MaxLimitOperatingPressure = null, 
 				MaxLimitOperatingTemperature = null, 
@@ -1573,13 +2367,26 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new SurfaceMpdEquipment
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				SurfaceMpdClass = (SurfaceMpdClass)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				SurfaceMpdClass = (SurfaceMpdClass?)0,
 				MinimumBoreholeSize = null, 
 				MaximumBoreholeSize = null, 
 				PressureAccuracy = null, 
@@ -1590,25 +2397,33 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				MaxLimitMudWeight = null, 
 				MaxLimitPressure = null, 
 				MinLimitMudPumpFlowrate = null, 
-				StrokeRate = null, 
-				FlowRate = null, 
-				PressureAtDischarge = null, 
-				Power = null, 
-				PressureAtInlet = null, 
 			};
 		}
 		public static TopDrive ConstructTopDrive()
 		{
 			return new TopDrive
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
-				TopDriveClass = (TopDriveClass)0,
-				TopDriveControllerType = (TopDriveControllerType)0,
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
+				TopDriveClass = (TopDriveClass?)0,
+				TopDriveControllerType = (TopDriveControllerType?)0,
 				Orientable = null, 
 				Weight = null, 
 				MaxLimitIbopPressure = null, 
@@ -1619,7 +2434,14 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				MaxLimitOperatingTorque = null, 
 				MaxLimitMakeupTorque = null, 
 				MaxLimitBreakoutTorque = null, 
-				TopDriveHeight = null, 
+				RatedPower = null, 
+				RatedHoistingCapacity = null, 
+				RatedContinuousTorque = null, 
+				RatedIntermittentTorque = null, 
+				MotorCount = null, 
+				MotorType = "Default MotorType",
+				IbopConfiguration = "Default IbopConfiguration",
+				AutomationSystemCompatibility = "Default AutomationSystemCompatibility",
 				ProportionalGain = null, 
 				IntegralGain = null, 
 				TuningFrequency = null, 
@@ -1636,12 +2458,25 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new TorqueTurnSub
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
 				Length = null, 
 				OutsideDiameter = null, 
 				InsideDiameter = null, 
@@ -1655,35 +2490,37 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				MaxLimitPressure = null, 
 				MaxLimitTemperature = null, 
 				MinLimitTemperature = null, 
-				SurfaceTorque = null, 
-				Hookload = null, 
-				SurfaceTurnCount = null, 
-				SurfaceAcceleration = null, 
-				SurfaceRotationRate = null, 
-				SurfaceBorePressure = null, 
-				SurfaceAxialVibration = null, 
-				SurfaceTorsionalVibration = null, 
-				SurfaceLateralVibration = null, 
 			};
 		}
 		public static TravellingBlock ConstructTravellingBlock()
 		{
 			return new TravellingBlock
 			{
+				ID = null, 
 				Name = "Default Name",
 				Description = "Default Description",
 				Manufacturer = "Default Manufacturer",
 				Model = "Default Model",
 				ProductCode = "Default ProductCode",
 				SerialNumber = "Default SerialNumber",
+				AssetTag = "Default AssetTag",
+				InstallationDate = DateTimeOffset.UtcNow,
+				CommissioningDate = DateTimeOffset.UtcNow,
+				LifecycleStatus = (EquipmentLifecycleStatus?)0,
+				CertificationReferences = new List<string>
+					{
+						"",
+					},
+				MeasurementCapabilities = new List<EquipmentMeasurementCapability>
+					{
+						ConstructEquipmentMeasurementCapability(),
+					},
 				Weight = null, 
 				NumberOfSheaves = null, 
 				GrooveDiameter = null, 
 				MaxLimitBlockTravel = null, 
 				MaxLimitDesignLoad = null, 
 				MaxLimitOperatingLoad = null, 
-				HookVelocity = null, 
-				HookPosition = null, 
 			};
 		}
 		public static UsageStatisticsRig ConstructUsageStatisticsRig()
@@ -1700,6 +2537,507 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				PostRigPerDay = ConstructHistory(),
 				PutRigByIdPerDay = ConstructHistory(),
 				DeleteRigByIdPerDay = ConstructHistory(),
+				BatchExportRigsPerDay = ConstructHistory(),
+				BatchRestoreRigsPerDay = ConstructHistory(),
+			};
+		}
+		public static VerticalDatum ConstructVerticalDatum()
+		{
+			return new VerticalDatum
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				DatumSet = new List<VerticalDatumSet>
+					{
+						ConstructVerticalDatumSet(),
+					},
+				ConversionFrom = (VerticalDatumConversion)0,
+				Type = (VerticalDatumType)0,
+			};
+		}
+		public static VerticalDatumOrder ConstructVerticalDatumOrder()
+		{
+			return new VerticalDatumOrder
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				VerticalDatum = ConstructVerticalDatum(),
+			};
+		}
+		public static VerticalDatumSet ConstructVerticalDatumSet()
+		{
+			return new VerticalDatumSet
+			{
+				Latitude = 0.0, 
+				Longitude = 0.0, 
+				VerticalDatumWGS64 = null, 
+				GenericVerticalDatum = 0.0, 
+			};
+		}
+		public static UsageStatisticsWell ConstructUsageStatisticsWell()
+		{
+			return new UsageStatisticsWell
+			{
+				LastSaved = DateTimeOffset.UtcNow,
+				BackUpInterval = "Default BackUpInterval",
+				GetAllWellIdPerDay = ConstructHistory(),
+				GetAllWellMetaInfoPerDay = ConstructHistory(),
+				GetWellByIdPerDay = ConstructHistory(),
+				GetAllWellPerDay = ConstructHistory(),
+				GetAllWellBySlotIdPerDay = ConstructHistory(),
+				GetAllWellByClusterIdPerDay = ConstructHistory(),
+				PostWellPerDay = ConstructHistory(),
+				PutWellByIdPerDay = ConstructHistory(),
+				DeleteWellByIdPerDay = ConstructHistory(),
+			};
+		}
+		public static Well ConstructWell()
+		{
+			return new Well
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				SlotID = null, 
+				ClusterID = null, 
+				IsSingleWell = false, 
+				WellIdentityAssignments = new List<WellIdentityAssignment>
+					{
+						ConstructWellIdentityAssignment(),
+					},
+				WellFeatureAssignments = new List<WellFeatureAssignment>
+					{
+						ConstructWellFeatureAssignment(),
+					},
+			};
+		}
+		public static UsageStatisticsWellBore ConstructUsageStatisticsWellBore()
+		{
+			return new UsageStatisticsWellBore
+			{
+				LastSaved = DateTimeOffset.UtcNow,
+				BackUpInterval = "Default BackUpInterval",
+				GetAllWellBoreIdPerDay = ConstructHistory(),
+				GetAllWellBoreMetaInfoPerDay = ConstructHistory(),
+				GetWellBoreByIdPerDay = ConstructHistory(),
+				GetAllWellBorePerDay = ConstructHistory(),
+				GetAllWellBoreByWellIDPerDay = ConstructHistory(),
+				GetAllWellBoreByRigIDPerDay = ConstructHistory(),
+				GetAllWellBoreByParentIDPerDay = ConstructHistory(),
+				GetAllSidetrackedWellBorePerDay = ConstructHistory(),
+				PostWellBorePerDay = ConstructHistory(),
+				PutWellBoreByIdPerDay = ConstructHistory(),
+				DeleteWellBoreByIdPerDay = ConstructHistory(),
+			};
+		}
+		public static WellBore ConstructWellBore()
+		{
+			return new WellBore
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				WellID = null, 
+				RigID = null, 
+				IsSidetrack = false, 
+				ParentWellBoreID = null, 
+				TieInPointAlongHoleDepth = ConstructGaussianDrillingProperty(),
+				SidetrackType = (SidetrackType)0,
+			};
+		}
+		public static BoreHoleSize ConstructBoreHoleSize()
+		{
+			return new BoreHoleSize
+			{
+				HoleSize = ConstructGaussianDrillingProperty(),
+				Length = ConstructGaussianDrillingProperty(),
+			};
+		}
+		public static CasingSection ConstructCasingSection()
+		{
+			return new CasingSection
+			{
+				TopDepth = ConstructGaussianDrillingProperty(),
+				Length = ConstructGaussianDrillingProperty(),
+				TopCementDepth = ConstructGaussianDrillingProperty(),
+				CasingSectionElements = new List<CasingSectionElement>
+					{
+						ConstructCasingSectionElement(),
+					},
+				CasingSectionSizeTable = new List<BoreHoleSize>
+					{
+						ConstructBoreHoleSize(),
+					},
+				OpenHoleSection = ConstructOpenHoleSection(),
+			};
+		}
+		public static CasingSectionElement ConstructCasingSectionElement()
+		{
+			return new CasingSectionElement
+			{
+				BodyOD = ConstructGaussianDrillingProperty(),
+				BodyID = ConstructGaussianDrillingProperty(),
+				CollarOD = ConstructGaussianDrillingProperty(),
+				JointLength = ConstructGaussianDrillingProperty(),
+				SectionLength = ConstructGaussianDrillingProperty(),
+				MaxDLS = ConstructScalarDrillingProperty(),
+				ConnectionType = "Default ConnectionType",
+				Grade = "Default Grade",
+				MaterialDensity = ConstructGaussianDrillingProperty(),
+				YoungModulus = ConstructGaussianDrillingProperty(),
+				LinearWeight = ConstructGaussianDrillingProperty(),
+				TensileStrength = ConstructGaussianDrillingProperty(),
+				TorsionalStrength = ConstructGaussianDrillingProperty(),
+				BurstPressure = ConstructGaussianDrillingProperty(),
+				CollapsePressure = ConstructGaussianDrillingProperty(),
+				YieldStress = ConstructGaussianDrillingProperty(),
+				MakeUpTorqueRecommended = ConstructScalarDrillingProperty(),
+			};
+		}
+		public static ElementConnectivity ConstructElementConnectivity()
+		{
+			return new ElementConnectivity
+			{
+				UpstreamElement = ConstructSideElement(),
+				DownstreamElement = ConstructSideElement(),
+			};
+		}
+		public static OpenHoleSection ConstructOpenHoleSection()
+		{
+			return new OpenHoleSection
+			{
+				HoleSizes = new List<BoreHoleSize>
+					{
+						ConstructBoreHoleSize(),
+					},
+			};
+		}
+		public static SideConnector ConstructSideConnector()
+		{
+			return new SideConnector
+			{
+				Position = ConstructGaussianDrillingProperty(),
+				VerticalDepth = ConstructGaussianDrillingProperty(),
+				FirstSideElement = ConstructSideElement(),
+				ElementConnectivities = new List<ElementConnectivity>
+					{
+						ConstructElementConnectivity(),
+					},
+			};
+		}
+		public static SideElement ConstructSideElement()
+		{
+			return new SideElement
+			{
+				Name = "Default Name",
+				Type = (SideElementType)0,
+				Length = ConstructGaussianDrillingProperty(),
+				TopVerticalDepth = ConstructGaussianDrillingProperty(),
+				OD = ConstructGaussianDrillingProperty(),
+				ID = ConstructGaussianDrillingProperty(),
+			};
+		}
+		public static SurfaceSection ConstructSurfaceSection()
+		{
+			return new SurfaceSection
+			{
+				Type = (SurfaceSectionType)0,
+				SectionLength = ConstructGaussianDrillingProperty(),
+				BodyOD = ConstructGaussianDrillingProperty(),
+				BodyID = ConstructGaussianDrillingProperty(),
+				ConnectionType = "Default ConnectionType",
+				Grade = "Default Grade",
+				MaterialDensity = ConstructGaussianDrillingProperty(),
+				YoungModulus = ConstructGaussianDrillingProperty(),
+				LinearWeight = ConstructGaussianDrillingProperty(),
+				TensileStrength = ConstructGaussianDrillingProperty(),
+				BurstPressure = ConstructGaussianDrillingProperty(),
+				CollapsePressure = ConstructGaussianDrillingProperty(),
+				YieldStress = ConstructGaussianDrillingProperty(),
+				MakeUpTorqueRecommended = ConstructScalarDrillingProperty(),
+				SideConnectors = new List<SideConnector>
+					{
+						ConstructSideConnector(),
+					},
+			};
+		}
+		public static UsageStatisticsWellBoreArchitecture ConstructUsageStatisticsWellBoreArchitecture()
+		{
+			return new UsageStatisticsWellBoreArchitecture
+			{
+				LastSaved = DateTimeOffset.UtcNow,
+				BackUpInterval = "Default BackUpInterval",
+				GetAllWellBoreArchitectureIdPerDay = ConstructHistory(),
+				GetAllWellBoreArchitectureMetaInfoPerDay = ConstructHistory(),
+				GetWellBoreArchitectureByIdPerDay = ConstructHistory(),
+				GetAllWellBoreArchitectureLightPerDay = ConstructHistory(),
+				GetAllWellBoreArchitecturePerDay = ConstructHistory(),
+				PostWellBoreArchitecturePerDay = ConstructHistory(),
+				PutWellBoreArchitectureByIdPerDay = ConstructHistory(),
+				DeleteWellBoreArchitectureByIdPerDay = ConstructHistory(),
+			};
+		}
+		public static WellBoreArchitecture ConstructWellBoreArchitecture()
+		{
+			return new WellBoreArchitecture
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				WellBoreID = null, 
+				WellHead = ConstructWellHead(),
+				FluidsAboveGroundLevel = new List<WellBoreArchitectureFluid>
+					{
+						ConstructWellBoreArchitectureFluid(),
+					},
+				SurfaceSections = new List<SurfaceSection>
+					{
+						ConstructSurfaceSection(),
+					},
+				CasingSections = new List<CasingSection>
+					{
+						ConstructCasingSection(),
+					},
+			};
+		}
+		public static WellBoreArchitectureBatchCatalogDependencies ConstructWellBoreArchitectureBatchCatalogDependencies()
+		{
+			return new WellBoreArchitectureBatchCatalogDependencies
+			{
+				Identities = new List<WellBoreArchitectureIdentity>
+					{
+						ConstructWellBoreArchitectureIdentity(),
+					},
+				FeatureCategories = new List<WellBoreArchitectureFeatureCategory>
+					{
+						ConstructWellBoreArchitectureFeatureCategory(),
+					},
+			};
+		}
+		public static WellBoreArchitectureBatchCatalogMapping ConstructWellBoreArchitectureBatchCatalogMapping()
+		{
+			return new WellBoreArchitectureBatchCatalogMapping
+			{
+				Catalog = "Default Catalog",
+				Name = "Default Name",
+				SourceID = new Guid(),
+				LocalID = new Guid(),
+				Resolution = "Default Resolution",
+			};
+		}
+		public static WellBoreArchitectureBatchError ConstructWellBoreArchitectureBatchError()
+		{
+			return new WellBoreArchitectureBatchError
+			{
+				PositionIndex = null, 
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static WellBoreArchitectureBatchErrorEnvelope ConstructWellBoreArchitectureBatchErrorEnvelope()
+		{
+			return new WellBoreArchitectureBatchErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<WellBoreArchitectureBatchError>
+					{
+						ConstructWellBoreArchitectureBatchError(),
+					},
+			};
+		}
+		public static WellBoreArchitectureBatchExportDocument ConstructWellBoreArchitectureBatchExportDocument()
+		{
+			return new WellBoreArchitectureBatchExportDocument
+			{
+				FormatIdentifier = "Default FormatIdentifier",
+				SchemaVersion = 0, 
+				ExportedAtUtc = DateTimeOffset.UtcNow,
+				CatalogDependencies = ConstructWellBoreArchitectureBatchCatalogDependencies(),
+				WellBoreArchitectures = new List<WellBoreArchitecture>
+					{
+						ConstructWellBoreArchitecture(),
+					},
+			};
+		}
+		public static WellBoreArchitectureBatchExportRequest ConstructWellBoreArchitectureBatchExportRequest()
+		{
+			return new WellBoreArchitectureBatchExportRequest
+			{
+				Scope = (WellBoreArchitectureBatchExportScope)0,
+				WellBoreArchitectureIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellBoreArchitectureBatchRestoreRequest ConstructWellBoreArchitectureBatchRestoreRequest()
+		{
+			return new WellBoreArchitectureBatchRestoreRequest
+			{
+				ConflictPolicy = (WellBoreArchitectureBatchRestoreConflictPolicy)0,
+				CatalogPolicy = (WellBoreArchitectureBatchCatalogRestorePolicy)0,
+				AllowNormalizedNameMapping = false, 
+				Document = ConstructWellBoreArchitectureBatchExportDocument(),
+			};
+		}
+		public static WellBoreArchitectureBatchRestoreResponse ConstructWellBoreArchitectureBatchRestoreResponse()
+		{
+			return new WellBoreArchitectureBatchRestoreResponse
+			{
+				RestoredAtUtc = DateTimeOffset.UtcNow,
+				CreatedCount = 0, 
+				ReplacedCount = 0, 
+				CreatedCatalogDefinitionCount = 0, 
+				CreatedCatalogOptionCount = 0, 
+				CatalogMappings = new List<WellBoreArchitectureBatchCatalogMapping>
+					{
+						ConstructWellBoreArchitectureBatchCatalogMapping(),
+					},
+				WellBoreArchitectureIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellBoreArchitectureExternalReferenceAuditRequest ConstructWellBoreArchitectureExternalReferenceAuditRequest()
+		{
+			return new WellBoreArchitectureExternalReferenceAuditRequest
+			{
+				Scope = (WellBoreArchitectureExternalReferenceAuditScope)0,
+				WellBoreArchitectureIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				Offset = 0, 
+				Limit = 0, 
+			};
+		}
+		public static WellBoreArchitectureExternalReferenceAuditResult ConstructWellBoreArchitectureExternalReferenceAuditResult()
+		{
+			return new WellBoreArchitectureExternalReferenceAuditResult
+			{
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Total = 0, 
+				Offset = 0, 
+				Limit = 0, 
+				ValidCount = 0, 
+				InvalidCount = 0, 
+				UnavailableCount = 0, 
+				Items = new List<WellBoreArchitectureExternalReferenceValidation>
+					{
+						ConstructWellBoreArchitectureExternalReferenceValidation(),
+					},
+			};
+		}
+		public static WellBoreArchitectureExternalReferenceIssue ConstructWellBoreArchitectureExternalReferenceIssue()
+		{
+			return new WellBoreArchitectureExternalReferenceIssue
+			{
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static WellBoreArchitectureExternalReferenceValidation ConstructWellBoreArchitectureExternalReferenceValidation()
+		{
+			return new WellBoreArchitectureExternalReferenceValidation
+			{
+				WellBoreArchitectureID = new Guid(),
+				WellBoreID = null, 
+				WellBoreExists = null, 
+				Status = (WellBoreArchitectureExternalReferenceValidationStatus)0,
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Issues = new List<WellBoreArchitectureExternalReferenceIssue>
+					{
+						ConstructWellBoreArchitectureExternalReferenceIssue(),
+					},
+			};
+		}
+		public static WellBoreArchitectureFeatureAssignment ConstructWellBoreArchitectureFeatureAssignment()
+		{
+			return new WellBoreArchitectureFeatureAssignment
+			{
+				ID = new Guid(),
+				FeatureCategoryID = null, 
+				FeatureOptionID = null, 
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellBoreArchitectureFeatureCategory ConstructWellBoreArchitectureFeatureCategory()
+		{
+			return new WellBoreArchitectureFeatureCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				IsExclusive = false, 
+				HasValidityPeriod = false, 
+				Options = new List<WellBoreArchitectureFeatureOption>
+					{
+						ConstructWellBoreArchitectureFeatureOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellBoreArchitectureFeatureOption ConstructWellBoreArchitectureFeatureOption()
+		{
+			return new WellBoreArchitectureFeatureOption
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static WellBoreArchitectureFluid ConstructWellBoreArchitectureFluid()
+		{
+			return new WellBoreArchitectureFluid
+			{
+				Fluid = (FluidType)0,
+				Depth = ConstructGaussianDrillingProperty(),
+			};
+		}
+		public static WellBoreArchitectureIdentity ConstructWellBoreArchitectureIdentity()
+		{
+			return new WellBoreArchitectureIdentity
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellBoreArchitectureIdentityAssignment ConstructWellBoreArchitectureIdentityAssignment()
+		{
+			return new WellBoreArchitectureIdentityAssignment
+			{
+				ID = new Guid(),
+				IdentityID = null, 
+				Value = "Default Value",
+			};
+		}
+		public static WellHead ConstructWellHead()
+		{
+			return new WellHead
+			{
+				MaxOD = ConstructScalarDrillingProperty(),
+				MinOD = ConstructScalarDrillingProperty(),
+				Depth = ConstructGaussianDrillingProperty(),
+				CasingHangerDepth = ConstructScalarDrillingProperty(),
+				TubingHangerDepth = ConstructScalarDrillingProperty(),
 			};
 		}
 		public static EarthMagneticData ConstructEarthMagneticData()
@@ -2069,8 +3407,14 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CalculationState = (CalculationState)0,
 				CalculationProgress = 0.0, 
 				CalculationMessage = "Default CalculationMessage",
-				SurveyRunIdentityAssignments = new List<TrajectoryIdentityAssignment>(),
-				SurveyRunFeatureAssignments = new List<TrajectoryFeatureAssignment>(),
+				SurveyRunIdentityAssignments = new List<TrajectoryIdentityAssignment>
+					{
+						ConstructTrajectoryIdentityAssignment(),
+					},
+				SurveyRunFeatureAssignments = new List<TrajectoryFeatureAssignment>
+					{
+						ConstructTrajectoryFeatureAssignment(),
+					},
 				TieInPoint = ConstructSurveyStation(),
 				SurveyMeasurementList = new List<SurveyMeasurement>
 					{
@@ -2299,8 +3643,14 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CalculationState = (CalculationState)0,
 				CalculationProgress = 0.0, 
 				CalculationMessage = "Default CalculationMessage",
-				TrajectoryIdentityAssignments = new List<TrajectoryIdentityAssignment>(),
-				TrajectoryFeatureAssignments = new List<TrajectoryFeatureAssignment>(),
+				TrajectoryIdentityAssignments = new List<TrajectoryIdentityAssignment>
+					{
+						ConstructTrajectoryIdentityAssignment(),
+					},
+				TrajectoryFeatureAssignments = new List<TrajectoryFeatureAssignment>
+					{
+						ConstructTrajectoryFeatureAssignment(),
+					},
 				SurveyRunSectionList = new List<TrajectorySurveyRunSection>
 					{
 						ConstructTrajectorySurveyRunSection(),
@@ -2540,7 +3890,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CalculationState = (CalculationState)0,
 				CalculationProgress = 0.0, 
 				CalculationMessage = "Default CalculationMessage",
-				RealizationList = new List<ICollection<SurveyPoint>>
+				RealizationList = new List<List<SurveyPoint>>
 					{
 						new List<SurveyPoint>
 						{
@@ -2559,7 +3909,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				SurveyPointCount = 0, 
 				StartMD = null, 
 				EndMD = null, 
-				RealizationList = new List<ICollection<SurveyPoint>>
+				RealizationList = new List<List<SurveyPoint>>
 					{
 						new List<SurveyPoint>
 						{
@@ -2672,98 +4022,266 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				Dim = 0, 
 			};
 		}
-		public static VerticalDatum ConstructVerticalDatum()
+		public static WellBoreBatchCatalogDependencies ConstructWellBoreBatchCatalogDependencies()
 		{
-			return new VerticalDatum
+			return new WellBoreBatchCatalogDependencies
 			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				DatumSet = new List<VerticalDatumSet>
+				Identities = new List<WellBoreIdentity>
 					{
-						ConstructVerticalDatumSet(),
+						ConstructWellBoreIdentity(),
 					},
-				ConversionFrom = (VerticalDatumConversion)0,
-				Type = (VerticalDatumType)0,
+				FeatureCategories = new List<WellBoreFeatureCategory>
+					{
+						ConstructWellBoreFeatureCategory(),
+					},
 			};
 		}
-		public static VerticalDatumOrder ConstructVerticalDatumOrder()
+		public static WellBoreBatchCatalogMapping ConstructWellBoreBatchCatalogMapping()
 		{
-			return new VerticalDatumOrder
+			return new WellBoreBatchCatalogMapping
+			{
+				Catalog = "Default Catalog",
+				Name = "Default Name",
+				SourceID = new Guid(),
+				LocalID = new Guid(),
+				Resolution = "Default Resolution",
+			};
+		}
+		public static WellBoreBatchError ConstructWellBoreBatchError()
+		{
+			return new WellBoreBatchError
+			{
+				PositionIndex = null, 
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static WellBoreBatchErrorEnvelope ConstructWellBoreBatchErrorEnvelope()
+		{
+			return new WellBoreBatchErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<WellBoreBatchError>
+					{
+						ConstructWellBoreBatchError(),
+					},
+			};
+		}
+		public static WellBoreBatchExportDocument ConstructWellBoreBatchExportDocument()
+		{
+			return new WellBoreBatchExportDocument
+			{
+				FormatIdentifier = "Default FormatIdentifier",
+				SchemaVersion = 0, 
+				ExportedAtUtc = DateTimeOffset.UtcNow,
+				CatalogDependencies = ConstructWellBoreBatchCatalogDependencies(),
+				WellBores = new List<WellBore>
+					{
+						ConstructWellBore(),
+					},
+			};
+		}
+		public static WellBoreBatchExportRequest ConstructWellBoreBatchExportRequest()
+		{
+			return new WellBoreBatchExportRequest
+			{
+				Scope = (WellBoreBatchExportScope)0,
+				WellBoreIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellBoreBatchRestoreRequest ConstructWellBoreBatchRestoreRequest()
+		{
+			return new WellBoreBatchRestoreRequest
+			{
+				ConflictPolicy = (WellBoreBatchRestoreConflictPolicy)0,
+				CatalogPolicy = (WellBoreBatchCatalogRestorePolicy)0,
+				Document = ConstructWellBoreBatchExportDocument(),
+			};
+		}
+		public static WellBoreBatchRestoreResponse ConstructWellBoreBatchRestoreResponse()
+		{
+			return new WellBoreBatchRestoreResponse
+			{
+				RestoredAtUtc = DateTimeOffset.UtcNow,
+				CreatedCount = 0, 
+				ReplacedCount = 0, 
+				CreatedCatalogDefinitionCount = 0, 
+				CreatedCatalogOptionCount = 0, 
+				CatalogMappings = new List<WellBoreBatchCatalogMapping>
+					{
+						ConstructWellBoreBatchCatalogMapping(),
+					},
+				WellBoreIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellBoreDetailsUpdate ConstructWellBoreDetailsUpdate()
+		{
+			return new WellBoreDetailsUpdate
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static WellBoreExternalReferenceAuditRequest ConstructWellBoreExternalReferenceAuditRequest()
+		{
+			return new WellBoreExternalReferenceAuditRequest
+			{
+				Scope = (WellBoreExternalReferenceAuditScope)0,
+				WellBoreIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				Offset = 0, 
+				Limit = 0, 
+			};
+		}
+		public static WellBoreExternalReferenceAuditResult ConstructWellBoreExternalReferenceAuditResult()
+		{
+			return new WellBoreExternalReferenceAuditResult
+			{
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Total = 0, 
+				Offset = 0, 
+				Limit = 0, 
+				ValidCount = 0, 
+				InvalidCount = 0, 
+				UnavailableCount = 0, 
+				Items = new List<WellBoreExternalReferenceValidation>
+					{
+						ConstructWellBoreExternalReferenceValidation(),
+					},
+			};
+		}
+		public static WellBoreExternalReferenceIssue ConstructWellBoreExternalReferenceIssue()
+		{
+			return new WellBoreExternalReferenceIssue
+			{
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static WellBoreExternalReferenceValidation ConstructWellBoreExternalReferenceValidation()
+		{
+			return new WellBoreExternalReferenceValidation
+			{
+				WellBoreID = new Guid(),
+				WellID = null, 
+				RigID = null, 
+				WellExists = null, 
+				RigExists = null, 
+				Status = (WellBoreExternalReferenceValidationStatus)0,
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Issues = new List<WellBoreExternalReferenceIssue>
+					{
+						ConstructWellBoreExternalReferenceIssue(),
+					},
+			};
+		}
+		public static WellBoreFeatureAssignment ConstructWellBoreFeatureAssignment()
+		{
+			return new WellBoreFeatureAssignment
+			{
+				ID = new Guid(),
+				FeatureCategoryID = null, 
+				FeatureOptionID = null, 
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellBoreFeatureCategory ConstructWellBoreFeatureCategory()
+		{
+			return new WellBoreFeatureCategory
 			{
 				MetaInfo = ConstructMetaInfo(),
 				Name = "Default Name",
-				Description = "Default Description",
+				IsExclusive = false, 
+				HasValidityPeriod = false, 
+				Options = new List<WellBoreFeatureOption>
+					{
+						ConstructWellBoreFeatureOption(),
+					},
 				CreationDate = DateTimeOffset.UtcNow,
 				LastModificationDate = DateTimeOffset.UtcNow,
-				VerticalDatum = ConstructVerticalDatum(),
 			};
 		}
-		public static VerticalDatumSet ConstructVerticalDatumSet()
+		public static WellBoreFeatureOption ConstructWellBoreFeatureOption()
 		{
-			return new VerticalDatumSet
+			return new WellBoreFeatureOption
 			{
-				Latitude = 0.0, 
-				Longitude = 0.0, 
-				VerticalDatumWGS64 = null, 
-				GenericVerticalDatum = 0.0, 
+				ID = new Guid(),
+				Name = "Default Name",
 			};
 		}
-		public static UsageStatisticsWell ConstructUsageStatisticsWell()
+		public static WellBoreIdentity ConstructWellBoreIdentity()
 		{
-			return new UsageStatisticsWell
-			{
-				LastSaved = DateTimeOffset.UtcNow,
-				BackUpInterval = "Default BackUpInterval",
-				GetAllWellIdPerDay = ConstructHistory(),
-				GetAllWellMetaInfoPerDay = ConstructHistory(),
-				GetWellByIdPerDay = ConstructHistory(),
-				GetAllWellPerDay = ConstructHistory(),
-				PostWellPerDay = ConstructHistory(),
-				PutWellByIdPerDay = ConstructHistory(),
-				DeleteWellByIdPerDay = ConstructHistory(),
-			};
-		}
-		public static Well ConstructWell()
-		{
-			return new Well
+			return new WellBoreIdentity
 			{
 				MetaInfo = ConstructMetaInfo(),
 				Name = "Default Name",
-				Description = "Default Description",
 				CreationDate = DateTimeOffset.UtcNow,
 				LastModificationDate = DateTimeOffset.UtcNow,
-				SlotID = null, 
-				ClusterID = null, 
-				IsSingleWell = false, 
 			};
 		}
-		public static UsageStatisticsWellBore ConstructUsageStatisticsWellBore()
+		public static WellBoreIdentityAssignment ConstructWellBoreIdentityAssignment()
 		{
-			return new UsageStatisticsWellBore
+			return new WellBoreIdentityAssignment
 			{
-				LastSaved = DateTimeOffset.UtcNow,
-				BackUpInterval = "Default BackUpInterval",
-				GetAllWellBoreIdPerDay = ConstructHistory(),
-				GetAllWellBoreMetaInfoPerDay = ConstructHistory(),
-				GetWellBoreByIdPerDay = ConstructHistory(),
-				GetAllWellBorePerDay = ConstructHistory(),
-				PostWellBorePerDay = ConstructHistory(),
-				PutWellBoreByIdPerDay = ConstructHistory(),
-				DeleteWellBoreByIdPerDay = ConstructHistory(),
+				ID = new Guid(),
+				IdentityID = null, 
+				Value = "Default Value",
 			};
 		}
-		public static WellBore ConstructWellBore()
+		public static WellBoreMutationError ConstructWellBoreMutationError()
 		{
-			return new WellBore
+			return new WellBoreMutationError
 			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+				ReferencingWellBoreIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellBoreMutationErrorEnvelope ConstructWellBoreMutationErrorEnvelope()
+		{
+			return new WellBoreMutationErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<WellBoreMutationError>
+					{
+						ConstructWellBoreMutationError(),
+					},
+			};
+		}
+		public static WellBoreSearchResult ConstructWellBoreSearchResult()
+		{
+			return new WellBoreSearchResult
+			{
+				Items = new List<WellBore>
+					{
+						ConstructWellBore(),
+					},
+				Total = 0, 
+				Offset = 0, 
+				Limit = 0, 
+			};
+		}
+		public static WellBoreTopologyUpdate ConstructWellBoreTopologyUpdate()
+		{
+			return new WellBoreTopologyUpdate
+			{
 				WellID = null, 
 				RigID = null, 
 				IsSidetrack = false, 
@@ -2772,164 +4290,2726 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				SidetrackType = (SidetrackType)0,
 			};
 		}
-		public static BoreHoleSize ConstructBoreHoleSize()
+		public static Point3DGlobalCoordinates ConstructPoint3DGlobalCoordinates()
 		{
-			return new BoreHoleSize
+			return new Point3DGlobalCoordinates
 			{
-				HoleSize = ConstructGaussianDrillingProperty(),
-				Length = ConstructGaussianDrillingProperty(),
+				X = null, 
+				Y = null, 
+				Z = null, 
+				RiemannianNorth = null, 
+				RiemannianEast = null, 
+				Latitude = null, 
+				Longitude = null, 
+				TVD = null, 
 			};
 		}
-		public static CasingSection ConstructCasingSection()
+		public static ClusterBatchCatalogDependencies ConstructClusterBatchCatalogDependencies()
 		{
-			return new CasingSection
+			return new ClusterBatchCatalogDependencies
 			{
-				TopDepth = ConstructGaussianDrillingProperty(),
-				Length = ConstructGaussianDrillingProperty(),
-				TopCementDepth = ConstructGaussianDrillingProperty(),
-				CasingSectionElements = new List<CasingSectionElement>
+				Identities = new List<ClusterIdentity>
 					{
-						ConstructCasingSectionElement(),
+						ConstructClusterIdentity(),
 					},
-				CasingSectionSizeTable = new List<BoreHoleSize>
+				ClusterFeatureCategories = new List<ClusterFeatureCategory>
 					{
-						ConstructBoreHoleSize(),
+						ConstructClusterFeatureCategory(),
 					},
-				OpenHoleSection = ConstructOpenHoleSection(),
-			};
-		}
-		public static CasingSectionElement ConstructCasingSectionElement()
-		{
-			return new CasingSectionElement
-			{
-				BodyOD = ConstructGaussianDrillingProperty(),
-				BodyID = ConstructGaussianDrillingProperty(),
-				CollarOD = ConstructGaussianDrillingProperty(),
-				JointLength = ConstructGaussianDrillingProperty(),
-				SectionLength = ConstructGaussianDrillingProperty(),
-				MaxDLS = ConstructScalarDrillingProperty(),
-				ConnectionType = "Default ConnectionType",
-				Grade = "Default Grade",
-				MaterialDensity = ConstructGaussianDrillingProperty(),
-				YoungModulus = ConstructGaussianDrillingProperty(),
-				LinearWeight = ConstructGaussianDrillingProperty(),
-				TensileStrength = ConstructGaussianDrillingProperty(),
-				TorsionalStrength = ConstructGaussianDrillingProperty(),
-				BurstPressure = ConstructGaussianDrillingProperty(),
-				CollapsePressure = ConstructGaussianDrillingProperty(),
-				YieldStress = ConstructGaussianDrillingProperty(),
-				MakeUpTorqueRecommended = ConstructScalarDrillingProperty(),
-			};
-		}
-		public static ElementConnectivity ConstructElementConnectivity()
-		{
-			return new ElementConnectivity
-			{
-				UpstreamElement = ConstructSideElement(),
-				DownstreamElement = ConstructSideElement(),
-			};
-		}
-		public static OpenHoleSection ConstructOpenHoleSection()
-		{
-			return new OpenHoleSection
-			{
-				HoleSizes = new List<BoreHoleSize>
+				SlotFeatureCategories = new List<SlotFeatureCategory>
 					{
-						ConstructBoreHoleSize(),
+						ConstructSlotFeatureCategory(),
 					},
 			};
 		}
-		public static SideConnector ConstructSideConnector()
+		public static ClusterBatchCatalogMapping ConstructClusterBatchCatalogMapping()
 		{
-			return new SideConnector
+			return new ClusterBatchCatalogMapping
 			{
-				Position = ConstructGaussianDrillingProperty(),
-				VerticalDepth = ConstructGaussianDrillingProperty(),
-				FirstSideElement = ConstructSideElement(),
-				ElementConnectivities = new List<ElementConnectivity>
+				Catalog = "Default Catalog",
+				Name = "Default Name",
+				SourceID = new Guid(),
+				LocalID = new Guid(),
+				Resolution = "Default Resolution",
+			};
+		}
+		public static ClusterBatchError ConstructClusterBatchError()
+		{
+			return new ClusterBatchError
+			{
+				PositionIndex = null, 
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static ClusterBatchErrorEnvelope ConstructClusterBatchErrorEnvelope()
+		{
+			return new ClusterBatchErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<ClusterBatchError>
 					{
-						ConstructElementConnectivity(),
+						ConstructClusterBatchError(),
 					},
 			};
 		}
-		public static SideElement ConstructSideElement()
+		public static ClusterBatchExportDocument ConstructClusterBatchExportDocument()
 		{
-			return new SideElement
+			return new ClusterBatchExportDocument
+			{
+				FormatIdentifier = "Default FormatIdentifier",
+				SchemaVersion = 0, 
+				ExportedAtUtc = DateTimeOffset.UtcNow,
+				CatalogDependencies = ConstructClusterBatchCatalogDependencies(),
+				ExternalReferences = ConstructClusterBatchExternalReferences(),
+				Clusters = new List<Cluster>
+					{
+						ConstructCluster(),
+					},
+			};
+		}
+		public static ClusterBatchExportRequest ConstructClusterBatchExportRequest()
+		{
+			return new ClusterBatchExportRequest
+			{
+				Scope = (ClusterBatchExportScope)0,
+				ClusterIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static ClusterBatchExternalReference ConstructClusterBatchExternalReference()
+		{
+			return new ClusterBatchExternalReference
+			{
+				SourceID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static ClusterBatchExternalReferenceMapping ConstructClusterBatchExternalReferenceMapping()
+		{
+			return new ClusterBatchExternalReferenceMapping
+			{
+				Resource = "Default Resource",
+				Name = "Default Name",
+				SourceID = new Guid(),
+				LocalID = new Guid(),
+				Resolution = "Default Resolution",
+			};
+		}
+		public static ClusterBatchExternalReferences ConstructClusterBatchExternalReferences()
+		{
+			return new ClusterBatchExternalReferences
+			{
+				Fields = new List<ClusterBatchExternalReference>
+					{
+						ConstructClusterBatchExternalReference(),
+					},
+				Rigs = new List<ClusterBatchExternalReference>
+					{
+						ConstructClusterBatchExternalReference(),
+					},
+			};
+		}
+		public static ClusterBatchRestoreRequest ConstructClusterBatchRestoreRequest()
+		{
+			return new ClusterBatchRestoreRequest
+			{
+				ConflictPolicy = (ClusterBatchRestoreConflictPolicy)0,
+				CatalogPolicy = (ClusterBatchCatalogRestorePolicy)0,
+				Document = ConstructClusterBatchExportDocument(),
+			};
+		}
+		public static ClusterBatchRestoreResponse ConstructClusterBatchRestoreResponse()
+		{
+			return new ClusterBatchRestoreResponse
+			{
+				RestoredAtUtc = DateTimeOffset.UtcNow,
+				CreatedCount = 0, 
+				ReplacedCount = 0, 
+				CreatedCatalogDefinitionCount = 0, 
+				CreatedCatalogOptionCount = 0, 
+				CatalogMappings = new List<ClusterBatchCatalogMapping>
+					{
+						ConstructClusterBatchCatalogMapping(),
+					},
+				ExternalReferenceMappings = new List<ClusterBatchExternalReferenceMapping>
+					{
+						ConstructClusterBatchExternalReferenceMapping(),
+					},
+				ClusterIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static ClusterFeatureAssignment ConstructClusterFeatureAssignment()
+		{
+			return new ClusterFeatureAssignment
+			{
+				ID = new Guid(),
+				FeatureCategoryID = null, 
+				FeatureOptionID = null, 
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static ClusterFeatureCategory ConstructClusterFeatureCategory()
+		{
+			return new ClusterFeatureCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				IsExclusive = false, 
+				HasValidityPeriod = false, 
+				Options = new List<ClusterFeatureOption>
+					{
+						ConstructClusterFeatureOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static ClusterFeatureOption ConstructClusterFeatureOption()
+		{
+			return new ClusterFeatureOption
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static ClusterIdentity ConstructClusterIdentity()
+		{
+			return new ClusterIdentity
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static ClusterIdentityAssignment ConstructClusterIdentityAssignment()
+		{
+			return new ClusterIdentityAssignment
+			{
+				ID = new Guid(),
+				IdentityID = null, 
+				Value = "Default Value",
+			};
+		}
+		public static SlotFeatureAssignment ConstructSlotFeatureAssignment()
+		{
+			return new SlotFeatureAssignment
+			{
+				ID = new Guid(),
+				FeatureCategoryID = null, 
+				FeatureOptionID = null, 
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static SlotFeatureCategory ConstructSlotFeatureCategory()
+		{
+			return new SlotFeatureCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				IsExclusive = false, 
+				HasValidityPeriod = false, 
+				Options = new List<SlotFeatureOption>
+					{
+						ConstructSlotFeatureOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static SlotFeatureOption ConstructSlotFeatureOption()
+		{
+			return new SlotFeatureOption
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static FieldBatchCatalogDependencies ConstructFieldBatchCatalogDependencies()
+		{
+			return new FieldBatchCatalogDependencies
+			{
+				FeatureCategories = new List<FieldFeatureCategory>
+					{
+						ConstructFieldFeatureCategory(),
+					},
+				MembershipCategories = new List<FieldMembershipCategory>
+					{
+						ConstructFieldMembershipCategory(),
+					},
+				Identities = new List<FieldIdentity>
+					{
+						ConstructFieldIdentity(),
+					},
+				DelineationLineTypes = new List<FieldDelineationLineType>
+					{
+						ConstructFieldDelineationLineType(),
+					},
+			};
+		}
+		public static FieldBatchCatalogMapping ConstructFieldBatchCatalogMapping()
+		{
+			return new FieldBatchCatalogMapping
+			{
+				Catalog = "Default Catalog",
+				Name = "Default Name",
+				SourceID = new Guid(),
+				LocalID = new Guid(),
+				Resolution = "Default Resolution",
+			};
+		}
+		public static FieldBatchError ConstructFieldBatchError()
+		{
+			return new FieldBatchError
+			{
+				PositionIndex = null, 
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static FieldBatchErrorEnvelope ConstructFieldBatchErrorEnvelope()
+		{
+			return new FieldBatchErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<FieldBatchError>
+					{
+						ConstructFieldBatchError(),
+					},
+			};
+		}
+		public static FieldBatchExportDocument ConstructFieldBatchExportDocument()
+		{
+			return new FieldBatchExportDocument
+			{
+				FormatIdentifier = "Default FormatIdentifier",
+				SchemaVersion = 0, 
+				ExportedAtUtc = DateTimeOffset.UtcNow,
+				CatalogDependencies = ConstructFieldBatchCatalogDependencies(),
+				Fields = new List<Field>
+					{
+						ConstructField(),
+					},
+			};
+		}
+		public static FieldBatchExportRequest ConstructFieldBatchExportRequest()
+		{
+			return new FieldBatchExportRequest
+			{
+				Scope = (FieldBatchExportScope)0,
+				FieldIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static FieldBatchRestoreRequest ConstructFieldBatchRestoreRequest()
+		{
+			return new FieldBatchRestoreRequest
+			{
+				ConflictPolicy = (FieldBatchRestoreConflictPolicy)0,
+				CatalogPolicy = (FieldBatchCatalogRestorePolicy)0,
+				Document = ConstructFieldBatchExportDocument(),
+			};
+		}
+		public static FieldBatchRestoreResponse ConstructFieldBatchRestoreResponse()
+		{
+			return new FieldBatchRestoreResponse
+			{
+				RestoredAtUtc = DateTimeOffset.UtcNow,
+				CreatedCount = 0, 
+				ReplacedCount = 0, 
+				CreatedCatalogDefinitionCount = 0, 
+				CreatedCatalogOptionCount = 0, 
+				CatalogMappings = new List<FieldBatchCatalogMapping>
+					{
+						ConstructFieldBatchCatalogMapping(),
+					},
+				FieldIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static FieldCatalogReference ConstructFieldCatalogReference()
+		{
+			return new FieldCatalogReference
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+				Authority = "Default Authority",
+				Code = "Default Code",
+			};
+		}
+		public static FieldConversionErrorEnvelope ConstructFieldConversionErrorEnvelope()
+		{
+			return new FieldConversionErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<FieldConversionValidationError>
+					{
+						ConstructFieldConversionValidationError(),
+					},
+			};
+		}
+		public static FieldConversionValidationError ConstructFieldConversionValidationError()
+		{
+			return new FieldConversionValidationError
+			{
+				PositionIndex = null, 
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static FieldConversionWarning ConstructFieldConversionWarning()
+		{
+			return new FieldConversionWarning
+			{
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static FieldCoordinateConversionPositionResult ConstructFieldCoordinateConversionPositionResult()
+		{
+			return new FieldCoordinateConversionPositionResult
+			{
+				PositionIndex = 0, 
+				ProjectionDatumGeographicCoordinate = ConstructFieldGeographicCoordinate(),
+				Wgs84GeographicCoordinate = ConstructFieldGeographicCoordinate(),
+				ProjectedCoordinate = ConstructFieldProjectedCoordinate(),
+				ProjectionDatumVerticalDepth = 0.0, 
+				Wgs84VerticalDepth = null, 
+				CoordinateEpochUtc = DateTimeOffset.UtcNow,
+				GridConvergence = null, 
+			};
+		}
+		public static FieldCoordinateConversionResponse ConstructFieldCoordinateConversionResponse()
+		{
+			return new FieldCoordinateConversionResponse
+			{
+				FieldID = new Guid(),
+				ProjectionDefinition = ConstructFieldCatalogReference(),
+				ProjectionDatum = ConstructFieldCatalogReference(),
+				Wgs84Datum = ConstructFieldCatalogReference(),
+				ApiAxisConvention = "Default ApiAxisConvention",
+				Positions = new List<FieldCoordinateConversionPositionResult>
+					{
+						ConstructFieldCoordinateConversionPositionResult(),
+					},
+				Warnings = new List<FieldConversionWarning>
+					{
+						ConstructFieldConversionWarning(),
+					},
+			};
+		}
+		public static FieldDelineationBoundaryLine ConstructFieldDelineationBoundaryLine()
+		{
+			return new FieldDelineationBoundaryLine
+			{
+				ID = new Guid(),
+				IsInteriorBoundary = false, 
+				IsClosed = false, 
+				Points = new List<Point3DGlobalCoordinates>
+					{
+						ConstructPoint3DGlobalCoordinates(),
+					},
+			};
+		}
+		public static FieldDelineationLine ConstructFieldDelineationLine()
+		{
+			return new FieldDelineationLine
+			{
+				ID = new Guid(),
+				DelineationLineTypeID = null, 
+				Name = "Default Name",
+				Description = "Default Description",
+				Margin = null, 
+				TopDepth = null, 
+				BottomDepth = null, 
+				Points = new List<Point3DGlobalCoordinates>
+					{
+						ConstructPoint3DGlobalCoordinates(),
+					},
+				CalculatedBoundaryLines = new List<FieldDelineationBoundaryLine>
+					{
+						ConstructFieldDelineationBoundaryLine(),
+					},
+			};
+		}
+		public static FieldDelineationLineType ConstructFieldDelineationLineType()
+		{
+			return new FieldDelineationLineType
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldFeatureAssignment ConstructFieldFeatureAssignment()
+		{
+			return new FieldFeatureAssignment
+			{
+				ID = new Guid(),
+				FeatureCategoryID = null, 
+				FeatureOptionID = null, 
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldFeatureCategory ConstructFieldFeatureCategory()
+		{
+			return new FieldFeatureCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				IsExclusive = false, 
+				HasValidityPeriod = false, 
+				Options = new List<FieldFeatureOption>
+					{
+						ConstructFieldFeatureOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldFeatureOption ConstructFieldFeatureOption()
+		{
+			return new FieldFeatureOption
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static FieldForwardConversionPosition ConstructFieldForwardConversionPosition()
+		{
+			return new FieldForwardConversionPosition
+			{
+				Latitude = 0.0, 
+				Longitude = 0.0, 
+				VerticalDepth = 0.0, 
+				CoordinateEpochUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldForwardConversionRequest ConstructFieldForwardConversionRequest()
+		{
+			return new FieldForwardConversionRequest
+			{
+				FieldID = new Guid(),
+				SourceGeographicReference = (FieldGeographicReference)0,
+				ProjectionApplicabilityPolicy = (FieldApplicabilityPolicy)0,
+				Transformation = ConstructFieldTransformationOptions(),
+				Positions = new List<FieldForwardConversionPosition>
+					{
+						ConstructFieldForwardConversionPosition(),
+					},
+			};
+		}
+		public static FieldGeographicCoordinate ConstructFieldGeographicCoordinate()
+		{
+			return new FieldGeographicCoordinate
+			{
+				Latitude = 0.0, 
+				Longitude = 0.0, 
+			};
+		}
+		public static FieldIdentity ConstructFieldIdentity()
+		{
+			return new FieldIdentity
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldIdentityAssignment ConstructFieldIdentityAssignment()
+		{
+			return new FieldIdentityAssignment
+			{
+				ID = new Guid(),
+				IdentityID = null, 
+				Value = "Default Value",
+			};
+		}
+		public static FieldInverseConversionPosition ConstructFieldInverseConversionPosition()
+		{
+			return new FieldInverseConversionPosition
+			{
+				Easting = 0.0, 
+				Northing = 0.0, 
+				VerticalDepth = 0.0, 
+				CoordinateEpochUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldInverseConversionRequest ConstructFieldInverseConversionRequest()
+		{
+			return new FieldInverseConversionRequest
+			{
+				FieldID = new Guid(),
+				ProjectionApplicabilityPolicy = (FieldApplicabilityPolicy)0,
+				Transformation = ConstructFieldTransformationOptions(),
+				Positions = new List<FieldInverseConversionPosition>
+					{
+						ConstructFieldInverseConversionPosition(),
+					},
+			};
+		}
+		public static FieldMembershipAssignment ConstructFieldMembershipAssignment()
+		{
+			return new FieldMembershipAssignment
+			{
+				ID = new Guid(),
+				MembershipCategoryID = null, 
+				MembershipOptionID = null, 
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldMembershipCategory ConstructFieldMembershipCategory()
+		{
+			return new FieldMembershipCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				IsExclusive = false, 
+				HasValidityPeriod = false, 
+				Options = new List<FieldMembershipOption>
+					{
+						ConstructFieldMembershipOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldMembershipOption ConstructFieldMembershipOption()
+		{
+			return new FieldMembershipOption
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static FieldMutationError ConstructFieldMutationError()
+		{
+			return new FieldMutationError
+			{
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+				ReferencingFieldIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static FieldMutationErrorEnvelope ConstructFieldMutationErrorEnvelope()
+		{
+			return new FieldMutationErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<FieldMutationError>
+					{
+						ConstructFieldMutationError(),
+					},
+			};
+		}
+		public static FieldProjectedCoordinate ConstructFieldProjectedCoordinate()
+		{
+			return new FieldProjectedCoordinate
+			{
+				Easting = 0.0, 
+				Northing = 0.0, 
+			};
+		}
+		public static FieldTransformationOptions ConstructFieldTransformationOptions()
+		{
+			return new FieldTransformationOptions
+			{
+				SelectionPolicy = (FieldTransformationSelectionPolicy)0,
+				TransformationPathIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				SelectionToken = "Default SelectionToken",
+				ApplicabilityPolicy = (FieldApplicabilityPolicy)0,
+				DepthPolicy = (FieldDepthTransformationPolicy)0,
+			};
+		}
+		public static EquipmentMeasurementCapability ConstructEquipmentMeasurementCapability()
+		{
+			return new EquipmentMeasurementCapability
+			{
+				ID = null, 
+				Name = "Default Name",
+				Description = "Default Description",
+				MeasurementCode = "Default MeasurementCode",
+				PhysicalQuantity = "Default PhysicalQuantity",
+				SourceKind = (MeasurementSourceKind?)0,
+				SourceType = "Default SourceType",
+				SourceComponentID = null, 
+				Manufacturer = "Default Manufacturer",
+				Model = "Default Model",
+				ProductCode = "Default ProductCode",
+				SerialNumber = "Default SerialNumber",
+				MinimumValue = null, 
+				MaximumValue = null, 
+				AbsoluteAccuracy = null, 
+				RelativeAccuracy = null, 
+				UpdateFrequency = null, 
+			};
+		}
+		public static JackUpProfile ConstructJackUpProfile()
+		{
+			return new JackUpProfile
+			{
+				LegLength = null, 
+				LongitudinalLegSpacing = null, 
+				TransverseLegSpacing = null, 
+				MaximumCantileverSkidOut = null, 
+				MaximumCantileverTransverseReach = null, 
+				SubstructureTravel = null, 
+				MaximumPreload = null, 
+			};
+		}
+		public static MarineUnitProfile ConstructMarineUnitProfile()
+		{
+			return new MarineUnitProfile
+			{
+				HullLength = null, 
+				HullWidth = null, 
+				HullDepth = null, 
+				OperatingDraft = null, 
+				TransitDraft = null, 
+				OperatingDisplacement = null, 
+				VariableDeckLoad = null, 
+				MaximumTransitSpeed = null, 
+				AccommodationCapacity = null, 
+				HelideckCapability = "Default HelideckCapability",
+				CraneCount = null, 
+			};
+		}
+		public static MudPumpLinerConfiguration ConstructMudPumpLinerConfiguration()
+		{
+			return new MudPumpLinerConfiguration
+			{
+				LinerInnerDiameter = null, 
+				DisplacementPerStroke = null, 
+				MaximumVolumetricFlowRate = null, 
+				MaximumDischargePressure = null, 
+			};
+		}
+		public static RigBatchCatalogDependencies ConstructRigBatchCatalogDependencies()
+		{
+			return new RigBatchCatalogDependencies
+			{
+				FeatureCategories = new List<RigFeatureCategory>
+					{
+						ConstructRigFeatureCategory(),
+					},
+			};
+		}
+		public static RigBatchCatalogMapping ConstructRigBatchCatalogMapping()
+		{
+			return new RigBatchCatalogMapping
 			{
 				Name = "Default Name",
-				Type = (SideElementType)0,
-				Length = ConstructGaussianDrillingProperty(),
-				TopVerticalDepth = ConstructGaussianDrillingProperty(),
-				OD = ConstructGaussianDrillingProperty(),
-				ID = ConstructGaussianDrillingProperty(),
+				SourceID = new Guid(),
+				LocalID = new Guid(),
+				Resolution = "Default Resolution",
 			};
 		}
-		public static SurfaceSection ConstructSurfaceSection()
+		public static RigBatchError ConstructRigBatchError()
 		{
-			return new SurfaceSection
+			return new RigBatchError
 			{
-				Type = (SurfaceSectionType)0,
-				SectionLength = ConstructGaussianDrillingProperty(),
-				BodyOD = ConstructGaussianDrillingProperty(),
-				BodyID = ConstructGaussianDrillingProperty(),
-				ConnectionType = "Default ConnectionType",
-				Grade = "Default Grade",
-				MaterialDensity = ConstructGaussianDrillingProperty(),
-				YoungModulus = ConstructGaussianDrillingProperty(),
-				LinearWeight = ConstructGaussianDrillingProperty(),
-				TensileStrength = ConstructGaussianDrillingProperty(),
-				BurstPressure = ConstructGaussianDrillingProperty(),
-				CollapsePressure = ConstructGaussianDrillingProperty(),
-				YieldStress = ConstructGaussianDrillingProperty(),
-				MakeUpTorqueRecommended = ConstructScalarDrillingProperty(),
-				SideConnectors = new List<SideConnector>
+				PositionIndex = null, 
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static RigBatchErrorEnvelope ConstructRigBatchErrorEnvelope()
+		{
+			return new RigBatchErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<RigBatchError>
 					{
-						ConstructSideConnector(),
+						ConstructRigBatchError(),
 					},
 			};
 		}
-		public static WellBoreArchitecture ConstructWellBoreArchitecture()
+		public static RigBatchExportDocument ConstructRigBatchExportDocument()
 		{
-			return new WellBoreArchitecture
+			return new RigBatchExportDocument
+			{
+				FormatIdentifier = "Default FormatIdentifier",
+				SchemaVersion = 0, 
+				ExportedAtUtc = DateTimeOffset.UtcNow,
+				CatalogDependencies = ConstructRigBatchCatalogDependencies(),
+				ExternalReferences = ConstructRigBatchExternalReferences(),
+				Rigs = new List<Rig>
+					{
+						ConstructRig(),
+					},
+				Photos = new List<RigBatchPhoto>
+					{
+						ConstructRigBatchPhoto(),
+					},
+			};
+		}
+		public static RigBatchExportRequest ConstructRigBatchExportRequest()
+		{
+			return new RigBatchExportRequest
+			{
+				Scope = (RigBatchExportScope)0,
+				RigIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static RigBatchExternalReference ConstructRigBatchExternalReference()
+		{
+			return new RigBatchExternalReference
+			{
+				SourceID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static RigBatchExternalReferenceMapping ConstructRigBatchExternalReferenceMapping()
+		{
+			return new RigBatchExternalReferenceMapping
+			{
+				Resource = "Default Resource",
+				Name = "Default Name",
+				SourceID = new Guid(),
+				LocalID = new Guid(),
+				Resolution = "Default Resolution",
+			};
+		}
+		public static RigBatchExternalReferences ConstructRigBatchExternalReferences()
+		{
+			return new RigBatchExternalReferences
+			{
+				Clusters = new List<RigBatchExternalReference>
+					{
+						ConstructRigBatchExternalReference(),
+					},
+			};
+		}
+		public static RigBatchPhoto ConstructRigBatchPhoto()
+		{
+			return new RigBatchPhoto
+			{
+				Metadata = ConstructRigPhotoMetadata(),
+				ContentBase64 = "Default ContentBase64",
+			};
+		}
+		public static RigBatchRestoreRequest ConstructRigBatchRestoreRequest()
+		{
+			return new RigBatchRestoreRequest
+			{
+				ConflictPolicy = (RigBatchRestoreConflictPolicy)0,
+				CatalogPolicy = (RigBatchCatalogRestorePolicy)0,
+				Document = ConstructRigBatchExportDocument(),
+			};
+		}
+		public static RigBatchRestoreResponse ConstructRigBatchRestoreResponse()
+		{
+			return new RigBatchRestoreResponse
+			{
+				RestoredAtUtc = DateTimeOffset.UtcNow,
+				CreatedCount = 0, 
+				ReplacedCount = 0, 
+				RestoredPhotoCount = 0, 
+				CreatedCatalogDefinitionCount = 0, 
+				CreatedCatalogOptionCount = 0, 
+				CatalogMappings = new List<RigBatchCatalogMapping>
+					{
+						ConstructRigBatchCatalogMapping(),
+					},
+				ExternalReferenceMappings = new List<RigBatchExternalReferenceMapping>
+					{
+						ConstructRigBatchExternalReferenceMapping(),
+					},
+				RigIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static RigExternalIdentifier ConstructRigExternalIdentifier()
+		{
+			return new RigExternalIdentifier
+			{
+				Authority = "Default Authority",
+				Identifier = "Default Identifier",
+			};
+		}
+		public static RigFeatureAssignment ConstructRigFeatureAssignment()
+		{
+			return new RigFeatureAssignment
+			{
+				ID = new Guid(),
+				FeatureCategoryID = new Guid(),
+				FeatureOptionID = new Guid(),
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+				Notes = "Default Notes",
+				EvidenceReference = "Default EvidenceReference",
+			};
+		}
+		public static RigFeatureCategory ConstructRigFeatureCategory()
+		{
+			return new RigFeatureCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Code = "Default Code",
+				Name = "Default Name",
+				Description = "Default Description",
+				IsExclusive = false, 
+				HasValidityPeriod = false, 
+				IsBuiltIn = false, 
+				IsDeprecated = false, 
+				Options = new List<RigFeatureOption>
+					{
+						ConstructRigFeatureOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static RigFeatureOption ConstructRigFeatureOption()
+		{
+			return new RigFeatureOption
+			{
+				ID = new Guid(),
+				Code = "Default Code",
+				Name = "Default Name",
+				Description = "Default Description",
+				IsBuiltIn = false, 
+				IsDeprecated = false, 
+			};
+		}
+		public static RigIdentification ConstructRigIdentification()
+		{
+			return new RigIdentification
+			{
+				Owner = "Default Owner",
+				Operator = "Default Operator",
+				ManufacturerOrShipyard = "Default ManufacturerOrShipyard",
+				DesignName = "Default DesignName",
+				YearBuilt = null, 
+				YearEnteredService = null, 
+				Registration = "Default Registration",
+				Flag = "Default Flag",
+				ClassificationSociety = "Default ClassificationSociety",
+				ClassNotation = "Default ClassNotation",
+				ApprovalsAndCertifications = new List<string>
+					{
+						"",
+					},
+				FormerNames = new List<string>
+					{
+						"",
+					},
+				ExternalIdentifiers = new List<RigExternalIdentifier>
+					{
+						ConstructRigExternalIdentifier(),
+					},
+				MajorModifications = new List<RigModification>
+					{
+						ConstructRigModification(),
+					},
+			};
+		}
+		public static RigModification ConstructRigModification()
+		{
+			return new RigModification
+			{
+				Date = DateTimeOffset.UtcNow,
+				Description = "Default Description",
+			};
+		}
+		public static RigMutationError ConstructRigMutationError()
+		{
+			return new RigMutationError
+			{
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static RigMutationErrorEnvelope ConstructRigMutationErrorEnvelope()
+		{
+			return new RigMutationErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<RigMutationError>
+					{
+						ConstructRigMutationError(),
+					},
+			};
+		}
+		public static RigOperatingEnvelope ConstructRigOperatingEnvelope()
+		{
+			return new RigOperatingEnvelope
+			{
+				MaximumDrillingDepth = null, 
+				MaximumWaterDepth = null, 
+				RatedHookLoad = null, 
+				MaximumSetbackLoad = null, 
+				MaximumRotaryLoad = null, 
+				MaximumMudSystemPressure = null, 
+				MinimumAmbientTemperature = null, 
+				MaximumAmbientTemperature = null, 
+				MaximumOperatingWindSpeed = null, 
+				MaximumSurvivalWindSpeed = null, 
+			};
+		}
+		public static RigPhotoMetadata ConstructRigPhotoMetadata()
+		{
+			return new RigPhotoMetadata
+			{
+				MetaInfo = ConstructMetaInfo(),
+				RigID = new Guid(),
+				FileName = "Default FileName",
+				Title = "Default Title",
+				Caption = "Default Caption",
+				AlternativeText = "Default AlternativeText",
+				ContentType = "Default ContentType",
+				ByteLength = 0, 
+				Sha256 = "Default Sha256",
+				DisplayOrder = 0, 
+				IsPrimary = false, 
+				Source = "Default Source",
+				Attribution = "Default Attribution",
+				License = "Default License",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static RigReadResponse ConstructRigReadResponse()
+		{
+			return new RigReadResponse
 			{
 				MetaInfo = ConstructMetaInfo(),
 				Name = "Default Name",
 				Description = "Default Description",
 				CreationDate = DateTimeOffset.UtcNow,
 				LastModificationDate = DateTimeOffset.UtcNow,
-				WellBoreID = null, 
-				WellHead = ConstructWellHead(),
-				FluidsAboveGroundLevel = new List<WellBoreArchitectureFluid>
+				Identification = ConstructRigIdentification(),
+				RigType = (RigType?)0,
+				OperatingEnvironment = (RigEnvironment?)0,
+				MobilityType = (RigMobilityType?)0,
+				OperatingEnvelope = ConstructRigOperatingEnvelope(),
+				MarineUnitProfile = ConstructMarineUnitProfile(),
+				JackUpProfile = ConstructJackUpProfile(),
+				StationKeepingSystem = ConstructStationKeepingSystem(),
+				StorageCapacities = new List<RigStorageCapacity>
 					{
-						ConstructWellBoreArchitectureFluid(),
+						ConstructRigStorageCapacity(),
 					},
-				SurfaceSections = new List<SurfaceSection>
+				FeatureAssignments = new List<RigFeatureAssignment>
 					{
-						ConstructSurfaceSection(),
+						ConstructRigFeatureAssignment(),
 					},
-				CasingSections = new List<CasingSection>
+				MudPumpList = new List<MudPump>
 					{
-						ConstructCasingSection(),
+						ConstructMudPump(),
+					},
+				CementPumpList = new List<CementPump>
+					{
+						ConstructCementPump(),
+					},
+				CementUnit = ConstructCementUnit(),
+				DriveMode = ConstructDriveMode(),
+				MainRigMast = ConstructRigMast(),
+				AuxiliaryRigMast = ConstructRigMast(),
+				MudTankList = new List<MudTank>
+					{
+						ConstructMudTank(),
+					},
+				GeneratorList = new List<Generator>
+					{
+						ConstructGenerator(),
+					},
+				ShaleShakerList = new List<ShaleShaker>
+					{
+						ConstructShaleShaker(),
+					},
+				AuxSolidsControl = ConstructAuxSolidsControl(),
+				DrillingFluidType = ConstructDrillingFluidTypeDescriptor(),
+				FlowSensor = ConstructFlowSensor(),
+				MeasurementAfm = ConstructMeasurementAfm(),
+				ReturnFlowLine = ConstructReturnFlowLine(),
+				MudGasSeparatorList = new List<MudGasSeparator>
+					{
+						ConstructMudGasSeparator(),
+					},
+				DesanderList = new List<Desander>
+					{
+						ConstructDesander(),
+					},
+				DesilterList = new List<Desilter>
+					{
+						ConstructDesilter(),
+					},
+				CentrifugeList = new List<Centrifuge>
+					{
+						ConstructCentrifuge(),
+					},
+				DegasserList = new List<Degasser>
+					{
+						ConstructDegasser(),
+					},
+				CuttingsTransportSystem = ConstructCuttingsTransportSystem(),
+				CuttingsDryerList = new List<CuttingsDryer>
+					{
+						ConstructCuttingsDryer(),
+					},
+				PipeDeck = ConstructPipeDeck(),
+				Accumulator = ConstructAccumulator(),
+				BopStack = ConstructBopStack(),
+				FloatValve = ConstructFloatValve(),
+				AutoDriller = ConstructAutoDriller(),
+				MpdController = ConstructMpdController(),
+				MpdControlDevice = ConstructMpdControlDevice(),
+				ContinuousCirculationDevice = ConstructContinuousCirculationDevice(),
+				DrillingChokeManifold = ConstructDrillingChokeManifold(),
+				SurfaceMpdEquipment = ConstructSurfaceMpdEquipment(),
+				MarineMpdEquipment = ConstructMarineMpdEquipment(),
+				MultiPhaseSeparator = ConstructMultiPhaseSeparator(),
+				FlowRoutingManifold = ConstructFlowRoutingManifold(),
+				DrillstringHeaveCompensator = ConstructDrillstringHeaveCompensator(),
+				DrillingMarineRiser = ConstructDrillingMarineRiser(),
+				RiserHeaveCompensator = ConstructRiserHeaveCompensator(),
+				DrillFloorElevation = null, 
+				IsFixedPlatform = false, 
+				ClusterID = null, 
+				Photos = new List<RigPhotoMetadata>
+					{
+						ConstructRigPhotoMetadata(),
 					},
 			};
 		}
-		public static WellBoreArchitectureFluid ConstructWellBoreArchitectureFluid()
+		public static RigStorageCapacity ConstructRigStorageCapacity()
 		{
-			return new WellBoreArchitectureFluid
+			return new RigStorageCapacity
 			{
-				Fluid = (FluidType)0,
-				Depth = ConstructGaussianDrillingProperty(),
+				StorageType = (RigStorageType)0,
+				Name = "Default Name",
+				MaximumVolume = null, 
+				MaximumMass = null, 
 			};
 		}
-		public static WellHead ConstructWellHead()
+		public static StationKeepingSystem ConstructStationKeepingSystem()
 		{
-			return new WellHead
+			return new StationKeepingSystem
 			{
-				MaxOD = ConstructScalarDrillingProperty(),
-				MinOD = ConstructScalarDrillingProperty(),
-				Depth = ConstructGaussianDrillingProperty(),
-				CasingHangerDepth = ConstructScalarDrillingProperty(),
-				TubingHangerDepth = ConstructScalarDrillingProperty(),
+				Modes = new List<StationKeepingMode>
+					{
+						(StationKeepingMode)0,
+					},
+				DynamicPositioningClass = (DynamicPositioningClass?)0,
+				ThrusterCount = null, 
+				MooringLineCount = null, 
+				MaximumMooringLineTension = null, 
+			};
+		}
+		public static AreaOfUse ConstructAreaOfUse()
+		{
+			return new AreaOfUse
+			{
+				Name = "Default Name",
+				Scope = "Default Scope",
+				Bounds = ConstructGeographicBoundingBox(),
+			};
+		}
+		public static AuthorityIdentifier ConstructAuthorityIdentifier()
+		{
+			return new AuthorityIdentifier
+			{
+				Authority = "Default Authority",
+				Code = "Default Code",
+				Version = "Default Version",
+				Uri = "Default Uri",
+			};
+		}
+		public static CatalogProvenance ConstructCatalogProvenance()
+		{
+			return new CatalogProvenance
+			{
+				Source = "Default Source",
+				MatchStatus = (CatalogMatchStatus)0,
+				SourceVersion = "Default SourceVersion",
+				SourceCode = "Default SourceCode",
+				LegacyId = null, 
+				Notes = "Default Notes",
+				CanonicalId = null, 
+				IsLegacyCombinedDefinition = false, 
+			};
+		}
+		public static ProjectionDefinition ConstructProjectionDefinition()
+		{
+			return new ProjectionDefinition
+			{
+				Id = new Guid(),
+				Name = "Default Name",
+				Description = "Default Description",
+				Aliases = new List<string>
+					{
+						"",
+					},
+				Identifier = ConstructAuthorityIdentifier(),
+				BaseGeographicCrs = ConstructGeographicCrsReference(),
+				MethodId = new Guid(),
+				ConversionIdentifier = ConstructAuthorityIdentifier(),
+				ConversionName = "Default ConversionName",
+				Parameters = new List<ProjectionParameterValue>
+					{
+						ConstructProjectionParameterValue(),
+					},
+				CoordinateSystem = ConstructProjectedCoordinateSystem(),
+				AreaOfUse = ConstructAreaOfUse(),
+				IsBuiltIn = false, 
+				IsDeprecated = false, 
+				IsSuperseded = false, 
+				SupersededByIdentifiers = new List<AuthorityIdentifier>
+					{
+						ConstructAuthorityIdentifier(),
+					},
+				Remarks = "Default Remarks",
+				InformationSource = "Default InformationSource",
+				RevisionDate = DateTimeOffset.UtcNow,
+				Provenance = ConstructCatalogProvenance(),
+				CreatedUtc = DateTimeOffset.UtcNow,
+				ModifiedUtc = DateTimeOffset.UtcNow,
+				RuntimeStatus = (ProjectionRuntimeStatus)0,
+				RuntimeMessage = "Default RuntimeMessage",
+				CatalogStatus = (CatalogEntryStatus)0,
+			};
+		}
+		public static ProjectionMethod ConstructProjectionMethod()
+		{
+			return new ProjectionMethod
+			{
+				Id = new Guid(),
+				Name = "Default Name",
+				Description = "Default Description",
+				Identifier = ConstructAuthorityIdentifier(),
+				ProjName = "Default ProjName",
+				IsBuiltIn = false, 
+				IsDeprecated = false, 
+				IsCustomDefinitionAllowed = false, 
+				CustomDefinitionRestrictionCode = "Default CustomDefinitionRestrictionCode",
+				CustomDefinitionRestrictionMessage = "Default CustomDefinitionRestrictionMessage",
+				Aliases = new List<string>
+					{
+						"",
+					},
+				Parameters = new List<ProjectionParameterDefinition>
+					{
+						ConstructProjectionParameterDefinition(),
+					},
+				Provenance = ConstructCatalogProvenance(),
+				CatalogStatus = (CatalogEntryStatus)0,
+			};
+		}
+		public static CatalogSearchRequest ConstructCatalogSearchRequest()
+		{
+			return new CatalogSearchRequest
+			{
+				Query = "Default Query",
+				Authority = "Default Authority",
+				Code = "Default Code",
+				CatalogStatus = (CatalogEntryStatus)0,
+				IncludeLegacy = false, 
+				IncludeDeprecated = false, 
+				Offset = 0, 
+				Limit = 0, 
+			};
+		}
+		public static CoordinateSystemAxis ConstructCoordinateSystemAxis()
+		{
+			return new CoordinateSystemAxis
+			{
+				Name = "Default Name",
+				Abbreviation = "Default Abbreviation",
+				Order = 0, 
+				Direction = (AxisDirection)0,
+				Unit = ConstructAuthorityIdentifier(),
+				UnitName = "Default UnitName",
+				UnitToMetre = 0.0, 
+			};
+		}
+		public static CoordinateSystemAxisInput ConstructCoordinateSystemAxisInput()
+		{
+			return new CoordinateSystemAxisInput
+			{
+				Name = "Default Name",
+				Abbreviation = "Default Abbreviation",
+				Order = 0, 
+				Direction = (AxisDirection)0,
+			};
+		}
+		public static CreateProjectionDefinitionRequest ConstructCreateProjectionDefinitionRequest()
+		{
+			return new CreateProjectionDefinitionRequest
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Aliases = new List<string>
+					{
+						"",
+					},
+				Identifier = ConstructAuthorityIdentifier(),
+				BaseGeographicCrs = ConstructGeographicCrsInput(),
+				MethodId = new Guid(),
+				ConversionName = "Default ConversionName",
+				Parameters = new List<ProjectionParameterInput>
+					{
+						ConstructProjectionParameterInput(),
+					},
+				CoordinateSystem = ConstructProjectedCoordinateSystemInput(),
+				AreaOfUse = ConstructAreaOfUse(),
+				Remarks = "Default Remarks",
+				LegacyId = null, 
+				LegacySource = "Default LegacySource",
+			};
+		}
+		public static CrsReference ConstructCrsReference()
+		{
+			return new CrsReference
+			{
+				Name = "Default Name",
+				Identifier = ConstructAuthorityIdentifier(),
+			};
+		}
+		public static EarthCartographicProjectionServiceInfo ConstructEarthCartographicProjectionServiceInfo()
+		{
+			return new EarthCartographicProjectionServiceInfo
+			{
+				Service = "Default Service",
+				Version = "Default Version",
+				EpsgDatasetVersion = "Default EpsgDatasetVersion",
+				CoordinateConvention = "Default CoordinateConvention",
+				CalculationBehavior = "Default CalculationBehavior",
+				CatalogBehavior = "Default CatalogBehavior",
+				ExternalResourceBehavior = "Default ExternalResourceBehavior",
+				McpErrorBehavior = "Default McpErrorBehavior",
+				MaximumPositionsPerRequest = 0, 
+				McpMaximumPositionsPerRequest = 0, 
+				McpBatchLimitBehavior = "Default McpBatchLimitBehavior",
+				ProjectionMethodCount = 0, 
+				ProjectionDefinitionCount = 0, 
+			};
+		}
+		public static ForwardProjectionPosition ConstructForwardProjectionPosition()
+		{
+			return new ForwardProjectionPosition
+			{
+				PositionIndex = 0, 
+				GeographicCoordinate = ConstructGeographicCoordinate(),
+				ProjectedCoordinate = ConstructProjectedCoordinate(),
+				GridConvergence = null, 
+			};
+		}
+		public static ForwardProjectionRequest ConstructForwardProjectionRequest()
+		{
+			return new ForwardProjectionRequest
+			{
+				ProjectionDefinitionId = new Guid(),
+				ApplicabilityPolicy = (ApplicabilityPolicy)0,
+				Positions = new List<GeographicCoordinate>
+					{
+						ConstructGeographicCoordinate(),
+					},
+			};
+		}
+		public static ForwardProjectionResponse ConstructForwardProjectionResponse()
+		{
+			return new ForwardProjectionResponse
+			{
+				ProjectionDefinition = ConstructProjectionDefinitionReference(),
+				GeographicCoordinateReferenceSystem = ConstructCrsReference(),
+				ProjectedCoordinateReferenceSystem = ConstructCrsReference(),
+				ApiAxisConvention = "Default ApiAxisConvention",
+				GridConvergenceConvention = "Default GridConvergenceConvention",
+				Applicability = (ProjectionApplicability)0,
+				Positions = new List<ForwardProjectionPosition>
+					{
+						ConstructForwardProjectionPosition(),
+					},
+				Warnings = new List<ServiceWarning>
+					{
+						ConstructServiceWarning(),
+					},
+			};
+		}
+		public static GeodeticDatumReference ConstructGeodeticDatumReference()
+		{
+			return new GeodeticDatumReference
+			{
+				EarthGeodesyDatumId = null, 
+				Identifier = ConstructAuthorityIdentifier(),
+				Name = "Default Name",
+				ExpectedModifiedUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static GeographicBoundingBox ConstructGeographicBoundingBox()
+		{
+			return new GeographicBoundingBox
+			{
+				SouthLatitude = 0.0, 
+				NorthLatitude = 0.0, 
+				WestLongitude = 0.0, 
+				EastLongitude = 0.0, 
+			};
+		}
+		public static GeographicCoordinate ConstructGeographicCoordinate()
+		{
+			return new GeographicCoordinate
+			{
+				Latitude = 0.0, 
+				Longitude = 0.0, 
+			};
+		}
+		public static GeographicCrsInput ConstructGeographicCrsInput()
+		{
+			return new GeographicCrsInput
+			{
+				Name = "Default Name",
+				Datum = ConstructProjectionDatumInput(),
+			};
+		}
+		public static GeographicCrsReference ConstructGeographicCrsReference()
+		{
+			return new GeographicCrsReference
+			{
+				Name = "Default Name",
+				Identifier = ConstructAuthorityIdentifier(),
+				Datum = ConstructGeodeticDatumReference(),
+			};
+		}
+		public static InverseProjectionPosition ConstructInverseProjectionPosition()
+		{
+			return new InverseProjectionPosition
+			{
+				PositionIndex = 0, 
+				ProjectedCoordinate = ConstructProjectedCoordinate(),
+				GeographicCoordinate = ConstructGeographicCoordinate(),
+				GridConvergence = null, 
+			};
+		}
+		public static InverseProjectionRequest ConstructInverseProjectionRequest()
+		{
+			return new InverseProjectionRequest
+			{
+				ProjectionDefinitionId = new Guid(),
+				ApplicabilityPolicy = (ApplicabilityPolicy)0,
+				Positions = new List<ProjectedCoordinate>
+					{
+						ConstructProjectedCoordinate(),
+					},
+			};
+		}
+		public static InverseProjectionResponse ConstructInverseProjectionResponse()
+		{
+			return new InverseProjectionResponse
+			{
+				ProjectionDefinition = ConstructProjectionDefinitionReference(),
+				GeographicCoordinateReferenceSystem = ConstructCrsReference(),
+				ProjectedCoordinateReferenceSystem = ConstructCrsReference(),
+				ApiAxisConvention = "Default ApiAxisConvention",
+				GridConvergenceConvention = "Default GridConvergenceConvention",
+				Applicability = (ProjectionApplicability)0,
+				Positions = new List<InverseProjectionPosition>
+					{
+						ConstructInverseProjectionPosition(),
+					},
+				Warnings = new List<ServiceWarning>
+					{
+						ConstructServiceWarning(),
+					},
+			};
+		}
+		public static ProjectedCoordinate ConstructProjectedCoordinate()
+		{
+			return new ProjectedCoordinate
+			{
+				Easting = 0.0, 
+				Northing = 0.0, 
+			};
+		}
+		public static ProjectedCoordinateSystem ConstructProjectedCoordinateSystem()
+		{
+			return new ProjectedCoordinateSystem
+			{
+				Axes = new List<CoordinateSystemAxis>
+					{
+						ConstructCoordinateSystemAxis(),
+					},
+				ApiConvention = "Default ApiConvention",
+			};
+		}
+		public static ProjectedCoordinateSystemInput ConstructProjectedCoordinateSystemInput()
+		{
+			return new ProjectedCoordinateSystemInput
+			{
+				Axes = new List<CoordinateSystemAxisInput>
+					{
+						ConstructCoordinateSystemAxisInput(),
+					},
+			};
+		}
+		public static ProjectionDatumInput ConstructProjectionDatumInput()
+		{
+			return new ProjectionDatumInput
+			{
+				EarthGeodesyDatumId = new Guid(),
+				ExpectedModifiedUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static ProjectionDefinitionReference ConstructProjectionDefinitionReference()
+		{
+			return new ProjectionDefinitionReference
+			{
+				Id = new Guid(),
+				Name = "Default Name",
+				Identifier = ConstructAuthorityIdentifier(),
+				CatalogStatus = (CatalogEntryStatus)0,
+			};
+		}
+		public static ProjectionDefinitionSearchRequest ConstructProjectionDefinitionSearchRequest()
+		{
+			return new ProjectionDefinitionSearchRequest
+			{
+				Query = "Default Query",
+				Authority = "Default Authority",
+				Code = "Default Code",
+				CatalogStatus = (CatalogStatusFilter)0,
+				IncludeDeprecated = false, 
+				Offset = 0, 
+				Limit = 0, 
+				MethodId = null, 
+				EarthGeodesyDatumId = null, 
+				AreaQuery = "Default AreaQuery",
+				ContainsPosition = ConstructGeographicCoordinate(),
+				ContainsBounds = ConstructGeographicBoundingBox(),
+				RuntimeStatus = (ProjectionRuntimeStatus)0,
+				IsSuperseded = null, 
+			};
+		}
+		public static ProjectionDefinitionSummary ConstructProjectionDefinitionSummary()
+		{
+			return new ProjectionDefinitionSummary
+			{
+				Id = new Guid(),
+				Name = "Default Name",
+				Description = "Default Description",
+				Aliases = new List<string>
+					{
+						"",
+					},
+				Identifier = ConstructAuthorityIdentifier(),
+				AreaOfUseName = "Default AreaOfUseName",
+				AreaOfUseScope = "Default AreaOfUseScope",
+				BaseGeographicCrsName = "Default BaseGeographicCrsName",
+				DatumName = "Default DatumName",
+				IsBuiltIn = false, 
+				CatalogStatus = (CatalogEntryStatus)0,
+			};
+		}
+		public static ProjectionParameterDefinition ConstructProjectionParameterDefinition()
+		{
+			return new ProjectionParameterDefinition
+			{
+				Id = new Guid(),
+				Name = "Default Name",
+				Identifier = ConstructAuthorityIdentifier(),
+				Quantity = (ProjectionParameterQuantity)0,
+				IsRequired = false, 
+				MinimumValue = null, 
+				MaximumValue = null, 
+				Description = "Default Description",
+			};
+		}
+		public static ProjectionParameterInput ConstructProjectionParameterInput()
+		{
+			return new ProjectionParameterInput
+			{
+				ParameterId = new Guid(),
+				Value = 0.0, 
+			};
+		}
+		public static ProjectionParameterValue ConstructProjectionParameterValue()
+		{
+			return new ProjectionParameterValue
+			{
+				ParameterId = new Guid(),
+				Name = "Default Name",
+				Identifier = ConstructAuthorityIdentifier(),
+				Quantity = (ProjectionParameterQuantity)0,
+				Value = 0.0, 
+				OriginalValue = null, 
+				OriginalUnit = ConstructAuthorityIdentifier(),
+				OriginalUnitName = "Default OriginalUnitName",
+			};
+		}
+		public static ServiceWarning ConstructServiceWarning()
+		{
+			return new ServiceWarning
+			{
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static UpdateProjectionDefinitionRequest ConstructUpdateProjectionDefinitionRequest()
+		{
+			return new UpdateProjectionDefinitionRequest
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Aliases = new List<string>
+					{
+						"",
+					},
+				Identifier = ConstructAuthorityIdentifier(),
+				BaseGeographicCrs = ConstructGeographicCrsInput(),
+				MethodId = new Guid(),
+				ConversionName = "Default ConversionName",
+				Parameters = new List<ProjectionParameterInput>
+					{
+						ConstructProjectionParameterInput(),
+					},
+				CoordinateSystem = ConstructProjectedCoordinateSystemInput(),
+				AreaOfUse = ConstructAreaOfUse(),
+				Remarks = "Default Remarks",
+				LegacyId = null, 
+				LegacySource = "Default LegacySource",
+			};
+		}
+		public static UsageStatisticsEarthCartographicProjection ConstructUsageStatisticsEarthCartographicProjection()
+		{
+			return new UsageStatisticsEarthCartographicProjection
+			{
+				RestForward = 0, 
+				RestInverse = 0, 
+				McpForward = 0, 
+				McpInverse = 0, 
+				PositionsProjected = 0, 
+				Failures = 0, 
+				CatalogReads = 0, 
+				CatalogWrites = 0, 
+			};
+		}
+		public static Microsoft_AspNetCore_Mvc_ProblemDetails ConstructMicrosoft_AspNetCore_Mvc_ProblemDetails()
+		{
+			return new Microsoft_AspNetCore_Mvc_ProblemDetails
+			{
+				Type = "Default Type",
+				Title = "Default Title",
+				Status = null, 
+				Detail = "Default Detail",
+				Instance = "Default Instance",
+			};
+		}
+		public static CatalogReference ConstructCatalogReference()
+		{
+			return new CatalogReference
+			{
+				Id = new Guid(),
+				Name = "Default Name",
+				Identifier = ConstructAuthorityIdentifier(),
+			};
+		}
+		public static CatalogSearchItem_GeodeticDatumSummary ConstructCatalogSearchItem_GeodeticDatumSummary()
+		{
+			return new CatalogSearchItem_GeodeticDatumSummary
+			{
+				Value = ConstructGeodeticDatumSummary(),
+				MatchScore = 0.0, 
+				MatchReason = "Default MatchReason",
+			};
+		}
+		public static CatalogSearchItem_GeodeticTransformationSummary ConstructCatalogSearchItem_GeodeticTransformationSummary()
+		{
+			return new CatalogSearchItem_GeodeticTransformationSummary
+			{
+				Value = ConstructGeodeticTransformationSummary(),
+				MatchScore = 0.0, 
+				MatchReason = "Default MatchReason",
+			};
+		}
+		public static CatalogSearchItem_ReferenceEllipsoidSummary ConstructCatalogSearchItem_ReferenceEllipsoidSummary()
+		{
+			return new CatalogSearchItem_ReferenceEllipsoidSummary
+			{
+				Value = ConstructReferenceEllipsoidSummary(),
+				MatchScore = 0.0, 
+				MatchReason = "Default MatchReason",
+			};
+		}
+		public static CatalogSearchResult_GeodeticDatumSummary ConstructCatalogSearchResult_GeodeticDatumSummary()
+		{
+			return new CatalogSearchResult_GeodeticDatumSummary
+			{
+				TotalCount = 0, 
+				Offset = 0, 
+				Limit = 0, 
+				ReturnedCount = 0, 
+				Items = new List<CatalogSearchItem_GeodeticDatumSummary>
+					{
+						ConstructCatalogSearchItem_GeodeticDatumSummary(),
+					},
+			};
+		}
+		public static CatalogSearchResult_GeodeticTransformationSummary ConstructCatalogSearchResult_GeodeticTransformationSummary()
+		{
+			return new CatalogSearchResult_GeodeticTransformationSummary
+			{
+				TotalCount = 0, 
+				Offset = 0, 
+				Limit = 0, 
+				ReturnedCount = 0, 
+				Items = new List<CatalogSearchItem_GeodeticTransformationSummary>
+					{
+						ConstructCatalogSearchItem_GeodeticTransformationSummary(),
+					},
+			};
+		}
+		public static CatalogSearchResult_ReferenceEllipsoidSummary ConstructCatalogSearchResult_ReferenceEllipsoidSummary()
+		{
+			return new CatalogSearchResult_ReferenceEllipsoidSummary
+			{
+				TotalCount = 0, 
+				Offset = 0, 
+				Limit = 0, 
+				ReturnedCount = 0, 
+				Items = new List<CatalogSearchItem_ReferenceEllipsoidSummary>
+					{
+						ConstructCatalogSearchItem_ReferenceEllipsoidSummary(),
+					},
+			};
+		}
+		public static CoordinateOperationParameterValue ConstructCoordinateOperationParameterValue()
+		{
+			return new CoordinateOperationParameterValue
+			{
+				Identifier = ConstructAuthorityIdentifier(),
+				Name = "Default Name",
+				Value = null, 
+				FileReference = "Default FileReference",
+				Unit = ConstructAuthorityIdentifier(),
+				UnitName = "Default UnitName",
+			};
+		}
+		public static CoordinateReferenceSystemReference ConstructCoordinateReferenceSystemReference()
+		{
+			return new CoordinateReferenceSystemReference
+			{
+				Identifier = ConstructAuthorityIdentifier(),
+				Name = "Default Name",
+				Domain = (CoordinateOperationDomain)0,
+			};
+		}
+		public static CreateGeodeticDatumRequest ConstructCreateGeodeticDatumRequest()
+		{
+			return new CreateGeodeticDatumRequest
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				ReferenceEllipsoidId = new Guid(),
+				Identifier = ConstructAuthorityIdentifier(),
+				ReferenceObjectType = (GeodeticReferenceObjectType)0,
+				IsDeprecated = false, 
+				PrimeMeridianName = "Default PrimeMeridianName",
+				PrimeMeridianIdentifier = ConstructAuthorityIdentifier(),
+				PrimeMeridianLongitude = 0.0, 
+				Origin = "Default Origin",
+				PublicationDate = "Default PublicationDate",
+				RealizationEpoch = "Default RealizationEpoch",
+				FrameReferenceEpoch = null, 
+				AnchorEpoch = null, 
+				ConventionalReferenceSystem = "Default ConventionalReferenceSystem",
+				RealizationMethod = "Default RealizationMethod",
+				EnsembleAccuracy = null, 
+				MemberDatumIds = new List<Guid>
+					{
+						new Guid(),
+					},
+				Usage = new List<GeodeticUsage>
+					{
+						ConstructGeodeticUsage(),
+					},
+				Remarks = "Default Remarks",
+			};
+		}
+		public static CreateGeodeticTransformationRequest ConstructCreateGeodeticTransformationRequest()
+		{
+			return new CreateGeodeticTransformationRequest
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				SourceDatumId = new Guid(),
+				TargetDatumId = new Guid(),
+				Method = (GeodeticTransformationMethod)0,
+				TranslationX = 0.0, 
+				TranslationY = 0.0, 
+				TranslationZ = 0.0, 
+				RotationX = 0.0, 
+				RotationY = 0.0, 
+				RotationZ = 0.0, 
+				ScaleDifference = 0.0, 
+				Accuracy = null, 
+				AreaOfUse = "Default AreaOfUse",
+				AreaOfUseBounds = ConstructGeographicBoundingBox(),
+				Identifier = ConstructAuthorityIdentifier(),
+			};
+		}
+		public static CreateReferenceEllipsoidRequest ConstructCreateReferenceEllipsoidRequest()
+		{
+			return new CreateReferenceEllipsoidRequest
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Identifier = ConstructAuthorityIdentifier(),
+				SemiMajorAxis = 0.0, 
+				InverseFlattening = 0.0, 
+			};
+		}
+		public static DatumReference ConstructDatumReference()
+		{
+			return new DatumReference
+			{
+				Id = new Guid(),
+				Name = "Default Name",
+				Identifier = ConstructAuthorityIdentifier(),
+				ReferenceEllipsoid = ConstructEllipsoidReference(),
+				CatalogStatus = (CatalogEntryStatus)0,
+			};
+		}
+		public static DatumTransformationConnection ConstructDatumTransformationConnection()
+		{
+			return new DatumTransformationConnection
+			{
+				TransformationId = new Guid(),
+				TransformationName = "Default TransformationName",
+				Identifier = ConstructAuthorityIdentifier(),
+				SourceDatumId = new Guid(),
+				TargetDatumId = new Guid(),
+				IsReversible = false, 
+				CanExecuteForward = null, 
+				CanExecuteReverse = null, 
+				AreaOfUse = "Default AreaOfUse",
+				AreaOfUseBounds = ConstructGeographicBoundingBox(),
+			};
+		}
+		public static EarthGeodesyServiceInfo ConstructEarthGeodesyServiceInfo()
+		{
+			return new EarthGeodesyServiceInfo
+			{
+				Service = "Default Service",
+				Version = "Default Version",
+				EpsgDatasetVersion = "Default EpsgDatasetVersion",
+				CoordinateConvention = "Default CoordinateConvention",
+				CalculationBehavior = "Default CalculationBehavior",
+				InitializationBehavior = "Default InitializationBehavior",
+				PerformanceGuidance = "Default PerformanceGuidance",
+				ExternalResourceBehavior = "Default ExternalResourceBehavior",
+				McpErrorBehavior = "Default McpErrorBehavior",
+				CatalogBehavior = "Default CatalogBehavior",
+				MaximumPositionsPerRequest = 0, 
+				McpMaximumPositionsPerRequest = 0, 
+				MaximumTransformationPathLength = 0, 
+				ReferenceEllipsoidCount = 0, 
+				GeodeticDatumCount = 0, 
+				TransformationCount = 0, 
+			};
+		}
+		public static EllipsoidReference ConstructEllipsoidReference()
+		{
+			return new EllipsoidReference
+			{
+				Id = new Guid(),
+				Name = "Default Name",
+				Identifier = ConstructAuthorityIdentifier(),
+				SemiMajorAxis = 0.0, 
+				InverseFlattening = 0.0, 
+			};
+		}
+		public static GeodeticDatumSummary ConstructGeodeticDatumSummary()
+		{
+			return new GeodeticDatumSummary
+			{
+				Id = new Guid(),
+				Name = "Default Name",
+				Description = "Default Description",
+				Identifier = ConstructAuthorityIdentifier(),
+				ReferenceEllipsoid = ConstructEllipsoidReference(),
+				CatalogStatus = (CatalogEntryStatus)0,
+				IsDefault = false, 
+				ReferenceObjectType = (GeodeticReferenceObjectType)0,
+				IsDeprecated = false, 
+				IsSuperseded = false, 
+				PrimeMeridianName = "Default PrimeMeridianName",
+				PrimeMeridianIdentifier = ConstructAuthorityIdentifier(),
+				PrimeMeridianLongitude = 0.0, 
+				Origin = "Default Origin",
+				PublicationDate = "Default PublicationDate",
+				RealizationEpoch = "Default RealizationEpoch",
+				FrameReferenceEpoch = null, 
+				AnchorEpoch = null, 
+				ConventionalReferenceSystem = "Default ConventionalReferenceSystem",
+				RealizationMethod = "Default RealizationMethod",
+				EnsembleAccuracy = null, 
+				MemberDatumIds = new List<Guid>
+					{
+						new Guid(),
+					},
+				Usage = new List<GeodeticUsage>
+					{
+						ConstructGeodeticUsage(),
+					},
+				Remarks = "Default Remarks",
+				InformationSource = "Default InformationSource",
+				RevisionDate = DateTimeOffset.UtcNow,
+				Provenance = ConstructCatalogProvenance(),
+			};
+		}
+		public static GeodeticPosition ConstructGeodeticPosition()
+		{
+			return new GeodeticPosition
+			{
+				Latitude = 0.0, 
+				Longitude = 0.0, 
+				Depth = 0.0, 
+				CoordinateEpochUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static GeodeticTransformation ConstructGeodeticTransformation()
+		{
+			return new GeodeticTransformation
+			{
+				Id = new Guid(),
+				Name = "Default Name",
+				Description = "Default Description",
+				SourceDatumId = new Guid(),
+				TargetDatumId = new Guid(),
+				Method = (GeodeticTransformationMethod)0,
+				MethodName = "Default MethodName",
+				MethodIdentifier = ConstructAuthorityIdentifier(),
+				SourceCrs = ConstructCoordinateReferenceSystemReference(),
+				TargetCrs = ConstructCoordinateReferenceSystemReference(),
+				IsReversible = false, 
+				ComponentOperationIdentifiers = new List<AuthorityIdentifier>
+					{
+						ConstructAuthorityIdentifier(),
+					},
+				Parameters = new List<CoordinateOperationParameterValue>
+					{
+						ConstructCoordinateOperationParameterValue(),
+					},
+				RequiresExternalResource = false, 
+				RequiresCoordinateEpoch = false, 
+				TranslationX = 0.0, 
+				TranslationY = 0.0, 
+				TranslationZ = 0.0, 
+				RotationX = 0.0, 
+				RotationY = 0.0, 
+				RotationZ = 0.0, 
+				ScaleDifference = 0.0, 
+				Accuracy = null, 
+				AreaOfUse = "Default AreaOfUse",
+				AreaOfUseBounds = ConstructGeographicBoundingBox(),
+				Identifier = ConstructAuthorityIdentifier(),
+				IsBuiltIn = false, 
+				IsDeprecated = false, 
+				IsSuperseded = false, 
+				Provenance = ConstructCatalogProvenance(),
+				CreatedUtc = DateTimeOffset.UtcNow,
+				ModifiedUtc = DateTimeOffset.UtcNow,
+				CatalogStatus = (CatalogEntryStatus)0,
+			};
+		}
+		public static GeodeticTransformationSummary ConstructGeodeticTransformationSummary()
+		{
+			return new GeodeticTransformationSummary
+			{
+				Id = new Guid(),
+				Name = "Default Name",
+				Description = "Default Description",
+				Identifier = ConstructAuthorityIdentifier(),
+				SourceDatum = ConstructCatalogReference(),
+				TargetDatum = ConstructCatalogReference(),
+				Method = (GeodeticTransformationMethod)0,
+				MethodName = "Default MethodName",
+				MethodIdentifier = ConstructAuthorityIdentifier(),
+				SourceCrs = ConstructCoordinateReferenceSystemReference(),
+				TargetCrs = ConstructCoordinateReferenceSystemReference(),
+				IsReversible = false, 
+				ComponentOperationIdentifiers = new List<AuthorityIdentifier>
+					{
+						ConstructAuthorityIdentifier(),
+					},
+				Parameters = new List<CoordinateOperationParameterValue>
+					{
+						ConstructCoordinateOperationParameterValue(),
+					},
+				RequiresExternalResource = false, 
+				RequiresCoordinateEpoch = false, 
+				TranslationX = 0.0, 
+				TranslationY = 0.0, 
+				TranslationZ = 0.0, 
+				RotationX = 0.0, 
+				RotationY = 0.0, 
+				RotationZ = 0.0, 
+				ScaleDifference = 0.0, 
+				Accuracy = null, 
+				AccuracyMeaning = "Default AccuracyMeaning",
+				AreaOfUse = "Default AreaOfUse",
+				AreaOfUseBounds = ConstructGeographicBoundingBox(),
+				CatalogStatus = (CatalogEntryStatus)0,
+				Provenance = ConstructCatalogProvenance(),
+			};
+		}
+		public static GeodeticUsage ConstructGeodeticUsage()
+		{
+			return new GeodeticUsage
+			{
+				Scope = "Default Scope",
+				Extent = "Default Extent",
+			};
+		}
+		public static ReferenceEllipsoid ConstructReferenceEllipsoid()
+		{
+			return new ReferenceEllipsoid
+			{
+				Id = new Guid(),
+				Name = "Default Name",
+				Description = "Default Description",
+				Identifier = ConstructAuthorityIdentifier(),
+				SemiMajorAxis = 0.0, 
+				InverseFlattening = 0.0, 
+				IsBuiltIn = false, 
+				IsDefault = false, 
+				Provenance = ConstructCatalogProvenance(),
+				CreatedUtc = DateTimeOffset.UtcNow,
+				ModifiedUtc = DateTimeOffset.UtcNow,
+				Aliases = new List<string>
+					{
+						"",
+					},
+				IsDeprecated = false, 
+				IsSuperseded = false, 
+				Remarks = "Default Remarks",
+				InformationSource = "Default InformationSource",
+				RevisionDate = DateTimeOffset.UtcNow,
+				SourceUnit = ConstructAuthorityIdentifier(),
+				CatalogStatus = (CatalogEntryStatus)0,
+				SemiMinorAxis = 0.0, 
+			};
+		}
+		public static ReferenceEllipsoidSummary ConstructReferenceEllipsoidSummary()
+		{
+			return new ReferenceEllipsoidSummary
+			{
+				Id = new Guid(),
+				Name = "Default Name",
+				Description = "Default Description",
+				Identifier = ConstructAuthorityIdentifier(),
+				SemiMajorAxis = 0.0, 
+				InverseFlattening = 0.0, 
+				SemiMinorAxis = 0.0, 
+				SourceUnit = ConstructAuthorityIdentifier(),
+				CatalogStatus = (CatalogEntryStatus)0,
+				IsDefault = false, 
+				IsDeprecated = false, 
+				IsSuperseded = false, 
+				Remarks = "Default Remarks",
+				InformationSource = "Default InformationSource",
+				RevisionDate = DateTimeOffset.UtcNow,
+				Provenance = ConstructCatalogProvenance(),
+			};
+		}
+		public static ResolveTransformationPathsRequest ConstructResolveTransformationPathsRequest()
+		{
+			return new ResolveTransformationPathsRequest
+			{
+				SourceDatumId = new Guid(),
+				TargetDatumId = new Guid(),
+				Positions = new List<GeodeticPosition>
+					{
+						ConstructGeodeticPosition(),
+					},
+				MaximumCandidates = 0, 
+			};
+		}
+		public static ResolveTransformationPathsResponse ConstructResolveTransformationPathsResponse()
+		{
+			return new ResolveTransformationPathsResponse
+			{
+				SourceDatum = ConstructDatumReference(),
+				TargetDatum = ConstructDatumReference(),
+				IsAmbiguous = false, 
+				SelectionGuidance = "Default SelectionGuidance",
+				Candidates = new List<TransformationPathCandidate>
+					{
+						ConstructTransformationPathCandidate(),
+					},
+			};
+		}
+		public static TransformCoordinatesRequest ConstructTransformCoordinatesRequest()
+		{
+			return new TransformCoordinatesRequest
+			{
+				SourceDatumId = new Guid(),
+				TargetDatumId = new Guid(),
+				Positions = new List<GeodeticPosition>
+					{
+						ConstructGeodeticPosition(),
+					},
+				SelectionPolicy = (TransformationSelectionPolicy)0,
+				TransformationPathIds = new List<Guid>
+					{
+						new Guid(),
+					},
+				SelectionToken = "Default SelectionToken",
+				ApplicabilityPolicy = (ApplicabilityPolicy)0,
+				DepthPolicy = (DepthTransformationPolicy)0,
+			};
+		}
+		public static TransformCoordinatesResponse ConstructTransformCoordinatesResponse()
+		{
+			return new TransformCoordinatesResponse
+			{
+				SourceDatum = ConstructCatalogReference(),
+				TargetDatum = ConstructCatalogReference(),
+				TransformationPath = new List<TransformationReference>
+					{
+						ConstructTransformationReference(),
+					},
+				Positions = new List<GeodeticPosition>
+					{
+						ConstructGeodeticPosition(),
+					},
+				Applicability = (TransformationApplicability)0,
+				DepthReferenceChanged = false, 
+				DepthChanges = new List<double>
+					{
+						0.0, 
+					},
+				MaximumAbsoluteDepthChange = 0.0, 
+				Warnings = new List<ServiceWarning>
+					{
+						ConstructServiceWarning(),
+					},
+			};
+		}
+		public static TransformationPathCandidate ConstructTransformationPathCandidate()
+		{
+			return new TransformationPathCandidate
+			{
+				Rank = 0, 
+				IsRecommended = false, 
+				RecommendationReason = "Default RecommendationReason",
+				Applicability = (TransformationApplicability)0,
+				ApplicabilityMessage = "Default ApplicabilityMessage",
+				IsExecutable = false, 
+				ExecutionIssues = new List<ServiceWarning>
+					{
+						ConstructServiceWarning(),
+					},
+				SelectionToken = "Default SelectionToken",
+				CombinedAccuracy = null, 
+				AccuracyMeaning = "Default AccuracyMeaning",
+				Operations = new List<TransformationReference>
+					{
+						ConstructTransformationReference(),
+					},
+			};
+		}
+		public static TransformationReference ConstructTransformationReference()
+		{
+			return new TransformationReference
+			{
+				Id = new Guid(),
+				Name = "Default Name",
+				Identifier = ConstructAuthorityIdentifier(),
+				Method = (GeodeticTransformationMethod)0,
+				MethodName = "Default MethodName",
+				MethodIdentifier = ConstructAuthorityIdentifier(),
+				SourceCrs = ConstructCoordinateReferenceSystemReference(),
+				TargetCrs = ConstructCoordinateReferenceSystemReference(),
+				ComponentOperationIdentifiers = new List<AuthorityIdentifier>
+					{
+						ConstructAuthorityIdentifier(),
+					},
+				RequiresExternalResource = false, 
+				RequiresCoordinateEpoch = false, 
+				Accuracy = null, 
+				AccuracyMeaning = "Default AccuracyMeaning",
+				AreaOfUse = "Default AreaOfUse",
+				AreaOfUseBounds = ConstructGeographicBoundingBox(),
+				AppliedInReverse = false, 
+				CatalogStatus = (CatalogEntryStatus)0,
+			};
+		}
+		public static UpdateGeodeticDatumRequest ConstructUpdateGeodeticDatumRequest()
+		{
+			return new UpdateGeodeticDatumRequest
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				ReferenceEllipsoidId = new Guid(),
+				Identifier = ConstructAuthorityIdentifier(),
+				ReferenceObjectType = (GeodeticReferenceObjectType)0,
+				IsDeprecated = false, 
+				PrimeMeridianName = "Default PrimeMeridianName",
+				PrimeMeridianIdentifier = ConstructAuthorityIdentifier(),
+				PrimeMeridianLongitude = 0.0, 
+				Origin = "Default Origin",
+				PublicationDate = "Default PublicationDate",
+				RealizationEpoch = "Default RealizationEpoch",
+				FrameReferenceEpoch = null, 
+				AnchorEpoch = null, 
+				ConventionalReferenceSystem = "Default ConventionalReferenceSystem",
+				RealizationMethod = "Default RealizationMethod",
+				EnsembleAccuracy = null, 
+				MemberDatumIds = new List<Guid>
+					{
+						new Guid(),
+					},
+				Usage = new List<GeodeticUsage>
+					{
+						ConstructGeodeticUsage(),
+					},
+				Remarks = "Default Remarks",
+			};
+		}
+		public static UpdateGeodeticTransformationRequest ConstructUpdateGeodeticTransformationRequest()
+		{
+			return new UpdateGeodeticTransformationRequest
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				SourceDatumId = new Guid(),
+				TargetDatumId = new Guid(),
+				Method = (GeodeticTransformationMethod)0,
+				TranslationX = 0.0, 
+				TranslationY = 0.0, 
+				TranslationZ = 0.0, 
+				RotationX = 0.0, 
+				RotationY = 0.0, 
+				RotationZ = 0.0, 
+				ScaleDifference = 0.0, 
+				Accuracy = null, 
+				AreaOfUse = "Default AreaOfUse",
+				AreaOfUseBounds = ConstructGeographicBoundingBox(),
+				Identifier = ConstructAuthorityIdentifier(),
+			};
+		}
+		public static UpdateReferenceEllipsoidRequest ConstructUpdateReferenceEllipsoidRequest()
+		{
+			return new UpdateReferenceEllipsoidRequest
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+				Identifier = ConstructAuthorityIdentifier(),
+				SemiMajorAxis = 0.0, 
+				InverseFlattening = 0.0, 
+			};
+		}
+		public static UsageStatisticsEarthGeodesy ConstructUsageStatisticsEarthGeodesy()
+		{
+			return new UsageStatisticsEarthGeodesy
+			{
+				RestTransforms = 0, 
+				MCPTransforms = 0, 
+				FailedRequests = 0, 
+				PositionsTransformed = 0, 
+				CatalogReads = 0, 
+				CatalogWrites = 0, 
+			};
+		}
+		public static WellBatchCatalogDependencies ConstructWellBatchCatalogDependencies()
+		{
+			return new WellBatchCatalogDependencies
+			{
+				Identities = new List<WellIdentity>
+					{
+						ConstructWellIdentity(),
+					},
+				FeatureCategories = new List<WellFeatureCategory>
+					{
+						ConstructWellFeatureCategory(),
+					},
+			};
+		}
+		public static WellBatchCatalogMapping ConstructWellBatchCatalogMapping()
+		{
+			return new WellBatchCatalogMapping
+			{
+				Catalog = "Default Catalog",
+				Name = "Default Name",
+				SourceID = new Guid(),
+				LocalID = new Guid(),
+				Resolution = "Default Resolution",
+			};
+		}
+		public static WellBatchError ConstructWellBatchError()
+		{
+			return new WellBatchError
+			{
+				PositionIndex = null, 
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static WellBatchErrorEnvelope ConstructWellBatchErrorEnvelope()
+		{
+			return new WellBatchErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<WellBatchError>
+					{
+						ConstructWellBatchError(),
+					},
+			};
+		}
+		public static WellBatchExportDocument ConstructWellBatchExportDocument()
+		{
+			return new WellBatchExportDocument
+			{
+				FormatIdentifier = "Default FormatIdentifier",
+				SchemaVersion = 0, 
+				ExportedAtUtc = DateTimeOffset.UtcNow,
+				CatalogDependencies = ConstructWellBatchCatalogDependencies(),
+				Wells = new List<Well>
+					{
+						ConstructWell(),
+					},
+			};
+		}
+		public static WellBatchExportRequest ConstructWellBatchExportRequest()
+		{
+			return new WellBatchExportRequest
+			{
+				Scope = (WellBatchExportScope)0,
+				WellIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellBatchRestoreRequest ConstructWellBatchRestoreRequest()
+		{
+			return new WellBatchRestoreRequest
+			{
+				ConflictPolicy = (WellBatchRestoreConflictPolicy)0,
+				CatalogPolicy = (WellBatchCatalogRestorePolicy)0,
+				Document = ConstructWellBatchExportDocument(),
+			};
+		}
+		public static WellBatchRestoreResponse ConstructWellBatchRestoreResponse()
+		{
+			return new WellBatchRestoreResponse
+			{
+				RestoredAtUtc = DateTimeOffset.UtcNow,
+				CreatedCount = 0, 
+				ReplacedCount = 0, 
+				CreatedCatalogDefinitionCount = 0, 
+				CreatedCatalogOptionCount = 0, 
+				CatalogMappings = new List<WellBatchCatalogMapping>
+					{
+						ConstructWellBatchCatalogMapping(),
+					},
+				WellIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellDetailsUpdate ConstructWellDetailsUpdate()
+		{
+			return new WellDetailsUpdate
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static WellExternalReferenceAuditRequest ConstructWellExternalReferenceAuditRequest()
+		{
+			return new WellExternalReferenceAuditRequest
+			{
+				Scope = (WellExternalReferenceAuditScope)0,
+				WellIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				Offset = 0, 
+				Limit = 0, 
+			};
+		}
+		public static WellExternalReferenceAuditResult ConstructWellExternalReferenceAuditResult()
+		{
+			return new WellExternalReferenceAuditResult
+			{
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Total = 0, 
+				Offset = 0, 
+				Limit = 0, 
+				ValidCount = 0, 
+				InvalidCount = 0, 
+				UnavailableCount = 0, 
+				Items = new List<WellExternalReferenceValidation>
+					{
+						ConstructWellExternalReferenceValidation(),
+					},
+			};
+		}
+		public static WellExternalReferenceIssue ConstructWellExternalReferenceIssue()
+		{
+			return new WellExternalReferenceIssue
+			{
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static WellExternalReferenceValidation ConstructWellExternalReferenceValidation()
+		{
+			return new WellExternalReferenceValidation
+			{
+				WellID = new Guid(),
+				ClusterID = null, 
+				SlotID = null, 
+				ClusterExists = null, 
+				SlotBelongsToCluster = null, 
+				Status = (WellExternalReferenceValidationStatus)0,
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Issues = new List<WellExternalReferenceIssue>
+					{
+						ConstructWellExternalReferenceIssue(),
+					},
+			};
+		}
+		public static WellFeatureAssignment ConstructWellFeatureAssignment()
+		{
+			return new WellFeatureAssignment
+			{
+				ID = new Guid(),
+				FeatureCategoryID = null, 
+				FeatureOptionID = null, 
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellFeatureCategory ConstructWellFeatureCategory()
+		{
+			return new WellFeatureCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				IsExclusive = false, 
+				HasValidityPeriod = false, 
+				Options = new List<WellFeatureOption>
+					{
+						ConstructWellFeatureOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellFeatureOption ConstructWellFeatureOption()
+		{
+			return new WellFeatureOption
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static WellIdentity ConstructWellIdentity()
+		{
+			return new WellIdentity
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellIdentityAssignment ConstructWellIdentityAssignment()
+		{
+			return new WellIdentityAssignment
+			{
+				ID = new Guid(),
+				IdentityID = null, 
+				Value = "Default Value",
+			};
+		}
+		public static WellLocationUpdate ConstructWellLocationUpdate()
+		{
+			return new WellLocationUpdate
+			{
+				ClusterID = null, 
+				SlotID = null, 
+				IsSingleWell = false, 
+			};
+		}
+		public static WellMutationError ConstructWellMutationError()
+		{
+			return new WellMutationError
+			{
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+				ReferencingWellIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellMutationErrorEnvelope ConstructWellMutationErrorEnvelope()
+		{
+			return new WellMutationErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<WellMutationError>
+					{
+						ConstructWellMutationError(),
+					},
+			};
+		}
+		public static WellSearchResult ConstructWellSearchResult()
+		{
+			return new WellSearchResult
+			{
+				Items = new List<Well>
+					{
+						ConstructWell(),
+					},
+				Total = 0, 
+				Offset = 0, 
+				Limit = 0, 
+			};
+		}
+		public static SurveyInstrumentBatchCatalogDependencies ConstructSurveyInstrumentBatchCatalogDependencies()
+		{
+			return new SurveyInstrumentBatchCatalogDependencies
+			{
+				ErrorSourceTemplates = new List<ErrorSource>
+					{
+						ConstructErrorSource(),
+					},
+				Identities = new List<SurveyInstrumentIdentity>
+					{
+						ConstructSurveyInstrumentIdentity(),
+					},
+				FeatureCategories = new List<SurveyInstrumentFeatureCategory>
+					{
+						ConstructSurveyInstrumentFeatureCategory(),
+					},
+			};
+		}
+		public static SurveyInstrumentBatchError ConstructSurveyInstrumentBatchError()
+		{
+			return new SurveyInstrumentBatchError
+			{
+				PositionIndex = null, 
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static SurveyInstrumentBatchErrorEnvelope ConstructSurveyInstrumentBatchErrorEnvelope()
+		{
+			return new SurveyInstrumentBatchErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<SurveyInstrumentBatchError>
+					{
+						ConstructSurveyInstrumentBatchError(),
+					},
+			};
+		}
+		public static SurveyInstrumentBatchExportDocument ConstructSurveyInstrumentBatchExportDocument()
+		{
+			return new SurveyInstrumentBatchExportDocument
+			{
+				FormatIdentifier = "Default FormatIdentifier",
+				SchemaVersion = 0, 
+				ExportedAtUtc = DateTimeOffset.UtcNow,
+				CatalogDependencies = ConstructSurveyInstrumentBatchCatalogDependencies(),
+				SurveyInstruments = new List<SurveyInstrument>
+					{
+						ConstructSurveyInstrument(),
+					},
+			};
+		}
+		public static SurveyInstrumentBatchExportRequest ConstructSurveyInstrumentBatchExportRequest()
+		{
+			return new SurveyInstrumentBatchExportRequest
+			{
+				Scope = (SurveyInstrumentBatchExportScope)0,
+				SurveyInstrumentIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static SurveyInstrumentBatchRestoreRequest ConstructSurveyInstrumentBatchRestoreRequest()
+		{
+			return new SurveyInstrumentBatchRestoreRequest
+			{
+				ConflictPolicy = (SurveyInstrumentBatchRestoreConflictPolicy)0,
+				Document = ConstructSurveyInstrumentBatchExportDocument(),
+			};
+		}
+		public static SurveyInstrumentBatchRestoreResponse ConstructSurveyInstrumentBatchRestoreResponse()
+		{
+			return new SurveyInstrumentBatchRestoreResponse
+			{
+				RestoredAtUtc = DateTimeOffset.UtcNow,
+				CreatedCount = 0, 
+				ReplacedCount = 0, 
+				CreatedCatalogDefinitionCount = 0, 
+				SurveyInstrumentIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static SurveyInstrumentFeatureAssignment ConstructSurveyInstrumentFeatureAssignment()
+		{
+			return new SurveyInstrumentFeatureAssignment
+			{
+				ID = new Guid(),
+				FeatureCategoryID = null, 
+				FeatureOptionID = null, 
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static SurveyInstrumentFeatureCategory ConstructSurveyInstrumentFeatureCategory()
+		{
+			return new SurveyInstrumentFeatureCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				IsExclusive = false, 
+				HasValidityPeriod = false, 
+				Options = new List<SurveyInstrumentFeatureOption>
+					{
+						ConstructSurveyInstrumentFeatureOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static SurveyInstrumentFeatureOption ConstructSurveyInstrumentFeatureOption()
+		{
+			return new SurveyInstrumentFeatureOption
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static SurveyInstrumentIdentity ConstructSurveyInstrumentIdentity()
+		{
+			return new SurveyInstrumentIdentity
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static SurveyInstrumentIdentityAssignment ConstructSurveyInstrumentIdentityAssignment()
+		{
+			return new SurveyInstrumentIdentityAssignment
+			{
+				ID = new Guid(),
+				IdentityID = null, 
+				Value = "Default Value",
+			};
+		}
+		public static TrajectoryFeatureAssignment ConstructTrajectoryFeatureAssignment()
+		{
+			return new TrajectoryFeatureAssignment
+			{
+				ID = new Guid(),
+				FeatureCategoryID = null, 
+				FeatureOptionID = null, 
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static TrajectoryFeatureCategory ConstructTrajectoryFeatureCategory()
+		{
+			return new TrajectoryFeatureCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				IsExclusive = false, 
+				HasValidityPeriod = false, 
+				Options = new List<TrajectoryFeatureOption>
+					{
+						ConstructTrajectoryFeatureOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static TrajectoryFeatureOption ConstructTrajectoryFeatureOption()
+		{
+			return new TrajectoryFeatureOption
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static TrajectoryIdentity ConstructTrajectoryIdentity()
+		{
+			return new TrajectoryIdentity
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static TrajectoryIdentityAssignment ConstructTrajectoryIdentityAssignment()
+		{
+			return new TrajectoryIdentityAssignment
+			{
+				ID = new Guid(),
+				IdentityID = null, 
+				Value = "Default Value",
 			};
 		}
 	}

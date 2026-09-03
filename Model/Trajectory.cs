@@ -6,6 +6,9 @@ using OSDC.DotnetLibraries.General.Statistics;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using SurveyStation = OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation;
+using SurveyPoint = OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint;
+using TrajectoryCalculationType = OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType;
 
 namespace OSDC.Drilling.Trajectory.Model
 {

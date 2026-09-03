@@ -41,8 +41,6 @@ class Program
 
     private static readonly string JSON_BUNDLE = "TrajectoryMergedModel.json";
     private static readonly string CSHARP_MODEL = "TrajectoryMergedModel.cs";
-    private static readonly string PSEUDO_CTOR = "PseudoConstructors.cs";
-
     // ### BEGIN CODE SPECIFIC TO ModelSharedOut 3/3 ###
     private static readonly string NAMESPACE = "OSDC.Drilling.Trajectory.ModelShared"; // should be the same as for ModelSharedIn to avoid type name collision
     private static readonly string MODELSHARED_FOLDER = "ModelSharedOut";
@@ -166,7 +164,24 @@ class Program
                     // Reading locally stored dependencies
                     IEnumerable<string> files = Directory
                         .EnumerateFiles(jsonInputsDirectory, "*.json")
-                        .Where(file => !string.Equals(Path.GetFileName(file), JSON_BUNDLE, StringComparison.OrdinalIgnoreCase));
+                        .Where(file => !string.Equals(Path.GetFileName(file), JSON_BUNDLE, StringComparison.OrdinalIgnoreCase))
+                        // Dependency bundles contain transitive schemas as well as their own.
+                        // Process dependants before their authoritative dependencies, then the
+                        // local Trajectory contract last, so short-name collisions resolve to the
+                        // service that owns each model.
+                        .OrderBy(file => Path.GetFileName(file) switch
+                        {
+                            "WellBoreArchitecture.json" => 10,
+                            "WellBore.json" => 20,
+                            "Well.json" => 30,
+                            "Cluster.json" => 40,
+                            "Field.json" => 50,
+                            "Rig.json" => 60,
+                            "SurveyInstrument.json" => 70,
+                            "TrajectoryFullName.json" => 100,
+                            _ => 0
+                        })
+                        .ThenBy(file => file, StringComparer.OrdinalIgnoreCase);
                     foreach (string file in files)
                     {
                         PrettyPrint(file, "Processing Open Api doc into API client...");
@@ -176,7 +191,9 @@ class Program
                         // Merge paths
                         foreach (var p in doc.Paths)
                         {
-                            document.Paths.TryAdd(p.Key, p.Value);
+                            // Later inputs are ordered so the service owning a route follows any
+                            // dependency bundle containing an older transitive copy of that route.
+                            document.Paths[p.Key] = p.Value;
                         }
 
                         // Merge and normalize schemas (centralized in updater)
@@ -284,7 +301,13 @@ class Program
                 string assemblyName = Path.GetRandomFileName();
                 //Add assembly references
                 var references = AppDomain.CurrentDomain.GetAssemblies()
-                    .Where(a => !a.IsDynamic && !string.IsNullOrEmpty(a.Location))
+                    .Append(typeof(System.ComponentModel.DataAnnotations.RequiredAttribute).Assembly)
+                    // The generated model is compiled as source below. Referencing this
+                    // executable as well would import a second, stale copy of every DTO.
+                    .Where(a => a != Assembly.GetExecutingAssembly() &&
+                                !a.IsDynamic &&
+                                !string.IsNullOrEmpty(a.Location))
+                    .DistinctBy(a => a.Location)
                     .Select(a => MetadataReference.CreateFromFile(a.Location))
                     .Cast<MetadataReference>();
                 //Compile namespace syntax tree and actual code 

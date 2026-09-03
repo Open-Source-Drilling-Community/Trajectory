@@ -674,7 +674,7 @@
             var wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
             var wellTask = Api.ClientWell.GetAllWellAsync();
             var clusterTask = Api.ClientCluster.GetAllClusterAsync();
-            var rigTask = Api.ClientRig.GetAllRigAsync();
+            var rigTask = Api.GetAllRigReferencesAsync();
 
             await Task.WhenAll(calculationTask, surveyRunTask, fieldTask, wellBoreTask, wellTask, clusterTask, rigTask);
 

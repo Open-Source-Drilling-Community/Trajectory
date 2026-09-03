@@ -2066,6 +2066,449 @@
         }
       }
     },
+    "/VerticalDatum": {
+      "get": {
+        "tags": [
+          "VerticalDatum"
+        ],
+        "operationId": "GetAllVerticalDatumId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "VerticalDatum"
+        ],
+        "operationId": "PostVerticalDatum",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerticalDatum"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerticalDatum"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerticalDatum"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/VerticalDatum/MetaInfo": {
+      "get": {
+        "tags": [
+          "VerticalDatum"
+        ],
+        "operationId": "GetAllVerticalDatumMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/VerticalDatum/{id}": {
+      "get": {
+        "tags": [
+          "VerticalDatum"
+        ],
+        "operationId": "GetVerticalDatumById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerticalDatum"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "VerticalDatum"
+        ],
+        "operationId": "PutVerticalDatumById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerticalDatum"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerticalDatum"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerticalDatum"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "VerticalDatum"
+        ],
+        "operationId": "DeleteVerticalDatumById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/VerticalDatum/HeavyData": {
+      "get": {
+        "tags": [
+          "VerticalDatum"
+        ],
+        "operationId": "GetAllVerticalDatum",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VerticalDatum"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/VerticalDatum/CompletedVerticalDatum": {
+      "get": {
+        "tags": [
+          "VerticalDatum"
+        ],
+        "operationId": "GetAllCompletedVerticalDatum",
+        "parameters": [
+          {
+            "name": "isCompleted",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VerticalDatum"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/VerticalDatumOrder": {
+      "get": {
+        "tags": [
+          "VerticalDatumOrder"
+        ],
+        "operationId": "GetAllVerticalDatumOrderId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "VerticalDatumOrder"
+        ],
+        "operationId": "PostVerticalDatumOrder",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerticalDatumOrder"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerticalDatumOrder"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerticalDatumOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/VerticalDatumOrder/MetaInfo": {
+      "get": {
+        "tags": [
+          "VerticalDatumOrder"
+        ],
+        "operationId": "GetAllVerticalDatumOrderMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/VerticalDatumOrder/{id}": {
+      "get": {
+        "tags": [
+          "VerticalDatumOrder"
+        ],
+        "operationId": "GetVerticalDatumOrderById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/VerticalDatumOrder"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "VerticalDatumOrder"
+        ],
+        "operationId": "PutVerticalDatumOrderById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerticalDatumOrder"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerticalDatumOrder"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/VerticalDatumOrder"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "VerticalDatumOrder"
+        ],
+        "operationId": "DeleteVerticalDatumOrderById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/VerticalDatumOrder/LightData": {
+      "get": {
+        "tags": [
+          "VerticalDatumOrder"
+        ],
+        "operationId": "GetAllVerticalDatumOrderLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VerticalDatumOrderLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/VerticalDatumOrder/HeavyData": {
+      "get": {
+        "tags": [
+          "VerticalDatumOrder"
+        ],
+        "operationId": "GetAllVerticalDatumOrder",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/VerticalDatumOrder"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Well": {
       "get": {
         "tags": [
@@ -2738,6 +3181,654 @@
                   "items": {
                     "$ref": "#/components/schemas/WellBoreArchitecture"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/WellBoreArchitecture/{id}/ExternalReferences": {
+      "get": {
+        "tags": [
+          "WellBoreArchitecture"
+        ],
+        "operationId": "ValidateWellBoreArchitectureExternalReferences",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellBoreArchitectureExternalReferenceValidation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/WellBoreArchitecture/ExternalReferenceAudit": {
+      "post": {
+        "tags": [
+          "WellBoreArchitecture"
+        ],
+        "operationId": "AuditWellBoreArchitectureExternalReferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureExternalReferenceAuditRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureExternalReferenceAuditRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureExternalReferenceAuditRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellBoreArchitectureExternalReferenceAuditResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/WellBoreArchitecture/BatchExport": {
+      "post": {
+        "tags": [
+          "WellBoreArchitecture"
+        ],
+        "operationId": "BatchExportWellBoreArchitectures",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureBatchExportRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureBatchExportRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureBatchExportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellBoreArchitectureBatchExportDocument"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellBoreArchitectureBatchErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellBoreArchitectureBatchErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellBoreArchitectureBatchErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/WellBoreArchitecture/BatchRestore": {
+      "post": {
+        "tags": [
+          "WellBoreArchitecture"
+        ],
+        "operationId": "BatchRestoreWellBoreArchitectures",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureBatchRestoreRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureBatchRestoreRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureBatchRestoreRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellBoreArchitectureBatchRestoreResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellBoreArchitectureBatchErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellBoreArchitectureBatchErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellBoreArchitectureBatchErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/WellBoreArchitectureFeatureCategory": {
+      "get": {
+        "tags": [
+          "WellBoreArchitectureFeatureCategory"
+        ],
+        "operationId": "GetAllWellBoreArchitectureFeatureCategoryId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "WellBoreArchitectureFeatureCategory"
+        ],
+        "operationId": "PostWellBoreArchitectureFeatureCategory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureFeatureCategory"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureFeatureCategory"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureFeatureCategory"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/WellBoreArchitectureFeatureCategory/MetaInfo": {
+      "get": {
+        "tags": [
+          "WellBoreArchitectureFeatureCategory"
+        ],
+        "operationId": "GetAllWellBoreArchitectureFeatureCategoryMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/WellBoreArchitectureFeatureCategory/HeavyData": {
+      "get": {
+        "tags": [
+          "WellBoreArchitectureFeatureCategory"
+        ],
+        "operationId": "GetAllWellBoreArchitectureFeatureCategory",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WellBoreArchitectureFeatureCategory"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/WellBoreArchitectureFeatureCategory/{id}": {
+      "get": {
+        "tags": [
+          "WellBoreArchitectureFeatureCategory"
+        ],
+        "operationId": "GetWellBoreArchitectureFeatureCategoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellBoreArchitectureFeatureCategory"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "WellBoreArchitectureFeatureCategory"
+        ],
+        "operationId": "PutWellBoreArchitectureFeatureCategoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureFeatureCategory"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureFeatureCategory"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureFeatureCategory"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "WellBoreArchitectureFeatureCategory"
+        ],
+        "operationId": "DeleteWellBoreArchitectureFeatureCategoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/WellBoreArchitectureIdentity": {
+      "get": {
+        "tags": [
+          "WellBoreArchitectureIdentity"
+        ],
+        "operationId": "GetAllWellBoreArchitectureIdentityId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "WellBoreArchitectureIdentity"
+        ],
+        "operationId": "PostWellBoreArchitectureIdentity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureIdentity"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureIdentity"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureIdentity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/WellBoreArchitectureIdentity/MetaInfo": {
+      "get": {
+        "tags": [
+          "WellBoreArchitectureIdentity"
+        ],
+        "operationId": "GetAllWellBoreArchitectureIdentityMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/WellBoreArchitectureIdentity/HeavyData": {
+      "get": {
+        "tags": [
+          "WellBoreArchitectureIdentity"
+        ],
+        "operationId": "GetAllWellBoreArchitectureIdentity",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/WellBoreArchitectureIdentity"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/WellBoreArchitectureIdentity/{id}": {
+      "get": {
+        "tags": [
+          "WellBoreArchitectureIdentity"
+        ],
+        "operationId": "GetWellBoreArchitectureIdentityById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/WellBoreArchitectureIdentity"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "WellBoreArchitectureIdentity"
+        ],
+        "operationId": "PutWellBoreArchitectureIdentityById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureIdentity"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureIdentity"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/WellBoreArchitectureIdentity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "WellBoreArchitectureIdentity"
+        ],
+        "operationId": "DeleteWellBoreArchitectureIdentityById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/WellBoreArchitectureUsageStatistics": {
+      "get": {
+        "tags": [
+          "WellBoreArchitectureUsageStatistics"
+        ],
+        "operationId": "GetWellBoreArchitectureUsageStatistics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageStatisticsWellBoreArchitecture"
                 }
               }
             }
@@ -8429,6 +9520,141 @@
           }
         }
       },
+      "VerticalDatum": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "DatumSet": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/VerticalDatumSet"
+            },
+            "nullable": true
+          },
+          "ConversionFrom": {
+            "$ref": "#/components/schemas/VerticalDatumConversion"
+          },
+          "Type": {
+            "$ref": "#/components/schemas/VerticalDatumType"
+          }
+        }
+      },
+      "VerticalDatumConversion": {
+        "enum": [
+          "FromMeanSeaLevel",
+          "FromMeanHighWater",
+          "FromMeanLowWater",
+          "LowestAstronimalTide",
+          "HighestAstronimalTide",
+          "MeanHigherHighWater",
+          "MeanLowerLowWater"
+        ],
+        "type": "string"
+      },
+      "VerticalDatumOrder": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "VerticalDatum": {
+            "$ref": "#/components/schemas/VerticalDatum"
+          }
+        }
+      },
+      "VerticalDatumOrderLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "VerticalDatumSet": {
+        "type": "object",
+        "properties": {
+          "Latitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "Longitude": {
+            "type": "number",
+            "format": "double"
+          },
+          "VerticalDatumWGS64": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "GenericVerticalDatum": {
+            "type": "number",
+            "format": "double"
+          }
+        }
+      },
+      "VerticalDatumType": {
+        "enum": [
+          "Completed",
+          "Raw"
+        ],
+        "type": "string"
+      },
       "UsageStatisticsWell": {
         "type": "object",
         "properties": {
@@ -8599,6 +9825,10 @@
       "BoreHoleSize": {
         "type": "object",
         "properties": {
+          "ComponentID": {
+            "type": "string",
+            "format": "uuid"
+          },
           "HoleSize": {
             "$ref": "#/components/schemas/GaussianDrillingProperty"
           },
@@ -8610,6 +9840,10 @@
       "CasingSection": {
         "type": "object",
         "properties": {
+          "ComponentID": {
+            "type": "string",
+            "format": "uuid"
+          },
           "TopDepth": {
             "$ref": "#/components/schemas/GaussianDrillingProperty"
           },
@@ -8641,6 +9875,10 @@
       "CasingSectionElement": {
         "type": "object",
         "properties": {
+          "ComponentID": {
+            "type": "string",
+            "format": "uuid"
+          },
           "BodyOD": {
             "$ref": "#/components/schemas/GaussianDrillingProperty"
           },
@@ -8699,6 +9937,10 @@
       "ElementConnectivity": {
         "type": "object",
         "properties": {
+          "ComponentID": {
+            "type": "string",
+            "format": "uuid"
+          },
           "UpstreamElement": {
             "$ref": "#/components/schemas/SideElement"
           },
@@ -8717,6 +9959,10 @@
       "OpenHoleSection": {
         "type": "object",
         "properties": {
+          "ComponentID": {
+            "type": "string",
+            "format": "uuid"
+          },
           "HoleSizes": {
             "type": "array",
             "items": {
@@ -8729,6 +9975,10 @@
       "SideConnector": {
         "type": "object",
         "properties": {
+          "ComponentID": {
+            "type": "string",
+            "format": "uuid"
+          },
           "Position": {
             "$ref": "#/components/schemas/GaussianDrillingProperty"
           },
@@ -8750,6 +10000,10 @@
       "SideElement": {
         "type": "object",
         "properties": {
+          "ComponentID": {
+            "type": "string",
+            "format": "uuid"
+          },
           "Name": {
             "type": "string",
             "nullable": true
@@ -8785,6 +10039,10 @@
       "SurfaceSection": {
         "type": "object",
         "properties": {
+          "ComponentID": {
+            "type": "string",
+            "format": "uuid"
+          },
           "Type": {
             "$ref": "#/components/schemas/SurfaceSectionType"
           },
@@ -8852,6 +10110,43 @@
         ],
         "type": "string"
       },
+      "UsageStatisticsWellBoreArchitecture": {
+        "type": "object",
+        "properties": {
+          "LastSaved": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "BackUpInterval": {
+            "type": "string",
+            "format": "date-span"
+          },
+          "GetAllWellBoreArchitectureIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllWellBoreArchitectureMetaInfoPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetWellBoreArchitectureByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllWellBoreArchitectureLightPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllWellBoreArchitecturePerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "PostWellBoreArchitecturePerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "PutWellBoreArchitectureByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "DeleteWellBoreArchitectureByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          }
+        }
+      },
       "WellBoreArchitecture": {
         "type": "object",
         "properties": {
@@ -8874,6 +10169,20 @@
           "LastModificationDate": {
             "type": "string",
             "format": "date-time",
+            "nullable": true
+          },
+          "WellBoreArchitectureIdentityAssignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WellBoreArchitectureIdentityAssignment"
+            },
+            "nullable": true
+          },
+          "WellBoreArchitectureFeatureAssignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WellBoreArchitectureFeatureAssignment"
+            },
             "nullable": true
           },
           "WellBoreID": {
@@ -8907,6 +10216,424 @@
           }
         }
       },
+      "WellBoreArchitectureBatchCatalogDependencies": {
+        "type": "object",
+        "properties": {
+          "Identities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WellBoreArchitectureIdentity"
+            },
+            "nullable": true
+          },
+          "FeatureCategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WellBoreArchitectureFeatureCategory"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "WellBoreArchitectureBatchCatalogMapping": {
+        "type": "object",
+        "properties": {
+          "Catalog": {
+            "type": "string",
+            "nullable": true
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "SourceID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "LocalID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Resolution": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "WellBoreArchitectureBatchCatalogRestorePolicy": {
+        "enum": [
+          "Unspecified",
+          "MapExisting",
+          "MapOrCreateMissing"
+        ],
+        "type": "string"
+      },
+      "WellBoreArchitectureBatchError": {
+        "type": "object",
+        "properties": {
+          "PositionIndex": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "Property": {
+            "type": "string",
+            "nullable": true
+          },
+          "Code": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "WellBoreArchitectureBatchErrorEnvelope": {
+        "type": "object",
+        "properties": {
+          "Error": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          },
+          "Errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WellBoreArchitectureBatchError"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "WellBoreArchitectureBatchExportDocument": {
+        "type": "object",
+        "properties": {
+          "FormatIdentifier": {
+            "type": "string",
+            "nullable": true
+          },
+          "SchemaVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ExportedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "CatalogDependencies": {
+            "$ref": "#/components/schemas/WellBoreArchitectureBatchCatalogDependencies"
+          },
+          "WellBoreArchitectures": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WellBoreArchitecture"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "WellBoreArchitectureBatchExportRequest": {
+        "type": "object",
+        "properties": {
+          "Scope": {
+            "$ref": "#/components/schemas/WellBoreArchitectureBatchExportScope"
+          },
+          "WellBoreArchitectureIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "WellBoreArchitectureBatchExportScope": {
+        "enum": [
+          "Unspecified",
+          "All",
+          "Selected"
+        ],
+        "type": "string"
+      },
+      "WellBoreArchitectureBatchRestoreConflictPolicy": {
+        "enum": [
+          "Unspecified",
+          "FailIfExists",
+          "ReplaceExisting"
+        ],
+        "type": "string"
+      },
+      "WellBoreArchitectureBatchRestoreRequest": {
+        "type": "object",
+        "properties": {
+          "ConflictPolicy": {
+            "$ref": "#/components/schemas/WellBoreArchitectureBatchRestoreConflictPolicy"
+          },
+          "CatalogPolicy": {
+            "$ref": "#/components/schemas/WellBoreArchitectureBatchCatalogRestorePolicy"
+          },
+          "AllowNormalizedNameMapping": {
+            "type": "boolean"
+          },
+          "Document": {
+            "$ref": "#/components/schemas/WellBoreArchitectureBatchExportDocument"
+          }
+        }
+      },
+      "WellBoreArchitectureBatchRestoreResponse": {
+        "type": "object",
+        "properties": {
+          "RestoredAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "CreatedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ReplacedCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CreatedCatalogDefinitionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CreatedCatalogOptionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CatalogMappings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WellBoreArchitectureBatchCatalogMapping"
+            },
+            "nullable": true
+          },
+          "WellBoreArchitectureIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "WellBoreArchitectureExternalReferenceAuditRequest": {
+        "required": [
+          "Scope"
+        ],
+        "type": "object",
+        "properties": {
+          "Scope": {
+            "$ref": "#/components/schemas/WellBoreArchitectureExternalReferenceAuditScope"
+          },
+          "WellBoreArchitectureIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          }
+        }
+      },
+      "WellBoreArchitectureExternalReferenceAuditResult": {
+        "type": "object",
+        "properties": {
+          "CheckedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ValidCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "InvalidCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "UnavailableCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WellBoreArchitectureExternalReferenceValidation"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "WellBoreArchitectureExternalReferenceAuditScope": {
+        "enum": [
+          "All",
+          "Selected"
+        ],
+        "type": "string"
+      },
+      "WellBoreArchitectureExternalReferenceIssue": {
+        "type": "object",
+        "properties": {
+          "Property": {
+            "type": "string",
+            "nullable": true
+          },
+          "Code": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "WellBoreArchitectureExternalReferenceValidation": {
+        "type": "object",
+        "properties": {
+          "WellBoreArchitectureID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "WellBoreID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellBoreExists": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "Status": {
+            "$ref": "#/components/schemas/WellBoreArchitectureExternalReferenceValidationStatus"
+          },
+          "CheckedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WellBoreArchitectureExternalReferenceIssue"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "WellBoreArchitectureExternalReferenceValidationStatus": {
+        "enum": [
+          "Valid",
+          "Invalid",
+          "Unavailable"
+        ],
+        "type": "string"
+      },
+      "WellBoreArchitectureFeatureAssignment": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FeatureCategoryID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "FeatureOptionID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "FromDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ToDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "WellBoreArchitectureFeatureCategory": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsExclusive": {
+            "type": "boolean"
+          },
+          "HasValidityPeriod": {
+            "type": "boolean"
+          },
+          "Options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WellBoreArchitectureFeatureOption"
+            },
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "WellBoreArchitectureFeatureOption": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "WellBoreArchitectureFluid": {
         "type": "object",
         "properties": {
@@ -8915,6 +10642,46 @@
           },
           "Depth": {
             "$ref": "#/components/schemas/GaussianDrillingProperty"
+          }
+        }
+      },
+      "WellBoreArchitectureIdentity": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "WellBoreArchitectureIdentityAssignment": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "IdentityID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "Value": {
+            "type": "string",
+            "nullable": true
           }
         }
       },

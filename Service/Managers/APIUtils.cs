@@ -96,8 +96,7 @@ public static class APIUtils
                             slot.Latitude.GaussianValue.StandardDeviation is { } refLatStd &&
                             slot.Longitude?.GaussianValue?.Mean is { } refLon &&
                             slot.Longitude.GaussianValue.StandardDeviation is { } refLonStd &&
-                            cluster.ReferenceDepth?.GaussianValue?.Mean is { } refTVD &&
-                            cluster.ReferenceDepth.GaussianValue.StandardDeviation is { } refTVDStd)
+                            (cluster.ReferencePoint?.TVD ?? cluster.ReferencePoint?.Z) is { } refTVD)
                         {
                             msg = "cluster, slot, and wellbore successfully retrieved";
                             SurveyStation surveyPoint = new SurveyStation();
@@ -108,7 +107,7 @@ public static class APIUtils
                             surveyPoint.Abscissa = refTVD;
                             surveyPoint.Inclination = 0;
                             surveyPoint.Azimuth = 0;
-                            surveyPoint.Covariance = CreateWellheadCovariance(refLat, refLon, refLatStd, refLonStd, refTVDStd);
+                            surveyPoint.Covariance = CreateWellheadCovariance(refLat, refLon, refLatStd, refLonStd, 0.0);
                             return (surveyPoint, wellBore, msg);
                         }
                         else

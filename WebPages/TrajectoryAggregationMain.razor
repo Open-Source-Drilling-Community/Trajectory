@@ -115,7 +115,7 @@
             var wellTask = Api.ClientWell.GetAllWellAsync();
             var clusterTask = Api.ClientCluster.GetAllClusterAsync();
             var fieldTask = Api.ClientField.GetAllFieldAsync();
-            var rigTask = Api.ClientRig.GetAllRigAsync();
+            var rigTask = Api.GetAllRigReferencesAsync();
 
             await Task.WhenAll(aggregationTask, trajectoryTask, wellBoreTask, wellTask, clusterTask, fieldTask, rigTask);
 

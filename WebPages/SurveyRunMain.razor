@@ -772,7 +772,7 @@
             var clusterTask = Api.ClientCluster.GetAllClusterAsync();
             var wellTask = Api.ClientWell.GetAllWellAsync();
             var wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
-            var rigTask = Api.ClientRig.GetAllRigAsync();
+            var rigTask = Api.GetAllRigReferencesAsync();
             var surveyInstrumentTask = Api.ClientSurveyInstrument.GetAllSurveyInstrumentLightAsync();
             var surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
             var surveyRunHeavyTask = Api.ClientTrajectory.GetAllSurveyRunAsync();

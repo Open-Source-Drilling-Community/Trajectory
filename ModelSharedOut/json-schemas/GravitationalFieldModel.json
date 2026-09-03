@@ -1,82 +1,77 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "ModelShared (Service)",
-    "description": "Data model containing model dependencies of the clients of the current microservice (WebApp, ServiceTest)",
+    "title": "OSDC Earth Gravity distributed shared model",
+    "description": "Generated API client and DTO contract consumed by WebPages and ServiceTest.",
     "version": "1.0"
   },
   "paths": {
-    "/GravitationalField": {
+    "/EarthGravity": {
       "get": {
         "tags": [
-          "GravitationalField"
+          "EarthGravity"
         ],
-        "operationId": "GetAllGravitationalFieldId",
+        "summary": "Returns the loaded EGM96 model information for service discovery.",
+        "description": "This is the microservice entry endpoint. It returns the same model identity and provenance as the ModelInfo endpoint.",
+        "operationId": "GetEarthGravityEntry",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "format": "uuid",
-                    "nullable": true
-                  }
+                  "$ref": "#/components/schemas/EarthGravityModelInfo"
                 }
               }
             }
           }
         }
-      },
+      }
+    },
+    "/EarthGravity/Evaluate": {
       "post": {
         "tags": [
-          "GravitationalField"
+          "EarthGravity"
         ],
-        "operationId": "PostGravitationalField",
+        "summary": "Synchronously evaluates EGM96 total gravity for WGS84 positions expressed in OSDC SI units.",
+        "description": "This operation is stateless. Latitude and longitude are radians. Depth is metres, positive downward from the WGS84 reference ellipsoid. Gravity is returned in the local north-east-down frame. The complete request is rejected if any position is invalid.",
+        "operationId": "EvaluateEarthGravity",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/GravitationalField"
+                "$ref": "#/components/schemas/EarthGravityEvaluationRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/GravitationalField"
+                "$ref": "#/components/schemas/EarthGravityEvaluationRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/GravitationalField"
+                "$ref": "#/components/schemas/EarthGravityEvaluationRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/GravitationalField/MetaInfo": {
-      "get": {
-        "tags": [
-          "GravitationalField"
-        ],
-        "operationId": "GetAllGravitationalFieldMetaInfo",
-        "responses": {
-          "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/MetaInfo"
-                  }
+                  "$ref": "#/components/schemas/EarthGravityEvaluationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EarthGravityValidationProblem"
                 }
               }
             }
@@ -84,116 +79,20 @@
         }
       }
     },
-    "/GravitationalField/{id}": {
+    "/EarthGravity/ModelInfo": {
       "get": {
         "tags": [
-          "GravitationalField"
+          "EarthGravity"
         ],
-        "operationId": "GetGravitationalFieldById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
+        "summary": "Returns the loaded EGM96 model identity, provenance, degree, order, runtime version, and coefficient hash.",
+        "operationId": "GetEarthGravityModelInfo",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/GravitationalField"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "GravitationalField"
-        ],
-        "operationId": "PutGravitationalFieldById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GravitationalField"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GravitationalField"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/GravitationalField"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "GravitationalField"
-        ],
-        "operationId": "DeleteGravitationalFieldById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/GravitationalField/HeavyData": {
-      "get": {
-        "tags": [
-          "GravitationalField"
-        ],
-        "operationId": "GetAllGravitationalField",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GravitationalField"
-                  }
+                  "$ref": "#/components/schemas/EarthGravityModelInfo"
                 }
               }
             }
@@ -201,248 +100,20 @@
         }
       }
     },
-    "/GravitationalField/Completed": {
+    "/EarthGravityUsageStatistics": {
       "get": {
         "tags": [
-          "GravitationalField"
+          "EarthGravityUsageStatistics"
         ],
-        "operationId": "GetAllCompletedGravitationalField",
-        "parameters": [
-          {
-            "name": "completedBool",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
+        "summary": "Returns cumulative usage counters persisted by this service. This operation is intentionally not exposed as an MCP tool.",
+        "operationId": "GetEarthGravityUsageStatistics",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GravitationalField"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/GravitationalFieldCalculationOrder": {
-      "get": {
-        "tags": [
-          "GravitationalFieldCalculationOrder"
-        ],
-        "operationId": "GetAllGravitationalFieldCalculationOrderId",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "format": "uuid"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "GravitationalFieldCalculationOrder"
-        ],
-        "operationId": "PostGravitationalFieldCalculationOrder",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/GravitationalFieldCalculationOrder/MetaInfo": {
-      "get": {
-        "tags": [
-          "GravitationalFieldCalculationOrder"
-        ],
-        "operationId": "GetAllGravitationalFieldCalculationOrderMetaInfo",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/MetaInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/GravitationalFieldCalculationOrder/{id}": {
-      "get": {
-        "tags": [
-          "GravitationalFieldCalculationOrder"
-        ],
-        "operationId": "GetGravitationalFieldCalculationOrderById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "GravitationalFieldCalculationOrder"
-        ],
-        "operationId": "PutGravitationalFieldCalculationOrderById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "GravitationalFieldCalculationOrder"
-        ],
-        "operationId": "DeleteGravitationalFieldCalculationOrderById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/GravitationalFieldCalculationOrder/LightData": {
-      "get": {
-        "tags": [
-          "GravitationalFieldCalculationOrder"
-        ],
-        "operationId": "GetAllGravitationalFieldCalculationOrderLight",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GravitationalFieldCalculationOrderLight"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/GravitationalFieldCalculationOrder/HeavyData": {
-      "get": {
-        "tags": [
-          "GravitationalFieldCalculationOrder"
-        ],
-        "operationId": "GetAllGravitationalFieldCalculationOrder",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/GravitationalFieldCalculationOrder"
-                  }
+                  "$ref": "#/components/schemas/UsageStatisticsEarthGravity"
                 }
               }
             }
@@ -453,157 +124,242 @@
   },
   "components": {
     "schemas": {
-      "GravitationalData": {
+      "EarthGravityEvaluationRequest": {
+        "required": [
+          "Positions"
+        ],
         "type": "object",
         "properties": {
-          "Lattitude": {
+          "Positions": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EarthGravityPosition"
+            },
+            "description": "Positions to evaluate. The entire request is rejected when any item is invalid."
+          }
+        },
+        "description": "A stateless synchronous EGM96 evaluation request."
+      },
+      "EarthGravityEvaluationResponse": {
+        "type": "object",
+        "properties": {
+          "Model": {
+            "$ref": "#/components/schemas/EarthGravityModelInfo"
+          },
+          "Samples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EarthGravitySample"
+            },
+            "nullable": true
+          }
+        },
+        "description": "EGM96 results in the same order as the request positions."
+      },
+      "EarthGravityModelInfo": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "ID": {
+            "type": "string",
+            "nullable": true
+          },
+          "Publisher": {
+            "type": "string",
+            "nullable": true
+          },
+          "ReleaseDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "DataVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "Degree": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "GeographicLibVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "ReferenceEllipsoid": {
+            "type": "string",
+            "nullable": true
+          },
+          "IncludesCentrifugalAcceleration": {
+            "type": "boolean"
+          },
+          "CoefficientSHA256": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "description": "Identity and provenance of the Earth gravity model used for an evaluation."
+      },
+      "EarthGravityPosition": {
+        "type": "object",
+        "properties": {
+          "Latitude": {
+            "maximum": 1.5707963267948966,
+            "minimum": -1.5707963267948966,
             "type": "number",
+            "description": "WGS84 geodetic latitude in SI radians, between -π/2 and π/2.",
             "format": "double"
           },
           "Longitude": {
+            "maximum": 3.141592653589793,
+            "minimum": -3.141592653589793,
             "type": "number",
+            "description": "WGS84 geodetic longitude in SI radians, between -π and π.",
             "format": "double"
           },
           "Depth": {
             "type": "number",
+            "description": "Depth in SI metres, positive downward, with zero at the WGS84 reference ellipsoid. A negative value is above the ellipsoid. This is not a mean-sea-level, geoid, seabed, rig, or local-datum depth.",
             "format": "double"
+          }
+        },
+        "description": "A position referred to the WGS84 reference ellipsoid and expressed using OSDC SI conventions."
+      },
+      "EarthGravitySample": {
+        "type": "object",
+        "properties": {
+          "Position": {
+            "$ref": "#/components/schemas/EarthGravityPosition"
           },
-          "GravitatyIntensityX": {
-            "type": "number",
-            "format": "double",
+          "Gravity": {
+            "$ref": "#/components/schemas/EarthGravityVector"
+          }
+        },
+        "description": "An evaluated WGS84 position and its corresponding EGM96 gravity vector."
+      },
+      "EarthGravityValidationError": {
+        "type": "object",
+        "properties": {
+          "PositionIndex": {
+            "type": "integer",
+            "format": "int32",
             "nullable": true
           },
-          "GravitatyIntensityY": {
-            "type": "number",
-            "format": "double",
+          "Property": {
+            "type": "string",
             "nullable": true
           },
-          "GravitatyIntensityZ": {
-            "type": "number",
-            "format": "double",
+          "Code": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
             "nullable": true
           }
         }
       },
-      "GravitationalField": {
+      "EarthGravityValidationProblem": {
         "type": "object",
         "properties": {
-          "MetaInfo": {
-            "$ref": "#/components/schemas/MetaInfo"
-          },
-          "Name": {
+          "Error": {
             "type": "string",
             "nullable": true
           },
-          "Description": {
+          "Message": {
             "type": "string",
             "nullable": true
           },
-          "CreationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "LastModificationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "Type": {
-            "$ref": "#/components/schemas/GravitationalFieldType"
-          },
-          "GravitationalDataTable": {
+          "Errors": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/GravitationalData"
+              "$ref": "#/components/schemas/EarthGravityValidationError"
             },
             "nullable": true
           }
-        }
+        },
+        "description": "Details returned when an evaluation request is rejected atomically."
       },
-      "GravitationalFieldCalculationOrder": {
+      "EarthGravityVector": {
         "type": "object",
         "properties": {
-          "MetaInfo": {
-            "$ref": "#/components/schemas/MetaInfo"
+          "North": {
+            "type": "number",
+            "description": "Northerly acceleration component in SI metres per second squared.",
+            "format": "double"
           },
-          "Name": {
-            "type": "string",
-            "nullable": true
+          "East": {
+            "type": "number",
+            "description": "Easterly acceleration component in SI metres per second squared.",
+            "format": "double"
           },
-          "Description": {
-            "type": "string",
-            "nullable": true
+          "Down": {
+            "type": "number",
+            "description": "Downward acceleration component in SI metres per second squared; normally positive.",
+            "format": "double"
           },
-          "CreationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
+          "Magnitude": {
+            "type": "number",
+            "description": "Magnitude of the gravity vector in SI metres per second squared.",
+            "format": "double",
+            "readOnly": true
           },
-          "LastModificationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "RawGravitationalField": {
-            "$ref": "#/components/schemas/GravitationalField"
-          },
-          "CompletedGravitationalField": {
-            "$ref": "#/components/schemas/GravitationalField"
+          "TotalPotential": {
+            "type": "number",
+            "description": "Total gravitational plus centrifugal potential in SI square metres per square second.",
+            "format": "double"
           }
-        }
+        },
+        "description": "Total gravity acceleration in the local north-east-down frame."
       },
-      "GravitationalFieldCalculationOrderLight": {
+      "UsageStatisticsEarthGravity": {
         "type": "object",
         "properties": {
-          "MetaInfo": {
-            "$ref": "#/components/schemas/MetaInfo"
-          },
-          "Name": {
-            "type": "string",
-            "nullable": true
-          },
-          "Description": {
-            "type": "string",
-            "nullable": true
-          },
-          "CreationDate": {
+          "StartedAt": {
             "type": "string",
             "format": "date-time",
-            "nullable": true
+            "readOnly": true
           },
-          "LastModificationDate": {
+          "Scope": {
             "type": "string",
-            "format": "date-time",
-            "nullable": true
-          }
-        }
-      },
-      "GravitationalFieldType": {
-        "enum": [
-          "Raw",
-          "Completed"
-        ],
-        "type": "string"
-      },
-      "MetaInfo": {
-        "type": "object",
-        "properties": {
-          "ID": {
-            "type": "string",
-            "format": "uuid"
+            "nullable": true,
+            "readOnly": true
           },
-          "HttpHostName": {
-            "type": "string",
-            "nullable": true
+          "RestEvaluations": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
           },
-          "HttpHostBasePath": {
-            "type": "string",
-            "nullable": true
+          "MCPEvaluations": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
           },
-          "HttpEndPoint": {
-            "type": "string",
-            "nullable": true
+          "FailedEvaluations": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "PositionsEvaluated": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "ModelInfoRequests": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "StatisticsRequests": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
           }
         }
       }

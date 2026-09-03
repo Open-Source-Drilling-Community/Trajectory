@@ -74,6 +74,20 @@ public class TrajectoryAPIUtils : APIUtils, ITrajectoryAPIUtils
     public HttpClient HttpClientRig { get; }
     public Client ClientRig { get; }
 
+    public async Task<ICollection<Rig>> GetAllRigReferencesAsync(CancellationToken cancellationToken = default)
+    {
+        List<RigReadResponse> rigs = await ClientRig.GetAllRigAsync(cancellationToken: cancellationToken);
+        return rigs.Select(rig => new Rig
+        {
+            MetaInfo = rig.MetaInfo,
+            Name = rig.Name,
+            Description = rig.Description,
+            CreationDate = rig.CreationDate,
+            LastModificationDate = rig.LastModificationDate,
+            DrillFloorElevation = rig.DrillFloorElevation
+        }).ToList();
+    }
+
     public string HostNameWell { get; }
     public string HostBasePathWell { get; } = "Well/api/";
     public HttpClient HttpClientWell { get; }

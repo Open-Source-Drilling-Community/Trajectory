@@ -1,8 +1,8 @@
 {
   "openapi": "3.0.3",
   "info": {
-    "title": "ModelShared (Service)",
-    "description": "Data model containing model dependencies of the clients of the current microservice (WebApp, ServiceTest)",
+    "title": "OSDC Earth Magnetic Field distributed shared model",
+    "description": "Generated API client and DTO contract consumed by WebPages and ServiceTest.",
     "version": "1.0"
   },
   "paths": {
@@ -11,72 +11,87 @@
         "tags": [
           "EarthMagneticField"
         ],
-        "operationId": "GetAllEarthMagneticFieldId",
+        "summary": "Returns installed model information and public conventions for service discovery.",
+        "operationId": "GetEarthMagneticFieldEntry",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "format": "uuid",
-                    "nullable": true
-                  }
+                  "$ref": "#/components/schemas/EarthMagneticFieldServiceInfo"
                 }
               }
             }
           }
         }
-      },
+      }
+    },
+    "/EarthMagneticField/Evaluate": {
       "post": {
         "tags": [
           "EarthMagneticField"
         ],
-        "operationId": "PostEarthMagneticField",
+        "summary": "Synchronously evaluates WMM2025 or IGRF14 at a batch of WGS84 positions and UTC instants.",
+        "description": "This operation is stateless. Latitude/longitude use SI radians, depth is metres positive downward from WGS84, UTC is mandatory, and results use north-east-down teslas with angles in radians. One invalid sample rejects the complete request.",
+        "operationId": "EvaluateEarthMagneticField",
         "requestBody": {
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EarthMagneticField"
+                "$ref": "#/components/schemas/EvaluateEarthMagneticFieldRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/EarthMagneticField"
+                "$ref": "#/components/schemas/EvaluateEarthMagneticFieldRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/EarthMagneticField"
+                "$ref": "#/components/schemas/EvaluateEarthMagneticFieldRequest"
               }
             }
           }
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluateEarthMagneticFieldResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EarthMagneticFieldValidationProblem"
+                }
+              }
+            }
           }
         }
       }
     },
-    "/EarthMagneticField/MetaInfo": {
+    "/EarthMagneticField/ModelInfo": {
       "get": {
         "tags": [
           "EarthMagneticField"
         ],
-        "operationId": "GetAllEarthMagneticFieldMetaInfo",
+        "summary": "Returns WMM2025 and IGRF14 identities, validity bounds, conventions, and coefficient hashes.",
+        "operationId": "GetEarthMagneticFieldModelInfo",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/MetaInfo"
-                  }
+                  "$ref": "#/components/schemas/EarthMagneticFieldServiceInfo"
                 }
               }
             }
@@ -84,365 +99,20 @@
         }
       }
     },
-    "/EarthMagneticField/{id}": {
+    "/EarthMagneticFieldUsageStatistics": {
       "get": {
         "tags": [
-          "EarthMagneticField"
+          "EarthMagneticFieldUsageStatistics"
         ],
-        "operationId": "GetEarthMagneticFieldById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
+        "summary": "Returns cumulative usage counters persisted by this service. This operation is intentionally not exposed as an MCP tool.",
+        "operationId": "GetEarthMagneticFieldUsageStatistics",
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EarthMagneticField"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "EarthMagneticField"
-        ],
-        "operationId": "PutEarthMagneticFieldById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EarthMagneticField"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EarthMagneticField"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/EarthMagneticField"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "EarthMagneticField"
-        ],
-        "operationId": "DeleteEarthMagneticFieldById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/EarthMagneticField/HeavyData": {
-      "get": {
-        "tags": [
-          "EarthMagneticField"
-        ],
-        "operationId": "GetAllEarthMagneticField",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EarthMagneticField"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/EarthMagneticField/Completed": {
-      "get": {
-        "tags": [
-          "EarthMagneticField"
-        ],
-        "operationId": "GetAllCompletedEarthMagneticField",
-        "parameters": [
-          {
-            "name": "isCompleted",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EarthMagneticField"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/EarthMagneticFieldCalculationOrder": {
-      "get": {
-        "tags": [
-          "EarthMagneticFieldCalculationOrder"
-        ],
-        "operationId": "GetAllEarthMagneticFieldCalculationOrderId",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "format": "uuid"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "EarthMagneticFieldCalculationOrder"
-        ],
-        "operationId": "PostEarthMagneticFieldCalculationOrder",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EarthMagneticFieldCalculationOrder"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EarthMagneticFieldCalculationOrder"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/EarthMagneticFieldCalculationOrder"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/EarthMagneticFieldCalculationOrder/MetaInfo": {
-      "get": {
-        "tags": [
-          "EarthMagneticFieldCalculationOrder"
-        ],
-        "operationId": "GetAllEarthMagneticFieldCalculationOrderMetaInfo",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/MetaInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/EarthMagneticFieldCalculationOrder/{id}": {
-      "get": {
-        "tags": [
-          "EarthMagneticFieldCalculationOrder"
-        ],
-        "operationId": "GetEarthMagneticFieldCalculationOrderById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/EarthMagneticFieldCalculationOrder"
-                }
-              }
-            }
-          }
-        }
-      },
-      "put": {
-        "tags": [
-          "EarthMagneticFieldCalculationOrder"
-        ],
-        "operationId": "PutEarthMagneticFieldCalculationOrderById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EarthMagneticFieldCalculationOrder"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/EarthMagneticFieldCalculationOrder"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/EarthMagneticFieldCalculationOrder"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      },
-      "delete": {
-        "tags": [
-          "EarthMagneticFieldCalculationOrder"
-        ],
-        "operationId": "DeleteEarthMagneticFieldCalculationOrderById",
-        "parameters": [
-          {
-            "name": "id",
-            "in": "path",
-            "required": true,
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        }
-      }
-    },
-    "/EarthMagneticFieldCalculationOrder/LightData": {
-      "get": {
-        "tags": [
-          "EarthMagneticFieldCalculationOrder"
-        ],
-        "operationId": "GetAllEarthMagneticFieldCalculationOrderLight",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EarthMagneticFieldCalculationOrderLight"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/EarthMagneticFieldCalculationOrder/HeavyData": {
-      "get": {
-        "tags": [
-          "EarthMagneticFieldCalculationOrder"
-        ],
-        "operationId": "GetAllEarthMagneticFieldCalculationOrder",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/EarthMagneticFieldCalculationOrder"
-                  }
+                  "$ref": "#/components/schemas/UsageStatisticsEarthMagneticField"
                 }
               }
             }
@@ -453,53 +123,96 @@
   },
   "components": {
     "schemas": {
-      "EarthMagneticData": {
+      "EarthMagneticFieldEvaluationPoint": {
+        "required": [
+          "DateTimeUtc"
+        ],
         "type": "object",
         "properties": {
           "Latitude": {
+            "maximum": 1.5707963267948966,
+            "minimum": -1.5707963267948966,
             "type": "number",
+            "description": "WGS84 geodetic latitude in SI radians, between -π/2 and π/2.",
             "format": "double"
           },
           "Longitude": {
+            "maximum": 3.141592653589793,
+            "minimum": -3.141592653589793,
             "type": "number",
+            "description": "WGS84 geodetic longitude in SI radians, between -π and π.",
             "format": "double"
           },
           "Depth": {
             "type": "number",
+            "description": "Depth in SI metres, positive downward from the WGS84 reference ellipsoid.",
             "format": "double"
           },
-          "Year": {
+          "DateTimeUtc": {
+            "type": "string",
+            "description": "UTC evaluation instant. JSON input must contain Z or the equivalent +00:00 offset.",
+            "format": "date-time"
+          }
+        },
+        "description": "A WGS84 position and UTC instant at which to evaluate the magnetic field."
+      },
+      "EarthMagneticFieldModel": {
+        "enum": [
+          "WMM2025",
+          "IGRF14"
+        ],
+        "type": "string",
+        "description": "Geomagnetic reference model used for an evaluation batch."
+      },
+      "EarthMagneticFieldSample": {
+        "type": "object",
+        "properties": {
+          "Input": {
+            "$ref": "#/components/schemas/EarthMagneticFieldEvaluationPoint"
+          },
+          "North": {
             "type": "number",
+            "description": "Northerly magnetic-flux-density component in SI teslas.",
             "format": "double"
           },
-          "Dip": {
+          "East": {
             "type": "number",
-            "format": "double",
-            "nullable": true
+            "description": "Easterly magnetic-flux-density component in SI teslas.",
+            "format": "double"
           },
-          "FieldIntensity": {
+          "Down": {
             "type": "number",
-            "format": "double",
-            "nullable": true
+            "description": "Downward magnetic-flux-density component in SI teslas.",
+            "format": "double"
+          },
+          "HorizontalIntensity": {
+            "type": "number",
+            "description": "Horizontal magnetic-flux-density magnitude in SI teslas.",
+            "format": "double"
+          },
+          "TotalIntensity": {
+            "type": "number",
+            "description": "Total magnetic-flux-density magnitude in SI teslas.",
+            "format": "double"
           },
           "Declination": {
             "type": "number",
+            "description": "Declination in SI radians, positive east of geodetic north; null when horizontal intensity is zero.",
             "format": "double",
             "nullable": true
           },
-          "HorizontalMagneticField": {
+          "Inclination": {
             "type": "number",
+            "description": "Inclination in SI radians, positive downward from horizontal; null when total intensity is zero.",
             "format": "double",
             "nullable": true
           }
-        }
+        },
+        "description": "A geomagnetic-field result in the public north-east-down frame."
       },
-      "EarthMagneticField": {
+      "EarthMagneticFieldServiceInfo": {
         "type": "object",
         "properties": {
-          "MetaInfo": {
-            "$ref": "#/components/schemas/MetaInfo"
-          },
           "Name": {
             "type": "string",
             "nullable": true
@@ -508,121 +221,238 @@
             "type": "string",
             "nullable": true
           },
-          "CreationDate": {
+          "CoordinateFrame": {
             "type": "string",
-            "format": "date-time",
             "nullable": true
           },
-          "LastModificationDate": {
+          "TimeConvention": {
             "type": "string",
-            "format": "date-time",
             "nullable": true
           },
-          "EarthMagneticFieldData": {
+          "DepthReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "DepthPositiveDirection": {
+            "type": "string",
+            "nullable": true
+          },
+          "Models": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EarthMagneticData"
+              "$ref": "#/components/schemas/EarthMagneticModelInfo"
             },
             "nullable": true
+          }
+        },
+        "description": "Installed models and public conventions of the stateless service."
+      },
+      "EarthMagneticFieldValidationError": {
+        "type": "object",
+        "properties": {
+          "SampleIndex": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
           },
-          "Type": {
-            "$ref": "#/components/schemas/EarthMagneticFieldType"
+          "Property": {
+            "type": "string",
+            "nullable": true
+          },
+          "Code": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
-      "EarthMagneticFieldCalculationMethod": {
-        "enum": [
-          "WMM2025",
-          "IGRJ14"
-        ],
-        "type": "string"
-      },
-      "EarthMagneticFieldCalculationOrder": {
+      "EarthMagneticFieldValidationProblem": {
         "type": "object",
         "properties": {
-          "MetaInfo": {
-            "$ref": "#/components/schemas/MetaInfo"
+          "Error": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          },
+          "Errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EarthMagneticFieldValidationError"
+            },
+            "nullable": true
+          }
+        },
+        "description": "Details returned when an evaluation request is rejected atomically."
+      },
+      "EarthMagneticModelInfo": {
+        "type": "object",
+        "properties": {
+          "Model": {
+            "$ref": "#/components/schemas/EarthMagneticFieldModel"
           },
           "Name": {
             "type": "string",
             "nullable": true
           },
-          "Description": {
-            "type": "string",
-            "nullable": true
-          },
-          "CreationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "LastModificationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "CalculationMethod": {
-            "$ref": "#/components/schemas/EarthMagneticFieldCalculationMethod"
-          },
-          "RawEarthMagneticFieldTable": {
-            "$ref": "#/components/schemas/EarthMagneticField"
-          },
-          "CompletedEarthMagneticFieldTable": {
-            "$ref": "#/components/schemas/EarthMagneticField"
-          }
-        }
-      },
-      "EarthMagneticFieldCalculationOrderLight": {
-        "type": "object",
-        "properties": {
-          "MetaInfo": {
-            "$ref": "#/components/schemas/MetaInfo"
-          },
-          "Name": {
-            "type": "string",
-            "nullable": true
-          },
-          "Description": {
-            "type": "string",
-            "nullable": true
-          },
-          "CreationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          },
-          "LastModificationDate": {
-            "type": "string",
-            "format": "date-time",
-            "nullable": true
-          }
-        }
-      },
-      "EarthMagneticFieldType": {
-        "enum": [
-          "Raw",
-          "Completed"
-        ],
-        "type": "string"
-      },
-      "MetaInfo": {
-        "type": "object",
-        "properties": {
           "ID": {
             "type": "string",
-            "format": "uuid"
+            "nullable": true
           },
-          "HttpHostName": {
+          "Description": {
             "type": "string",
             "nullable": true
           },
-          "HttpHostBasePath": {
+          "ReleaseDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "MinimumUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "MaximumUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "MinimumDepth": {
+            "type": "number",
+            "format": "double"
+          },
+          "MaximumDepth": {
+            "type": "number",
+            "format": "double"
+          },
+          "Degree": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "GeographicLibVersion": {
             "type": "string",
             "nullable": true
           },
-          "HttpEndPoint": {
+          "ReferenceEllipsoid": {
             "type": "string",
             "nullable": true
+          },
+          "CoordinateFrame": {
+            "type": "string",
+            "nullable": true
+          },
+          "MagneticFluxDensityUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "AngleUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "DepthPositiveDirection": {
+            "type": "string",
+            "nullable": true
+          },
+          "ConcurrentEvaluationEnabled": {
+            "type": "boolean"
+          },
+          "MetadataSHA256": {
+            "type": "string",
+            "nullable": true
+          },
+          "CoefficientSHA256": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "description": "Identity, validity, and provenance of one installed geomagnetic reference model."
+      },
+      "EvaluateEarthMagneticFieldRequest": {
+        "required": [
+          "Samples"
+        ],
+        "type": "object",
+        "properties": {
+          "Model": {
+            "$ref": "#/components/schemas/EarthMagneticFieldModel"
+          },
+          "Samples": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EarthMagneticFieldEvaluationPoint"
+            },
+            "description": "Evaluation points. Any invalid sample rejects the complete request."
+          }
+        },
+        "description": "A stateless synchronous geomagnetic-field evaluation request."
+      },
+      "EvaluateEarthMagneticFieldResponse": {
+        "type": "object",
+        "properties": {
+          "Model": {
+            "$ref": "#/components/schemas/EarthMagneticModelInfo"
+          },
+          "Samples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EarthMagneticFieldSample"
+            },
+            "nullable": true
+          }
+        },
+        "description": "Geomagnetic results in the same order as the request samples."
+      },
+      "UsageStatisticsEarthMagneticField": {
+        "type": "object",
+        "properties": {
+          "StartedAt": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "Scope": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "RestEvaluations": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "MCPEvaluations": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "FailedEvaluations": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "SamplesEvaluated": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "ModelInfoRequests": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "StatisticsRequests": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
           }
         }
       }

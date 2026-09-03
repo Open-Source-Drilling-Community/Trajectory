@@ -174,7 +174,7 @@
 
             // Starting all loading tasks asynchronously
             logger.LogInformation("Trying to load list of rigs from client: " + Api.HttpClientRig);
-            var rigTask = Api.ClientRig.GetAllRigAsync();
+            var rigTask = Api.GetAllRigReferencesAsync();
             logger.LogInformation("Trying to load list of fields from client: " + Api.HttpClientField);
             var fieldTask = Api.ClientField.GetAllFieldAsync();
             logger.LogInformation("Trying to load list of clusters from client: " + Api.HttpClientCluster);

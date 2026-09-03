@@ -35,6 +35,12 @@ namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
             else
                 return type.Name;
         }
+        private static Type ReturnBaseSystemType(Type type)
+        {
+            return type.GenericTypeArguments.Length > 0
+                ? ReturnBaseSystemType(type.GenericTypeArguments[0])
+                : type;
+        }
         private static string ReturnFullType(Type type)
         {
             if (type.GenericTypeArguments.Length > 0)
@@ -76,6 +82,9 @@ namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
                 string iCollectionString = "ICollection";
                 string listString = "List";
                 string updatedMergedModel = fileContent.Replace(iCollectionString, listString);
+                updatedMergedModel = updatedMergedModel.Replace(
+                    "new System.Collections.ObjectModel.Collection<",
+                    "new System.Collections.Generic.List<");
                 File.WriteAllText(filePath, updatedMergedModel);
                 Console.ForegroundColor = ConsoleColor.Green;
                 Console.WriteLine("✓ Update of MergedModel namespace succeeded!");
@@ -213,6 +222,7 @@ namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
                         q.Name != "ApiException" &&
                         q.Name != "ApiException`1" &&
                         q.Name != "MetaInfo" &&
+                        q.GetConstructor(Type.EmptyTypes) != null &&
                         !q.Name.Contains("Light"))
                     {
                         //Create constructor method for given object
@@ -221,12 +231,13 @@ namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
                         string propertiesText = "";
                         foreach (var p in q.GetProperties())
                         {
-                            if (p.Name != "AdditionalProperties")
+                            if (p.Name != "AdditionalProperties" && p.SetMethod?.IsPublic == true)
                             {
                                 //Get the namespce of the properties
                                 isFromNamespace = (p.ToString()!.Contains(NAMESPACE));
                                 //Check if it is an enum
-                                bool isEnum = (p.PropertyType.BaseType != null) ? (p.PropertyType.BaseType.ToString() == "System.Enum") : false;
+                                Type baseSystemType = ReturnBaseSystemType(p.PropertyType);
+                                bool isEnum = baseSystemType.IsEnum;
                                 // Extract property name from the class.
                                 string propertyName = IDENTATION + p.Name + " = ";
                                 //  defaultValueString containts the lowest level of the default value. If p is of type
@@ -243,7 +254,8 @@ namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
                                 if (isEnum)
                                 {
                                     //The value is set to the first enum option
-                                    defaultValueString = $"({propTypeName})0,";
+                                    string enumTypeName = listStacks > 0 ? propBaseName : propTypeName;
+                                    defaultValueString = $"({enumTypeName})0,";
                                 }
                                 else
                                 {
