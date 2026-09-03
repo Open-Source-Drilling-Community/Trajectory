@@ -16,6 +16,10 @@ var builder = WebApplication.CreateBuilder(args);
 // registering the managers of SQLite connections through dependency injection
 builder.Services.AddSingleton<SqlConnectionManagerTrajectory>();
 builder.Services.AddSingleton<SqlConnectionManager>(sp => sp.GetRequiredService<SqlConnectionManagerTrajectory>());
+builder.Services.AddSingleton<SqlConnectionManagerTrajectoryCatalog>();
+builder.Services.AddSingleton<TrajectoryIdentityManager>();
+builder.Services.AddSingleton<TrajectoryFeatureCategoryManager>();
+builder.Services.AddSingleton<TrajectoryAssignmentValidator>();
 builder.Services.AddSingleton<SqlConnectionManagerSeparationFactorResults>();
 builder.Services.AddSingleton<SqlConnectionManagerOctree>();
 

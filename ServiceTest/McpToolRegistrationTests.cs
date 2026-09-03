@@ -11,7 +11,7 @@ public sealed class McpToolRegistrationTests
     {
         var endpoints = TrajectoryRestMcpToolRegistrations.Endpoints;
 
-        Assert.That(endpoints, Has.Count.EqualTo(104));
+        Assert.That(endpoints, Has.Count.EqualTo(118));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Is.Unique);
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("."));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("usage_statistics"));
@@ -79,6 +79,25 @@ public sealed class McpToolRegistrationTests
         {
             Assert.That(properties["includeCalculatedStations"]?["default"]?.GetValue<bool>(), Is.False);
             Assert.That(endpoint.Description, Does.Contain("large calculated arrays"));
+        });
+    }
+
+    [Test]
+    public void Shared_identity_and_feature_catalog_tools_expose_concurrency_and_assignment_schemas()
+    {
+        TrajectoryMcpEndpoint identityUpdate = Endpoint("trajectory_identity_put");
+        TrajectoryMcpEndpoint categoryCreate = Endpoint("trajectory_feature_category_post");
+        TrajectoryMcpEndpoint trajectoryCreate = Endpoint("trajectory_post_trajectory");
+        string trajectorySchema = trajectoryCreate.InputSchema!.ToJsonString();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(identityUpdate.Description, Does.Contain("expectedModifiedUtc"));
+            Assert.That(identityUpdate.InputSchema!["required"]!.AsArray().Select(value => value!.GetValue<string>()), Does.Contain("expectedModifiedUtc"));
+            Assert.That(categoryCreate.InputSchema!.ToJsonString(), Does.Contain("HasValidityPeriod"));
+            Assert.That(categoryCreate.InputSchema!.ToJsonString(), Does.Contain("Options"));
+            Assert.That(trajectorySchema, Does.Contain("TrajectoryIdentityAssignments"));
+            Assert.That(trajectorySchema, Does.Contain("TrajectoryFeatureAssignments"));
         });
     }
 

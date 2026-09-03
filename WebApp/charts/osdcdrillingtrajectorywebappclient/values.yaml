@@ -8,6 +8,21 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: "stable"
 imagePullSecrets: []
+serviceUrls:
+  TrajectoryHostURL: "http://osdctrajectoryservice/"
+  RigHostURL: "http://osdcrigservice/"
+  ClusterHostURL: "http://osdcclusterservice/"
+  FieldHostURL: "http://osdcfieldservice/"
+  WellHostURL: "http://osdcwellservice/"
+  WellBoreHostURL: "http://osdcwellboreservice/"
+  WellBoreArchitectureHostURL: "http://osdcwellborearchitectureservice/"
+  CartographicProjectionHostURL: "http://osdcearthcartographicprojectionservice/"
+  GeodeticDatumHostURL: "http://osdcearthgeodesyservice/"
+  UnitConversionHostURL: "http://osdcunitconversionservice/"
+  SurveyInstrumentHostURL: "http://osdcsurveyinstrumentservice/"
+  EarthMagneticFieldHostURL: "http://osdcearthmagneticfieldservice/"
+  GravitationalFieldHostURL: "http://osdcearthgravityservice/"
+  VerticalDatumHostURL: "http://osdcearthverticaldatumservice/"
 nameOverride: "osdcdrillingtrajectorywebappclient"
 fullnameOverride: "osdctrajectorywebappclient"
 serviceAccount:
@@ -38,12 +53,12 @@ ingress:
   className: public
   annotations:
     # nginx-ingress: Enable regex path matching for case-insensitive routing
-    # This allows /SurveyInstrument/webapp to match the same route as /surveyinstrument/webapp
+    # This allows /Trajectory/webapp to match the same route as /trajectory/webapp
     nginx.ingress.kubernetes.io/use-regex: "true"
   hosts:
     - host: localhost
       paths:
-        # Regex pattern matches /surveyinstrument/webapp or /SurveyInstrument/webapp, etc.
+        # Regex pattern matches /trajectory/webapp or /Trajectory/webapp, etc.
         - path: /(?i)trajectory/webapp
           pathType: ImplementationSpecific
     - host: dev.digiwells.no

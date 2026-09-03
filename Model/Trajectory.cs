@@ -12,6 +12,10 @@ namespace OSDC.Drilling.Trajectory.Model
     
     public class Trajectory : TrajectoryLight
     {
+        /// <summary>Identity values assigned using the shared Trajectory identity catalog.</summary>
+        public List<TrajectoryIdentityAssignment>? TrajectoryIdentityAssignments { get; set; }
+        /// <summary>Feature options assigned using the shared Trajectory feature catalog.</summary>
+        public List<TrajectoryFeatureAssignment>? TrajectoryFeatureAssignments { get; set; }
 
         /// <summary>
         /// The survey run sections used to compose this trajectory.

@@ -103,6 +103,8 @@
             </MudTooltip>
         </MudItem>
     </MudGrid>
+    <IdentityFeatureAssignments IdentityAssignments="traj.TrajectoryIdentityAssignments"
+                                FeatureAssignments="traj.TrajectoryFeatureAssignments" />
     <MudExpansionPanels Class="mt-4 mb-4" Style="overflow-y: auto; max-height: none;">
         @* Survey run sections *@
         <MudExpansionPanel Text="Survey run sections" @bind-IsExpanded="isSurveyExpanded">
@@ -507,6 +509,8 @@
             }
             currentTrajectory.SurveyRunSectionList ??= new List<TrajectorySurveyRunSection>();
             currentTrajectory.SurveyStationList ??= new List<SurveyStation>();
+            currentTrajectory.TrajectoryIdentityAssignments ??= new List<TrajectoryIdentityAssignment>();
+            currentTrajectory.TrajectoryFeatureAssignments ??= new List<TrajectoryFeatureAssignment>();
             surveyRunList = ((IEnumerable<SurveyRunLight>)await Api.ClientTrajectory.GetAllSurveyRunLightAsync())
                 .Where(surveyRun => surveyRun?.MetaInfo != null)
                 .OrderBy(surveyRun => surveyRun.Name)
@@ -563,6 +567,8 @@
             currentTrajectory.IsDefinitive,
             currentTrajectory.CalculationType,
             currentTrajectory.MDStep,
+            currentTrajectory.TrajectoryIdentityAssignments,
+            currentTrajectory.TrajectoryFeatureAssignments,
             Sections = currentTrajectory.SurveyRunSectionList?
                 .OrderBy(section => section.StartAbscissa)
                 .Select(section => new

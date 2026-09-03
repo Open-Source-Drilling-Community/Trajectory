@@ -17,11 +17,13 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
     {
         private readonly ILogger<SurveyRunManager> _logger;
         private readonly SurveyRunManager _manager;
+        private readonly TrajectoryAssignmentValidator _assignmentValidator;
 
-        public SurveyRunController(ILogger<SurveyRunManager> logger, SqlConnectionManager connectionManager)
+        public SurveyRunController(ILogger<SurveyRunManager> logger, SqlConnectionManager connectionManager, TrajectoryAssignmentValidator assignmentValidator)
         {
             _logger = logger;
             _manager = SurveyRunManager.GetInstance(logger, connectionManager);
+            _assignmentValidator = assignmentValidator;
         }
 
         [HttpGet(Name = "GetAllSurveyRunId")]
@@ -146,6 +148,10 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         [HttpPost(Name = "PostSurveyRun")]
         public async Task<ActionResult> PostSurveyRun([FromBody] SurveyRun? data)
         {
+            if (data == null || !_assignmentValidator.Validate(data))
+            {
+                return BadRequest(new { error = "invalid_identity_or_feature_assignment" });
+            }
             if (data?.MetaInfo?.ID is Guid id && id != Guid.Empty)
             {
                 if (_manager.GetSurveyRunById(id) == null)
@@ -164,6 +170,10 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         [HttpPut("{id}", Name = "PutSurveyRunById")]
         public async Task<ActionResult> PutSurveyRunById(Guid id, [FromBody] SurveyRun? data)
         {
+            if (data == null || !_assignmentValidator.Validate(data))
+            {
+                return BadRequest(new { error = "invalid_identity_or_feature_assignment" });
+            }
             if (data?.MetaInfo?.ID == id)
             {
                 if (_manager.GetSurveyRunById(id) != null)

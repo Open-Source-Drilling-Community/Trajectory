@@ -36,7 +36,7 @@ https://app.digiwells.no/Trajectory/api/swagger
 
 ## Navigation
 
-The side menu exposes the main trajectory pages, including trajectory interpolation and trajectory realizations. The realization page is placed near the uncertainty-related trajectory pages because it uses survey station wellbore position uncertainty as its input distribution.
+The side menu exposes the main trajectory pages, including the shared Identities and Features catalogs. Survey Run and Trajectory editors both assign definitions from those catalogs. Contextual data is ordered Field, Cluster, Well, WellBore, Rig, and Survey Instrument.
 
 ## Funding
 
@@ -50,6 +50,6 @@ The current work has been funded by the [Research Council of Norway](https://www
 
 ## Current shared-page dependencies
 
-The host consumes the local `OSDC.Drilling.Trajectory.WebPages` project. It also references published sibling WebPages packages; several of those retain legacy NuGet IDs until their OSDC replacements are available, which does not change the Trajectory host's own identity.
+The host consumes the local `OSDC.Drilling.Trajectory.WebPages` project and the published OSDC WebPages packages for the migrated sibling services, including `OSDC.Drilling.WellBoreArchitecture.WebPages`.
 
-The renamed Helm chart is `charts/osdcdrillingtrajectorywebappclient`. In production, `TrajectoryHostURL` points to the OSDC service name `http://osdctrajectoryservice/`.
+The renamed Helm chart is `charts/osdcdrillingtrajectorywebappclient`. All production dependency URLs are supplied as Helm-managed environment variables and point to the corresponding OSDC Kubernetes services. `TrajectoryHostURL` points to `http://osdctrajectoryservice/`. The public routes remain `/Trajectory/webapp` and `/Trajectory/api` because they identify the domain resource rather than the owning organization.

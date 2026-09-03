@@ -228,5 +228,10 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             : base(logger, DatabaseName, TableStructureDictTrajectory)
         {
         }
+
+        public SqlConnectionManagerTrajectory(string databasePath, ILogger<SqlConnectionManagerTrajectory> logger)
+            : base(BuildConnectionString(databasePath), logger, databasePath, DatabaseName, TableStructureDictTrajectory)
+        {
+        }
     }
 }

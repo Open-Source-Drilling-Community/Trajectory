@@ -2069,6 +2069,8 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CalculationState = (CalculationState)0,
 				CalculationProgress = 0.0, 
 				CalculationMessage = "Default CalculationMessage",
+				SurveyRunIdentityAssignments = new List<TrajectoryIdentityAssignment>(),
+				SurveyRunFeatureAssignments = new List<TrajectoryFeatureAssignment>(),
 				TieInPoint = ConstructSurveyStation(),
 				SurveyMeasurementList = new List<SurveyMeasurement>
 					{
@@ -2297,6 +2299,8 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CalculationState = (CalculationState)0,
 				CalculationProgress = 0.0, 
 				CalculationMessage = "Default CalculationMessage",
+				TrajectoryIdentityAssignments = new List<TrajectoryIdentityAssignment>(),
+				TrajectoryFeatureAssignments = new List<TrajectoryFeatureAssignment>(),
 				SurveyRunSectionList = new List<TrajectorySurveyRunSection>
 					{
 						ConstructTrajectorySurveyRunSection(),
@@ -2536,7 +2540,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CalculationState = (CalculationState)0,
 				CalculationProgress = 0.0, 
 				CalculationMessage = "Default CalculationMessage",
-				RealizationList = new List<List<SurveyPoint>>
+				RealizationList = new List<ICollection<SurveyPoint>>
 					{
 						new List<SurveyPoint>
 						{
@@ -2555,7 +2559,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				SurveyPointCount = 0, 
 				StartMD = null, 
 				EndMD = null, 
-				RealizationList = new List<List<SurveyPoint>>
+				RealizationList = new List<ICollection<SurveyPoint>>
 					{
 						new List<SurveyPoint>
 						{

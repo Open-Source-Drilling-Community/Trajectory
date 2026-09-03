@@ -13,6 +13,7 @@ It is the main implementation project behind the Trajectory service.
 - trajectory domain objects and persistence models
 - trajectory interpolation cases
 - stochastic trajectory realization cases
+- shared identity and feature catalog models, with assignments on both survey runs and trajectories
 
 ## Trajectory Realizations
 
@@ -32,6 +33,7 @@ If a realization attempt cannot be completed, the model draws a new realization 
 
 - `ModelSharedIn`
 - `OSDC.DotnetLibraries.Drilling.Surveying`
+- `OSDC.DotnetLibraries.General.DataManagement` 2.2 or later for the common identity/feature interfaces
 
 ## Solution Role
 

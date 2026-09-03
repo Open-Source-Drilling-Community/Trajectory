@@ -6,56 +6,38 @@ public static class ExternalWebPagesServiceCollectionExtensions
 {
     public static IServiceCollection AddExternalWebPages(this IServiceCollection services, WebPagesHostConfiguration configuration)
     {
-        services.AddSingleton<NORCE.Drilling.WellBoreArchitecture.WebPages.IWellBoreArchitectureWebPagesConfiguration>(configuration);
+        services.AddSingleton<OSDC.Drilling.WellBoreArchitecture.WebPages.IWellBoreArchitectureWebPagesConfiguration>(configuration);
         services.AddSingleton<
-            NORCE.Drilling.WellBoreArchitecture.WebPages.IWellBoreArchitectureAPIUtils,
-            NORCE.Drilling.WellBoreArchitecture.WebPages.WellBoreArchitectureAPIUtils>();
-        services.AddSingleton<NORCE.Drilling.Rig.WebPages.IRigWebPagesConfiguration>(configuration);
+            OSDC.Drilling.WellBoreArchitecture.WebPages.IWellBoreArchitectureAPIUtils,
+            OSDC.Drilling.WellBoreArchitecture.WebPages.WellBoreArchitectureAPIUtils>();
+        services.AddSingleton<OSDC.Drilling.Rig.WebPages.IRigWebPagesConfiguration>(configuration);
+        services.AddSingleton<OSDC.Drilling.Rig.WebPages.IRigAPIUtils, OSDC.Drilling.Rig.WebPages.RigAPIUtils>();
+        services.AddScoped<OSDC.Drilling.Rig.WebPages.Shared.RigApiClient>();
+        services.AddScoped<OSDC.Drilling.Rig.WebPages.Shared.FieldClusterApiClient>();
+        services.AddSingleton<OSDC.Drilling.WellBore.WebPages.IWellBoreWebPagesConfiguration>(configuration);
+        services.AddSingleton<OSDC.Drilling.WellBore.WebPages.IWellBoreAPIUtils, OSDC.Drilling.WellBore.WebPages.WellBoreAPIUtils>();
+        services.AddSingleton<OSDC.Drilling.Well.WebPages.IWellWebPagesConfiguration>(configuration);
+        services.AddSingleton<OSDC.Drilling.Well.WebPages.IWellAPIUtils, OSDC.Drilling.Well.WebPages.WellAPIUtils>();
+        services.AddSingleton<OSDC.Drilling.Cluster.WebPages.IClusterWebPagesConfiguration>(configuration);
+        services.AddSingleton<OSDC.Drilling.Cluster.WebPages.IClusterAPIUtils, OSDC.Drilling.Cluster.WebPages.ClusterAPIUtils>();
+        services.AddSingleton<OSDC.Drilling.Field.WebPages.IFieldWebPagesConfiguration>(configuration);
+        services.AddSingleton<OSDC.Drilling.Field.WebPages.IFieldAPIUtils, OSDC.Drilling.Field.WebPages.FieldAPIUtils>();
+        services.AddSingleton<OSDC.Drilling.EarthCartographicProjection.WebPages.IEarthCartographicProjectionConfiguration>(configuration);
         services.AddSingleton<
-            NORCE.Drilling.Rig.WebPages.IRigAPIUtils,
-            NORCE.Drilling.Rig.WebPages.RigAPIUtils>();
-        services.AddScoped<NORCE.Drilling.Rig.WebPages.Shared.RigApiClient>();
-        services.AddScoped<NORCE.Drilling.Rig.WebPages.Shared.FieldClusterApiClient>();
-        services.AddSingleton<NORCE.Drilling.WellBore.WebPages.IWellBoreWebPagesConfiguration>(configuration);
+            OSDC.Drilling.EarthCartographicProjection.WebPages.IEarthCartographicProjectionApi,
+            OSDC.Drilling.EarthCartographicProjection.WebPages.EarthCartographicProjectionApi>();
+        services.AddSingleton<OSDC.Drilling.EarthGeodesy.WebPages.IEarthGeodesyWebPagesConfiguration>(configuration);
+        services.AddSingleton<OSDC.Drilling.EarthGeodesy.WebPages.IEarthGeodesyAPIUtils, OSDC.Drilling.EarthGeodesy.WebPages.APIUtils>();
+        services.AddSingleton<OSDC.Drilling.SurveyInstrument.WebPages.ISurveyInstrumentWebPagesConfiguration>(configuration);
         services.AddSingleton<
-            NORCE.Drilling.WellBore.WebPages.IWellBoreAPIUtils,
-            NORCE.Drilling.WellBore.WebPages.WellBoreAPIUtils>();
-        services.AddSingleton<NORCE.Drilling.Well.WebPages.IWellWebPagesConfiguration>(configuration);
-        services.AddSingleton<
-            NORCE.Drilling.Well.WebPages.IWellAPIUtils,
-            NORCE.Drilling.Well.WebPages.WellAPIUtils>();
-        services.AddSingleton<NORCE.Drilling.Cluster.WebPages.IClusterWebPagesConfiguration>(configuration);
-        services.AddSingleton<
-            NORCE.Drilling.Cluster.WebPages.IClusterAPIUtils,
-            NORCE.Drilling.Cluster.WebPages.ClusterAPIUtils>();
-        services.AddSingleton<NORCE.Drilling.Field.WebPages.IFieldWebPagesConfiguration>(configuration);
-        services.AddSingleton<
-            NORCE.Drilling.Field.WebPages.IFieldAPIUtils,
-            NORCE.Drilling.Field.WebPages.FieldAPIUtils>();
-        services.AddSingleton<NORCE.Drilling.CartographicProjection.WebPages.ICartographicProjectionWebPagesConfiguration>(configuration);
-        services.AddSingleton<
-            NORCE.Drilling.CartographicProjection.WebPages.ICartographicProjectionAPIUtils,
-            NORCE.Drilling.CartographicProjection.WebPages.CartographicProjectionAPIUtils>();
-        services.AddSingleton<NORCE.Drilling.GeodeticDatum.WebPages.IGeodeticDatumWebPagesConfiguration>(configuration);
-        services.AddSingleton<
-            NORCE.Drilling.GeodeticDatum.WebPages.IGeodeticDatumAPIUtils,
-            NORCE.Drilling.GeodeticDatum.WebPages.GeodeticDatumAPIUtils>();
-        services.AddSingleton<NORCE.Drilling.SurveyInstrument.WebPages.ISurveyInstrumentWebPagesConfiguration>(configuration);
-        services.AddSingleton<
-            NORCE.Drilling.SurveyInstrument.WebPages.ISurveyInstrumentAPIUtils,
-            NORCE.Drilling.SurveyInstrument.WebPages.SurveyInstrumentAPIUtils>();
-        services.AddSingleton<NORCE.Drilling.EarthGeomagneticField.WebPages.IEarthGeomagneticFieldWebPagesConfiguration>(configuration);
-        services.AddSingleton<
-            NORCE.Drilling.EarthGeomagneticField.WebPages.IEarthGeomagneticFieldAPIUtils,
-            NORCE.Drilling.EarthGeomagneticField.WebPages.EarthGeomagneticFieldAPIUtils>();
-        services.AddSingleton<NORCE.Drilling.GravitationalField.WebPages.IGravitationalFieldWebPagesConfiguration>(configuration);
-        services.AddSingleton<
-            NORCE.Drilling.GravitationalField.WebPages.IGravitationalFieldAPIUtils,
-            NORCE.Drilling.GravitationalField.WebPages.APIUtils>();
-        services.AddSingleton<NORCE.Drilling.VerticalDatum.WebPage.IVerticalDatumWebPageConfiguration>(configuration);
-        services.AddSingleton<
-            NORCE.Drilling.VerticalDatum.WebPage.IVerticalDatumAPIUtils,
-            NORCE.Drilling.VerticalDatum.WebPage.APIUtils>();
+            OSDC.Drilling.SurveyInstrument.WebPages.ISurveyInstrumentAPIUtils,
+            OSDC.Drilling.SurveyInstrument.WebPages.SurveyInstrumentAPIUtils>();
+        services.AddSingleton<OSDC.Drilling.EarthMagneticField.WebPages.IEarthMagneticFieldWebPagesConfiguration>(configuration);
+        services.AddSingleton<OSDC.Drilling.EarthMagneticField.WebPages.IEarthMagneticFieldAPIUtils, OSDC.Drilling.EarthMagneticField.WebPages.APIUtils>();
+        services.AddSingleton<OSDC.Drilling.EarthGravity.WebPages.IEarthGravityWebPagesConfiguration>(configuration);
+        services.AddSingleton<OSDC.Drilling.EarthGravity.WebPages.IEarthGravityAPIUtils, OSDC.Drilling.EarthGravity.WebPages.APIUtils>();
+        services.AddSingleton<OSDC.Drilling.EarthVerticalDatum.WebPages.IEarthVerticalDatumWebPagesConfiguration>(configuration);
+        services.AddSingleton<OSDC.Drilling.EarthVerticalDatum.WebPages.IEarthVerticalDatumAPIUtils, OSDC.Drilling.EarthVerticalDatum.WebPages.APIUtils>();
         return services;
     }
 }

@@ -80,6 +80,10 @@ This package contains the UI pages and page-specific support code. It does not b
 
 The package, assembly, and static-web-asset base identity are all `OSDC.Drilling.Trajectory.WebPages`. For example, the 3D camera helper is loaded from `_content/OSDC.Drilling.Trajectory.WebPages/scatter3dCameraPersistence.js`. The NuGet publishing workflow produces `OSDC.Drilling.Trajectory.WebPages.<version>.nupkg`.
 
+## Identities and features
+
+`TrajectoryIdentities` and `TrajectoryFeatures` manage the catalogs shared by survey runs and trajectories. `IdentityFeatureAssignments` is embedded in both resource editors and enforces each category's option and validity-period shape through the service API.
+
 ## Mean-sea-level depth references
 
 Trajectory editing resolves mean-sea-level depth references through `MslDepthReferenceUtils`. The editor uses the configured Vertical Datum service data when presenting and updating trajectory interpolation values.

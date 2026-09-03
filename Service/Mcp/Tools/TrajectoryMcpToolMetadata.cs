@@ -15,6 +15,8 @@ internal static class TrajectoryMcpToolMetadata
     {
         ["Trajectory"] = "a calculated or imported wellbore trajectory and its survey stations",
         ["SurveyRun"] = "a survey run containing measured MD, inclination and azimuth values and its calculated survey stations",
+        ["TrajectoryIdentity"] = "an identity definition shared by survey runs and trajectories",
+        ["TrajectoryFeatureCategory"] = "a feature category and its options shared by survey runs and trajectories",
         ["SurveyRunBatchImport"] = "a batch-import definition used to create or update survey runs",
         ["InterpolatedTrajectory"] = "an interpolation case and its calculated trajectory stations",
         ["TrajectoryMinimumDistanceCalculation"] = "a minimum-distance calculation between a reference trajectory and comparison trajectories",
@@ -67,8 +69,12 @@ internal static class TrajectoryMcpToolMetadata
             detail = "Permanently delete the global anti-collision configuration identified by its unique string id.";
         else if (action.StartsWith("Post", StringComparison.Ordinal))
             detail = DescribeCreate(controller, resource);
+        else if ((controller is "TrajectoryIdentity" or "TrajectoryFeatureCategory") && action.StartsWith("Put", StringComparison.Ordinal))
+            detail = $"Replace an existing {resource}. Supply expectedModifiedUtc from the latest LastModificationDate; stale writes return a conflict. Definitions currently referenced by survey runs or trajectories remain protected.";
         else if (action.StartsWith("Put", StringComparison.Ordinal))
             detail = $"Replace an existing instance of {resource}. The route id must be a non-empty UUID and must exactly match data.MetaInfo.ID; the target must already exist. Supply a complete representation because this is a full update, not a partial patch.";
+        else if ((controller is "TrajectoryIdentity" or "TrajectoryFeatureCategory") && action.StartsWith("Delete", StringComparison.Ordinal))
+            detail = $"Delete an unused {resource}. Supply expectedModifiedUtc from the latest LastModificationDate; referenced definitions and stale writes return a conflict.";
         else if (action.StartsWith("Delete", StringComparison.Ordinal))
             detail = $"Permanently delete one stored instance of {resource}. The id must identify an existing resource; retrieve it first if the caller needs to verify the target.";
         else if (controller == "Octrees" && action == "Get")
@@ -131,7 +137,9 @@ internal static class TrajectoryMcpToolMetadata
         if (controller is "TrajectoryMinimumDistanceCalculation" or "SurveyRunMinimumDistanceCalculation" or "SurveyStationEllipseCalculation" or "TrajectoryRealizationCase" or "TrajectoryAggregationCase" or "InterpolatedTrajectory")
             return $"Create {resource} and start its calculation. data.MetaInfo.ID must be a caller-assigned, non-empty UUID that is not already stored. Poll the corresponding by-id or light-list tool for CalculationState/CalculationProgress; retrieve large outputs through the result chunk tools where available. All lengths and distances are metres and angles are radians.";
         if (controller is "Trajectory" or "SurveyRun")
-            return $"Create {resource} and calculate its survey stations. data.MetaInfo.ID must be a caller-assigned, non-empty UUID that is not already stored. For very large survey runs, create the run first and use the survey-measurement chunk upload/commit workflow. Supply SI values: lengths/depths in metres, angles in radians and curvature in radians per metre.";
+            return $"Create {resource} and calculate its survey stations. data.MetaInfo.ID must be a caller-assigned, non-empty UUID that is not already stored. Identity and feature assignments must reference the shared catalogs; exclusive feature periods must not overlap. For very large survey runs, create the run first and use the survey-measurement chunk upload/commit workflow. Supply SI values: lengths/depths in metres, angles in radians and curvature in radians per metre.";
+        if (controller is "TrajectoryIdentity" or "TrajectoryFeatureCategory")
+            return $"Create {resource}. MetaInfo.ID must be a caller-assigned, non-empty UUID. Feature option IDs must also be non-empty UUIDs.";
         if (controller == "GlobalAntiCollisions")
             return "Create a global anti-collision configuration. Supply the complete configuration body with its unique string identity and trajectory-selection/calculation settings.";
         return $"Create {resource}. data.MetaInfo.ID must be a caller-assigned, non-empty UUID that is not already stored; duplicate identifiers are rejected. Supply SI values: lengths/depths in metres, angles in radians and curvature in radians per metre.";
@@ -161,9 +169,11 @@ internal static class TrajectoryMcpToolMetadata
             "includeRealizations" => "When true, embed all stochastic realization arrays; false (default) omits them. Prefer realization chunks for large results.",
             "includeMeasurements" => "When true, include the survey measurement list in the response; false (default) omits it.",
             "includeCalculatedStations" => "When true, include calculated survey stations; false (default) omits them. Prefer station chunks for large runs.",
+            "expectedModifiedUtc" => "Optimistic-concurrency token copied exactly from the resource's latest LastModificationDate.",
             "chunk" => "Complete survey-measurement chunk. SurveyRunID and ChunkIndex must match the route arguments; MD is metres and Inclination/Azimuth are radians.",
             "data" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation. Follow the nested schema and SI-unit annotations.",
-            "value" => "Complete global anti-collision configuration JSON representation.",
+            "value" when controller == "GlobalAntiCollisions" => "Complete global anti-collision configuration JSON representation.",
+            "value" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation.",
             _ => $"Value for {SplitWords(action).ToLowerInvariant()}."
         };
     }

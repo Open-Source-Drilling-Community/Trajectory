@@ -1,0 +1,37 @@
+@page "/TrajectoryIdentities"
+@inject ITrajectoryAPIUtils Api
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" Class="mb-4">Survey and Trajectory Identities</MudText>
+<MudText Typo="Typo.body2" Class="mb-4">These identity definitions are shared by survey runs and trajectories.</MudText>
+<MudButton Color="Color.Success" Variant="Variant.Filled" OnClick="Add">Add identity</MudButton>
+<MudButton Color="Color.Primary" Variant="Variant.Filled" Class="ml-2" OnClick="SaveAsync">Save</MudButton>
+<MudTable Items="items" Dense="true" Hover="true" Class="mt-4">
+    <HeaderContent><MudTh>Name</MudTh><MudTh></MudTh></HeaderContent>
+    <RowTemplate>
+        <MudTd><MudTextField @bind-Value="context.Name" /></MudTd>
+        <MudTd><MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteAsync(context))" /></MudTd>
+    </RowTemplate>
+</MudTable>
+
+@code {
+    private List<TrajectoryIdentity> items = [];
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+    private async Task ReloadAsync() => items = (await Api.ClientTrajectory.GetAllTrajectoryIdentityAsync()).ToList();
+    private void Add() => items.Add(new() { MetaInfo = new() { ID = Guid.NewGuid() } });
+    private async Task SaveAsync()
+    {
+        HashSet<Guid> existing = (await Api.ClientTrajectory.GetAllTrajectoryIdentityIdAsync()).ToHashSet();
+        foreach (TrajectoryIdentity item in items)
+            if (existing.Contains(item.MetaInfo.ID)) await Api.ClientTrajectory.PutTrajectoryIdentityByIdAsync(item.MetaInfo.ID, item.LastModificationDate, item);
+            else await Api.ClientTrajectory.PostTrajectoryIdentityAsync(item);
+        await ReloadAsync();
+        Snackbar.Add("Identities saved", Severity.Success);
+    }
+    private async Task DeleteAsync(TrajectoryIdentity item)
+    {
+        if (item.LastModificationDate == null) { items.Remove(item); return; }
+        try { await Api.ClientTrajectory.DeleteTrajectoryIdentityByIdAsync(item.MetaInfo.ID, item.LastModificationDate); items.Remove(item); }
+        catch (ApiException ex) when (ex.StatusCode == 409) { Snackbar.Add("This identity is in use and cannot be deleted.", Severity.Warning); }
+    }
+}

@@ -17,11 +17,13 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
     {
         private readonly ILogger<TrajectoryManager> _logger;
         private readonly TrajectoryManager _trajectoryManager;
+        private readonly TrajectoryAssignmentValidator _assignmentValidator;
 
-        public TrajectoryController(ILogger<TrajectoryManager> logger, SqlConnectionManager connectionManager)
+        public TrajectoryController(ILogger<TrajectoryManager> logger, SqlConnectionManager connectionManager, TrajectoryAssignmentValidator assignmentValidator)
         {
             _logger = logger;
             _trajectoryManager = TrajectoryManager.GetInstance(_logger, connectionManager);
+            _assignmentValidator = assignmentValidator;
         }
 
         /// <summary>
@@ -159,6 +161,10 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         public async Task<ActionResult> PostTrajectory([FromBody] Model.Trajectory? data)
         {
             UsageStatisticsTrajectory.Instance.IncrementPostTrajectoryPerDay();
+            if (data == null || !_assignmentValidator.Validate(data))
+            {
+                return BadRequest(new { error = "invalid_identity_or_feature_assignment" });
+            }
             // Check if trajectory exists in the database through ID
             if (data != null && data.MetaInfo != null && data.MetaInfo.ID != Guid.Empty)
             {
@@ -198,6 +204,10 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         public async Task<ActionResult> PutTrajectoryById(Guid id, [FromBody] Model.Trajectory? data)
         {
             UsageStatisticsTrajectory.Instance.IncrementPutTrajectoryByIdPerDay();
+            if (data == null || !_assignmentValidator.Validate(data))
+            {
+                return BadRequest(new { error = "invalid_identity_or_feature_assignment" });
+            }
             // Check if Trajectory is in the data base
             if (data != null && data.MetaInfo != null && data.MetaInfo.ID.Equals(id))
             {

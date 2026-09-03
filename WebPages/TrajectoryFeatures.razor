@@ -1,0 +1,50 @@
+@page "/TrajectoryFeatures"
+@inject ITrajectoryAPIUtils Api
+@inject ISnackbar Snackbar
+
+<MudText Typo="Typo.h4" Class="mb-4">Survey and Trajectory Features</MudText>
+<MudText Typo="Typo.body2" Class="mb-4">These feature categories and options are shared by survey runs and trajectories.</MudText>
+<MudButton Color="Color.Success" Variant="Variant.Filled" OnClick="AddCategory">Add category</MudButton>
+<MudButton Color="Color.Primary" Variant="Variant.Filled" Class="ml-2" OnClick="SaveAsync">Save</MudButton>
+<MudExpansionPanels MultiExpansion="true" Class="mt-4">
+@foreach (TrajectoryFeatureCategory category in items)
+{
+    <MudExpansionPanel Text="@(category.Name ?? "New category")">
+        <MudGrid>
+            <MudItem xs="5"><MudTextField Label="Category" @bind-Value="category.Name" /></MudItem>
+            <MudItem xs="3"><MudCheckBox T="bool" Label="Exclusive" @bind-Value="category.IsExclusive" /></MudItem>
+            <MudItem xs="3"><MudCheckBox T="bool" Label="Validity period" @bind-Value="category.HasValidityPeriod" /></MudItem>
+            <MudItem xs="1"><MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => DeleteCategoryAsync(category))" /></MudItem>
+        </MudGrid>
+        @foreach (TrajectoryFeatureOption option in category.Options ?? [])
+        {
+            <div class="d-flex align-center"><MudTextField Label="Option" @bind-Value="option.Name" /><MudIconButton Icon="@Icons.Material.Filled.Delete" OnClick="@(() => RemoveOption(category, option))" /></div>
+        }
+        <MudButton StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => AddOption(category))">Add option</MudButton>
+    </MudExpansionPanel>
+}
+</MudExpansionPanels>
+
+@code {
+    private List<TrajectoryFeatureCategory> items = [];
+    protected override async Task OnInitializedAsync() => await ReloadAsync();
+    private async Task ReloadAsync() => items = (await Api.ClientTrajectory.GetAllTrajectoryFeatureCategoryAsync()).ToList();
+    private void AddCategory() => items.Add(new() { MetaInfo = new() { ID = Guid.NewGuid() }, Options = new List<TrajectoryFeatureOption>() });
+    private static void AddOption(TrajectoryFeatureCategory category) { category.Options ??= new List<TrajectoryFeatureOption>(); category.Options.Add(new() { ID = Guid.NewGuid() }); }
+    private static void RemoveOption(TrajectoryFeatureCategory category, TrajectoryFeatureOption option) => category.Options?.Remove(option);
+    private async Task SaveAsync()
+    {
+        HashSet<Guid> existing = (await Api.ClientTrajectory.GetAllTrajectoryFeatureCategoryIdAsync()).ToHashSet();
+        foreach (TrajectoryFeatureCategory item in items)
+            if (existing.Contains(item.MetaInfo.ID)) await Api.ClientTrajectory.PutTrajectoryFeatureCategoryByIdAsync(item.MetaInfo.ID, item.LastModificationDate, item);
+            else await Api.ClientTrajectory.PostTrajectoryFeatureCategoryAsync(item);
+        await ReloadAsync();
+        Snackbar.Add("Feature categories saved", Severity.Success);
+    }
+    private async Task DeleteCategoryAsync(TrajectoryFeatureCategory item)
+    {
+        if (item.LastModificationDate == null) { items.Remove(item); return; }
+        try { await Api.ClientTrajectory.DeleteTrajectoryFeatureCategoryByIdAsync(item.MetaInfo.ID, item.LastModificationDate); items.Remove(item); }
+        catch (ApiException ex) when (ex.StatusCode == 409) { Snackbar.Add("This category or one of its options is in use.", Severity.Warning); }
+    }
+}

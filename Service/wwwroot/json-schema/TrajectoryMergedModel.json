@@ -6131,6 +6131,426 @@
         }
       }
     },
+    "/TrajectoryFeatureCategory": {
+      "get": {
+        "tags": [
+          "TrajectoryFeatureCategory"
+        ],
+        "operationId": "GetAllTrajectoryFeatureCategoryId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "TrajectoryFeatureCategory"
+        ],
+        "operationId": "PostTrajectoryFeatureCategory",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryFeatureCategory"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryFeatureCategory"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryFeatureCategory"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryFeatureCategory/MetaInfo": {
+      "get": {
+        "tags": [
+          "TrajectoryFeatureCategory"
+        ],
+        "operationId": "GetAllTrajectoryFeatureCategoryMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryFeatureCategory/HeavyData": {
+      "get": {
+        "tags": [
+          "TrajectoryFeatureCategory"
+        ],
+        "operationId": "GetAllTrajectoryFeatureCategory",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrajectoryFeatureCategory"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryFeatureCategory/{id}": {
+      "get": {
+        "tags": [
+          "TrajectoryFeatureCategory"
+        ],
+        "operationId": "GetTrajectoryFeatureCategoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryFeatureCategory"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TrajectoryFeatureCategory"
+        ],
+        "operationId": "PutTrajectoryFeatureCategoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryFeatureCategory"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryFeatureCategory"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryFeatureCategory"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "TrajectoryFeatureCategory"
+        ],
+        "operationId": "DeleteTrajectoryFeatureCategoryById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryIdentity": {
+      "get": {
+        "tags": [
+          "TrajectoryIdentity"
+        ],
+        "operationId": "GetAllTrajectoryIdentityId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "TrajectoryIdentity"
+        ],
+        "operationId": "PostTrajectoryIdentity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryIdentity"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryIdentity"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryIdentity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryIdentity/MetaInfo": {
+      "get": {
+        "tags": [
+          "TrajectoryIdentity"
+        ],
+        "operationId": "GetAllTrajectoryIdentityMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryIdentity/HeavyData": {
+      "get": {
+        "tags": [
+          "TrajectoryIdentity"
+        ],
+        "operationId": "GetAllTrajectoryIdentity",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrajectoryIdentity"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryIdentity/{id}": {
+      "get": {
+        "tags": [
+          "TrajectoryIdentity"
+        ],
+        "operationId": "GetTrajectoryIdentityById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryIdentity"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TrajectoryIdentity"
+        ],
+        "operationId": "PutTrajectoryIdentityById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryIdentity"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryIdentity"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryIdentity"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "TrajectoryIdentity"
+        ],
+        "operationId": "DeleteTrajectoryIdentityById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/TrajectoryMinimumDistanceCalculation": {
       "get": {
         "tags": [
@@ -14223,6 +14643,277 @@
         ],
         "type": "string"
       },
+      "SurveyPoint": {
+        "type": "object",
+        "properties": {
+          "Z": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Abscissa": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Inclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Azimuth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "MD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "X": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Y": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "RiemannianNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "RiemannianEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Curvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Toolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "BUR": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TUR": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "VerticalSection": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Annotation": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "SurveyStation": {
+        "type": "object",
+        "properties": {
+          "Z": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Abscissa": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Inclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Azimuth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "MD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "X": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Y": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "RiemannianNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "RiemannianEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Curvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Toolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "BUR": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TUR": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "VerticalSection": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Annotation": {
+            "type": "string",
+            "nullable": true
+          },
+          "Covariance": {
+            "$ref": "#/components/schemas/SymmetricMatrix3x3"
+          },
+          "EigenVectors": {
+            "$ref": "#/components/schemas/Matrix3x3"
+          },
+          "EigenValues": {
+            "$ref": "#/components/schemas/Vector3D"
+          },
+          "Bias": {
+            "$ref": "#/components/schemas/Vector3D"
+          },
+          "SurveyTool": {
+            "$ref": "#/components/schemas/SurveyInstrument"
+          },
+          "BoreholeRadius": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryCalculationType": {
+        "enum": [
+          "MinimumCurvatureMethod",
+          "ConstantBuildAndTurnMethod",
+          "ConstantCurvatureAndToolfaceMethod"
+        ],
+        "type": "string"
+      },
+      "Matrix3x3": {
+        "type": "object",
+        "properties": {
+          "RowCount": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "ColumnCount": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          }
+        }
+      },
+      "SymmetricMatrix3x3": {
+        "type": "object",
+        "properties": {
+          "ColumnCount": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          },
+          "RowCount": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          }
+        }
+      },
+      "Vector3D": {
+        "type": "object",
+        "properties": {
+          "X": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Y": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Z": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Dim": {
+            "type": "integer",
+            "format": "int32",
+            "readOnly": true
+          }
+        }
+      },
       "GlobalAntiCollision": {
         "type": "object",
         "properties": {
@@ -14749,6 +15440,20 @@
           },
           "CalculationMessage": {
             "type": "string",
+            "nullable": true
+          },
+          "SurveyRunIdentityAssignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryIdentityAssignment"
+            },
+            "nullable": true
+          },
+          "SurveyRunFeatureAssignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryFeatureAssignment"
+            },
             "nullable": true
           },
           "TieInPoint": {
@@ -15534,6 +16239,20 @@
             "type": "string",
             "nullable": true
           },
+          "TrajectoryIdentityAssignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryIdentityAssignment"
+            },
+            "nullable": true
+          },
+          "TrajectoryFeatureAssignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryFeatureAssignment"
+            },
+            "nullable": true
+          },
           "SurveyRunSectionList": {
             "type": "array",
             "items": {
@@ -15951,6 +16670,123 @@
           "ConstantCurvatureAndToolface"
         ],
         "type": "string"
+      },
+      "TrajectoryFeatureAssignment": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FeatureCategoryID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "FeatureOptionID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "FromDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ToDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryFeatureCategory": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsExclusive": {
+            "type": "boolean"
+          },
+          "HasValidityPeriod": {
+            "type": "boolean"
+          },
+          "Options": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryFeatureOption"
+            },
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryFeatureOption": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryIdentity": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryIdentityAssignment": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "IdentityID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "Value": {
+            "type": "string",
+            "nullable": true
+          }
+        }
       },
       "TrajectoryLight": {
         "type": "object",
@@ -16605,277 +17441,6 @@
           },
           "DeleteTrajectoryByIdPerDay": {
             "$ref": "#/components/schemas/History"
-          }
-        }
-      },
-      "SurveyPoint": {
-        "type": "object",
-        "properties": {
-          "Z": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Abscissa": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Inclination": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Azimuth": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "MD": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "X": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Y": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "TVD": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "RiemannianNorth": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "RiemannianEast": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Latitude": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Longitude": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Curvature": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Toolface": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "BUR": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "TUR": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "VerticalSection": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Annotation": {
-            "type": "string",
-            "nullable": true
-          }
-        }
-      },
-      "SurveyStation": {
-        "type": "object",
-        "properties": {
-          "Z": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Abscissa": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Inclination": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Azimuth": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "MD": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "X": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Y": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "TVD": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "RiemannianNorth": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "RiemannianEast": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Latitude": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Longitude": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Curvature": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Toolface": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "BUR": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "TUR": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "VerticalSection": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Annotation": {
-            "type": "string",
-            "nullable": true
-          },
-          "Covariance": {
-            "$ref": "#/components/schemas/SymmetricMatrix3x3"
-          },
-          "EigenVectors": {
-            "$ref": "#/components/schemas/Matrix3x3"
-          },
-          "EigenValues": {
-            "$ref": "#/components/schemas/Vector3D"
-          },
-          "Bias": {
-            "$ref": "#/components/schemas/Vector3D"
-          },
-          "SurveyTool": {
-            "$ref": "#/components/schemas/SurveyInstrument"
-          },
-          "BoreholeRadius": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          }
-        }
-      },
-      "TrajectoryCalculationType": {
-        "enum": [
-          "MinimumCurvatureMethod",
-          "ConstantBuildAndTurnMethod",
-          "ConstantCurvatureAndToolfaceMethod"
-        ],
-        "type": "string"
-      },
-      "Matrix3x3": {
-        "type": "object",
-        "properties": {
-          "RowCount": {
-            "type": "integer",
-            "format": "int32",
-            "readOnly": true
-          },
-          "ColumnCount": {
-            "type": "integer",
-            "format": "int32",
-            "readOnly": true
-          }
-        }
-      },
-      "SymmetricMatrix3x3": {
-        "type": "object",
-        "properties": {
-          "ColumnCount": {
-            "type": "integer",
-            "format": "int32",
-            "readOnly": true
-          },
-          "RowCount": {
-            "type": "integer",
-            "format": "int32",
-            "readOnly": true
-          }
-        }
-      },
-      "Vector3D": {
-        "type": "object",
-        "properties": {
-          "X": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Y": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Z": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Dim": {
-            "type": "integer",
-            "format": "int32",
-            "readOnly": true
           }
         }
       },

@@ -91,10 +91,16 @@ The service publishes its non-statistics REST actions as MCP tools. Tool registr
 
 - Streamable HTTP: `/trajectory/api/mcp`
 - WebSocket: `/trajectory/api/mcp/ws`
-- Published controller tools: 104
+- Published controller tools: 118
 - Utility tools: `ping`
 - Excluded surface: `TrajectoryUsageStatisticsController`
 
 The descriptions explain the service workflows as well as individual calls. In particular, survey-measurement chunks are uploaded with zero-based indexes and then committed; calculation cases are created and polled through `CalculationState`/`CalculationProgress`; large station, realization, minimum-distance, and aggregation results are retrieved through chunk-count and chunk tools. Unless a field explicitly says otherwise, lengths, depths, coordinates, and distances are metres, angles are radians, and curvature is radians per metre.
 
 Optional registration with an external MCP hub is configured in `appsettings.json` and is disabled by default.
+
+## Shared identities and features
+
+`TrajectoryIdentity` and `TrajectoryFeatureCategory` are common catalogs for both Survey Run and Trajectory resources. Catalog CRUD uses optimistic concurrency through `expectedModifiedUtc`. Referenced definitions and options cannot be deleted, and resource writes reject missing catalog references, duplicate assignment UUIDs, unsupported validity dates, invalid periods, and overlapping assignments in exclusive categories.
+
+Catalogs are stored in `TrajectoryCatalog.db` beside the existing databases on the persistent volume. Keeping this additive data in its own validated database preserves compatibility with existing `Trajectory.db` schemas and rows.

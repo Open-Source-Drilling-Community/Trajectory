@@ -11,6 +11,10 @@ namespace OSDC.Drilling.Trajectory.Model
     /// </summary>
     public class SurveyRun : SurveyRunLight
     {
+        /// <summary>Identity values assigned using the shared Trajectory identity catalog.</summary>
+        public List<TrajectoryIdentityAssignment>? SurveyRunIdentityAssignments { get; set; }
+        /// <summary>Feature options assigned using the shared Trajectory feature catalog.</summary>
+        public List<TrajectoryFeatureAssignment>? SurveyRunFeatureAssignments { get; set; }
         /// <summary>
         /// The calculated tie-in station for this survey run.
         /// </summary>

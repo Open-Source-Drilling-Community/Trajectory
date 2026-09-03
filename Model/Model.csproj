@@ -21,6 +21,7 @@
 	<ItemGroup>
 	  <PackageReference Include="OSDC.DotnetLibraries.Drilling.Section" Version="1.0.0" />
 	  <PackageReference Include="OSDC.DotnetLibraries.Drilling.Surveying" Version="1.2.21" />
+	  <PackageReference Include="OSDC.DotnetLibraries.General.DataManagement" Version="2.2.0" />
 	</ItemGroup>
 
 	<ItemGroup>

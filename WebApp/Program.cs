@@ -27,6 +27,7 @@ OSDC.UnitConversion.WebPages.Configuration.UnitConversionHostURL = webPagesConfi
 
 builder.Services.AddRazorPages();
 builder.Services.AddServerSideBlazor();
+builder.Services.AddHttpClient();
 builder.Services.AddSingleton<ITrajectoryWebPagesConfiguration>(webPagesConfiguration);
 builder.Services.AddSingleton<ITrajectoryAPIUtils, TrajectoryAPIUtils>();
 builder.Services.AddExternalWebPages(webPagesConfiguration);

@@ -11,6 +11,13 @@ image:
   # Overrides the image tag whose default is the chart appVersion.
   tag: "stable"
 imagePullSecrets: []
+serviceUrls:
+  FieldHostURL: "http://osdcfieldservice/"
+  ClusterHostURL: "http://osdcclusterservice/"
+  WellHostURL: "http://osdcwellservice/"
+  WellBoreHostURL: "http://osdcwellboreservice/"
+  WellBoreArchitectureHostURL: "http://osdcwellborearchitectureservice/"
+  SurveyInstrumentHostURL: "http://osdcsurveyinstrumentservice/"
 nameOverride: "osdcdrillingtrajectoryservice"
 fullnameOverride: "osdctrajectoryservice"
 serviceAccount:
@@ -41,12 +48,12 @@ ingress:
   className: public
   annotations:
     # nginx-ingress: Enable regex path matching for case-insensitive routing
-    # This allows /SurveyInstrument/api to match the same route as /surveyinstrument/api
+    # This allows /Trajectory/api to match the same route as /trajectory/api
     nginx.ingress.kubernetes.io/use-regex: "true"
   hosts:
     - host: localhost
       paths:
-        # Regex pattern matches /surveyinstrument/api or /SurveyInstrument/api, etc.
+        # Regex pattern matches /trajectory/api or /Trajectory/api, etc.
         - path: /(?i)trajectory/api
           pathType: ImplementationSpecific
     - host: dev.digiwells.no

@@ -127,6 +127,9 @@
                 </MudItem>
             </MudGrid>
 
+            <IdentityFeatureAssignments IdentityAssignments="surveyRun.SurveyRunIdentityAssignments"
+                                        FeatureAssignments="surveyRun.SurveyRunFeatureAssignments" />
+
             <MudExpansionPanels Class="mt-4">
                 <MudExpansionPanel Text="Import survey stations">
                     <MudGrid>
@@ -894,6 +897,8 @@
             SurveyInstrumentID = Guid.Empty,
             SurveyRunType = SurveyRunType.Actual,
             CalculationType = TrajectoryCalculationType.MinimumCurvatureMethod,
+            SurveyRunIdentityAssignments = new List<TrajectoryIdentityAssignment>(),
+            SurveyRunFeatureAssignments = new List<TrajectoryFeatureAssignment>(),
             SurveyMeasurementList = new List<SurveyMeasurement>
             {
                 new() { MD = 0, Inclination = 0, Azimuth = 0 },
@@ -924,6 +929,8 @@
         try
         {
             currentSurveyRun_ = await Api.ClientTrajectory.GetSurveyRunByIdAsync(surveyRunId);
+            currentSurveyRun_.SurveyRunIdentityAssignments ??= new List<TrajectoryIdentityAssignment>();
+            currentSurveyRun_.SurveyRunFeatureAssignments ??= new List<TrajectoryFeatureAssignment>();
             await LoadSurveyMeasurementsAsync(currentSurveyRun_);
             surveyRunIdBeingEdited_ = surveyRunId;
             selectedFieldId_ = currentSurveyRun_.FieldID;
@@ -1070,6 +1077,8 @@
             SurveyRunType = source.SurveyRunType,
             CalculationType = source.CalculationType,
             ParentSurveyRunID = source.ParentSurveyRunID,
+            SurveyRunIdentityAssignments = source.SurveyRunIdentityAssignments,
+            SurveyRunFeatureAssignments = source.SurveyRunFeatureAssignments,
             TieInPoint = source.TieInPoint,
             SurveyMeasurementList = null,
             SurveyStationList = null
@@ -1277,6 +1286,8 @@
             SurveyRunType = currentSurveyRun_?.SurveyRunType,
             CalculationType = currentSurveyRun_?.CalculationType,
             SelectedParentSurveyRunId = selectedParentSurveyRunId_,
+            IdentityAssignments = currentSurveyRun_?.SurveyRunIdentityAssignments,
+            FeatureAssignments = currentSurveyRun_?.SurveyRunFeatureAssignments,
             SelectedSurveyImportFormat = selectedSurveyImportFormat_,
             SelectedSurveyImportSeparator = selectedSurveyImportSeparator_,
             SelectedSurveyImportDecimalMarker = selectedSurveyImportDecimalMarker_,
