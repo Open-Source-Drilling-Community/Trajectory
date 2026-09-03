@@ -1,7 +1,7 @@
 using System.Text.Json;
 using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Http;
-namespace NORCE.Drilling.Trajectory.Service.Mcp;
+namespace OSDC.Drilling.Trajectory.Service.Mcp;
 internal static class McpHandshakeReader
 {
     public static McpHandshake FromHttpRequest(HttpRequest request)

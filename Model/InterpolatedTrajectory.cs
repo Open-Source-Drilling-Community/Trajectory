@@ -1,10 +1,10 @@
-using NORCE.Drilling.Trajectory.ModelShared;
+using OSDC.Drilling.Trajectory.ModelShared;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Common;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NORCE.Drilling.Trajectory.Model
+namespace OSDC.Drilling.Trajectory.Model
 {
     /// <summary>
     /// Full interpolated trajectory payload with interpolation settings and computed survey stations.

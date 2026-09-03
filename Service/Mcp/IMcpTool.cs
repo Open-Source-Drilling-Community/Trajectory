@@ -1,6 +1,6 @@
 using System.Text.Json.Nodes;
 
-namespace NORCE.Drilling.Trajectory.Service.Mcp;
+namespace OSDC.Drilling.Trajectory.Service.Mcp;
 
 public interface IMcpTool
 {

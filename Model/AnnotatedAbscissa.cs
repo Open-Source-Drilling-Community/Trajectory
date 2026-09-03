@@ -2,7 +2,7 @@ using System;
 using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace NORCE.Drilling.Trajectory.Model
+namespace OSDC.Drilling.Trajectory.Model
 {
     /// <summary>
     /// An interpolation abscissa and its optional annotation.

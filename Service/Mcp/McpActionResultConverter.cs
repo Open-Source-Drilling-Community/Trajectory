@@ -4,7 +4,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Infrastructure;
 
-namespace NORCE.Drilling.Trajectory.Service.Mcp;
+namespace OSDC.Drilling.Trajectory.Service.Mcp;
 
 internal static class McpActionResultConverter
 {

@@ -4,6 +4,7 @@
     <TargetFramework>net8.0</TargetFramework>
     <ImplicitUsings>enable</ImplicitUsings>
     <Nullable>enable</Nullable>
+    <RootNamespace>OSDC.Drilling.Trajectory.ServiceTest</RootNamespace>
     <IsPackable>false</IsPackable>
     <IsTestProject>true</IsTestProject>
   </PropertyGroup>
@@ -25,7 +26,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\ModelSharedOut\ModelSharedOut.csproj" />
+    <ProjectReference Include="..\ModelSharedOut\ModelSharedOut.csproj">
+      <Aliases>ModelSharedOutAlias</Aliases>
+    </ProjectReference>
     <ProjectReference Include="..\Service\Service.csproj" />
   </ItemGroup>
 

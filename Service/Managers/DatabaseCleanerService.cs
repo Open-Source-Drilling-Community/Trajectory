@@ -1,11 +1,11 @@
-﻿using Microsoft.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Threading;
 using System.Threading.Tasks;
 
-namespace NORCE.Drilling.Trajectory.Service.Managers
+namespace OSDC.Drilling.Trajectory.Service.Managers
 {
     public class DatabaseCleanerService : BackgroundService
     {

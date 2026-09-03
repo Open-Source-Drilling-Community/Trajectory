@@ -1,7 +1,7 @@
 using OSDC.DotnetLibraries.General.DataManagement;
 using System;
 
-namespace NORCE.Drilling.Trajectory.Model
+namespace OSDC.Drilling.Trajectory.Model
 {
     /// <summary>
     /// Light weight version of an InterpolatedTrajectory.

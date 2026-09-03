@@ -3,8 +3,8 @@ using System.Net.Http.Json;
 using Microsoft.Extensions.Hosting;
 using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Options;
-using NORCE.Drilling.Trajectory.Service.Managers;
-namespace NORCE.Drilling.Trajectory.Service.Mcp;
+using OSDC.Drilling.Trajectory.Service.Managers;
+namespace OSDC.Drilling.Trajectory.Service.Mcp;
 public sealed class McpHubRegistrationService : BackgroundService
 {
     public static readonly Guid ServiceTypeId = Guid.Parse("5dd4d00d-b7f5-45a5-9f86-2390c1bcf07a");

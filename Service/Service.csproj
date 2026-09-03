@@ -1,9 +1,9 @@
-﻿<Project Sdk="Microsoft.NET.Sdk.Web">
+<Project Sdk="Microsoft.NET.Sdk.Web">
 
 	<PropertyGroup>
 		<TargetFramework>net8.0</TargetFramework>
 		<DockerDefaultTargetOS>Linux</DockerDefaultTargetOS>
-		<RootNamespace>NORCE.Drilling.Trajectory.Service</RootNamespace>
+		<RootNamespace>OSDC.Drilling.Trajectory.Service</RootNamespace>
 		<ErrorOnDuplicatePublishOutputFiles>false</ErrorOnDuplicatePublishOutputFiles>
 		<Nullable>enable</Nullable>
 	</PropertyGroup>

@@ -1,5 +1,5 @@
-﻿using System;
-using NORCE.Drilling.Trajectory;
+using System;
+using OSDC.Drilling.Trajectory;
 using NORCE.Drilling.SurveyInstrument.Model;
 using System.IO;
 using System.Collections.Generic;

@@ -1,4 +1,4 @@
-using NORCE.Drilling.Trajectory.ModelShared;
+using OSDC.Drilling.Trajectory.ModelShared;
 using OSDC.DotnetLibraries.General.Statistics;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Math;
@@ -12,32 +12,32 @@ using System.Threading.Tasks;
 public static class APIUtils
 {
     // API parameters
-    public static readonly string HostNameField = NORCE.Drilling.Trajectory.Service.ServiceConfiguration.FieldHostURL!;
+    public static readonly string HostNameField = OSDC.Drilling.Trajectory.Service.ServiceConfiguration.FieldHostURL!;
     public static readonly string HostBasePathField = "Field/api/";
     public static readonly HttpClient HttpClientField = APIUtils.SetHttpClient(HostNameField, HostBasePathField);
     public static readonly Client ClientField = new Client(APIUtils.HttpClientField.BaseAddress!.ToString(), APIUtils.HttpClientField);
 
-    public static readonly string HostNameCluster = NORCE.Drilling.Trajectory.Service.ServiceConfiguration.ClusterHostURL!;
+    public static readonly string HostNameCluster = OSDC.Drilling.Trajectory.Service.ServiceConfiguration.ClusterHostURL!;
     public static readonly string HostBasePathCluster = "Cluster/api/";
     public static readonly HttpClient HttpClientCluster = APIUtils.SetHttpClient(HostNameCluster, HostBasePathCluster);
     public static readonly Client ClientCluster = new Client(APIUtils.HttpClientCluster.BaseAddress!.ToString(), APIUtils.HttpClientCluster);
 
-    public static readonly string HostNameWell = NORCE.Drilling.Trajectory.Service.ServiceConfiguration.WellHostURL!;
+    public static readonly string HostNameWell = OSDC.Drilling.Trajectory.Service.ServiceConfiguration.WellHostURL!;
     public static readonly string HostBasePathWell = "Well/api/";
     public static readonly HttpClient HttpClientWell = APIUtils.SetHttpClient(HostNameWell, HostBasePathWell);
     public static readonly Client ClientWell = new Client(APIUtils.HttpClientWell.BaseAddress!.ToString(), APIUtils.HttpClientWell);
 
-    public static readonly string HostNameWellBore = NORCE.Drilling.Trajectory.Service.ServiceConfiguration.WellBoreHostURL!;
+    public static readonly string HostNameWellBore = OSDC.Drilling.Trajectory.Service.ServiceConfiguration.WellBoreHostURL!;
     public static readonly string HostBasePathWellBore = "WellBore/api/";
     public static readonly HttpClient HttpClientWellBore = APIUtils.SetHttpClient(HostNameWellBore, HostBasePathWellBore);
     public static readonly Client ClientWellBore = new Client(APIUtils.HttpClientWellBore.BaseAddress!.ToString(), APIUtils.HttpClientWellBore);
 
-    public static readonly string HostNameWellBoreArchitecture = NORCE.Drilling.Trajectory.Service.ServiceConfiguration.WellBoreArchitectureHostURL!;
+    public static readonly string HostNameWellBoreArchitecture = OSDC.Drilling.Trajectory.Service.ServiceConfiguration.WellBoreArchitectureHostURL!;
     public static readonly string HostBasePathWellBoreArchitecture = "WellBoreArchitecture/api/";
     public static readonly HttpClient HttpClientWellBoreArchitecture = APIUtils.SetHttpClient(HostNameWellBoreArchitecture, HostBasePathWellBoreArchitecture);
     public static readonly Client ClientWellBoreArchitecture = new Client(APIUtils.HttpClientWellBoreArchitecture.BaseAddress!.ToString(), APIUtils.HttpClientWellBoreArchitecture);
 
-    public static readonly string HostNameSurveyInstrument = NORCE.Drilling.Trajectory.Service.ServiceConfiguration.SurveyInstrumentHostURL!;
+    public static readonly string HostNameSurveyInstrument = OSDC.Drilling.Trajectory.Service.ServiceConfiguration.SurveyInstrumentHostURL!;
     public static readonly string HostBasePathSurveyInstrument = "SurveyInstrument/api/";
     public static readonly HttpClient HttpClientSurveyInstrument = APIUtils.SetHttpClient(HostNameSurveyInstrument, HostBasePathSurveyInstrument);
     public static readonly Client ClientSurveyInstrument = new Client(APIUtils.HttpClientSurveyInstrument.BaseAddress!.ToString(), APIUtils.HttpClientSurveyInstrument);
@@ -66,7 +66,7 @@ public static class APIUtils
     /// - the info/error message resulting from the interaction with called microservices
     /// </returns>
     /// </summary>
-    public static async Task<(SurveyStation?, WellBore?, string)> GetReferencePointAsync(NORCE.Drilling.Trajectory.Model.Trajectory trajectory)
+    public static async Task<(SurveyStation?, WellBore?, string)> GetReferencePointAsync(OSDC.Drilling.Trajectory.Model.Trajectory trajectory)
     {
         return await GetReferencePointAsync(trajectory.WellBoreID);
     }

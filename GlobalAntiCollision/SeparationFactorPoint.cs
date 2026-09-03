@@ -1,4 +1,4 @@
-namespace NORCE.Drilling.GlobalAntiCollision
+namespace OSDC.Drilling.GlobalAntiCollision
 {
     public struct SeparationFactorPoint
     {

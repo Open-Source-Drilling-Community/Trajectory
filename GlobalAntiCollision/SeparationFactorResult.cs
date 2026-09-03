@@ -2,7 +2,7 @@ using System;
 using System.Collections.Generic;
 using System.Text.Json.Serialization;
 
-namespace NORCE.Drilling.GlobalAntiCollision
+namespace OSDC.Drilling.GlobalAntiCollision
 {
     public class SeparationFactorResult : ICloneable
     {

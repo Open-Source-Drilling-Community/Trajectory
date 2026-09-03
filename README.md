@@ -1,6 +1,6 @@
 # Trajectory
 
-The Trajectory repository contains the Trajectory service, the host web application, and a reusable Razor class library for the Trajectory UI pages.
+The Trajectory repository contains the OSDC Trajectory service, the host web application, and a reusable Razor class library for the Trajectory UI pages. The solution-owned .NET namespace root is `OSDC.Drilling.Trajectory`; the companion anti-collision library uses `OSDC.Drilling.GlobalAntiCollision`.
 
 ## Solution Architecture
 
@@ -31,7 +31,7 @@ The solution currently contains:
 - `ServiceTest`
   - tests for the service API
 - `home`
-  - local persisted data, including the SQLite database at `home/Trajectory.db`
+  - local persisted data, including `Trajectory.db`, `GlobalAntiCollision.db`, `SeparationFactorResults.db`, and usage history
 
 ## Main Workflows
 
@@ -45,16 +45,14 @@ Trajectory realization cases are defined from a reference trajectory and a reque
 
 ## Security and Confidentiality
 
-Data are persisted as clear text in a single SQLite database hosted in the service container.
+Data are persisted as clear text in SQLite databases hosted in the service container.
 Neither authentication nor authorization have been implemented.
 
 Docker containers for the service and host web application are available under the `digiwells` organization:
 
 https://hub.docker.com/?namespace=digiwells
 
-More information about running the containers and mapping the database to a local folder is available here:
-
-https://github.com/NORCE-DrillingAndWells/DrillingAndWells/wiki
+The migrated images are `docker.io/digiwells/osdcdrillingtrajectoryservice:stable` and `docker.io/digiwells/osdcdrillingtrajectorywebappclient:stable`.
 
 ## Deployment
 
@@ -72,11 +70,13 @@ https://app.digiwells.no/Trajectory/webapp/Trajectory
 
 The OpenAPI schema of the service is available at:
 
-https://dev.digiwells.no/Trajectory/swagger
+https://dev.digiwells.no/Trajectory/api/swagger
 
-https://app.digiwells.no/Trajectory/swagger
+https://app.digiwells.no/Trajectory/api/swagger
 
 The service and host web application are deployed as Docker containers using Kubernetes and Helm.
+
+The Helm charts are named `osdcdrillingtrajectoryservice` and `osdcdrillingtrajectorywebappclient`. The service chart deliberately retains the historical `trajectory-claim` PVC and all database filenames. Use `--set persistence.existingClaim=trajectory-claim` for the identity cutover, and do not uninstall the legacy release before verifying the selected cluster, namespace, mounted claim, image digest, and existing record counts. Its `Recreate` strategy prevents overlapping SQLite writers.
 
 ## Funding
 
@@ -93,4 +93,6 @@ The current work has been funded by the [Research Council of Norway](https://www
 - The service exposes its REST operations through MCP over streamable HTTP at `/trajectory/api/mcp` and WebSocket at `/trajectory/api/mcp/ws`.
 - MCP tools are generated from 104 non-statistics controller actions; the usage-statistics controller is intentionally excluded. A `ping` tool is also available. Tool metadata now provides operation-specific workflow guidance and complete nested JSON input schemas with UUID formats, enum values, defaults, chunk-index constraints, and SI units.
 - The trajectory editor supports mean-sea-level depth references through the Vertical Datum integration.
-- The WebApp uses the current shared WebPages packages for Field (1.0.19), Cluster (1.0.12), Cartographic Projection (1.0.8), Geodetic Datum (1.0.7), Earth Geomagnetic Field (1.0.4), Gravitational Field (1.0.3), Well (1.0.11), and WellBore (1.0.12).
+- The WebApp uses published shared WebPages packages for Field (1.0.19), Cluster (1.0.12), Cartographic Projection (1.0.8), Geodetic Datum (1.0.7), Earth Geomagnetic Field (1.0.4), Gravitational Field (1.0.3), Well (1.0.11), and WellBore (1.0.12).
+- The reusable UI package identity is `OSDC.Drilling.Trajectory.WebPages`. Some referenced sibling UI packages still use their published legacy package IDs; those dependencies are separate from Trajectory's own identity.
+- Existing unversioned databases with the exact expected schema are adopted in place as schema version 1. Unknown, malformed, incomplete, or newer schemas stop startup without dropping, replacing, or rewriting tables and rows.

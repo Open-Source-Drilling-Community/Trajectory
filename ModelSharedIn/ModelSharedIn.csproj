@@ -5,8 +5,10 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Authors>Energy Modelling and Automation group</Authors>
-		<Company>NORCE</Company>
+		<Authors>Eric Cayeux</Authors>
+		<Company>Open Source Drilling Community</Company>
+		<RootNamespace>OSDC.Drilling.Trajectory.ModelSharedIn</RootNamespace>
+		<AssemblyName>OSDC.Drilling.Trajectory.ModelSharedIn</AssemblyName>
 		<Title>Management of API dependencies of the Model project (distributed shared model approach)</Title>
 	</PropertyGroup>
 

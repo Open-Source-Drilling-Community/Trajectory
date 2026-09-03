@@ -1,7 +1,7 @@
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using NORCE.Drilling.GlobalAntiCollision;
-using NORCE.Drilling.Trajectory.Service.Managers;
+using OSDC.Drilling.GlobalAntiCollision;
+using OSDC.Drilling.Trajectory.Service.Managers;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Common;
 using OSDC.DotnetLibraries.General.Octree;
@@ -10,7 +10,7 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-namespace NORCE.Drilling.Trajectory.Service.Controllers
+namespace OSDC.Drilling.Trajectory.Service.Controllers
 {
     [Produces("application/json")]
     [Route("[controller]")]

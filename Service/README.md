@@ -1,6 +1,6 @@
 # Trajectory Service
 
-`Service` is the ASP.NET Core microservice for Trajectory.
+`Service` is the ASP.NET Core microservice for Trajectory. Its code namespace root is `OSDC.Drilling.Trajectory.Service`.
 
 It exposes the Trajectory API and depends on the `Model` project for the domain model and computation logic.
 
@@ -16,7 +16,7 @@ It exposes the Trajectory API and depends on the `Model` project for the domain 
 
 The service is packaged as the Docker image:
 
-`norcedrillingtrajectoryservice`
+`docker.io/digiwells/osdcdrillingtrajectoryservice:stable`
 
 It is published under the `digiwells` organization:
 
@@ -52,6 +52,12 @@ The light data endpoint is intended for grids and polling calculation status. Re
 - `ModelSharedOut` contains generated client-side types and service schemas for consumers.
 - `WebPages` contains the reusable Razor UI pages for Trajectory, TrajectoryInterpolation, and TrajectoryRealization.
 - `WebApp` is the host application that renders the UI using `WebPages`.
+
+## Persistence and identity cutover
+
+The service keeps its historical API path (`/Trajectory/api` case-insensitively), database filenames, and `trajectory-claim` storage identity. Its renamed Helm chart is `charts/osdcdrillingtrajectoryservice` and defaults to a `Recreate` deployment strategy. For a new OSDC Helm release that must reuse production data, set `persistence.existingClaim=trajectory-claim` explicitly.
+
+Fresh databases are created transactionally at schema version 1. An exact unversioned legacy schema is adopted by setting only SQLite `user_version`; existing rows are not rewritten. Unexpected tables, missing or malformed columns, and newer schema versions fail startup without automatic deletion or reconstruction.
 
 ## Source Code Origin
 

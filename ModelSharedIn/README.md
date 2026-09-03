@@ -1,6 +1,6 @@
 # ModelSharedIn
 
-`ModelSharedIn` manages generated dependency models used by the `Model` project.
+`ModelSharedIn` manages generated dependency models used by the `Model` project. Its generator and assembly use the `OSDC.Drilling.Trajectory` identity.
 
 ## Responsibility
 
@@ -24,3 +24,4 @@ It supports the distributed shared model approach for dependencies that the Traj
 
 - The project is configured as an executable because it includes code-generation tooling.
 - The source schemas are stored under `json-schemas`.
+- Generated dependency types use `OSDC.Drilling.Trajectory.ModelShared`; regenerate them from their OpenAPI inputs instead of hand-editing `MergedModel.cs`.

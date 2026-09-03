@@ -1,7 +1,7 @@
 using System.Reflection;
-using NORCE.Drilling.Trajectory.WebPages;
+using OSDC.Drilling.Trajectory.WebPages;
 
-namespace NORCE.Drilling.Trajectory.WebApp;
+namespace OSDC.Drilling.Trajectory.WebApp;
 
 public static class ExternalRazorAssemblies
 {

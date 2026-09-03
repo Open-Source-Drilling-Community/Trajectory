@@ -1,10 +1,10 @@
-using NORCE.Drilling.Trajectory.ModelShared;
+using OSDC.Drilling.Trajectory.ModelShared;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Common;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NORCE.Drilling.Trajectory.Model
+namespace OSDC.Drilling.Trajectory.Model
 {
     /// <summary>
     /// A survey run is an imported measured survey dataset acquired with one survey instrument.

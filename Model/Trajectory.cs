@@ -1,4 +1,4 @@
-﻿using NORCE.Drilling.Trajectory.ModelShared;
+using OSDC.Drilling.Trajectory.ModelShared;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Common;
 using OSDC.DotnetLibraries.General.Math;
@@ -7,7 +7,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NORCE.Drilling.Trajectory.Model
+namespace OSDC.Drilling.Trajectory.Model
 {
     
     public class Trajectory : TrajectoryLight

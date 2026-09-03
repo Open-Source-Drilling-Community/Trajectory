@@ -4,7 +4,7 @@ using OSDC.DotnetLibraries.General.Octree;
 using System;
 using System.Collections.Generic;
 
-namespace NORCE.Drilling.GlobalAntiCollision
+namespace OSDC.Drilling.GlobalAntiCollision
 {
     public static class RelevantMdRangeCalculator
     {

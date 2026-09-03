@@ -3,7 +3,7 @@ using OSDC.DotnetLibraries.General.Statistics;
 using System;
 using System.Collections.Generic;
 
-namespace NORCE.Drilling.GlobalAntiCollision
+namespace OSDC.Drilling.GlobalAntiCollision
 {
     public static class PerpendicularEllipseEnvelopeBuilder
     {

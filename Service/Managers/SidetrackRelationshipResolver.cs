@@ -1,15 +1,15 @@
 using Microsoft.Extensions.Logging;
-using NORCE.Drilling.GlobalAntiCollision;
-using NORCE.Drilling.Trajectory.ModelShared;
+using OSDC.Drilling.GlobalAntiCollision;
+using OSDC.Drilling.Trajectory.ModelShared;
 using OSDC.DotnetLibraries.General.Common;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Threading.Tasks;
 
-using TrajectoryModel = NORCE.Drilling.Trajectory.Model.Trajectory;
+using TrajectoryModel = OSDC.Drilling.Trajectory.Model.Trajectory;
 
-namespace NORCE.Drilling.Trajectory.Service.Managers
+namespace OSDC.Drilling.Trajectory.Service.Managers
 {
     public readonly record struct AntiCollisionPairMdConstraints(
         double? ReferenceMinimumMD,

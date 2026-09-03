@@ -2,7 +2,7 @@
 @using Microsoft.AspNetCore.Components.Web
 
 <Router AppAssembly="@typeof(App).Assembly"
-        AdditionalAssemblies="@NORCE.Drilling.Trajectory.WebApp.ExternalRazorAssemblies.All">
+        AdditionalAssemblies="@OSDC.Drilling.Trajectory.WebApp.ExternalRazorAssemblies.All">
     <Found Context="routeData">
         <RouteView RouteData="@routeData" DefaultLayout="@typeof(Shared.MainLayout)" />
         <FocusOnNavigate RouteData="@routeData" Selector="h1" />

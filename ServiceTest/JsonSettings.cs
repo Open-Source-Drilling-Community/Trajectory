@@ -1,7 +1,7 @@
-﻿using System.Text.Json;
+using System.Text.Json;
 using System.Text.Json.Serialization;
 
-namespace NORCE.Drilling.Trajectory.ServiceTest
+namespace OSDC.Drilling.Trajectory.ServiceTest
 {
     public static class JsonSettings
     {

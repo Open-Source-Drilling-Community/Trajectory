@@ -2,7 +2,7 @@ using OSDC.DotnetLibraries.General.DataManagement;
 using System;
 using System.Collections.Generic;
 
-namespace NORCE.Drilling.Trajectory.Model
+namespace OSDC.Drilling.Trajectory.Model
 {
     public class TrajectoryMinimumDistanceCalculationLight
     {

@@ -1,5 +1,5 @@
 using System.Text.Json.Nodes;
-using NORCE.Drilling.Trajectory.Service.Mcp.Tools;
+using OSDC.Drilling.Trajectory.Service.Mcp.Tools;
 
 namespace ServiceTest;
 

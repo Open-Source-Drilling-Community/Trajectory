@@ -1,6 +1,6 @@
-# NORCE.Drilling.Trajectory.WebPages
+# OSDC.Drilling.Trajectory.WebPages
 
-`NORCE.Drilling.Trajectory.WebPages` is a Razor class library that contains the Trajectory UI pages extracted from the main Trajectory web application.
+`OSDC.Drilling.Trajectory.WebPages` is a Razor class library that contains the Trajectory UI pages extracted from the main Trajectory web application.
 
 It currently provides:
 
@@ -36,7 +36,7 @@ Exported columns per realization are `MD`, `Incl`, `Az`, `TVD`, `North`, `East`,
 
 The package depends on:
 
-- `NORCE.Drilling.Trajectory.ModelSharedOut`
+- `OSDC.Drilling.Trajectory.ModelSharedOut`
 - `MudBlazor`
 - `Plotly.Blazor`
 - `OSDC.UnitConversion.DrillingRazorMudComponents`
@@ -46,7 +46,7 @@ The package depends on:
 The consuming application is expected to:
 
 - reference this package
-- configure routing so the assembly containing `NORCE.Drilling.Trajectory.WebPages` components is discovered
+- configure routing so the assembly containing `OSDC.Drilling.Trajectory.WebPages` components is discovered
 - provide the required MudBlazor services
 - load the Plotly.Blazor static assets
 - register an `ITrajectoryAPIUtils` implementation in dependency injection
@@ -77,6 +77,8 @@ The host application is responsible for supplying those endpoint values through 
 ## Notes
 
 This package contains the UI pages and page-specific support code. It does not by itself provide the service backend.
+
+The package, assembly, and static-web-asset base identity are all `OSDC.Drilling.Trajectory.WebPages`. For example, the 3D camera helper is loaded from `_content/OSDC.Drilling.Trajectory.WebPages/scatter3dCameraPersistence.js`. The NuGet publishing workflow produces `OSDC.Drilling.Trajectory.WebPages.<version>.nupkg`.
 
 ## Mean-sea-level depth references
 

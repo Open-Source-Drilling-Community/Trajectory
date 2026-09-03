@@ -1,6 +1,6 @@
-using NORCE.Drilling.Trajectory.ModelShared;
+using OSDC.Drilling.Trajectory.ModelShared;
 
-namespace NORCE.Drilling.Trajectory.WebPages;
+namespace OSDC.Drilling.Trajectory.WebPages;
 
 public interface ITrajectoryAPIUtils
 {

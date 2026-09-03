@@ -1,6 +1,6 @@
 using MudBlazor;
 
-namespace NORCE.Drilling.Trajectory.WebPages;
+namespace OSDC.Drilling.Trajectory.WebPages;
 
 public class ExpandButton(bool isExpanded = true)
 {

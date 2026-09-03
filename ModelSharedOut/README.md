@@ -1,6 +1,6 @@
 # ModelSharedOut
 
-`ModelSharedOut` manages generated shared models and client-side service contract types for consumers of the Trajectory service.
+`ModelSharedOut` manages generated shared models and client-side service contract types for consumers of the Trajectory service. Its generated namespace is `OSDC.Drilling.Trajectory.ModelShared`.
 
 ## Responsibility
 
@@ -28,3 +28,4 @@ The generated output includes client types and methods for trajectory realizatio
 
 - The project is configured as an executable because it includes code-generation tooling.
 - It contains helper code related to generated pseudo-constructors and schema processing.
+- `TrajectoryMergedModel.cs`, `PseudoConstructors.cs`, and the merged JSON/OpenAPI artifacts carry the OSDC namespace and should be regenerated together after service-contract changes.

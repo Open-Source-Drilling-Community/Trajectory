@@ -1,15 +1,18 @@
-# Default values for norcedrillingtrajectoryservice.
+# Default values for osdcdrillingtrajectoryservice.
 # This is a YAML-formatted file.
 # Declare variables to be passed into your templates.
 replicaCount: 1
+strategy:
+  # All Trajectory SQLite databases share one persistent volume. Never overlap writers during upgrades.
+  type: Recreate
 image:
-  repository: digiwells/norcedrillingtrajectoryservice
+  repository: docker.io/digiwells/osdcdrillingtrajectoryservice
   pullPolicy: Always
   # Overrides the image tag whose default is the chart appVersion.
   tag: "stable"
 imagePullSecrets: []
-nameOverride: "norcedrillingtrajectoryservice"
-fullnameOverride: "norcedrillingtrajectoryservice"
+nameOverride: "osdcdrillingtrajectoryservice"
+fullnameOverride: "osdctrajectoryservice"
 serviceAccount:
   # Specifies whether a service account should be created
   create: true
@@ -80,3 +83,11 @@ tolerations: []
 affinity: {}
 probes:
   enabled: false
+persistence:
+  enabled: true
+  # During an identity cutover with a new Helm release, set this explicitly to trajectory-claim.
+  existingClaim: ""
+  claimName: trajectory-claim
+  accessModes:
+    - ReadWriteMany
+  size: 500Mi

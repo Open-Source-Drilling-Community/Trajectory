@@ -1,6 +1,6 @@
-using NORCE.Drilling.Trajectory.ModelShared;
+using OSDC.Drilling.Trajectory.ModelShared;
 
-namespace NORCE.Drilling.Trajectory.ModelShared
+namespace OSDC.Drilling.Trajectory.ModelShared
 {
     public partial class SurveyMeasurement
     {

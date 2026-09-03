@@ -1,5 +1,5 @@
 using System.Text.Json.Nodes;
-namespace NORCE.Drilling.Trajectory.Service.Mcp.Tools;
+namespace OSDC.Drilling.Trajectory.Service.Mcp.Tools;
 public sealed class PingMcpTool : IMcpTool
 {
     public string Name => "ping";

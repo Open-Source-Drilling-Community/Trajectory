@@ -1,11 +1,11 @@
-﻿using Microsoft.Data.Sqlite;
+using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using System;
 using System.Collections.Generic;
 using System.Text.Json;
 using System.Threading;
 
-namespace NORCE.Drilling.Trajectory.Service.Managers
+namespace OSDC.Drilling.Trajectory.Service.Managers
 {
     /// <summary>
     /// A manager for GlobalAntiCollision. The manager implements the singleton pattern as defined by 

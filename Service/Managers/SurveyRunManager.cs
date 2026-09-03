@@ -1,6 +1,6 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
-using NORCE.Drilling.Trajectory.Model;
+using OSDC.Drilling.Trajectory.Model;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Common;
 using OSDC.DotnetLibraries.General.DataManagement;
@@ -10,7 +10,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace NORCE.Drilling.Trajectory.Service.Managers
+namespace OSDC.Drilling.Trajectory.Service.Managers
 {
     public class SurveyRunManager
     {
@@ -435,7 +435,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 return false;
             }
 
-            NORCE.Drilling.Trajectory.ModelShared.SurveyInstrument? surveyInstrument;
+            OSDC.Drilling.Trajectory.ModelShared.SurveyInstrument? surveyInstrument;
             try
             {
                 surveyInstrument = await APIUtils.ClientSurveyInstrument.GetSurveyInstrumentByIdAsync(surveyRun.SurveyInstrumentID);
@@ -462,12 +462,12 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             {
                 return surveyInstrument.ModelType switch
                 {
-                    NORCE.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.MWD_WolffDeWardt or
-                    NORCE.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.Gyro_WolffDeWardt =>
+                    OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.MWD_WolffDeWardt or
+                    OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.Gyro_WolffDeWardt =>
                         CovarianceCalculatorWolffDeWardt.Calculate(stations),
 
-                    NORCE.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.MWD_ISCWSA or
-                    NORCE.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.Gyro_ISCWSA =>
+                    OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.MWD_ISCWSA or
+                    OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.Gyro_ISCWSA =>
                         CovarianceCalculatorISCWSA.Calculate(stations),
 
                     _ => false
@@ -480,7 +480,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             }
         }
 
-        private static OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument ConvertSurveyInstrument(NORCE.Drilling.Trajectory.ModelShared.SurveyInstrument surveyInstrument)
+        private static OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument ConvertSurveyInstrument(OSDC.Drilling.Trajectory.ModelShared.SurveyInstrument surveyInstrument)
         {
             string data = JsonSerializer.Serialize(surveyInstrument, JsonSettings.Options);
             return JsonSerializer.Deserialize<OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument>(data, JsonSettings.Options)
@@ -540,7 +540,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
 
         private async Task<bool> ResolveTieInPointAsync(SurveyRun surveyRun)
         {
-            (SurveyStation? wellheadTieInPoint, NORCE.Drilling.Trajectory.ModelShared.WellBore? wellBore, string message) = await APIUtils.GetReferencePointAsync(surveyRun.WellBoreID);
+            (SurveyStation? wellheadTieInPoint, OSDC.Drilling.Trajectory.ModelShared.WellBore? wellBore, string message) = await APIUtils.GetReferencePointAsync(surveyRun.WellBoreID);
             if (wellheadTieInPoint is not { } definedWellheadTieInPoint ||
                 (definedWellheadTieInPoint.MD ?? definedWellheadTieInPoint.Abscissa) is not { } wellheadMd)
             {
@@ -573,7 +573,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             return ResolveParentSurveyRunTieInPoint(surveyRun, firstMd, firstMd);
         }
 
-        private static bool IsSidetrackOrLateral(NORCE.Drilling.Trajectory.ModelShared.WellBore? wellBore)
+        private static bool IsSidetrackOrLateral(OSDC.Drilling.Trajectory.ModelShared.WellBore? wellBore)
         {
             return wellBore != null &&
                 (wellBore.IsSidetrack ||

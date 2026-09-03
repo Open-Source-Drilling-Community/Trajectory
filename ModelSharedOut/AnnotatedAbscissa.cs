@@ -1,4 +1,4 @@
-namespace NORCE.Drilling.Trajectory.ModelShared
+namespace OSDC.Drilling.Trajectory.ModelShared
 {
     internal sealed class AnnotatedAbscissaJsonConverter : System.Text.Json.Serialization.JsonConverter<AnnotatedAbscissa>
     {

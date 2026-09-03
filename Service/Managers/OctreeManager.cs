@@ -2,14 +2,14 @@ using Microsoft.Extensions.Logging;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using Microsoft.Data.Sqlite;
 using System.Linq;
-using NORCE.Drilling.GlobalAntiCollision;
+using OSDC.Drilling.GlobalAntiCollision;
 using OSDC.DotnetLibraries.General.Common;
 using OSDC.DotnetLibraries.General.Octree;
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
 
-namespace NORCE.Drilling.Trajectory.Service.Managers
+namespace OSDC.Drilling.Trajectory.Service.Managers
 {
     /// <summary>
     /// A manager for GlobalAntiCollision. The manager implements the singleton pattern as defined by 

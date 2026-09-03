@@ -6,9 +6,9 @@ using System.Text.Json.Nodes;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Mvc.Routing;
 using Microsoft.Extensions.DependencyInjection;
-using NORCE.Drilling.Trajectory.Service.Controllers;
+using OSDC.Drilling.Trajectory.Service.Controllers;
 
-namespace NORCE.Drilling.Trajectory.Service.Mcp.Tools;
+namespace OSDC.Drilling.Trajectory.Service.Mcp.Tools;
 
 public static class TrajectoryRestMcpToolRegistrations
 {

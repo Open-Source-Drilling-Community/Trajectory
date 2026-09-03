@@ -1,6 +1,6 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
-using NORCE.Drilling.Trajectory.Model;
+using OSDC.Drilling.Trajectory.Model;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.DataManagement;
 using System;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace NORCE.Drilling.Trajectory.Service.Managers
+namespace OSDC.Drilling.Trajectory.Service.Managers
 {
     public class SurveyStationEllipseCalculationManager
     {
@@ -225,7 +225,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                 return true;
             }
 
-            NORCE.Drilling.Trajectory.ModelShared.SurveyInstrument? surveyInstrument;
+            OSDC.Drilling.Trajectory.ModelShared.SurveyInstrument? surveyInstrument;
             try
             {
                 surveyInstrument = await APIUtils.ClientSurveyInstrument.GetSurveyInstrumentByIdAsync(surveyInstrumentId);
@@ -249,7 +249,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             return true;
         }
 
-        private static OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument ConvertSurveyInstrument(NORCE.Drilling.Trajectory.ModelShared.SurveyInstrument surveyInstrument)
+        private static OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument ConvertSurveyInstrument(OSDC.Drilling.Trajectory.ModelShared.SurveyInstrument surveyInstrument)
         {
             string data = JsonSerializer.Serialize(surveyInstrument, JsonSettings.Options);
             return JsonSerializer.Deserialize<OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument>(data, JsonSettings.Options)

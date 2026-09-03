@@ -3,7 +3,7 @@ using System.Collections.Generic;
 using System.Threading.Tasks;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 
-namespace NORCE.Drilling.GlobalAntiCollision
+namespace OSDC.Drilling.GlobalAntiCollision
 {
     public class GlobalAntiCollision : ICloneable
     {

@@ -1,8 +1,8 @@
 using DWIS.API.DTO;
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
-using NORCE.Drilling.Trajectory.Model;
-using NORCE.Drilling.Trajectory.ModelShared;
+using OSDC.Drilling.Trajectory.Model;
+using OSDC.Drilling.Trajectory.ModelShared;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Common;
 using OSDC.DotnetLibraries.General.DataManagement;
@@ -19,7 +19,7 @@ using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace NORCE.Drilling.Trajectory.Service.Managers
+namespace OSDC.Drilling.Trajectory.Service.Managers
 {
 
     /// <summary>
@@ -1112,7 +1112,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     return false;
                 }
 
-                NORCE.Drilling.Trajectory.ModelShared.SurveyInstrument? surveyInstrument;
+                OSDC.Drilling.Trajectory.ModelShared.SurveyInstrument? surveyInstrument;
                 try
                 {
                     surveyInstrument = await APIUtils.ClientSurveyInstrument.GetSurveyInstrumentByIdAsync(surveyRun.SurveyInstrumentID);
@@ -1238,7 +1238,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             return JsonSerializer.Deserialize<SurveyStation>(data, JsonSettings.Options) ?? new SurveyStation();
         }
 
-        private static OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument ConvertSurveyInstrument(NORCE.Drilling.Trajectory.ModelShared.SurveyInstrument surveyInstrument)
+        private static OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument ConvertSurveyInstrument(OSDC.Drilling.Trajectory.ModelShared.SurveyInstrument surveyInstrument)
         {
             string data = JsonSerializer.Serialize(surveyInstrument, JsonSettings.Options);
             return JsonSerializer.Deserialize<OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument>(data, JsonSettings.Options)

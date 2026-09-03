@@ -1,11 +1,11 @@
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using Geometry = OSDC.DotnetLibraries.General.Math;
-using NORCE.Drilling.Trajectory.Model;
+using OSDC.Drilling.Trajectory.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 
-namespace NORCE.Drilling.Trajectory.Service.Managers
+namespace OSDC.Drilling.Trajectory.Service.Managers
 {
     internal static class CenterlineMinimumDistanceEngine
     {

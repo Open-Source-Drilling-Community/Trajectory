@@ -4,7 +4,7 @@ using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 
-namespace NORCE.Drilling.Trajectory.Service.Mcp.Tools;
+namespace OSDC.Drilling.Trajectory.Service.Mcp.Tools;
 
 /// <summary>Builds the human- and machine-readable MCP contract for reflected REST actions.</summary>
 internal static class TrajectoryMcpToolMetadata

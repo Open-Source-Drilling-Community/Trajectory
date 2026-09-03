@@ -1,6 +1,6 @@
-using ModelShared = NORCE.Drilling.Trajectory.ModelShared;
+using ModelShared = OSDC.Drilling.Trajectory.ModelShared;
 
-namespace NORCE.Drilling.Trajectory.WebPages;
+namespace OSDC.Drilling.Trajectory.WebPages;
 
 public sealed record TrajectoryReferenceDatumValues(
     double? MeanSeaLevelDepthReference,

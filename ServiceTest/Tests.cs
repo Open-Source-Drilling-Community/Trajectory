@@ -1,7 +1,9 @@
+extern alias ModelSharedOutAlias;
+
 using System.Net.Http.Headers;
 using System.Text.Json;
-using NORCE.Drilling.Trajectory.ModelShared;
-using NORCE.Drilling.Trajectory.ServiceTest;
+using ModelSharedOutAlias::OSDC.Drilling.Trajectory.ModelShared;
+using OSDC.Drilling.Trajectory.ServiceTest;
 
 namespace ServiceTest
 {

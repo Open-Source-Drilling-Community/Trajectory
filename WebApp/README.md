@@ -1,6 +1,6 @@
 # Trajectory WebApp
 
-`WebApp` is the ASP.NET Core Blazor host application for Trajectory.
+`WebApp` is the ASP.NET Core Blazor host application for Trajectory under `OSDC.Drilling.Trajectory.WebApp`.
 
 It provides the application shell, startup configuration, routing, and static assets for the UI. The Trajectory, TrajectoryInterpolation, and TrajectoryRealization pages themselves are now provided by the `WebPages` Razor class library.
 
@@ -8,7 +8,7 @@ It provides the application shell, startup configuration, routing, and static as
 
 The host application is packaged as the Docker image:
 
-`norcedrillingtrajectorywebappclient`
+`docker.io/digiwells/osdcdrillingtrajectorywebappclient:stable`
 
 It is published under the `digiwells` organization:
 
@@ -50,4 +50,6 @@ The current work has been funded by the [Research Council of Norway](https://www
 
 ## Current shared-page dependencies
 
-The WebApp and debug host have been aligned with the current OSDC WebPages packages used by the trajectory UI. Notable versions are Field 1.0.19, Cluster 1.0.12, Cartographic Projection 1.0.8, Geodetic Datum 1.0.7, Earth Geomagnetic Field 1.0.4, Gravitational Field 1.0.3, Well 1.0.11, and WellBore 1.0.12.
+The host consumes the local `OSDC.Drilling.Trajectory.WebPages` project. It also references published sibling WebPages packages; several of those retain legacy NuGet IDs until their OSDC replacements are available, which does not change the Trajectory host's own identity.
+
+The renamed Helm chart is `charts/osdcdrillingtrajectorywebappclient`. In production, `TrajectoryHostURL` points to the OSDC service name `http://osdctrajectoryservice/`.

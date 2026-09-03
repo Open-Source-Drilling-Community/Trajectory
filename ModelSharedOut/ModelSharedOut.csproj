@@ -5,8 +5,10 @@
 		<TargetFramework>net8.0</TargetFramework>
 		<ImplicitUsings>enable</ImplicitUsings>
 		<Nullable>enable</Nullable>
-		<Authors>Energy Modelling and Automation group</Authors>
-		<Company>NORCE</Company>
+		<Authors>Eric Cayeux</Authors>
+		<Company>Open Source Drilling Community</Company>
+		<RootNamespace>OSDC.Drilling.Trajectory.ModelSharedOut</RootNamespace>
+		<AssemblyName>OSDC.Drilling.Trajectory.ModelSharedOut</AssemblyName>
 		<Title>Auto-generation of the API of the Trajectory microservice (distributed shared model approach)</Title>
 	</PropertyGroup>
 

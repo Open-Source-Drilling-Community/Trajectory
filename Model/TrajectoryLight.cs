@@ -1,8 +1,8 @@
-﻿using OSDC.DotnetLibraries.General.DataManagement;
+using OSDC.DotnetLibraries.General.DataManagement;
 using OSDC.DotnetLibraries.General.Statistics;
 using System;
 
-namespace NORCE.Drilling.Trajectory.Model
+namespace OSDC.Drilling.Trajectory.Model
 {
     /// <summary>
     /// Light weight version of a Trajectory

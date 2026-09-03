@@ -1,7 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
-using NORCE.Drilling.Trajectory.Model;
-using NORCE.Drilling.Trajectory.ModelShared;
+using OSDC.Drilling.Trajectory.Model;
+using OSDC.Drilling.Trajectory.ModelShared;
 using OSDC.DotnetLibraries.General.DataManagement;
 using System;
 using System.Collections.Generic;
@@ -9,7 +9,7 @@ using System.Linq;
 using System.Text.Json;
 using System.Threading.Tasks;
 
-namespace NORCE.Drilling.Trajectory.Service.Managers
+namespace OSDC.Drilling.Trajectory.Service.Managers
 {
     /// <summary>
     /// Manager for InterpolatedTrajectory persistence and calculation.
@@ -267,7 +267,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
                     return null;
                 }
 
-                NORCE.Drilling.Trajectory.Model.Trajectory? trajectory = _trajectoryManager.GetTrajectoryById(interpolatedTrajectory.TrajectoryID);
+                OSDC.Drilling.Trajectory.Model.Trajectory? trajectory = _trajectoryManager.GetTrajectoryById(interpolatedTrajectory.TrajectoryID);
                 if (trajectory == null)
                 {
                     _logger.LogWarning("The linked Trajectory could not be found");

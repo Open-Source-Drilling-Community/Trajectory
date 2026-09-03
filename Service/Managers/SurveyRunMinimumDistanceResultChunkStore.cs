@@ -1,12 +1,12 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
-using NORCE.Drilling.Trajectory.Model;
+using OSDC.Drilling.Trajectory.Model;
 using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 
-namespace NORCE.Drilling.Trajectory.Service.Managers
+namespace OSDC.Drilling.Trajectory.Service.Managers
 {
     internal static class SurveyRunMinimumDistanceResultChunkStore
     {

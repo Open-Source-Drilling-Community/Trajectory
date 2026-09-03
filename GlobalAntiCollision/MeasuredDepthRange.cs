@@ -1,6 +1,6 @@
 using System;
 
-namespace NORCE.Drilling.GlobalAntiCollision
+namespace OSDC.Drilling.GlobalAntiCollision
 {
     public class MeasuredDepthRange : ICloneable
     {

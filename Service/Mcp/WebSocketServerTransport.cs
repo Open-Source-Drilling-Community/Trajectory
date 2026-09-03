@@ -5,7 +5,7 @@ using Microsoft.Extensions.Logging;
 using Microsoft.Extensions.Logging.Abstractions;
 using ModelContextProtocol;
 using ModelContextProtocol.Protocol;
-namespace NORCE.Drilling.Trajectory.Service.Mcp;
+namespace OSDC.Drilling.Trajectory.Service.Mcp;
 internal sealed class WebSocketServerTransport : TransportBase
 {
     private readonly WebSocket _socket;

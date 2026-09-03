@@ -6,7 +6,7 @@ using OSDC.DotnetLibraries.General.Math;
 using OSDC.DotnetLibraries.General.Octree;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 
-namespace NORCE.Drilling.GlobalAntiCollision
+namespace OSDC.Drilling.GlobalAntiCollision
 {
     public static class SeparationFactorCalculations
     {

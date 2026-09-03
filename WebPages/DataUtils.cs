@@ -1,8 +1,8 @@
-using NORCE.Drilling.Trajectory.ModelShared;
+using OSDC.Drilling.Trajectory.ModelShared;
 using OSDC.UnitConversion.DrillingRazorMudComponents;
 using System.Runtime.InteropServices;
 
-namespace NORCE.Drilling.Trajectory.WebPages;
+namespace OSDC.Drilling.Trajectory.WebPages;
 
 public static class DataUtils
 {
@@ -323,7 +323,7 @@ public static class DataUtils
         List<List<object>> eastValuesList,
         List<List<object>> TVDValuesList,
         List<List<object>> verticalSectionValuesList,
-        List<NORCE.Drilling.Trajectory.ModelShared.Trajectory> trajectoryList
+        List<OSDC.Drilling.Trajectory.ModelShared.Trajectory> trajectoryList
         )
     {
         if (trajectoryList is { })

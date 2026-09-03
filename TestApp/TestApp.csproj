@@ -6,7 +6,7 @@
   </PropertyGroup>
 
   <ItemGroup>
-    <ProjectReference Include="..\NORCE.Drilling.Trajectory\NORCE.Drilling.Trajectory.csproj" />
+    <ProjectReference Include="..\OSDC.Drilling.Trajectory\OSDC.Drilling.Trajectory.csproj" />
   </ItemGroup>
 
 </Project>

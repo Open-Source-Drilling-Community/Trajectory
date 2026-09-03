@@ -1,4 +1,4 @@
-namespace NORCE.Drilling.Trajectory.ModelShared
+namespace OSDC.Drilling.Trajectory.ModelShared
 {
 	public class PseudoConstructors
 	{

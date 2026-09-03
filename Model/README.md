@@ -1,6 +1,6 @@
 # Model
 
-`Model` contains the main Trajectory domain model and trajectory calculation logic used by the service.
+`Model` contains the main Trajectory domain model and trajectory calculation logic used by the service under `OSDC.Drilling.Trajectory.Model`.
 
 ## Responsibility
 

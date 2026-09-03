@@ -48,4 +48,10 @@ dotnet test ServiceTest/ServiceTest.csproj
 
 `McpToolRegistrationTests.cs` runs without a live service and guards the generated MCP contract: 104 non-statistics tools, underscore-only unique names, explicit object schemas, detailed descriptions, chunk-upload/commit guidance, calculation polling, and SI-unit annotations.
 
+`SqlConnectionManagerSafetyTests.cs` is also self-contained. It verifies transactional fresh creation, lossless adoption of an exact legacy schema, and fail-closed handling of malformed and newer databases. Run both self-contained groups without a live API with:
+
+```bash
+dotnet test ServiceTest/ServiceTest.csproj --filter "FullyQualifiedName~SqlConnectionManagerSafetyTests|FullyQualifiedName~McpToolRegistrationTests"
+```
+
 The service must be available at the test base URL (port 8080 in the current local setup) before running the MCP HTTP tests.

@@ -1,6 +1,6 @@
 using System;
 
-namespace NORCE.Drilling.Trajectory.Model
+namespace OSDC.Drilling.Trajectory.Model
 {
     public class MinimumDistanceReferenceInterval
     {

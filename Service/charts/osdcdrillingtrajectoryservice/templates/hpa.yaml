@@ -2,14 +2,14 @@
 apiVersion: autoscaling/v2beta1
 kind: HorizontalPodAutoscaler
 metadata:
-  name: {{ include "norcedrillingtrajectorywebappclient.fullname" . }}
+  name: {{ include "osdcdrillingtrajectoryservice.fullname" . }}
   labels:
-    {{- include "norcedrillingtrajectorywebappclient.labels" . | nindent 4 }}
+    {{- include "osdcdrillingtrajectoryservice.labels" . | nindent 4 }}
 spec:
   scaleTargetRef:
     apiVersion: apps/v1
     kind: Deployment
-    name: {{ include "norcedrillingtrajectorywebappclient.fullname" . }}
+    name: {{ include "osdcdrillingtrajectoryservice.fullname" . }}
   minReplicas: {{ .Values.autoscaling.minReplicas }}
   maxReplicas: {{ .Values.autoscaling.maxReplicas }}
   metrics:

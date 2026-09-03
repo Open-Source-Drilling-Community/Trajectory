@@ -1,7 +1,7 @@
 {{/*
 Expand the name of the chart.
 */}}
-{{- define "norcedrillingtrajectoryservice.name" -}}
+{{- define "osdcdrillingtrajectorywebappclient.name" -}}
 {{- default .Chart.Name .Values.nameOverride | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
@@ -10,7 +10,7 @@ Create a default fully qualified app name.
 We truncate at 63 chars because some Kubernetes name fields are limited to this (by the DNS naming spec).
 If release name contains chart name it will be used as a full name.
 */}}
-{{- define "norcedrillingtrajectoryservice.fullname" -}}
+{{- define "osdcdrillingtrajectorywebappclient.fullname" -}}
 {{- if .Values.fullnameOverride }}
 {{- .Values.fullnameOverride | trunc 63 | trimSuffix "-" }}
 {{- else }}
@@ -26,16 +26,16 @@ If release name contains chart name it will be used as a full name.
 {{/*
 Create chart name and version as used by the chart label.
 */}}
-{{- define "norcedrillingtrajectoryservice.chart" -}}
+{{- define "osdcdrillingtrajectorywebappclient.chart" -}}
 {{- printf "%s-%s" .Chart.Name .Chart.Version | replace "+" "_" | trunc 63 | trimSuffix "-" }}
 {{- end }}
 
 {{/*
 Common labels
 */}}
-{{- define "norcedrillingtrajectoryservice.labels" -}}
-helm.sh/chart: {{ include "norcedrillingtrajectoryservice.chart" . }}
-{{ include "norcedrillingtrajectoryservice.selectorLabels" . }}
+{{- define "osdcdrillingtrajectorywebappclient.labels" -}}
+helm.sh/chart: {{ include "osdcdrillingtrajectorywebappclient.chart" . }}
+{{ include "osdcdrillingtrajectorywebappclient.selectorLabels" . }}
 {{- if .Chart.AppVersion }}
 app.kubernetes.io/version: {{ .Chart.AppVersion | quote }}
 {{- end }}
@@ -45,17 +45,17 @@ app.kubernetes.io/managed-by: {{ .Release.Service }}
 {{/*
 Selector labels
 */}}
-{{- define "norcedrillingtrajectoryservice.selectorLabels" -}}
-app.kubernetes.io/name: {{ include "norcedrillingtrajectoryservice.name" . }}
+{{- define "osdcdrillingtrajectorywebappclient.selectorLabels" -}}
+app.kubernetes.io/name: {{ include "osdcdrillingtrajectorywebappclient.name" . }}
 app.kubernetes.io/instance: {{ .Release.Name }}
 {{- end }}
 
 {{/*
 Create the name of the service account to use
 */}}
-{{- define "norcedrillingtrajectoryservice.serviceAccountName" -}}
+{{- define "osdcdrillingtrajectorywebappclient.serviceAccountName" -}}
 {{- if .Values.serviceAccount.create }}
-{{- default (include "norcedrillingtrajectoryservice.fullname" .) .Values.serviceAccount.name }}
+{{- default (include "osdcdrillingtrajectorywebappclient.fullname" .) .Values.serviceAccount.name }}
 {{- else }}
 {{- default "default" .Values.serviceAccount.name }}
 {{- end }}

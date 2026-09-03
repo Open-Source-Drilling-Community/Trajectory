@@ -1,4 +1,4 @@
-﻿namespace NORCE.Drilling.Trajectory.Service
+namespace OSDC.Drilling.Trajectory.Service
 {
     public class ServiceConfiguration
     {

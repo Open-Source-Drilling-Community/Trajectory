@@ -2,7 +2,7 @@ using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.DataManagement;
 using System;
 
-namespace NORCE.Drilling.Trajectory.Model
+namespace OSDC.Drilling.Trajectory.Model
 {
     /// <summary>
     /// Light-weight version of a survey run.

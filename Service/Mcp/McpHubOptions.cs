@@ -1,4 +1,4 @@
-namespace NORCE.Drilling.Trajectory.Service.Mcp;
+namespace OSDC.Drilling.Trajectory.Service.Mcp;
 public sealed class McpHubOptions
 {
     public const string SectionName = "McpHub";

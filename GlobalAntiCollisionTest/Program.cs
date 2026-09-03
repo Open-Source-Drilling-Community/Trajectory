@@ -1,9 +1,9 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging.Abstractions;
-using NORCE.Drilling.GlobalAntiCollision;
-using NORCE.Drilling.Trajectory.Service;
-using NORCE.Drilling.Trajectory.Service.Controllers;
-using NORCE.Drilling.Trajectory.Service.Managers;
+using OSDC.Drilling.GlobalAntiCollision;
+using OSDC.Drilling.Trajectory.Service;
+using OSDC.Drilling.Trajectory.Service.Controllers;
+using OSDC.Drilling.Trajectory.Service.Managers;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Octree;
 using System.Diagnostics;
@@ -13,11 +13,11 @@ using System.Security.Cryptography;
 using System.Text;
 using System.Text.Json;
 
-using GlobalAntiCollisionModel = NORCE.Drilling.GlobalAntiCollision.GlobalAntiCollision;
-using SurveyStationChunkModel = NORCE.Drilling.Trajectory.Model.SurveyStationChunk;
-using TrajectoryModel = NORCE.Drilling.Trajectory.Model.Trajectory;
-using WellBore = NORCE.Drilling.Trajectory.ModelShared.WellBore;
-using WellBoreArchitecture = NORCE.Drilling.Trajectory.ModelShared.WellBoreArchitecture;
+using GlobalAntiCollisionModel = OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision;
+using SurveyStationChunkModel = OSDC.Drilling.Trajectory.Model.SurveyStationChunk;
+using TrajectoryModel = OSDC.Drilling.Trajectory.Model.Trajectory;
+using WellBore = OSDC.Drilling.Trajectory.ModelShared.WellBore;
+using WellBoreArchitecture = OSDC.Drilling.Trajectory.ModelShared.WellBoreArchitecture;
 
 internal static class Program
 {

@@ -1,6 +1,6 @@
 using OSDC.DotnetLibraries.Drilling.Surveying;
 
-namespace NORCE.Drilling.Trajectory.Model
+namespace OSDC.Drilling.Trajectory.Model
 {
     public class SurveyMeasurement
     {

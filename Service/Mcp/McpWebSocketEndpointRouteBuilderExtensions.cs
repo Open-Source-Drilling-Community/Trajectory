@@ -7,7 +7,7 @@ using Microsoft.Extensions.Options;
 using ModelContextProtocol.AspNetCore;
 using ModelContextProtocol.Protocol;
 using ModelContextProtocol.Server;
-namespace NORCE.Drilling.Trajectory.Service.Mcp;
+namespace OSDC.Drilling.Trajectory.Service.Mcp;
 public static class McpWebSocketEndpointRouteBuilderExtensions
 {
     public static IEndpointConventionBuilder MapMcpWebSocket(this IEndpointRouteBuilder endpoints, string pattern = "/mcp/ws") => endpoints.MapGet(pattern, HandleAsync).WithName("McpWebSocket");

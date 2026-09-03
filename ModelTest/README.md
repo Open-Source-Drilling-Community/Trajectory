@@ -1,6 +1,6 @@
 # ModelTest
 
-`ModelTest` contains automated tests for the `Model` project.
+`ModelTest` contains automated tests for the `OSDC.Drilling.Trajectory.Model` project.
 
 ## Responsibility
 

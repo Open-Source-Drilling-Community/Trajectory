@@ -1,409 +1,251 @@
-﻿using System;
-using System.IO;
-using Microsoft.Extensions.Logging;
-using System.Text;
-using System.Data;
-using System.Collections.Generic;
-using System.Linq;
 using Microsoft.Data.Sqlite;
+using Microsoft.Extensions.Logging;
 
-namespace NORCE.Drilling.Trajectory.Service.Managers
+namespace OSDC.Drilling.Trajectory.Service.Managers;
+
+/// <summary>
+/// Owns the SQLite connection configuration and validates a database before any manager uses it.
+/// Existing tables and rows are never dropped, renamed, or rebuilt automatically.
+/// </summary>
+public abstract class SqlConnectionManager
 {
-    /// <summary>
-    /// A manager for the sql database connection, registered as a singleton through dependency injection (see Program.cs)
-    /// Prior to creating a database, existing database structure is checked for consistency with the structure defined in tableStructureDict_
-    /// If inconsistent (table count, table names, fields count, fields names), a timestamped backup of the existing database is generated first
-    /// </summary>
-    /// <remarks>
-    /// SQLite database connection strategy:
-    /// - single connection for every access (chosen strategy in the general case)
-    ///     each access to the database is performed through isolated connections stored in a List of connections
-    ///     > isolation, reliability, fail-safe, thread-safe, but overhead due to opening connections
-    /// - shared connection between access
-    ///     one connection is opened for the lifetime of the application and used to access database through various web requests and commands 
-    ///     > no overhead, but issues with concurrency, single-point of failure, state management
-    /// - scoped connection (registering service with AddScoped rather than AddSingleton)
-    ///     one connection is opened per web request
-    ///     > same problems as with shared connection, but limited to the scope of one webrequest rather than to the whole lifetime of the application
-    /// </remarks>
-    public abstract class SqlConnectionManager
+    private readonly ILogger _logger;
+    private readonly string _connectionString;
+    private readonly string _dbPath;
+
+    protected string DatabaseFilename { get; }
+    protected IReadOnlyDictionary<string, string[]> TableStructureDict { get; }
+    protected IReadOnlyDictionary<string, string[]> TableIndexDefinitions { get; }
+
+    public static readonly string HOME_DIRECTORY = ".." + Path.DirectorySeparatorChar + "home" + Path.DirectorySeparatorChar;
+    public const string DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    public const int CURRENT_SCHEMA_VERSION = 1;
+
+    protected SqlConnectionManager(
+        ILogger logger,
+        string databaseFilename,
+        IReadOnlyDictionary<string, string[]> tableStructureDict)
+        : this(logger, databaseFilename, tableStructureDict, null)
     {
-        private readonly ILogger _logger;
-        private readonly string _connectionString;
-        private readonly string _dbPath;
-        protected string DatabaseFilename { get; }
-        protected IReadOnlyDictionary<string, string[]> TableStructureDict { get; }
-        protected IReadOnlyDictionary<string, string[]> TableIndexDefinitions { get; }
-        public static readonly string HOME_DIRECTORY = ".." + Path.DirectorySeparatorChar + "home" + Path.DirectorySeparatorChar;
-        public static readonly string DATE_TIME_FORMAT = "yyyy-MM-dd HH:mm:ss";
+    }
 
-        protected SqlConnectionManager(ILogger logger, string databaseFilename, IReadOnlyDictionary<string, string[]> tableStructureDict)
-            : this(logger, databaseFilename, tableStructureDict, null)
+    protected SqlConnectionManager(
+        ILogger logger,
+        string databaseFilename,
+        IReadOnlyDictionary<string, string[]> tableStructureDict,
+        IReadOnlyDictionary<string, string[]>? tableIndexDefinitions)
+        : this(
+            BuildConnectionString(BuildDatabasePath(databaseFilename)),
+            logger,
+            BuildDatabasePath(databaseFilename),
+            databaseFilename,
+            tableStructureDict,
+            tableIndexDefinitions)
+    {
+    }
+
+    protected SqlConnectionManager(
+        string connectionString,
+        ILogger logger,
+        string dbPath,
+        string databaseFilename,
+        IReadOnlyDictionary<string, string[]> tableStructureDict,
+        IReadOnlyDictionary<string, string[]>? tableIndexDefinitions = null)
+    {
+        ArgumentNullException.ThrowIfNull(logger);
+        ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
+        ArgumentException.ThrowIfNullOrWhiteSpace(dbPath);
+        ArgumentException.ThrowIfNullOrWhiteSpace(databaseFilename);
+        ArgumentNullException.ThrowIfNull(tableStructureDict);
+
+        _connectionString = connectionString;
+        _logger = logger;
+        _dbPath = dbPath;
+        DatabaseFilename = databaseFilename;
+        TableStructureDict = tableStructureDict;
+        TableIndexDefinitions = tableIndexDefinitions ?? CreateDefaultIndexDefinitions(tableStructureDict);
+
+        _logger.LogInformation("SQLite connection manager created. DB: {DbPath}", _dbPath);
+        Initialize();
+        ManageDatabase();
+    }
+
+    public SqliteConnection? GetConnection()
+    {
+        SqliteConnection connection = new(_connectionString);
+        connection.Open();
+        return connection;
+    }
+
+    protected static string BuildDatabasePath(string databaseFilename) => Path.Combine(HOME_DIRECTORY, databaseFilename);
+
+    protected static string BuildConnectionString(string dbPath) => new SqliteConnectionStringBuilder
+    {
+        DataSource = dbPath,
+        Mode = SqliteOpenMode.ReadWriteCreate,
+        Cache = SqliteCacheMode.Shared
+    }.ToString();
+
+    protected static IReadOnlyDictionary<string, string[]> CreateDefaultIndexDefinitions(
+        IReadOnlyDictionary<string, string[]> tableStructureDict)
+    {
+        Dictionary<string, string[]> result = [];
+        foreach (KeyValuePair<string, string[]> table in tableStructureDict)
         {
-        }
-
-        protected SqlConnectionManager(ILogger logger, string databaseFilename, IReadOnlyDictionary<string, string[]> tableStructureDict, IReadOnlyDictionary<string, string[]>? tableIndexDefinitions)
-            : this(BuildConnectionString(BuildDatabasePath(databaseFilename)), logger, BuildDatabasePath(databaseFilename), databaseFilename, tableStructureDict, tableIndexDefinitions)
-        {
-        }
-
-        protected SqlConnectionManager(string connectionString, ILogger logger, string dbPath, string databaseFilename, IReadOnlyDictionary<string, string[]> tableStructureDict, IReadOnlyDictionary<string, string[]>? tableIndexDefinitions = null)
-        {
-            ArgumentNullException.ThrowIfNull(logger);
-            ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
-            ArgumentException.ThrowIfNullOrWhiteSpace(dbPath);
-            ArgumentException.ThrowIfNullOrWhiteSpace(databaseFilename);
-            ArgumentNullException.ThrowIfNull(tableStructureDict);
-
-            _connectionString = connectionString;
-            _logger = logger;
-            _dbPath = dbPath;
-            DatabaseFilename = databaseFilename;
-            TableStructureDict = tableStructureDict;
-            TableIndexDefinitions = tableIndexDefinitions ?? CreateDefaultIndexDefinitions(tableStructureDict);
-
-            _logger.LogInformation("SqliteConnectionManager created. DB: {DbPath}", _dbPath);
-
-            if (Initialize())
+            if (table.Value.Any(column => string.Equals(
+                    ColumnName(column), "ID", StringComparison.OrdinalIgnoreCase)))
             {
-                ManageDataBase();
-            }
-            else
-            {
-                _logger.LogWarning("Initialization failed; database manager not started.");
-            }
-        }
-
-        public SqliteConnection? GetConnection()
-        {
-            // a new SQL connection is opened for every transaction, thus ensuring thread-safety and removing unnecessary locks
-            var connection = new SqliteConnection(_connectionString);
-            if (connection != null)
-            {
-                connection.Open();
-            }
-            else
-            {
-                _logger.LogError("Problem while opening SQLite connection");
-            }
-            return connection;
-        }
-
-        protected static string BuildDatabasePath(string databaseFilename)
-        {
-            return Path.Combine(HOME_DIRECTORY, databaseFilename);
-        }
-
-        protected static string BuildConnectionString(string dbPath)
-        {
-            var builder = new SqliteConnectionStringBuilder
-            {
-                DataSource = dbPath,
-                Mode = SqliteOpenMode.ReadWriteCreate,
-                Cache = SqliteCacheMode.Shared
-            };
-            return builder.ToString();
-        }
-
-        protected static IReadOnlyDictionary<string, string[]> CreateDefaultIndexDefinitions(IReadOnlyDictionary<string, string[]> tableStructureDict)
-        {
-            var result = new Dictionary<string, string[]>();
-            foreach (var table in tableStructureDict)
-            {
-                if (table.Value.Any(column => string.Equals(column.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0], "ID", StringComparison.OrdinalIgnoreCase)))
-                {
-                    result[table.Key] = [$"CREATE UNIQUE INDEX {table.Key}Index ON {table.Key} (ID)"];
-                }
-            }
-            return result;
-        }
-
-        private bool Initialize()
-        {
-            try
-            {
-                // Directory should already exist; safe to call again.
-                Directory.CreateDirectory(HOME_DIRECTORY);
-
-                if (File.Exists(_dbPath))
-                    _logger.LogInformation("Opening database {DbPath}", _dbPath);
-                else
-                    _logger.LogInformation("Creating database {DbPath}", _dbPath);
-
-                // Open once to ensure the file is a valid SQLite DB (header gets written).
-                using var conn = new Microsoft.Data.Sqlite.SqliteConnection(_connectionString);
-                conn.Open();
-                using var cmd = conn.CreateCommand();
-                cmd.CommandText = "PRAGMA foreign_keys=ON;"; // harmless; also forces a write
-                cmd.ExecuteNonQuery();
-
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogError(ex, "Failed to initialize SQLite database at {DbPath}", _dbPath);
-                return false;
+                string tableName = QuoteIdentifier(table.Key);
+                string indexName = QuoteIdentifier(table.Key + "Index");
+                result[table.Key] = [$"CREATE UNIQUE INDEX {indexName} ON {tableName} ({QuoteIdentifier("ID")})"];
             }
         }
+        return result;
+    }
 
-        /// <summary>
-        /// This function parses the existing database and check that its structure matches the expected one.
-        /// If not, the existing database is backed-up and the actual database is recreated from scratch
-        /// </summary>
-        private void ManageDataBase()
+    private void Initialize()
+    {
+        try
         {
-            var connection = GetConnection();
-            if (connection != null)
-            {
-                bool parseOk = true;
-                bool createDb = false;
-                List<string> tableNameList = new();
-                string query = "SELECT name FROM sqlite_master WHERE type = 'table' AND name NOT LIKE 'sqlite_%';";
+            string? directory = Path.GetDirectoryName(Path.GetFullPath(_dbPath));
+            if (!string.IsNullOrEmpty(directory)) Directory.CreateDirectory(directory);
 
-                using (var command = new SqliteCommand(query, connection))
-                {
-                    using (var reader = command.ExecuteReader())
-                    {
-                        while (reader.Read())
-                        {
-                            tableNameList.Add(reader.GetString(0));
-                        }
-                    }
-                }
-
-                if (tableNameList.Count != TableStructureDict.Count) // unexpected number of tables
-                {
-                    parseOk = false;
-                }
-                else
-                {
-                    foreach (var tableStruct in TableStructureDict)
-                    {
-                        bool tmpSuccess = false;
-                        foreach (string tableName in tableNameList)
-                        {
-                            if (tableName == tableStruct.Key) // unexpected table names
-                            {
-                                tmpSuccess = true;
-                                break;
-                            }
-                        }
-                        if (!tmpSuccess ||
-                            !CheckDatabaseStructure(tableStruct)) // badly formatted table
-                        {
-                            parseOk = false;
-                            break;
-                        }
-                    }
-                }
-                if (!parseOk)
-                {
-                    createDb = true;
-                    if (tableNameList.Count > 0)
-                    {
-                        _logger.LogWarning("Unexpected structure of the existing database. A timestamped backup copy will be generated");
-                        // backup existing database
-                        string backupFileName = HOME_DIRECTORY + Path.DirectorySeparatorChar + DatabaseFilename;
-                        string timeStamp = DateTime.UtcNow.ToString(DATE_TIME_FORMAT);
-                        backupFileName = backupFileName.Insert(backupFileName.Length - 3, "-" + timeStamp);
-                        try
-                        {
-                            File.Copy(HOME_DIRECTORY + Path.DirectorySeparatorChar + DatabaseFilename, backupFileName);
-                        }
-                        catch (Exception ex)
-                        {
-                            _logger.LogError(ex, "Problem while generating a timestamped backup copy of the existing database");
-                        }
-                        // drop existing tables
-                        _logger.LogWarning("Dropping tables from existing database");
-                        foreach (string tableName in tableNameList)
-                        {
-                            if (!DropTable(tableName))
-                            {
-                                createDb = false;
-                                _logger.LogError("Impossible to drop {tableName}. Database may be corrupted, consider deleting it", tableName);
-                                break;
-                            }
-                        }
-                    }
-                }
-                if (createDb)
-                {
-                    _logger.LogInformation("Creating database tables");
-                    bool success = true;
-                    foreach (var tableStruct in TableStructureDict)
-                    {
-                        string tableName = tableStruct.Key;
-                        if (CreateTable(tableStruct))
-                        {
-                            if (!CreateIndexes(tableName))
-                                success = false;
-                        }
-                        else
-                        {
-                            success = false;
-                        }
-                        if (!success)
-                        {
-                            if (!DropTable(tableName))
-                                _logger.LogError("Impossible to drop {key}. Database may be corrupted, consider deleting it", tableName);
-                        }
-
-                    }
-                }
-            }
-            else
-            {
-                _logger.LogError("Problem opening a new connection while managing database");
-            }
+            _logger.LogInformation(File.Exists(_dbPath) ? "Opening database {DbPath}" : "Creating database {DbPath}", _dbPath);
+            using SqliteConnection connection = new(_connectionString);
+            connection.Open();
         }
-
-        /// <summary>
-        /// Check that expected fields (in tableStructure.Value) exactly match those of the stored database
-        /// </summary>
-        /// <param name="tableStructure"></param>
-        /// <returns>true if the expected fields exactly match fields of the stored database</returns>
-        private bool CheckDatabaseStructure(KeyValuePair<string, string[]> tableStructure)
+        catch (Exception exception)
         {
-            var connection = GetConnection();
-            if (connection != null)
-            {
-                var command = connection.CreateCommand();
-                string key = tableStructure.Key;
-                StringBuilder sb = new StringBuilder();
-                sb.Append($"SELECT * FROM {key}");
-                command.CommandText = sb.ToString();
-                try
-                {
-                    using (var reader = command.ExecuteReader(CommandBehavior.SchemaOnly))
-                    {
-                        var schema = reader.GetSchemaTable();
-                        if (tableStructure.Value.Length != schema.Rows.Count)
-                            return false; // unexpected number of fields in table
-                        foreach (string field in tableStructure.Value)
-                        {
-                            bool tmpSuccess = false;
-                            foreach (DataRow col in schema.Rows)
-                            {
-                                if (field.Split(" ").ElementAt(0) == col.Field<string>("ColumnName"))
-                                {
-                                    tmpSuccess = true;
-                                    break;
-                                }
-                            }
-                            if (!tmpSuccess)
-                                return false; // at least one expected field is not found in stored database
-                        }
-                    }
-                }
-                catch (SqliteException ex)
-                {
-                    _logger.LogError(ex, "Impossible to retrieve schema from table {key}", key);
-                    return false;
-                }
-            }
-            else
-            {
-                _logger.LogError("Problem opening a new connection while checking database structure");
-                return false;
-            }
-            return true;
-        }
-
-        private bool CreateTable(KeyValuePair<string, string[]> tabStruct)
-        {
-            var connection = GetConnection();
-            if (connection != null)
-            {
-                var command = connection.CreateCommand();
-                string key = tabStruct.Key;
-                StringBuilder sb = new StringBuilder();
-                sb.Append($"CREATE TABLE {key} ()");
-                foreach (string col in tabStruct.Value)
-                {
-                    sb.Insert(sb.Length - 1, col + ",");
-                };
-                sb.Remove(sb.Length - 2, 1);
-                command.CommandText = sb.ToString();
-
-                try
-                {
-                    int res = command.ExecuteNonQuery();
-                    _logger.LogInformation("{key} has been successfully created", key);
-                }
-                catch (SqliteException ex)
-                {
-                    _logger.LogError(ex, "Impossible to create {key} which will be dropped", key);
-                    return false;
-                }
-            }
-            else
-            {
-                _logger.LogError("Problem opening a new connection while creating table");
-                return false;
-            }
-            return true;
-        }
-
-        private bool CreateIndexes(string tableName)
-        {
-            if (!TableIndexDefinitions.TryGetValue(tableName, out string[]? indexCommands) || indexCommands.Length == 0)
-            {
-                return true;
-            }
-
-            var connection = GetConnection();
-            if (connection != null)
-            {
-                var command = connection.CreateCommand();
-                foreach (string indexCommand in indexCommands)
-                {
-                    command.CommandText = indexCommand;
-                    try
-                    {
-                        int res = command.ExecuteNonQuery();
-                    }
-                    catch (SqliteException ex)
-                    {
-                        _logger.LogError(ex, "Impossible to create index for {tableName} which will be dropped", tableName);
-                        return false;
-                    }
-                }
-                _logger.LogInformation("{tableName} has been successfully indexed", tableName);
-            }
-            else
-            {
-                _logger.LogError("Problem opening a new connection while creating table");
-                return false;
-            }
-            return true;
-        }
-
-        private bool DropTable(string dbName)
-        {
-            var connection = GetConnection();
-            if (connection != null)
-            {
-                var command = connection.CreateCommand();
-                command.CommandText =
-                            $"DROP TABLE {dbName}";
-                try
-                {
-                    int res = command.ExecuteNonQuery();
-                    _logger.LogWarning("{dbName} has been successfully dropped", dbName);
-                }
-                catch (SqliteException ex)
-                {
-                    _logger.LogError(ex, "Impossible to drop {dbName}", dbName);
-                    return false;
-                }
-            }
-            else
-            {
-                _logger.LogError("Problem opening a new connection while creating table");
-                return false;
-            }
-            return true;
+            _logger.LogError(exception, "Failed to initialize SQLite database at {DbPath}", _dbPath);
+            throw new InvalidOperationException($"Unable to initialize SQLite database '{DatabaseFilename}'.", exception);
         }
     }
+
+    private void ManageDatabase()
+    {
+        using SqliteConnection connection = GetConnection()
+            ?? throw new InvalidOperationException($"Unable to open SQLite database '{DatabaseFilename}'.");
+
+        List<string> tableNames = ReadTableNames(connection);
+        int schemaVersion = ReadSchemaVersion(connection);
+        if (schemaVersion > CURRENT_SCHEMA_VERSION)
+        {
+            throw new InvalidOperationException(
+                $"{DatabaseFilename} schema version {schemaVersion} is newer than supported version {CURRENT_SCHEMA_VERSION}. No data was changed.");
+        }
+
+        if (tableNames.Count == 0)
+        {
+            if (schemaVersion != 0)
+            {
+                throw new InvalidOperationException(
+                    $"The versioned database {DatabaseFilename} has no tables. No data was changed.");
+            }
+
+            CreateFreshDatabase(connection);
+            return;
+        }
+
+        List<string> unexpected = tableNames.Except(TableStructureDict.Keys, StringComparer.Ordinal).Order().ToList();
+        List<string> missing = TableStructureDict.Keys.Except(tableNames, StringComparer.Ordinal).Order().ToList();
+        List<string> malformed = TableStructureDict
+            .Where(table => tableNames.Contains(table.Key, StringComparer.Ordinal) && !HasExpectedColumns(connection, table))
+            .Select(table => table.Key)
+            .Order()
+            .ToList();
+
+        if (unexpected.Count != 0 || missing.Count != 0 || malformed.Count != 0)
+        {
+            throw new InvalidOperationException(
+                $"Unexpected {DatabaseFilename} structure. No data was changed. " +
+                $"Missing=[{string.Join(',', missing)}], unexpected=[{string.Join(',', unexpected)}], malformed=[{string.Join(',', malformed)}].");
+        }
+
+        if (schemaVersion < CURRENT_SCHEMA_VERSION)
+        {
+            using SqliteTransaction transaction = connection.BeginTransaction();
+            SetSchemaVersion(connection, transaction);
+            transaction.Commit();
+            _logger.LogInformation("Adopted the existing {DatabaseFilename} schema as version {SchemaVersion} without rewriting rows.",
+                DatabaseFilename, CURRENT_SCHEMA_VERSION);
+        }
+    }
+
+    private void CreateFreshDatabase(SqliteConnection connection)
+    {
+        using SqliteTransaction transaction = connection.BeginTransaction();
+        try
+        {
+            foreach (KeyValuePair<string, string[]> table in TableStructureDict)
+            {
+                using SqliteCommand createTable = connection.CreateCommand();
+                createTable.Transaction = transaction;
+                createTable.CommandText = $"CREATE TABLE {QuoteIdentifier(table.Key)} ({string.Join(',', table.Value)})";
+                createTable.ExecuteNonQuery();
+
+                if (TableIndexDefinitions.TryGetValue(table.Key, out string[]? indexCommands))
+                {
+                    foreach (string indexCommand in indexCommands)
+                    {
+                        using SqliteCommand createIndex = connection.CreateCommand();
+                        createIndex.Transaction = transaction;
+                        createIndex.CommandText = indexCommand;
+                        createIndex.ExecuteNonQuery();
+                    }
+                }
+            }
+
+            SetSchemaVersion(connection, transaction);
+            transaction.Commit();
+            _logger.LogInformation("Created {DatabaseFilename} schema version {SchemaVersion} transactionally.",
+                DatabaseFilename, CURRENT_SCHEMA_VERSION);
+        }
+        catch
+        {
+            transaction.Rollback();
+            throw;
+        }
+    }
+
+    private static List<string> ReadTableNames(SqliteConnection connection)
+    {
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = "SELECT name FROM sqlite_master WHERE type='table' AND name NOT LIKE 'sqlite_%'";
+        using SqliteDataReader reader = command.ExecuteReader();
+        List<string> names = [];
+        while (reader.Read()) names.Add(reader.GetString(0));
+        return names;
+    }
+
+    private static int ReadSchemaVersion(SqliteConnection connection)
+    {
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = "PRAGMA user_version";
+        return Convert.ToInt32(command.ExecuteScalar());
+    }
+
+    private static bool HasExpectedColumns(SqliteConnection connection, KeyValuePair<string, string[]> table)
+    {
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = $"PRAGMA table_info({QuoteIdentifier(table.Key)})";
+        using SqliteDataReader reader = command.ExecuteReader();
+        List<string> actual = [];
+        while (reader.Read()) actual.Add(reader.GetString(1));
+        string[] expected = table.Value.Select(ColumnName).ToArray();
+        return actual.SequenceEqual(expected, StringComparer.Ordinal);
+    }
+
+    private static void SetSchemaVersion(SqliteConnection connection, SqliteTransaction transaction)
+    {
+        using SqliteCommand command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = $"PRAGMA user_version={CURRENT_SCHEMA_VERSION}";
+        command.ExecuteNonQuery();
+    }
+
+    private static string ColumnName(string definition) =>
+        definition.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0];
+
+    private static string QuoteIdentifier(string identifier) =>
+        $"\"{identifier.Replace("\"", "\"\"")}\"";
 }
