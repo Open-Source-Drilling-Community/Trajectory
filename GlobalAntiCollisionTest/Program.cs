@@ -14,7 +14,9 @@ using System.Text;
 using System.Text.Json;
 
 using GlobalAntiCollisionModel = NORCE.Drilling.GlobalAntiCollision.GlobalAntiCollision;
+using SurveyStationChunkModel = NORCE.Drilling.Trajectory.Model.SurveyStationChunk;
 using TrajectoryModel = NORCE.Drilling.Trajectory.Model.Trajectory;
+using WellBore = NORCE.Drilling.Trajectory.ModelShared.WellBore;
 using WellBoreArchitecture = NORCE.Drilling.Trajectory.ModelShared.WellBoreArchitecture;
 
 internal static class Program
@@ -33,8 +35,8 @@ internal static class Program
 
         bool deleteOctreesAfterRun = false; // Set to true to delete cached octrees at the end of the run.
         int referenceTrajectoryIndex = 0; // Zero-based index into the loaded trajectory list.
-        string referenceTrajectoryName = "U5A Extrapolated Drop"; // If a trajectory name contains this value, use its first match as the reference trajectory.
-        List<string> comparisonTrajectoryNameFilters = ["U8"]; // If non-empty, only trajectories whose names contain one of these values will be used as comparisons.
+        string referenceTrajectoryName = "U3"; // Exact names are preferred; otherwise the first containing name is used.
+        List<string> comparisonTrajectoryNameFilters = [""]; // If non-empty, only trajectories whose names contain one of these values will be used as comparisons.
         bool forceSymmetricSeparationFactorCalculation = false; // Set to true for slower two-direction calculations with less direction-dependent minima.
         bool fillBoreholeRadiusFromWellboreArchitecture = true; // Set to false to use the remote trajectory source exactly as returned.
         bool allowBoreholeRadiusArchitectureFallbackByTrajectoryName = false; // Set to true to try similarly named trajectories when a WellBoreID has no architecture. This changes anti-collision inputs.
@@ -56,7 +58,10 @@ internal static class Program
             trajectories = await LoadTestTrajectoriesAsync(remoteTrajectoryClient);
             if (fillBoreholeRadiusFromWellboreArchitecture)
             {
-                await FillBoreholeRadiusFromWellboreArchitectureAsync(trajectories, allowBoreholeRadiusArchitectureFallbackByTrajectoryName);
+                await FillBoreholeRadiusFromWellboreArchitectureAsync(
+                    harness.TrajectoryManager,
+                    trajectories,
+                    allowBoreholeRadiusArchitectureFallbackByTrajectoryName);
             }
 
             referenceTrajectoryIndex = ResolveReferenceTrajectoryIndex(trajectories, referenceTrajectoryIndex, referenceTrajectoryName);
@@ -274,7 +279,7 @@ internal static class Program
         GlobalAntiCollisionModel postPayload = CreateGlobalAntiCollision(globalAntiCollisionId, referenceTrajectory, configuredComparisonTrajectories, 0.999);
         Console.WriteLine($"\tStarting GlobalAntiCollisionsController.Post for reference trajectory {FormatTrajectoryLabel(referenceTrajectory)}...");
         Stopwatch postStopwatch = Stopwatch.StartNew();
-        globalAntiCollisionsController.Post(postPayload);
+        await globalAntiCollisionsController.Post(postPayload);
         postStopwatch.Stop();
         Console.WriteLine($"\tFinished GlobalAntiCollisionsController.Post in {postStopwatch.Elapsed.TotalSeconds:F2} s.");
 
@@ -285,6 +290,10 @@ internal static class Program
         Ensure(storedByManager!.ReferenceTrajectoryID == referenceTrajectory.Id,
             $"Stored GlobalAntiCollision payload should keep the reference trajectory id for {FormatTrajectoryLabel(referenceTrajectory)}.");
         ValidateComparisonResults(storedByManager, trajectoryLookup, $"\tStored by manager (confidence factor {storedByManager.ConfidenceFactor:F3})");
+        await ValidateSidetrackTieInFilteringAsync(
+            storedByManager,
+            referenceTrajectory,
+            configuredComparisonTrajectories);
 
         List<string> ids = globalAntiCollisionsController.Get().ToList();
         Ensure(ids.Contains(globalAntiCollisionId), "GlobalAntiCollisionsController GET should include the inserted id.");
@@ -304,7 +313,7 @@ internal static class Program
             Console.WriteLine();
             Console.WriteLine($"\tStarting GlobalAntiCollisionsController.Put for reference trajectory {FormatTrajectoryLabel(referenceTrajectory)}...");
             Stopwatch putStopwatch = Stopwatch.StartNew();
-            globalAntiCollisionsController.Put(globalAntiCollisionId, putPayload);
+            await globalAntiCollisionsController.Put(globalAntiCollisionId, putPayload);
             putStopwatch.Stop();
             Console.WriteLine($"\tFinished GlobalAntiCollisionsController.Put in {putStopwatch.Elapsed.TotalSeconds:F2} s.");
 
@@ -370,6 +379,7 @@ internal static class Program
         foreach (Guid remoteId in remoteIds)
         {
             TrajectoryModel trajectory = await GetJsonAsync<TrajectoryModel>(remoteTrajectoryClient, $"Trajectory/{remoteId}");
+            await LoadRemoteSurveyStationChunksAsync(remoteTrajectoryClient, remoteId, trajectory);
             trajectories.Add(new TestTrajectory(remoteId, trajectory, false));
         }
 
@@ -384,12 +394,88 @@ internal static class Program
         return trajectories;
     }
 
+    private static async Task LoadRemoteSurveyStationChunksAsync(HttpClient remoteTrajectoryClient, Guid remoteId, TrajectoryModel trajectory)
+    {
+        if (trajectory.SurveyStationList is { Count: > 0 })
+        {
+            return;
+        }
+
+        int chunkCount;
+        try
+        {
+            chunkCount = await GetJsonAsync<int>(remoteTrajectoryClient, $"Trajectory/{remoteId}/SurveyStations/ChunkCount");
+        }
+        catch
+        {
+            return;
+        }
+
+        if (chunkCount <= 0)
+        {
+            return;
+        }
+
+        List<SurveyStation> stations = [];
+        for (int chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
+        {
+            SurveyStationChunkModel? chunk = await GetJsonAsync<SurveyStationChunkModel>(
+                remoteTrajectoryClient,
+                $"Trajectory/{remoteId}/SurveyStations/Chunks/{chunkIndex}");
+            if (chunk?.SurveyStationList is { Count: > 0 } chunkStations)
+            {
+                stations.AddRange(chunkStations);
+            }
+        }
+
+        if (stations.Count > 0)
+        {
+            trajectory.SurveyStationList = stations;
+        }
+    }
+
     private static async Task FillBoreholeRadiusFromWellboreArchitectureAsync(
+        TrajectoryManager trajectoryManager,
         IReadOnlyList<TestTrajectory> trajectories,
         bool allowFallbackByTrajectoryName)
     {
         Console.WriteLine("Filling survey station borehole radii from WellBoreArchitecture...");
         Stopwatch stopwatch = Stopwatch.StartNew();
+
+        if (!allowFallbackByTrajectoryName)
+        {
+            int managerFilledTrajectoryCount = 0;
+            int managerFilledStationCount = 0;
+            int unchangedTrajectoryCount = 0;
+
+            foreach (TestTrajectory testTrajectory in trajectories)
+            {
+                int beforeFilledCount = CountDefinedBoreholeRadiusStations(testTrajectory.Trajectory);
+                await trajectoryManager.EnsureBoreholeRadiiAsync(testTrajectory.Trajectory);
+                int afterFilledCount = CountDefinedBoreholeRadiusStations(testTrajectory.Trajectory);
+                if (afterFilledCount > beforeFilledCount)
+                {
+                    managerFilledTrajectoryCount++;
+                    managerFilledStationCount += afterFilledCount - beforeFilledCount;
+                }
+                else
+                {
+                    unchangedTrajectoryCount++;
+                }
+            }
+
+            stopwatch.Stop();
+            Console.WriteLine(
+                $"\tFilled borehole radius for {managerFilledStationCount} additional survey stations across {managerFilledTrajectoryCount}/{trajectories.Count} trajectories " +
+                $"in {stopwatch.Elapsed.TotalSeconds:F2} s.");
+            if (unchangedTrajectoryCount > 0)
+            {
+                Console.WriteLine($"\tUnchanged trajectories: {unchangedTrajectoryCount}.");
+            }
+
+            Console.WriteLine();
+            return;
+        }
 
         ICollection<WellBoreArchitecture> architectures = await APIUtils.ClientWellBoreArchitecture.GetAllWellBoreArchitectureAsync();
         Dictionary<Guid, WellBoreArchitecture> architecturesByWellBoreId = architectures
@@ -586,6 +672,7 @@ internal static class Program
         ServiceConfiguration.WellHostURL = host;
         ServiceConfiguration.WellBoreHostURL = host;
         ServiceConfiguration.WellBoreArchitectureHostURL = host;
+        ServiceConfiguration.SurveyInstrumentHostURL = host;
     }
 
     private static string InitializeLocalRuntimeDirectory()
@@ -708,6 +795,109 @@ internal static class Program
                     $"is {minimumPoint.SeparationFactor:F3} at reference MD {minimumPoint.ReferenceMD:F2} and comparison MD {minimumPoint.ComparisonMD:F2}.");
             }
         }
+    }
+
+    private static async Task ValidateSidetrackTieInFilteringAsync(
+        GlobalAntiCollisionModel payload,
+        TestTrajectory referenceTrajectory,
+        IReadOnlyList<TestTrajectory> comparisonTrajectories)
+    {
+        WellBore referenceWellBore = await APIUtils.ClientWellBore.GetWellBoreByIdAsync(
+            referenceTrajectory.Trajectory.WellBoreID);
+        Dictionary<Guid, SeparationFactorResult> resultsByTrajectoryId = payload.SeparationFactorResults
+            .ToDictionary(result => result.ComparisonTrajectoryID);
+
+        foreach (TestTrajectory comparisonTrajectory in comparisonTrajectories)
+        {
+            WellBore comparisonWellBore = await APIUtils.ClientWellBore.GetWellBoreByIdAsync(
+                comparisonTrajectory.Trajectory.WellBoreID);
+            if (!TryGetExpectedSidetrackMinimumMDs(
+                referenceTrajectory,
+                referenceWellBore,
+                comparisonTrajectory,
+                comparisonWellBore,
+                out double referenceMinimumMD,
+                out double comparisonMinimumMD) ||
+                !resultsByTrajectoryId.TryGetValue(comparisonTrajectory.Id, out SeparationFactorResult? result))
+            {
+                continue;
+            }
+
+            const double tolerance = 1e-6;
+            Ensure(result.ReferenceMDRange != null &&
+                result.ReferenceMDRange.StartMD >= referenceMinimumMD - tolerance,
+                $"{FormatTrajectoryLabel(referenceTrajectory)} vs. {FormatTrajectoryLabel(comparisonTrajectory)} " +
+                $"should start the reference safety-factor range at or after the tie-in MD {referenceMinimumMD:F2}.");
+            Ensure(result.ComparisonMDRange != null &&
+                result.ComparisonMDRange.StartMD >= comparisonMinimumMD - tolerance,
+                $"{FormatTrajectoryLabel(referenceTrajectory)} vs. {FormatTrajectoryLabel(comparisonTrajectory)} " +
+                $"should start the comparison safety-factor range at or after the tie-in MD {comparisonMinimumMD:F2}.");
+
+            foreach (SeparationFactorPoint point in result.SeparationFactorProfile)
+            {
+                Ensure(point.ReferenceMD >= referenceMinimumMD - tolerance,
+                    $"Reference safety factor MD {point.ReferenceMD:F6} is above the sidetrack tie-in MD {referenceMinimumMD:F6}.");
+                Ensure(IsUndefinedComparisonMD(point) || point.ComparisonMD >= comparisonMinimumMD - tolerance,
+                    $"Comparison safety factor MD {point.ComparisonMD:F6} is above the sidetrack tie-in MD {comparisonMinimumMD:F6}.");
+            }
+
+            Console.WriteLine(
+                $"\tVerified sidetrack filtering for {FormatTrajectoryLabel(referenceTrajectory)} vs. " +
+                $"{FormatTrajectoryLabel(comparisonTrajectory)}: safety factors start at reference MD " +
+                $"{referenceMinimumMD:F2} and comparison MD {comparisonMinimumMD:F2}.");
+        }
+    }
+
+    private static bool TryGetExpectedSidetrackMinimumMDs(
+        TestTrajectory referenceTrajectory,
+        WellBore referenceWellBore,
+        TestTrajectory comparisonTrajectory,
+        WellBore comparisonWellBore,
+        out double referenceMinimumMD,
+        out double comparisonMinimumMD)
+    {
+        referenceMinimumMD = 0;
+        comparisonMinimumMD = 0;
+
+        if (TryGetParentTieInMD(referenceWellBore, comparisonTrajectory.Trajectory.WellBoreID, out double parentTieInMD))
+        {
+            referenceMinimumMD = GetTrajectoryTieInMD(referenceTrajectory, parentTieInMD);
+            comparisonMinimumMD = parentTieInMD;
+            return true;
+        }
+
+        if (TryGetParentTieInMD(comparisonWellBore, referenceTrajectory.Trajectory.WellBoreID, out parentTieInMD))
+        {
+            referenceMinimumMD = parentTieInMD;
+            comparisonMinimumMD = GetTrajectoryTieInMD(comparisonTrajectory, parentTieInMD);
+            return true;
+        }
+
+        return false;
+    }
+
+    private static bool TryGetParentTieInMD(WellBore possibleSidetrack, Guid parentWellBoreId, out double tieInMD)
+    {
+        tieInMD = 0;
+        if (!possibleSidetrack.IsSidetrack ||
+            possibleSidetrack.ParentWellBoreID != parentWellBoreId ||
+            possibleSidetrack.TieInPointAlongHoleDepth?.GaussianValue?.Mean is not double candidateTieInMD ||
+            !double.IsFinite(candidateTieInMD))
+        {
+            return false;
+        }
+
+        tieInMD = candidateTieInMD;
+        return true;
+    }
+
+    private static double GetTrajectoryTieInMD(TestTrajectory trajectory, double fallbackTieInMD)
+    {
+        double? trajectoryTieInMD = trajectory.Trajectory.TieInPoint?.MD ??
+            trajectory.Trajectory.TieInPoint?.Abscissa;
+        return trajectoryTieInMD is double tieInMD && double.IsFinite(tieInMD)
+            ? tieInMD
+            : fallbackTieInMD;
     }
 
     private static void EnsureUpdatedProfilesImproved(
@@ -1009,6 +1199,9 @@ internal static class Program
 
     private static string FormatBoreholeRadiusCoverage(BoreholeRadiusCoverage coverage) =>
         $"{coverage.FilledStationCount}/{coverage.TotalStationCount} stations";
+
+    private static int CountDefinedBoreholeRadiusStations(TrajectoryModel trajectory) =>
+        trajectory.SurveyStationList?.Count(station => GetFiniteNullableValue(station.BoreholeRadius).HasValue) ?? 0;
 
     private static double? GetConservativeBoreholeRadius(SurveyStation start, SurveyStation end)
     {

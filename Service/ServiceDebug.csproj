@@ -24,7 +24,7 @@
 	</ItemGroup>
 
 	<ItemGroup>
-		<ProjectReference Include="..\..\DotNetLibraries\OSDC.DotnetLibraries.General\OSDC.DotnetLibraries.General.Octree\OSDC.DotnetLibraries.General.Octree.csproj" />
+		<ProjectReference Include="..\..\DotNetLibraries\OSDC.DotnetLibraries.General\OSDC.DotnetLibraries.General.Octree\OSDC.DotnetLibraries.General.OctreeDebug.csproj" />
 		<ProjectReference Include="..\GlobalAntiCollision\GlobalAntiCollisionDebug.csproj" />
 		<ProjectReference Include="..\Model\ModelDebug.csproj" />
 	</ItemGroup>

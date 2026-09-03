@@ -11,7 +11,7 @@
 
 	<ItemGroup>
 	  <ProjectReference Include="..\..\DotNetLibraries\OSDC.DotnetLibraries.General\OSDC.DotnetLibraries.Drilling.Surveying\OSDC.DotnetLibraries.Drilling.SurveyingDebug.csproj" />
-	  <ProjectReference Include="..\..\DotNetLibraries\OSDC.DotnetLibraries.General\OSDC.DotnetLibraries.General.Octree\OSDC.DotnetLibraries.General.Octree.csproj" />
+	  <ProjectReference Include="..\..\DotNetLibraries\OSDC.DotnetLibraries.General\OSDC.DotnetLibraries.General.Octree\OSDC.DotnetLibraries.General.OctreeDebug.csproj" />
 	</ItemGroup>
 
 </Project>

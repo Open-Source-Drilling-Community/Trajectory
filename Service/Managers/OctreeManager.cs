@@ -121,7 +121,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
             }
         }
 
-        internal List<OctreeCodeLong> GetLeavesFromSurveyList(List<SurveyStation>? surveyList, UncertaintyEnvelope.ErrorModelType errorModelType = UncertaintyEnvelope.ErrorModelType.WolffAndDeWardt)
+        internal List<OctreeCodeLong> GetLeavesFromSurveyList(List<SurveyStation>? surveyList, UncertaintyEnvelope.ErrorModelType? errorModelType = null)
         {
             List<OctreeCodeLong> leaves = new List<OctreeCodeLong>();
             if (surveyList is { Count: >= 2 })
@@ -136,7 +136,7 @@ namespace NORCE.Drilling.Trajectory.Service.Managers
 
                 bool ok = PerpendicularEllipseEnvelopeBuilder.TryBuildMeshedEllipseListWithAdaptiveSectorCount(
                     surveyList,
-                    errorModelType,
+                    errorModelType ?? PerpendicularEllipseEnvelopeBuilder.InferErrorModelType(surveyList),
                     confidencefactor,
                     scalingFactor,
                     targetPointSpacing,

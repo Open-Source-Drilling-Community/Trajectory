@@ -8,6 +8,7 @@ using OSDC.DotnetLibraries.General.Octree;
 using System;
 using System.Collections.Generic;
 using System.Linq;
+using System.Threading.Tasks;
 
 namespace NORCE.Drilling.Trajectory.Service.Controllers
 {
@@ -52,7 +53,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
 
         // POST api/globalanticollisions
         [HttpPost]
-        public void Post([FromBody] GlobalAntiCollision.GlobalAntiCollision? value)
+        public async Task Post([FromBody] GlobalAntiCollision.GlobalAntiCollision? value)
         {
             if (value == null)
             {
@@ -65,8 +66,8 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             {
                 try
                 {
-                    PrepareCalculationInput(value, out List<SurveyStation>? referenceSurveyList);
-                    CalculateIfPossible(value, referenceSurveyList);
+                    Model.Trajectory? referenceTrajectory = PrepareCalculationInput(value, out List<SurveyStation>? referenceSurveyList);
+                    await CalculateIfPossibleAsync(value, referenceTrajectory, referenceSurveyList);
                     _globalAntiCollisionManager.Add(value);
                 }
                 catch (Exception ex)
@@ -82,7 +83,7 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
 
         // PUT api/globalanticollisions/id
         [HttpPut("{id}")]
-        public void Put(string id, [FromBody] GlobalAntiCollision.GlobalAntiCollision? value)
+        public async Task Put(string id, [FromBody] GlobalAntiCollision.GlobalAntiCollision? value)
         {
             if (value == null)
             {
@@ -92,8 +93,8 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
 
             try
             {
-                PrepareCalculationInput(value, out List<SurveyStation>? referenceSurveyList);
-                CalculateIfPossible(value, referenceSurveyList);
+                Model.Trajectory? referenceTrajectory = PrepareCalculationInput(value, out List<SurveyStation>? referenceSurveyList);
+                await CalculateIfPossibleAsync(value, referenceTrajectory, referenceSurveyList);
 
                 GlobalAntiCollision.GlobalAntiCollision? globalAntiCollision = _globalAntiCollisionManager.Get(id);
                 if (globalAntiCollision != null)
@@ -118,8 +119,11 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             _globalAntiCollisionManager.Remove(id);
         }
 
-        private void PrepareCalculationInput(GlobalAntiCollision.GlobalAntiCollision value, out List<SurveyStation>? referenceSurveyList)
+        private Model.Trajectory? PrepareCalculationInput(
+            GlobalAntiCollision.GlobalAntiCollision value,
+            out List<SurveyStation>? referenceSurveyList)
         {
+            Model.Trajectory? referenceTrajectory = null;
             referenceSurveyList = null;
             List<Guid>? requestedComparisonTrajectoryIds =
                 value.ComparisonTrajectoryIDs is { Count: > 0 }
@@ -144,7 +148,8 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             else if (!value.ReferenceTrajectoryID.Equals(Guid.Empty))
             {
                 #region Load Trajectory from the microservices
-                referenceSurveyList = _trajectoryManager.GetTrajectoryById(value.ReferenceTrajectoryID)?.SurveyStationList;
+                referenceTrajectory = _trajectoryManager.GetTrajectoryById(value.ReferenceTrajectoryID);
+                referenceSurveyList = referenceTrajectory?.SurveyStationList;
                 #endregion
 
                 value.ComparisonTrajectoryIDs = FilterComparisonTrajectoryIds(
@@ -152,6 +157,8 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                     requestedComparisonTrajectoryIds);
                 value.ReferenceWellPathID = Guid.Empty;
             }
+
+            return referenceTrajectory;
         }
 
         private static List<Guid> FilterComparisonTrajectoryIds(List<Guid>? candidateTrajectoryIds, List<Guid>? requestedComparisonTrajectoryIds)
@@ -170,13 +177,24 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             return candidateTrajectoryIds.Where(id => requestedIds.Contains(id)).ToList();
         }
 
-        private void CalculateIfPossible(GlobalAntiCollision.GlobalAntiCollision value, List<SurveyStation>? referenceSurveyList)
+        private async Task CalculateIfPossibleAsync(
+            GlobalAntiCollision.GlobalAntiCollision value,
+            Model.Trajectory? referenceTrajectory,
+            List<SurveyStation>? referenceSurveyList)
         {
-            List<List<SurveyStation>> comparisonSurveyLists = GetComparisonSurveyLists(value.ComparisonTrajectoryIDs);
-            if (comparisonSurveyLists.Count == 0)
+            List<Model.Trajectory> comparisonTrajectories = GetComparisonTrajectories(value.ComparisonTrajectoryIDs);
+            if (comparisonTrajectories.Count == 0)
             {
                 return;
             }
+
+            await _trajectoryManager.EnsureBoreholeRadiiAsync(referenceTrajectory);
+            await Task.WhenAll(comparisonTrajectories
+                .Select(trajectory => _trajectoryManager.EnsureBoreholeRadiiAsync(trajectory)));
+
+            List<List<SurveyStation>> comparisonSurveyLists = comparisonTrajectories
+                .Select(trajectory => trajectory.SurveyStationList!)
+                .ToList();
 
             if (Numeric.IsUndefined(value.ConfidenceFactor) || value.ConfidenceFactor <= 0 || value.ConfidenceFactor > 0.999)
             {
@@ -187,10 +205,22 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
             List<MeasuredDepthRange?> comparisonMdRanges = [];
             BuildRelevantMdRanges(referenceSurveyList, comparisonSurveyLists, value.ConfidenceFactor, referenceMdRanges, comparisonMdRanges);
 
-            value.Calculate(referenceSurveyList, comparisonSurveyLists, referenceMdRanges, comparisonMdRanges);
+            List<AntiCollisionPairMdConstraints> pairMdConstraints =
+                await SidetrackRelationshipResolver.GetAntiCollisionPairMdConstraintsAsync(
+                    referenceTrajectory,
+                    comparisonTrajectories,
+                    _loggerGlobalAC);
+
+            value.Calculate(
+                referenceSurveyList,
+                comparisonSurveyLists,
+                referenceMdRanges,
+                comparisonMdRanges,
+                pairMdConstraints.Select(constraints => constraints.ReferenceMinimumMD).ToList(),
+                pairMdConstraints.Select(constraints => constraints.ComparisonMinimumMD).ToList());
         }
 
-        private List<List<SurveyStation>> GetComparisonSurveyLists(List<Guid>? comparisonTrajectoryIds)
+        private List<Model.Trajectory> GetComparisonTrajectories(List<Guid>? comparisonTrajectoryIds)
         {
             if (comparisonTrajectoryIds == null || comparisonTrajectoryIds.Count == 0)
             {
@@ -212,21 +242,21 @@ namespace NORCE.Drilling.Trajectory.Service.Controllers
                 }
             }
 
-            List<List<SurveyStation>> comparisonSurveyLists = [];
+            List<Model.Trajectory> filteredComparisonTrajectories = [];
             List<Guid> filteredComparisonTrajectoryIds = [];
             foreach (Guid comparisonTrajectoryId in comparisonTrajectoryIds)
             {
                 if (trajectoriesById.TryGetValue(comparisonTrajectoryId, out Model.Trajectory? comparisonTrajectory) &&
                     comparisonTrajectory.SurveyStationList != null)
                 {
-                    comparisonSurveyLists.Add(comparisonTrajectory.SurveyStationList);
+                    filteredComparisonTrajectories.Add(comparisonTrajectory);
                     filteredComparisonTrajectoryIds.Add(comparisonTrajectoryId);
                 }
             }
 
             comparisonTrajectoryIds.Clear();
             comparisonTrajectoryIds.AddRange(filteredComparisonTrajectoryIds);
-            return comparisonSurveyLists;
+            return filteredComparisonTrajectories;
         }
 
         private static void BuildRelevantMdRanges(
