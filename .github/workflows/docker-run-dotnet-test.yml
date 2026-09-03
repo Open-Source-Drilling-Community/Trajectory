@@ -27,10 +27,10 @@ jobs:
         dotnet-version: 8.0.x
 
     - name: Restore dependencies
-      run: dotnet restore
+      run: dotnet restore Trajectory.sln
 
     - name: Build
-      run: dotnet build --no-restore --configuration 'Release'
+      run: dotnet build Trajectory.sln --no-restore --configuration Release
 
     - name: Run ServiceTest & ModelTest
-      run: dotnet test --no-build --verbosity normal --configuration 'Release'
+      run: dotnet test Trajectory.sln --no-build --verbosity normal --configuration Release
