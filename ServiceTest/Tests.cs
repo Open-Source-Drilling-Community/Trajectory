@@ -35,6 +35,7 @@ namespace ServiceTest
             #region post a Trajectory
             // Create instance of Trajectory
             Trajectory trajectory = PseudoConstructors.ConstructTrajectory();
+            trajectory.WellBoreID = Guid.NewGuid();
             trajectory.MDStep = 10;
             trajectory.SurveyStationList = ConstructSurveyStationList();
             //Extract metainfo
@@ -165,6 +166,7 @@ namespace ServiceTest
             #region trying to post an empty guid
             // Create instance of trajectory
             Trajectory trajectory = PseudoConstructors.ConstructTrajectory();
+            trajectory.WellBoreID = Guid.NewGuid();
             trajectory.MDStep = 10;
             trajectory.MetaInfo.ID = Guid.Empty;
             trajectory.SurveyStationList = ConstructSurveyStationList();
@@ -279,6 +281,7 @@ namespace ServiceTest
             #region posting a new ID
             // Create instance of trajectory
             Trajectory trajectory = PseudoConstructors.ConstructTrajectory();
+            trajectory.WellBoreID = Guid.NewGuid();
             trajectory.MDStep = 10;
             trajectory.SurveyStationList = ConstructSurveyStationList();
             //Extract metainfo
@@ -361,6 +364,7 @@ namespace ServiceTest
             #region posting a new ID
             // Create instance of trajectory
             Trajectory trajectory = PseudoConstructors.ConstructTrajectory();
+            trajectory.WellBoreID = Guid.NewGuid();
             trajectory.MDStep = 10;
             trajectory.SurveyStationList = ConstructSurveyStationList();
             //Extract metainfo

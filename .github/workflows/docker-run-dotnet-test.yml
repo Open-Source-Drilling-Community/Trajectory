@@ -21,6 +21,18 @@ jobs:
     - name: Run OSDC Trajectory service container
       run: docker run --detach --name osdc-trajectory-service-test --publish 8080:8080 osdcdrillingtrajectoryservice:test
 
+    - name: Wait for OSDC Trajectory service
+      shell: bash
+      run: |
+        for attempt in {1..30}; do
+          if curl --fail --silent http://localhost:8080/Trajectory/api/Trajectory > /dev/null; then
+            exit 0
+          fi
+          sleep 1
+        done
+        docker logs osdc-trajectory-service-test
+        exit 1
+
     - name: Setup .NET
       uses: actions/setup-dotnet@v4
       with:
@@ -34,3 +46,7 @@ jobs:
 
     - name: Run ServiceTest & ModelTest
       run: dotnet test Trajectory.sln --no-build --verbosity normal --configuration Release
+
+    - name: Show service logs on failure
+      if: failure()
+      run: docker logs osdc-trajectory-service-test
