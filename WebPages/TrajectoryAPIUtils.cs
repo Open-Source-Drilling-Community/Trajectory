@@ -77,7 +77,7 @@ public class TrajectoryAPIUtils : APIUtils, ITrajectoryAPIUtils
 
     public async Task<ICollection<Rig>> GetAllRigReferencesAsync(CancellationToken cancellationToken = default)
     {
-        List<RigReadResponse> rigs = await ClientRig.GetAllRigAsync(cancellationToken: cancellationToken);
+        ICollection<RigReadResponse> rigs = await ClientRig.GetAllRigAsync(cancellationToken: cancellationToken);
         return rigs.Select(rig => new Rig
         {
             MetaInfo = rig.MetaInfo,

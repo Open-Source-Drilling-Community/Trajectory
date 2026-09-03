@@ -8,7 +8,7 @@ This project stores OpenAPI schemas and generates C# classes that are used by do
 
 It includes the Trajectory service schema together with other related schemas needed by clients and reusable UI components.
 
-The generated output includes client types and methods for trajectory realization cases, including light data, full case data, and chunked realization retrieval.
+The generated output includes client types and methods for trajectory realization cases, including light data, full case data, and chunked realization retrieval. It also contains the versioned batch export/restore document, conflict and catalog policies, and the two dependency-aware backup endpoints.
 
 ## Dependencies
 

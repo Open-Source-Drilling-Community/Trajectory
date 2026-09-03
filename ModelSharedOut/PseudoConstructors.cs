@@ -3869,7 +3869,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CalculationState = (CalculationState)0,
 				CalculationProgress = 0.0, 
 				CalculationMessage = "Default CalculationMessage",
-				RealizationList = new List<List<SurveyPoint>>
+				RealizationList = new List<ICollection<SurveyPoint>>
 					{
 						new List<SurveyPoint>
 						{
@@ -3888,7 +3888,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				SurveyPointCount = 0, 
 				StartMD = null, 
 				EndMD = null, 
-				RealizationList = new List<List<SurveyPoint>>
+				RealizationList = new List<ICollection<SurveyPoint>>
 					{
 						new List<SurveyPoint>
 						{

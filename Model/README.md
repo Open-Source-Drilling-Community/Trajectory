@@ -14,6 +14,7 @@ It is the main implementation project behind the Trajectory service.
 - trajectory interpolation cases
 - stochastic trajectory realization cases
 - shared identity and feature catalog models, with assignments on both survey runs and trajectories
+- versioned backup/restore contract types for dependency-closed survey-run and trajectory documents
 
 ## Trajectory Realizations
 

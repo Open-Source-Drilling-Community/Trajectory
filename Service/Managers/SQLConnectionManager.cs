@@ -12,6 +12,7 @@ public abstract class SqlConnectionManager
     private readonly ILogger _logger;
     private readonly string _connectionString;
     private readonly string _dbPath;
+    private readonly int _currentSchemaVersion;
 
     protected string DatabaseFilename { get; }
     protected IReadOnlyDictionary<string, string[]> TableStructureDict { get; }
@@ -33,14 +34,16 @@ public abstract class SqlConnectionManager
         ILogger logger,
         string databaseFilename,
         IReadOnlyDictionary<string, string[]> tableStructureDict,
-        IReadOnlyDictionary<string, string[]>? tableIndexDefinitions)
+        IReadOnlyDictionary<string, string[]>? tableIndexDefinitions,
+        int currentSchemaVersion = CURRENT_SCHEMA_VERSION)
         : this(
             BuildConnectionString(BuildDatabasePath(databaseFilename)),
             logger,
             BuildDatabasePath(databaseFilename),
             databaseFilename,
             tableStructureDict,
-            tableIndexDefinitions)
+            tableIndexDefinitions,
+            currentSchemaVersion)
     {
     }
 
@@ -50,17 +53,20 @@ public abstract class SqlConnectionManager
         string dbPath,
         string databaseFilename,
         IReadOnlyDictionary<string, string[]> tableStructureDict,
-        IReadOnlyDictionary<string, string[]>? tableIndexDefinitions = null)
+        IReadOnlyDictionary<string, string[]>? tableIndexDefinitions = null,
+        int currentSchemaVersion = CURRENT_SCHEMA_VERSION)
     {
         ArgumentNullException.ThrowIfNull(logger);
         ArgumentException.ThrowIfNullOrWhiteSpace(connectionString);
         ArgumentException.ThrowIfNullOrWhiteSpace(dbPath);
         ArgumentException.ThrowIfNullOrWhiteSpace(databaseFilename);
         ArgumentNullException.ThrowIfNull(tableStructureDict);
+        if (currentSchemaVersion <= 0) throw new ArgumentOutOfRangeException(nameof(currentSchemaVersion));
 
         _connectionString = connectionString;
         _logger = logger;
         _dbPath = dbPath;
+        _currentSchemaVersion = currentSchemaVersion;
         DatabaseFilename = databaseFilename;
         TableStructureDict = tableStructureDict;
         TableIndexDefinitions = tableIndexDefinitions ?? CreateDefaultIndexDefinitions(tableStructureDict);
@@ -128,10 +134,10 @@ public abstract class SqlConnectionManager
 
         List<string> tableNames = ReadTableNames(connection);
         int schemaVersion = ReadSchemaVersion(connection);
-        if (schemaVersion > CURRENT_SCHEMA_VERSION)
+        if (schemaVersion > _currentSchemaVersion)
         {
             throw new InvalidOperationException(
-                $"{DatabaseFilename} schema version {schemaVersion} is newer than supported version {CURRENT_SCHEMA_VERSION}. No data was changed.");
+                $"{DatabaseFilename} schema version {schemaVersion} is newer than supported version {_currentSchemaVersion}. No data was changed.");
         }
 
         if (tableNames.Count == 0)
@@ -161,13 +167,13 @@ public abstract class SqlConnectionManager
                 $"Missing=[{string.Join(',', missing)}], unexpected=[{string.Join(',', unexpected)}], malformed=[{string.Join(',', malformed)}].");
         }
 
-        if (schemaVersion < CURRENT_SCHEMA_VERSION)
+        if (schemaVersion < _currentSchemaVersion)
         {
             using SqliteTransaction transaction = connection.BeginTransaction();
             SetSchemaVersion(connection, transaction);
             transaction.Commit();
             _logger.LogInformation("Adopted the existing {DatabaseFilename} schema as version {SchemaVersion} without rewriting rows.",
-                DatabaseFilename, CURRENT_SCHEMA_VERSION);
+                DatabaseFilename, _currentSchemaVersion);
         }
     }
 
@@ -198,7 +204,7 @@ public abstract class SqlConnectionManager
             SetSchemaVersion(connection, transaction);
             transaction.Commit();
             _logger.LogInformation("Created {DatabaseFilename} schema version {SchemaVersion} transactionally.",
-                DatabaseFilename, CURRENT_SCHEMA_VERSION);
+                DatabaseFilename, _currentSchemaVersion);
         }
         catch
         {
@@ -235,11 +241,11 @@ public abstract class SqlConnectionManager
         return actual.SequenceEqual(expected, StringComparer.Ordinal);
     }
 
-    private static void SetSchemaVersion(SqliteConnection connection, SqliteTransaction transaction)
+    private void SetSchemaVersion(SqliteConnection connection, SqliteTransaction transaction)
     {
         using SqliteCommand command = connection.CreateCommand();
         command.Transaction = transaction;
-        command.CommandText = $"PRAGMA user_version={CURRENT_SCHEMA_VERSION}";
+        command.CommandText = $"PRAGMA user_version={_currentSchemaVersion}";
         command.ExecuteNonQuery();
     }
 

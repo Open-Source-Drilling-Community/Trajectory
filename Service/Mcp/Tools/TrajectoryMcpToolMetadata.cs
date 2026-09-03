@@ -35,7 +35,11 @@ internal static class TrajectoryMcpToolMetadata
         string route = $"REST operation: {verbs} {controller}{(string.IsNullOrWhiteSpace(template) ? string.Empty : "/" + template)}.";
         string detail;
 
-        if (controller == "SurveyRun" && action == "PutSurveyMeasurementChunk")
+        if (controller == "Trajectory" && action == "BatchExport")
+            detail = "Create a versioned JSON backup of all records or an explicit selection. A selected trajectory automatically includes all survey runs referenced by its sections, and every selected survey run includes its parent chain. The document also carries the identity and feature definitions needed by those records.";
+        else if (controller == "Trajectory" && action == "BatchRestore")
+            detail = "Restore a versioned dependency-closed backup. The service validates the complete document, maps compatible identity and feature definitions by UUID or normalized name, optionally creates missing definitions, writes survey runs before dependent trajectories, and atomically commits record changes without recalculation. Use FailIfExists for a non-destructive import or ReplaceExisting explicitly.";
+        else if (controller == "SurveyRun" && action == "PutSurveyMeasurementChunk")
             detail = "Upload or replace one staged measurement chunk. Use a zero-based chunkIndex; chunk.SurveyRunID must equal id and chunk.ChunkIndex must equal chunkIndex. Measurements use MD in metres and Inclination/Azimuth in radians. Upload every chunk, then call the commit tool once to assemble the run and start recalculation.";
         else if (controller == "SurveyRun" && action == "CommitSurveyMeasurementChunks")
             detail = "Commit all previously uploaded survey-measurement chunks for the survey-run id. Call this only after every zero-based chunk has been uploaded; committing assembles the measurements and triggers the survey-station calculation.";
@@ -171,6 +175,8 @@ internal static class TrajectoryMcpToolMetadata
             "includeCalculatedStations" => "When true, include calculated survey stations; false (default) omits them. Prefer station chunks for large runs.",
             "expectedModifiedUtc" => "Optimistic-concurrency token copied exactly from the resource's latest LastModificationDate.",
             "chunk" => "Complete survey-measurement chunk. SurveyRunID and ChunkIndex must match the route arguments; MD is metres and Inclination/Azimuth are radians.",
+            "request" when controller == "Trajectory" && action == "BatchExport" => "Backup scope and optional survey-run and trajectory UUID selections. For Selected, provide at least one UUID; dependent survey runs are added automatically.",
+            "request" when controller == "Trajectory" && action == "BatchRestore" => "Complete backup document plus record-conflict and catalog-resolution policies. Restore validates the full graph before writing records.",
             "data" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation. Follow the nested schema and SI-unit annotations.",
             "value" when controller == "GlobalAntiCollisions" => "Complete global anti-collision configuration JSON representation.",
             "value" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation.",

@@ -11,6 +11,7 @@ It currently provides:
 - `TrajectoryRealizationMain`
 - `TrajectoryRealizationEdit`
 - supporting UI components used by those pages
+- `TrajectoryBackupRestore`, for dependency-aware JSON backup and restore
 
 ## Purpose
 
@@ -83,6 +84,10 @@ The package, assembly, and static-web-asset base identity are all `OSDC.Drilling
 ## Identities and features
 
 `TrajectoryIdentities` and `TrajectoryFeatures` manage the catalogs shared by survey runs and trajectories. `IdentityFeatureAssignments` is embedded in both resource editors and enforces each category's option and validity-period shape through the service API.
+
+## Backup and restore
+
+`TrajectoryBackupRestore` lets users select survey runs and trajectories or back up everything. A selected trajectory automatically brings along all survey runs used by its sections, while parent survey runs and relevant catalog definitions are also included. Restore previews both record counts and offers explicit record-conflict and catalog-resolution policies before sending the complete document to the service.
 
 ## Mean-sea-level depth references
 

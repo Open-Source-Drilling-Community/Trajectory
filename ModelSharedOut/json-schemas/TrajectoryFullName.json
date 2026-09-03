@@ -1815,6 +1815,144 @@
         }
       }
     },
+    "/Trajectory/BatchExport": {
+      "post": {
+        "tags": [
+          "Trajectory"
+        ],
+        "operationId": "BatchExportTrajectoryData",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchExportRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchExportRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchExportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchExportDocument"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Trajectory/BatchRestore": {
+      "post": {
+        "tags": [
+          "Trajectory"
+        ],
+        "operationId": "BatchRestoreTrajectoryData",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchRestoreRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchRestoreRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchRestoreRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchRestoreResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Trajectory": {
       "get": {
         "tags": [
@@ -6226,6 +6364,248 @@
           "ConstantCurvatureAndToolface"
         ],
         "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryBatchCatalogDependencies": {
+        "type": "object",
+        "properties": {
+          "Identities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryIdentity"
+            },
+            "nullable": true
+          },
+          "FeatureCategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryFeatureCategory"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryBatchCatalogMapping": {
+        "type": "object",
+        "properties": {
+          "Catalog": {
+            "type": "string",
+            "nullable": true
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "SourceID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "LocalID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Resolution": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryBatchCatalogRestorePolicy": {
+        "enum": [
+          "Unspecified",
+          "MapExisting",
+          "MapOrCreateMissing"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryBatchError": {
+        "type": "object",
+        "properties": {
+          "PositionIndex": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "Property": {
+            "type": "string",
+            "nullable": true
+          },
+          "Code": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryBatchErrorEnvelope": {
+        "type": "object",
+        "properties": {
+          "Error": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          },
+          "Errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchError"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryBatchExportDocument": {
+        "type": "object",
+        "properties": {
+          "FormatIdentifier": {
+            "type": "string",
+            "nullable": true
+          },
+          "SchemaVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ExportedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "CatalogDependencies": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchCatalogDependencies"
+          },
+          "SurveyRuns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRun"
+            },
+            "nullable": true
+          },
+          "Trajectories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.Trajectory"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryBatchExportRequest": {
+        "type": "object",
+        "properties": {
+          "Scope": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchExportScope"
+          },
+          "SurveyRunIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "TrajectoryIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryBatchExportScope": {
+        "enum": [
+          "Unspecified",
+          "All",
+          "Selected"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryBatchRestoreConflictPolicy": {
+        "enum": [
+          "Unspecified",
+          "FailIfExists",
+          "ReplaceExisting"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryBatchRestoreRequest": {
+        "type": "object",
+        "properties": {
+          "ConflictPolicy": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchRestoreConflictPolicy"
+          },
+          "CatalogPolicy": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchCatalogRestorePolicy"
+          },
+          "Document": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchExportDocument"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryBatchRestoreResponse": {
+        "type": "object",
+        "properties": {
+          "RestoredAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "CreatedSurveyRunCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ReplacedSurveyRunCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CreatedTrajectoryCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ReplacedTrajectoryCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CreatedCatalogDefinitionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CatalogMappings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchCatalogMapping"
+            },
+            "nullable": true
+          },
+          "SurveyRunIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "TrajectoryIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "OSDC.Drilling.Trajectory.Model.TrajectoryFeatureAssignment": {
         "type": "object",

@@ -19,9 +19,8 @@ public sealed class TrajectoryIdentityFeatureTests
         directory = Path.Combine(Path.GetTempPath(), "TrajectoryIdentityFeatureTests", Guid.NewGuid().ToString("N"));
         Directory.CreateDirectory(directory);
         var main = new SqlConnectionManagerTrajectory(Path.Combine(directory, "Trajectory.db"), NullLogger<SqlConnectionManagerTrajectory>.Instance);
-        var catalog = new SqlConnectionManagerTrajectoryCatalog(Path.Combine(directory, "TrajectoryCatalog.db"), NullLogger<SqlConnectionManagerTrajectoryCatalog>.Instance);
-        identities = new(catalog, main);
-        categories = new(catalog, main);
+        identities = new(main);
+        categories = new(main);
         validator = new(identities, categories);
     }
 

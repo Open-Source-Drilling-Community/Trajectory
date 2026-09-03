@@ -26,10 +26,10 @@ public sealed class TrajectoryFeatureCategoryManager
     private readonly TrajectoryCatalogStore<Model.TrajectoryFeatureCategory> store;
     private readonly SqlConnectionManager mainDatabase;
 
-    public TrajectoryFeatureCategoryManager(SqlConnectionManagerTrajectoryCatalog catalogDatabase, SqlConnectionManager mainDatabase)
+    public TrajectoryFeatureCategoryManager(SqlConnectionManager mainDatabase)
     {
         this.mainDatabase = mainDatabase;
-        store = new(catalogDatabase, "TrajectoryFeatureCategoryTable", "TrajectoryFeatureCategory",
+        store = new(mainDatabase, "TrajectoryFeatureCategoryTable", "TrajectoryFeatureCategory",
             value => value.MetaInfo, value => value.Name, (value, date) => value.CreationDate = date,
             (value, date) => value.LastModificationDate = date, value => value.IsExclusive, value => value.HasValidityPeriod);
     }

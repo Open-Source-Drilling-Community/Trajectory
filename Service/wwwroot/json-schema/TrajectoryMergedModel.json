@@ -17031,6 +17031,144 @@
         }
       }
     },
+    "/Trajectory/BatchExport": {
+      "post": {
+        "tags": [
+          "Trajectory"
+        ],
+        "operationId": "BatchExportTrajectoryData",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryBatchExportRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryBatchExportRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryBatchExportRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryBatchExportDocument"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryBatchErrorEnvelope"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryBatchErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryBatchErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Trajectory/BatchRestore": {
+      "post": {
+        "tags": [
+          "Trajectory"
+        ],
+        "operationId": "BatchRestoreTrajectoryData",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryBatchRestoreRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryBatchRestoreRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryBatchRestoreRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryBatchRestoreResponse"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryBatchErrorEnvelope"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryBatchErrorEnvelope"
+                }
+              }
+            }
+          },
+          "500": {
+            "description": "Internal Server Error",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryBatchErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/TrajectoryFeatureCategory": {
       "get": {
         "tags": [
@@ -37909,6 +38047,240 @@
           },
           "Value": {
             "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryBatchCatalogDependencies": {
+        "type": "object",
+        "properties": {
+          "Identities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryIdentity"
+            },
+            "nullable": true
+          },
+          "FeatureCategories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryFeatureCategory"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryBatchCatalogMapping": {
+        "type": "object",
+        "properties": {
+          "Catalog": {
+            "type": "string",
+            "nullable": true
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "SourceID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "LocalID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Resolution": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryBatchCatalogRestorePolicy": {
+        "enum": [
+          "Unspecified",
+          "MapExisting",
+          "MapOrCreateMissing"
+        ],
+        "type": "string"
+      },
+      "TrajectoryBatchError": {
+        "type": "object",
+        "properties": {
+          "PositionIndex": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "Property": {
+            "type": "string",
+            "nullable": true
+          },
+          "Code": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryBatchErrorEnvelope": {
+        "type": "object",
+        "properties": {
+          "Error": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          },
+          "Errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryBatchError"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryBatchExportDocument": {
+        "type": "object",
+        "properties": {
+          "FormatIdentifier": {
+            "type": "string",
+            "nullable": true
+          },
+          "SchemaVersion": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ExportedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "CatalogDependencies": {
+            "$ref": "#/components/schemas/TrajectoryBatchCatalogDependencies"
+          },
+          "SurveyRuns": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyRun"
+            },
+            "nullable": true
+          },
+          "Trajectories": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/Trajectory"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryBatchExportRequest": {
+        "type": "object",
+        "properties": {
+          "Scope": {
+            "$ref": "#/components/schemas/TrajectoryBatchExportScope"
+          },
+          "SurveyRunIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "TrajectoryIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryBatchExportScope": {
+        "enum": [
+          "Unspecified",
+          "All",
+          "Selected"
+        ],
+        "type": "string"
+      },
+      "TrajectoryBatchRestoreConflictPolicy": {
+        "enum": [
+          "Unspecified",
+          "FailIfExists",
+          "ReplaceExisting"
+        ],
+        "type": "string"
+      },
+      "TrajectoryBatchRestoreRequest": {
+        "type": "object",
+        "properties": {
+          "ConflictPolicy": {
+            "$ref": "#/components/schemas/TrajectoryBatchRestoreConflictPolicy"
+          },
+          "CatalogPolicy": {
+            "$ref": "#/components/schemas/TrajectoryBatchCatalogRestorePolicy"
+          },
+          "Document": {
+            "$ref": "#/components/schemas/TrajectoryBatchExportDocument"
+          }
+        }
+      },
+      "TrajectoryBatchRestoreResponse": {
+        "type": "object",
+        "properties": {
+          "RestoredAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "CreatedSurveyRunCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ReplacedSurveyRunCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CreatedTrajectoryCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ReplacedTrajectoryCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CreatedCatalogDefinitionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CatalogMappings": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryBatchCatalogMapping"
+            },
+            "nullable": true
+          },
+          "SurveyRunIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "TrajectoryIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
             "nullable": true
           }
         }

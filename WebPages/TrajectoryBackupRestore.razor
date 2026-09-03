@@ -1,0 +1,340 @@
+@page "/TrajectoryBackupRestore"
+@implements IAsyncDisposable
+@inject ILogger<TrajectoryBackupRestore> logger
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject ITrajectoryAPIUtils Api
+@inject IJSRuntime JSRuntime
+
+<MudText Typo="Typo.h4" Class="mt-4 mb-4">Trajectory backup and restore</MudText>
+@if (_busy)
+{
+    <MudProgressLinear Indeterminate="true" Class="mb-3" />
+}
+
+<MudExpansionPanels MultiExpansion="true">
+    <MudExpansionPanel Text="Backup survey runs and trajectories" Expanded="true">
+        <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
+            A survey run can be backed up independently. Selecting a trajectory automatically includes every survey run
+            used by it; parent survey runs and referenced identity and feature definitions are included as dependencies.
+        </MudAlert>
+
+        @if (_surveyRuns == null || _trajectories == null)
+        {
+            <MudProgressLinear Indeterminate="true" />
+        }
+        else
+        {
+            <MudDataGrid T="SurveyRunLight" Items="@_surveyRuns" MultiSelection="true"
+                         SelectedItems="@_selectedSurveyRuns" SelectedItemsChanged="SurveyRunSelectionChanged"
+                         QuickFilter="@SurveyRunFilter" Hover="true" SortMode="SortMode.Multiple"
+                         Filterable="false" ReadOnly="true" Elevation="0">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Survey runs</MudText><MudSpacer />
+                    <MudTextField @bind-Value="_surveyRunSearch" Placeholder="Search" Immediate="true" Class="mt-0"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
+                </ToolBarContent>
+                <Columns>
+                    <SelectColumn T="SurveyRunLight" />
+                    <PropertyColumn Property="item => item.Name" Title="Name" Sortable="true" />
+                    <PropertyColumn Property="item => item.SurveyRunType" Title="Type" Sortable="true" />
+                    <PropertyColumn Property="item => item.Description" Title="Description" Sortable="true" />
+                    <TemplateColumn Title="UUID"><CellTemplate>@(context.Item.MetaInfo?.ID.ToString() ?? "-")</CellTemplate></TemplateColumn>
+                </Columns>
+                <PagerContent><MudDataGridPager T="SurveyRunLight" /></PagerContent>
+            </MudDataGrid>
+
+            <MudDataGrid T="TrajectoryLight" Items="@_trajectories" MultiSelection="true" Class="mt-4"
+                         SelectedItems="@_selectedTrajectories" SelectedItemsChanged="TrajectorySelectionChanged"
+                         QuickFilter="@TrajectoryFilter" Hover="true" SortMode="SortMode.Multiple"
+                         Filterable="false" ReadOnly="true" Elevation="0">
+                <ToolBarContent>
+                    <MudText Typo="Typo.h6">Trajectories</MudText><MudSpacer />
+                    <MudTextField @bind-Value="_trajectorySearch" Placeholder="Search" Immediate="true" Class="mt-0"
+                                  Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
+                </ToolBarContent>
+                <Columns>
+                    <SelectColumn T="TrajectoryLight" />
+                    <PropertyColumn Property="item => item.Name" Title="Name" Sortable="true" />
+                    <PropertyColumn Property="item => item.TrajectoryType" Title="Type" Sortable="true" />
+                    <PropertyColumn Property="item => item.Description" Title="Description" Sortable="true" />
+                    <TemplateColumn Title="UUID"><CellTemplate>@(context.Item.MetaInfo?.ID.ToString() ?? "-")</CellTemplate></TemplateColumn>
+                </Columns>
+                <PagerContent><MudDataGridPager T="TrajectoryLight" /></PagerContent>
+            </MudDataGrid>
+
+            <MudContainer Class="d-flex flex-row align-center flex-wrap pa-0 mt-4">
+                <MudButton Class="me-2 mb-2" Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Download" Disabled="@(_busy || TotalRecordCount == 0)"
+                           OnClick="ExportAllAsync">Backup all (@TotalRecordCount)</MudButton>
+                <MudButton Class="mb-2" Variant="Variant.Filled" Color="Color.Primary"
+                           StartIcon="@Icons.Material.Filled.Download" Disabled="@(_busy || SelectedRecordCount == 0)"
+                           OnClick="ExportSelectedAsync">Backup selected (@SelectedRecordCount)</MudButton>
+            </MudContainer>
+            @if (_backupErrors.Count != 0)
+            {
+                <MudAlert Severity="Severity.Error" Dense="true" Class="mt-3">
+                    @foreach (string error in _backupErrors) { <MudText Typo="Typo.body2">- @error</MudText> }
+                </MudAlert>
+            }
+        }
+    </MudExpansionPanel>
+
+    <MudExpansionPanel Text="Restore survey runs and trajectories">
+        <MudAlert Severity="Severity.Info" Dense="true" Class="mb-3">
+            The server validates the whole dependency graph, resolves catalog definitions, writes survey runs first,
+            then trajectories, and commits the record changes atomically without recalculating stored data.
+        </MudAlert>
+        <label class="mud-button-root mud-button mud-button-filled mud-button-filled-primary mud-button-filled-size-medium">
+            Choose backup file
+            <InputFile OnChange="LoadFileAsync" accept=".json,application/json" style="display:none" />
+        </label>
+        @if (!string.IsNullOrWhiteSpace(_fileName))
+        {
+            <MudText Typo="Typo.body2" Class="mt-2">Selected file: @_fileName</MudText>
+        }
+
+        @if (_document != null)
+        {
+            <MudGrid Class="mt-3">
+                <MudItem xs="12" md="4"><MudText Typo="Typo.subtitle2">Format</MudText><MudText Typo="Typo.body2">@_document.FormatIdentifier</MudText></MudItem>
+                <MudItem xs="6" md="2"><MudText Typo="Typo.subtitle2">Schema version</MudText><MudText Typo="Typo.body2">@_document.SchemaVersion</MudText></MudItem>
+                <MudItem xs="6" md="2"><MudText Typo="Typo.subtitle2">Survey runs</MudText><MudText Typo="Typo.body2">@(_document.SurveyRuns?.Count ?? 0)</MudText></MudItem>
+                <MudItem xs="6" md="2"><MudText Typo="Typo.subtitle2">Trajectories</MudText><MudText Typo="Typo.body2">@(_document.Trajectories?.Count ?? 0)</MudText></MudItem>
+                <MudItem xs="12" md="2"><MudText Typo="Typo.subtitle2">Exported UTC</MudText><MudText Typo="Typo.body2">@_document.ExportedAtUtc.ToString("u")</MudText></MudItem>
+            </MudGrid>
+            @if (_document.CatalogDependencies != null)
+            {
+                <MudText Typo="Typo.body2" Class="mt-2">
+                    Catalog dependencies: @(_document.CatalogDependencies.Identities?.Count ?? 0) identities,
+                    @(_document.CatalogDependencies.FeatureCategories?.Count ?? 0) feature categories.
+                </MudText>
+            }
+            @if (_validationErrors.Count != 0)
+            {
+                <MudAlert Severity="Severity.Error" Dense="true" Class="mt-3">
+                    <MudText Typo="Typo.subtitle2">This file cannot be restored:</MudText>
+                    @foreach (string error in _validationErrors) { <MudText Typo="Typo.body2">- @error</MudText> }
+                </MudAlert>
+            }
+            else
+            {
+                <MudText Typo="Typo.subtitle2" Class="mt-4 mb-1">If a record UUID already exists</MudText>
+                <MudRadioGroup T="TrajectoryBatchRestoreConflictPolicy" @bind-Value="_conflictPolicy">
+                    <MudRadio T="TrajectoryBatchRestoreConflictPolicy" Value="TrajectoryBatchRestoreConflictPolicy.FailIfExists" Color="Color.Primary">Stop without changing records</MudRadio>
+                    <MudRadio T="TrajectoryBatchRestoreConflictPolicy" Value="TrajectoryBatchRestoreConflictPolicy.ReplaceExisting" Color="Color.Error">Replace existing records</MudRadio>
+                </MudRadioGroup>
+
+                <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">Catalog definitions</MudText>
+                <MudRadioGroup T="TrajectoryBatchCatalogRestorePolicy" @bind-Value="_catalogPolicy">
+                    <MudRadio T="TrajectoryBatchCatalogRestorePolicy" Value="TrajectoryBatchCatalogRestorePolicy.MapOrCreateMissing" Color="Color.Primary">Map compatible definitions and create missing ones</MudRadio>
+                    <MudRadio T="TrajectoryBatchCatalogRestorePolicy" Value="TrajectoryBatchCatalogRestorePolicy.MapExisting" Color="Color.Primary">Require compatible definitions to exist</MudRadio>
+                </MudRadioGroup>
+
+                @if (_conflictPolicy == TrajectoryBatchRestoreConflictPolicy.ReplaceExisting)
+                {
+                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-2">Matching survey runs and trajectories will be replaced after complete validation.</MudAlert>
+                }
+                <MudButton Class="mt-3" Variant="Variant.Filled"
+                           Color="@(_conflictPolicy == TrajectoryBatchRestoreConflictPolicy.ReplaceExisting ? Color.Error : Color.Primary)"
+                           StartIcon="@Icons.Material.Filled.Restore" Disabled="@(_busy || !CanRestore)"
+                           OnClick="RestoreAsync">Restore @DocumentRecordCount record(s)</MudButton>
+            }
+        }
+        @if (_serverErrors.Count != 0)
+        {
+            <MudAlert Severity="Severity.Error" Dense="true" Class="mt-3">
+                @foreach (string error in _serverErrors) { <MudText Typo="Typo.body2">- @error</MudText> }
+            </MudAlert>
+        }
+    </MudExpansionPanel>
+</MudExpansionPanels>
+
+@code {
+    private const long MaximumFileBytes = 512L * 1024L * 1024L;
+    private const string ExpectedFormat = "OSDC.Drilling.Trajectory.BatchExport";
+    private const int ExpectedSchemaVersion = 1;
+    private List<SurveyRunLight>? _surveyRuns;
+    private List<TrajectoryLight>? _trajectories;
+    private HashSet<SurveyRunLight> _selectedSurveyRuns = [];
+    private HashSet<TrajectoryLight> _selectedTrajectories = [];
+    private readonly List<string> _backupErrors = [], _validationErrors = [], _serverErrors = [];
+    private string? _surveyRunSearch, _trajectorySearch, _fileName;
+    private bool _busy;
+    private TrajectoryBatchExportDocument? _document;
+    private TrajectoryBatchRestoreConflictPolicy _conflictPolicy = TrajectoryBatchRestoreConflictPolicy.FailIfExists;
+    private TrajectoryBatchCatalogRestorePolicy _catalogPolicy = TrajectoryBatchCatalogRestorePolicy.MapOrCreateMissing;
+    private IJSObjectReference? _downloadModule;
+    private int TotalRecordCount => (_surveyRuns?.Count ?? 0) + (_trajectories?.Count ?? 0);
+    private int SelectedRecordCount => _selectedSurveyRuns.Count + _selectedTrajectories.Count;
+    private int DocumentRecordCount => (_document?.SurveyRuns?.Count ?? 0) + (_document?.Trajectories?.Count ?? 0);
+    private bool CanRestore => _document != null && DocumentRecordCount > 0 && _validationErrors.Count == 0;
+
+    protected override Task OnInitializedAsync() => LoadRecordsAsync();
+
+    private async Task LoadRecordsAsync()
+    {
+        try
+        {
+            Task<ICollection<SurveyRunLight>> surveyRuns = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
+            Task<ICollection<TrajectoryLight>> trajectories = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
+            await Task.WhenAll(surveyRuns, trajectories);
+            _surveyRuns = (surveyRuns.Result ?? []).Where(HasId).OrderBy(value => value.Name, StringComparer.OrdinalIgnoreCase).ToList();
+            _trajectories = (trajectories.Result ?? []).Where(HasId).OrderBy(value => value.Name, StringComparer.OrdinalIgnoreCase).ToList();
+            _selectedSurveyRuns = [];
+            _selectedTrajectories = [];
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unable to load records for backup");
+            _surveyRuns = [];
+            _trajectories = [];
+            Snackbar.Add("Unable to load survey runs and trajectories for backup.", Severity.Error);
+        }
+    }
+
+    private static bool HasId(SurveyRunLight value) => value?.MetaInfo?.ID is Guid id && id != Guid.Empty;
+    private static bool HasId(TrajectoryLight value) => value?.MetaInfo?.ID is Guid id && id != Guid.Empty;
+    private void SurveyRunSelectionChanged(HashSet<SurveyRunLight> values) => _selectedSurveyRuns = values;
+    private void TrajectorySelectionChanged(HashSet<TrajectoryLight> values) => _selectedTrajectories = values;
+    private Task ExportAllAsync() => ExportAsync(TrajectoryBatchExportScope.All, null, null);
+    private Task ExportSelectedAsync() => ExportAsync(TrajectoryBatchExportScope.Selected,
+        _selectedSurveyRuns.Select(value => value.MetaInfo.ID).Order().ToList(),
+        _selectedTrajectories.Select(value => value.MetaInfo.ID).Order().ToList());
+
+    private async Task ExportAsync(TrajectoryBatchExportScope scope, ICollection<Guid>? surveyRunIds, ICollection<Guid>? trajectoryIds)
+    {
+        try
+        {
+            _busy = true;
+            _backupErrors.Clear();
+            TrajectoryBatchExportDocument document = await Api.ClientTrajectory.BatchExportTrajectoryDataAsync(
+                new TrajectoryBatchExportRequest { Scope = scope, SurveyRunIDs = surveyRunIds, TrajectoryIDs = trajectoryIds });
+            string json = JsonSerializer.Serialize(document, JsonOptions(true));
+            _downloadModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import",
+                "./_content/OSDC.Drilling.Trajectory.WebPages/trajectoryBatchBackup.js?v=20260903");
+            await _downloadModule.InvokeVoidAsync("downloadJson", $"trajectory-backup-{DateTime.UtcNow:yyyyMMddTHHmmssZ}.json", json);
+            Snackbar.Add($"Backed up {document.SurveyRuns?.Count ?? 0} survey run(s) and {document.Trajectories?.Count ?? 0} trajectory(ies).", Severity.Success);
+        }
+        catch (ApiException<TrajectoryBatchErrorEnvelope> ex) { ShowErrors(ex.Result, "Backup was rejected.", _backupErrors); }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unable to create Trajectory backup");
+            _backupErrors.Add("Unable to create the backup.");
+            Snackbar.Add("Unable to create the backup.", Severity.Error);
+        }
+        finally { _busy = false; }
+    }
+
+    private async Task LoadFileAsync(InputFileChangeEventArgs args)
+    {
+        _document = null;
+        _validationErrors.Clear();
+        _serverErrors.Clear();
+        _fileName = args.File.Name;
+        try
+        {
+            await using System.IO.Stream stream = args.File.OpenReadStream(MaximumFileBytes);
+            _document = await JsonSerializer.DeserializeAsync<TrajectoryBatchExportDocument>(stream, JsonOptions(false));
+            ValidateDocument();
+            if (_validationErrors.Count == 0) Snackbar.Add($"Loaded {DocumentRecordCount} record(s).", Severity.Success);
+        }
+        catch (Exception ex) when (ex is JsonException or IOException or InvalidOperationException)
+        {
+            logger.LogWarning(ex, "Unable to read backup {FileName}", args.File.Name);
+            _document = null;
+            _validationErrors.Add("The selected file is not a readable Trajectory backup.");
+        }
+    }
+
+    private void ValidateDocument()
+    {
+        _validationErrors.Clear();
+        if (_document == null) { _validationErrors.Add("The document is empty."); return; }
+        if (_document.FormatIdentifier != ExpectedFormat) _validationErrors.Add($"FormatIdentifier must be '{ExpectedFormat}'.");
+        if (_document.SchemaVersion != ExpectedSchemaVersion) _validationErrors.Add($"SchemaVersion must be {ExpectedSchemaVersion}.");
+        if (_document.ExportedAtUtc == default || _document.ExportedAtUtc.Offset != TimeSpan.Zero) _validationErrors.Add("ExportedAtUtc must be UTC.");
+        if (_document.CatalogDependencies == null) _validationErrors.Add("CatalogDependencies is required.");
+        if (_document.SurveyRuns == null) _validationErrors.Add("SurveyRuns is required.");
+        if (_document.Trajectories == null) _validationErrors.Add("Trajectories is required.");
+        if (DocumentRecordCount == 0) _validationErrors.Add("At least one survey run or trajectory is required.");
+        ValidateIds(_document.SurveyRuns?.Select(value => value?.MetaInfo?.ID), "Survey run");
+        ValidateIds(_document.Trajectories?.Select(value => value?.MetaInfo?.ID), "Trajectory");
+    }
+
+    private void ValidateIds(IEnumerable<Guid?>? values, string kind)
+    {
+        var seen = new HashSet<Guid>();
+        int index = 0;
+        foreach (Guid? value in values ?? [])
+        {
+            if (value is not Guid id || id == Guid.Empty) _validationErrors.Add($"{kind} at position {index} has no UUID.");
+            else if (!seen.Add(id)) _validationErrors.Add($"{kind} UUID '{id}' occurs more than once.");
+            index++;
+        }
+    }
+
+    private async Task RestoreAsync()
+    {
+        if (!CanRestore || _document == null) return;
+        bool replacing = _conflictPolicy == TrajectoryBatchRestoreConflictPolicy.ReplaceExisting;
+        bool? confirmed = await DialogService.ShowMessageBox(
+            "Restore trajectory data",
+            replacing
+                ? $"Restore {DocumentRecordCount} record(s) and replace matching UUIDs?"
+                : $"Restore {DocumentRecordCount} record(s)? Any existing UUID stops the operation.",
+            replacing ? "Restore and replace" : "Restore", null, "Cancel",
+            new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = false, CloseOnEscapeKey = true });
+        if (confirmed != true) return;
+        try
+        {
+            _busy = true;
+            _serverErrors.Clear();
+            TrajectoryBatchRestoreResponse response = await Api.ClientTrajectory.BatchRestoreTrajectoryDataAsync(new TrajectoryBatchRestoreRequest
+            { ConflictPolicy = _conflictPolicy, CatalogPolicy = _catalogPolicy, Document = _document });
+            Snackbar.Add($"Restore completed: {response.CreatedSurveyRunCount + response.CreatedTrajectoryCount} created, " +
+                         $"{response.ReplacedSurveyRunCount + response.ReplacedTrajectoryCount} replaced, " +
+                         $"{response.CreatedCatalogDefinitionCount} catalog definition(s) created.", Severity.Success);
+            await LoadRecordsAsync();
+        }
+        catch (ApiException<TrajectoryBatchErrorEnvelope> ex) { ShowErrors(ex.Result, "Restore was rejected.", _serverErrors); }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unable to restore Trajectory backup");
+            _serverErrors.Add("Unable to restore the backup.");
+            Snackbar.Add("Unable to restore the backup.", Severity.Error);
+        }
+        finally { _busy = false; }
+    }
+
+    private void ShowErrors(TrajectoryBatchErrorEnvelope? envelope, string fallback, List<string> target)
+    {
+        target.Clear();
+        target.AddRange(envelope?.Errors?.Select(error => error.PositionIndex == null
+            ? $"{error.Property}: {error.Message}"
+            : $"Position {error.PositionIndex}: {error.Property}: {error.Message}") ?? []);
+        if (target.Count == 0) target.Add(envelope?.Message ?? fallback);
+        Snackbar.Add(envelope?.Message ?? fallback, Severity.Error);
+    }
+
+    private static JsonSerializerOptions JsonOptions(bool indented)
+    {
+        JsonSerializerOptions options = new() { PropertyNameCaseInsensitive = true, WriteIndented = indented };
+        options.Converters.Add(new System.Text.Json.Serialization.JsonStringEnumConverter());
+        return options;
+    }
+
+    private Func<SurveyRunLight, bool> SurveyRunFilter => item => string.IsNullOrWhiteSpace(_surveyRunSearch) ||
+        $"{item.Name} {item.Description} {item.SurveyRunType} {item.MetaInfo?.ID}".Contains(_surveyRunSearch, StringComparison.OrdinalIgnoreCase);
+    private Func<TrajectoryLight, bool> TrajectoryFilter => item => string.IsNullOrWhiteSpace(_trajectorySearch) ||
+        $"{item.Name} {item.Description} {item.TrajectoryType} {item.MetaInfo?.ID}".Contains(_trajectorySearch, StringComparison.OrdinalIgnoreCase);
+
+    public async ValueTask DisposeAsync()
+    {
+        if (_downloadModule != null)
+        {
+            try { await _downloadModule.DisposeAsync(); }
+            catch (JSDisconnectedException) { }
+        }
+    }
+}

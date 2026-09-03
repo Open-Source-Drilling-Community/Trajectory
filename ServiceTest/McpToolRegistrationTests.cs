@@ -11,7 +11,7 @@ public sealed class McpToolRegistrationTests
     {
         var endpoints = TrajectoryRestMcpToolRegistrations.Endpoints;
 
-        Assert.That(endpoints, Has.Count.EqualTo(118));
+        Assert.That(endpoints, Has.Count.EqualTo(120));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Is.Unique);
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("."));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("usage_statistics"));
@@ -98,6 +98,22 @@ public sealed class McpToolRegistrationTests
             Assert.That(categoryCreate.InputSchema!.ToJsonString(), Does.Contain("Options"));
             Assert.That(trajectorySchema, Does.Contain("TrajectoryIdentityAssignments"));
             Assert.That(trajectorySchema, Does.Contain("TrajectoryFeatureAssignments"));
+        });
+    }
+
+    [Test]
+    public void Backup_tools_document_dependency_closure_and_restore_policies()
+    {
+        TrajectoryMcpEndpoint export = Endpoint("trajectory_batch_export");
+        TrajectoryMcpEndpoint restore = Endpoint("trajectory_batch_restore");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(export.Description, Does.Contain("automatically includes"));
+            Assert.That(export.InputSchema!.ToJsonString(), Does.Contain("TrajectoryIDs"));
+            Assert.That(restore.Description, Does.Contain("writes survey runs before"));
+            Assert.That(restore.InputSchema!.ToJsonString(), Does.Contain("ConflictPolicy"));
+            Assert.That(restore.InputSchema!.ToJsonString(), Does.Contain("CatalogPolicy"));
         });
     }
 

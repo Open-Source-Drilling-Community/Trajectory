@@ -57,7 +57,7 @@ The light data endpoint is intended for grids and polling calculation status. Re
 
 The service keeps its historical API path (`/Trajectory/api` case-insensitively), database filenames, and `trajectory-claim` storage identity. Its renamed Helm chart is `charts/osdcdrillingtrajectoryservice` and defaults to a `Recreate` deployment strategy. For a new OSDC Helm release that must reuse production data, set `persistence.existingClaim=trajectory-claim` explicitly.
 
-Fresh databases are created transactionally at schema version 1. An exact unversioned legacy schema is adopted by setting only SQLite `user_version`; existing rows are not rewritten. Unexpected tables, missing or malformed columns, and newer schema versions fail startup without automatic deletion or reconstruction.
+Fresh `Trajectory.db` files are created transactionally at schema version 2. Exact version-0/1 databases are upgraded additively in one transaction: the identity and feature tables are created in the main database and rows are copied from a validated sibling `TrajectoryCatalog.db`, when present. The legacy catalog file is deliberately retained as a rollback copy and existing survey/trajectory rows are not rewritten. Unexpected tables, missing or malformed columns, malformed legacy catalogs, and newer schema versions fail startup without automatic deletion or reconstruction.
 
 ## Source Code Origin
 
@@ -91,11 +91,13 @@ The service publishes its non-statistics REST actions as MCP tools. Tool registr
 
 - Streamable HTTP: `/trajectory/api/mcp`
 - WebSocket: `/trajectory/api/mcp/ws`
-- Published controller tools: 118
+- Published controller tools: 120
 - Utility tools: `ping`
 - Excluded surface: `TrajectoryUsageStatisticsController`
 
 The descriptions explain the service workflows as well as individual calls. In particular, survey-measurement chunks are uploaded with zero-based indexes and then committed; calculation cases are created and polled through `CalculationState`/`CalculationProgress`; large station, realization, minimum-distance, and aggregation results are retrieved through chunk-count and chunk tools. Unless a field explicitly says otherwise, lengths, depths, coordinates, and distances are metres, angles are radians, and curvature is radians per metre.
+
+`POST Trajectory/BatchExport` creates an all-data or selected backup. Selection is dependency-closed: trajectories pull in their survey runs, and survey runs pull in parent runs. `POST Trajectory/BatchRestore` validates the versioned document and catalog dependencies before writing survey runs and then trajectories. `FailIfExists` is the safe default conflict policy; `ReplaceExisting` must be selected explicitly. Record writes are committed in one SQLite transaction and preserve stored measurements and station chunks without triggering calculations.
 
 Optional registration with an external MCP hub is configured in `appsettings.json` and is disabled by default.
 
@@ -103,4 +105,4 @@ Optional registration with an external MCP hub is configured in `appsettings.jso
 
 `TrajectoryIdentity` and `TrajectoryFeatureCategory` are common catalogs for both Survey Run and Trajectory resources. Catalog CRUD uses optimistic concurrency through `expectedModifiedUtc`. Referenced definitions and options cannot be deleted, and resource writes reject missing catalog references, duplicate assignment UUIDs, unsupported validity dates, invalid periods, and overlapping assignments in exclusive categories.
 
-Catalogs are stored in `TrajectoryCatalog.db` beside the existing databases on the persistent volume. Keeping this additive data in its own validated database preserves compatibility with existing `Trajectory.db` schemas and rows.
+Catalogs are stored in `Trajectory.db`, like the sibling DigiWells microservices. This gives resource and catalog restore genuine all-or-nothing SQLite transaction semantics. On the first version-2 startup, definitions from the former `TrajectoryCatalog.db` are copied without removing or modifying that file.

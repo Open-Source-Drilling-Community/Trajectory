@@ -18,12 +18,57 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         private readonly ILogger<TrajectoryManager> _logger;
         private readonly TrajectoryManager _trajectoryManager;
         private readonly TrajectoryAssignmentValidator _assignmentValidator;
+        private readonly TrajectoryBatchService _batchService;
 
-        public TrajectoryController(ILogger<TrajectoryManager> logger, SqlConnectionManager connectionManager, TrajectoryAssignmentValidator assignmentValidator)
+        public TrajectoryController(ILogger<TrajectoryManager> logger, SqlConnectionManager connectionManager,
+            TrajectoryAssignmentValidator assignmentValidator, TrajectoryBatchService batchService)
         {
             _logger = logger;
             _trajectoryManager = TrajectoryManager.GetInstance(_logger, connectionManager);
             _assignmentValidator = assignmentValidator;
+            _batchService = batchService;
+        }
+
+        /// <summary>
+        /// Exports all survey runs and trajectories, or an explicit selection. The server automatically
+        /// includes parent survey runs and every survey run referenced by a selected trajectory.
+        /// </summary>
+        [HttpPost("BatchExport", Name = "BatchExportTrajectoryData")]
+        [ProducesResponseType<TrajectoryBatchExportDocument>(StatusCodes.Status200OK)]
+        [ProducesResponseType<TrajectoryBatchErrorEnvelope>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<TrajectoryBatchErrorEnvelope>(StatusCodes.Status404NotFound)]
+        [ProducesResponseType<TrajectoryBatchErrorEnvelope>(StatusCodes.Status500InternalServerError)]
+        public ActionResult<TrajectoryBatchExportDocument> BatchExport([FromBody] TrajectoryBatchExportRequest? request)
+        {
+            TrajectoryBatchExportOutcome outcome = _batchService.Export(request);
+            if (outcome.IsSuccess) return Ok(outcome.Document);
+            return outcome.FailureKind switch
+            {
+                TrajectoryBatchFailureKind.InvalidRequest => BadRequest(outcome.Error),
+                TrajectoryBatchFailureKind.NotFound => NotFound(outcome.Error),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, outcome.Error)
+            };
+        }
+
+        /// <summary>
+        /// Validates and restores a complete dependency-closed backup. Survey runs are restored before
+        /// trajectories, and record changes are committed atomically without triggering recalculation.
+        /// </summary>
+        [HttpPost("BatchRestore", Name = "BatchRestoreTrajectoryData")]
+        [ProducesResponseType<TrajectoryBatchRestoreResponse>(StatusCodes.Status200OK)]
+        [ProducesResponseType<TrajectoryBatchErrorEnvelope>(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType<TrajectoryBatchErrorEnvelope>(StatusCodes.Status409Conflict)]
+        [ProducesResponseType<TrajectoryBatchErrorEnvelope>(StatusCodes.Status500InternalServerError)]
+        public ActionResult<TrajectoryBatchRestoreResponse> BatchRestore([FromBody] TrajectoryBatchRestoreRequest? request)
+        {
+            TrajectoryBatchRestoreOutcome outcome = _batchService.Restore(request);
+            if (outcome.IsSuccess) return Ok(outcome.Response);
+            return outcome.FailureKind switch
+            {
+                TrajectoryBatchFailureKind.InvalidRequest => BadRequest(outcome.Error),
+                TrajectoryBatchFailureKind.Conflict => Conflict(outcome.Error),
+                _ => StatusCode(StatusCodes.Status500InternalServerError, outcome.Error)
+            };
         }
 
         /// <summary>

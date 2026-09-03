@@ -11,10 +11,10 @@ public sealed class TrajectoryIdentityManager
     private readonly TrajectoryCatalogStore<Model.TrajectoryIdentity> store;
     private readonly SqlConnectionManager mainDatabase;
 
-    public TrajectoryIdentityManager(SqlConnectionManagerTrajectoryCatalog catalogDatabase, SqlConnectionManager mainDatabase)
+    public TrajectoryIdentityManager(SqlConnectionManager mainDatabase)
     {
         this.mainDatabase = mainDatabase;
-        store = new(catalogDatabase, "TrajectoryIdentityTable", "TrajectoryIdentity",
+        store = new(mainDatabase, "TrajectoryIdentityTable", "TrajectoryIdentity",
             value => value.MetaInfo, value => value.Name, (value, date) => value.CreationDate = date,
             (value, date) => value.LastModificationDate = date);
     }
