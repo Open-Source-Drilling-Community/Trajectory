@@ -7,6 +7,9 @@ using System.IO;
 using NORCE.Drilling.Trajectory.Service;
 using NORCE.Drilling.Trajectory.Service.Managers;
 using System;
+using ModelContextProtocol.Protocol;
+using NORCE.Drilling.Trajectory.Service.Mcp;
+using NORCE.Drilling.Trajectory.Service.Mcp.Tools;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -34,6 +37,18 @@ builder.Services.AddSwaggerGen(config =>
     config.CustomSchemaIds(type => type.FullName);
 });
 
+builder.Services.Configure<McpHubOptions>(builder.Configuration.GetSection(McpHubOptions.SectionName));
+builder.Services.AddHttpClient(nameof(McpHubRegistrationService));
+builder.Services.AddHostedService<McpHubRegistrationService>();
+var serverVersion = typeof(SqlConnectionManager).Assembly.GetName().Version?.ToString() ?? "1.0.0";
+builder.Services.AddMcpServer(options =>
+{
+    options.ServerInfo = new Implementation { Name = "TrajectoryService", Version = serverVersion };
+    options.Capabilities = new ServerCapabilities { Tools = new ToolsCapability() };
+}).WithHttpTransport();
+builder.Services.AddLegacyMcpTool<PingMcpTool>();
+builder.Services.AddTrajectoryRestMcpTools();
+
 var app = builder.Build();
 
 var basePath = "/trajectory/api";
@@ -43,6 +58,22 @@ app.UsePathBase(basePath);
 app.UseForwardedHeaders(new ForwardedHeadersOptions
 {
     ForwardedHeaders = ForwardedHeaders.XForwardedProto
+});
+
+app.Use(async (context, next) =>
+{
+    string path = context.Request.Path.Value ?? string.Empty;
+    if (path.Contains("/.well-known/oauth-protected-resource", StringComparison.OrdinalIgnoreCase) ||
+        path.Contains("/.well-known/oauth-authorization-server", StringComparison.OrdinalIgnoreCase))
+    {
+        context.Response.StatusCode = 404;
+        context.Response.ContentType = "application/json";
+        context.Response.Headers.CacheControl = "no-store";
+        const string body = "{\"error\":\"oauth_not_configured\",\"error_description\":\"This MCP server does not require OAuth. Connect directly to the MCP endpoint.\",\"authentication\":\"none\"}";
+        await context.Response.Body.WriteAsync(System.Text.Encoding.UTF8.GetBytes(body));
+        return;
+    }
+    await next();
 });
 
 if (!String.IsNullOrEmpty(builder.Configuration["FieldHostURL"]))
@@ -94,6 +125,8 @@ app.UseCors(cors => cors
                         .AllowCredentials()
            );
 
+app.MapMcp("/mcp");
+app.MapMcpWebSocket("/mcp/ws");
 app.MapControllers();
 app.MapFallbackToFile("index.html");
 

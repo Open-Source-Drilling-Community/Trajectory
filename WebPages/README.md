@@ -77,3 +77,7 @@ The host application is responsible for supplying those endpoint values through 
 ## Notes
 
 This package contains the UI pages and page-specific support code. It does not by itself provide the service backend.
+
+## Mean-sea-level depth references
+
+Trajectory editing resolves mean-sea-level depth references through `MslDepthReferenceUtils`. The editor uses the configured Vertical Datum service data when presenting and updating trajectory interpolation values.

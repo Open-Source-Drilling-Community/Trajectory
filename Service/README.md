@@ -78,3 +78,17 @@ The current work has been funded by the [Research Council of Norway](https://www
 **Eric Cayeux**, *NORCE Energy Modelling and Automation*
 
 **Gilles Pelfrene**, *NORCE Energy Modelling and Automation*
+
+## MCP server
+
+The service publishes its non-statistics REST actions as MCP tools. Tool registration discovers controller actions and preserves support for asynchronous operations, chunked trajectory data, filters, and multi-ID requests. Every tool has an operation-specific description and an explicit JSON input schema, including nested model properties, UUID and date-time formats, enum values, defaults, and SI-unit guidance.
+
+- Streamable HTTP: `/trajectory/api/mcp`
+- WebSocket: `/trajectory/api/mcp/ws`
+- Published controller tools: 104
+- Utility tools: `ping`
+- Excluded surface: `TrajectoryUsageStatisticsController`
+
+The descriptions explain the service workflows as well as individual calls. In particular, survey-measurement chunks are uploaded with zero-based indexes and then committed; calculation cases are created and polled through `CalculationState`/`CalculationProgress`; large station, realization, minimum-distance, and aggregation results are retrieved through chunk-count and chunk tools. Unless a field explicitly says otherwise, lengths, depths, coordinates, and distances are metres, angles are radians, and curvature is radians per metre.
+
+Optional registration with an external MCP hub is configured in `appsettings.json` and is disabled by default.

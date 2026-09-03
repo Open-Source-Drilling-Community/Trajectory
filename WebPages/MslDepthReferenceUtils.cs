@@ -127,7 +127,7 @@ public static class MslDepthReferenceUtils
                 return null;
             }
 
-            return -valueElement.GetDouble();
+            return valueElement.GetDouble();
         }
         finally
         {

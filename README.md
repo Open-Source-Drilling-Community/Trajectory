@@ -87,3 +87,10 @@ The current work has been funded by the [Research Council of Norway](https://www
 **Eric Cayeux**, *NORCE Energy Modelling and Automation*
 
 **Gilles Pelfrene**, *NORCE Energy Modelling and Automation*
+
+## Current implementation
+
+- The service exposes its REST operations through MCP over streamable HTTP at `/trajectory/api/mcp` and WebSocket at `/trajectory/api/mcp/ws`.
+- MCP tools are generated from 104 non-statistics controller actions; the usage-statistics controller is intentionally excluded. A `ping` tool is also available. Tool metadata now provides operation-specific workflow guidance and complete nested JSON input schemas with UUID formats, enum values, defaults, chunk-index constraints, and SI units.
+- The trajectory editor supports mean-sea-level depth references through the Vertical Datum integration.
+- The WebApp uses the current shared WebPages packages for Field (1.0.19), Cluster (1.0.12), Cartographic Projection (1.0.8), Geodetic Datum (1.0.7), Earth Geomagnetic Field (1.0.4), Gravitational Field (1.0.3), Well (1.0.11), and WellBore (1.0.12).

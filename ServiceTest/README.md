@@ -41,3 +41,11 @@ dotnet test ServiceTest/ServiceTest.csproj
 - validates the external API contract and behavior of `Service`
 - uses the generated client types from `ModelSharedOut`
 - complements `ModelTest`, which targets the model layer directly
+
+## MCP coverage
+
+`McpServerHttpTests.cs` exercises MCP initialization, tool discovery, and representative calls against a running service. The MCP client dependency and ASP.NET Core framework reference in this project support those live protocol tests.
+
+`McpToolRegistrationTests.cs` runs without a live service and guards the generated MCP contract: 104 non-statistics tools, underscore-only unique names, explicit object schemas, detailed descriptions, chunk-upload/commit guidance, calculation polling, and SI-unit annotations.
+
+The service must be available at the test base URL (port 8080 in the current local setup) before running the MCP HTTP tests.

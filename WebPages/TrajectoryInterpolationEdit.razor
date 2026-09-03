@@ -99,11 +99,13 @@
                 <MudCheckBox T="bool" @bind-Value="traj.InterpolateAtCasingChangeOfDiameter" Label="At casing change of diameter" />
             </MudItem>
             <MudItem xs="12" md="4">
-                <MudInputWithUnit QuantityLabel="Additional Interpolation Depth" QuantityName="DepthDrilling"
-                                  @key="AdditionalDepthReferenceRenderKey"
-                                  DrillingSignalReference="@DrillingSignalReferenceType.Depth"
-                                  SIValueNullable="@supplementaryInterpolationDepthInput"
-                                  SIValueNullableChanged="@(val => supplementaryInterpolationDepthInput = val)" />
+                <MudTextField T="string"
+                              @key="AdditionalDepthReferenceRenderKey"
+                              Value="@SupplementaryInterpolationDepthInputText"
+                              ValueChanged="OnSupplementaryInterpolationDepthInputChanged"
+                              Label="@AdditionalInterpolationDepthLabel"
+                              ShrinkLabel
+                              Immediate="true" />
             </MudItem>
             <MudItem xs="12" md="4">
                 <MudTextField @bind-Value="supplementaryInterpolationAnnotationInput" Label="Annotation" ShrinkLabel />
@@ -577,9 +579,53 @@
     private double? InterpolationStepValue => currentInterpolatedTrajectory.InterpolationStep;
     private double? InterpolationReferenceDepthValue => currentInterpolatedTrajectory.InterpolationReferenceDepth;
     private double? MaximumChordDistanceValue => currentInterpolatedTrajectory.MaximumChordArcDistance;
+    private string AdditionalInterpolationDepthLabel => $"Additional Interpolation Depth [{Parent?.GetDepthUnitLabel("DepthDrilling")}]";
+    private string? SupplementaryInterpolationDepthInputText => FormatSupplementaryInterpolationDepthInput();
     private void OnInterpolationStepChanged(double? value) => currentInterpolatedTrajectory.InterpolationStep = value;
     private void OnInterpolationReferenceDepthChanged(double? value) => currentInterpolatedTrajectory.InterpolationReferenceDepth = value;
     private void OnMaximumChordDistanceChanged(double? value) => currentInterpolatedTrajectory.MaximumChordArcDistance = value;
+    private Task OnSupplementaryInterpolationDepthInputChanged(string? value)
+    {
+        supplementaryInterpolationDepthInput = ParseSupplementaryInterpolationDepth(value);
+        return Task.CompletedTask;
+    }
+
+    private string? FormatSupplementaryInterpolationDepthInput()
+    {
+        if (Parent == null || supplementaryInterpolationDepthInput is not { } depth)
+        {
+            return null;
+        }
+
+        return Parent.FromWGS84DepthSI(depth, "DepthDrilling", false);
+    }
+
+    private double? ParseSupplementaryInterpolationDepth(string? value)
+    {
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            return null;
+        }
+
+        if (!TryParseDepthInput(value, out double parsedDepth))
+        {
+            return supplementaryInterpolationDepthInput;
+        }
+
+        return Parent?.ToWGS84DepthSI(parsedDepth, "DepthDrilling") ?? parsedDepth;
+    }
+
+    private static bool TryParseDepthInput(string value, out double parsedValue)
+    {
+        string trimmed = value.Trim()
+            .Replace("\u00A0", string.Empty, StringComparison.Ordinal)
+            .Replace(" ", string.Empty, StringComparison.Ordinal);
+
+        return double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out parsedValue) ||
+               double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out parsedValue) ||
+               double.TryParse(trimmed, NumberStyles.Float | NumberStyles.AllowThousands, new CultureInfo("nb-NO"), out parsedValue);
+    }
+
     private void AddSupplementaryInterpolationDepth()
     {
         if (supplementaryInterpolationDepthInput is not { } depth || double.IsNaN(depth) || double.IsInfinity(depth))

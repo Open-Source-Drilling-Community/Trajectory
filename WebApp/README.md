@@ -47,3 +47,7 @@ The current work has been funded by the [Research Council of Norway](https://www
 **Eric Cayeux**, *NORCE Energy Modelling and Automation*
 
 **Gilles Pelfrene**, *NORCE Energy Modelling and Automation*
+
+## Current shared-page dependencies
+
+The WebApp and debug host have been aligned with the current OSDC WebPages packages used by the trajectory UI. Notable versions are Field 1.0.19, Cluster 1.0.12, Cartographic Projection 1.0.8, Geodetic Datum 1.0.7, Earth Geomagnetic Field 1.0.4, Gravitational Field 1.0.3, Well 1.0.11, and WellBore 1.0.12.
