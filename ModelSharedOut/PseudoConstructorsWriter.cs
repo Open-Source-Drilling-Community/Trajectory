@@ -285,6 +285,15 @@ namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
                                 //Special treatment in case of collections/lists
                                 if (listStacks > 0)
                                 {
+                                    if (p.Name.EndsWith("IdentityAssignments", StringComparison.Ordinal) ||
+                                        p.Name.EndsWith("FeatureAssignments", StringComparison.Ordinal))
+                                    {
+                                        // Assignment entries must reference an existing catalog definition.
+                                        // A fabricated placeholder is invalid, while an empty collection is valid.
+                                        propertiesText += propertyName + $"new {propTypeName}(),";
+                                        continue;
+                                    }
+
                                     //Create identation for a list constructors, e.g.:
                                     // List<List<var>> myVar = new List<List<var>>
                                     //      {

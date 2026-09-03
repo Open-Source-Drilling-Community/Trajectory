@@ -2070,10 +2070,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					{
 						ConstructRigStorageCapacity(),
 					},
-				FeatureAssignments = new List<RigFeatureAssignment>
-					{
-						ConstructRigFeatureAssignment(),
-					},
+				FeatureAssignments = new List<RigFeatureAssignment>(),
 				MudPumpList = new List<MudPump>
 					{
 						ConstructMudPump(),
@@ -2609,14 +2606,8 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				SlotID = null, 
 				ClusterID = null, 
 				IsSingleWell = false, 
-				WellIdentityAssignments = new List<WellIdentityAssignment>
-					{
-						ConstructWellIdentityAssignment(),
-					},
-				WellFeatureAssignments = new List<WellFeatureAssignment>
-					{
-						ConstructWellFeatureAssignment(),
-					},
+				WellIdentityAssignments = new List<WellIdentityAssignment>(),
+				WellFeatureAssignments = new List<WellFeatureAssignment>(),
 			};
 		}
 		public static UsageStatisticsWellBore ConstructUsageStatisticsWellBore()
@@ -3407,14 +3398,8 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CalculationState = (CalculationState)0,
 				CalculationProgress = 0.0, 
 				CalculationMessage = "Default CalculationMessage",
-				SurveyRunIdentityAssignments = new List<TrajectoryIdentityAssignment>
-					{
-						ConstructTrajectoryIdentityAssignment(),
-					},
-				SurveyRunFeatureAssignments = new List<TrajectoryFeatureAssignment>
-					{
-						ConstructTrajectoryFeatureAssignment(),
-					},
+				SurveyRunIdentityAssignments = new List<TrajectoryIdentityAssignment>(),
+				SurveyRunFeatureAssignments = new List<TrajectoryFeatureAssignment>(),
 				TieInPoint = ConstructSurveyStation(),
 				SurveyMeasurementList = new List<SurveyMeasurement>
 					{
@@ -3643,14 +3628,8 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CalculationState = (CalculationState)0,
 				CalculationProgress = 0.0, 
 				CalculationMessage = "Default CalculationMessage",
-				TrajectoryIdentityAssignments = new List<TrajectoryIdentityAssignment>
-					{
-						ConstructTrajectoryIdentityAssignment(),
-					},
-				TrajectoryFeatureAssignments = new List<TrajectoryFeatureAssignment>
-					{
-						ConstructTrajectoryFeatureAssignment(),
-					},
+				TrajectoryIdentityAssignments = new List<TrajectoryIdentityAssignment>(),
+				TrajectoryFeatureAssignments = new List<TrajectoryFeatureAssignment>(),
 				SurveyRunSectionList = new List<TrajectorySurveyRunSection>
 					{
 						ConstructTrajectorySurveyRunSection(),
@@ -5329,10 +5308,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					{
 						ConstructRigStorageCapacity(),
 					},
-				FeatureAssignments = new List<RigFeatureAssignment>
-					{
-						ConstructRigFeatureAssignment(),
-					},
+				FeatureAssignments = new List<RigFeatureAssignment>(),
 				MudPumpList = new List<MudPump>
 					{
 						ConstructMudPump(),
