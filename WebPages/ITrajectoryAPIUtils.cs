@@ -53,6 +53,7 @@ public interface ITrajectoryAPIUtils
     string HostNameVerticalDatum { get; }
     string HostBasePathVerticalDatum { get; }
     HttpClient HttpClientVerticalDatum { get; }
+    Client ClientVerticalDatum { get; }
 
     string HostNameUnitConversion { get; }
     string HostBasePathUnitConversion { get; }

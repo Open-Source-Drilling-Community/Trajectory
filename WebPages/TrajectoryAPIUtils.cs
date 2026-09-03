@@ -45,6 +45,7 @@ public class TrajectoryAPIUtils : APIUtils, ITrajectoryAPIUtils
 
         HostNameVerticalDatum = Require(configuration.VerticalDatumHostURL, nameof(configuration.VerticalDatumHostURL));
         HttpClientVerticalDatum = SetHttpClient(HostNameVerticalDatum, HostBasePathVerticalDatum);
+        ClientVerticalDatum = new Client(HttpClientVerticalDatum.BaseAddress!.ToString(), HttpClientVerticalDatum);
 
         HostNameUnitConversion = Require(configuration.UnitConversionHostURL, nameof(configuration.UnitConversionHostURL));
     }
@@ -119,8 +120,9 @@ public class TrajectoryAPIUtils : APIUtils, ITrajectoryAPIUtils
     public Client ClientEarthMagneticField { get; }
 
     public string HostNameVerticalDatum { get; }
-    public string HostBasePathVerticalDatum { get; } = "VerticalDatum/api/";
+    public string HostBasePathVerticalDatum { get; } = "EarthVerticalDatum/api/";
     public HttpClient HttpClientVerticalDatum { get; }
+    public Client ClientVerticalDatum { get; }
 
     public string HostNameUnitConversion { get; }
     public string HostBasePathUnitConversion { get; } = "UnitConversion/api/";

@@ -122,37 +122,23 @@ public static class TrajectoryReferenceDatumUtils
 
     private static async Task<double?> ResolveMagneticDeclinationAsync(ITrajectoryAPIUtils api, ReferenceLocation location)
     {
-        Guid orderId = Guid.NewGuid();
-        DateTimeOffset now = DateTimeOffset.UtcNow;
-        ModelShared.EarthMagneticFieldCalculationOrder order = new()
-        {
-            MetaInfo = CreateMetaInfo(orderId, api.HostNameEarthMagneticField, api.HostBasePathEarthMagneticField, "EarthMagneticFieldCalculationOrder/"),
-            Name = $"Magnetic declination {orderId}",
-            Description = "Temporary magnetic declination calculation.",
-            CreationDate = now,
-            LastModificationDate = now,
-            CalculationMethod = ModelShared.EarthMagneticFieldCalculationMethod.WMM2025,
-            RawEarthMagneticFieldTable = CreateEarthMagneticField(orderId, api, location, "raw"),
-            CompletedEarthMagneticFieldTable = CreateEarthMagneticField(orderId, api, location, "completed", false)
-        };
+        ModelShared.EvaluateEarthMagneticFieldResponse response = await api.ClientEarthMagneticField.EvaluateEarthMagneticFieldAsync(
+            new ModelShared.EvaluateEarthMagneticFieldRequest
+            {
+                Model = ModelShared.EarthMagneticFieldModel.WMM2025,
+                Samples =
+                [
+                    new ModelShared.EarthMagneticFieldEvaluationPoint
+                    {
+                        Latitude = location.Latitude,
+                        Longitude = location.Longitude,
+                        Depth = location.DepthWgs84,
+                        DateTimeUtc = DateTimeOffset.UtcNow
+                    }
+                ]
+            });
 
-        try
-        {
-            await api.ClientEarthMagneticField.PostEarthMagneticFieldCalculationOrderAsync(order);
-            ModelShared.EarthMagneticFieldCalculationOrder completed = await api.ClientEarthMagneticField.GetEarthMagneticFieldCalculationOrderByIdAsync(orderId);
-            return completed.CompletedEarthMagneticFieldTable?.EarthMagneticFieldData?.FirstOrDefault()?.Declination;
-        }
-        finally
-        {
-            try
-            {
-                await api.ClientEarthMagneticField.DeleteEarthMagneticFieldCalculationOrderByIdAsync(orderId);
-            }
-            catch
-            {
-                // Best-effort cleanup of a temporary calculation order.
-            }
-        }
+        return response.Samples?.FirstOrDefault()?.Declination;
     }
 
     private static async Task<double?> ResolveGridConvergenceAsync(ITrajectoryAPIUtils api, ReferenceLocation location)
@@ -162,84 +148,35 @@ public static class TrajectoryReferenceDatumUtils
             return null;
         }
 
-        Guid conversionSetId = Guid.NewGuid();
-        DateTimeOffset now = DateTimeOffset.UtcNow;
-        ModelShared.FieldCartographicConversionSet conversionSet = new()
-        {
-            MetaInfo = CreateMetaInfo(conversionSetId, api.HostNameField, api.HostBasePathField, "FieldCartographicConversionSet/"),
-            Name = $"Grid convergence {conversionSetId}",
-            Description = "Temporary grid convergence calculation.",
-            CreationDate = now,
-            LastModificationDate = now,
-            FieldID = fieldId,
-            CartographicCoordinateList =
-            [
-                new ModelShared.CartographicCoordinate
-                {
-                    VerticalDepth = location.DepthWgs84,
-                    GeodeticCoordinate = new ModelShared.GeodeticCoordinate
-                    {
-                        LatitudeWGS84 = location.Latitude,
-                        LongitudeWGS84 = location.Longitude,
-                        VerticalDepthWGS84 = location.DepthWgs84
-                    }
-                }
-            ]
-        };
-
         try
         {
-            await api.ClientField.PostFieldCartographicConversionSetAsync(conversionSet);
-            ModelShared.FieldCartographicConversionSet completed = await api.ClientField.GetFieldCartographicConversionSetByIdAsync(conversionSetId);
-            return completed.CartographicCoordinateList?.FirstOrDefault()?.GridConvergenceDatum;
+            ModelShared.FieldCoordinateConversionResponse response = await api.ClientField.ForwardFieldCoordinatesAsync(
+                new ModelShared.FieldForwardConversionRequest
+                {
+                    FieldID = fieldId,
+                    SourceGeographicReference = ModelShared.FieldGeographicReference.Wgs84,
+                    ProjectionApplicabilityPolicy = ModelShared.FieldApplicabilityPolicy.RequireApplicable,
+                    Positions =
+                    [
+                        new ModelShared.FieldForwardConversionPosition
+                        {
+                            Latitude = location.Latitude,
+                            Longitude = location.Longitude,
+                            VerticalDepth = location.DepthWgs84
+                        }
+                    ]
+                });
+
+            return response.Positions?.FirstOrDefault()?.GridConvergence;
         }
-        finally
+        catch (ModelShared.ApiException exception) when (exception.StatusCode is 404 or 422 or 502)
         {
-            try
-            {
-                await api.ClientField.DeleteFieldCartographicConversionSetByIdAsync(conversionSetId);
-            }
-            catch
-            {
-                // Best-effort cleanup of a temporary conversion set.
-            }
+            // Grid convergence is optional reference data. A missing field projection,
+            // an out-of-area position, or an unavailable dependency must not prevent
+            // the survey run or trajectory itself from opening.
+            return null;
         }
     }
-
-    private static ModelShared.EarthMagneticField CreateEarthMagneticField(Guid orderId, ITrajectoryAPIUtils api, ReferenceLocation location, string suffix, bool includeRawPoint = true)
-    {
-        DateTimeOffset now = DateTimeOffset.UtcNow;
-        return new ModelShared.EarthMagneticField
-        {
-            MetaInfo = CreateMetaInfo(Guid.NewGuid(), api.HostNameEarthMagneticField, api.HostBasePathEarthMagneticField, "EarthMagneticField/"),
-            Name = $"Magnetic declination {suffix} {orderId}",
-            Description = "Temporary magnetic declination calculation.",
-            CreationDate = now,
-            LastModificationDate = now,
-            Type = includeRawPoint ? ModelShared.EarthMagneticFieldType.Raw : ModelShared.EarthMagneticFieldType.Completed,
-            EarthMagneticFieldData = includeRawPoint
-                ?
-                [
-                    new ModelShared.EarthMagneticData
-                    {
-                        Latitude = location.Latitude,
-                        Longitude = location.Longitude,
-                        Depth = location.DepthWgs84,
-                        Year = DateTime.UtcNow.Year + ((double)DateTime.UtcNow.DayOfYear - 1.0) / (DateTime.IsLeapYear(DateTime.UtcNow.Year) ? 366.0 : 365.0)
-                    }
-                ]
-                : []
-        };
-    }
-
-    private static ModelShared.MetaInfo CreateMetaInfo(Guid id, string hostName, string hostBasePath, string endpoint) =>
-        new()
-        {
-            ID = id,
-            HttpHostName = hostName,
-            HttpHostBasePath = hostBasePath,
-            HttpEndPoint = endpoint
-        };
 
     private sealed record ReferenceLocation(double Latitude, double Longitude, double DepthWgs84, Guid? FieldId);
 }
