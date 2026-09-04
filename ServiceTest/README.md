@@ -44,9 +44,9 @@ dotnet test ServiceTest/ServiceTest.csproj
 
 ## MCP coverage
 
-`McpServerHttpTests.cs` exercises MCP initialization, tool discovery, and representative calls against a running service. The MCP client dependency and ASP.NET Core framework reference in this project support those live protocol tests.
+`McpServerHttpTests.cs` exercises MCP initialization, tool discovery, successful structured/text responses, and representative calls against a running service. It also verifies that missing inputs, unknown arguments, and missing resources produce stable sanitized MCP errors.
 
-`McpToolRegistrationTests.cs` runs without a live service and guards the generated MCP contract: 120 non-statistics tools, underscore-only unique names, explicit object schemas, detailed descriptions, shared identity/feature catalog concurrency, dependency-aware backup/restore, chunk-upload/commit guidance, calculation polling, and SI-unit annotations.
+`McpToolRegistrationTests.cs` runs without a live service and guards the generated MCP contract: 120 non-statistics tools, underscore-only unique names, strict input and success-output schemas, titles and safety annotations, non-empty UUIDs, unknown-argument rejection, shared identity/feature catalog concurrency, dependency-aware backup/restore policies, chunk-upload/commit guidance, calculation polling, and SI-unit annotations.
 
 `TrajectoryBatchServiceTests.cs` verifies dependency-closed trajectory export, parent survey-run inclusion, measurement and station chunk round trips, normalized catalog mapping, restore ordering, and all-or-nothing conflict behavior.
 

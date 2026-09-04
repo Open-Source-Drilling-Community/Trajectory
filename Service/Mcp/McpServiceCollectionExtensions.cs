@@ -15,21 +15,35 @@ public static class McpServiceCollectionExtensions
         return services;
     }
 
-    public static IServiceCollection AddLegacyMcpTool(this IServiceCollection services, string name, string description, JsonNode? inputSchema,
+    public static IServiceCollection AddLegacyMcpTool(this IServiceCollection services, string name, string description,
+        JsonNode inputSchema, JsonNode outputSchema, McpToolBehavior behavior,
         Func<IServiceProvider, JsonObject?, CancellationToken, Task<JsonNode?>> invokeAsync)
     {
-        services.AddSingleton<IMcpTool>(sp => new DelegateMcpTool(name, description, inputSchema, (args, ct) => invokeAsync(sp, args, ct)));
+        services.AddSingleton<IMcpTool>(sp => new DelegateMcpTool(name, description, inputSchema, outputSchema, behavior,
+            (args, ct) => invokeAsync(sp, args, ct)));
         services.AddSingleton<McpServerTool>(sp => new LegacyMcpServerToolAdapter(
             sp.GetServices<IMcpTool>().Last(tool => tool.Name == name), sp.GetRequiredService<ILoggerFactory>()));
         return services;
     }
 
-    private sealed class DelegateMcpTool(string name, string description, JsonNode? inputSchema,
+    private sealed class DelegateMcpTool(string name, string description, JsonNode inputSchema,
+        JsonNode outputSchema, McpToolBehavior behavior,
         Func<JsonObject?, CancellationToken, Task<JsonNode?>> invokeAsync) : IMcpTool
     {
         public string Name { get; } = name;
         public string Description { get; } = description;
-        public JsonNode? InputSchema { get; } = inputSchema;
-        public Task<JsonNode?> InvokeAsync(JsonObject? arguments, CancellationToken cancellationToken) => invokeAsync(arguments, cancellationToken);
+        public McpToolBehavior Behavior { get; } = behavior;
+        public JsonNode InputSchema { get; } = inputSchema;
+        public JsonNode OutputSchema { get; } = outputSchema;
+
+        public Task<JsonNode?> InvokeAsync(JsonObject? arguments, CancellationToken cancellationToken)
+        {
+            JsonObject? properties = InputSchema["properties"] as JsonObject;
+            string? unexpected = arguments?.Select(item => item.Key)
+                .FirstOrDefault(key => properties == null || !properties.ContainsKey(key));
+            return unexpected == null
+                ? invokeAsync(arguments, cancellationToken)
+                : Task.FromResult<JsonNode?>(Tools.McpToolResponses.Validation($"Unexpected argument '{unexpected}'."));
+        }
     }
 }

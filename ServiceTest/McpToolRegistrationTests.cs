@@ -1,4 +1,7 @@
 using System.Text.Json.Nodes;
+using Microsoft.Extensions.DependencyInjection;
+using ModelContextProtocol.Server;
+using OSDC.Drilling.Trajectory.Service.Mcp;
 using OSDC.Drilling.Trajectory.Service.Mcp.Tools;
 
 namespace ServiceTest;
@@ -29,8 +32,66 @@ public sealed class McpToolRegistrationTests
                 Assert.That(endpoint.InputSchema, Is.Not.Null, endpoint.Name);
                 Assert.That(endpoint.InputSchema?["type"]?.GetValue<string>(), Is.EqualTo("object"), endpoint.Name);
                 Assert.That(endpoint.InputSchema?["additionalProperties"]?.GetValue<bool>(), Is.False, endpoint.Name);
+                Assert.That(endpoint.OutputSchema["type"]?.GetValue<string>(), Is.EqualTo("object"), endpoint.Name);
+                Assert.That(endpoint.OutputSchema["properties"]?["status"]?["type"]?.GetValue<string>(),
+                    Is.EqualTo("integer"), endpoint.Name);
+                Assert.That(endpoint.Behavior.Title, Is.Not.Empty, endpoint.Name);
+                Assert.That(endpoint.Behavior.OpenWorldHint, Is.False, endpoint.Name);
             });
         }
+    }
+
+    [Test]
+    public void Protocol_tools_publish_titles_output_schemas_and_safety_annotations()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddTrajectoryRestMcpTools();
+        using ServiceProvider provider = services.BuildServiceProvider();
+        McpServerTool[] tools = provider.GetServices<McpServerTool>().ToArray();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(tools, Has.Length.EqualTo(120));
+            Assert.That(tools.All(tool => !string.IsNullOrWhiteSpace(tool.ProtocolTool.Title)), Is.True);
+            Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema.HasValue), Is.True);
+            Assert.That(tools.All(tool => tool.ProtocolTool.Annotations is not null), Is.True);
+            Assert.That(Endpoint("trajectory_get_trajectory_by_id").Behavior.ReadOnlyHint, Is.True);
+            Assert.That(Endpoint("trajectory_batch_export").Behavior.ReadOnlyHint, Is.True);
+            Assert.That(Endpoint("trajectory_batch_restore").Behavior.DestructiveHint, Is.True);
+            Assert.That(Endpoint("trajectory_delete_trajectory_by_id").Behavior.DestructiveHint, Is.True);
+        });
+    }
+
+    [Test]
+    public void Identifier_schemas_forbid_empty_uuids()
+    {
+        JsonObject properties = Endpoint("trajectory_get_trajectory_by_id").InputSchema["properties"]!.AsObject();
+        JsonObject id = properties["id"]!.AsObject();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(id["format"]?.GetValue<string>(), Is.EqualTo("uuid"));
+            Assert.That(id["not"]?["const"]?.GetValue<string>(), Is.EqualTo(Guid.Empty.ToString()));
+        });
+    }
+
+    [Test]
+    public async Task Delegate_contract_rejects_unknown_arguments_before_controller_invocation()
+    {
+        var services = new ServiceCollection();
+        services.AddLogging();
+        services.AddTrajectoryRestMcpTools();
+        using ServiceProvider provider = services.BuildServiceProvider();
+        IMcpTool tool = provider.GetServices<IMcpTool>().Single(value => value.Name == "trajectory_get_all_trajectory_id");
+
+        JsonNode? result = await tool.InvokeAsync(new JsonObject { ["unexpected"] = true }, CancellationToken.None);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result?["status"]?.GetValue<int>(), Is.EqualTo(400));
+            Assert.That(result?["error"]?.GetValue<string>(), Does.Contain("Unexpected argument"));
+        });
     }
 
     [Test]
@@ -107,6 +168,10 @@ public sealed class McpToolRegistrationTests
         TrajectoryMcpEndpoint export = Endpoint("trajectory_batch_export");
         TrajectoryMcpEndpoint restore = Endpoint("trajectory_batch_restore");
 
+        JsonObject restoreDefinitions = restore.InputSchema["$defs"]!.AsObject();
+        JsonObject restoreRequest = restoreDefinitions["TrajectoryBatchRestoreRequest"]!.AsObject();
+        JsonObject restoreProperties = restoreRequest["properties"]!.AsObject();
+
         Assert.Multiple(() =>
         {
             Assert.That(export.Description, Does.Contain("automatically includes"));
@@ -114,6 +179,13 @@ public sealed class McpToolRegistrationTests
             Assert.That(restore.Description, Does.Contain("writes survey runs before"));
             Assert.That(restore.InputSchema!.ToJsonString(), Does.Contain("ConflictPolicy"));
             Assert.That(restore.InputSchema!.ToJsonString(), Does.Contain("CatalogPolicy"));
+            Assert.That(restoreProperties["ConflictPolicy"]!["enum"]!.AsArray()
+                .Select(value => value!.GetValue<string>()), Is.EqualTo(new[] { "FailIfExists", "ReplaceExisting" }));
+            Assert.That(restoreProperties["CatalogPolicy"]!["enum"]!.AsArray()
+                .Select(value => value!.GetValue<string>()), Is.EqualTo(new[] { "MapExisting", "MapOrCreateMissing" }));
+            Assert.That(restoreRequest["required"]!.AsArray().Select(value => value!.GetValue<string>()),
+                Is.EquivalentTo(new[] { "ConflictPolicy", "CatalogPolicy", "Document" }));
+            Assert.That(restore.OutputSchema.ToJsonString(), Does.Contain("TrajectoryBatchRestoreResponse"));
         });
     }
 

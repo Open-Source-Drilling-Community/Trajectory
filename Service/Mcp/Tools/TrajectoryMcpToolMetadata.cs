@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
+using OSDC.Drilling.Trajectory.Model;
 
 namespace OSDC.Drilling.Trajectory.Service.Mcp.Tools;
 
@@ -108,6 +109,7 @@ internal static class TrajectoryMcpToolMetadata
             JsonObject schema = SchemaFor(parameter.ParameterType, definitions, building);
             schema["description"] = DescribeParameter(controller, method.Name, parameter);
             if (name == "chunkIndex") schema["minimum"] = 0;
+            if (name == "id" && parameter.ParameterType == typeof(string)) schema["minLength"] = 1;
             properties[name] = schema;
 
             bool isBody = parameter.GetCustomAttribute<FromBodyAttribute>() is not null;
@@ -126,6 +128,52 @@ internal static class TrajectoryMcpToolMetadata
         };
         if (definitions.Count > 0) result["$defs"] = definitions;
         return result;
+    }
+
+    public static JsonObject CreateOutputSchema(MethodInfo method)
+    {
+        var definitions = new JsonObject();
+        var building = new HashSet<Type>();
+        var properties = new JsonObject
+        {
+            ["status"] = new JsonObject
+            {
+                ["type"] = "integer",
+                ["minimum"] = 200,
+                ["maximum"] = 299,
+                ["description"] = "HTTP-compatible success status returned by the controller."
+            }
+        };
+        Type? payloadType = ResponsePayloadType(method.ReturnType);
+        JsonObject data = payloadType is null
+            ? new JsonObject()
+            : SchemaFor(payloadType, definitions, building);
+        data["description"] = "Successful response payload when the controller returns a body.";
+        properties["data"] = data;
+
+        var result = new JsonObject
+        {
+            ["type"] = "object",
+            ["description"] = "Successful MCP result. Failed requests are returned as MCP errors with a stable error envelope.",
+            ["properties"] = properties,
+            ["required"] = new JsonArray("status"),
+            ["additionalProperties"] = false
+        };
+        if (definitions.Count > 0) result["$defs"] = definitions;
+        return result;
+    }
+
+    public static McpToolBehavior CreateBehavior(string controller, MethodInfo method, string verbs)
+    {
+        string[] methods = verbs.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
+        bool readOnly = (methods.Length > 0 && methods.All(value => value == "GET")) ||
+                        (controller == "Trajectory" && method.Name == "BatchExport");
+        bool destructive = methods.Contains("DELETE", StringComparer.Ordinal) ||
+                           (controller == "Trajectory" && method.Name == "BatchRestore");
+        bool idempotent = readOnly || methods.Contains("PUT", StringComparer.Ordinal) ||
+                          methods.Contains("DELETE", StringComparer.Ordinal);
+        string title = $"{SplitWords(controller)} — {SplitWords(method.Name)}";
+        return new McpToolBehavior(title, readOnly, destructive, idempotent);
     }
 
     private static string DescribeById(string resource, MethodInfo method)
@@ -187,7 +235,13 @@ internal static class TrajectoryMcpToolMetadata
     private static JsonObject SchemaFor(Type declaredType, JsonObject definitions, HashSet<Type> building)
     {
         Type type = Nullable.GetUnderlyingType(declaredType) ?? declaredType;
-        if (type == typeof(Guid)) return new JsonObject { ["type"] = "string", ["format"] = "uuid" };
+        if (type == typeof(Guid))
+            return new JsonObject
+            {
+                ["type"] = "string",
+                ["format"] = "uuid",
+                ["not"] = new JsonObject { ["const"] = Guid.Empty.ToString() }
+            };
         if (type == typeof(string) || type == typeof(char)) return new JsonObject { ["type"] = "string" };
         if (type == typeof(bool)) return new JsonObject { ["type"] = "boolean" };
         if (type == typeof(DateTime) || type == typeof(DateTimeOffset)) return new JsonObject { ["type"] = "string", ["format"] = "date-time" };
@@ -218,22 +272,65 @@ internal static class TrajectoryMcpToolMetadata
     private static JsonObject BuildObjectDefinition(Type type, JsonObject definitions, HashSet<Type> building)
     {
         var properties = new JsonObject();
+        var required = new JsonArray();
         foreach (PropertyInfo property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
                      .Where(property => property.GetMethod is not null && property.GetIndexParameters().Length == 0)
                      .Where(property => property.GetCustomAttribute<JsonIgnoreAttribute>() is null)
                      .OrderBy(property => property.MetadataToken))
         {
             JsonObject schema = SchemaFor(property.PropertyType, definitions, building);
+            ApplyDomainConstraints(type, property, schema, required);
             schema["description"] = DescribeProperty(property.Name);
             properties[property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name] = schema;
         }
-        return new JsonObject
+        var definition = new JsonObject
         {
             ["type"] = "object",
             ["description"] = $"JSON representation of {SplitWords(type.Name)}.",
             ["properties"] = properties,
             ["additionalProperties"] = false
         };
+        if (required.Count > 0) definition["required"] = required;
+        return definition;
+    }
+
+    private static void ApplyDomainConstraints(Type declaringType, PropertyInfo property, JsonObject schema, JsonArray required)
+    {
+        if (declaringType == typeof(TrajectoryBatchExportRequest) && property.Name == nameof(TrajectoryBatchExportRequest.Scope))
+        {
+            schema["enum"] = new JsonArray("All", "Selected");
+            required.Add(property.Name);
+        }
+        else if (declaringType == typeof(TrajectoryBatchRestoreRequest))
+        {
+            if (property.Name == nameof(TrajectoryBatchRestoreRequest.ConflictPolicy))
+                schema["enum"] = new JsonArray("FailIfExists", "ReplaceExisting");
+            else if (property.Name == nameof(TrajectoryBatchRestoreRequest.CatalogPolicy))
+                schema["enum"] = new JsonArray("MapExisting", "MapOrCreateMissing");
+            required.Add(property.Name);
+        }
+        else if (declaringType == typeof(TrajectoryBatchExportDocument))
+        {
+            required.Add(property.Name);
+            if (property.Name == nameof(TrajectoryBatchExportDocument.FormatIdentifier))
+                schema["const"] = TrajectoryBatchExportDocument.CurrentFormatIdentifier;
+            else if (property.Name == nameof(TrajectoryBatchExportDocument.SchemaVersion))
+                schema["const"] = TrajectoryBatchExportDocument.CurrentSchemaVersion;
+        }
+    }
+
+    private static Type? ResponsePayloadType(Type returnType)
+    {
+        Type type = returnType;
+        if (type.IsGenericType && (type.GetGenericTypeDefinition() == typeof(Task<>) ||
+                                   type.GetGenericTypeDefinition() == typeof(ValueTask<>)))
+            type = type.GetGenericArguments()[0];
+        if (type.IsGenericType && type.GetGenericTypeDefinition() == typeof(ActionResult<>))
+            return type.GetGenericArguments()[0];
+        if (type == typeof(void) || type == typeof(Task) || type == typeof(ValueTask) ||
+            typeof(IActionResult).IsAssignableFrom(type))
+            return null;
+        return type;
     }
 
     private static string DescribeProperty(string name)

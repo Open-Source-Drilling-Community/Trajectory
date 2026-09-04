@@ -26,6 +26,7 @@ public static class TrajectoryRestMcpToolRegistrations
         foreach (TrajectoryMcpEndpoint endpoint in Endpoints)
         {
             services.AddLegacyMcpTool(endpoint.Name, endpoint.Description, endpoint.InputSchema,
+                endpoint.OutputSchema, endpoint.Behavior,
                 (sp, arguments, cancellationToken) => InvokeAsync(sp, endpoint, arguments, cancellationToken));
         }
         return services;
@@ -56,7 +57,9 @@ public static class TrajectoryRestMcpToolRegistrations
                     method,
                     name,
                     TrajectoryMcpToolMetadata.Describe(controllerName, method, verbs, template),
-                    TrajectoryMcpToolMetadata.CreateInputSchema(controllerName, method)));
+                    TrajectoryMcpToolMetadata.CreateInputSchema(controllerName, method),
+                    TrajectoryMcpToolMetadata.CreateOutputSchema(method),
+                    TrajectoryMcpToolMetadata.CreateBehavior(controllerName, method, verbs)));
             }
         }
 
@@ -92,6 +95,14 @@ public static class TrajectoryRestMcpToolRegistrations
         ParameterInfo[] parameters = method.GetParameters();
         values = new object?[parameters.Length];
         error = null;
+        string? unexpected = arguments?.Select(item => item.Key)
+            .FirstOrDefault(key => parameters.All(parameter => parameter.Name != key));
+        if (unexpected is not null)
+        {
+            error = McpToolResponses.Validation($"Unexpected argument '{unexpected}'.");
+            return false;
+        }
+
         for (int index = 0; index < parameters.Length; index++)
         {
             ParameterInfo parameter = parameters[index];
@@ -111,6 +122,16 @@ public static class TrajectoryRestMcpToolRegistrations
                 values[index] = node.Deserialize(parameter.ParameterType, JsonSettings.Options);
                 if (values[index] is null && parameter.GetCustomAttribute<FromBodyAttribute>() is not null)
                     throw new JsonException();
+                if (values[index] is Guid guid && guid == Guid.Empty)
+                {
+                    error = McpToolResponses.Validation($"Argument '{name}' must be a non-empty UUID.");
+                    return false;
+                }
+                if (name == "id" && values[index] is string text && string.IsNullOrWhiteSpace(text))
+                {
+                    error = McpToolResponses.Validation("Argument 'id' must not be empty.");
+                    return false;
+                }
             }
             catch (Exception ex) when (ex is JsonException or InvalidOperationException or NotSupportedException)
             {
@@ -142,4 +163,5 @@ public static class TrajectoryRestMcpToolRegistrations
     }
 }
 
-public sealed record TrajectoryMcpEndpoint(Type ControllerType, MethodInfo Method, string Name, string Description, JsonObject? InputSchema);
+public sealed record TrajectoryMcpEndpoint(Type ControllerType, MethodInfo Method, string Name, string Description,
+    JsonObject InputSchema, JsonObject OutputSchema, McpToolBehavior Behavior);

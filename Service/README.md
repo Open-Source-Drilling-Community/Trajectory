@@ -87,7 +87,7 @@ The current work has been funded by the [Research Council of Norway](https://www
 
 ## MCP server
 
-The service publishes its non-statistics REST actions as MCP tools. Tool registration discovers controller actions and preserves support for asynchronous operations, chunked trajectory data, filters, and multi-ID requests. Every tool has an operation-specific description and an explicit JSON input schema, including nested model properties, UUID and date-time formats, enum values, defaults, and SI-unit guidance.
+The service publishes its non-statistics REST actions as MCP tools. Tool registration discovers controller actions and preserves support for asynchronous operations, chunked trajectory data, filters, and multi-ID requests. Every tool has a human-readable title, an operation-specific description, strict JSON input and success-output schemas, and read-only/destructive/idempotent/open-world safety annotations. Input schemas include nested model properties, non-empty UUID and date-time formats, enum values, defaults, and SI-unit guidance; unknown top-level arguments are rejected before controller invocation.
 
 - Streamable HTTP: `/trajectory/api/mcp`
 - WebSocket: `/trajectory/api/mcp/ws`
@@ -97,7 +97,9 @@ The service publishes its non-statistics REST actions as MCP tools. Tool registr
 
 The descriptions explain the service workflows as well as individual calls. In particular, survey-measurement chunks are uploaded with zero-based indexes and then committed; calculation cases are created and polled through `CalculationState`/`CalculationProgress`; large station, realization, minimum-distance, and aggregation results are retrieved through chunk-count and chunk tools. Unless a field explicitly says otherwise, lengths, depths, coordinates, and distances are metres, angles are radians, and curvature is radians per metre.
 
-`POST Trajectory/BatchExport` creates an all-data or selected backup. Selection is dependency-closed: trajectories pull in their survey runs, and survey runs pull in parent runs. `POST Trajectory/BatchRestore` validates the versioned document and catalog dependencies before writing survey runs and then trajectories. `FailIfExists` is the safe default conflict policy; `ReplaceExisting` must be selected explicitly. Record writes are committed in one SQLite transaction and preserve stored measurements and station chunks without triggering calculations.
+Successful MCP calls return the HTTP-compatible status and any controller payload as structured JSON plus a text fallback. Validation, not-found, conflict, and unexpected failures are returned as genuine MCP errors with stable sanitized envelopes. Server exceptions are logged but their messages and stack details are not exposed to callers.
+
+`POST Trajectory/BatchExport` creates an all-data or selected backup. Selection is dependency-closed: trajectories pull in their survey runs, and survey runs pull in parent runs. `POST Trajectory/BatchRestore` validates the versioned document and catalog dependencies before writing survey runs and then trajectories. Its MCP schema requires `FailIfExists` or `ReplaceExisting` and `MapExisting` or `MapOrCreateMissing`; unusable `Unspecified` enum members are not advertised. Record writes are committed in one SQLite transaction and preserve stored measurements and station chunks without triggering calculations.
 
 Optional registration with an external MCP hub is configured in `appsettings.json` and is disabled by default.
 
