@@ -8,14 +8,16 @@ The solution currently contains:
 
 - `ModelSharedIn`
   - auto-generated C# classes for upstream model dependencies
-  - source schemas are stored as JSON files following the OpenAPI standard
+  - source OpenAPI schemas for Field, Cluster, Well, WellBore, WellBore Architecture, and Survey Instrument
 - `Model`
   - domain model and trajectory calculation logic
   - trajectory interpolation and stochastic trajectory realization calculations
 - `Service`
   - ASP.NET Core microservice exposing the Trajectory API
   - depends on `Model`
-  - persists trajectory realization cases and realization chunks in SQLite
+  - persists the resource, calculation, anti-collision, and usage-statistics state
+- `GlobalAntiCollision`
+  - octree indexing and spatial candidate-search implementation used by the service
 - `ModelSharedOut`
   - auto-generated client-side classes and schemas used by consumers of the Trajectory service
   - includes the Trajectory service schema together with other relevant upstream schemas
@@ -27,9 +29,11 @@ The solution currently contains:
   - depends on `WebPages`
   - provides the host shell, routing, configuration, and static assets for the UI
 - `ModelTest`
-  - unit tests for the model and computation logic
+  - NUnit project reserved for model and computation tests; it currently has no discoverable cases
 - `ServiceTest`
-  - tests for the service API
+  - self-contained contract/persistence tests and integration tests for the running service API
+- `GlobalAntiCollisionTest`
+  - executable verification harness for the anti-collision implementation
 - `home`
   - local persisted data, including `Trajectory.db`, `GlobalAntiCollision.db`, `SeparationFactorResults.db`, and usage history
 
@@ -38,8 +42,13 @@ The solution currently contains:
 The repository supports the following main trajectory workflows:
 
 - trajectory creation, editing, storage, and retrieval
+- survey-run import, editing, calculation, and chunked station transfer
 - trajectory interpolation cases
 - stochastic trajectory realization cases based on survey station wellbore position uncertainty
+- trajectory aggregation, station-ellipse, and survey-run/trajectory minimum-distance calculations
+- automatically maintained global anti-collision octree indexes
+- shared identity and feature catalogs
+- versioned, dependency-closed backup and atomic restore
 
 Trajectory realization cases are defined from a reference trajectory and a requested number of realizations. The model optionally coarsens the reference trajectory before generation, draws realizations from the covariance-defined uncertainty field, completes the generated points with the minimum curvature method, and stores the resulting realized trajectories as lists of survey points. Large realization sets are persisted and retrieved in chunks.
 
@@ -62,17 +71,23 @@ https://dev.digiwells.no/Trajectory/api/Trajectory
 
 https://app.digiwells.no/Trajectory/api/Trajectory
 
+https://awe.web.intra.norceresearch.no/Trajectory/api/Trajectory
+
 The host web application is available at:
 
 https://dev.digiwells.no/Trajectory/webapp/Trajectory
 
 https://app.digiwells.no/Trajectory/webapp/Trajectory
 
-The OpenAPI schema of the service is available at:
+https://awe.web.intra.norceresearch.no/Trajectory/webapp/Trajectory
+
+The merged OpenAPI schema and Swagger UI of the service are available at:
 
 https://dev.digiwells.no/Trajectory/api/swagger
 
 https://app.digiwells.no/Trajectory/api/swagger
+
+https://awe.web.intra.norceresearch.no/Trajectory/api/swagger
 
 The service and host web application are deployed as Docker containers using Kubernetes and Helm.
 
@@ -91,7 +106,7 @@ The current work has been funded by the [Research Council of Norway](https://www
 ## Current implementation
 
 - The service exposes its REST operations through MCP over streamable HTTP at `/trajectory/api/mcp` and WebSocket at `/trajectory/api/mcp/ws`.
-- MCP exposes 121 REST-backed tools plus `ping`; the usage-statistics controller is intentionally excluded. The unbounded full-list operations for trajectories and survey runs remain in REST for compatibility but are replaced in MCP by deterministic `trajectory_search_trajectory` and `survey_run_search_survey_run` pages (default 100, maximum 500) with text and relationship/type filters. Every tool publishes a title, strict input and success-output schemas, safety annotations, and operation-specific workflow guidance. Schemas enforce non-empty UUIDs, reject unknown arguments, constrain usable backup/restore policies, and document nested models, chunk indexes, identity/feature assignments, and SI units. Octree tools expose authoritative type/definitive filters and a lightweight currentness/provenance status; repair operations explain that normal cache maintenance is automatic. Successful calls provide structured JSON and text fallback; failures use stable sanitized MCP error envelopes.
+- MCP exposes 125 REST-backed tools plus `ping`; the usage-statistics controller is intentionally excluded. The unbounded full-list operations for trajectories and survey runs remain in REST for compatibility but are replaced in MCP by deterministic `trajectory_search_trajectory` and `survey_run_search_survey_run` pages (default 100, maximum 500) with text and relationship/type filters. Read-only `validate_external_references` tools check one Trajectory or SurveyRun, while the corresponding audit tools check UUID-ordered pages of at most 100 stored records. These checks cover Field, Cluster, Well and WellBore references plus SurveyInstrument for SurveyRuns; missing resources are distinguished from unavailable dependency services. Every tool publishes a title, strict input and success-output schemas, safety annotations, and operation-specific workflow guidance. Schemas enforce non-empty UUIDs, reject unknown arguments, constrain usable backup/restore policies, and document nested models, chunk indexes, identity/feature assignments, and SI units. Octree tools expose authoritative type/definitive filters and a lightweight currentness/provenance status; repair operations explain that normal cache maintenance is automatic. Successful calls provide structured JSON and text fallback; failures use stable sanitized MCP error envelopes.
 - The trajectory editor supports mean-sea-level depth references through the Vertical Datum integration.
 - Survey runs and trajectories share extensible identity and feature catalogs. Both editors support assignments; catalog definitions are managed from the `TrajectoryIdentities` and `TrajectoryFeatures` pages.
 - The Backup / Restore page creates versioned JSON backups. Survey runs may be selected independently; selecting a trajectory automatically includes its referenced survey runs and their parent chains. Restore validates the complete dependency graph, resolves the shared catalogs, writes survey runs before trajectories, and commits record changes atomically without recalculation. Catalog UUIDs are matched exactly by default; normalized-name mapping requires an explicit opt-in.
@@ -104,3 +119,16 @@ The current work has been funded by the [Research Council of Norway](https://www
 - `GlobalAntiCollision.db` schema version 2 uses an indexed `(octree depth, coarse code, trajectory UUID)` membership table plus one state row per trajectory. `TrajectoryType` and `IsDefinitive` are derived from the authoritative trajectory and used only for spatial-search filtering. Version-1 rows are preserved through a verified, transactional migration after a timestamped integrity-checked backup is created. Cache replacements and deletions are atomic, trajectory writes maintain the cache automatically, and startup reconciliation repairs missing, outdated, or orphaned derived entries. The REST/MCP status operation reports whether an index is missing, not indexable, stale, or current and exposes its source timestamp, schema version, confidence factor, calculation hash, bucket count, and detailed-code count.
 - Global anti-collision REST/MCP mutations now have explicit create-versus-update behavior and stable validation, not-found, conflict, calculation, and persistence failures. Successful create/update calls return the calculated representation; PUT never silently creates a missing record, and all string-ID database operations are parameterized.
 - Persisted calculation cases and results are durable and are not automatically deleted after 90 days or any other age. They are removed only through explicit delete operations.
+
+## Build, generation, and tests
+
+From the repository root, restore and build the explicit solution:
+
+```powershell
+dotnet restore .\Trajectory.sln
+dotnet build .\Trajectory.sln --no-restore
+```
+
+Public-contract changes require rebuilding `Service` to refresh `ModelSharedOut/json-schemas/TrajectoryFullName.json`, then running `ModelSharedOut` and accepting its overwrite prompt. This regenerates `TrajectoryMergedModel.cs`, `PseudoConstructors.cs`, and `Service/wwwroot/json-schema/TrajectoryMergedModel.json`; generated client files must not be repaired by hand.
+
+Self-contained service tests can run without a server. The generated-client and MCP transport integration tests expect the service at `http://localhost:8080/` with its `/Trajectory/api` path base. See the project READMEs for the precise commands and isolation requirements.

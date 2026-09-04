@@ -1,72 +1,292 @@
 @page "/Home"
-<MudText Class="mx-4 px-4 ym-4 pm-4" Typo="Typo.h2">Home</MudText>  
-<MudDivider Class="mb-4 pb-4"/>
-<MudText Class="mx-4 px-4 ym-4 pm-4" Typo="Typo.h5">Introduction</MudText>
-<MudText Class="mx-6 px-6 ym-4 pm-4" Typo="Typo.body1">
-    The Trajectory service owns survey runs, calculated or imported trajectories, interpolation and uncertainty
-    calculations, anti-collision results, and the shared identity and feature catalogs used to classify them.
-    Engineering values are stored in canonical SI units; depths and vertical coordinates are metres relative to WGS84.
+
+<MudText Class="mx-4 px-4 mt-4" Typo="Typo.h2">OSDC Trajectory</MudText>
+<MudDivider Class="mb-4" />
+<MudText Class="mx-6 px-6" Typo="Typo.body1">
+    This microservice owns measured survey runs, calculated or imported trajectories, their interpolation,
+    stochastic realization, uncertainty, and anti-collision calculations, and the shared identity and feature
+    catalogs used to classify them. It persists to SQLite, enforces optimistic concurrency on every mutation, and
+    exposes the same operations through a REST API, an MCP server, and a Blazor web application, so a survey run or
+    trajectory created or edited in one interface is immediately visible through the others. Engineering values are
+    stored in canonical SI units; depths and vertical coordinates are metres relative to WGS84.
 </MudText>
 
-<MudAlert Severity="Severity.Info" Class="mx-6 my-4">
-    Persisted calculation cases and results are durable. They are never removed automatically because they are older
-    than 90 days; deletion occurs only through an explicit user or API operation.
-</MudAlert>
+<MudGrid Class="mx-4 px-4 mt-2">
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-6 mt-4" Elevation="2">
+            <MudText Typo="Typo.h5" Class="mb-3">What is a survey run</MudText>
+            <MudText Typo="Typo.body1" Class="mb-2">
+                A <b>SurveyRun</b> is an imported measured survey dataset acquired with one survey instrument: a
+                compact, editable list of <code>SurveyMeasurement</code> entries (measured depth, inclination,
+                azimuth) tied to a <code>SurveyInstrumentID</code>, plus a tie-in point resolved from its
+                <code>WellBoreID</code>, parent <code>WellID</code>, <code>ClusterID</code>, and
+                <code>FieldID</code> chain, or from an upstream sidetrack point. Calculating a survey run turns the
+                raw measurements into full <code>SurveyStation</code> records — position, inclination, azimuth, and,
+                once an instrument error model is attached, an uncertainty covariance matrix — using the minimum
+                curvature method.
+            </MudText>
+            <MudText Typo="Typo.body1">
+                Every survey run can carry its own identity and feature assignments, drawn from the shared Trajectory
+                catalogs, and large measurement or station lists use chunked read and write endpoints so that dense
+                surveys transfer without oversized payloads.
+            </MudText>
+        </MudPaper>
+    </MudItem>
+    <MudItem xs="12" md="6">
+        <MudPaper Class="pa-6 mt-4" Elevation="2">
+            <MudText Typo="Typo.h5" Class="mb-3">What is a trajectory</MudText>
+            <MudText Typo="Typo.body1" Class="mb-2">
+                A <b>Trajectory</b> is composed of one or more <code>TrajectorySurveyRunSection</code> entries,
+                ordered by increasing start measured depth, each drawing its stations from a referenced survey run
+                between its start abscissa and the next section's start (or the end of the well path for the last
+                section). Calculating a trajectory materializes the combined <code>SurveyStationList</code> across
+                all sections, so a single trajectory can represent a planned path spliced from several actual runs,
+                a re-run replacing part of an earlier survey, or a sidetrack continuing from its parent.
+            </MudText>
+            <MudText Typo="Typo.body1">
+                Like survey runs, trajectories belong to a <code>WellBoreID</code> and its Well/Cluster/Field chain,
+                carry identity and feature assignments, and hold the derived state — <code>TrajectoryType</code> and
+                whether the trajectory is the current <b>definitive</b> one for its wellbore — that the anti-collision
+                index relies on for filtering.
+            </MudText>
+        </MudPaper>
+    </MudItem>
+</MudGrid>
 
-<MudDivider Class="my-4 py-4"/>
-<MudText Class="mx-4 px-4 ym-4 pm-4" Typo="Typo.h5">Data Input</MudText>
-<MudText Class="mx-6 px-6 ym-4 pm-4" Typo="Typo.body1">
-    Use Survey Runs to upload measured MD, inclination, and azimuth data, then create trajectories from those runs.
-    Large station and calculation-result arrays use chunked transfer. Backup / Restore exports dependency-closed,
-    versioned JSON documents and restores them atomically. Catalog UUIDs match exactly by default; normalized-name
-    mapping is available only as an explicit restore opt-in.
-</MudText>
+<MudPaper Class="mx-4 px-4 pa-6 mt-4" Elevation="2">
+    <MudText Typo="Typo.h5" Class="mb-3">Uncertainty calculation</MudText>
+    <MudText Typo="Typo.body1" Class="mb-2">
+        Each survey station's position uncertainty is expressed as a covariance matrix built from the attached
+        <b>SurveyInstrument</b> error model — <code>MWD_ISCWSA</code> / <code>Gyro_ISCWSA</code> (the ISCWSA weighting
+        function method, summing correlated and uncorrelated error-source contributions along, across, and
+        perpendicular to the wellbore) or <code>MWD_WolffDeWardt</code> / <code>Gyro_WolffDeWardt</code> (the simpler
+        Wolff–de Wardt model). From that covariance, a <MudLink Href="/Trajectory/webapp/TrajectoryInterpolated">
+        station-ellipse calculation</MudLink> derives horizontal, vertical, and perpendicular uncertainty ellipses at
+        a caller-chosen <b>confidence factor</b> (95% by default), together with the highest- and lowest-TVD paths
+        the true wellbore position could plausibly follow.
+    </MudText>
+    <MudText Typo="Typo.body1">
+        The same covariance field underlies <b>trajectory realization</b>: a realization case draws a requested
+        number of alternative wellbore paths from the uncertainty distribution around a reference trajectory
+        (optionally coarsened first for performance), completes each with minimum curvature, and stores the results
+        as chunked lists of realized survey points — useful for Monte-Carlo style visualization of where the actual
+        wellbore could plausibly be.
+    </MudText>
+</MudPaper>
 
-<MudDivider Class="my-4 py-4"/>
-<MudText Class="mx-4 px-4 ym-4 pm-4" Typo="Typo.h5">Service access</MudText>
-<MudText Class="mx-6 px-6 ym-4 pm-4" Typo="Typo.body1">
-    The REST/OpenAPI contract is available under <a href="/Trajectory/api/swagger">/Trajectory/api/swagger</a> and
-    MCP under <code>/Trajectory/api/mcp</code>. MCP callers should use the bounded trajectory and survey-run search
-    tools for discovery, then fetch selected records by UUID. Durable updates and deletes require the opaque
-    <code>LastModificationDate</code> value from the latest read.
-</MudText>
+<MudPaper Class="mx-4 px-4 pa-6 mt-4" Elevation="2">
+    <MudText Typo="Typo.h5" Class="mb-3">Interpolation</MudText>
+    <MudText Typo="Typo.body1" Class="mb-2">
+        An <MudLink Href="/Trajectory/webapp/TrajectoryInterpolated">interpolated trajectory</MudLink> recomputes a
+        source trajectory's path at a denser or differently spaced set of measured depths using the minimum
+        curvature method, the same geometric method used to turn raw MD/inclination/azimuth survey measurements into
+        3D positions. Spacing can be driven either by a fixed <code>InterpolationStep</code> along a chosen
+        <code>InterpolationReferenceDepth</code>, or adaptively by a <code>MaximumChordArcDistance</code> tolerance
+        that inserts extra stations only where the wellbore curves enough for the straight chord between two stations
+        to depart from the true arc by more than the allowed distance.
+    </MudText>
+    <MudText Typo="Typo.body1">
+        Interpolation can also be forced at specific abscissas — casing and liner shoe depths, liner hanger depths,
+        casing diameter changes, or any caller-supplied annotated depth — and can optionally include the source
+        trajectory's first and last surveys, so an interpolated trajectory lines up with the engineering depths that
+        other services (WellBore Architecture, drilling reports) care about.
+    </MudText>
+</MudPaper>
 
- <MudStack Spacing="2" Class="my-4 py-4">
-    <MudButton Class="shades-text text-white"
-        Variant="Variant.Filled"
-        Style="@($"background:{HideColors(showAddTutorial)};")"
-        OnClick="ShowHideAddTutorial">@(showAddTutorial ? "Hide add table tutorial" : "Show add table tutorial")        
-    </MudButton>
-    @* Add a video using the webm format*@
-    <MudCollapse Expanded="showAddTutorial">                
-        <center>
-            <video width="960" height="540" autoplay loop muted>
-                <source src="videos/dummyvideo.webm" type="video/webm">
-                Your browser does not support the video tag.
-            </video>
-        </center>
-    </MudCollapse>
-</MudStack>
+<MudPaper Class="mx-4 px-4 pa-6 mt-4" Elevation="2">
+    <MudText Typo="Typo.h5" Class="mb-3">Distance between trajectory axes</MudText>
+    <MudText Typo="Typo.body1" Class="mb-2">
+        <b>Survey run</b> and <b>trajectory minimum-distance calculations</b> find the closest approach between a
+        reference wellbore's centerline and one or more comparison centerlines: each trajectory is broken into
+        straight-line segments between consecutive stations, the comparison segments are indexed in a local octree
+        (bounded by a configurable maximum depth and maximum segment count per leaf) so that only nearby segments are
+        tested, and the true closest-approach distance is then solved segment-by-segment. The calculation can
+        optionally account for borehole radius, subtracting each wellbore's own diameter from the raw centerline
+        distance.
+    </MudText>
+    <MudText Typo="Typo.body1">
+        An <b>adaptive refinement</b> setting lets the search increase resolution automatically wherever two
+        trajectories pass unusually close, instead of applying uniform, possibly wasteful, mesh density everywhere.
+        Results are reported per reference interval and, for the closest points overall, as a chunked, sortable
+        result set so dense comparisons against many offset wells stay usable.
+    </MudText>
+</MudPaper>
 
+<MudPaper Class="mx-4 px-4 pa-6 mt-4" Elevation="2">
+    <MudText Typo="Typo.h5" Class="mb-3">Safety factors between uncertainty volumes</MudText>
+    <MudText Typo="Typo.body1" Class="mb-2">
+        Centerline distance alone does not say whether two wells are actually at risk of colliding — the
+        <b>separation factor</b> (also known as the ISCWSA collision-risk ratio, or pedal-curve method) does. At each
+        point along the reference trajectory, the uncertainty ellipsoids of the reference and comparison wellbores
+        — built from their covariance matrices at the chosen confidence factor — are scaled together, uniformly, until
+        their surfaces first touch. The scale factor at which that happens is the separation factor: a value below 1
+        means the (unscaled) ellipsoids already overlap at the requested confidence level, while a value above 1
+        expresses how much headroom exists before they would.
+    </MudText>
+    <MudText Typo="Typo.body1">
+        Because the comparison wellbore is normally surveyed less densely than the reference, the calculation
+        automatically increases the number of interpolated ellipses on the comparison side — driven by the minimum
+        MD spacing on the reference and the maximum MD spacing on the comparison — before intersecting the two
+        envelopes, so the result does not depend on which of the two trajectories happens to carry more survey
+        stations.
+    </MudText>
+</MudPaper>
 
-@code{
-    private bool showAddTutorial = true;
-    private bool showUploadTutorial = true;
-    private bool showViewTutorial = true;
+<MudPaper Class="mx-4 px-4 pa-6 mt-4" Elevation="2">
+    <MudText Typo="Typo.h5" Class="mb-3">Octree encoding and automatic anti-collision scanning</MudText>
+    <MudText Typo="Typo.body1" Class="mb-2">
+        Running a full minimum-distance or separation-factor calculation against every other trajectory in the
+        database for every edit would not scale. Instead, the service maintains a persistent, whole-Earth
+        <b>global anti-collision octree index</b>: each trajectory's uncertainty envelope (at a fixed high confidence
+        factor) is encoded as a compact set of octree cell codes at a coarse "cache" depth and a detailed depth of 23
+        — roughly 4.8&nbsp;m resolution at the Earth's scale spanned by the tree. Membership is stored as one row per
+        <code>(octree depth, coarse code, trajectory UUID)</code>, so a spatial query first narrows candidates by
+        coarse bucket, joins the derived <code>TrajectoryType</code> / <code>IsDefinitive</code> state for filtering,
+        and only then performs exact intersection on the detailed codes.
+    </MudText>
+    <MudText Typo="Typo.body1">
+        This index is <b>derived, not authoritative</b>: it is rebuilt automatically whenever a trajectory is
+        calculated, updated, deleted, or restored, and a background reconciliation pass on startup repairs entries
+        that are missing, outdated, or orphaned. The REST/MCP status operation reports, per trajectory, whether its
+        cached index is current, stale, or missing, along with its schema version, confidence factor, calculation
+        hash, bucket count, and detailed-code count — so callers can trust automatic anti-collision scanning without
+        needing to trigger it by hand.
+    </MudText>
+</MudPaper>
 
-    private void ShowHideAddTutorial()
-    {
-        showAddTutorial = !showAddTutorial;
-    } 
-    private string HideColors(bool expandBool)
-    {
-        if (expandBool)
-        {
-            return MudBlazor.Colors.Indigo.Lighten1;
-        }
-        else
-        {
-            return MudBlazor.Colors.Indigo.Darken4;            
-        }
-    }
-}
+<MudPaper Class="mx-4 px-4 pa-6 mt-4" Elevation="2">
+    <MudText Typo="Typo.h5" Class="mb-3">Identities and features</MudText>
+    <MudText Typo="Typo.body1" Class="mb-2">
+        Every survey run and trajectory can carry any number of user-defined <b>identities</b> — symbolic names such
+        as a planning name, a company- or regulatory-reporting name, or a nickname — and any number of <b>feature</b>
+        assignments drawn from user-defined categories and options, optionally exclusive within a category and
+        optionally time-bounded. The default identities are <code>NameForPlanning</code>,
+        <code>NameForCompanyReporting</code>, <code>NameForRegulatoryReporting</code>, <code>Nickname</code>, and
+        <code>NameForOperationReporting</code>; default feature categories cover survey and borehole-section context,
+        survey and trajectory purpose, reference status, acquisition mode, measurement condition, running mode, data
+        processing state, correction applied, quality status/issue, and survey station density.
+    </MudText>
+    <MudText Typo="Typo.body1">
+        The catalogs themselves are managed on the <MudLink Href="/Trajectory/webapp/TrajectoryIdentities">
+        Identities</MudLink> and <MudLink Href="/Trajectory/webapp/TrajectoryFeatures">Features</MudLink> pages,
+        shared between survey runs and trajectories; a definition or option cannot be deleted while still referenced
+        by a survey run or trajectory.
+    </MudText>
+</MudPaper>
+
+<MudPaper Class="mx-4 px-4 pa-6 mt-4" Elevation="2">
+    <MudText Typo="Typo.h5" Class="mb-3">Contextual data and calculators</MudText>
+    <MudText Typo="Typo.body1" Class="mb-2">
+        The <b>Survey Display</b> menu shows survey runs and trajectories grouped by their WellBore, Well, Cluster,
+        or Field, so a set of paths can be reviewed in its drilling-program context without leaving this application.
+        The <b>Contextual Data</b> menu gives read access to the underlying <MudLink Href="/Trajectory/webapp/Field">
+        Field</MudLink>, <MudLink Href="/Trajectory/webapp/Cluster">Cluster</MudLink>,
+        <MudLink Href="/Trajectory/webapp/Well">Well</MudLink>,
+        <MudLink Href="/Trajectory/webapp/WellBore">WellBore</MudLink>,
+        <MudLink Href="/Trajectory/webapp/Rig">Rig</MudLink>, and
+        <MudLink Href="/Trajectory/webapp/SurveyInstrument">Survey Instrument</MudLink> records those trajectories
+        reference, each backed by its own microservice and shown here through reusable Razor components.
+    </MudText>
+    <MudText Typo="Typo.body1">
+        The <b>Calculators</b> menu exposes the same synchronous, stateless evaluations used elsewhere in OSDC —
+        <MudLink Href="/Trajectory/webapp/FieldCartographicConverter">Cartographic Conversion</MudLink>,
+        <MudLink Href="/Trajectory/webapp/VerticalDatum">Vertical Datum Conversion</MudLink>,
+        <MudLink Href="/Trajectory/webapp/GravitationalField">Earth Gravity Evaluation</MudLink>, and
+        <MudLink Href="/Trajectory/webapp/EarthMagneticField">Earth Magnetic Field Evaluation</MudLink> — for one-off
+        conversions and lookups while working a survey run or trajectory, without switching to another site.
+    </MudText>
+</MudPaper>
+
+<MudPaper Class="mx-4 px-4 pa-6 mt-4" Elevation="2">
+    <MudText Typo="Typo.h5" Class="mb-3">Backup and restore</MudText>
+    <MudText Typo="Typo.body1" Class="mb-2">
+        Backups are logical, portable JSON, not a raw database copy. From the
+        <MudLink Href="/Trajectory/webapp/TrajectoryBackupRestore">Backup / Restore</MudLink> page, export one or
+        many survey runs and trajectories together into one versioned document. Selecting a trajectory automatically
+        includes the survey runs it references and their parent chain, so a selection is never missing the data
+        needed to recalculate it; survey runs can also be selected independently of any trajectory.
+    </MudText>
+    <MudText Typo="Typo.body1">
+        Restoring validates the complete dependency graph, resolves the shared identity/feature catalogs — matching
+        catalog UUIDs exactly by default, with normalized-name mapping available only as an explicit opt-in — writes
+        survey runs before the trajectories that reference them, and commits every record in one transaction without
+        recalculation, so a restore of many survey runs and trajectories either succeeds completely or leaves the
+        database untouched. <MudLink Href="/Trajectory/webapp/SurveyRunBatchImport">Batch Import</MudLink> offers a
+        separate, simpler path for bulk-loading external survey measurements as new survey runs.
+    </MudText>
+</MudPaper>
+
+<MudPaper Class="mx-4 px-4 pa-6 mt-4" Elevation="2">
+    <MudText Typo="Typo.h5" Class="mb-3">Data integrity and monitoring</MudText>
+    <MudText Typo="Typo.body1" Class="mb-2">
+        Survey run and trajectory updates and deletes use <b>optimistic concurrency</b>: every mutation must echo
+        back the <code>LastModificationDate</code> from the caller's latest read, and a stale request is rejected
+        rather than silently overwriting a concurrent change. Persisted calculation cases and results — interpolated
+        and realized trajectories, station ellipses, minimum-distance and separation-factor results — are durable and
+        are never removed automatically, however old; deletion only happens through an explicit delete operation.
+    </MudText>
+    <MudText Typo="Typo.body1">
+        Because <code>FieldID</code>, <code>ClusterID</code>, <code>WellID</code>, <code>WellBoreID</code>, and a
+        survey run's <code>SurveyInstrumentID</code> point at other services, Trajectory also offers read-only
+        <b>external-reference validation</b> for one record and a bounded <b>audit</b> across stored records, each
+        reference reported as <code>Valid</code>, <code>Invalid</code>, or <code>Unavailable</code> so a dependency
+        outage is never confused with a genuinely broken reference. The
+        <MudLink Href="/Trajectory/webapp/StatisticsTrajectory">Usage Statistics</MudLink> page reports per-endpoint
+        request counts for this service replica.
+    </MudText>
+</MudPaper>
+
+<MudPaper Class="mx-4 px-4 pa-6 mt-4 mb-6" Elevation="2">
+    <MudText Typo="Typo.h5" Class="mb-3">Access methods</MudText>
+    <MudText Typo="Typo.body1" Class="mb-3">
+        The same survey run and trajectory data is reachable through several interfaces built on the same underlying
+        store, so it can be managed interactively, scripted, embedded in other Blazor applications, or wired into AI
+        agents.
+    </MudText>
+    <MudSimpleTable>
+        <thead>
+            <tr><th>Method</th><th>Description</th></tr>
+        </thead>
+        <tbody>
+            <tr>
+                <td><b>Web page</b></td>
+                <td>
+                    This site — a server-side Blazor application (this page) for browsing, editing, interpolating,
+                    realizing, aggregating, comparing, backing up, and restoring survey runs and trajectories,
+                    inspecting contextual data, running calculators, and reviewing usage statistics.
+                </td>
+            </tr>
+            <tr>
+                <td><b>REST API</b></td>
+                <td>
+                    JSON endpoints under <code>/Trajectory/api</code> for survey-run and trajectory CRUD, chunked
+                    measurement/station transfer, identity and feature catalog management, interpolation,
+                    realization, aggregation, station-ellipse, minimum-distance, and octree status/repair operations,
+                    external-reference validation/audit, and batch export/restore, documented and explorable through
+                    the Swagger UI at <code>/Trajectory/api/swagger</code>. Suited to scripts, backend integration,
+                    and any HTTP client.
+                </td>
+            </tr>
+            <tr>
+                <td><b>MCP</b></td>
+                <td>
+                    A Model Context Protocol server exposed as Streamable HTTP at <code>/Trajectory/api/mcp</code>
+                    (and WebSocket at <code>/Trajectory/api/mcp/ws</code>), publishing 125 tools — every non-statistics
+                    REST operation plus connectivity <code>ping</code> — with strict, closed input/output JSON
+                    Schemas and bounded search tools in place of unrestricted full-list operations, so AI agents and
+                    MCP-aware tooling can query, create, update, calculate, and back up survey runs and trajectories
+                    directly.
+                </td>
+            </tr>
+            <tr>
+                <td><b>Reusable web pages</b></td>
+                <td>
+                    The Razor components behind the survey-run, trajectory, catalog, calculation, and backup/restore
+                    pages are published as the <code>OSDC.Drilling.Trajectory.WebPages</code> NuGet package, so other
+                    Blazor applications — such as the Well or WellBore web apps — can embed the same unit-aware
+                    controls instead of re-implementing this UI.
+                </td>
+            </tr>
+        </tbody>
+    </MudSimpleTable>
+</MudPaper>

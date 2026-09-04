@@ -6,6 +6,7 @@ using OSDC.Drilling.Trajectory.Service.Managers;
 using OSDC.DotnetLibraries.General.DataManagement;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace OSDC.Drilling.Trajectory.Service.Controllers
@@ -18,12 +19,16 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         private readonly ILogger<SurveyRunManager> _logger;
         private readonly SurveyRunManager _manager;
         private readonly TrajectoryAssignmentValidator _assignmentValidator;
+        private readonly ITrajectoryExternalReferenceValidator _externalReferenceValidator;
 
-        public SurveyRunController(ILogger<SurveyRunManager> logger, SqlConnectionManager connectionManager, TrajectoryAssignmentValidator assignmentValidator)
+        public SurveyRunController(ILogger<SurveyRunManager> logger, SqlConnectionManager connectionManager,
+            TrajectoryAssignmentValidator assignmentValidator,
+            ITrajectoryExternalReferenceValidator? externalReferenceValidator = null)
         {
             _logger = logger;
             _manager = SurveyRunManager.GetInstance(logger, connectionManager);
             _assignmentValidator = assignmentValidator;
+            _externalReferenceValidator = externalReferenceValidator ?? new UnavailableTrajectoryExternalReferenceValidator();
         }
 
         [HttpGet(Name = "GetAllSurveyRunId")]
@@ -71,6 +76,75 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             {
                 Offset = offset, Limit = limit, TotalCount = ordered.Count,
                 Items = ordered.Skip(offset).Take(limit).ToList()
+            });
+        }
+
+        /// <summary>Checks one stored survey run's externally owned Field, Cluster, Well, WellBore and SurveyInstrument references without changing data.</summary>
+        [HttpGet("{id}/ExternalReferences", Name = "ValidateSurveyRunExternalReferences")]
+        [ProducesResponseType<SurveyRunExternalReferenceValidation>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<SurveyRunExternalReferenceValidation>> ValidateExternalReferences(Guid id)
+        {
+            if (id == Guid.Empty)
+                return BadRequest(new { error = "invalid_id", message = "A non-empty SurveyRun UUID is required." });
+            SurveyRun? surveyRun = _manager.GetSurveyRunById(id, includeMeasurements: false, includeCalculatedStations: false);
+            if (surveyRun == null)
+                return NotFound(new { error = "not_found", message = "The SurveyRun does not exist." });
+            IReadOnlyList<SurveyRunExternalReferenceValidation> results =
+                await _externalReferenceValidator.ValidateSurveyRunsAsync([surveyRun], HttpContext?.RequestAborted ?? default);
+            return Ok(results.Single());
+        }
+
+        /// <summary>Checks a deterministic bounded page of all or selected stored survey runs for external-reference consistency.</summary>
+        [HttpPost("ExternalReferenceAudit", Name = "AuditSurveyRunExternalReferences")]
+        [ProducesResponseType<SurveyRunExternalReferenceAuditResult>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<SurveyRunExternalReferenceAuditResult>> AuditExternalReferences(
+            [FromBody] SurveyRunExternalReferenceAuditRequest? request)
+        {
+            if (request == null)
+                return BadRequest(new { error = "invalid_request", message = "An audit request is required." });
+            if (!Enum.IsDefined(request.Scope))
+                return BadRequest(new { error = "invalid_scope", message = "Scope must be All or Selected." });
+            if (request.Offset < 0 || request.Limit is < 1 or > 100)
+                return BadRequest(new { error = "invalid_page", message = "Offset must be non-negative and limit must be between 1 and 100." });
+            if (request.Scope == ExternalReferenceAuditScope.Selected &&
+                (request.SurveyRunIDs == null || request.SurveyRunIDs.Count == 0))
+                return BadRequest(new { error = "missing_ids", message = "Selected scope requires at least one SurveyRun UUID." });
+            if (request.SurveyRunIDs?.Any(value => value == Guid.Empty) == true ||
+                request.SurveyRunIDs?.Distinct().Count() != request.SurveyRunIDs?.Count)
+                return BadRequest(new { error = "invalid_ids", message = "SurveyRun UUIDs must be non-empty and unique." });
+
+            List<SurveyRunLight>? stored = _manager.GetAllSurveyRunLight();
+            if (stored == null) return StatusCode(StatusCodes.Status500InternalServerError);
+            Dictionary<Guid, SurveyRunLight> byId = stored.Where(value => value.MetaInfo != null)
+                .ToDictionary(value => value.MetaInfo!.ID);
+            IEnumerable<SurveyRunLight> selected = byId.Values;
+            if (request.Scope == ExternalReferenceAuditScope.Selected)
+            {
+                List<Guid> selectedIds = request.SurveyRunIDs!;
+                Guid missingId = selectedIds.FirstOrDefault(id => !byId.ContainsKey(id));
+                if (missingId != Guid.Empty)
+                    return NotFound(new { error = "not_found", message = $"Selected SurveyRun UUID '{missingId}' does not exist." });
+                selected = selectedIds.Select(id => byId[id]);
+            }
+
+            List<SurveyRunLight> matches = selected.OrderBy(value => value.MetaInfo!.ID).ToList();
+            List<SurveyRunLight> page = matches.Skip(request.Offset).Take(request.Limit).ToList();
+            IReadOnlyList<SurveyRunExternalReferenceValidation> items =
+                await _externalReferenceValidator.ValidateSurveyRunsAsync(page, HttpContext?.RequestAborted ?? default);
+            return Ok(new SurveyRunExternalReferenceAuditResult
+            {
+                CheckedAtUtc = items.FirstOrDefault()?.CheckedAtUtc ?? DateTimeOffset.UtcNow,
+                Total = matches.Count,
+                Offset = request.Offset,
+                Limit = request.Limit,
+                ValidCount = items.Count(value => value.Status == ExternalReferenceValidationStatus.Valid),
+                InvalidCount = items.Count(value => value.Status == ExternalReferenceValidationStatus.Invalid),
+                UnavailableCount = items.Count(value => value.Status == ExternalReferenceValidationStatus.Unavailable),
+                Items = items.ToList()
             });
         }
 

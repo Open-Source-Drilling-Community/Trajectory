@@ -927,6 +927,116 @@
         }
       }
     },
+    "/SurveyRun/{id}/ExternalReferences": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "ValidateSurveyRunExternalReferences",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunExternalReferenceValidation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyRun/ExternalReferenceAudit": {
+      "post": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "AuditSurveyRunExternalReferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunExternalReferenceAuditRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunExternalReferenceAuditRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunExternalReferenceAuditRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunExternalReferenceAuditResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/SurveyRun/HeavyData": {
       "get": {
         "tags": [
@@ -2629,6 +2739,116 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectorySearchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Trajectory/{id}/ExternalReferences": {
+      "get": {
+        "tags": [
+          "Trajectory"
+        ],
+        "operationId": "ValidateTrajectoryExternalReferences",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExternalReferenceValidation"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Trajectory/ExternalReferenceAudit": {
+      "post": {
+        "tags": [
+          "Trajectory"
+        ],
+        "operationId": "AuditTrajectoryExternalReferences",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExternalReferenceAuditRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExternalReferenceAuditRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExternalReferenceAuditRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExternalReferenceAuditResult"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
                 }
               }
             }
@@ -4345,6 +4565,33 @@
   },
   "components": {
     "schemas": {
+      "Microsoft.AspNetCore.Mvc.ProblemDetails": {
+        "type": "object",
+        "properties": {
+          "type": {
+            "type": "string",
+            "nullable": true
+          },
+          "title": {
+            "type": "string",
+            "nullable": true
+          },
+          "status": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "detail": {
+            "type": "string",
+            "nullable": true
+          },
+          "instance": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": { }
+      },
       "OSDC.DotnetLibraries.Drilling.Surveying.ErrorCode": {
         "enum": [
           "XYM1",
@@ -5096,6 +5343,39 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.Trajectory.Model.ExternalReferenceAuditScope": {
+        "enum": [
+          "All",
+          "Selected"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.ExternalReferenceIssue": {
+        "type": "object",
+        "properties": {
+          "Property": {
+            "type": "string",
+            "nullable": true
+          },
+          "Code": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.ExternalReferenceValidationStatus": {
+        "enum": [
+          "Valid",
+          "Invalid",
+          "Unavailable"
+        ],
+        "type": "string"
+      },
       "OSDC.Drilling.Trajectory.Model.History": {
         "type": "object",
         "properties": {
@@ -5754,6 +6034,142 @@
           },
           "FileContentBase64": {
             "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.SurveyRunExternalReferenceAuditRequest": {
+        "required": [
+          "Scope"
+        ],
+        "type": "object",
+        "properties": {
+          "Scope": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExternalReferenceAuditScope"
+          },
+          "SurveyRunIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.SurveyRunExternalReferenceAuditResult": {
+        "type": "object",
+        "properties": {
+          "CheckedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ValidCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "InvalidCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "UnavailableCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunExternalReferenceValidation"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.SurveyRunExternalReferenceValidation": {
+        "type": "object",
+        "properties": {
+          "SurveyRunID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FieldID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ClusterID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellBoreID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "SurveyInstrumentID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FieldExists": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "ClusterExists": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "WellExists": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "WellBoreExists": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "SurveyInstrumentExists": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "Status": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExternalReferenceValidationStatus"
+          },
+          "CheckedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExternalReferenceIssue"
+            },
             "nullable": true
           }
         },
@@ -7113,6 +7529,134 @@
             "items": {
               "type": "string",
               "format": "uuid"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryExternalReferenceAuditRequest": {
+        "required": [
+          "Scope"
+        ],
+        "type": "object",
+        "properties": {
+          "Scope": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExternalReferenceAuditScope"
+          },
+          "TrajectoryIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryExternalReferenceAuditResult": {
+        "type": "object",
+        "properties": {
+          "CheckedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Total": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ValidCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "InvalidCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "UnavailableCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExternalReferenceValidation"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryExternalReferenceValidation": {
+        "type": "object",
+        "properties": {
+          "TrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FieldID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "ClusterID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "WellBoreID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FieldExists": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "ClusterExists": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "WellExists": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "WellBoreExists": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "Status": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExternalReferenceValidationStatus"
+          },
+          "CheckedAtUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "Issues": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExternalReferenceIssue"
             },
             "nullable": true
           }

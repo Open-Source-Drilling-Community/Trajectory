@@ -20,6 +20,9 @@ builder.Services.AddSingleton<TrajectoryIdentityManager>();
 builder.Services.AddSingleton<TrajectoryFeatureCategoryManager>();
 builder.Services.AddSingleton<TrajectoryAssignmentValidator>();
 builder.Services.AddSingleton<TrajectoryBatchService>();
+builder.Services.AddHttpClient(nameof(TrajectoryExternalReferenceValidator), client =>
+    client.Timeout = TimeSpan.FromSeconds(10));
+builder.Services.AddSingleton<ITrajectoryExternalReferenceValidator, TrajectoryExternalReferenceValidator>();
 builder.Services.AddSingleton<SqlConnectionManagerSeparationFactorResults>();
 builder.Services.AddSingleton<SqlConnectionManagerOctree>();
 builder.Services.AddSingleton<OctreeManager>();

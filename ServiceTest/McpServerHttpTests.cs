@@ -33,10 +33,10 @@ public sealed class McpServerHttpTests
     }
 
     [Test]
-    public async Task Http_endpoint_publishes_all_121_non_statistics_tools_and_ping()
+    public async Task Http_endpoint_publishes_all_125_non_statistics_tools_and_ping()
     {
         string[] remote = (await _client.ListToolsAsync(cancellationToken: CancellationToken.None)).Select(tool => tool.Name).ToArray();
-        Assert.That(remote, Has.Length.EqualTo(122));
+        Assert.That(remote, Has.Length.EqualTo(126));
         Assert.That(remote, Is.Unique);
         Assert.That(remote, Has.None.Contains("usage_statistics"));
     }

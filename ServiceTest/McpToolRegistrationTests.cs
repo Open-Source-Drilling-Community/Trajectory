@@ -15,7 +15,7 @@ public sealed class McpToolRegistrationTests
     {
         var endpoints = TrajectoryRestMcpToolRegistrations.Endpoints;
 
-        Assert.That(endpoints, Has.Count.EqualTo(121));
+        Assert.That(endpoints, Has.Count.EqualTo(125));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Is.Unique);
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("."));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("usage_statistics"));
@@ -53,7 +53,7 @@ public sealed class McpToolRegistrationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(tools, Has.Length.EqualTo(121));
+            Assert.That(tools, Has.Length.EqualTo(125));
             Assert.That(tools.All(tool => !string.IsNullOrWhiteSpace(tool.ProtocolTool.Title)), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema.HasValue), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.Annotations is not null), Is.True);
@@ -207,7 +207,31 @@ public sealed class McpToolRegistrationTests
             Assert.That(surveyRunSearch.InputSchema!["properties"]!["offset"]!["default"]!.GetValue<int>(), Is.Zero);
             Assert.That(endpoints.Any(value => value.Name == "trajectory_get_all_trajectory"), Is.False);
             Assert.That(endpoints.Any(value => value.Name == "survey_run_get_all_survey_run"), Is.False);
-            Assert.That(endpoints, Has.Count.EqualTo(121));
+            Assert.That(endpoints, Has.Count.EqualTo(125));
+        });
+    }
+
+    [Test]
+    public void External_reference_tools_are_bounded_read_only_and_distinguish_unavailable_dependencies()
+    {
+        TrajectoryMcpEndpoint trajectoryValidation = Endpoint("trajectory_validate_external_references");
+        TrajectoryMcpEndpoint trajectoryAudit = Endpoint("trajectory_audit_external_references");
+        TrajectoryMcpEndpoint surveyRunValidation = Endpoint("survey_run_validate_external_references");
+        TrajectoryMcpEndpoint surveyRunAudit = Endpoint("survey_run_audit_external_references");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(trajectoryValidation.Description, Does.Contain("Unavailable, never Invalid"));
+            Assert.That(surveyRunValidation.Description, Does.Contain("SurveyInstrument"));
+            Assert.That(trajectoryAudit.Description, Does.Contain("deterministic UUID-ordered page"));
+            Assert.That(trajectoryAudit.Behavior.ReadOnlyHint, Is.True);
+            Assert.That(trajectoryAudit.Behavior.DestructiveHint, Is.False);
+            Assert.That(surveyRunAudit.Behavior.ReadOnlyHint, Is.True);
+            Assert.That(trajectoryAudit.InputSchema.ToJsonString(), Does.Contain("TrajectoryIDs"));
+            Assert.That(surveyRunAudit.InputSchema.ToJsonString(), Does.Contain("SurveyRunIDs"));
+            Assert.That(trajectoryAudit.InputSchema.ToJsonString(), Does.Contain("\"maximum\":100"));
+            Assert.That(trajectoryValidation.OutputSchema.ToJsonString(), Does.Contain("WellBoreExists"));
+            Assert.That(surveyRunValidation.OutputSchema.ToJsonString(), Does.Contain("SurveyInstrumentExists"));
         });
     }
 

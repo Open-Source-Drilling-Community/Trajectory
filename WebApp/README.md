@@ -2,7 +2,7 @@
 
 `WebApp` is the ASP.NET Core Blazor host application for Trajectory under `OSDC.Drilling.Trajectory.WebApp`.
 
-It provides the application shell, startup configuration, routing, and static assets for the UI. The Trajectory, TrajectoryInterpolation, and TrajectoryRealization pages themselves are now provided by the `WebPages` Razor class library.
+It provides the application shell, host-owned `/Home` route, startup configuration, routing, and static assets for the UI. Survey Run, Trajectory, calculation, catalog, backup/restore, and usage-statistics pages are provided by the `WebPages` Razor class library.
 
 ## Container
 
@@ -22,11 +22,15 @@ https://dev.digiwells.no/Trajectory/webapp/Trajectory
 
 https://app.digiwells.no/Trajectory/webapp/Trajectory
 
+https://awe.web.intra.norceresearch.no/Trajectory/webapp/Trajectory
+
 The backing service OpenAPI endpoint is available at:
 
 https://dev.digiwells.no/Trajectory/api/swagger
 
 https://app.digiwells.no/Trajectory/api/swagger
+
+https://awe.web.intra.norceresearch.no/Trajectory/api/swagger
 
 ## Project Relationship
 
@@ -36,7 +40,7 @@ https://app.digiwells.no/Trajectory/api/swagger
 
 ## Navigation
 
-The side menu exposes the main trajectory pages, including the shared Identities and Features catalogs, dependency-aware Backup / Restore under Import/Export, and the refreshable endpoint-level Usage Statistics page. Survey Run and Trajectory editors both assign definitions from those catalogs. Contextual data is ordered Field, Cluster, Well, WellBore, Rig, and Survey Instrument.
+Home is the first side-menu entry. The menu then exposes Survey Run and Trajectory management, the shared Identities and Features catalogs, trajectory calculations, batch import and dependency-aware Backup / Restore, reporting views, contextual data, calculators, and endpoint-level Usage Statistics. Survey Run and Trajectory editors both assign definitions from the shared catalogs. Contextual data is ordered Field, Cluster, Well, WellBore, Rig, and Survey Instrument. Calculators provide cartographic conversion, MSL/WGS84 vertical-datum conversion, gravitational and magnetic vectors, and unit conversion.
 
 ## Funding
 
@@ -53,3 +57,17 @@ The current work has been funded by the [Research Council of Norway](https://www
 The host consumes the local `OSDC.Drilling.Trajectory.WebPages` project and the published OSDC WebPages packages for the migrated sibling services, including `OSDC.Drilling.WellBoreArchitecture.WebPages`.
 
 The renamed Helm chart is `charts/osdcdrillingtrajectorywebappclient`. All production dependency URLs are supplied as Helm-managed environment variables and point to the corresponding OSDC Kubernetes services. `TrajectoryHostURL` points to `http://osdctrajectoryservice/`. The public routes remain `/Trajectory/webapp` and `/Trajectory/api` because they identify the domain resource rather than the owning organization.
+
+## Hosting requirements and local execution
+
+The host registers server-side Blazor, MudBlazor, `AddHttpClient()`, `ITrajectoryWebPagesConfiguration`, `ITrajectoryAPIUtils`, and the imported OSDC WebPages services. Route discovery includes the required reusable assemblies without giving those packages a generic `/Home` route; `/Home` remains owned by this WebApp.
+
+Configuration must supply the Trajectory, Field, Cluster, Rig, Well, WellBore, WellBore Architecture, Survey Instrument, Unit Conversion, Cartographic Projection, Earth Geodesy, Earth Gravity, Earth Magnetic Field, and Earth Vertical Datum URLs. Development settings use public DigiWells URLs and production/Helm settings use in-cluster service names.
+
+Run locally with:
+
+```powershell
+dotnet run --project .\WebApp\WebApp.csproj
+```
+
+The application always uses `/trajectory/webapp` as its path base, so test links beneath that prefix rather than only at the site root.

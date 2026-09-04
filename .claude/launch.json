@@ -1,0 +1,11 @@
+{
+  "version": "0.0.1",
+  "configurations": [
+    {
+      "name": "trajectory-webapp",
+      "runtimeExecutable": "dotnet",
+      "runtimeArgs": ["run", "--project", "WebApp/WebApp.csproj", "--no-build", "--urls", "http://localhost:5012"],
+      "port": 5012
+    }
+  ]
+}

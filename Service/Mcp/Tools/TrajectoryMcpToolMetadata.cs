@@ -40,6 +40,12 @@ internal static class TrajectoryMcpToolMetadata
             detail = "Create a versioned JSON backup of all records or an explicit selection. A selected trajectory automatically includes all survey runs referenced by its sections, and every selected survey run includes its parent chain. The document also carries the identity and feature definitions needed by those records.";
         else if (controller == "Trajectory" && action == "BatchRestore")
             detail = "Restore a versioned dependency-closed backup. The service validates the complete document, matches catalog definitions and options by exact UUID by default, optionally creates missing definitions, writes survey runs before dependent trajectories, and atomically commits record changes without recalculation. Normalized-name mapping of compatible definitions with different UUIDs occurs only when AllowNormalizedNameMapping is explicitly true. Use FailIfExists for a non-destructive import or ReplaceExisting explicitly.";
+        else if (action == "ValidateExternalReferences")
+            detail = controller == "Trajectory"
+                ? "Check one stored trajectory's externally owned Field, Cluster, Well and WellBore UUIDs without modifying data. Missing resources are Invalid; configuration, transport, dependency-service and malformed-response failures are Unavailable, never Invalid. Optional unlinked references are valid."
+                : "Check one stored survey run's externally owned Field, Cluster, Well, WellBore and SurveyInstrument UUIDs without modifying data. Missing resources are Invalid; configuration, transport, dependency-service and malformed-response failures are Unavailable, never Invalid. Optional unlinked references are valid.";
+        else if (action == "AuditExternalReferences")
+            detail = $"Check a deterministic UUID-ordered page of all or explicitly selected stored {resource} records without modifying data. Offset must be non-negative and limit is 1 through 100. Results and page counts distinguish Valid, Invalid and Unavailable checks; unavailable dependencies are never reported as missing data.";
         else if (action.StartsWith("Search", StringComparison.Ordinal))
             detail = $"Return one deterministic bounded page of lightweight {resource} records with the total match count. Filter by free text and owned relationship/type fields, use offset for continuation, and keep limit between 1 and 500. Fetch a selected resource by UUID when complete data is needed.";
         else if (controller == "SurveyRun" && action == "PutSurveyMeasurementChunk")
@@ -118,7 +124,11 @@ internal static class TrajectoryMcpToolMetadata
             schema["description"] = DescribeParameter(controller, method.Name, parameter);
             if (name == "chunkIndex") schema["minimum"] = 0;
             if (name == "offset") schema["minimum"] = 0;
-            if (name == "limit") { schema["minimum"] = 1; schema["maximum"] = 500; }
+            if (name == "limit")
+            {
+                schema["minimum"] = 1;
+                schema["maximum"] = method.Name == "AuditExternalReferences" ? 100 : 500;
+            }
             if (name == "id" && parameter.ParameterType == typeof(string)) schema["minLength"] = 1;
             properties[name] = schema;
 
@@ -177,7 +187,8 @@ internal static class TrajectoryMcpToolMetadata
     {
         string[] methods = verbs.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         bool readOnly = (methods.Length > 0 && methods.All(value => value == "GET")) ||
-                        (controller == "Trajectory" && method.Name == "BatchExport");
+                        (controller == "Trajectory" && method.Name == "BatchExport") ||
+                        method.Name == "AuditExternalReferences";
         bool destructive = methods.Contains("DELETE", StringComparer.Ordinal) ||
                            (controller == "Trajectory" && method.Name == "BatchRestore");
         bool idempotent = readOnly || methods.Contains("PUT", StringComparer.Ordinal) ||
@@ -238,6 +249,7 @@ internal static class TrajectoryMcpToolMetadata
             "chunk" => "Complete survey-measurement chunk. SurveyRunID and ChunkIndex must match the route arguments; MD is metres and Inclination/Azimuth are radians.",
             "request" when controller == "Trajectory" && action == "BatchExport" => "Backup scope and optional survey-run and trajectory UUID selections. For Selected, provide at least one UUID; dependent survey runs are added automatically.",
             "request" when controller == "Trajectory" && action == "BatchRestore" => "Complete backup document plus record-conflict and catalog-resolution policies. Restore validates the full graph before writing records.",
+            "request" when action == "AuditExternalReferences" => "Audit scope (All or Selected), optional selected resource UUIDs, and deterministic offset/limit page. Selected UUIDs must be non-empty and unique; limit is 1 through 100.",
             "data" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation. Follow the nested schema and SI-unit annotations.",
             "value" when controller == "GlobalAntiCollisions" => "Complete global anti-collision configuration JSON representation.",
             "value" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation.",
@@ -330,6 +342,22 @@ internal static class TrajectoryMcpToolMetadata
             else if (property.Name == nameof(TrajectoryBatchExportDocument.SchemaVersion))
                 schema["const"] = TrajectoryBatchExportDocument.CurrentSchemaVersion;
         }
+        else if (declaringType == typeof(TrajectoryExternalReferenceAuditRequest) ||
+                 declaringType == typeof(SurveyRunExternalReferenceAuditRequest))
+        {
+            if (property.Name == "Scope") required.Add(property.Name);
+            else if (property.Name == "Offset") schema["minimum"] = 0;
+            else if (property.Name == "Limit")
+            {
+                schema["minimum"] = 1;
+                schema["maximum"] = 100;
+            }
+            else if (property.Name is "TrajectoryIDs" or "SurveyRunIDs")
+            {
+                schema["minItems"] = 1;
+                schema["uniqueItems"] = true;
+            }
+        }
         else if (declaringType == typeof(OctreeIndexStatus) && property.Name is
                  nameof(OctreeIndexStatus.TrajectoryID) or
                  nameof(OctreeIndexStatus.State) or
@@ -397,6 +425,15 @@ internal static class TrajectoryMcpToolMetadata
             return "Maximum adaptive-refinement recursion level (dimensionless integer from 1 through 12).";
         if (declaringType == typeof(TrajectoryBatchRestoreRequest) && name == nameof(TrajectoryBatchRestoreRequest.AllowNormalizedNameMapping))
             return "Explicit opt-in to map compatible catalog definitions and options with different UUIDs by normalized name; false requires exact UUID matches.";
+        if ((declaringType == typeof(TrajectoryExternalReferenceAuditRequest) ||
+             declaringType == typeof(SurveyRunExternalReferenceAuditRequest)) && name == "Scope")
+            return "Audit All stored resources or an explicit Selected UUID set.";
+        if ((declaringType == typeof(TrajectoryExternalReferenceAuditRequest) ||
+             declaringType == typeof(SurveyRunExternalReferenceAuditRequest)) && name == "Offset")
+            return "Zero-based number of UUID-ordered matches to skip.";
+        if ((declaringType == typeof(TrajectoryExternalReferenceAuditRequest) ||
+             declaringType == typeof(SurveyRunExternalReferenceAuditRequest)) && name == "Limit")
+            return "Maximum page size from 1 through 100.";
         if (name == "MD" || name.EndsWith("MD", StringComparison.Ordinal)) return "Measured/along-hole depth in SI metres.";
         if (name.Contains("Inclination", StringComparison.OrdinalIgnoreCase)) return "Inclination angle in SI radians.";
         if (name.Contains("Azimuth", StringComparison.OrdinalIgnoreCase)) return "Azimuth angle in SI radians.";

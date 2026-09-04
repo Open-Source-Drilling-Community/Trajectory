@@ -1,6 +1,6 @@
 # ModelTest
 
-`ModelTest` contains automated tests for the `OSDC.Drilling.Trajectory.Model` project.
+`ModelTest` is the NUnit test project reserved for the `OSDC.Drilling.Trajectory.Model` project.
 
 ## Responsibility
 
@@ -34,4 +34,4 @@ dotnet test ModelTest/ModelTest.csproj
 
 ## Notes
 
-The current test project structure is in place and references the model correctly, but the active test surface is currently minimal.
+The project currently contains no discoverable test cases; `dotnet test` therefore reports that no tests are available. Model behavior is also exercised indirectly by service and anti-collision verification, but new model-level regression tests should be added here rather than relying only on integration coverage.

@@ -6,11 +6,13 @@ It exposes the Trajectory API and depends on the `Model` project for the domain 
 
 ## Responsibilities
 
-- expose CRUD endpoints for trajectory data
-- expose trajectory interpolation cases
-- expose trajectory realization cases
-- persist data in SQLite
-- run trajectory realization calculations asynchronously so long-running cases do not block the request that creates or updates the case
+- expose SurveyRun and Trajectory CRUD, search, identity/feature assignment, and chunk endpoints
+- expose interpolation, realization, aggregation, station-ellipse, and minimum-distance calculation cases
+- maintain and query the derived global anti-collision octree index
+- provide versioned dependency-closed backup and atomic restore
+- provide read-only single-record external-reference validation and bounded audits
+- persist resource, catalog, calculation, anti-collision, and usage-history state
+- run long calculations asynchronously so requests can poll state and progress instead of blocking
 
 ## Container
 
@@ -30,11 +32,15 @@ https://dev.digiwells.no/Trajectory/api/swagger
 
 https://app.digiwells.no/Trajectory/api/swagger
 
+https://awe.web.intra.norceresearch.no/Trajectory/api/swagger
+
 Trajectory API:
 
 https://dev.digiwells.no/Trajectory/api/Trajectory
 
 https://app.digiwells.no/Trajectory/api/Trajectory
+
+https://awe.web.intra.norceresearch.no/Trajectory/api/Trajectory
 
 Trajectory realization cases are exposed through:
 
@@ -55,7 +61,7 @@ The light data endpoint is intended for grids and polling calculation status. Re
 
 ## Persistence and identity cutover
 
-The service keeps its historical API path (`/Trajectory/api` case-insensitively), database filenames, and `trajectory-claim` storage identity. Its renamed Helm chart is `charts/osdcdrillingtrajectoryservice` and defaults to a `Recreate` deployment strategy. For a new OSDC Helm release that must reuse production data, set `persistence.existingClaim=trajectory-claim` explicitly.
+The service keeps its historical API path (`/Trajectory/api` case-insensitively), database filenames, and `trajectory-claim` storage identity. Its renamed Helm chart is `charts/osdcdrillingtrajectoryservice` and defaults to a `Recreate` deployment strategy with one replica. For a new OSDC Helm release that must reuse production data, set `persistence.existingClaim=trajectory-claim` explicitly. Never run overlapping service pods against these SQLite files.
 
 Fresh `Trajectory.db` files are created transactionally at schema version 2. Exact version-0/1 databases are upgraded additively in one transaction: the identity and feature tables are created in the main database and rows are copied from a validated sibling `TrajectoryCatalog.db`, when present. The legacy catalog file is deliberately retained as a rollback copy and existing survey/trajectory rows are not rewritten. Unexpected tables, missing or malformed columns, malformed legacy catalogs, and newer schema versions fail startup without automatic deletion or reconstruction.
 
@@ -95,13 +101,15 @@ The service publishes its non-statistics REST actions as MCP tools. Tool registr
 
 - Streamable HTTP: `/trajectory/api/mcp`
 - WebSocket: `/trajectory/api/mcp/ws`
-- Published controller tools: 121
+- Published controller tools: 125
 - Utility tools: `ping`
 - Excluded surface: `TrajectoryUsageStatisticsController`
 
 The descriptions explain the service workflows as well as individual calls. In particular, survey-measurement chunks are uploaded with zero-based indexes and then committed; calculation cases are created and polled through `CalculationState`/`CalculationProgress`; large station, realization, minimum-distance, and aggregation results are retrieved through chunk-count and chunk tools. Octree indexes are maintained automatically by trajectory writes and startup reconciliation. `GET Octrees/{id}/Status` exposes `Missing`, `NotIndexable`, `Stale`, or `Current` plus schema/calculation provenance and compact counts; the list operation can filter indexed UUIDs by `TrajectoryType` and `IsDefinitive`. POST/PUT are documented as operational repair actions and return the resulting status, while DELETE explicitly removes only rebuildable derived data. Unless a field explicitly says otherwise, lengths, depths, coordinates, and distances are metres, angles are radians, and curvature is radians per metre. Octree and adaptive-refinement maximum depths are dimensionless subdivision/recursion levels, not physical depths.
 
 MCP discovery for the two primary resources uses bounded `trajectory_search_trajectory` and `survey_run_search_survey_run` tools, returning deterministic lightweight pages with a total count, default limit 100, and maximum limit 500. Their unbounded full-list REST actions remain available for existing clients but are deliberately not registered as MCP tools.
+
+Trajectory and SurveyRun each expose a read-only `GET {id}/ExternalReferences` validation and `POST ExternalReferenceAudit` diagnostic. Audits accept `All` or an explicit unique UUID selection, order records deterministically by UUID, and return at most 100 results per page. The validator checks the configured Field, Cluster, Well and WellBore services and, for SurveyRuns, SurveyInstrument. A confirmed 404 is `Invalid`; missing configuration, transport failures, non-success dependency responses, and malformed or mismatched responses are `Unavailable` and are never treated as proof of invalid data. Optional unlinked references are permitted, while required empty WellBore or SurveyInstrument UUIDs are invalid. These diagnostics never participate in writes or alter stored records.
 
 PUT and DELETE operations for trajectories, survey runs, saved batch imports, interpolated trajectories, realization and aggregation cases, ellipse calculations, and both minimum-distance calculation families require `expectedModifiedUtc`. Copy this opaque value from the latest `LastModificationDate`; stale mutations return HTTP 409 with `error: stale_write`. The same rule applies to identity and feature-category definitions.
 
@@ -114,6 +122,14 @@ Global anti-collision create and update tools return the calculated stored repre
 Persisted calculation cases and results have no age-based retention policy. The service never deletes them automatically after 90 days (or any other age); removal requires an explicit delete request.
 
 Optional registration with an external MCP hub is configured in `appsettings.json` and is disabled by default.
+
+## Local execution and dependency configuration
+
+The service uses the `/trajectory/api` path base. For integration tests, launch it on `http://localhost:8080`; the generated client calls `http://localhost:8080/Trajectory/api/` and routing is case-insensitive in the deployed ingress.
+
+External-reference diagnostics read `FieldHostURL`, `ClusterHostURL`, `WellHostURL`, `WellBoreHostURL`, and `SurveyInstrumentHostURL`. Development values point to the public development host; the Helm chart supplies in-cluster OSDC service URLs in production. These calls are diagnostic only: dependency unavailability is returned as `Unavailable` and never blocks or mutates a Trajectory or SurveyRun write.
+
+The databases and usage history are relative to the service working directory and are mounted under the durable `/home` volume in containers. Use an isolated test working directory when running destructive integration tests; never clear a developer or deployed database to make a test repeatable.
 
 ## Shared identities and features
 

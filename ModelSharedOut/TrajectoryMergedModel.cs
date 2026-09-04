@@ -37361,6 +37361,197 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<SurveyRunExternalReferenceValidation> ValidateSurveyRunExternalReferencesAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        {
+            if (id == null)
+                throw new System.ArgumentNullException("id");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "SurveyRun/{id}/ExternalReferences"
+                    urlBuilder_.Append("SurveyRun/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/ExternalReferences");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<SurveyRunExternalReferenceValidation>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new ApiException<ProblemDetails>("Bad Request", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 404)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new ApiException<ProblemDetails>("Not Found", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<SurveyRunExternalReferenceAuditResult> AuditSurveyRunExternalReferencesAsync(SurveyRunExternalReferenceAuditRequest body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.ByteArrayContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "SurveyRun/ExternalReferenceAudit"
+                    urlBuilder_.Append("SurveyRun/ExternalReferenceAudit");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<SurveyRunExternalReferenceAuditResult>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new ApiException<ProblemDetails>("Bad Request", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 404)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new ApiException<ProblemDetails>("Not Found", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<TrajectoryBatchExportDocument> BatchExportTrajectoryDataAsync(TrajectoryBatchExportRequest body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
@@ -37656,6 +37847,197 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
                             }
                             return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<TrajectoryExternalReferenceValidation> ValidateTrajectoryExternalReferencesAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        {
+            if (id == null)
+                throw new System.ArgumentNullException("id");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "Trajectory/{id}/ExternalReferences"
+                    urlBuilder_.Append("Trajectory/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/ExternalReferences");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<TrajectoryExternalReferenceValidation>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new ApiException<ProblemDetails>("Bad Request", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 404)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new ApiException<ProblemDetails>("Not Found", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<TrajectoryExternalReferenceAuditResult> AuditTrajectoryExternalReferencesAsync(TrajectoryExternalReferenceAuditRequest body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.ByteArrayContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "Trajectory/ExternalReferenceAudit"
+                    urlBuilder_.Append("Trajectory/ExternalReferenceAudit");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<TrajectoryExternalReferenceAuditResult>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        if (status_ == 400)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new ApiException<ProblemDetails>("Bad Request", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
+                        }
+                        else
+                        if (status_ == 404)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ProblemDetails>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            throw new ApiException<ProblemDetails>("Not Found", status_, objectResponse_.Text, headers_, objectResponse_.Object, null);
                         }
                         else
                         {
@@ -59239,6 +59621,87 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ProblemDetails
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("type")]
+        public string Type { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("title")]
+        public string Title { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("status")]
+        public int? Status { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("detail")]
+        public string Detail { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("instance")]
+        public string Instance { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum ExternalReferenceAuditScope
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"All")]
+        All = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Selected")]
+        Selected = 1,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ExternalReferenceIssue
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("Property")]
+        public string Property { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Code")]
+        public string Code { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Message")]
+        public string Message { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum ExternalReferenceValidationStatus
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Valid")]
+        Valid = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Invalid")]
+        Invalid = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Unavailable")]
+        Unavailable = 2,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public enum OctreeIndexState
     {
 
@@ -59300,6 +59763,132 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("CalculationParametersHash")]
         public string CalculationParametersHash { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class SurveyRunExternalReferenceAuditRequest
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("Scope")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ExternalReferenceAuditScope>))]
+        public ExternalReferenceAuditScope Scope { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("SurveyRunIDs")]
+        public System.Collections.Generic.List<System.Guid> SurveyRunIDs { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Offset")]
+        public int Offset { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Limit")]
+        public int Limit { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class SurveyRunExternalReferenceAuditResult
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("CheckedAtUtc")]
+        public System.DateTimeOffset CheckedAtUtc { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Total")]
+        public int Total { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Offset")]
+        public int Offset { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Limit")]
+        public int Limit { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ValidCount")]
+        public int ValidCount { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("InvalidCount")]
+        public int InvalidCount { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("UnavailableCount")]
+        public int UnavailableCount { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Items")]
+        public System.Collections.Generic.List<SurveyRunExternalReferenceValidation> Items { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class SurveyRunExternalReferenceValidation
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("SurveyRunID")]
+        public System.Guid SurveyRunID { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("FieldID")]
+        public System.Guid? FieldID { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ClusterID")]
+        public System.Guid? ClusterID { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("WellID")]
+        public System.Guid? WellID { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("WellBoreID")]
+        public System.Guid WellBoreID { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("SurveyInstrumentID")]
+        public System.Guid SurveyInstrumentID { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("FieldExists")]
+        public bool? FieldExists { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ClusterExists")]
+        public bool? ClusterExists { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("WellExists")]
+        public bool? WellExists { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("WellBoreExists")]
+        public bool? WellBoreExists { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("SurveyInstrumentExists")]
+        public bool? SurveyInstrumentExists { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Status")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ExternalReferenceValidationStatus>))]
+        public ExternalReferenceValidationStatus Status { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("CheckedAtUtc")]
+        public System.DateTimeOffset CheckedAtUtc { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Issues")]
+        public System.Collections.Generic.List<ExternalReferenceIssue> Issues { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -59603,6 +60192,126 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("TrajectoryIDs")]
         public System.Collections.Generic.List<System.Guid> TrajectoryIDs { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class TrajectoryExternalReferenceAuditRequest
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("Scope")]
+        [System.ComponentModel.DataAnnotations.Required(AllowEmptyStrings = true)]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ExternalReferenceAuditScope>))]
+        public ExternalReferenceAuditScope Scope { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("TrajectoryIDs")]
+        public System.Collections.Generic.List<System.Guid> TrajectoryIDs { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Offset")]
+        public int Offset { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Limit")]
+        public int Limit { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class TrajectoryExternalReferenceAuditResult
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("CheckedAtUtc")]
+        public System.DateTimeOffset CheckedAtUtc { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Total")]
+        public int Total { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Offset")]
+        public int Offset { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Limit")]
+        public int Limit { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ValidCount")]
+        public int ValidCount { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("InvalidCount")]
+        public int InvalidCount { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("UnavailableCount")]
+        public int UnavailableCount { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Items")]
+        public System.Collections.Generic.List<TrajectoryExternalReferenceValidation> Items { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class TrajectoryExternalReferenceValidation
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("TrajectoryID")]
+        public System.Guid TrajectoryID { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("FieldID")]
+        public System.Guid? FieldID { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ClusterID")]
+        public System.Guid? ClusterID { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("WellID")]
+        public System.Guid? WellID { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("WellBoreID")]
+        public System.Guid WellBoreID { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("FieldExists")]
+        public bool? FieldExists { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ClusterExists")]
+        public bool? ClusterExists { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("WellExists")]
+        public bool? WellExists { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("WellBoreExists")]
+        public bool? WellBoreExists { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Status")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ExternalReferenceValidationStatus>))]
+        public ExternalReferenceValidationStatus Status { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("CheckedAtUtc")]
+        public System.DateTimeOffset CheckedAtUtc { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Issues")]
+        public System.Collections.Generic.List<ExternalReferenceIssue> Issues { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 

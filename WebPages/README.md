@@ -2,15 +2,19 @@
 
 `OSDC.Drilling.Trajectory.WebPages` is a Razor class library that contains the Trajectory UI pages extracted from the main Trajectory web application.
 
-It currently provides:
+It currently provides routed pages for:
 
+- `SurveyRun` and batch survey-run import
 - `TrajectoryMain`
 - `TrajectoryEdit`
 - `TrajectoryInterpolatedMain`
 - `TrajectoryInterpolationEdit`
 - `TrajectoryRealizationMain`
 - `TrajectoryRealizationEdit`
+- trajectory aggregation
+- survey-run and trajectory minimum-distance calculations
 - supporting UI components used by those pages
+- `TrajectoryIdentities` and `TrajectoryFeatures`
 - `TrajectoryBackupRestore`, for dependency-aware JSON backup and restore
 - `StatisticsTrajectory`, for refreshable summary and per-endpoint usage statistics
 
@@ -36,12 +40,13 @@ Exported columns per realization are `MD`, `Incl`, `Az`, `TVD`, `North`, `East`,
 
 ## Dependencies
 
-The package depends on:
+The package compiles the generated Trajectory DTO/client sources from `ModelSharedOut` into the package and depends on:
 
-- `OSDC.Drilling.Trajectory.ModelSharedOut`
-- `MudBlazor`
+- `OSDC.DotnetLibraries.Drilling.Surveying`
+- `OSDC.DotnetLibraries.Drilling.WebAppUtils`
 - `Plotly.Blazor`
-- `OSDC.UnitConversion.DrillingRazorMudComponents`
+
+`OSDC.DotnetLibraries.Drilling.WebAppUtils` supplies MudBlazor and the OSDC unit-conversion components transitively. A consuming host must still register their runtime services and configuration.
 
 ## Host Application Requirements
 
@@ -50,9 +55,11 @@ The consuming application is expected to:
 - reference this package
 - configure routing so the assembly containing `OSDC.Drilling.Trajectory.WebPages` components is discovered
 - provide the required MudBlazor services
+- register `AddHttpClient()` because the pages use `IHttpClientFactory`
 - load the Plotly.Blazor static assets
 - register an `ITrajectoryAPIUtils` implementation in dependency injection
 - register an `ITrajectoryWebPagesConfiguration` implementation
+- ensure the generated Trajectory client and OSDC unit-conversion components are available
 
 ## Configuration
 
@@ -73,6 +80,9 @@ The streamlined design is to register:
 - `IWellBoreArchitectureHostURL`
 - `ITrajectoryHostURL`
 - `IUnitConversionHostURL`
+- `ISurveyInstrumentHostURL`
+
+It also requires `EarthMagneticFieldHostURL` and `VerticalDatumHostURL` string properties for survey corrections and depth-reference presentation. The standalone WebApp additionally configures the Earth Gravity and cartographic/geodetic calculator pages it hosts.
 
 The host application is responsible for supplying those endpoint values through its configuration object.
 
@@ -97,3 +107,16 @@ The package, assembly, and static-web-asset base identity are all `OSDC.Drilling
 ## Mean-sea-level depth references
 
 Trajectory editing resolves mean-sea-level depth references through `MslDepthReferenceUtils`. The editor uses the configured Vertical Datum service data when presenting and updating trajectory interpolation values.
+
+Canonical service values remain SI metres relative to WGS84. Changing the UI depth reference changes both the displayed value and unit label; values are converted back to WGS84 before submission.
+
+## Packaging
+
+Build before packing so the Razor static-web-assets manifest and generated DTO sources are current:
+
+```powershell
+dotnet build .\WebPages\WebPages.csproj --configuration Release
+dotnet pack .\WebPages\WebPages.csproj --configuration Release --no-build
+```
+
+After a service contract change, regenerate `ModelSharedOut` before building this package.

@@ -6,7 +6,7 @@
 
 This project defines the core model types and computational behavior for trajectory data and related interpolation and calculation workflows.
 
-It is the main implementation project behind the Trajectory service.
+It is the main implementation project behind the Trajectory service. It does not own database or HTTP behavior; those concerns belong to `Service`.
 
 ## Main Features
 
@@ -17,6 +17,11 @@ It is the main implementation project behind the Trajectory service.
 - versioned backup/restore contract types for dependency-closed survey-run and trajectory documents
 - deterministic bounded search-result contracts for trajectory and survey-run discovery
 - typed octree-index health and provenance states for lightweight REST and MCP inspection
+- read-only Trajectory and SurveyRun external-reference validation and bounded-audit request/result contracts, with distinct `Valid`, `Invalid`, and `Unavailable` states
+
+Persisted and wire-level engineering quantities use SI units. Depths and vertical coordinates are metres relative to WGS84; alternative depth references are UI presentation transformations and must be converted back before persistence.
+
+Field, Cluster, Well, WellBore, WellBore Architecture, Rig, and Survey Instrument identifiers are identifiers owned by other microservices. The model carries those UUIDs without embedding the external resources. Trajectory and SurveyRun validation/audit result types report confirmed missing references separately from an unavailable dependency.
 
 ## Trajectory Realizations
 
@@ -35,6 +40,7 @@ If a realization attempt cannot be completed, the model draws a new realization 
 `Model` depends on:
 
 - `ModelSharedIn`
+- `OSDC.DotnetLibraries.Drilling.Section`
 - `OSDC.DotnetLibraries.Drilling.Surveying`
 - `OSDC.DotnetLibraries.General.DataManagement` 2.2 or later for the common identity/feature interfaces
 

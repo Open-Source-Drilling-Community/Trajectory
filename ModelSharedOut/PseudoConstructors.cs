@@ -6934,6 +6934,26 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				Value = "Default Value",
 			};
 		}
+		public static ProblemDetails ConstructProblemDetails()
+		{
+			return new ProblemDetails
+			{
+				Type = "Default Type",
+				Title = "Default Title",
+				Status = null,
+				Detail = "Default Detail",
+				Instance = "Default Instance",
+			};
+		}
+		public static ExternalReferenceIssue ConstructExternalReferenceIssue()
+		{
+			return new ExternalReferenceIssue
+			{
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
 		public static OctreeIndexStatus ConstructOctreeIndexStatus()
 		{
 			return new OctreeIndexStatus
@@ -6951,6 +6971,59 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				IndexSchemaVersion = null,
 				ConfidenceFactor = null,
 				CalculationParametersHash = "Default CalculationParametersHash",
+			};
+		}
+		public static SurveyRunExternalReferenceAuditRequest ConstructSurveyRunExternalReferenceAuditRequest()
+		{
+			return new SurveyRunExternalReferenceAuditRequest
+			{
+				Scope = (ExternalReferenceAuditScope)0,
+				SurveyRunIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				Offset = 0,
+				Limit = 0,
+			};
+		}
+		public static SurveyRunExternalReferenceAuditResult ConstructSurveyRunExternalReferenceAuditResult()
+		{
+			return new SurveyRunExternalReferenceAuditResult
+			{
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Total = 0,
+				Offset = 0,
+				Limit = 0,
+				ValidCount = 0,
+				InvalidCount = 0,
+				UnavailableCount = 0,
+				Items = new List<SurveyRunExternalReferenceValidation>
+					{
+						ConstructSurveyRunExternalReferenceValidation(),
+					},
+			};
+		}
+		public static SurveyRunExternalReferenceValidation ConstructSurveyRunExternalReferenceValidation()
+		{
+			return new SurveyRunExternalReferenceValidation
+			{
+				SurveyRunID = new Guid(),
+				FieldID = null,
+				ClusterID = null,
+				WellID = null,
+				WellBoreID = new Guid(),
+				SurveyInstrumentID = new Guid(),
+				FieldExists = null,
+				ClusterExists = null,
+				WellExists = null,
+				WellBoreExists = null,
+				SurveyInstrumentExists = null,
+				Status = (ExternalReferenceValidationStatus)0,
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Issues = new List<ExternalReferenceIssue>
+					{
+						ConstructExternalReferenceIssue(),
+					},
 			};
 		}
 		public static SurveyRunSearchResult ConstructSurveyRunSearchResult()
@@ -7074,6 +7147,57 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				TrajectoryIDs = new List<Guid>
 					{
 						new Guid(),
+					},
+			};
+		}
+		public static TrajectoryExternalReferenceAuditRequest ConstructTrajectoryExternalReferenceAuditRequest()
+		{
+			return new TrajectoryExternalReferenceAuditRequest
+			{
+				Scope = (ExternalReferenceAuditScope)0,
+				TrajectoryIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				Offset = 0,
+				Limit = 0,
+			};
+		}
+		public static TrajectoryExternalReferenceAuditResult ConstructTrajectoryExternalReferenceAuditResult()
+		{
+			return new TrajectoryExternalReferenceAuditResult
+			{
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Total = 0,
+				Offset = 0,
+				Limit = 0,
+				ValidCount = 0,
+				InvalidCount = 0,
+				UnavailableCount = 0,
+				Items = new List<TrajectoryExternalReferenceValidation>
+					{
+						ConstructTrajectoryExternalReferenceValidation(),
+					},
+			};
+		}
+		public static TrajectoryExternalReferenceValidation ConstructTrajectoryExternalReferenceValidation()
+		{
+			return new TrajectoryExternalReferenceValidation
+			{
+				TrajectoryID = new Guid(),
+				FieldID = null,
+				ClusterID = null,
+				WellID = null,
+				WellBoreID = new Guid(),
+				FieldExists = null,
+				ClusterExists = null,
+				WellExists = null,
+				WellBoreExists = null,
+				Status = (ExternalReferenceValidationStatus)0,
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Issues = new List<ExternalReferenceIssue>
+					{
+						ConstructExternalReferenceIssue(),
 					},
 			};
 		}

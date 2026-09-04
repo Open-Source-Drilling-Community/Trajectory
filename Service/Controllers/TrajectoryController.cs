@@ -6,6 +6,7 @@ using Microsoft.Extensions.Logging;
 using OSDC.DotnetLibraries.General.DataManagement;
 using OSDC.Drilling.Trajectory.Model;
 using OSDC.Drilling.Trajectory.Service.Managers;
+using System.Linq;
 using System.Threading.Tasks;
 
 namespace OSDC.Drilling.Trajectory.Service.Controllers
@@ -19,14 +20,17 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         private readonly TrajectoryManager _trajectoryManager;
         private readonly TrajectoryAssignmentValidator _assignmentValidator;
         private readonly TrajectoryBatchService _batchService;
+        private readonly ITrajectoryExternalReferenceValidator _externalReferenceValidator;
 
         public TrajectoryController(ILogger<TrajectoryManager> logger, SqlConnectionManager connectionManager, OctreeManager octreeManager,
-            TrajectoryAssignmentValidator assignmentValidator, TrajectoryBatchService batchService)
+            TrajectoryAssignmentValidator assignmentValidator, TrajectoryBatchService batchService,
+            ITrajectoryExternalReferenceValidator? externalReferenceValidator = null)
         {
             _logger = logger;
             _trajectoryManager = TrajectoryManager.GetInstance(_logger, connectionManager, octreeManager);
             _assignmentValidator = assignmentValidator;
             _batchService = batchService;
+            _externalReferenceValidator = externalReferenceValidator ?? new UnavailableTrajectoryExternalReferenceValidator();
         }
 
         /// <summary>
@@ -201,6 +205,75 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             {
                 Offset = offset, Limit = limit, TotalCount = ordered.Count,
                 Items = ordered.Skip(offset).Take(limit).ToList()
+            });
+        }
+
+        /// <summary>Checks one stored trajectory's externally owned Field, Cluster, Well and WellBore references without changing data.</summary>
+        [HttpGet("{id}/ExternalReferences", Name = "ValidateTrajectoryExternalReferences")]
+        [ProducesResponseType<TrajectoryExternalReferenceValidation>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<TrajectoryExternalReferenceValidation>> ValidateExternalReferences(Guid id)
+        {
+            if (id == Guid.Empty)
+                return BadRequest(new { error = "invalid_id", message = "A non-empty Trajectory UUID is required." });
+            Model.Trajectory? trajectory = _trajectoryManager.GetTrajectoryById(id, includeCalculatedStations: false);
+            if (trajectory == null)
+                return NotFound(new { error = "not_found", message = "The Trajectory does not exist." });
+            IReadOnlyList<TrajectoryExternalReferenceValidation> results =
+                await _externalReferenceValidator.ValidateTrajectoriesAsync([trajectory], HttpContext?.RequestAborted ?? default);
+            return Ok(results.Single());
+        }
+
+        /// <summary>Checks a deterministic bounded page of all or selected stored trajectories for external-reference consistency.</summary>
+        [HttpPost("ExternalReferenceAudit", Name = "AuditTrajectoryExternalReferences")]
+        [ProducesResponseType<TrajectoryExternalReferenceAuditResult>(StatusCodes.Status200OK)]
+        [ProducesResponseType(StatusCodes.Status400BadRequest)]
+        [ProducesResponseType(StatusCodes.Status404NotFound)]
+        public async Task<ActionResult<TrajectoryExternalReferenceAuditResult>> AuditExternalReferences(
+            [FromBody] TrajectoryExternalReferenceAuditRequest? request)
+        {
+            if (request == null)
+                return BadRequest(new { error = "invalid_request", message = "An audit request is required." });
+            if (!Enum.IsDefined(request.Scope))
+                return BadRequest(new { error = "invalid_scope", message = "Scope must be All or Selected." });
+            if (request.Offset < 0 || request.Limit is < 1 or > 100)
+                return BadRequest(new { error = "invalid_page", message = "Offset must be non-negative and limit must be between 1 and 100." });
+            if (request.Scope == ExternalReferenceAuditScope.Selected &&
+                (request.TrajectoryIDs == null || request.TrajectoryIDs.Count == 0))
+                return BadRequest(new { error = "missing_ids", message = "Selected scope requires at least one Trajectory UUID." });
+            if (request.TrajectoryIDs?.Any(value => value == Guid.Empty) == true ||
+                request.TrajectoryIDs?.Distinct().Count() != request.TrajectoryIDs?.Count)
+                return BadRequest(new { error = "invalid_ids", message = "Trajectory UUIDs must be non-empty and unique." });
+
+            List<Model.TrajectoryLight>? stored = _trajectoryManager.GetAllTrajectoryLight();
+            if (stored == null) return StatusCode(StatusCodes.Status500InternalServerError);
+            Dictionary<Guid, Model.TrajectoryLight> byId = stored.Where(value => value.MetaInfo != null)
+                .ToDictionary(value => value.MetaInfo!.ID);
+            IEnumerable<Model.TrajectoryLight> selected = byId.Values;
+            if (request.Scope == ExternalReferenceAuditScope.Selected)
+            {
+                List<Guid> selectedIds = request.TrajectoryIDs!;
+                Guid missingId = selectedIds.FirstOrDefault(id => !byId.ContainsKey(id));
+                if (missingId != Guid.Empty)
+                    return NotFound(new { error = "not_found", message = $"Selected Trajectory UUID '{missingId}' does not exist." });
+                selected = selectedIds.Select(id => byId[id]);
+            }
+
+            List<Model.TrajectoryLight> matches = selected.OrderBy(value => value.MetaInfo!.ID).ToList();
+            List<Model.TrajectoryLight> page = matches.Skip(request.Offset).Take(request.Limit).ToList();
+            IReadOnlyList<TrajectoryExternalReferenceValidation> items =
+                await _externalReferenceValidator.ValidateTrajectoriesAsync(page, HttpContext?.RequestAborted ?? default);
+            return Ok(new TrajectoryExternalReferenceAuditResult
+            {
+                CheckedAtUtc = items.FirstOrDefault()?.CheckedAtUtc ?? DateTimeOffset.UtcNow,
+                Total = matches.Count,
+                Offset = request.Offset,
+                Limit = request.Limit,
+                ValidCount = items.Count(value => value.Status == ExternalReferenceValidationStatus.Valid),
+                InvalidCount = items.Count(value => value.Status == ExternalReferenceValidationStatus.Invalid),
+                UnavailableCount = items.Count(value => value.Status == ExternalReferenceValidationStatus.Unavailable),
+                Items = items.ToList()
             });
         }
 
