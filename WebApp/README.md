@@ -36,7 +36,7 @@ https://app.digiwells.no/Trajectory/api/swagger
 
 ## Navigation
 
-The side menu exposes the main trajectory pages, including the shared Identities and Features catalogs and dependency-aware Backup / Restore under Import/Export. Survey Run and Trajectory editors both assign definitions from those catalogs. Contextual data is ordered Field, Cluster, Well, WellBore, Rig, and Survey Instrument.
+The side menu exposes the main trajectory pages, including the shared Identities and Features catalogs, dependency-aware Backup / Restore under Import/Export, and the refreshable endpoint-level Usage Statistics page. Survey Run and Trajectory editors both assign definitions from those catalogs. Contextual data is ordered Field, Cluster, Well, WellBore, Rig, and Survey Instrument.
 
 ## Funding
 

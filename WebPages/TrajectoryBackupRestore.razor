@@ -119,16 +119,16 @@
             }
             else
             {
-                <MudText Typo="Typo.subtitle2" Class="mt-4 mb-1">If a record UUID already exists</MudText>
-                <MudRadioGroup T="TrajectoryBatchRestoreConflictPolicy" @bind-Value="_conflictPolicy">
-                    <MudRadio T="TrajectoryBatchRestoreConflictPolicy" Value="TrajectoryBatchRestoreConflictPolicy.FailIfExists" Color="Color.Primary">Stop without changing records</MudRadio>
-                    <MudRadio T="TrajectoryBatchRestoreConflictPolicy" Value="TrajectoryBatchRestoreConflictPolicy.ReplaceExisting" Color="Color.Error">Replace existing records</MudRadio>
-                </MudRadioGroup>
-
-                <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">Catalog definitions</MudText>
+                <MudText Typo="Typo.subtitle2" Class="mt-4 mb-1">Catalog definitions</MudText>
                 <MudRadioGroup T="TrajectoryBatchCatalogRestorePolicy" @bind-Value="_catalogPolicy">
                     <MudRadio T="TrajectoryBatchCatalogRestorePolicy" Value="TrajectoryBatchCatalogRestorePolicy.MapOrCreateMissing" Color="Color.Primary">Map compatible definitions and create missing ones</MudRadio>
                     <MudRadio T="TrajectoryBatchCatalogRestorePolicy" Value="TrajectoryBatchCatalogRestorePolicy.MapExisting" Color="Color.Primary">Require compatible definitions to exist</MudRadio>
+                </MudRadioGroup>
+
+                <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">If a record UUID already exists</MudText>
+                <MudRadioGroup T="TrajectoryBatchRestoreConflictPolicy" @bind-Value="_conflictPolicy">
+                    <MudRadio T="TrajectoryBatchRestoreConflictPolicy" Value="TrajectoryBatchRestoreConflictPolicy.FailIfExists" Color="Color.Primary">Stop without changing records</MudRadio>
+                    <MudRadio T="TrajectoryBatchRestoreConflictPolicy" Value="TrajectoryBatchRestoreConflictPolicy.ReplaceExisting" Color="Color.Error">Replace existing records</MudRadio>
                 </MudRadioGroup>
 
                 @if (_conflictPolicy == TrajectoryBatchRestoreConflictPolicy.ReplaceExisting)

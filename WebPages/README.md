@@ -12,6 +12,7 @@ It currently provides:
 - `TrajectoryRealizationEdit`
 - supporting UI components used by those pages
 - `TrajectoryBackupRestore`, for dependency-aware JSON backup and restore
+- `StatisticsTrajectory`, for refreshable summary and per-endpoint usage statistics
 
 ## Purpose
 
@@ -88,6 +89,10 @@ The package, assembly, and static-web-asset base identity are all `OSDC.Drilling
 ## Backup and restore
 
 `TrajectoryBackupRestore` lets users select survey runs and trajectories or back up everything. A selected trajectory automatically brings along all survey runs used by its sections, while parent survey runs and relevant catalog definitions are also included. Restore previews both record counts and offers explicit record-conflict and catalog-resolution policies before sending the complete document to the service.
+
+## Usage statistics
+
+`StatisticsTrajectory` follows the shared OSDC resource-service layout. It provides refresh and failure states, total and current-UTC-day request counts, the tracked-endpoint count, the service's last-save time, and a sortable table showing HTTP method, operation, daily and lifetime totals, and last use.
 
 ## Mean-sea-level depth references
 
