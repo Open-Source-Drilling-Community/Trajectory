@@ -141,7 +141,7 @@ namespace ServiceTest
             trajectory2 = null;
             try
             {
-                Trajectory deletionTarget = await nSwagClient.GetTrajectoryByIdAsync(guid);
+                Trajectory deletionTarget = await WaitForTrajectoryCalculationToSettleAsync(guid);
                 await nSwagClient.DeleteTrajectoryByIdAsync(guid, deletionTarget.LastModificationDate!.Value);
             }
             catch (ApiException ex)
@@ -257,7 +257,7 @@ namespace ServiceTest
             trajectory2 = null;
             try
             {
-                Trajectory deletionTarget = await nSwagClient.GetTrajectoryByIdAsync(guid);
+                Trajectory deletionTarget = await WaitForTrajectoryCalculationToSettleAsync(guid);
                 await nSwagClient.DeleteTrajectoryByIdAsync(guid, deletionTarget.LastModificationDate!.Value);
             }
             catch (ApiException ex)
@@ -314,8 +314,8 @@ namespace ServiceTest
 
             #region updating the new Id
             trajectory.Name = "My test Trajectory with modified name";
-            DateTimeOffset expectedModifiedUtc = trajectory.LastModificationDate!.Value;
-            trajectory.LastModificationDate = DateTimeOffset.UtcNow;
+            Trajectory currentTrajectory = await WaitForTrajectoryCalculationToSettleAsync(guid);
+            DateTimeOffset expectedModifiedUtc = currentTrajectory.LastModificationDate!.Value;
             try
             {
                 await nSwagClient.PutTrajectoryByIdAsync(trajectory.MetaInfo.ID, expectedModifiedUtc, trajectory);
@@ -342,7 +342,7 @@ namespace ServiceTest
             trajectory2 = null;
             try
             {
-                Trajectory deletionTarget = await nSwagClient.GetTrajectoryByIdAsync(guid);
+                Trajectory deletionTarget = await WaitForTrajectoryCalculationToSettleAsync(guid);
                 await nSwagClient.DeleteTrajectoryByIdAsync(guid, deletionTarget.LastModificationDate!.Value);
             }
             catch (ApiException ex)
@@ -401,7 +401,7 @@ namespace ServiceTest
             trajectory2 = null;
             try
             {
-                Trajectory deletionTarget = await nSwagClient.GetTrajectoryByIdAsync(guid);
+                Trajectory deletionTarget = await WaitForTrajectoryCalculationToSettleAsync(guid);
                 await nSwagClient.DeleteTrajectoryByIdAsync(guid, deletionTarget.LastModificationDate!.Value);
             }
             catch (ApiException ex)
@@ -425,6 +425,29 @@ namespace ServiceTest
         public void OneTimeTearDown()
         {
             httpClient?.Dispose();
+        }
+
+        /// <summary>
+        /// Creation and full replacement queue a background calculation. That calculation legitimately
+        /// advances LastModificationDate when it finishes, so a token read while it is running is not a
+        /// safe token for a subsequent mutation.
+        /// </summary>
+        private static async Task<Trajectory> WaitForTrajectoryCalculationToSettleAsync(Guid trajectoryId)
+        {
+            using CancellationTokenSource timeout = new(TimeSpan.FromSeconds(30));
+            while (true)
+            {
+                Trajectory trajectory = await nSwagClient.GetTrajectoryByIdAsync(
+                    trajectoryId,
+                    includeCalculatedStations: false,
+                    timeout.Token);
+                if (trajectory.CalculationState is CalculationState.Completed or CalculationState.Failed)
+                {
+                    return trajectory;
+                }
+
+                await Task.Delay(TimeSpan.FromMilliseconds(50), timeout.Token);
+            }
         }
 
         private static List<SurveyStation> ConstructSurveyStationList()

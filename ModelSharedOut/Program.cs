@@ -233,7 +233,11 @@ class Program
                             },
                         GenerateClientClasses = true,
                         GenerateDtoTypes = true,
-                        GenerateOptionalParameters = true
+                        GenerateOptionalParameters = true,
+                        // Concurrency timestamps are query parameters. NSwag's default "s" format
+                        // truncates fractional seconds and the UTC offset, making a token returned by
+                        // the service stale before it can be sent back.
+                        ParameterDateTimeFormat = "O"
                     };
                     var generator = new CSharpClientGenerator(nswDocument, settings);
                     var code = generator.GenerateFile();
