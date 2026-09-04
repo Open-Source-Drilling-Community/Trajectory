@@ -46,13 +46,13 @@ dotnet test ServiceTest/ServiceTest.csproj
 
 `McpServerHttpTests.cs` exercises MCP initialization, tool discovery, successful structured/text responses, and representative calls against a running service. It also verifies that missing inputs, unknown arguments, and missing resources produce stable sanitized MCP errors.
 
-`McpToolRegistrationTests.cs` runs without a live service and guards the generated MCP contract: 120 non-statistics tools, underscore-only unique names, strict input and success-output schemas, titles and safety annotations, non-empty UUIDs, unknown-argument rejection, shared identity/feature catalog concurrency, dependency-aware backup/restore policies, chunk-upload/commit guidance, calculation polling, and SI-unit annotations.
+`McpToolRegistrationTests.cs` runs without a live service and guards the generated MCP contract: 121 non-statistics tools, underscore-only unique names, strict input and success-output schemas, titles and safety annotations, non-empty UUIDs, unknown-argument rejection, shared identity/feature catalog concurrency, dependency-aware backup/restore policies, chunk-upload/commit guidance, calculation polling, SI-unit annotations, and octree filtering/status/provenance semantics.
 
 `TrajectoryBatchServiceTests.cs` verifies dependency-closed trajectory export, parent survey-run inclusion, measurement and station chunk round trips, normalized catalog mapping, restore ordering, and all-or-nothing conflict behavior.
 
 `TrajectoryCatalogMigrationTests.cs` verifies that a version-1 `Trajectory.db` is upgraded to version 2 without rewriting existing records, that legacy identity and feature rows are copied into the main database, and that `TrajectoryCatalog.db` remains intact.
 
-`OctreePersistenceTests.cs` verifies the lossless version-1 to version-2 `GlobalAntiCollision.db` migration and its integrity-checked backup, atomic rollback of a failed replacement, trajectory-type/definitive filtering, classification changes, and complete indexed deletion of a trajectory's state and bucket memberships.
+`OctreePersistenceTests.cs` verifies the lossless version-1 to version-2 `GlobalAntiCollision.db` migration and its integrity-checked backup, atomic rollback of a failed replacement, trajectory-type/definitive filtering, status/provenance/count reporting, classification changes, and complete indexed deletion of a trajectory's state and bucket memberships.
 
 `SqlConnectionManagerSafetyTests.cs` is also self-contained. It verifies transactional fresh creation, lossless adoption of an exact legacy schema, and fail-closed handling of malformed and newer databases. Run both self-contained groups without a live API with:
 

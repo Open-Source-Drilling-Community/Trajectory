@@ -67,7 +67,9 @@ internal static class TrajectoryMcpToolMetadata
         else if (controller == "TrajectoryAggregationCase" && action == "GetTrajectoryAggregationByCaseAndTrajectoryId")
             detail = "Return the aggregation for one trajectory within an aggregation case. caseId identifies the case and trajectoryId selects its member trajectory. Keep includeResults=false for status/metadata; use true only for inline results, or use the chunk tools for large outputs.";
         else if (controller == "Octrees" && action is "Post" or "Put")
-            detail = $"{(action == "Post" ? "Create" : "Rebuild")} the spatial-octree cache for the trajectory UUID from its current stations. The trajectory must already exist.";
+            detail = action == "Post"
+                ? "Create a missing derived spatial index from the trajectory's current uncertainty-envelope stations and return its new status/provenance. Normal trajectory writes and startup reconciliation maintain this index automatically; use this operational repair only when status reports Missing. Existing indexes return conflict."
+                : "Force an atomic rebuild of the trajectory's derived spatial index from its current uncertainty-envelope stations and return its new status/provenance. Normal trajectory writes and startup reconciliation maintain this index automatically; use this operational repair only when status reports Missing or Stale.";
         else if (controller == "GlobalAntiCollisions" && action == "Put")
             detail = "Replace an existing global anti-collision configuration. The route id and the configuration body's identity must designate the same stored configuration; supply the complete configuration, not a partial patch.";
         else if (controller == "GlobalAntiCollisions" && action == "Delete")
@@ -81,11 +83,15 @@ internal static class TrajectoryMcpToolMetadata
         else if ((controller is "TrajectoryIdentity" or "TrajectoryFeatureCategory") && action.StartsWith("Delete", StringComparison.Ordinal))
             detail = $"Delete an unused {resource}. Supply expectedModifiedUtc from the latest LastModificationDate; referenced definitions and stale writes return a conflict.";
         else if (action.StartsWith("Delete", StringComparison.Ordinal))
-            detail = $"Permanently delete one stored instance of {resource}. The id must identify an existing resource; retrieve it first if the caller needs to verify the target.";
+            detail = controller == "Octrees"
+                ? "Remove one rebuildable derived spatial index without deleting its authoritative trajectory. Routine callers should not do this: subsequent spatial searches omit the trajectory until a rebuild or service-start reconciliation recreates the index."
+                : $"Permanently delete one stored instance of {resource}. The id must identify an existing resource; retrieve it first if the caller needs to verify the target.";
+        else if (controller == "Octrees" && action == "GetStatus")
+            detail = "Return lightweight provenance and health for one trajectory's derived spatial index. State is one of Missing, NotIndexable, Stale or Current. The response reports source modification time, schema/calculation provenance, bucket count and detailed-code count without returning the large code array.";
         else if (controller == "Octrees" && action == "Get")
-            detail = method.GetParameters().Length == 0
-                ? "List the trajectory UUIDs for which spatial octree caches exist. Use an identifier with the by-id tool to inspect its serialized spatial index."
-                : "Return the serialized spatial-octree codes cached for the trajectory UUID. These are acceleration data used by anti-collision and proximity calculations; rebuild the cache after changing trajectory stations.";
+            detail = method.GetParameters().All(parameter => parameter.Name is "trajectoryType" or "isDefinitive")
+                ? "List trajectory UUIDs having derived spatial indexes. Optional authoritative trajectory-type and definitive-state filters are combined. Use the status tool to inspect currentness and provenance without retrieving large code arrays."
+                : "Return the serialized spatial-octree codes cached for the trajectory UUID. These are derived acceleration data for anti-collision and proximity calculations. Normal trajectory writes maintain them automatically; inspect status rather than rebuilding routinely.";
         else if (controller == "GlobalAntiCollisions" && action == "Get")
             detail = method.GetParameters().Length == 0
                 ? "List the string identifiers of all global anti-collision configurations. Use an identifier with the by-id tool to inspect the complete configuration."
@@ -317,6 +323,40 @@ internal static class TrajectoryMcpToolMetadata
             else if (property.Name == nameof(TrajectoryBatchExportDocument.SchemaVersion))
                 schema["const"] = TrajectoryBatchExportDocument.CurrentSchemaVersion;
         }
+        else if (declaringType == typeof(OctreeIndexStatus) && property.Name is
+                 nameof(OctreeIndexStatus.TrajectoryID) or
+                 nameof(OctreeIndexStatus.State) or
+                 nameof(OctreeIndexStatus.HasIndex) or
+                 nameof(OctreeIndexStatus.IsCurrent) or
+                 nameof(OctreeIndexStatus.TrajectoryType) or
+                 nameof(OctreeIndexStatus.IsDefinitive) or
+                 nameof(OctreeIndexStatus.SurveyStationCount) or
+                 nameof(OctreeIndexStatus.BucketCount) or
+                 nameof(OctreeIndexStatus.OctreeCodeCount))
+        {
+            required.Add(property.Name);
+        }
+        else if (declaringType.FullName == "OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision" &&
+                 property.Name == "ID")
+        {
+            schema["minLength"] = 1;
+            required.Add(property.Name);
+        }
+
+        if (property.Name == "CalculationProgress")
+        {
+            schema["minimum"] = 0.0;
+            schema["maximum"] = 1.0;
+        }
+        else if (property.Name == "ConfidenceFactor")
+        {
+            schema["exclusiveMinimum"] = 0.0;
+            schema["maximum"] = 0.999;
+        }
+        else if (property.Name.EndsWith("Count", StringComparison.Ordinal))
+        {
+            schema["minimum"] = 0;
+        }
     }
 
     private static Type? ResponsePayloadType(Type returnType)
@@ -345,7 +385,7 @@ internal static class TrajectoryMcpToolMetadata
         if (name.Contains("Progress", StringComparison.OrdinalIgnoreCase)) return "Calculation completion fraction, normally from 0.0 to 1.0.";
         if (name == "CalculationState") return "Current asynchronous calculation state; poll until Completed or Failed.";
         if (name.EndsWith("ID", StringComparison.Ordinal) || name == "ID") return "Resource identifier (UUID unless the owning API states otherwise).";
-        if (name.EndsWith("Count", StringComparison.Ordinal)) return "Number of contained or available items.";
+        if (name.EndsWith("Count", StringComparison.Ordinal)) return "Non-negative number of contained or available items.";
         if (name.EndsWith("List", StringComparison.Ordinal) || name.EndsWith("Results", StringComparison.Ordinal)) return $"Collection of {SplitWords(name)} values.";
         return SplitWords(name) + ".";
     }

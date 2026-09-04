@@ -45,13 +45,18 @@ public static class TrajectoryRestMcpToolRegistrations
             {
                 bool overloaded = actions.Count(candidate => candidate.Name == method.Name) > 1;
                 string controllerName = controllerType.Name[..^"Controller".Length];
+                string? template = method.GetCustomAttributes(true).OfType<IRouteTemplateProvider>()
+                    .Select(attribute => attribute.Template).FirstOrDefault(value => value is not null);
                 string actionName = ToSnakeCase(method.Name);
                 if (overloaded && method.GetParameters().Length > 0)
                     actionName += "_by_" + string.Join("_and_", method.GetParameters().Select(parameter => ToSnakeCase(parameter.Name!)));
 
+                // Preserve the published list-tool name when optional query filters are added.
+                if (controllerName == "Octrees" && method.Name == "Get" && string.IsNullOrWhiteSpace(template))
+                    actionName = "get";
+
                 string name = $"{ToSnakeCase(controllerName)}_{actionName}";
                 string verbs = string.Join('/', method.GetCustomAttributes<HttpMethodAttribute>(true).SelectMany(attribute => attribute.HttpMethods).Distinct());
-                string? template = method.GetCustomAttributes(true).OfType<IRouteTemplateProvider>().Select(attribute => attribute.Template).FirstOrDefault(value => value is not null);
                 endpoints.Add(new TrajectoryMcpEndpoint(
                     controllerType,
                     method,

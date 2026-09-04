@@ -95,13 +95,15 @@ The service publishes its non-statistics REST actions as MCP tools. Tool registr
 
 - Streamable HTTP: `/trajectory/api/mcp`
 - WebSocket: `/trajectory/api/mcp/ws`
-- Published controller tools: 120
+- Published controller tools: 121
 - Utility tools: `ping`
 - Excluded surface: `TrajectoryUsageStatisticsController`
 
-The descriptions explain the service workflows as well as individual calls. In particular, survey-measurement chunks are uploaded with zero-based indexes and then committed; calculation cases are created and polled through `CalculationState`/`CalculationProgress`; large station, realization, minimum-distance, and aggregation results are retrieved through chunk-count and chunk tools. Octree POST creates an absent index, PUT genuinely rebuilds an existing or absent index from the authoritative trajectory, and DELETE removes its derived state and memberships. Unless a field explicitly says otherwise, lengths, depths, coordinates, and distances are metres, angles are radians, and curvature is radians per metre.
+The descriptions explain the service workflows as well as individual calls. In particular, survey-measurement chunks are uploaded with zero-based indexes and then committed; calculation cases are created and polled through `CalculationState`/`CalculationProgress`; large station, realization, minimum-distance, and aggregation results are retrieved through chunk-count and chunk tools. Octree indexes are maintained automatically by trajectory writes and startup reconciliation. `GET Octrees/{id}/Status` exposes `Missing`, `NotIndexable`, `Stale`, or `Current` plus schema/calculation provenance and compact counts; the list operation can filter indexed UUIDs by `TrajectoryType` and `IsDefinitive`. POST/PUT are documented as operational repair actions and return the resulting status, while DELETE explicitly removes only rebuildable derived data. Unless a field explicitly says otherwise, lengths, depths, coordinates, and distances are metres, angles are radians, and curvature is radians per metre.
 
 Successful MCP calls return the HTTP-compatible status and any controller payload as structured JSON plus a text fallback. Validation, not-found, conflict, and unexpected failures are returned as genuine MCP errors with stable sanitized envelopes. Server exceptions are logged but their messages and stack details are not exposed to callers.
+
+Global anti-collision create and update tools return the calculated stored representation. They require a non-empty string ID, PUT requires the route and body IDs to match and no longer performs an implicit upsert, missing reads/updates/deletes return not found, duplicate creates return conflict, and calculation or persistence failures are surfaced instead of being logged as false successes. All string-ID SQL operations are parameterized.
 
 `POST Trajectory/BatchExport` creates an all-data or selected backup. Selection is dependency-closed: trajectories pull in their survey runs, and survey runs pull in parent runs. `POST Trajectory/BatchRestore` validates the versioned document and catalog dependencies before writing survey runs and then trajectories. Its MCP schema requires `FailIfExists` or `ReplaceExisting` and `MapExisting` or `MapOrCreateMissing`; unusable `Unspecified` enum members are not advertised. Record writes are committed in one SQLite transaction and preserve stored measurements and station chunks without triggering calculations.
 

@@ -1,4 +1,5 @@
 using Microsoft.Data.Sqlite;
+using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging.Abstractions;
 using OSDC.Drilling.GlobalAntiCollision;
 using OSDC.Drilling.Trajectory.Service;
@@ -201,8 +202,9 @@ internal static class Program
             }
         }
 
-        List<OctreeCodeLong> details = octreesController.Get(referenceTrajectory.Id);
-        Ensure(details.Count > 0, $"OctreesController GET by id should return the stored code list for {FormatTrajectoryLabel(referenceTrajectory)}.");
+        List<OctreeCodeLong>? details = ValueOf(octreesController.Get(referenceTrajectory.Id));
+        Ensure(details != null, $"OctreesController GET by id should find {FormatTrajectoryLabel(referenceTrajectory)}.");
+        Ensure(details!.Count > 0, $"OctreesController GET by id should return the stored code list for {FormatTrajectoryLabel(referenceTrajectory)}.");
 
         Console.WriteLine("In-process octree controller/manager test passed.\n");
         await Task.CompletedTask;
@@ -298,7 +300,7 @@ internal static class Program
         List<string> ids = globalAntiCollisionsController.Get().ToList();
         Ensure(ids.Contains(globalAntiCollisionId), "GlobalAntiCollisionsController GET should include the inserted id.");
 
-        GlobalAntiCollisionModel? storedByController = globalAntiCollisionsController.Get(globalAntiCollisionId);
+        GlobalAntiCollisionModel? storedByController = ValueOf(globalAntiCollisionsController.Get(globalAntiCollisionId));
         Ensure(storedByController != null, "GlobalAntiCollisionsController GET by id should return the stored payload.");
         Ensure(Math.Abs(storedByController!.ConfidenceFactor - postPayload.ConfidenceFactor) < 1e-9,
             "GlobalAntiCollisionsController GET by id should return the stored confidence factor.");
@@ -321,7 +323,7 @@ internal static class Program
             Ensure(updatedByManager != null && Math.Abs(updatedByManager.ConfidenceFactor - putPayload.ConfidenceFactor) < 1e-9,
                 "GlobalAntiCollisionManager should observe the updated payload.");
 
-            GlobalAntiCollisionModel? updatedByController = globalAntiCollisionsController.Get(globalAntiCollisionId);
+            GlobalAntiCollisionModel? updatedByController = ValueOf(globalAntiCollisionsController.Get(globalAntiCollisionId));
             Ensure(updatedByController != null, "GlobalAntiCollisionsController GET by id should return the updated payload.");
             Ensure(Math.Abs(updatedByController!.ConfidenceFactor - putPayload.ConfidenceFactor) < 1e-9,
                 "GlobalAntiCollisionsController PUT should update the confidence factor.");
@@ -1374,6 +1376,9 @@ internal static class Program
             throw new InvalidOperationException(message);
         }
     }
+
+    private static T? ValueOf<T>(ActionResult<T> actionResult) where T : class =>
+        actionResult.Value ?? (actionResult.Result as OkObjectResult)?.Value as T;
 
     private sealed record LocalHarness(
         TrajectoryManager TrajectoryManager,

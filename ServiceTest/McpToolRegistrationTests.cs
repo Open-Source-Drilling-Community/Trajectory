@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Server;
+using OSDC.Drilling.Trajectory.Model;
 using OSDC.Drilling.Trajectory.Service.Mcp;
 using OSDC.Drilling.Trajectory.Service.Mcp.Tools;
 
@@ -14,7 +15,7 @@ public sealed class McpToolRegistrationTests
     {
         var endpoints = TrajectoryRestMcpToolRegistrations.Endpoints;
 
-        Assert.That(endpoints, Has.Count.EqualTo(120));
+        Assert.That(endpoints, Has.Count.EqualTo(121));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Is.Unique);
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("."));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("usage_statistics"));
@@ -52,7 +53,7 @@ public sealed class McpToolRegistrationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(tools, Has.Length.EqualTo(120));
+            Assert.That(tools, Has.Length.EqualTo(121));
             Assert.That(tools.All(tool => !string.IsNullOrWhiteSpace(tool.ProtocolTool.Title)), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema.HasValue), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.Annotations is not null), Is.True);
@@ -186,6 +187,58 @@ public sealed class McpToolRegistrationTests
             Assert.That(restoreRequest["required"]!.AsArray().Select(value => value!.GetValue<string>()),
                 Is.EquivalentTo(new[] { "ConflictPolicy", "CatalogPolicy", "Document" }));
             Assert.That(restore.OutputSchema.ToJsonString(), Does.Contain("TrajectoryBatchRestoreResponse"));
+        });
+    }
+
+    [Test]
+    public void Octree_tools_expose_filters_currentness_provenance_and_safe_repair_guidance()
+    {
+        TrajectoryMcpEndpoint list = Endpoint("octrees_get");
+        TrajectoryMcpEndpoint status = Endpoint("octrees_get_status");
+        TrajectoryMcpEndpoint rebuild = Endpoint("octrees_put");
+        TrajectoryMcpEndpoint delete = Endpoint("octrees_delete");
+        JsonObject listProperties = list.InputSchema["properties"]!.AsObject();
+        JsonObject statusDefinition = status.OutputSchema["$defs"]!["OctreeIndexStatus"]!.AsObject();
+        JsonObject statusProperties = statusDefinition["properties"]!.AsObject();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(listProperties.ContainsKey("trajectoryType"), Is.True);
+            Assert.That(listProperties.ContainsKey("isDefinitive"), Is.True);
+            Assert.That(listProperties["trajectoryType"]!["enum"]!.AsArray()
+                .Select(value => value!.GetValue<string>()), Is.EquivalentTo(Enum.GetNames<TrajectoryType>()));
+            Assert.That(status.Description, Does.Contain("Missing, NotIndexable, Stale or Current"));
+            Assert.That(statusProperties["State"]!["enum"]!.AsArray()
+                .Select(value => value!.GetValue<string>()), Is.EquivalentTo(Enum.GetNames<OctreeIndexState>()));
+            Assert.That(statusProperties["ConfidenceFactor"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
+            Assert.That(statusProperties["ConfidenceFactor"]!["maximum"]!.GetValue<double>(), Is.EqualTo(0.999));
+            Assert.That(statusDefinition["required"]!.AsArray().Select(value => value!.GetValue<string>()),
+                Does.Contain("TrajectoryID"));
+            Assert.That(rebuild.Description, Does.Contain("automatically"));
+            Assert.That(rebuild.Description, Does.Contain("return its new status/provenance"));
+            Assert.That(delete.Description, Does.Contain("without deleting its authoritative trajectory"));
+            Assert.That(delete.Behavior.DestructiveHint, Is.True);
+        });
+    }
+
+    [Test]
+    public void Global_anti_collision_tools_enforce_ids_and_publish_calculated_results()
+    {
+        TrajectoryMcpEndpoint create = Endpoint("global_anti_collisions_post");
+        TrajectoryMcpEndpoint update = Endpoint("global_anti_collisions_put");
+        TrajectoryMcpEndpoint get = Endpoint("global_anti_collisions_get_by_id");
+        JsonObject definition = create.InputSchema["$defs"]!["GlobalAntiCollision"]!.AsObject();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(definition["required"]!.AsArray().Select(value => value!.GetValue<string>()),
+                Does.Contain("ID"));
+            Assert.That(definition["properties"]!["ID"]!["minLength"]!.GetValue<int>(), Is.EqualTo(1));
+            Assert.That(create.OutputSchema.ToJsonString(), Does.Contain("GlobalAntiCollision"));
+            Assert.That(update.OutputSchema.ToJsonString(), Does.Contain("GlobalAntiCollision"));
+            Assert.That(get.OutputSchema.ToJsonString(), Does.Contain("GlobalAntiCollision"));
+            Assert.That(update.Description, Does.Contain("must designate the same"));
+            Assert.That(update.Description, Does.Not.Contain("upsert"));
         });
     }
 

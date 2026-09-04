@@ -3869,7 +3869,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CalculationState = (CalculationState)0,
 				CalculationProgress = 0.0, 
 				CalculationMessage = "Default CalculationMessage",
-				RealizationList = new List<ICollection<SurveyPoint>>
+				RealizationList = new List<List<SurveyPoint>>
 					{
 						new List<SurveyPoint>
 						{
@@ -3888,7 +3888,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				SurveyPointCount = 0, 
 				StartMD = null, 
 				EndMD = null, 
-				RealizationList = new List<ICollection<SurveyPoint>>
+				RealizationList = new List<List<SurveyPoint>>
 					{
 						new List<SurveyPoint>
 						{
@@ -6932,6 +6932,138 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				ID = new Guid(),
 				IdentityID = null, 
 				Value = "Default Value",
+			};
+		}
+		public static OctreeIndexStatus ConstructOctreeIndexStatus()
+		{
+			return new OctreeIndexStatus
+			{
+				TrajectoryID = new Guid(),
+				State = (OctreeIndexState)0,
+				HasIndex = false,
+				IsCurrent = false,
+				TrajectoryType = (TrajectoryType)0,
+				IsDefinitive = false,
+				SurveyStationCount = 0,
+				BucketCount = 0,
+				OctreeCodeCount = 0,
+				SourceLastModificationDate = DateTimeOffset.UtcNow,
+				IndexSchemaVersion = null,
+				ConfidenceFactor = null,
+				CalculationParametersHash = "Default CalculationParametersHash",
+			};
+		}
+		public static TrajectoryBatchCatalogDependencies ConstructTrajectoryBatchCatalogDependencies()
+		{
+			return new TrajectoryBatchCatalogDependencies
+			{
+				Identities = new List<TrajectoryIdentity>
+					{
+						ConstructTrajectoryIdentity(),
+					},
+				FeatureCategories = new List<TrajectoryFeatureCategory>
+					{
+						ConstructTrajectoryFeatureCategory(),
+					},
+			};
+		}
+		public static TrajectoryBatchCatalogMapping ConstructTrajectoryBatchCatalogMapping()
+		{
+			return new TrajectoryBatchCatalogMapping
+			{
+				Catalog = "Default Catalog",
+				Name = "Default Name",
+				SourceID = new Guid(),
+				LocalID = new Guid(),
+				Resolution = "Default Resolution",
+			};
+		}
+		public static TrajectoryBatchError ConstructTrajectoryBatchError()
+		{
+			return new TrajectoryBatchError
+			{
+				PositionIndex = null,
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static TrajectoryBatchErrorEnvelope ConstructTrajectoryBatchErrorEnvelope()
+		{
+			return new TrajectoryBatchErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<TrajectoryBatchError>
+					{
+						ConstructTrajectoryBatchError(),
+					},
+			};
+		}
+		public static TrajectoryBatchExportDocument ConstructTrajectoryBatchExportDocument()
+		{
+			return new TrajectoryBatchExportDocument
+			{
+				FormatIdentifier = "Default FormatIdentifier",
+				SchemaVersion = 0,
+				ExportedAtUtc = DateTimeOffset.UtcNow,
+				CatalogDependencies = ConstructTrajectoryBatchCatalogDependencies(),
+				SurveyRuns = new List<SurveyRun>
+					{
+						ConstructSurveyRun(),
+					},
+				Trajectories = new List<Trajectory>
+					{
+						ConstructTrajectory(),
+					},
+			};
+		}
+		public static TrajectoryBatchExportRequest ConstructTrajectoryBatchExportRequest()
+		{
+			return new TrajectoryBatchExportRequest
+			{
+				Scope = (TrajectoryBatchExportScope)0,
+				SurveyRunIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				TrajectoryIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static TrajectoryBatchRestoreRequest ConstructTrajectoryBatchRestoreRequest()
+		{
+			return new TrajectoryBatchRestoreRequest
+			{
+				ConflictPolicy = (TrajectoryBatchRestoreConflictPolicy)0,
+				CatalogPolicy = (TrajectoryBatchCatalogRestorePolicy)0,
+				Document = ConstructTrajectoryBatchExportDocument(),
+			};
+		}
+		public static TrajectoryBatchRestoreResponse ConstructTrajectoryBatchRestoreResponse()
+		{
+			return new TrajectoryBatchRestoreResponse
+			{
+				RestoredAtUtc = DateTimeOffset.UtcNow,
+				CreatedSurveyRunCount = 0,
+				ReplacedSurveyRunCount = 0,
+				CreatedTrajectoryCount = 0,
+				ReplacedTrajectoryCount = 0,
+				CreatedCatalogDefinitionCount = 0,
+				CatalogMappings = new List<TrajectoryBatchCatalogMapping>
+					{
+						ConstructTrajectoryBatchCatalogMapping(),
+					},
+				SurveyRunIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				TrajectoryIDs = new List<Guid>
+					{
+						new Guid(),
+					},
 			};
 		}
 		public static TrajectoryFeatureAssignment ConstructTrajectoryFeatureAssignment()

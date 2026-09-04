@@ -5955,7 +5955,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlobalAntiCollision"
+                }
+              }
+            }
           }
         }
       }
@@ -6023,7 +6030,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlobalAntiCollision"
+                }
+              }
+            }
           }
         }
       },
@@ -6381,6 +6395,22 @@
         "tags": [
           "Octrees"
         ],
+        "parameters": [
+          {
+            "name": "trajectoryType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/TrajectoryType"
+            }
+          },
+          {
+            "name": "isDefinitive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -6448,7 +6478,14 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OctreeIndexStatus"
+                }
+              }
+            }
           }
         }
       },
@@ -6469,7 +6506,14 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OctreeIndexStatus"
+                }
+              }
+            }
           }
         }
       },
@@ -17027,6 +17071,37 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/Octrees/{id}/Status": {
+      "get": {
+        "tags": [
+          "Octrees"
+        ],
+        "operationId": "GetOctreeIndexStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OctreeIndexStatus"
+                }
+              }
+            }
           }
         }
       }
@@ -38046,6 +38121,70 @@
             "nullable": true
           },
           "Value": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OctreeIndexState": {
+        "enum": [
+          "Missing",
+          "NotIndexable",
+          "Stale",
+          "Current"
+        ],
+        "type": "string"
+      },
+      "OctreeIndexStatus": {
+        "type": "object",
+        "properties": {
+          "TrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "State": {
+            "$ref": "#/components/schemas/OctreeIndexState"
+          },
+          "HasIndex": {
+            "type": "boolean"
+          },
+          "IsCurrent": {
+            "type": "boolean"
+          },
+          "TrajectoryType": {
+            "$ref": "#/components/schemas/TrajectoryType"
+          },
+          "IsDefinitive": {
+            "type": "boolean"
+          },
+          "SurveyStationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "BucketCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "OctreeCodeCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "SourceLastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "IndexSchemaVersion": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "ConfidenceFactor": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "CalculationParametersHash": {
             "type": "string",
             "nullable": true
           }

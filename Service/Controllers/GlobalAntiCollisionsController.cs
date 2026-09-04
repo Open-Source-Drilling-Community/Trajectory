@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using OSDC.Drilling.GlobalAntiCollision;
 using OSDC.Drilling.Trajectory.Service.Managers;
@@ -47,77 +48,88 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
 
         // GET api/globalanticollisions/id
         [HttpGet("{id}")]
-        public GlobalAntiCollision.GlobalAntiCollision? Get(string id)
+        public ActionResult<GlobalAntiCollision.GlobalAntiCollision> Get(string id)
         {
-            return _globalAntiCollisionManager.Get(id);
+            if (string.IsNullOrWhiteSpace(id)) return BadRequest(new { error = "invalid_id" });
+            GlobalAntiCollision.GlobalAntiCollision? value = _globalAntiCollisionManager.Get(id);
+            return value == null ? NotFound() : Ok(value);
         }
 
         // POST api/globalanticollisions
         [HttpPost]
-        public async Task Post([FromBody] GlobalAntiCollision.GlobalAntiCollision? value)
+        public async Task<ActionResult<GlobalAntiCollision.GlobalAntiCollision>> Post(
+            [FromBody] GlobalAntiCollision.GlobalAntiCollision? value)
         {
-            if (value == null)
+            if (value == null || string.IsNullOrWhiteSpace(value.ID))
             {
-                _loggerGlobalAC.LogWarning("Post value is null");
-                return;
+                _loggerGlobalAC.LogWarning("Post value or its ID is missing");
+                return BadRequest(new { error = "invalid_global_anti_collision" });
             }
 
             GlobalAntiCollision.GlobalAntiCollision? globalAntiCollision = _globalAntiCollisionManager.Get(value.ID);
-            if (globalAntiCollision == null)
+            if (globalAntiCollision != null)
             {
-                try
-                {
-                    Model.Trajectory? referenceTrajectory = PrepareCalculationInput(value, out List<SurveyStation>? referenceSurveyList);
-                    await CalculateIfPossibleAsync(value, referenceTrajectory, referenceSurveyList);
-                    _globalAntiCollisionManager.Add(value);
-                }
-                catch (Exception ex)
-                {
-                    _loggerGlobalAC.LogError(ex, "Post Exception");
-                }
-            }
-            else
-            {
-                _loggerGlobalAC.LogInformation("GlobalAntiCollision with ID {Id} already exists", value.ID);
-            }
-        }
-
-        // PUT api/globalanticollisions/id
-        [HttpPut("{id}")]
-        public async Task Put(string id, [FromBody] GlobalAntiCollision.GlobalAntiCollision? value)
-        {
-            if (value == null)
-            {
-                _loggerGlobalAC.LogWarning("Put value is null");
-                return;
+                return Conflict(new { error = "global_anti_collision_already_exists" });
             }
 
             try
             {
                 Model.Trajectory? referenceTrajectory = PrepareCalculationInput(value, out List<SurveyStation>? referenceSurveyList);
                 await CalculateIfPossibleAsync(value, referenceTrajectory, referenceSurveyList);
-
-                GlobalAntiCollision.GlobalAntiCollision? globalAntiCollision = _globalAntiCollisionManager.Get(id);
-                if (globalAntiCollision != null)
-                {
-                    _globalAntiCollisionManager.Update(id, value);
-                }
-                else
-                {
-                    _globalAntiCollisionManager.Add(value);
-                }
+                return _globalAntiCollisionManager.Add(value)
+                    ? Ok(value)
+                    : StatusCode(StatusCodes.Status500InternalServerError,
+                        new { error = "global_anti_collision_create_failed" });
             }
             catch (Exception ex)
             {
-                _loggerGlobalAC.LogError(ex, "Put Exception");
+                _loggerGlobalAC.LogError(ex, "Unable to create global anti-collision calculation {Id}", value.ID);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { error = "global_anti_collision_calculation_failed" });
+            }
+        }
+
+        // PUT api/globalanticollisions/id
+        [HttpPut("{id}")]
+        public async Task<ActionResult<GlobalAntiCollision.GlobalAntiCollision>> Put(string id,
+            [FromBody] GlobalAntiCollision.GlobalAntiCollision? value)
+        {
+            if (string.IsNullOrWhiteSpace(id) || value == null ||
+                string.IsNullOrWhiteSpace(value.ID) || !string.Equals(id, value.ID, StringComparison.Ordinal))
+            {
+                _loggerGlobalAC.LogWarning("Put route ID and body ID are missing or inconsistent");
+                return BadRequest(new { error = "route_body_id_mismatch" });
+            }
+
+            if (!_globalAntiCollisionManager.Contains(id)) return NotFound();
+
+            try
+            {
+                Model.Trajectory? referenceTrajectory = PrepareCalculationInput(value, out List<SurveyStation>? referenceSurveyList);
+                await CalculateIfPossibleAsync(value, referenceTrajectory, referenceSurveyList);
+                return _globalAntiCollisionManager.Update(id, value)
+                    ? Ok(value)
+                    : StatusCode(StatusCodes.Status500InternalServerError,
+                        new { error = "global_anti_collision_update_failed" });
+            }
+            catch (Exception ex)
+            {
+                _loggerGlobalAC.LogError(ex, "Unable to update global anti-collision calculation {Id}", id);
+                return StatusCode(StatusCodes.Status500InternalServerError,
+                    new { error = "global_anti_collision_calculation_failed" });
             }
         }
 
         // DELETE api/globalanticollisions/id
         [HttpDelete("{id}")]
-        public void Delete(string id)
+        public ActionResult Delete(string id)
         {
-            _globalAntiCollisionManager.Remove(id);
+            if (string.IsNullOrWhiteSpace(id)) return BadRequest(new { error = "invalid_id" });
+            if (!_globalAntiCollisionManager.Contains(id)) return NotFound();
+            return _globalAntiCollisionManager.Remove(id)
+                ? Ok()
+                : StatusCode(StatusCodes.Status500InternalServerError,
+                    new { error = "global_anti_collision_delete_failed" });
         }
 
         private Model.Trajectory? PrepareCalculationInput(

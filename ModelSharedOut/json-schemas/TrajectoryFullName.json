@@ -51,7 +51,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision"
+                }
+              }
+            }
           }
         }
       }
@@ -119,7 +126,14 @@
         },
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision"
+                }
+              }
+            }
           }
         }
       },
@@ -477,6 +491,22 @@
         "tags": [
           "Octrees"
         ],
+        "parameters": [
+          {
+            "name": "trajectoryType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryType"
+            }
+          },
+          {
+            "name": "isDefinitive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
@@ -544,7 +574,14 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.OctreeIndexStatus"
+                }
+              }
+            }
           }
         }
       },
@@ -565,7 +602,14 @@
         ],
         "responses": {
           "200": {
-            "description": "OK"
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.OctreeIndexStatus"
+                }
+              }
+            }
           }
         }
       },
@@ -587,6 +631,37 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/Octrees/{id}/Status": {
+      "get": {
+        "tags": [
+          "Octrees"
+        ],
+        "operationId": "GetOctreeIndexStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.OctreeIndexStatus"
+                }
+              }
+            }
           }
         }
       }
@@ -4876,6 +4951,71 @@
           "EndMD": {
             "type": "number",
             "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.OctreeIndexState": {
+        "enum": [
+          "Missing",
+          "NotIndexable",
+          "Stale",
+          "Current"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.OctreeIndexStatus": {
+        "type": "object",
+        "properties": {
+          "TrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "State": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.OctreeIndexState"
+          },
+          "HasIndex": {
+            "type": "boolean"
+          },
+          "IsCurrent": {
+            "type": "boolean"
+          },
+          "TrajectoryType": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryType"
+          },
+          "IsDefinitive": {
+            "type": "boolean"
+          },
+          "SurveyStationCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "BucketCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "OctreeCodeCount": {
+            "type": "integer",
+            "format": "int64"
+          },
+          "SourceLastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "IndexSchemaVersion": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "ConfidenceFactor": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "CalculationParametersHash": {
+            "type": "string",
             "nullable": true
           }
         },

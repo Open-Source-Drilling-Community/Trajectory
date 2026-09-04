@@ -130,6 +130,56 @@ public sealed class OctreePersistenceTests
     }
 
     [Test]
+    public void Status_reports_provenance_counts_currentness_and_filtered_ids()
+    {
+        WithManager((_, manager) =>
+        {
+            Guid indexedId = Guid.NewGuid();
+            Guid otherId = Guid.NewGuid();
+            Assert.That(manager.Add(
+                [new OctreeCodeLong(23, 8UL, 16UL), new OctreeCodeLong(23, ulong.MaxValue / 2, 32UL)],
+                indexedId, false, true, true), Is.True);
+            Assert.That(manager.Add([new OctreeCodeLong(23, 24UL, 48UL)],
+                otherId, true, false, false), Is.True);
+
+            var indexed = new OSDC.Drilling.Trajectory.Model.Trajectory
+            {
+                MetaInfo = new OSDC.DotnetLibraries.General.DataManagement.MetaInfo { ID = indexedId },
+                TrajectoryType = TrajectoryType.Actual,
+                IsDefinitive = true
+            };
+            OctreeIndexStatus current = manager.GetStatus(indexed);
+
+            indexed.IsDefinitive = false;
+            OctreeIndexStatus stale = manager.GetStatus(indexed);
+
+            var unindexed = new OSDC.Drilling.Trajectory.Model.Trajectory
+            {
+                MetaInfo = new OSDC.DotnetLibraries.General.DataManagement.MetaInfo { ID = Guid.NewGuid() }
+            };
+            OctreeIndexStatus notIndexable = manager.GetStatus(unindexed);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(current.State, Is.EqualTo(OctreeIndexState.Current));
+                Assert.That(current.HasIndex, Is.True);
+                Assert.That(current.IsCurrent, Is.True);
+                Assert.That(current.BucketCount, Is.EqualTo(2));
+                Assert.That(current.OctreeCodeCount, Is.EqualTo(2));
+                Assert.That(current.IndexSchemaVersion, Is.EqualTo(OctreeManager.IndexSchemaVersion));
+                Assert.That(current.ConfidenceFactor, Is.EqualTo(OctreeManager.ConfidenceFactor));
+                Assert.That(current.CalculationParametersHash, Is.EqualTo(OctreeManager.CalculationParametersHash));
+                Assert.That(stale.State, Is.EqualTo(OctreeIndexState.Stale));
+                Assert.That(stale.IsCurrent, Is.False);
+                Assert.That(notIndexable.State, Is.EqualTo(OctreeIndexState.NotIndexable));
+                Assert.That(notIndexable.HasIndex, Is.False);
+                Assert.That(manager.GetIDs(TrajectoryType.Actual, true), Is.EqualTo(new[] { indexedId }));
+                Assert.That(manager.GetIDs(TrajectoryType.Planned, false), Is.EqualTo(new[] { otherId }));
+            });
+        });
+    }
+
+    [Test]
     public void Delete_removes_state_and_every_bucket_membership()
     {
         WithManager((path, manager) =>

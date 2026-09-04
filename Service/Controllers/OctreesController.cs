@@ -33,42 +33,53 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
 
         // GET api/Octrees
         [HttpGet]
-        public IEnumerable<Guid> Get()
+        public IEnumerable<Guid> Get([FromQuery] Model.TrajectoryType? trajectoryType = null,
+            [FromQuery] bool? isDefinitive = null)
         {
-            var ids = _octreeManager.GetIDs();
+            var ids = _octreeManager.GetIDs(trajectoryType, isDefinitive);
             return ids;
         }
         // GET api/Octrees/id
         [HttpGet("{id}")]
-        public List<OctreeCodeLong> Get(Guid id)
+        public ActionResult<List<OctreeCodeLong>> Get(Guid id)
         {
-            return _octreeManager.Get(id);
+            if (id == Guid.Empty) return BadRequest();
+            return _octreeManager.Contains(id) ? Ok(_octreeManager.Get(id)) : NotFound();
+        }
+
+        // GET api/Octrees/id/Status
+        [HttpGet("{id}/Status", Name = "GetOctreeIndexStatus")]
+        public ActionResult<Model.OctreeIndexStatus> GetStatus(Guid id)
+        {
+            if (id == Guid.Empty) return BadRequest();
+            Model.Trajectory? trajectory = _trajectoryManager.GetTrajectoryById(id);
+            return trajectory == null ? NotFound() : Ok(_octreeManager.GetStatus(trajectory));
         }
         // POST api/Octrees
         [HttpPost("{id}")]
-        public ActionResult Post(Guid id)
+        public ActionResult<Model.OctreeIndexStatus> Post(Guid id)
         {
             if (id == Guid.Empty) return BadRequest();
-            if (_octreeManager.Contains(id)) return Conflict();
+            if (_octreeManager.Contains(id)) return Conflict(new { error = "octree_index_already_exists" });
 
             Model.Trajectory? trajectory = _trajectoryManager.GetTrajectoryById(id);
             if (trajectory == null) return NotFound();
             if (_octreeManager.Rebuild(trajectory))
             {
-                return Ok();
+                return Ok(_octreeManager.GetStatus(trajectory));
             }
             return UnprocessableEntity(new { error = "trajectory_has_no_indexable_uncertainty_envelope" });
         }
         // PUT api/Octrees/id
         [HttpPut("{id}")]
-        public ActionResult Put(Guid id)
+        public ActionResult<Model.OctreeIndexStatus> Put(Guid id)
         {
             if (id == Guid.Empty) return BadRequest();
             Model.Trajectory? trajectory = _trajectoryManager.GetTrajectoryById(id);
             if (trajectory == null) return NotFound();
             if (_octreeManager.Rebuild(trajectory))
             {
-                return Ok();
+                return Ok(_octreeManager.GetStatus(trajectory));
             }
             _octreeManager.Delete(id);
             return UnprocessableEntity(new { error = "trajectory_has_no_indexable_uncertainty_envelope" });
@@ -79,7 +90,8 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         {
             if (id == Guid.Empty) return BadRequest();
             if (!_octreeManager.Contains(id)) return NotFound();
-            return _octreeManager.Delete(id) ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
+            return _octreeManager.Delete(id) ? Ok() : StatusCode(StatusCodes.Status500InternalServerError,
+                new { error = "octree_index_delete_failed" });
         }
     }
 }

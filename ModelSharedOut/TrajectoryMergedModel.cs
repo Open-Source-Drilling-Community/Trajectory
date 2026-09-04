@@ -75,7 +75,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid?>> GetAllEarthMagneticFieldIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid?>> GetAllEarthMagneticFieldIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -116,7 +116,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid?>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid?>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -1177,7 +1177,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllClusterIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllClusterIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -1218,7 +1218,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -1317,7 +1317,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllClusterMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllClusterMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -1358,7 +1358,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -1605,7 +1605,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Cluster>> GetAllClusterAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<Cluster>> GetAllClusterAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -1646,7 +1646,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<Cluster>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<Cluster>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -1747,7 +1747,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllCartographicConversionSetIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllCartographicConversionSetIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -1788,7 +1788,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -1887,7 +1887,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllCartographicConversionSetMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllCartographicConversionSetMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -1928,7 +1928,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -2175,7 +2175,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<CartographicConversionSetLight>> GetAllCartographicConversionSetLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<CartographicConversionSetLight>> GetAllCartographicConversionSetLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -2216,7 +2216,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<CartographicConversionSetLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<CartographicConversionSetLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -2246,7 +2246,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<CartographicConversionSet>> GetAllCartographicConversionSetAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<CartographicConversionSet>> GetAllCartographicConversionSetAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -2287,7 +2287,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<CartographicConversionSet>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<CartographicConversionSet>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -2317,7 +2317,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllCartographicProjectionIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllCartographicProjectionIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -2358,7 +2358,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -2457,7 +2457,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllCartographicProjectionMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllCartographicProjectionMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -2498,7 +2498,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -2745,7 +2745,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<CartographicProjectionLight>> GetAllCartographicProjectionLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<CartographicProjectionLight>> GetAllCartographicProjectionLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -2786,7 +2786,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<CartographicProjectionLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<CartographicProjectionLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -2816,7 +2816,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<CartographicProjection>> GetAllCartographicProjectionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<CartographicProjection>> GetAllCartographicProjectionAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -2857,7 +2857,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<CartographicProjection>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<CartographicProjection>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -2887,7 +2887,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<string>> GetAllCartographicProjectionTypeIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<string>> GetAllCartographicProjectionTypeIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -2928,7 +2928,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<string>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<string>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -3033,7 +3033,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<CartographicProjectionType>> GetAllCartographicProjectionTypeAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<CartographicProjectionType>> GetAllCartographicProjectionTypeAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -3074,7 +3074,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<CartographicProjectionType>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<CartographicProjectionType>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -3175,7 +3175,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllGeodeticConversionSetIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllGeodeticConversionSetIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -3216,7 +3216,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -3315,7 +3315,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllGeodeticConversionSetMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllGeodeticConversionSetMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -3356,7 +3356,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -3603,7 +3603,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GeodeticConversionSetLight>> GetAllGeodeticConversionSetLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<GeodeticConversionSetLight>> GetAllGeodeticConversionSetLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -3644,7 +3644,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<GeodeticConversionSetLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<GeodeticConversionSetLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -3674,7 +3674,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GeodeticConversionSet>> GetAllGeodeticConversionSetAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<GeodeticConversionSet>> GetAllGeodeticConversionSetAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -3715,7 +3715,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<GeodeticConversionSet>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<GeodeticConversionSet>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -3745,7 +3745,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GeodeticDatum>> GeodeticDatumAllAsync(string name = null, string authority = null, string code = null, bool? builtIn = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<GeodeticDatum>> GeodeticDatumAllAsync(string name = null, string authority = null, string code = null, bool? builtIn = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -3804,7 +3804,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<GeodeticDatum>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<GeodeticDatum>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -3909,7 +3909,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllGeodeticDatumMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllGeodeticDatumMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -3950,7 +3950,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -4223,7 +4223,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GeodeticDatumLight>> GetAllGeodeticDatumLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<GeodeticDatumLight>> GetAllGeodeticDatumLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -4264,7 +4264,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<GeodeticDatumLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<GeodeticDatumLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -4294,7 +4294,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GeodeticDatum>> GetAllGeodeticDatumAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<GeodeticDatum>> GetAllGeodeticDatumAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -4335,7 +4335,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<GeodeticDatum>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<GeodeticDatum>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -4436,7 +4436,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllSpheroidIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllSpheroidIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -4477,7 +4477,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -4576,7 +4576,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllSpheroidMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllSpheroidMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -4617,7 +4617,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -4864,7 +4864,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Spheroid>> GetAllSpheroidAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<Spheroid>> GetAllSpheroidAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -4905,7 +4905,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<Spheroid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<Spheroid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -4935,7 +4935,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllFieldIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllFieldIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -4976,7 +4976,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -5075,7 +5075,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllFieldMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllFieldMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -5116,7 +5116,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -5363,7 +5363,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Field>> GetAllFieldAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<Field>> GetAllFieldAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -5404,7 +5404,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<Field>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<Field>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -5434,7 +5434,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllFieldCartographicConversionSetIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllFieldCartographicConversionSetIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -5475,7 +5475,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -5574,7 +5574,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllFieldCartographicConversionSetMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllFieldCartographicConversionSetMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -5615,7 +5615,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -5862,7 +5862,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<FieldCartographicConversionSetLight>> GetAllFieldCartographicConversionSetLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<FieldCartographicConversionSetLight>> GetAllFieldCartographicConversionSetLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -5903,7 +5903,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<FieldCartographicConversionSetLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<FieldCartographicConversionSetLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -5933,7 +5933,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<FieldCartographicConversionSet>> GetAllFieldCartographicConversionSetAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<FieldCartographicConversionSet>> GetAllFieldCartographicConversionSetAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -5974,7 +5974,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<FieldCartographicConversionSet>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<FieldCartographicConversionSet>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -6075,7 +6075,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllRigIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllRigIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -6116,7 +6116,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -6245,7 +6245,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllRigMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllRigMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -6286,7 +6286,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -6601,7 +6601,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<RigLight>> GetAllRigLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<RigLight>> GetAllRigLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -6642,7 +6642,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<RigLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<RigLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -6672,7 +6672,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<RigReadResponse>> GetAllRigAsync(bool? includePhotos = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<RigReadResponse>> GetAllRigAsync(bool? includePhotos = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -6719,7 +6719,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<RigReadResponse>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<RigReadResponse>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -6820,7 +6820,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllVerticalDatumIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllVerticalDatumIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -6861,7 +6861,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -6960,7 +6960,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllVerticalDatumMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllVerticalDatumMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -7001,7 +7001,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -7248,7 +7248,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<VerticalDatum>> GetAllVerticalDatumAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<VerticalDatum>> GetAllVerticalDatumAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -7289,7 +7289,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<VerticalDatum>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<VerticalDatum>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -7319,7 +7319,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<VerticalDatum>> GetAllCompletedVerticalDatumAsync(bool? isCompleted = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<VerticalDatum>> GetAllCompletedVerticalDatumAsync(bool? isCompleted = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -7366,7 +7366,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<VerticalDatum>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<VerticalDatum>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -7396,7 +7396,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllVerticalDatumOrderIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllVerticalDatumOrderIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -7437,7 +7437,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -7536,7 +7536,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllVerticalDatumOrderMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllVerticalDatumOrderMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -7577,7 +7577,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -7824,7 +7824,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<VerticalDatumOrderLight>> GetAllVerticalDatumOrderLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<VerticalDatumOrderLight>> GetAllVerticalDatumOrderLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -7865,7 +7865,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<VerticalDatumOrderLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<VerticalDatumOrderLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -7895,7 +7895,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<VerticalDatumOrder>> GetAllVerticalDatumOrderAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<VerticalDatumOrder>> GetAllVerticalDatumOrderAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -7936,7 +7936,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<VerticalDatumOrder>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<VerticalDatumOrder>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -7966,7 +7966,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllWellIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllWellIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -8007,7 +8007,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -8136,7 +8136,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllWellMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllWellMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -8177,7 +8177,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -8506,7 +8506,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Well>> GetAllWellAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<Well>> GetAllWellAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -8547,7 +8547,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<Well>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<Well>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -8577,7 +8577,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllUsedSlotMetaInfoByClusterIdAsync(System.Guid clusterId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllUsedSlotMetaInfoByClusterIdAsync(System.Guid clusterId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (clusterId == null)
                 throw new System.ArgumentNullException("clusterId");
@@ -8622,7 +8622,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -8723,7 +8723,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllWellBoreIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllWellBoreIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -8764,7 +8764,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -8863,7 +8863,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllWellBoreMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllWellBoreMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -8904,7 +8904,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -9151,7 +9151,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WellBore>> GetAllWellBoreAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<WellBore>> GetAllWellBoreAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -9192,7 +9192,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<WellBore>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<WellBore>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -9293,7 +9293,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllWellBoreArchitectureIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllWellBoreArchitectureIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -9334,7 +9334,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -9433,7 +9433,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllWellBoreArchitectureMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllWellBoreArchitectureMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -9474,7 +9474,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -9721,7 +9721,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WellBoreArchitectureLight>> GetAllWellBoreArchitectureLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<WellBoreArchitectureLight>> GetAllWellBoreArchitectureLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -9762,7 +9762,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<WellBoreArchitectureLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<WellBoreArchitectureLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -9792,7 +9792,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WellBoreArchitecture>> GetAllWellBoreArchitectureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<WellBoreArchitecture>> GetAllWellBoreArchitectureAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -9833,7 +9833,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<WellBoreArchitecture>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<WellBoreArchitecture>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -10224,7 +10224,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllWellBoreArchitectureFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllWellBoreArchitectureFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -10265,7 +10265,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -10364,7 +10364,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllWellBoreArchitectureFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllWellBoreArchitectureFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -10405,7 +10405,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -10435,7 +10435,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WellBoreArchitectureFeatureCategory>> GetAllWellBoreArchitectureFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<WellBoreArchitectureFeatureCategory>> GetAllWellBoreArchitectureFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -10476,7 +10476,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<WellBoreArchitectureFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<WellBoreArchitectureFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -10735,7 +10735,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllWellBoreArchitectureIdentityIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllWellBoreArchitectureIdentityIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -10776,7 +10776,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -10875,7 +10875,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllWellBoreArchitectureIdentityMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllWellBoreArchitectureIdentityMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -10916,7 +10916,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -10946,7 +10946,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WellBoreArchitectureIdentity>> GetAllWellBoreArchitectureIdentityAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<WellBoreArchitectureIdentity>> GetAllWellBoreArchitectureIdentityAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -10987,7 +10987,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<WellBoreArchitectureIdentity>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<WellBoreArchitectureIdentity>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -11317,7 +11317,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllEarthMagneticFieldMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllEarthMagneticFieldMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -11358,7 +11358,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -11605,7 +11605,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<EarthMagneticField>> GetAllEarthMagneticFieldAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<EarthMagneticField>> GetAllEarthMagneticFieldAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -11646,7 +11646,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<EarthMagneticField>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<EarthMagneticField>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -11676,7 +11676,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<EarthMagneticField>> GetAllCompletedEarthMagneticFieldAsync(bool? isCompleted = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<EarthMagneticField>> GetAllCompletedEarthMagneticFieldAsync(bool? isCompleted = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -11723,7 +11723,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<EarthMagneticField>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<EarthMagneticField>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -11753,7 +11753,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllEarthMagneticFieldCalculationOrderIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllEarthMagneticFieldCalculationOrderIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -11794,7 +11794,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -11893,7 +11893,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllEarthMagneticFieldCalculationOrderMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllEarthMagneticFieldCalculationOrderMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -11934,7 +11934,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -12181,7 +12181,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<EarthMagneticFieldCalculationOrderLight>> GetAllEarthMagneticFieldCalculationOrderLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<EarthMagneticFieldCalculationOrderLight>> GetAllEarthMagneticFieldCalculationOrderLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -12222,7 +12222,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<EarthMagneticFieldCalculationOrderLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<EarthMagneticFieldCalculationOrderLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -12252,7 +12252,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<EarthMagneticFieldCalculationOrder>> GetAllEarthMagneticFieldCalculationOrderAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<EarthMagneticFieldCalculationOrder>> GetAllEarthMagneticFieldCalculationOrderAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -12293,7 +12293,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<EarthMagneticFieldCalculationOrder>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<EarthMagneticFieldCalculationOrder>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -12323,7 +12323,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid?>> GetAllGravitationalFieldIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid?>> GetAllGravitationalFieldIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -12364,7 +12364,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid?>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid?>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -12463,7 +12463,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllGravitationalFieldMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllGravitationalFieldMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -12504,7 +12504,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -12751,7 +12751,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GravitationalField>> GetAllGravitationalFieldAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<GravitationalField>> GetAllGravitationalFieldAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -12792,7 +12792,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<GravitationalField>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<GravitationalField>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -12822,7 +12822,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GravitationalField>> GetAllCompletedGravitationalFieldAsync(bool? completedBool = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<GravitationalField>> GetAllCompletedGravitationalFieldAsync(bool? completedBool = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -12869,7 +12869,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<GravitationalField>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<GravitationalField>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -12899,7 +12899,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllGravitationalFieldCalculationOrderIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllGravitationalFieldCalculationOrderIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -12940,7 +12940,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -13039,7 +13039,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllGravitationalFieldCalculationOrderMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllGravitationalFieldCalculationOrderMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -13080,7 +13080,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -13327,7 +13327,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GravitationalFieldCalculationOrderLight>> GetAllGravitationalFieldCalculationOrderLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<GravitationalFieldCalculationOrderLight>> GetAllGravitationalFieldCalculationOrderLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -13368,7 +13368,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<GravitationalFieldCalculationOrderLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<GravitationalFieldCalculationOrderLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -13398,7 +13398,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GravitationalFieldCalculationOrder>> GetAllGravitationalFieldCalculationOrderAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<GravitationalFieldCalculationOrder>> GetAllGravitationalFieldCalculationOrderAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -13439,7 +13439,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<GravitationalFieldCalculationOrder>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<GravitationalFieldCalculationOrder>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -13469,7 +13469,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllErrorSourceIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllErrorSourceIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -13510,7 +13510,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -13609,7 +13609,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllErrorSourceMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllErrorSourceMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -13650,7 +13650,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -13897,7 +13897,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ErrorSource>> GetAllErrorSourceAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<ErrorSource>> GetAllErrorSourceAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -13938,7 +13938,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<ErrorSource>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<ErrorSource>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -13968,7 +13968,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllSurveyInstrumentIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllSurveyInstrumentIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -14009,7 +14009,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -14108,7 +14108,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllSurveyInstrumentMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllSurveyInstrumentMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -14149,7 +14149,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -14396,7 +14396,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<SurveyInstrumentLight>> GetAllSurveyInstrumentLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<SurveyInstrumentLight>> GetAllSurveyInstrumentLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -14437,7 +14437,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<SurveyInstrumentLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<SurveyInstrumentLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -14467,7 +14467,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<SurveyInstrument>> GetAllSurveyInstrumentAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<SurveyInstrument>> GetAllSurveyInstrumentAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -14508,7 +14508,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<SurveyInstrument>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<SurveyInstrument>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -14609,7 +14609,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<string>> GlobalAntiCollisionsAllAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<string>> GlobalAntiCollisionsAllAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -14650,7 +14650,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<string>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<string>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -14680,7 +14680,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task GlobalAntiCollisionsPOSTAsync(GlobalAntiCollision body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<GlobalAntiCollision> GlobalAntiCollisionsPOSTAsync(GlobalAntiCollision body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -14693,6 +14693,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                     content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
                     request_.Content = content_;
                     request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
@@ -14724,7 +14725,12 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            return;
+                            var objectResponse_ = await ReadObjectResponseAsync<GlobalAntiCollision>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
                         }
                         else
                         {
@@ -14824,7 +14830,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task GlobalAntiCollisionsPUTAsync(string id, GlobalAntiCollision body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<GlobalAntiCollision> GlobalAntiCollisionsPUTAsync(string id, GlobalAntiCollision body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (id == null)
                 throw new System.ArgumentNullException("id");
@@ -14840,6 +14846,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                     content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
                     request_.Content = content_;
                     request_.Method = new System.Net.Http.HttpMethod("PUT");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
@@ -14872,7 +14879,12 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            return;
+                            var objectResponse_ = await ReadObjectResponseAsync<GlobalAntiCollision>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
                         }
                         else
                         {
@@ -14966,7 +14978,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllInterpolatedTrajectoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllInterpolatedTrajectoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -15007,7 +15019,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -15106,7 +15118,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllInterpolatedTrajectoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllInterpolatedTrajectoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -15147,7 +15159,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -15631,7 +15643,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<InterpolatedTrajectoryLight>> GetAllInterpolatedTrajectoryLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<InterpolatedTrajectoryLight>> GetAllInterpolatedTrajectoryLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -15672,7 +15684,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<InterpolatedTrajectoryLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<InterpolatedTrajectoryLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -15702,7 +15714,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<InterpolatedTrajectory>> GetAllInterpolatedTrajectoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<InterpolatedTrajectory>> GetAllInterpolatedTrajectoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -15743,7 +15755,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<InterpolatedTrajectory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<InterpolatedTrajectory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -15773,7 +15785,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> OctreesAllAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> OctreesAllAsync(TrajectoryType? trajectoryType = null, bool? isDefinitive = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -15788,6 +15800,16 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
                     // Operation Path: "Octrees"
                     urlBuilder_.Append("Octrees");
+                    urlBuilder_.Append('?');
+                    if (trajectoryType != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("trajectoryType")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(trajectoryType, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    if (isDefinitive != null)
+                    {
+                        urlBuilder_.Append(System.Uri.EscapeDataString("isDefinitive")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(isDefinitive, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    }
+                    urlBuilder_.Length--;
 
                     PrepareRequest(client_, request_, urlBuilder_);
 
@@ -15814,7 +15836,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -15844,7 +15866,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<OctreeCodeLong>> OctreesAll2Async(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<OctreeCodeLong>> OctreesAll2Async(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (id == null)
                 throw new System.ArgumentNullException("id");
@@ -15889,7 +15911,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<OctreeCodeLong>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<OctreeCodeLong>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -15919,7 +15941,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task OctreesPOSTAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<OctreeIndexStatus> OctreesPOSTAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (id == null)
                 throw new System.ArgumentNullException("id");
@@ -15932,6 +15954,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                 {
                     request_.Content = new System.Net.Http.StringContent(string.Empty, System.Text.Encoding.UTF8, "application/json");
                     request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
@@ -15964,7 +15987,12 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            return;
+                            var objectResponse_ = await ReadObjectResponseAsync<OctreeIndexStatus>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
                         }
                         else
                         {
@@ -15989,7 +16017,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task OctreesPUTAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<OctreeIndexStatus> OctreesPUTAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (id == null)
                 throw new System.ArgumentNullException("id");
@@ -16002,6 +16030,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                 {
                     request_.Content = new System.Net.Http.StringContent(string.Empty, System.Text.Encoding.UTF8, "application/json");
                     request_.Method = new System.Net.Http.HttpMethod("PUT");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
 
                     var urlBuilder_ = new System.Text.StringBuilder();
                     if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
@@ -16034,7 +16063,12 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            return;
+                            var objectResponse_ = await ReadObjectResponseAsync<OctreeIndexStatus>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
                         }
                         else
                         {
@@ -16128,7 +16162,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllSurveyRunIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllSurveyRunIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -16169,7 +16203,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -16268,7 +16302,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllSurveyRunMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllSurveyRunMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -16309,7 +16343,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -16339,7 +16373,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<SurveyRunLight>> GetAllSurveyRunLightAsync(System.Guid? fieldId = null, System.Guid? clusterId = null, System.Guid? wellId = null, System.Guid? wellBoreId = null, System.Guid? surveyInstrumentId = null, SurveyRunType? surveyRunType = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<SurveyRunLight>> GetAllSurveyRunLightAsync(System.Guid? fieldId = null, System.Guid? clusterId = null, System.Guid? wellId = null, System.Guid? wellBoreId = null, System.Guid? surveyInstrumentId = null, SurveyRunType? surveyRunType = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -16406,7 +16440,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<SurveyRunLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<SurveyRunLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -16436,7 +16470,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<SurveyRun>> GetAllSurveyRunAsync(System.Guid? fieldId = null, System.Guid? clusterId = null, System.Guid? wellId = null, System.Guid? wellBoreId = null, System.Guid? surveyInstrumentId = null, SurveyRunType? surveyRunType = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<SurveyRun>> GetAllSurveyRunAsync(System.Guid? fieldId = null, System.Guid? clusterId = null, System.Guid? wellId = null, System.Guid? wellBoreId = null, System.Guid? surveyInstrumentId = null, SurveyRunType? surveyRunType = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -16503,7 +16537,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<SurveyRun>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<SurveyRun>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -17291,7 +17325,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllSurveyRunBatchImportIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllSurveyRunBatchImportIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -17332,7 +17366,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -17431,7 +17465,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllSurveyRunBatchImportMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllSurveyRunBatchImportMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -17472,7 +17506,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -17502,7 +17536,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<SurveyRunBatchImportLight>> GetAllSurveyRunBatchImportLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<SurveyRunBatchImportLight>> GetAllSurveyRunBatchImportLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -17543,7 +17577,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<SurveyRunBatchImportLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<SurveyRunBatchImportLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -17573,7 +17607,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<SurveyRunBatchImport>> GetAllSurveyRunBatchImportAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<SurveyRunBatchImport>> GetAllSurveyRunBatchImportAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -17614,7 +17648,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<SurveyRunBatchImport>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<SurveyRunBatchImport>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -17861,7 +17895,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllSurveyRunMinimumDistanceCalculationIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllSurveyRunMinimumDistanceCalculationIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -17902,7 +17936,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -18001,7 +18035,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllSurveyRunMinimumDistanceCalculationMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllSurveyRunMinimumDistanceCalculationMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -18042,7 +18076,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -18451,7 +18485,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<SurveyRunMinimumDistanceCalculationLight>> GetAllSurveyRunMinimumDistanceCalculationLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<SurveyRunMinimumDistanceCalculationLight>> GetAllSurveyRunMinimumDistanceCalculationLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -18492,7 +18526,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<SurveyRunMinimumDistanceCalculationLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<SurveyRunMinimumDistanceCalculationLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -18522,7 +18556,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<SurveyRunMinimumDistanceCalculation>> GetAllSurveyRunMinimumDistanceCalculationAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<SurveyRunMinimumDistanceCalculation>> GetAllSurveyRunMinimumDistanceCalculationAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -18563,7 +18597,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<SurveyRunMinimumDistanceCalculation>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<SurveyRunMinimumDistanceCalculation>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -18593,7 +18627,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllSurveyStationEllipseCalculationIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllSurveyStationEllipseCalculationIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -18634,7 +18668,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -18739,7 +18773,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllSurveyStationEllipseCalculationMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllSurveyStationEllipseCalculationMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -18780,7 +18814,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -18954,7 +18988,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllTrajectoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllTrajectoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -18995,7 +19029,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -19094,7 +19128,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllTrajectoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllTrajectoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -19135,7 +19169,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -19544,7 +19578,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TrajectoryLight>> GetAllTrajectoryLightAsync(System.Guid? fieldId = null, System.Guid? clusterId = null, System.Guid? wellId = null, System.Guid? wellBoreId = null, TrajectoryType? trajectoryType = null, bool? isDefinitive = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<TrajectoryLight>> GetAllTrajectoryLightAsync(System.Guid? fieldId = null, System.Guid? clusterId = null, System.Guid? wellId = null, System.Guid? wellBoreId = null, TrajectoryType? trajectoryType = null, bool? isDefinitive = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -19611,7 +19645,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<TrajectoryLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<TrajectoryLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -19641,7 +19675,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Trajectory>> GetAllTrajectoryAsync(System.Guid? fieldId = null, System.Guid? clusterId = null, System.Guid? wellId = null, System.Guid? wellBoreId = null, TrajectoryType? trajectoryType = null, bool? isDefinitive = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<Trajectory>> GetAllTrajectoryAsync(System.Guid? fieldId = null, System.Guid? clusterId = null, System.Guid? wellId = null, System.Guid? wellBoreId = null, TrajectoryType? trajectoryType = null, bool? isDefinitive = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -19708,7 +19742,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<Trajectory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<Trajectory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -19738,7 +19772,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllTrajectoryAggregationCaseIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllTrajectoryAggregationCaseIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -19779,7 +19813,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -19878,7 +19912,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllTrajectoryAggregationCaseMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllTrajectoryAggregationCaseMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -19919,7 +19953,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -20756,7 +20790,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TrajectoryAggregationCaseLight>> GetAllTrajectoryAggregationCaseLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<TrajectoryAggregationCaseLight>> GetAllTrajectoryAggregationCaseLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -20797,7 +20831,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<TrajectoryAggregationCaseLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<TrajectoryAggregationCaseLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -20827,7 +20861,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TrajectoryAggregationCase>> GetAllTrajectoryAggregationCaseAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<TrajectoryAggregationCase>> GetAllTrajectoryAggregationCaseAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -20868,7 +20902,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<TrajectoryAggregationCase>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<TrajectoryAggregationCase>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -20898,7 +20932,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllTrajectoryMinimumDistanceCalculationIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllTrajectoryMinimumDistanceCalculationIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -20939,7 +20973,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -21038,7 +21072,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllTrajectoryMinimumDistanceCalculationMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllTrajectoryMinimumDistanceCalculationMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -21079,7 +21113,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -21488,7 +21522,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TrajectoryMinimumDistanceCalculationLight>> GetAllTrajectoryMinimumDistanceCalculationLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<TrajectoryMinimumDistanceCalculationLight>> GetAllTrajectoryMinimumDistanceCalculationLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -21529,7 +21563,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<TrajectoryMinimumDistanceCalculationLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<TrajectoryMinimumDistanceCalculationLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -21559,7 +21593,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TrajectoryMinimumDistanceCalculation>> GetAllTrajectoryMinimumDistanceCalculationAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<TrajectoryMinimumDistanceCalculation>> GetAllTrajectoryMinimumDistanceCalculationAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -21600,7 +21634,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<TrajectoryMinimumDistanceCalculation>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<TrajectoryMinimumDistanceCalculation>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -21630,7 +21664,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllTrajectoryRealizationCaseIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllTrajectoryRealizationCaseIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -21671,7 +21705,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -21770,7 +21804,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllTrajectoryRealizationCaseMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllTrajectoryRealizationCaseMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -21811,7 +21845,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -22064,7 +22098,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TrajectoryRealizationCaseLight>> GetAllTrajectoryRealizationCaseLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<TrajectoryRealizationCaseLight>> GetAllTrajectoryRealizationCaseLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -22105,7 +22139,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<TrajectoryRealizationCaseLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<TrajectoryRealizationCaseLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -22135,7 +22169,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TrajectoryRealizationCase>> GetAllTrajectoryRealizationCaseAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<TrajectoryRealizationCase>> GetAllTrajectoryRealizationCaseAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -22176,7 +22210,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<TrajectoryRealizationCase>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<TrajectoryRealizationCase>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -22969,7 +23003,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WellBore>> GetAllWellBoreByWellIDAsync(System.Guid? wellID = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<WellBore>> GetAllWellBoreByWellIDAsync(System.Guid? wellID = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -23016,7 +23050,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<WellBore>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<WellBore>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -23046,7 +23080,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WellBore>> GetAllWellBoreByRigIdAsync(System.Guid? rigID = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<WellBore>> GetAllWellBoreByRigIdAsync(System.Guid? rigID = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -23093,7 +23127,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<WellBore>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<WellBore>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -23123,7 +23157,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WellBore>> GetAllWellBoreByParentWellBoreIdAsync(System.Guid? parentID = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<WellBore>> GetAllWellBoreByParentWellBoreIdAsync(System.Guid? parentID = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -23170,7 +23204,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<WellBore>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<WellBore>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -23200,7 +23234,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WellBore>> GetAllSidetrackedWellBoreAsync(System.Guid? parentID = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<WellBore>> GetAllSidetrackedWellBoreAsync(System.Guid? parentID = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -23247,7 +23281,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<WellBore>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<WellBore>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -23925,7 +23959,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllWellBoreFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllWellBoreFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -23966,7 +24000,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -24071,7 +24105,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllWellBoreFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllWellBoreFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -24112,7 +24146,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -24387,7 +24421,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WellBoreFeatureCategory>> GetAllWellBoreFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<WellBoreFeatureCategory>> GetAllWellBoreFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -24428,7 +24462,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<WellBoreFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<WellBoreFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -24458,7 +24492,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllWellBoreIdentityIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllWellBoreIdentityIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -24499,7 +24533,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -24604,7 +24638,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllWellBoreIdentityMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllWellBoreIdentityMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -24645,7 +24679,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -24920,7 +24954,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WellBoreIdentity>> GetAllWellBoreIdentityAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<WellBoreIdentity>> GetAllWellBoreIdentityAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -24961,7 +24995,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<WellBoreIdentity>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<WellBoreIdentity>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -25231,7 +25265,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ClusterLight>> GetAllClusterLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<ClusterLight>> GetAllClusterLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -25272,7 +25306,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<ClusterLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<ClusterLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -25302,7 +25336,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Cluster>> GetAllClusterByFieldIdAsync(System.Guid? guid = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<Cluster>> GetAllClusterByFieldIdAsync(System.Guid? guid = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -25349,7 +25383,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<Cluster>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<Cluster>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -25379,7 +25413,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Cluster>> GetAllClusterByRigIdAsync(System.Guid? guid = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<Cluster>> GetAllClusterByRigIdAsync(System.Guid? guid = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -25426,7 +25460,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<Cluster>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<Cluster>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -25456,7 +25490,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Cluster>> GetAllSingleWellClusterAsync(bool? isSingleWellNullable = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<Cluster>> GetAllSingleWellClusterAsync(bool? isSingleWellNullable = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -25503,7 +25537,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<Cluster>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<Cluster>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -25533,7 +25567,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<Cluster>> GetAllFixedPlatformClusterAsync(bool? fixedBool = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<Cluster>> GetAllFixedPlatformClusterAsync(bool? fixedBool = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -25580,7 +25614,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<Cluster>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<Cluster>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -25610,7 +25644,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllClusterFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllClusterFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -25651,7 +25685,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -25750,7 +25784,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllClusterFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllClusterFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -25791,7 +25825,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -26038,7 +26072,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ClusterFeatureCategory>> GetAllClusterFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<ClusterFeatureCategory>> GetAllClusterFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -26079,7 +26113,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<ClusterFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<ClusterFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -26109,7 +26143,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllClusterIdentityIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllClusterIdentityIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -26150,7 +26184,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -26249,7 +26283,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllClusterIdentityMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllClusterIdentityMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -26290,7 +26324,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -26537,7 +26571,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ClusterIdentity>> GetAllClusterIdentityAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<ClusterIdentity>> GetAllClusterIdentityAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -26578,7 +26612,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<ClusterIdentity>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<ClusterIdentity>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -26608,7 +26642,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllSlotFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllSlotFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -26649,7 +26683,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -26748,7 +26782,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllSlotFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllSlotFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -26789,7 +26823,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -27036,7 +27070,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<SlotFeatureCategory>> GetAllSlotFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<SlotFeatureCategory>> GetAllSlotFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -27077,7 +27111,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<SlotFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<SlotFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -27317,7 +27351,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<FieldLight>> GetAllFieldLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<FieldLight>> GetAllFieldLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -27358,7 +27392,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<FieldLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<FieldLight>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -27618,7 +27652,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllFieldDelineationLineTypeIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllFieldDelineationLineTypeIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -27659,7 +27693,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -27764,7 +27798,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllFieldDelineationLineTypeMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllFieldDelineationLineTypeMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -27805,7 +27839,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -28074,7 +28108,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<FieldDelineationLineType>> GetAllFieldDelineationLineTypeAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<FieldDelineationLineType>> GetAllFieldDelineationLineTypeAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -28115,7 +28149,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<FieldDelineationLineType>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<FieldDelineationLineType>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -28145,7 +28179,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllFieldFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllFieldFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -28186,7 +28220,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -28291,7 +28325,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllFieldFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllFieldFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -28332,7 +28366,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -28601,7 +28635,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<FieldFeatureCategory>> GetAllFieldFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<FieldFeatureCategory>> GetAllFieldFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -28642,7 +28676,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<FieldFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<FieldFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -28672,7 +28706,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllFieldIdentityIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllFieldIdentityIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -28713,7 +28747,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -28818,7 +28852,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllFieldIdentityMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllFieldIdentityMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -28859,7 +28893,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -29128,7 +29162,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<FieldIdentity>> GetAllFieldIdentityAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<FieldIdentity>> GetAllFieldIdentityAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -29169,7 +29203,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<FieldIdentity>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<FieldIdentity>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -29199,7 +29233,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllFieldMembershipCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllFieldMembershipCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -29240,7 +29274,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -29345,7 +29379,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllFieldMembershipCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllFieldMembershipCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -29386,7 +29420,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -29655,7 +29689,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<FieldMembershipCategory>> GetAllFieldMembershipCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<FieldMembershipCategory>> GetAllFieldMembershipCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -29696,7 +29730,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<FieldMembershipCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<FieldMembershipCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -29946,7 +29980,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllRigFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllRigFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -29987,7 +30021,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -30092,7 +30126,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllRigFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllRigFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -30133,7 +30167,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -30163,7 +30197,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<RigFeatureCategory>> GetAllRigFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<RigFeatureCategory>> GetAllRigFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -30204,7 +30238,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<RigFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<RigFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -30463,7 +30497,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<RigPhotoMetadata>> PhotosAllAsync(System.Guid rigId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<RigPhotoMetadata>> PhotosAllAsync(System.Guid rigId, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             if (rigId == null)
                 throw new System.ArgumentNullException("rigId");
@@ -30509,7 +30543,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<RigPhotoMetadata>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<RigPhotoMetadata>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -31217,7 +31251,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ProjectionDefinitionSummary>> SummariesAsync(bool? includeDeprecated = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<ProjectionDefinitionSummary>> SummariesAsync(bool? includeDeprecated = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -31264,7 +31298,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<ProjectionDefinitionSummary>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<ProjectionDefinitionSummary>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -32109,7 +32143,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<DatumTransformationConnection>> TransformationConnectionsAsync(double? latitude = null, double? longitude = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<DatumTransformationConnection>> TransformationConnectionsAsync(double? latitude = null, double? longitude = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -32160,7 +32194,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<DatumTransformationConnection>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<DatumTransformationConnection>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -32336,7 +32370,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<GeodeticTransformation>> GeodeticTransformationAllAsync(string name = null, string authority = null, string code = null, bool? builtIn = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<GeodeticTransformation>> GeodeticTransformationAllAsync(string name = null, string authority = null, string code = null, bool? builtIn = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -32395,7 +32429,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<GeodeticTransformation>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<GeodeticTransformation>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -32818,7 +32852,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ReferenceEllipsoid>> ReferenceEllipsoidAllAsync(string name = null, string authority = null, string code = null, bool? builtIn = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<ReferenceEllipsoid>> ReferenceEllipsoidAllAsync(string name = null, string authority = null, string code = null, bool? builtIn = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -32877,7 +32911,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<ReferenceEllipsoid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<ReferenceEllipsoid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -34774,7 +34808,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllWellFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllWellFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -34815,7 +34849,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -34920,7 +34954,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllWellFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllWellFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -34961,7 +34995,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -35230,7 +35264,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WellFeatureCategory>> GetAllWellFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<WellFeatureCategory>> GetAllWellFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -35271,7 +35305,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<WellFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<WellFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -35301,7 +35335,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllWellIdentityIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllWellIdentityIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -35342,7 +35376,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -35447,7 +35481,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllWellIdentityMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllWellIdentityMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -35488,7 +35522,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -35757,7 +35791,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<WellIdentity>> GetAllWellIdentityAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<WellIdentity>> GetAllWellIdentityAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -35798,7 +35832,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<WellIdentity>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<WellIdentity>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -36018,7 +36052,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllSurveyInstrumentFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllSurveyInstrumentFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -36059,7 +36093,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -36158,7 +36192,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllSurveyInstrumentFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllSurveyInstrumentFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -36199,7 +36233,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -36229,7 +36263,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<SurveyInstrumentFeatureCategory>> GetAllSurveyInstrumentFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<SurveyInstrumentFeatureCategory>> GetAllSurveyInstrumentFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -36270,7 +36304,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<SurveyInstrumentFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<SurveyInstrumentFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -36529,7 +36563,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllSurveyInstrumentIdentityIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllSurveyInstrumentIdentityIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -36570,7 +36604,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -36669,7 +36703,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllSurveyInstrumentIdentityMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllSurveyInstrumentIdentityMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -36710,7 +36744,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -36740,7 +36774,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<SurveyInstrumentIdentity>> GetAllSurveyInstrumentIdentityAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<SurveyInstrumentIdentity>> GetAllSurveyInstrumentIdentityAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -36781,7 +36815,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<SurveyInstrumentIdentity>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<SurveyInstrumentIdentity>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -37040,6 +37074,82 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<OctreeIndexStatus> GetOctreeIndexStatusAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        {
+            if (id == null)
+                throw new System.ArgumentNullException("id");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "Octrees/{id}/Status"
+                    urlBuilder_.Append("Octrees/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/Status");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<OctreeIndexStatus>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<TrajectoryBatchExportDocument> BatchExportTrajectoryDataAsync(TrajectoryBatchExportRequest body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
@@ -37250,7 +37360,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllTrajectoryFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllTrajectoryFeatureCategoryIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -37291,7 +37401,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -37390,7 +37500,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllTrajectoryFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllTrajectoryFeatureCategoryMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -37431,7 +37541,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -37461,7 +37571,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TrajectoryFeatureCategory>> GetAllTrajectoryFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<TrajectoryFeatureCategory>> GetAllTrajectoryFeatureCategoryAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -37502,7 +37612,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<TrajectoryFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<TrajectoryFeatureCategory>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -37761,7 +37871,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllTrajectoryIdentityIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllTrajectoryIdentityIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -37802,7 +37912,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<System.Guid>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -37901,7 +38011,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllTrajectoryIdentityMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<MetaInfo>> GetAllTrajectoryIdentityMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -37942,7 +38052,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<MetaInfo>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -37972,7 +38082,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
-        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<TrajectoryIdentity>> GetAllTrajectoryIdentityAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<TrajectoryIdentity>> GetAllTrajectoryIdentityAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
             var disposeClient_ = false;
@@ -38013,7 +38123,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                         var status_ = (int)response_.StatusCode;
                         if (status_ == 200)
                         {
-                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.ICollection<TrajectoryIdentity>>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            var objectResponse_ = await ReadObjectResponseAsync<System.Collections.Generic.List<TrajectoryIdentity>>(response_, headers_, cancellationToken).ConfigureAwait(false);
                             if (objectResponse_.Object == null)
                             {
                                 throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
@@ -38547,7 +38657,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string DepthPositiveDirection { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Models")]
-        public System.Collections.Generic.ICollection<EarthMagneticModelInfo> Models { get; set; }
+        public System.Collections.Generic.List<EarthMagneticModelInfo> Models { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -38601,7 +38711,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<EarthMagneticFieldValidationError> Errors { get; set; }
+        public System.Collections.Generic.List<EarthMagneticFieldValidationError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -38710,7 +38820,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Samples")]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.MinLength(1)]
-        public System.Collections.Generic.ICollection<EarthMagneticFieldEvaluationPoint> Samples { get; set; } = new System.Collections.ObjectModel.Collection<EarthMagneticFieldEvaluationPoint>();
+        public System.Collections.Generic.List<EarthMagneticFieldEvaluationPoint> Samples { get; set; } = new System.Collections.Generic.List<EarthMagneticFieldEvaluationPoint>();
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -38734,7 +38844,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EarthMagneticModelInfo Model { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Samples")]
-        public System.Collections.Generic.ICollection<EarthMagneticFieldSample> Samples { get; set; }
+        public System.Collections.Generic.List<EarthMagneticFieldSample> Samples { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -38799,7 +38909,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Positions")]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.MinLength(1)]
-        public System.Collections.Generic.ICollection<EarthGravityPosition> Positions { get; set; } = new System.Collections.ObjectModel.Collection<EarthGravityPosition>();
+        public System.Collections.Generic.List<EarthGravityPosition> Positions { get; set; } = new System.Collections.Generic.List<EarthGravityPosition>();
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -38823,7 +38933,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EarthGravityModelInfo Model { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Samples")]
-        public System.Collections.Generic.ICollection<EarthGravitySample> Samples { get; set; }
+        public System.Collections.Generic.List<EarthGravitySample> Samples { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -38990,7 +39100,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<EarthGravityValidationError> Errors { get; set; }
+        public System.Collections.Generic.List<EarthGravityValidationError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -39128,10 +39238,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string ReferenceEllipsoid { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SupportedVerticalDatums")]
-        public System.Collections.Generic.ICollection<string> SupportedVerticalDatums { get; set; }
+        public System.Collections.Generic.List<string> SupportedVerticalDatums { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SupportedConversionDirections")]
-        public System.Collections.Generic.ICollection<string> SupportedConversionDirections { get; set; }
+        public System.Collections.Generic.List<string> SupportedConversionDirections { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DepthPositiveDirection")]
         public string DepthPositiveDirection { get; set; }
@@ -39265,7 +39375,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<EarthVerticalDatumValidationError> Errors { get; set; }
+        public System.Collections.Generic.List<EarthVerticalDatumValidationError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -39291,7 +39401,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Positions")]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.MinLength(1)]
-        public System.Collections.Generic.ICollection<EarthVerticalDatumPosition> Positions { get; set; } = new System.Collections.ObjectModel.Collection<EarthVerticalDatumPosition>();
+        public System.Collections.Generic.List<EarthVerticalDatumPosition> Positions { get; set; } = new System.Collections.Generic.List<EarthVerticalDatumPosition>();
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -39315,7 +39425,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EarthVerticalDatumModelInfo Model { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Samples")]
-        public System.Collections.Generic.ICollection<EarthVerticalDatumSample> Samples { get; set; }
+        public System.Collections.Generic.List<EarthVerticalDatumSample> Samples { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -39418,7 +39528,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Positions")]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.MinLength(1)]
-        public System.Collections.Generic.ICollection<Wgs84ToMeanSeaLevelPosition> Positions { get; set; } = new System.Collections.ObjectModel.Collection<Wgs84ToMeanSeaLevelPosition>();
+        public System.Collections.Generic.List<Wgs84ToMeanSeaLevelPosition> Positions { get; set; } = new System.Collections.Generic.List<Wgs84ToMeanSeaLevelPosition>();
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -39442,7 +39552,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EarthVerticalDatumModelInfo Model { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Samples")]
-        public System.Collections.Generic.ICollection<Wgs84ToMeanSeaLevelSample> Samples { get; set; }
+        public System.Collections.Generic.List<Wgs84ToMeanSeaLevelSample> Samples { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -39574,7 +39684,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("Data")]
-        public System.Collections.Generic.ICollection<CountPerDay> Data { get; set; }
+        public System.Collections.Generic.List<CountPerDay> Data { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -39871,7 +39981,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.Guid? CartographicProjectionID { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CartographicCoordinateList")]
-        public System.Collections.Generic.ICollection<CartographicCoordinate> CartographicCoordinateList { get; set; }
+        public System.Collections.Generic.List<CartographicCoordinate> CartographicCoordinateList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -40547,7 +40657,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public Bounds OctreeBounds { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("GeodeticCoordinates")]
-        public System.Collections.Generic.ICollection<GeodeticCoordinate> GeodeticCoordinates { get; set; }
+        public System.Collections.Generic.List<GeodeticCoordinate> GeodeticCoordinates { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -40632,7 +40742,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.DateTimeOffset ModifiedUtc { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Aliases")]
-        public System.Collections.Generic.ICollection<string> Aliases { get; set; }
+        public System.Collections.Generic.List<string> Aliases { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ReferenceObjectType")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<GeodeticReferenceObjectType>))]
@@ -40678,10 +40788,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? EnsembleAccuracy { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MemberDatumIds")]
-        public System.Collections.Generic.ICollection<System.Guid> MemberDatumIds { get; set; }
+        public System.Collections.Generic.List<System.Guid> MemberDatumIds { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Usage")]
-        public System.Collections.Generic.ICollection<GeodeticUsage> Usage { get; set; }
+        public System.Collections.Generic.List<GeodeticUsage> Usage { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Remarks")]
         public string Remarks { get; set; }
@@ -40985,7 +41095,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.Guid? FieldID { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CartographicCoordinateList")]
-        public System.Collections.Generic.ICollection<CartographicCoordinate> CartographicCoordinateList { get; set; }
+        public System.Collections.Generic.List<CartographicCoordinate> CartographicCoordinateList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -41142,10 +41252,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("AccumulatorClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<AccumulatorClass>))]
@@ -41231,10 +41341,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ControlMode")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<AutodrillerControlMode>))]
@@ -41335,10 +41445,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SolidsControlClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SolidsControlClass>))]
@@ -41473,17 +41583,17 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("BopStackClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<BopStackClass>))]
         public BopStackClass? BopStackClass { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("UnitReferences")]
-        public System.Collections.Generic.ICollection<string> UnitReferences { get; set; }
+        public System.Collections.Generic.List<string> UnitReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("BopControlType")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ControllerType>))]
@@ -41499,10 +41609,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? Weight { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("BopComponents")]
-        public System.Collections.Generic.ICollection<BopStackComponentDefinition> BopComponents { get; set; }
+        public System.Collections.Generic.List<BopStackComponentDefinition> BopComponents { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("BopLines")]
-        public System.Collections.Generic.ICollection<BopLineDefinition> BopLines { get; set; }
+        public System.Collections.Generic.List<BopLineDefinition> BopLines { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MaxLimitDesignPressure")]
         public double? MaxLimitDesignPressure { get; set; }
@@ -41627,10 +41737,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CsgDrvClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<CasingDriveClass>))]
@@ -41785,10 +41895,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("PumpClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<PumpClass>))]
@@ -41801,7 +41911,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? StrokeLength { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CementPumpDisplacement")]
-        public System.Collections.Generic.ICollection<CementPumpDisplacementPoint> CementPumpDisplacement { get; set; }
+        public System.Collections.Generic.List<CementPumpDisplacementPoint> CementPumpDisplacement { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MaxLimitPressure")]
         public double? MaxLimitPressure { get; set; }
@@ -41883,17 +41993,17 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Mounting")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<MountingType>))]
         public MountingType? Mounting { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Capabilities")]
-        public System.Collections.Generic.ICollection<string> Capabilities { get; set; }
+        public System.Collections.Generic.List<string> Capabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("NumberOfPumps")]
         public int? NumberOfPumps { get; set; }
@@ -42005,10 +42115,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ChokeControlClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ControlClass>))]
@@ -42097,10 +42207,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CoilDrvClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<MountingType>))]
@@ -42195,10 +42305,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CcdControlClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ControlClass>))]
@@ -42317,10 +42427,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SheaveDiameter")]
         public double? SheaveDiameter { get; set; }
@@ -42462,10 +42572,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DerrickClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<DerrickClass>))]
@@ -42599,10 +42709,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DrawworksClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<DrawworksClass>))]
@@ -42694,10 +42804,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Number")]
         public int? Number { get; set; }
@@ -42764,10 +42874,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ManifoldType")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ManifoldClass>))]
@@ -42806,7 +42916,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public ChokeFunction? ChokeFunction { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ChokeCvCurves")]
-        public System.Collections.Generic.ICollection<ChokeCvCurvePoint> ChokeCvCurves { get; set; }
+        public System.Collections.Generic.List<ChokeCvCurvePoint> ChokeCvCurves { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MaxLimitDesignPressure")]
         public double? MaxLimitDesignPressure { get; set; }
@@ -43055,10 +43165,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("RiserClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<RiserClass>))]
@@ -43156,10 +43266,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("HeaveCompClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<HeaveCompensatorClass>))]
@@ -43221,10 +43331,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DriveModeClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<DriveModeClass>))]
@@ -43313,10 +43423,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("FloatValveClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<FloatValveClass>))]
@@ -43402,10 +43512,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ManifoldType")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ManifoldClass>))]
@@ -43428,7 +43538,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public ManifoldFlowPath? ManifoldFlowPath { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ManifoldFlowcurves")]
-        public System.Collections.Generic.ICollection<RoutingManifoldCurvePoint> ManifoldFlowcurves { get; set; }
+        public System.Collections.Generic.List<RoutingManifoldCurvePoint> ManifoldFlowcurves { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MaxLimitDesignPressure")]
         public double? MaxLimitDesignPressure { get; set; }
@@ -43495,10 +43605,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("FlowTransducer")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<FlowSensorType>))]
@@ -43572,10 +43682,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("GeneratorClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<GeneratorClass>))]
@@ -43861,10 +43971,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("KellyClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<KellyClass>))]
@@ -43995,10 +44105,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MarineMpdClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<MarineMpdClass>))]
@@ -44085,10 +44195,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("UpdateRate")]
         public double? UpdateRate { get; set; }
@@ -44164,10 +44274,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MpdControlDeviceClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<MpdControlDeviceClass>))]
@@ -44259,10 +44369,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MpdGradientMode")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<MpdGradientMode>))]
@@ -44372,10 +44482,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Type")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<MudPumpType>))]
@@ -44395,7 +44505,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? Stroke { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("LinerConfigurations")]
-        public System.Collections.Generic.ICollection<MudPumpLinerConfiguration> LinerConfigurations { get; set; }
+        public System.Collections.Generic.List<MudPumpLinerConfiguration> LinerConfigurations { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("PulsationDamperPressure")]
         public double? PulsationDamperPressure { get; set; }
@@ -44474,10 +44584,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("TankClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<TankClass>))]
@@ -44540,10 +44650,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SeparatorClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SeparatorPhaseClass>))]
@@ -44749,16 +44859,16 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public StationKeepingSystem StationKeepingSystem { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("StorageCapacities")]
-        public System.Collections.Generic.ICollection<RigStorageCapacity> StorageCapacities { get; set; }
+        public System.Collections.Generic.List<RigStorageCapacity> StorageCapacities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("FeatureAssignments")]
-        public System.Collections.Generic.ICollection<RigFeatureAssignment> FeatureAssignments { get; set; }
+        public System.Collections.Generic.List<RigFeatureAssignment> FeatureAssignments { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MudPumpList")]
-        public System.Collections.Generic.ICollection<MudPump> MudPumpList { get; set; }
+        public System.Collections.Generic.List<MudPump> MudPumpList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CementPumpList")]
-        public System.Collections.Generic.ICollection<CementPump> CementPumpList { get; set; }
+        public System.Collections.Generic.List<CementPump> CementPumpList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CementUnit")]
         public CementUnit CementUnit { get; set; }
@@ -44773,13 +44883,13 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public RigMast AuxiliaryRigMast { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MudTankList")]
-        public System.Collections.Generic.ICollection<MudTank> MudTankList { get; set; }
+        public System.Collections.Generic.List<MudTank> MudTankList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("GeneratorList")]
-        public System.Collections.Generic.ICollection<Generator> GeneratorList { get; set; }
+        public System.Collections.Generic.List<Generator> GeneratorList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ShaleShakerList")]
-        public System.Collections.Generic.ICollection<ShaleShaker> ShaleShakerList { get; set; }
+        public System.Collections.Generic.List<ShaleShaker> ShaleShakerList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("AuxSolidsControl")]
         public AuxSolidsControl AuxSolidsControl { get; set; }
@@ -44797,25 +44907,25 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public ReturnFlowLine ReturnFlowLine { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MudGasSeparatorList")]
-        public System.Collections.Generic.ICollection<MudGasSeparator> MudGasSeparatorList { get; set; }
+        public System.Collections.Generic.List<MudGasSeparator> MudGasSeparatorList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DesanderList")]
-        public System.Collections.Generic.ICollection<Desander> DesanderList { get; set; }
+        public System.Collections.Generic.List<Desander> DesanderList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DesilterList")]
-        public System.Collections.Generic.ICollection<Desilter> DesilterList { get; set; }
+        public System.Collections.Generic.List<Desilter> DesilterList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CentrifugeList")]
-        public System.Collections.Generic.ICollection<Centrifuge> CentrifugeList { get; set; }
+        public System.Collections.Generic.List<Centrifuge> CentrifugeList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DegasserList")]
-        public System.Collections.Generic.ICollection<Degasser> DegasserList { get; set; }
+        public System.Collections.Generic.List<Degasser> DegasserList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CuttingsTransportSystem")]
         public CuttingsTransportSystem CuttingsTransportSystem { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CuttingsDryerList")]
-        public System.Collections.Generic.ICollection<CuttingsDryer> CuttingsDryerList { get; set; }
+        public System.Collections.Generic.List<CuttingsDryer> CuttingsDryerList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("PipeDeck")]
         public PipeDeck PipeDeck { get; set; }
@@ -45022,7 +45132,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public ChokeManifold ChokeManifold { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("RigChokeList")]
-        public System.Collections.Generic.ICollection<RigChoke> RigChokeList { get; set; }
+        public System.Collections.Generic.List<RigChoke> RigChokeList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Slips")]
         public Slips Slips { get; set; }
@@ -45107,10 +45217,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("RiserCompensatorClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<RiserCompensatorClass>))]
@@ -45196,10 +45306,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("RotaryTableType")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<RotaryTableType>))]
@@ -45415,17 +45525,17 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ShakerClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ShakerClass>))]
         public ShakerClass? ShakerClass { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ShakerScreens")]
-        public System.Collections.Generic.ICollection<ShakerScreenDefinition> ShakerScreens { get; set; }
+        public System.Collections.Generic.List<ShakerScreenDefinition> ShakerScreens { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MaxLimitOperatingCapacity")]
         public double? MaxLimitOperatingCapacity { get; set; }
@@ -45567,10 +45677,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("PipeDiameter")]
         public double? PipeDiameter { get; set; }
@@ -45668,10 +45778,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurfaceMpdClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurfaceMpdClass>))]
@@ -45799,10 +45909,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("TopDriveClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<TopDriveClass>))]
@@ -45979,10 +46089,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Length")]
         public double? Length { get; set; }
@@ -46073,10 +46183,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public EquipmentLifecycleStatus? LifecycleStatus { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CertificationReferences")]
-        public System.Collections.Generic.ICollection<string> CertificationReferences { get; set; }
+        public System.Collections.Generic.List<string> CertificationReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MeasurementCapabilities")]
-        public System.Collections.Generic.ICollection<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
+        public System.Collections.Generic.List<EquipmentMeasurementCapability> MeasurementCapabilities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Weight")]
         public double? Weight { get; set; }
@@ -46178,7 +46288,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DatumSet")]
-        public System.Collections.Generic.ICollection<VerticalDatumSet> DatumSet { get; set; }
+        public System.Collections.Generic.List<VerticalDatumSet> DatumSet { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ConversionFrom")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<VerticalDatumConversion>))]
@@ -46405,10 +46515,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool IsSingleWell { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("WellIdentityAssignments")]
-        public System.Collections.Generic.ICollection<WellIdentityAssignment> WellIdentityAssignments { get; set; }
+        public System.Collections.Generic.List<WellIdentityAssignment> WellIdentityAssignments { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("WellFeatureAssignments")]
-        public System.Collections.Generic.ICollection<WellFeatureAssignment> WellFeatureAssignments { get; set; }
+        public System.Collections.Generic.List<WellFeatureAssignment> WellFeatureAssignments { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -46580,10 +46690,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public GaussianDrillingProperty TopCementDepth { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CasingSectionElements")]
-        public System.Collections.Generic.ICollection<CasingSectionElement> CasingSectionElements { get; set; }
+        public System.Collections.Generic.List<CasingSectionElement> CasingSectionElements { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CasingSectionSizeTable")]
-        public System.Collections.Generic.ICollection<BoreHoleSize> CasingSectionSizeTable { get; set; }
+        public System.Collections.Generic.List<BoreHoleSize> CasingSectionSizeTable { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("OpenHoleSection")]
         public OpenHoleSection OpenHoleSection { get; set; }
@@ -46703,7 +46813,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("HoleSizes")]
-        public System.Collections.Generic.ICollection<BoreHoleSize> HoleSizes { get; set; }
+        public System.Collections.Generic.List<BoreHoleSize> HoleSizes { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -46730,7 +46840,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public SideElement FirstSideElement { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ElementConnectivities")]
-        public System.Collections.Generic.ICollection<ElementConnectivity> ElementConnectivities { get; set; }
+        public System.Collections.Generic.List<ElementConnectivity> ElementConnectivities { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -46849,7 +46959,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public ScalarDrillingProperty MakeUpTorqueRecommended { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SideConnectors")]
-        public System.Collections.Generic.ICollection<SideConnector> SideConnectors { get; set; }
+        public System.Collections.Generic.List<SideConnector> SideConnectors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -46966,13 +47076,13 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public WellHead WellHead { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("FluidsAboveGroundLevel")]
-        public System.Collections.Generic.ICollection<WellBoreArchitectureFluid> FluidsAboveGroundLevel { get; set; }
+        public System.Collections.Generic.List<WellBoreArchitectureFluid> FluidsAboveGroundLevel { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurfaceSections")]
-        public System.Collections.Generic.ICollection<SurfaceSection> SurfaceSections { get; set; }
+        public System.Collections.Generic.List<SurfaceSection> SurfaceSections { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CasingSections")]
-        public System.Collections.Generic.ICollection<CasingSection> CasingSections { get; set; }
+        public System.Collections.Generic.List<CasingSection> CasingSections { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -46990,10 +47100,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("Identities")]
-        public System.Collections.Generic.ICollection<WellBoreArchitectureIdentity> Identities { get; set; }
+        public System.Collections.Generic.List<WellBoreArchitectureIdentity> Identities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("FeatureCategories")]
-        public System.Collections.Generic.ICollection<WellBoreArchitectureFeatureCategory> FeatureCategories { get; set; }
+        public System.Collections.Generic.List<WellBoreArchitectureFeatureCategory> FeatureCategories { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -47089,7 +47199,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<WellBoreArchitectureBatchError> Errors { get; set; }
+        public System.Collections.Generic.List<WellBoreArchitectureBatchError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -47119,7 +47229,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public WellBoreArchitectureBatchCatalogDependencies CatalogDependencies { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("WellBoreArchitectures")]
-        public System.Collections.Generic.ICollection<WellBoreArchitecture> WellBoreArchitectures { get; set; }
+        public System.Collections.Generic.List<WellBoreArchitecture> WellBoreArchitectures { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -47141,7 +47251,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public WellBoreArchitectureBatchExportScope Scope { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("WellBoreArchitectureIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> WellBoreArchitectureIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> WellBoreArchitectureIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -47233,10 +47343,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int CreatedCatalogOptionCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CatalogMappings")]
-        public System.Collections.Generic.ICollection<WellBoreArchitectureBatchCatalogMapping> CatalogMappings { get; set; }
+        public System.Collections.Generic.List<WellBoreArchitectureBatchCatalogMapping> CatalogMappings { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("WellBoreArchitectureIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> WellBoreArchitectureIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> WellBoreArchitectureIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -47259,7 +47369,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public WellBoreArchitectureExternalReferenceAuditScope Scope { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("WellBoreArchitectureIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> WellBoreArchitectureIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> WellBoreArchitectureIDs { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Offset")]
         public int Offset { get; set; }
@@ -47304,7 +47414,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int UnavailableCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Items")]
-        public System.Collections.Generic.ICollection<WellBoreArchitectureExternalReferenceValidation> Items { get; set; }
+        public System.Collections.Generic.List<WellBoreArchitectureExternalReferenceValidation> Items { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -47374,7 +47484,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.DateTimeOffset CheckedAtUtc { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Issues")]
-        public System.Collections.Generic.ICollection<WellBoreArchitectureExternalReferenceIssue> Issues { get; set; }
+        public System.Collections.Generic.List<WellBoreArchitectureExternalReferenceIssue> Issues { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -47449,7 +47559,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool HasValidityPeriod { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
-        public System.Collections.Generic.ICollection<WellBoreArchitectureFeatureOption> Options { get; set; }
+        public System.Collections.Generic.List<WellBoreArchitectureFeatureOption> Options { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
@@ -47681,7 +47791,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("EarthMagneticFieldData")]
-        public System.Collections.Generic.ICollection<EarthMagneticData> EarthMagneticFieldData { get; set; }
+        public System.Collections.Generic.List<EarthMagneticData> EarthMagneticFieldData { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Type")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<EarthMagneticFieldType>))]
@@ -47849,7 +47959,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public GravitationalFieldType Type { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("GravitationalDataTable")]
-        public System.Collections.Generic.ICollection<GravitationalData> GravitationalDataTable { get; set; }
+        public System.Collections.Generic.List<GravitationalData> GravitationalDataTable { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -48376,7 +48486,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public SurveyInstrumentModelType ModelType { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ErrorSourceList")]
-        public System.Collections.Generic.ICollection<ErrorSource> ErrorSourceList { get; set; }
+        public System.Collections.Generic.List<ErrorSource> ErrorSourceList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Dip")]
         public double Dip { get; set; }
@@ -48499,10 +48609,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.Guid ReferenceTrajectoryID { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ComparisonTrajectoryIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> ComparisonTrajectoryIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> ComparisonTrajectoryIDs { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SeparationFactorResults")]
-        public System.Collections.Generic.ICollection<SeparationFactorResult> SeparationFactorResults { get; set; }
+        public System.Collections.Generic.List<SeparationFactorResult> SeparationFactorResults { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -48574,7 +48684,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public MeasuredDepthRange ComparisonMDRange { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SeparationFactorProfile")]
-        public System.Collections.Generic.ICollection<SeparationFactorPoint> SeparationFactorProfile { get; set; }
+        public System.Collections.Generic.List<SeparationFactorPoint> SeparationFactorProfile { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -48662,7 +48772,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string CalculationMessage { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyStationList")]
-        public System.Collections.Generic.ICollection<SurveyStation> SurveyStationList { get; set; }
+        public System.Collections.Generic.List<SurveyStation> SurveyStationList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("InterpolationStep")]
         public double? InterpolationStep { get; set; }
@@ -48689,10 +48799,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool InterpolateAtCasingChangeOfDiameter { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("AdditionalAbscissaList")]
-        public System.Collections.Generic.ICollection<AnnotatedAbscissa> AdditionalAbscissaList { get; set; }
+        public System.Collections.Generic.List<AnnotatedAbscissa> AdditionalAbscissaList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("InternalAdditionalAbscissaList")]
-        public System.Collections.Generic.ICollection<AnnotatedAbscissa> InternalAdditionalAbscissaList { get; set; }
+        public System.Collections.Generic.List<AnnotatedAbscissa> InternalAdditionalAbscissaList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -48915,7 +49025,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? EndMD { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyMeasurementList")]
-        public System.Collections.Generic.ICollection<SurveyMeasurement> SurveyMeasurementList { get; set; }
+        public System.Collections.Generic.List<SurveyMeasurement> SurveyMeasurementList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -48951,7 +49061,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? EndMD { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyPointList")]
-        public System.Collections.Generic.ICollection<SurveyPoint> SurveyPointList { get; set; }
+        public System.Collections.Generic.List<SurveyPoint> SurveyPointList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -49020,19 +49130,19 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string CalculationMessage { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyRunIdentityAssignments")]
-        public System.Collections.Generic.ICollection<TrajectoryIdentityAssignment> SurveyRunIdentityAssignments { get; set; }
+        public System.Collections.Generic.List<TrajectoryIdentityAssignment> SurveyRunIdentityAssignments { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyRunFeatureAssignments")]
-        public System.Collections.Generic.ICollection<TrajectoryFeatureAssignment> SurveyRunFeatureAssignments { get; set; }
+        public System.Collections.Generic.List<TrajectoryFeatureAssignment> SurveyRunFeatureAssignments { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("TieInPoint")]
         public SurveyStation TieInPoint { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyMeasurementList")]
-        public System.Collections.Generic.ICollection<SurveyMeasurement> SurveyMeasurementList { get; set; }
+        public System.Collections.Generic.List<SurveyMeasurement> SurveyMeasurementList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyStationList")]
-        public System.Collections.Generic.ICollection<SurveyStation> SurveyStationList { get; set; }
+        public System.Collections.Generic.List<SurveyStation> SurveyStationList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -49086,7 +49196,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public SurveyImportSettings Settings { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Rows")]
-        public System.Collections.Generic.ICollection<SurveyRunBatchImportRow> Rows { get; set; }
+        public System.Collections.Generic.List<SurveyRunBatchImportRow> Rows { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -49254,7 +49364,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.Guid ReferenceSurveyRunID { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ComparisonSurveyRunIDList")]
-        public System.Collections.Generic.ICollection<System.Guid> ComparisonSurveyRunIDList { get; set; }
+        public System.Collections.Generic.List<System.Guid> ComparisonSurveyRunIDList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CalculationState")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<CalculationState>))]
@@ -49309,13 +49419,13 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool GlobalMinimumIsGravity { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ReferenceIntervalList")]
-        public System.Collections.Generic.ICollection<MinimumDistanceReferenceInterval> ReferenceIntervalList { get; set; }
+        public System.Collections.Generic.List<MinimumDistanceReferenceInterval> ReferenceIntervalList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ResultList")]
-        public System.Collections.Generic.ICollection<SurveyRunMinimumDistanceResult> ResultList { get; set; }
+        public System.Collections.Generic.List<SurveyRunMinimumDistanceResult> ResultList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("IntervalResultList")]
-        public System.Collections.Generic.ICollection<SurveyRunMinimumDistanceIntervalResult> IntervalResultList { get; set; }
+        public System.Collections.Generic.List<SurveyRunMinimumDistanceIntervalResult> IntervalResultList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -49351,7 +49461,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.Guid ReferenceSurveyRunID { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ComparisonSurveyRunIDList")]
-        public System.Collections.Generic.ICollection<System.Guid> ComparisonSurveyRunIDList { get; set; }
+        public System.Collections.Generic.List<System.Guid> ComparisonSurveyRunIDList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CalculationState")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<CalculationState>))]
@@ -49511,7 +49621,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? EndReferenceMD { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ResultList")]
-        public System.Collections.Generic.ICollection<SurveyRunMinimumDistanceResult> ResultList { get; set; }
+        public System.Collections.Generic.List<SurveyRunMinimumDistanceResult> ResultList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -49559,7 +49669,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? EndMD { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyStationList")]
-        public System.Collections.Generic.ICollection<SurveyStation> SurveyStationList { get; set; }
+        public System.Collections.Generic.List<SurveyStation> SurveyStationList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -49622,16 +49732,16 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.Guid? SurveyInstrumentID { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyStationList")]
-        public System.Collections.Generic.ICollection<SurveyStation> SurveyStationList { get; set; }
+        public System.Collections.Generic.List<SurveyStation> SurveyStationList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyStationEllipseResultList")]
-        public System.Collections.Generic.ICollection<SurveyStationEllipseResult> SurveyStationEllipseResultList { get; set; }
+        public System.Collections.Generic.List<SurveyStationEllipseResult> SurveyStationEllipseResultList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("HighestTvdSurveyPointList")]
-        public System.Collections.Generic.ICollection<SurveyPoint> HighestTvdSurveyPointList { get; set; }
+        public System.Collections.Generic.List<SurveyPoint> HighestTvdSurveyPointList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("LowestTvdSurveyPointList")]
-        public System.Collections.Generic.ICollection<SurveyPoint> LowestTvdSurveyPointList { get; set; }
+        public System.Collections.Generic.List<SurveyPoint> LowestTvdSurveyPointList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CalculationMessage")]
         public string CalculationMessage { get; set; }
@@ -49723,16 +49833,16 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string CalculationMessage { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("TrajectoryIdentityAssignments")]
-        public System.Collections.Generic.ICollection<TrajectoryIdentityAssignment> TrajectoryIdentityAssignments { get; set; }
+        public System.Collections.Generic.List<TrajectoryIdentityAssignment> TrajectoryIdentityAssignments { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("TrajectoryFeatureAssignments")]
-        public System.Collections.Generic.ICollection<TrajectoryFeatureAssignment> TrajectoryFeatureAssignments { get; set; }
+        public System.Collections.Generic.List<TrajectoryFeatureAssignment> TrajectoryFeatureAssignments { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyRunSectionList")]
-        public System.Collections.Generic.ICollection<TrajectorySurveyRunSection> SurveyRunSectionList { get; set; }
+        public System.Collections.Generic.List<TrajectorySurveyRunSection> SurveyRunSectionList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyStationList")]
-        public System.Collections.Generic.ICollection<SurveyStation> SurveyStationList { get; set; }
+        public System.Collections.Generic.List<SurveyStation> SurveyStationList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("TieInPoint")]
         public SurveyStation TieInPoint { get; set; }
@@ -49791,16 +49901,16 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int DistanceResultCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SectionList")]
-        public System.Collections.Generic.ICollection<TrajectoryAggregationSection> SectionList { get; set; }
+        public System.Collections.Generic.List<TrajectoryAggregationSection> SectionList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("AggregatedSurveyPointList")]
-        public System.Collections.Generic.ICollection<SurveyPoint> AggregatedSurveyPointList { get; set; }
+        public System.Collections.Generic.List<SurveyPoint> AggregatedSurveyPointList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CoarsenedReferenceTrajectory")]
-        public System.Collections.Generic.ICollection<SurveyPoint> CoarsenedReferenceTrajectory { get; set; }
+        public System.Collections.Generic.List<SurveyPoint> CoarsenedReferenceTrajectory { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DistanceResultList")]
-        public System.Collections.Generic.ICollection<TrajectoryAggregationDistanceResult> DistanceResultList { get; set; }
+        public System.Collections.Generic.List<TrajectoryAggregationDistanceResult> DistanceResultList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -49858,7 +49968,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? DistanceReferenceCoarseningThreshold { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("TrajectoryAggregationList")]
-        public System.Collections.Generic.ICollection<TrajectoryAggregation> TrajectoryAggregationList { get; set; }
+        public System.Collections.Generic.List<TrajectoryAggregation> TrajectoryAggregationList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -49916,7 +50026,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? DistanceReferenceCoarseningThreshold { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("TrajectoryAggregationList")]
-        public System.Collections.Generic.ICollection<TrajectoryAggregation> TrajectoryAggregationList { get; set; }
+        public System.Collections.Generic.List<TrajectoryAggregation> TrajectoryAggregationList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -50001,7 +50111,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? EndReferenceMD { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ResultList")]
-        public System.Collections.Generic.ICollection<TrajectoryAggregationDistanceResult> ResultList { get; set; }
+        public System.Collections.Generic.List<TrajectoryAggregationDistanceResult> ResultList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -50172,7 +50282,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.Guid ReferenceTrajectoryID { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ComparisonTrajectoryIDList")]
-        public System.Collections.Generic.ICollection<System.Guid> ComparisonTrajectoryIDList { get; set; }
+        public System.Collections.Generic.List<System.Guid> ComparisonTrajectoryIDList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CalculationState")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<CalculationState>))]
@@ -50227,13 +50337,13 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool GlobalMinimumIsGravity { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ReferenceIntervalList")]
-        public System.Collections.Generic.ICollection<MinimumDistanceReferenceInterval> ReferenceIntervalList { get; set; }
+        public System.Collections.Generic.List<MinimumDistanceReferenceInterval> ReferenceIntervalList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ResultList")]
-        public System.Collections.Generic.ICollection<TrajectoryMinimumDistanceResult> ResultList { get; set; }
+        public System.Collections.Generic.List<TrajectoryMinimumDistanceResult> ResultList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("IntervalResultList")]
-        public System.Collections.Generic.ICollection<TrajectoryMinimumDistanceIntervalResult> IntervalResultList { get; set; }
+        public System.Collections.Generic.List<TrajectoryMinimumDistanceIntervalResult> IntervalResultList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -50269,7 +50379,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.Guid ReferenceTrajectoryID { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ComparisonTrajectoryIDList")]
-        public System.Collections.Generic.ICollection<System.Guid> ComparisonTrajectoryIDList { get; set; }
+        public System.Collections.Generic.List<System.Guid> ComparisonTrajectoryIDList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CalculationState")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<CalculationState>))]
@@ -50429,7 +50539,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? EndReferenceMD { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ResultList")]
-        public System.Collections.Generic.ICollection<TrajectoryMinimumDistanceResult> ResultList { get; set; }
+        public System.Collections.Generic.List<TrajectoryMinimumDistanceResult> ResultList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -50490,7 +50600,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string CalculationMessage { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("RealizationList")]
-        public System.Collections.Generic.ICollection<System.Collections.Generic.ICollection<SurveyPoint>> RealizationList { get; set; }
+        public System.Collections.Generic.List<System.Collections.Generic.List<SurveyPoint>> RealizationList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -50584,7 +50694,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? EndMD { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("RealizationList")]
-        public System.Collections.Generic.ICollection<System.Collections.Generic.ICollection<SurveyPoint>> RealizationList { get; set; }
+        public System.Collections.Generic.List<System.Collections.Generic.List<SurveyPoint>> RealizationList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -50920,10 +51030,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("Identities")]
-        public System.Collections.Generic.ICollection<WellBoreIdentity> Identities { get; set; }
+        public System.Collections.Generic.List<WellBoreIdentity> Identities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("FeatureCategories")]
-        public System.Collections.Generic.ICollection<WellBoreFeatureCategory> FeatureCategories { get; set; }
+        public System.Collections.Generic.List<WellBoreFeatureCategory> FeatureCategories { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -51019,7 +51129,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<WellBoreBatchError> Errors { get; set; }
+        public System.Collections.Generic.List<WellBoreBatchError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -51049,7 +51159,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public WellBoreBatchCatalogDependencies CatalogDependencies { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("WellBores")]
-        public System.Collections.Generic.ICollection<WellBore> WellBores { get; set; }
+        public System.Collections.Generic.List<WellBore> WellBores { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -51071,7 +51181,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public WellBoreBatchExportScope Scope { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("WellBoreIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> WellBoreIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> WellBoreIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -51160,10 +51270,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int CreatedCatalogOptionCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CatalogMappings")]
-        public System.Collections.Generic.ICollection<WellBoreBatchCatalogMapping> CatalogMappings { get; set; }
+        public System.Collections.Generic.List<WellBoreBatchCatalogMapping> CatalogMappings { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("WellBoreIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> WellBoreIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> WellBoreIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -51207,7 +51317,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public WellBoreExternalReferenceAuditScope Scope { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("WellBoreIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> WellBoreIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> WellBoreIDs { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Offset")]
         public int Offset { get; set; }
@@ -51252,7 +51362,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int UnavailableCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Items")]
-        public System.Collections.Generic.ICollection<WellBoreExternalReferenceValidation> Items { get; set; }
+        public System.Collections.Generic.List<WellBoreExternalReferenceValidation> Items { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -51328,7 +51438,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.DateTimeOffset CheckedAtUtc { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Issues")]
-        public System.Collections.Generic.ICollection<WellBoreExternalReferenceIssue> Issues { get; set; }
+        public System.Collections.Generic.List<WellBoreExternalReferenceIssue> Issues { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -51403,7 +51513,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool HasValidityPeriod { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
-        public System.Collections.Generic.ICollection<WellBoreFeatureOption> Options { get; set; }
+        public System.Collections.Generic.List<WellBoreFeatureOption> Options { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
@@ -51508,7 +51618,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ReferencingWellBoreIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> ReferencingWellBoreIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> ReferencingWellBoreIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -51532,7 +51642,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<WellBoreMutationError> Errors { get; set; }
+        public System.Collections.Generic.List<WellBoreMutationError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -51550,7 +51660,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("Items")]
-        public System.Collections.Generic.ICollection<WellBore> Items { get; set; }
+        public System.Collections.Generic.List<WellBore> Items { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Total")]
         public int Total { get; set; }
@@ -51652,13 +51762,13 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("Identities")]
-        public System.Collections.Generic.ICollection<ClusterIdentity> Identities { get; set; }
+        public System.Collections.Generic.List<ClusterIdentity> Identities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ClusterFeatureCategories")]
-        public System.Collections.Generic.ICollection<ClusterFeatureCategory> ClusterFeatureCategories { get; set; }
+        public System.Collections.Generic.List<ClusterFeatureCategory> ClusterFeatureCategories { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SlotFeatureCategories")]
-        public System.Collections.Generic.ICollection<SlotFeatureCategory> SlotFeatureCategories { get; set; }
+        public System.Collections.Generic.List<SlotFeatureCategory> SlotFeatureCategories { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -51754,7 +51864,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<ClusterBatchError> Errors { get; set; }
+        public System.Collections.Generic.List<ClusterBatchError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -51787,7 +51897,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public ClusterBatchExternalReferences ExternalReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Clusters")]
-        public System.Collections.Generic.ICollection<Cluster> Clusters { get; set; }
+        public System.Collections.Generic.List<Cluster> Clusters { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -51809,7 +51919,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public ClusterBatchExportScope Scope { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ClusterIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> ClusterIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> ClusterIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -51893,10 +52003,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("Fields")]
-        public System.Collections.Generic.ICollection<ClusterBatchExternalReference> Fields { get; set; }
+        public System.Collections.Generic.List<ClusterBatchExternalReference> Fields { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Rigs")]
-        public System.Collections.Generic.ICollection<ClusterBatchExternalReference> Rigs { get; set; }
+        public System.Collections.Generic.List<ClusterBatchExternalReference> Rigs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -51970,13 +52080,13 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int CreatedCatalogOptionCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CatalogMappings")]
-        public System.Collections.Generic.ICollection<ClusterBatchCatalogMapping> CatalogMappings { get; set; }
+        public System.Collections.Generic.List<ClusterBatchCatalogMapping> CatalogMappings { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ExternalReferenceMappings")]
-        public System.Collections.Generic.ICollection<ClusterBatchExternalReferenceMapping> ExternalReferenceMappings { get; set; }
+        public System.Collections.Generic.List<ClusterBatchExternalReferenceMapping> ExternalReferenceMappings { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ClusterIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> ClusterIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> ClusterIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -52036,7 +52146,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool HasValidityPeriod { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
-        public System.Collections.Generic.ICollection<ClusterFeatureOption> Options { get; set; }
+        public System.Collections.Generic.List<ClusterFeatureOption> Options { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
@@ -52225,7 +52335,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool HasValidityPeriod { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
-        public System.Collections.Generic.ICollection<SlotFeatureOption> Options { get; set; }
+        public System.Collections.Generic.List<SlotFeatureOption> Options { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
@@ -52282,16 +52392,16 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("FeatureCategories")]
-        public System.Collections.Generic.ICollection<FieldFeatureCategory> FeatureCategories { get; set; }
+        public System.Collections.Generic.List<FieldFeatureCategory> FeatureCategories { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MembershipCategories")]
-        public System.Collections.Generic.ICollection<FieldMembershipCategory> MembershipCategories { get; set; }
+        public System.Collections.Generic.List<FieldMembershipCategory> MembershipCategories { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Identities")]
-        public System.Collections.Generic.ICollection<FieldIdentity> Identities { get; set; }
+        public System.Collections.Generic.List<FieldIdentity> Identities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DelineationLineTypes")]
-        public System.Collections.Generic.ICollection<FieldDelineationLineType> DelineationLineTypes { get; set; }
+        public System.Collections.Generic.List<FieldDelineationLineType> DelineationLineTypes { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -52387,7 +52497,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<FieldBatchError> Errors { get; set; }
+        public System.Collections.Generic.List<FieldBatchError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -52417,7 +52527,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public FieldBatchCatalogDependencies CatalogDependencies { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Fields")]
-        public System.Collections.Generic.ICollection<Field> Fields { get; set; }
+        public System.Collections.Generic.List<Field> Fields { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -52439,7 +52549,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public FieldBatchExportScope Scope { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("FieldIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> FieldIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> FieldIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -52528,10 +52638,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int CreatedCatalogOptionCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CatalogMappings")]
-        public System.Collections.Generic.ICollection<FieldBatchCatalogMapping> CatalogMappings { get; set; }
+        public System.Collections.Generic.List<FieldBatchCatalogMapping> CatalogMappings { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("FieldIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> FieldIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> FieldIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -52582,7 +52692,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<FieldConversionValidationError> Errors { get; set; }
+        public System.Collections.Generic.List<FieldConversionValidationError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -52707,10 +52817,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string ApiAxisConvention { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Positions")]
-        public System.Collections.Generic.ICollection<FieldCoordinateConversionPositionResult> Positions { get; set; }
+        public System.Collections.Generic.List<FieldCoordinateConversionPositionResult> Positions { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Warnings")]
-        public System.Collections.Generic.ICollection<FieldConversionWarning> Warnings { get; set; }
+        public System.Collections.Generic.List<FieldConversionWarning> Warnings { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -52737,7 +52847,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool IsClosed { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Points")]
-        public System.Collections.Generic.ICollection<Point3DGlobalCoordinates> Points { get; set; }
+        public System.Collections.Generic.List<Point3DGlobalCoordinates> Points { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -52776,10 +52886,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? BottomDepth { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Points")]
-        public System.Collections.Generic.ICollection<Point3DGlobalCoordinates> Points { get; set; }
+        public System.Collections.Generic.List<Point3DGlobalCoordinates> Points { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CalculatedBoundaryLines")]
-        public System.Collections.Generic.ICollection<FieldDelineationBoundaryLine> CalculatedBoundaryLines { get; set; }
+        public System.Collections.Generic.List<FieldDelineationBoundaryLine> CalculatedBoundaryLines { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -52878,7 +52988,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool HasValidityPeriod { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
-        public System.Collections.Generic.ICollection<FieldFeatureOption> Options { get; set; }
+        public System.Collections.Generic.List<FieldFeatureOption> Options { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
@@ -52966,7 +53076,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Positions")]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.MinLength(1)]
-        public System.Collections.Generic.ICollection<FieldForwardConversionPosition> Positions { get; set; } = new System.Collections.ObjectModel.Collection<FieldForwardConversionPosition>();
+        public System.Collections.Generic.List<FieldForwardConversionPosition> Positions { get; set; } = new System.Collections.Generic.List<FieldForwardConversionPosition>();
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -53107,7 +53217,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Positions")]
         [System.ComponentModel.DataAnnotations.Required]
         [System.ComponentModel.DataAnnotations.MinLength(1)]
-        public System.Collections.Generic.ICollection<FieldInverseConversionPosition> Positions { get; set; } = new System.Collections.ObjectModel.Collection<FieldInverseConversionPosition>();
+        public System.Collections.Generic.List<FieldInverseConversionPosition> Positions { get; set; } = new System.Collections.Generic.List<FieldInverseConversionPosition>();
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -53197,7 +53307,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool HasValidityPeriod { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
-        public System.Collections.Generic.ICollection<FieldMembershipOption> Options { get; set; }
+        public System.Collections.Generic.List<FieldMembershipOption> Options { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
@@ -53251,7 +53361,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ReferencingFieldIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> ReferencingFieldIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> ReferencingFieldIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -53275,7 +53385,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<FieldMutationError> Errors { get; set; }
+        public System.Collections.Generic.List<FieldMutationError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -53318,7 +53428,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public FieldTransformationSelectionPolicy SelectionPolicy { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("TransformationPathIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> TransformationPathIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> TransformationPathIDs { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SelectionToken")]
         public string SelectionToken { get; set; }
@@ -53603,7 +53713,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("FeatureCategories")]
-        public System.Collections.Generic.ICollection<RigFeatureCategory> FeatureCategories { get; set; }
+        public System.Collections.Generic.List<RigFeatureCategory> FeatureCategories { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -53696,7 +53806,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<RigBatchError> Errors { get; set; }
+        public System.Collections.Generic.List<RigBatchError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -53729,10 +53839,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public RigBatchExternalReferences ExternalReferences { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Rigs")]
-        public System.Collections.Generic.ICollection<Rig> Rigs { get; set; }
+        public System.Collections.Generic.List<Rig> Rigs { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Photos")]
-        public System.Collections.Generic.ICollection<RigBatchPhoto> Photos { get; set; }
+        public System.Collections.Generic.List<RigBatchPhoto> Photos { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -53754,7 +53864,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public RigBatchExportScope Scope { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("RigIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> RigIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> RigIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -53838,7 +53948,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("Clusters")]
-        public System.Collections.Generic.ICollection<RigBatchExternalReference> Clusters { get; set; }
+        public System.Collections.Generic.List<RigBatchExternalReference> Clusters { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -53936,13 +54046,13 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int CreatedCatalogOptionCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CatalogMappings")]
-        public System.Collections.Generic.ICollection<RigBatchCatalogMapping> CatalogMappings { get; set; }
+        public System.Collections.Generic.List<RigBatchCatalogMapping> CatalogMappings { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ExternalReferenceMappings")]
-        public System.Collections.Generic.ICollection<RigBatchExternalReferenceMapping> ExternalReferenceMappings { get; set; }
+        public System.Collections.Generic.List<RigBatchExternalReferenceMapping> ExternalReferenceMappings { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("RigIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> RigIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> RigIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -54059,7 +54169,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool IsDeprecated { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
-        public System.Collections.Generic.ICollection<RigFeatureOption> Options { get; set; }
+        public System.Collections.Generic.List<RigFeatureOption> Options { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
@@ -54146,16 +54256,16 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string ClassNotation { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ApprovalsAndCertifications")]
-        public System.Collections.Generic.ICollection<string> ApprovalsAndCertifications { get; set; }
+        public System.Collections.Generic.List<string> ApprovalsAndCertifications { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("FormerNames")]
-        public System.Collections.Generic.ICollection<string> FormerNames { get; set; }
+        public System.Collections.Generic.List<string> FormerNames { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ExternalIdentifiers")]
-        public System.Collections.Generic.ICollection<RigExternalIdentifier> ExternalIdentifiers { get; set; }
+        public System.Collections.Generic.List<RigExternalIdentifier> ExternalIdentifiers { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MajorModifications")]
-        public System.Collections.Generic.ICollection<RigModification> MajorModifications { get; set; }
+        public System.Collections.Generic.List<RigModification> MajorModifications { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -54245,7 +54355,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<RigMutationError> Errors { get; set; }
+        public System.Collections.Generic.List<RigMutationError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -54413,16 +54523,16 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public StationKeepingSystem StationKeepingSystem { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("StorageCapacities")]
-        public System.Collections.Generic.ICollection<RigStorageCapacity> StorageCapacities { get; set; }
+        public System.Collections.Generic.List<RigStorageCapacity> StorageCapacities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("FeatureAssignments")]
-        public System.Collections.Generic.ICollection<RigFeatureAssignment> FeatureAssignments { get; set; }
+        public System.Collections.Generic.List<RigFeatureAssignment> FeatureAssignments { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MudPumpList")]
-        public System.Collections.Generic.ICollection<MudPump> MudPumpList { get; set; }
+        public System.Collections.Generic.List<MudPump> MudPumpList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CementPumpList")]
-        public System.Collections.Generic.ICollection<CementPump> CementPumpList { get; set; }
+        public System.Collections.Generic.List<CementPump> CementPumpList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CementUnit")]
         public CementUnit CementUnit { get; set; }
@@ -54437,13 +54547,13 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public RigMast AuxiliaryRigMast { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MudTankList")]
-        public System.Collections.Generic.ICollection<MudTank> MudTankList { get; set; }
+        public System.Collections.Generic.List<MudTank> MudTankList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("GeneratorList")]
-        public System.Collections.Generic.ICollection<Generator> GeneratorList { get; set; }
+        public System.Collections.Generic.List<Generator> GeneratorList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ShaleShakerList")]
-        public System.Collections.Generic.ICollection<ShaleShaker> ShaleShakerList { get; set; }
+        public System.Collections.Generic.List<ShaleShaker> ShaleShakerList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("AuxSolidsControl")]
         public AuxSolidsControl AuxSolidsControl { get; set; }
@@ -54461,25 +54571,25 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public ReturnFlowLine ReturnFlowLine { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MudGasSeparatorList")]
-        public System.Collections.Generic.ICollection<MudGasSeparator> MudGasSeparatorList { get; set; }
+        public System.Collections.Generic.List<MudGasSeparator> MudGasSeparatorList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DesanderList")]
-        public System.Collections.Generic.ICollection<Desander> DesanderList { get; set; }
+        public System.Collections.Generic.List<Desander> DesanderList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DesilterList")]
-        public System.Collections.Generic.ICollection<Desilter> DesilterList { get; set; }
+        public System.Collections.Generic.List<Desilter> DesilterList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CentrifugeList")]
-        public System.Collections.Generic.ICollection<Centrifuge> CentrifugeList { get; set; }
+        public System.Collections.Generic.List<Centrifuge> CentrifugeList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DegasserList")]
-        public System.Collections.Generic.ICollection<Degasser> DegasserList { get; set; }
+        public System.Collections.Generic.List<Degasser> DegasserList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CuttingsTransportSystem")]
         public CuttingsTransportSystem CuttingsTransportSystem { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CuttingsDryerList")]
-        public System.Collections.Generic.ICollection<CuttingsDryer> CuttingsDryerList { get; set; }
+        public System.Collections.Generic.List<CuttingsDryer> CuttingsDryerList { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("PipeDeck")]
         public PipeDeck PipeDeck { get; set; }
@@ -54539,7 +54649,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.Guid? ClusterID { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Photos")]
-        public System.Collections.Generic.ICollection<RigPhotoMetadata> Photos { get; set; }
+        public System.Collections.Generic.List<RigPhotoMetadata> Photos { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -54682,7 +54792,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("Modes")]
         // TODO(system.text.json): Add ItemConverterType with enum converter when supported
-        public System.Collections.Generic.ICollection<StationKeepingMode> Modes { get; set; }
+        public System.Collections.Generic.List<StationKeepingMode> Modes { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DynamicPositioningClass")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<DynamicPositioningClass>))]
@@ -54885,7 +54995,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Description { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("aliases")]
-        public System.Collections.Generic.ICollection<string> Aliases { get; set; }
+        public System.Collections.Generic.List<string> Aliases { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("identifier")]
         public AuthorityIdentifier Identifier { get; set; }
@@ -54904,7 +55014,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string ConversionName { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("parameters")]
-        public System.Collections.Generic.ICollection<ProjectionParameterValue> Parameters { get; set; }
+        public System.Collections.Generic.List<ProjectionParameterValue> Parameters { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("coordinateSystem")]
         [System.ComponentModel.DataAnnotations.Required]
@@ -54924,7 +55034,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool IsSuperseded { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("supersededByIdentifiers")]
-        public System.Collections.Generic.ICollection<AuthorityIdentifier> SupersededByIdentifiers { get; set; }
+        public System.Collections.Generic.List<AuthorityIdentifier> SupersededByIdentifiers { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("remarks")]
         public string Remarks { get; set; }
@@ -55002,10 +55112,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string CustomDefinitionRestrictionMessage { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("aliases")]
-        public System.Collections.Generic.ICollection<string> Aliases { get; set; }
+        public System.Collections.Generic.List<string> Aliases { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("parameters")]
-        public System.Collections.Generic.ICollection<ProjectionParameterDefinition> Parameters { get; set; }
+        public System.Collections.Generic.List<ProjectionParameterDefinition> Parameters { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("provenance")]
         [System.ComponentModel.DataAnnotations.Required]
@@ -55161,7 +55271,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Description { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("aliases")]
-        public System.Collections.Generic.ICollection<string> Aliases { get; set; }
+        public System.Collections.Generic.List<string> Aliases { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("identifier")]
         public AuthorityIdentifier Identifier { get; set; }
@@ -55177,7 +55287,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string ConversionName { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("parameters")]
-        public System.Collections.Generic.ICollection<ProjectionParameterInput> Parameters { get; set; }
+        public System.Collections.Generic.List<ProjectionParameterInput> Parameters { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("coordinateSystem")]
         public ProjectedCoordinateSystemInput CoordinateSystem { get; set; }
@@ -55322,7 +55432,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public ApplicabilityPolicy ApplicabilityPolicy { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("positions")]
-        public System.Collections.Generic.ICollection<GeographicCoordinate> Positions { get; set; }
+        public System.Collections.Generic.List<GeographicCoordinate> Positions { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -55362,10 +55472,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public ProjectionApplicability Applicability { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("positions")]
-        public System.Collections.Generic.ICollection<ForwardProjectionPosition> Positions { get; set; }
+        public System.Collections.Generic.List<ForwardProjectionPosition> Positions { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("warnings")]
-        public System.Collections.Generic.ICollection<ServiceWarning> Warnings { get; set; }
+        public System.Collections.Generic.List<ServiceWarning> Warnings { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -55541,7 +55651,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public ApplicabilityPolicy ApplicabilityPolicy { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("positions")]
-        public System.Collections.Generic.ICollection<ProjectedCoordinate> Positions { get; set; }
+        public System.Collections.Generic.List<ProjectedCoordinate> Positions { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -55581,10 +55691,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public ProjectionApplicability Applicability { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("positions")]
-        public System.Collections.Generic.ICollection<InverseProjectionPosition> Positions { get; set; }
+        public System.Collections.Generic.List<InverseProjectionPosition> Positions { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("warnings")]
-        public System.Collections.Generic.ICollection<ServiceWarning> Warnings { get; set; }
+        public System.Collections.Generic.List<ServiceWarning> Warnings { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -55623,7 +55733,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("axes")]
-        public System.Collections.Generic.ICollection<CoordinateSystemAxis> Axes { get; set; }
+        public System.Collections.Generic.List<CoordinateSystemAxis> Axes { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("apiConvention")]
         public string ApiConvention { get; set; }
@@ -55644,7 +55754,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("axes")]
-        public System.Collections.Generic.ICollection<CoordinateSystemAxisInput> Axes { get; set; }
+        public System.Collections.Generic.List<CoordinateSystemAxisInput> Axes { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -55791,7 +55901,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Description { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("aliases")]
-        public System.Collections.Generic.ICollection<string> Aliases { get; set; }
+        public System.Collections.Generic.List<string> Aliases { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("identifier")]
         public AuthorityIdentifier Identifier { get; set; }
@@ -56001,7 +56111,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Description { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("aliases")]
-        public System.Collections.Generic.ICollection<string> Aliases { get; set; }
+        public System.Collections.Generic.List<string> Aliases { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("identifier")]
         public AuthorityIdentifier Identifier { get; set; }
@@ -56017,7 +56127,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string ConversionName { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("parameters")]
-        public System.Collections.Generic.ICollection<ProjectionParameterInput> Parameters { get; set; }
+        public System.Collections.Generic.List<ProjectionParameterInput> Parameters { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("coordinateSystem")]
         public ProjectedCoordinateSystemInput CoordinateSystem { get; set; }
@@ -56231,7 +56341,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int ReturnedCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Items")]
-        public System.Collections.Generic.ICollection<CatalogSearchItem_GeodeticDatumSummary> Items { get; set; }
+        public System.Collections.Generic.List<CatalogSearchItem_GeodeticDatumSummary> Items { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -56261,7 +56371,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int ReturnedCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Items")]
-        public System.Collections.Generic.ICollection<CatalogSearchItem_GeodeticTransformationSummary> Items { get; set; }
+        public System.Collections.Generic.List<CatalogSearchItem_GeodeticTransformationSummary> Items { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -56291,7 +56401,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int ReturnedCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Items")]
-        public System.Collections.Generic.ICollection<CatalogSearchItem_ReferenceEllipsoidSummary> Items { get; set; }
+        public System.Collections.Generic.List<CatalogSearchItem_ReferenceEllipsoidSummary> Items { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -56439,10 +56549,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? EnsembleAccuracy { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MemberDatumIds")]
-        public System.Collections.Generic.ICollection<System.Guid> MemberDatumIds { get; set; }
+        public System.Collections.Generic.List<System.Guid> MemberDatumIds { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Usage")]
-        public System.Collections.Generic.ICollection<GeodeticUsage> Usage { get; set; }
+        public System.Collections.Generic.List<GeodeticUsage> Usage { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Remarks")]
         public string Remarks { get; set; }
@@ -56808,10 +56918,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? EnsembleAccuracy { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MemberDatumIds")]
-        public System.Collections.Generic.ICollection<System.Guid> MemberDatumIds { get; set; }
+        public System.Collections.Generic.List<System.Guid> MemberDatumIds { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Usage")]
-        public System.Collections.Generic.ICollection<GeodeticUsage> Usage { get; set; }
+        public System.Collections.Generic.List<GeodeticUsage> Usage { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Remarks")]
         public string Remarks { get; set; }
@@ -56918,10 +57028,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool IsReversible { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ComponentOperationIdentifiers")]
-        public System.Collections.Generic.ICollection<AuthorityIdentifier> ComponentOperationIdentifiers { get; set; }
+        public System.Collections.Generic.List<AuthorityIdentifier> ComponentOperationIdentifiers { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Parameters")]
-        public System.Collections.Generic.ICollection<CoordinateOperationParameterValue> Parameters { get; set; }
+        public System.Collections.Generic.List<CoordinateOperationParameterValue> Parameters { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("RequiresExternalResource")]
         public bool RequiresExternalResource { get; set; }
@@ -57055,10 +57165,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool IsReversible { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ComponentOperationIdentifiers")]
-        public System.Collections.Generic.ICollection<AuthorityIdentifier> ComponentOperationIdentifiers { get; set; }
+        public System.Collections.Generic.List<AuthorityIdentifier> ComponentOperationIdentifiers { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Parameters")]
-        public System.Collections.Generic.ICollection<CoordinateOperationParameterValue> Parameters { get; set; }
+        public System.Collections.Generic.List<CoordinateOperationParameterValue> Parameters { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("RequiresExternalResource")]
         public bool RequiresExternalResource { get; set; }
@@ -57178,7 +57288,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.DateTimeOffset ModifiedUtc { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Aliases")]
-        public System.Collections.Generic.ICollection<string> Aliases { get; set; }
+        public System.Collections.Generic.List<string> Aliases { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("IsDeprecated")]
         public bool IsDeprecated { get; set; }
@@ -57292,7 +57402,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.Guid TargetDatumId { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Positions")]
-        public System.Collections.Generic.ICollection<GeodeticPosition> Positions { get; set; }
+        public System.Collections.Generic.List<GeodeticPosition> Positions { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MaximumCandidates")]
         public int MaximumCandidates { get; set; }
@@ -57327,7 +57437,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string SelectionGuidance { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Candidates")]
-        public System.Collections.Generic.ICollection<TransformationPathCandidate> Candidates { get; set; }
+        public System.Collections.Generic.List<TransformationPathCandidate> Candidates { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -57351,14 +57461,14 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.Guid TargetDatumId { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Positions")]
-        public System.Collections.Generic.ICollection<GeodeticPosition> Positions { get; set; }
+        public System.Collections.Generic.List<GeodeticPosition> Positions { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SelectionPolicy")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<TransformationSelectionPolicy>))]
         public TransformationSelectionPolicy SelectionPolicy { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("TransformationPathIds")]
-        public System.Collections.Generic.ICollection<System.Guid> TransformationPathIds { get; set; }
+        public System.Collections.Generic.List<System.Guid> TransformationPathIds { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SelectionToken")]
         public string SelectionToken { get; set; }
@@ -57395,10 +57505,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public CatalogReference TargetDatum { get; set; } = new CatalogReference();
 
         [System.Text.Json.Serialization.JsonPropertyName("TransformationPath")]
-        public System.Collections.Generic.ICollection<TransformationReference> TransformationPath { get; set; }
+        public System.Collections.Generic.List<TransformationReference> TransformationPath { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Positions")]
-        public System.Collections.Generic.ICollection<GeodeticPosition> Positions { get; set; }
+        public System.Collections.Generic.List<GeodeticPosition> Positions { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Applicability")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<TransformationApplicability>))]
@@ -57408,13 +57518,13 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool DepthReferenceChanged { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("DepthChanges")]
-        public System.Collections.Generic.ICollection<double> DepthChanges { get; set; }
+        public System.Collections.Generic.List<double> DepthChanges { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MaximumAbsoluteDepthChange")]
         public double MaximumAbsoluteDepthChange { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Warnings")]
-        public System.Collections.Generic.ICollection<ServiceWarning> Warnings { get; set; }
+        public System.Collections.Generic.List<ServiceWarning> Warnings { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -57469,7 +57579,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool IsExecutable { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ExecutionIssues")]
-        public System.Collections.Generic.ICollection<ServiceWarning> ExecutionIssues { get; set; }
+        public System.Collections.Generic.List<ServiceWarning> ExecutionIssues { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SelectionToken")]
         public string SelectionToken { get; set; }
@@ -57481,7 +57591,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string AccuracyMeaning { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Operations")]
-        public System.Collections.Generic.ICollection<TransformationReference> Operations { get; set; }
+        public System.Collections.Generic.List<TransformationReference> Operations { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -57524,7 +57634,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public CoordinateReferenceSystemReference TargetCrs { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ComponentOperationIdentifiers")]
-        public System.Collections.Generic.ICollection<AuthorityIdentifier> ComponentOperationIdentifiers { get; set; }
+        public System.Collections.Generic.List<AuthorityIdentifier> ComponentOperationIdentifiers { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("RequiresExternalResource")]
         public bool RequiresExternalResource { get; set; }
@@ -57634,10 +57744,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? EnsembleAccuracy { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("MemberDatumIds")]
-        public System.Collections.Generic.ICollection<System.Guid> MemberDatumIds { get; set; }
+        public System.Collections.Generic.List<System.Guid> MemberDatumIds { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Usage")]
-        public System.Collections.Generic.ICollection<GeodeticUsage> Usage { get; set; }
+        public System.Collections.Generic.List<GeodeticUsage> Usage { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Remarks")]
         public string Remarks { get; set; }
@@ -57785,10 +57895,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("Identities")]
-        public System.Collections.Generic.ICollection<WellIdentity> Identities { get; set; }
+        public System.Collections.Generic.List<WellIdentity> Identities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("FeatureCategories")]
-        public System.Collections.Generic.ICollection<WellFeatureCategory> FeatureCategories { get; set; }
+        public System.Collections.Generic.List<WellFeatureCategory> FeatureCategories { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -57884,7 +57994,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<WellBatchError> Errors { get; set; }
+        public System.Collections.Generic.List<WellBatchError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -57914,7 +58024,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public WellBatchCatalogDependencies CatalogDependencies { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Wells")]
-        public System.Collections.Generic.ICollection<Well> Wells { get; set; }
+        public System.Collections.Generic.List<Well> Wells { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -57936,7 +58046,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public WellBatchExportScope Scope { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("WellIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> WellIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> WellIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -58025,10 +58135,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int CreatedCatalogOptionCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CatalogMappings")]
-        public System.Collections.Generic.ICollection<WellBatchCatalogMapping> CatalogMappings { get; set; }
+        public System.Collections.Generic.List<WellBatchCatalogMapping> CatalogMappings { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("WellIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> WellIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> WellIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -58072,7 +58182,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public WellExternalReferenceAuditScope Scope { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("WellIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> WellIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> WellIDs { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Offset")]
         public int Offset { get; set; }
@@ -58117,7 +58227,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int UnavailableCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Items")]
-        public System.Collections.Generic.ICollection<WellExternalReferenceValidation> Items { get; set; }
+        public System.Collections.Generic.List<WellExternalReferenceValidation> Items { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -58193,7 +58303,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public System.DateTimeOffset CheckedAtUtc { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Issues")]
-        public System.Collections.Generic.ICollection<WellExternalReferenceIssue> Issues { get; set; }
+        public System.Collections.Generic.List<WellExternalReferenceIssue> Issues { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -58268,7 +58378,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool HasValidityPeriod { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
-        public System.Collections.Generic.ICollection<WellFeatureOption> Options { get; set; }
+        public System.Collections.Generic.List<WellFeatureOption> Options { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
@@ -58397,7 +58507,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ReferencingWellIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> ReferencingWellIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> ReferencingWellIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -58421,7 +58531,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<WellMutationError> Errors { get; set; }
+        public System.Collections.Generic.List<WellMutationError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -58439,7 +58549,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("Items")]
-        public System.Collections.Generic.ICollection<Well> Items { get; set; }
+        public System.Collections.Generic.List<Well> Items { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Total")]
         public int Total { get; set; }
@@ -58466,13 +58576,13 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("ErrorSourceTemplates")]
-        public System.Collections.Generic.ICollection<ErrorSource> ErrorSourceTemplates { get; set; }
+        public System.Collections.Generic.List<ErrorSource> ErrorSourceTemplates { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Identities")]
-        public System.Collections.Generic.ICollection<SurveyInstrumentIdentity> Identities { get; set; }
+        public System.Collections.Generic.List<SurveyInstrumentIdentity> Identities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("FeatureCategories")]
-        public System.Collections.Generic.ICollection<SurveyInstrumentFeatureCategory> FeatureCategories { get; set; }
+        public System.Collections.Generic.List<SurveyInstrumentFeatureCategory> FeatureCategories { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -58523,7 +58633,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<SurveyInstrumentBatchError> Errors { get; set; }
+        public System.Collections.Generic.List<SurveyInstrumentBatchError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -58553,7 +58663,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public SurveyInstrumentBatchCatalogDependencies CatalogDependencies { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyInstruments")]
-        public System.Collections.Generic.ICollection<SurveyInstrument> SurveyInstruments { get; set; }
+        public System.Collections.Generic.List<SurveyInstrument> SurveyInstruments { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -58575,7 +58685,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public SurveyInstrumentBatchExportScope Scope { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyInstrumentIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> SurveyInstrumentIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> SurveyInstrumentIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -58657,7 +58767,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int CreatedCatalogDefinitionCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyInstrumentIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> SurveyInstrumentIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> SurveyInstrumentIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -58717,7 +58827,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool HasValidityPeriod { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
-        public System.Collections.Generic.ICollection<SurveyInstrumentFeatureOption> Options { get; set; }
+        public System.Collections.Generic.List<SurveyInstrumentFeatureOption> Options { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
@@ -58809,14 +58919,88 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum OctreeIndexState
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Missing")]
+        Missing = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"NotIndexable")]
+        NotIndexable = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Stale")]
+        Stale = 2,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Current")]
+        Current = 3,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class OctreeIndexStatus
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("TrajectoryID")]
+        public System.Guid TrajectoryID { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("State")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<OctreeIndexState>))]
+        public OctreeIndexState State { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("HasIndex")]
+        public bool HasIndex { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("IsCurrent")]
+        public bool IsCurrent { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("TrajectoryType")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<TrajectoryType>))]
+        public TrajectoryType TrajectoryType { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("IsDefinitive")]
+        public bool IsDefinitive { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("SurveyStationCount")]
+        public int SurveyStationCount { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("BucketCount")]
+        public int BucketCount { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("OctreeCodeCount")]
+        public long OctreeCodeCount { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("SourceLastModificationDate")]
+        public System.DateTimeOffset? SourceLastModificationDate { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("IndexSchemaVersion")]
+        public int? IndexSchemaVersion { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ConfidenceFactor")]
+        public double? ConfidenceFactor { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("CalculationParametersHash")]
+        public string CalculationParametersHash { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class TrajectoryBatchCatalogDependencies
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("Identities")]
-        public System.Collections.Generic.ICollection<TrajectoryIdentity> Identities { get; set; }
+        public System.Collections.Generic.List<TrajectoryIdentity> Identities { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("FeatureCategories")]
-        public System.Collections.Generic.ICollection<TrajectoryFeatureCategory> FeatureCategories { get; set; }
+        public System.Collections.Generic.List<TrajectoryFeatureCategory> FeatureCategories { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -58912,7 +59096,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string Message { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Errors")]
-        public System.Collections.Generic.ICollection<TrajectoryBatchError> Errors { get; set; }
+        public System.Collections.Generic.List<TrajectoryBatchError> Errors { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -58942,10 +59126,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public TrajectoryBatchCatalogDependencies CatalogDependencies { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyRuns")]
-        public System.Collections.Generic.ICollection<SurveyRun> SurveyRuns { get; set; }
+        public System.Collections.Generic.List<SurveyRun> SurveyRuns { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Trajectories")]
-        public System.Collections.Generic.ICollection<Trajectory> Trajectories { get; set; }
+        public System.Collections.Generic.List<Trajectory> Trajectories { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -58967,10 +59151,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public TrajectoryBatchExportScope Scope { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyRunIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> SurveyRunIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> SurveyRunIDs { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("TrajectoryIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> TrajectoryIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> TrajectoryIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -59062,13 +59246,13 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int CreatedCatalogDefinitionCount { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CatalogMappings")]
-        public System.Collections.Generic.ICollection<TrajectoryBatchCatalogMapping> CatalogMappings { get; set; }
+        public System.Collections.Generic.List<TrajectoryBatchCatalogMapping> CatalogMappings { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyRunIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> SurveyRunIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> SurveyRunIDs { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("TrajectoryIDs")]
-        public System.Collections.Generic.ICollection<System.Guid> TrajectoryIDs { get; set; }
+        public System.Collections.Generic.List<System.Guid> TrajectoryIDs { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -59128,7 +59312,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public bool HasValidityPeriod { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
-        public System.Collections.Generic.ICollection<TrajectoryFeatureOption> Options { get; set; }
+        public System.Collections.Generic.List<TrajectoryFeatureOption> Options { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }

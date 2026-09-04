@@ -38,9 +38,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         private const double EnvelopePointSpacingToCellSizeRatio = 0.5;
         private const int MinEnvelopeMeshSectorCount = 36;
         private const int MaxEnvelopeMeshSectorCount = 240;
-        internal const double ConfidenceFactor = 0.999;
-        internal const int IndexSchemaVersion = 2;
-        internal const string CalculationParametersHash = "surface-neighbours-compact-depth23-cache21-confidence0.999-scale1-v2";
+        public const double ConfidenceFactor = 0.999;
+        public const int IndexSchemaVersion = 2;
+        public const string CalculationParametersHash = "surface-neighbours-compact-depth23-cache21-confidence0.999-scale1-v2";
         #endregion
 
         #region Octree settings for debugging against octree database from the summer demo containing 16 duplicates of Ullrigg wells
@@ -191,14 +191,89 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             return leaves ?? [];
         }
 
-        public List<Guid> GetIDs()
+        public List<Guid> GetIDs(TrajectoryType? trajectoryType = null, bool? isDefinitive = null)
         {
-            return GetAllTrajectoryIDs();
+            return GetAllTrajectoryIDs(trajectoryType, isDefinitive);
         }
 
         public List<OctreeCodeLong> Get(Guid ID)
         {
             return GetDetails(ID);
+        }
+
+        public OctreeIndexStatus GetStatus(Model.Trajectory trajectory)
+        {
+            Guid trajectoryId = trajectory.MetaInfo?.ID ?? Guid.Empty;
+            var status = new OctreeIndexStatus
+            {
+                TrajectoryID = trajectoryId,
+                TrajectoryType = trajectory.TrajectoryType,
+                IsDefinitive = trajectory.IsDefinitive,
+                SurveyStationCount = trajectory.SurveyStationList?.Count ?? 0
+            };
+
+            if (trajectoryId == Guid.Empty)
+            {
+                status.State = OctreeIndexState.Missing;
+                return status;
+            }
+
+            using SqliteConnection? connection = _connectionManager.GetConnection();
+            if (connection == null)
+            {
+                throw new InvalidOperationException("The octree database is unavailable.");
+            }
+
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = $"""
+                SELECT state.SourceLastModificationDate, state.IndexSchemaVersion,
+                       state.ConfidenceFactor, state.CalculationParametersHash,
+                       state.TrajectoryType, state.IsDefinitive,
+                       COUNT(membership.TrajectoryID), COALESCE(SUM(membership.OctreeCodeCount), 0)
+                FROM {SqlConnectionManagerOctree.TrajectoryStateTableName} state
+                LEFT JOIN {SqlConnectionManagerOctree.CacheTableName} membership
+                  ON membership.TrajectoryID = state.TrajectoryID
+                WHERE state.TrajectoryID = @trajectoryId
+                GROUP BY state.TrajectoryID
+                """;
+            command.Parameters.AddWithValue("@trajectoryId", trajectoryId.ToString());
+
+            try
+            {
+                using SqliteDataReader reader = command.ExecuteReader();
+                if (!reader.Read())
+                {
+                    status.State = status.SurveyStationCount < 2
+                        ? OctreeIndexState.NotIndexable
+                        : OctreeIndexState.Missing;
+                    return status;
+                }
+
+                status.HasIndex = true;
+                string? sourceModified = reader.IsDBNull(0) ? null : reader.GetString(0);
+                status.SourceLastModificationDate = reader.IsDBNull(0)
+                    ? null
+                    : DateTimeOffset.Parse(sourceModified!, System.Globalization.CultureInfo.InvariantCulture);
+                status.IndexSchemaVersion = reader.GetInt32(1);
+                status.ConfidenceFactor = reader.GetDouble(2);
+                status.CalculationParametersHash = reader.GetString(3);
+                status.BucketCount = reader.GetInt32(6);
+                status.OctreeCodeCount = reader.GetInt64(7);
+                status.IsCurrent =
+                    string.Equals(reader.GetString(4), trajectory.TrajectoryType.ToString(), StringComparison.Ordinal) &&
+                    reader.GetInt64(5) == (trajectory.IsDefinitive ? 1 : 0) &&
+                    string.Equals(sourceModified, trajectory.LastModificationDate?.ToString("O"), StringComparison.Ordinal) &&
+                    status.IndexSchemaVersion == IndexSchemaVersion &&
+                    Math.Abs(status.ConfidenceFactor.Value - ConfidenceFactor) < 1e-12 &&
+                    string.Equals(status.CalculationParametersHash, CalculationParametersHash, StringComparison.Ordinal);
+                status.State = status.IsCurrent ? OctreeIndexState.Current : OctreeIndexState.Stale;
+                return status;
+            }
+            catch (Exception ex) when (ex is SqliteException or FormatException)
+            {
+                _logger.LogError(ex, "Impossible to retrieve octree status for trajectory {TrajectoryId}", trajectoryId);
+                throw new InvalidOperationException("The octree status could not be read from storage.", ex);
+            }
         }
 
         public bool Remove(Guid ID)
@@ -490,7 +565,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
         }
 
-        private List<Guid> GetAllTrajectoryIDs()
+        private List<Guid> GetAllTrajectoryIDs(TrajectoryType? trajectoryType, bool? isDefinitive)
         {
             using var connection = _connectionManager.GetConnection();
             if (connection == null)
@@ -500,7 +575,18 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
 
             using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT TrajectoryID FROM {SqlConnectionManagerOctree.TrajectoryStateTableName} ORDER BY TrajectoryID";
+            command.CommandText = $"SELECT TrajectoryID FROM {SqlConnectionManagerOctree.TrajectoryStateTableName} WHERE 1 = 1";
+            if (trajectoryType.HasValue)
+            {
+                command.CommandText += " AND TrajectoryType = @trajectoryType";
+                command.Parameters.AddWithValue("@trajectoryType", trajectoryType.Value.ToString());
+            }
+            if (isDefinitive.HasValue)
+            {
+                command.CommandText += " AND IsDefinitive = @isDefinitive";
+                command.Parameters.AddWithValue("@isDefinitive", isDefinitive.Value);
+            }
+            command.CommandText += " ORDER BY TrajectoryID";
 
             List<Guid> results = [];
             try

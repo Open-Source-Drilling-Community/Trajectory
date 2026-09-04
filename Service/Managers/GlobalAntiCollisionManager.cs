@@ -87,6 +87,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     {
                         //empty TrajectoryTable
                         var command = connection.CreateCommand();
+                        command.Transaction = transaction;
                         command.CommandText = @"DELETE FROM SeparationFactorResults";
                         command.ExecuteNonQuery();
 
@@ -110,12 +111,14 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
         public bool Contains(string id)//(Guid guid)
         {
+            if (string.IsNullOrWhiteSpace(id)) return false;
             int count = 0;
             var connection = _connectionManager.GetConnection();
             if (connection != null)
             {
                 var command = connection.CreateCommand();
-                command.CommandText = @"SELECT COUNT(*) FROM SeparationFactorResults WHERE ID = " + "'" + id + "'";
+                command.CommandText = "SELECT COUNT(*) FROM SeparationFactorResults WHERE ID = @id";
+                command.Parameters.AddWithValue("@id", id);
                 try
                 {
                     using SqliteDataReader reader = command.ExecuteReader();
@@ -155,9 +158,14 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                         }
                     }
                 }
-                catch (SqliteException)
+                catch (SqliteException ex)
                 {
+                    _logger.LogError(ex, "Impossible to get IDs from SeparationFactorResults");
                 }
+            }
+            else
+            {
+                _logger.LogWarning("Impossible to access the SQLite database");
             }
             return ids;
         }
@@ -171,7 +179,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 if (connection != null)
                 {
                     var command = connection.CreateCommand();
-                    command.CommandText = @"SELECT DataSet FROM SeparationFactorResults WHERE ID = " + "'" + ID.ToString() + "'";
+                    command.CommandText = "SELECT DataSet FROM SeparationFactorResults WHERE ID = @id";
+                    command.Parameters.AddWithValue("@id", ID);
                     try
                     {
                         using (var reader = command.ExecuteReader())
@@ -233,9 +242,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                             {
                                 string json = JsonSerializer.Serialize(globalAntiCollision);
                                 var command = connection.CreateCommand();
-                                command.CommandText = @"INSERT INTO SeparationFactorResults (ID, TimeStamp, DataSet) VALUES (" +
-                                    "'" + globalAntiCollision.ID + "'" + ", " +
-                                    "'" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "'" + ", " + "'" + json + "'" + ")";
+                                command.Transaction = transaction;
+                                command.CommandText = "INSERT INTO SeparationFactorResults (ID, TimeStamp, DataSet) VALUES (@id, @timestamp, @dataSet)";
+                                command.Parameters.AddWithValue("@id", globalAntiCollision.ID);
+                                command.Parameters.AddWithValue("@timestamp", (DateTime.UtcNow - DateTime.MinValue).TotalSeconds);
+                                command.Parameters.AddWithValue("@dataSet", json);
                                 int count = command.ExecuteNonQuery();
                                 result = count == 1;
                                 if (result)
@@ -284,9 +295,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                             try
                             {
                                 var command = connection.CreateCommand();
-                                command.CommandText = @"DELETE FROM SeparationFactorResults WHERE ID = " + "'" + ID.ToString() + "'";
+                                command.Transaction = transaction;
+                                command.CommandText = "DELETE FROM SeparationFactorResults WHERE ID = @id";
+                                command.Parameters.AddWithValue("@id", ID);
                                 int count = command.ExecuteNonQuery();
-                                result = count >= 0;
+                                result = count == 1;
                                 if (result)
                                 {
                                     transaction.Commit();
@@ -321,7 +334,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                         try
                         {
                             var command = connection.CreateCommand();
-                            command.CommandText = @"DELETE FROM SeparationFactorResults WHERE TimeStamp < " + "'" + (old - DateTime.MinValue).TotalSeconds.ToString() + "'";
+                            command.Transaction = transaction;
+                            command.CommandText = "DELETE FROM SeparationFactorResults WHERE TimeStamp < @timestamp";
+                            command.Parameters.AddWithValue("@timestamp", (old - DateTime.MinValue).TotalSeconds);
                             int count = command.ExecuteNonQuery();
                             result = count >= 0;
                             if (result)
@@ -360,10 +375,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                             {
                                 string json = JsonSerializer.Serialize<GlobalAntiCollision.GlobalAntiCollision>(updatedGlobalAntiCollision);
                                 var command = connection.CreateCommand();
-                                command.CommandText = @"UPDATE SeparationFactorResults SET " +
-                                    "TimeStamp = " + "'" + (DateTime.UtcNow - DateTime.MinValue).TotalSeconds.ToString() + "'" + ", " +
-                                    "DataSet = " + "'" + json + "'" + " " +
-                                    "WHERE ID = " + "'" + ID.ToString() + "'";
+                                command.Transaction = transaction;
+                                command.CommandText = "UPDATE SeparationFactorResults SET TimeStamp = @timestamp, DataSet = @dataSet WHERE ID = @id";
+                                command.Parameters.AddWithValue("@timestamp", (DateTime.UtcNow - DateTime.MinValue).TotalSeconds);
+                                command.Parameters.AddWithValue("@dataSet", json);
+                                command.Parameters.AddWithValue("@id", ID);
                                 int count = command.ExecuteNonQuery();
                                 result = count == 1;
                                 if (result)

@@ -176,8 +176,8 @@
     {
         try
         {
-            Task<ICollection<SurveyRunLight>> surveyRuns = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
-            Task<ICollection<TrajectoryLight>> trajectories = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
+            Task<List<SurveyRunLight>> surveyRuns = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
+            Task<List<TrajectoryLight>> trajectories = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
             await Task.WhenAll(surveyRuns, trajectories);
             _surveyRuns = (surveyRuns.Result ?? []).Where(HasId).OrderBy(value => value.Name, StringComparer.OrdinalIgnoreCase).ToList();
             _trajectories = (trajectories.Result ?? []).Where(HasId).OrderBy(value => value.Name, StringComparer.OrdinalIgnoreCase).ToList();
@@ -202,7 +202,7 @@
         _selectedSurveyRuns.Select(value => value.MetaInfo.ID).Order().ToList(),
         _selectedTrajectories.Select(value => value.MetaInfo.ID).Order().ToList());
 
-    private async Task ExportAsync(TrajectoryBatchExportScope scope, ICollection<Guid>? surveyRunIds, ICollection<Guid>? trajectoryIds)
+    private async Task ExportAsync(TrajectoryBatchExportScope scope, List<Guid>? surveyRunIds, List<Guid>? trajectoryIds)
     {
         try
         {
