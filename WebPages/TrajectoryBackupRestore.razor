@@ -121,9 +121,17 @@
             {
                 <MudText Typo="Typo.subtitle2" Class="mt-4 mb-1">Catalog definitions</MudText>
                 <MudRadioGroup T="TrajectoryBatchCatalogRestorePolicy" @bind-Value="_catalogPolicy">
-                    <MudRadio T="TrajectoryBatchCatalogRestorePolicy" Value="TrajectoryBatchCatalogRestorePolicy.MapOrCreateMissing" Color="Color.Primary">Map compatible definitions and create missing ones</MudRadio>
-                    <MudRadio T="TrajectoryBatchCatalogRestorePolicy" Value="TrajectoryBatchCatalogRestorePolicy.MapExisting" Color="Color.Primary">Require compatible definitions to exist</MudRadio>
+                    <MudRadio T="TrajectoryBatchCatalogRestorePolicy" Value="TrajectoryBatchCatalogRestorePolicy.MapOrCreateMissing" Color="Color.Primary">Use exact UUIDs and create missing definitions</MudRadio>
+                    <MudRadio T="TrajectoryBatchCatalogRestorePolicy" Value="TrajectoryBatchCatalogRestorePolicy.MapExisting" Color="Color.Primary">Require exact UUIDs to exist</MudRadio>
                 </MudRadioGroup>
+                <MudCheckBox T="bool" @bind-Value="_allowNormalizedNameMapping" Class="mt-2"
+                             Color="Color.Warning" Label="Allow compatible definitions with different UUIDs to be mapped by normalized name" />
+                @if (_allowNormalizedNameMapping)
+                {
+                    <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-2">
+                        Name-based mapping is an explicit compatibility option. Review the returned catalog mappings after restore.
+                    </MudAlert>
+                }
 
                 <MudText Typo="Typo.subtitle2" Class="mt-3 mb-1">If a record UUID already exists</MudText>
                 <MudRadioGroup T="TrajectoryBatchRestoreConflictPolicy" @bind-Value="_conflictPolicy">
@@ -164,6 +172,7 @@
     private TrajectoryBatchExportDocument? _document;
     private TrajectoryBatchRestoreConflictPolicy _conflictPolicy = TrajectoryBatchRestoreConflictPolicy.FailIfExists;
     private TrajectoryBatchCatalogRestorePolicy _catalogPolicy = TrajectoryBatchCatalogRestorePolicy.MapOrCreateMissing;
+    private bool _allowNormalizedNameMapping;
     private IJSObjectReference? _downloadModule;
     private int TotalRecordCount => (_surveyRuns?.Count ?? 0) + (_trajectories?.Count ?? 0);
     private int SelectedRecordCount => _selectedSurveyRuns.Count + _selectedTrajectories.Count;
@@ -291,7 +300,12 @@
             _busy = true;
             _serverErrors.Clear();
             TrajectoryBatchRestoreResponse response = await Api.ClientTrajectory.BatchRestoreTrajectoryDataAsync(new TrajectoryBatchRestoreRequest
-            { ConflictPolicy = _conflictPolicy, CatalogPolicy = _catalogPolicy, Document = _document });
+            {
+                ConflictPolicy = _conflictPolicy,
+                CatalogPolicy = _catalogPolicy,
+                AllowNormalizedNameMapping = _allowNormalizedNameMapping,
+                Document = _document
+            });
             Snackbar.Add($"Restore completed: {response.CreatedSurveyRunCount + response.CreatedTrajectoryCount} created, " +
                          $"{response.ReplacedSurveyRunCount + response.ReplacedTrajectoryCount} replaced, " +
                          $"{response.CreatedCatalogDefinitionCount} catalog definition(s) created.", Severity.Success);

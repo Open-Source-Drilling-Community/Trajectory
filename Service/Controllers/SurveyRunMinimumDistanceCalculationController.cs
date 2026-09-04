@@ -106,17 +106,21 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpPut("{id}", Name = "PutSurveyRunMinimumDistanceCalculationById")]
-        public async Task<ActionResult> PutSurveyRunMinimumDistanceCalculationById(Guid id, [FromBody] Model.SurveyRunMinimumDistanceCalculation? data)
+        public async Task<ActionResult> PutSurveyRunMinimumDistanceCalculationById(Guid id,
+            [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc, [FromBody] Model.SurveyRunMinimumDistanceCalculation? data)
         {
             if (data?.MetaInfo == null || data.MetaInfo.ID != id)
             {
                 return BadRequest();
             }
 
-            if (_manager.GetSurveyRunMinimumDistanceCalculationById(id, includeResults: false) == null)
+            Model.SurveyRunMinimumDistanceCalculation? current = _manager.GetSurveyRunMinimumDistanceCalculationById(id, includeResults: false);
+            if (current == null)
             {
                 return NotFound();
             }
+            if (current.LastModificationDate != expectedModifiedUtc)
+                return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
 
             return await _manager.UpdateSurveyRunMinimumDistanceCalculationById(id, data)
                 ? Ok()
@@ -124,12 +128,16 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpDelete("{id}", Name = "DeleteSurveyRunMinimumDistanceCalculationById")]
-        public ActionResult DeleteSurveyRunMinimumDistanceCalculationById(Guid id)
+        public ActionResult DeleteSurveyRunMinimumDistanceCalculationById(Guid id,
+            [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc)
         {
-            if (_manager.GetSurveyRunMinimumDistanceCalculationById(id, includeResults: false) == null)
+            Model.SurveyRunMinimumDistanceCalculation? current = _manager.GetSurveyRunMinimumDistanceCalculationById(id, includeResults: false);
+            if (current == null)
             {
                 return NotFound();
             }
+            if (current.LastModificationDate != expectedModifiedUtc)
+                return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
 
             return _manager.DeleteSurveyRunMinimumDistanceCalculationById(id)
                 ? Ok()

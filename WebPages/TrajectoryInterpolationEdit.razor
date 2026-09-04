@@ -376,13 +376,14 @@
         try
         {
             currentInterpolatedTrajectory.MetaInfo ??= PseudoConstructors.ConstructMetaInfo();
+            DateTimeOffset? expectedModifiedUtc = currentInterpolatedTrajectory.LastModificationDate;
             currentInterpolatedTrajectory.TrajectoryID = selectedTrajectoryId ?? Guid.Empty;
             currentInterpolatedTrajectory.AdditionalAbscissaList = BuildUserAdditionalAbscissasForSave();
             currentInterpolatedTrajectory.InternalAdditionalAbscissaList = await BuildInternalAdditionalAbscissasForSaveAsync();
             currentInterpolatedTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
             if (interpolatedTrajectoryIdBeingEdited is Guid id)
             {
-                await Api.ClientTrajectory.PutInterpolatedTrajectoryByIdAsync(id, currentInterpolatedTrajectory);
+                await Api.ClientTrajectory.PutInterpolatedTrajectoryByIdAsync(id, ConcurrencyToken.Require(expectedModifiedUtc), currentInterpolatedTrajectory);
                 currentInterpolatedTrajectory = await Api.ClientTrajectory.GetInterpolatedTrajectoryByIdAsync(id);
                 currentInterpolatedTrajectory.SurveyStationList ??= [];
                 ResetCalculatedStationLoadingState();

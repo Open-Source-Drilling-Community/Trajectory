@@ -141,7 +141,8 @@ namespace ServiceTest
             trajectory2 = null;
             try
             {
-                await nSwagClient.DeleteTrajectoryByIdAsync(guid);
+                Trajectory deletionTarget = await nSwagClient.GetTrajectoryByIdAsync(guid);
+                await nSwagClient.DeleteTrajectoryByIdAsync(guid, deletionTarget.LastModificationDate!.Value);
             }
             catch (ApiException ex)
             {
@@ -256,7 +257,8 @@ namespace ServiceTest
             trajectory2 = null;
             try
             {
-                await nSwagClient.DeleteTrajectoryByIdAsync(guid);
+                Trajectory deletionTarget = await nSwagClient.GetTrajectoryByIdAsync(guid);
+                await nSwagClient.DeleteTrajectoryByIdAsync(guid, deletionTarget.LastModificationDate!.Value);
             }
             catch (ApiException ex)
             {
@@ -312,10 +314,11 @@ namespace ServiceTest
 
             #region updating the new Id
             trajectory.Name = "My test Trajectory with modified name";
+            DateTimeOffset expectedModifiedUtc = trajectory.LastModificationDate!.Value;
             trajectory.LastModificationDate = DateTimeOffset.UtcNow;
             try
             {
-                await nSwagClient.PutTrajectoryByIdAsync(trajectory.MetaInfo.ID, trajectory);
+                await nSwagClient.PutTrajectoryByIdAsync(trajectory.MetaInfo.ID, expectedModifiedUtc, trajectory);
             }
             catch (ApiException ex)
             {
@@ -339,7 +342,8 @@ namespace ServiceTest
             trajectory2 = null;
             try
             {
-                await nSwagClient.DeleteTrajectoryByIdAsync(guid);
+                Trajectory deletionTarget = await nSwagClient.GetTrajectoryByIdAsync(guid);
+                await nSwagClient.DeleteTrajectoryByIdAsync(guid, deletionTarget.LastModificationDate!.Value);
             }
             catch (ApiException ex)
             {
@@ -397,7 +401,8 @@ namespace ServiceTest
             trajectory2 = null;
             try
             {
-                await nSwagClient.DeleteTrajectoryByIdAsync(guid);
+                Trajectory deletionTarget = await nSwagClient.GetTrajectoryByIdAsync(guid);
+                await nSwagClient.DeleteTrajectoryByIdAsync(guid, deletionTarget.LastModificationDate!.Value);
             }
             catch (ApiException ex)
             {

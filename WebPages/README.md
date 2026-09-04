@@ -88,7 +88,7 @@ The package, assembly, and static-web-asset base identity are all `OSDC.Drilling
 
 ## Backup and restore
 
-`TrajectoryBackupRestore` lets users select survey runs and trajectories or back up everything. A selected trajectory automatically brings along all survey runs used by its sections, while parent survey runs and relevant catalog definitions are also included. Restore previews both record counts and offers explicit record-conflict and catalog-resolution policies before sending the complete document to the service.
+`TrajectoryBackupRestore` lets users select survey runs and trajectories or back up everything. A selected trajectory automatically brings along all survey runs used by its sections, while parent survey runs and relevant catalog definitions are also included. Restore previews both record counts and offers explicit record-conflict and catalog-resolution policies before sending the complete document to the service. Catalog UUIDs are matched exactly by default; mapping compatible definitions with different UUIDs by normalized name requires a separate warning-bearing opt-in.
 
 ## Usage statistics
 

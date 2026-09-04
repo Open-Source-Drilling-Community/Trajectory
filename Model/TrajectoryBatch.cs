@@ -60,6 +60,11 @@ public sealed class TrajectoryBatchRestoreRequest
 {
     public TrajectoryBatchRestoreConflictPolicy ConflictPolicy { get; set; }
     public TrajectoryBatchCatalogRestorePolicy CatalogPolicy { get; set; }
+    /// <summary>
+    /// Explicitly permits compatible catalog definitions and feature options with different UUIDs
+    /// to be mapped by normalized name. The safe default is exact UUID matching only.
+    /// </summary>
+    public bool AllowNormalizedNameMapping { get; set; }
     public TrajectoryBatchExportDocument? Document { get; set; }
 }
 

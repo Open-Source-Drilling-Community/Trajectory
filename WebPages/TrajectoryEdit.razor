@@ -602,8 +602,9 @@
                 NormalizeSurveyRunSections();
                 if (trajectoryIdBeingEdited is Guid trajectoryId)
                 {
+                    DateTimeOffset expectedModifiedUtc = ConcurrencyToken.Require(currentTrajectory.LastModificationDate);
                     currentTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
-                    await Api.ClientTrajectory.PutTrajectoryByIdAsync(trajectoryId, currentTrajectory);
+                    await Api.ClientTrajectory.PutTrajectoryByIdAsync(trajectoryId, expectedModifiedUtc, currentTrajectory);
                     currentTrajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(trajectoryId);
                     currentTrajectory.SurveyStationList ??= [];
                     ResetCalculatedStationLoadingState();

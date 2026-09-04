@@ -23,7 +23,7 @@ public class TrajectoryIdentityController : ControllerBase
     public ActionResult Post([FromBody] TrajectoryIdentity? value) => value?.MetaInfo?.ID is Guid id && id != Guid.Empty
         ? manager.Add(value) ? Ok(value) : Conflict() : BadRequest();
     [HttpPut("{id}", Name = "PutTrajectoryIdentityById")]
-    public ActionResult Put(Guid id, [FromQuery] DateTimeOffset expectedModifiedUtc, [FromBody] TrajectoryIdentity? value)
+    public ActionResult Put(Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc, [FromBody] TrajectoryIdentity? value)
     {
         TrajectoryIdentity? current = manager.Get(id);
         if (value?.MetaInfo?.ID != id) return BadRequest();
@@ -32,7 +32,7 @@ public class TrajectoryIdentityController : ControllerBase
         return manager.Update(id, value) ? Ok(value) : Conflict();
     }
     [HttpDelete("{id}", Name = "DeleteTrajectoryIdentityById")]
-    public ActionResult Delete(Guid id, [FromQuery] DateTimeOffset expectedModifiedUtc)
+    public ActionResult Delete(Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc)
     {
         TrajectoryIdentity? current = manager.Get(id);
         if (current == null) return NotFound();

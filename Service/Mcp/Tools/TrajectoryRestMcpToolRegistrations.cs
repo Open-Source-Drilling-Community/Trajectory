@@ -45,6 +45,11 @@ public static class TrajectoryRestMcpToolRegistrations
             {
                 bool overloaded = actions.Count(candidate => candidate.Name == method.Name) > 1;
                 string controllerName = controllerType.Name[..^"Controller".Length];
+                // Bounded search supersedes these two potentially very large MCP lists. The
+                // REST endpoints remain available for compatibility with existing non-MCP clients.
+                if ((controllerName == "Trajectory" && method.Name == "GetAllTrajectory") ||
+                    (controllerName == "SurveyRun" && method.Name == "GetAllSurveyRun"))
+                    continue;
                 string? template = method.GetCustomAttributes(true).OfType<IRouteTemplateProvider>()
                     .Select(attribute => attribute.Template).FirstOrDefault(value => value is not null);
                 string actionName = ToSnakeCase(method.Name);

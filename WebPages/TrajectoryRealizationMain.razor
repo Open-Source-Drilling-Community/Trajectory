@@ -237,7 +237,8 @@
         {
             if (await ConfirmDeletion())
             {
-                await Api.ClientTrajectory.DeleteTrajectoryRealizationCaseByIdAsync(id);
+                TrajectoryRealizationCase current = await Api.ClientTrajectory.GetTrajectoryRealizationCaseByIdAsync(id);
+                await Api.ClientTrajectory.DeleteTrajectoryRealizationCaseByIdAsync(id, ConcurrencyToken.Require(current.LastModificationDate));
                 await LoadDataAsync();
             }
         }
@@ -262,7 +263,7 @@
             {
                 foreach (TrajectoryRealizationCaseLight item in toDelete)
                 {
-                    await Api.ClientTrajectory.DeleteTrajectoryRealizationCaseByIdAsync(item.MetaInfo.ID);
+                    await Api.ClientTrajectory.DeleteTrajectoryRealizationCaseByIdAsync(item.MetaInfo.ID, ConcurrencyToken.Require(item.LastModificationDate));
                 }
                 await LoadDataAsync();
             }

@@ -164,17 +164,21 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpPut("{id}", Name = "PutTrajectoryAggregationCaseById")]
-        public async Task<ActionResult> PutTrajectoryAggregationCaseById(Guid id, [FromBody] Model.TrajectoryAggregationCase? data)
+        public async Task<ActionResult> PutTrajectoryAggregationCaseById(Guid id,
+            [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc, [FromBody] Model.TrajectoryAggregationCase? data)
         {
             if (data?.MetaInfo == null || data.MetaInfo.ID != id)
             {
                 return BadRequest();
             }
 
-            if (_manager.GetTrajectoryAggregationCaseById(id, includeResults: false) == null)
+            Model.TrajectoryAggregationCase? current = _manager.GetTrajectoryAggregationCaseById(id, includeResults: false);
+            if (current == null)
             {
                 return NotFound();
             }
+            if (current.LastModificationDate != expectedModifiedUtc)
+                return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
 
             return await _manager.UpdateTrajectoryAggregationCaseById(id, data)
                 ? Ok()
@@ -182,12 +186,15 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpDelete("{id}", Name = "DeleteTrajectoryAggregationCaseById")]
-        public ActionResult DeleteTrajectoryAggregationCaseById(Guid id)
+        public ActionResult DeleteTrajectoryAggregationCaseById(Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc)
         {
-            if (_manager.GetTrajectoryAggregationCaseById(id, includeResults: false) == null)
+            Model.TrajectoryAggregationCase? current = _manager.GetTrajectoryAggregationCaseById(id, includeResults: false);
+            if (current == null)
             {
                 return NotFound();
             }
+            if (current.LastModificationDate != expectedModifiedUtc)
+                return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
 
             return _manager.DeleteTrajectoryAggregationCaseById(id)
                 ? Ok()

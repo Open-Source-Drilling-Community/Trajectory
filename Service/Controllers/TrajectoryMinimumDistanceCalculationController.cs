@@ -106,17 +106,21 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpPut("{id}", Name = "PutTrajectoryMinimumDistanceCalculationById")]
-        public async Task<ActionResult> PutTrajectoryMinimumDistanceCalculationById(Guid id, [FromBody] Model.TrajectoryMinimumDistanceCalculation? data)
+        public async Task<ActionResult> PutTrajectoryMinimumDistanceCalculationById(Guid id,
+            [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc, [FromBody] Model.TrajectoryMinimumDistanceCalculation? data)
         {
             if (data?.MetaInfo == null || data.MetaInfo.ID != id)
             {
                 return BadRequest();
             }
 
-            if (_manager.GetTrajectoryMinimumDistanceCalculationById(id, includeResults: false) == null)
+            Model.TrajectoryMinimumDistanceCalculation? current = _manager.GetTrajectoryMinimumDistanceCalculationById(id, includeResults: false);
+            if (current == null)
             {
                 return NotFound();
             }
+            if (current.LastModificationDate != expectedModifiedUtc)
+                return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
 
             return await _manager.UpdateTrajectoryMinimumDistanceCalculationById(id, data)
                 ? Ok()
@@ -124,12 +128,16 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpDelete("{id}", Name = "DeleteTrajectoryMinimumDistanceCalculationById")]
-        public ActionResult DeleteTrajectoryMinimumDistanceCalculationById(Guid id)
+        public ActionResult DeleteTrajectoryMinimumDistanceCalculationById(Guid id,
+            [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc)
         {
-            if (_manager.GetTrajectoryMinimumDistanceCalculationById(id, includeResults: false) == null)
+            Model.TrajectoryMinimumDistanceCalculation? current = _manager.GetTrajectoryMinimumDistanceCalculationById(id, includeResults: false);
+            if (current == null)
             {
                 return NotFound();
             }
+            if (current.LastModificationDate != expectedModifiedUtc)
+                return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
 
             return _manager.DeleteTrajectoryMinimumDistanceCalculationById(id)
                 ? Ok()

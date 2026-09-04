@@ -178,6 +178,32 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             }
         }
 
+        /// <summary>Returns one deterministic bounded page of lightweight trajectories.</summary>
+        [HttpGet("Search", Name = "SearchTrajectory")]
+        public ActionResult<TrajectorySearchResult> SearchTrajectory(
+            [FromQuery] string? query = null, [FromQuery] Guid? fieldId = null,
+            [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null,
+            [FromQuery] Guid? wellBoreId = null, [FromQuery] TrajectoryType? trajectoryType = null,
+            [FromQuery] bool? isDefinitive = null, [FromQuery] int offset = 0, [FromQuery] int limit = 100)
+        {
+            if (offset < 0 || limit is < 1 or > 500)
+                return BadRequest(new { error = "invalid_page", message = "offset must be non-negative and limit must be between 1 and 500." });
+            List<Model.TrajectoryLight>? values = _trajectoryManager.GetAllTrajectoryLight(
+                fieldId, clusterId, wellId, wellBoreId, trajectoryType, isDefinitive);
+            if (values == null) return StatusCode(StatusCodes.Status500InternalServerError);
+            IEnumerable<Model.TrajectoryLight> matches = values.Where(value => string.IsNullOrWhiteSpace(query) ||
+                $"{value.Name} {value.Description} {value.MetaInfo?.ID}".Contains(query, StringComparison.OrdinalIgnoreCase));
+            List<Model.TrajectoryLight> ordered = matches
+                .OrderBy(value => value.Name, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(value => value.MetaInfo?.ID)
+                .ToList();
+            return Ok(new TrajectorySearchResult
+            {
+                Offset = offset, Limit = limit, TotalCount = ordered.Count,
+                Items = ordered.Skip(offset).Take(limit).ToList()
+            });
+        }
+
         /// <summary>
         /// Returns the list of all Trajectory present in the microservice database, at endpoint Trajectory/api/Trajectory/HeavyData
         /// </summary>
@@ -246,7 +272,8 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         /// <param name="trajectory"></param>
         /// <returns>true if the given Trajectory has been updated successfully to the microservice database, at the endpoint Trajectory/api/Trajectory/id</returns>
         [HttpPut("{id}", Name = "PutTrajectoryById")]
-        public async Task<ActionResult> PutTrajectoryById(Guid id, [FromBody] Model.Trajectory? data)
+        public async Task<ActionResult> PutTrajectoryById(Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc,
+            [FromBody] Model.Trajectory? data)
         {
             UsageStatisticsTrajectory.Instance.IncrementPutTrajectoryByIdPerDay();
             if (data == null || !_assignmentValidator.Validate(data))
@@ -259,6 +286,8 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
                 var existingData = _trajectoryManager.GetTrajectoryById(id);
                 if (existingData != null)
                 {
+                    if (existingData.LastModificationDate != expectedModifiedUtc)
+                        return Conflict(new { error = "stale_write", currentModifiedUtc = existingData.LastModificationDate });
                     if (await _trajectoryManager.UpdateTrajectoryById(id, data))
                     {
                         return Ok();
@@ -287,11 +316,14 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         /// <param name="guid"></param>
         /// <returns>true if the Trajectory was deleted from the microservice database, at the endpoint Trajectory/api/Trajectory/id</returns>
         [HttpDelete("{id}", Name = "DeleteTrajectoryById")]
-        public ActionResult DeleteTrajectoryById(Guid id)
+        public ActionResult DeleteTrajectoryById(Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc)
         {
             UsageStatisticsTrajectory.Instance.IncrementDeleteTrajectoryByIdPerDay();
-            if (_trajectoryManager.GetTrajectoryById(id) != null)
+            Model.Trajectory? current = _trajectoryManager.GetTrajectoryById(id);
+            if (current != null)
             {
+                if (current.LastModificationDate != expectedModifiedUtc)
+                    return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
                 if (_trajectoryManager.DeleteTrajectoryById(id))
                 {
                     return Ok();

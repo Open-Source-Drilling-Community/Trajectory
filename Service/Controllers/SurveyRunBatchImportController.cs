@@ -76,12 +76,18 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpPut("{id}", Name = "PutSurveyRunBatchImportById")]
-        public ActionResult PutSurveyRunBatchImportById(Guid id, [FromBody] SurveyRunBatchImport? data)
+        public ActionResult PutSurveyRunBatchImportById(Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc,
+            [FromBody] SurveyRunBatchImport? data)
         {
             if (data?.MetaInfo?.ID == id)
             {
-                if (_manager.GetSurveyRunBatchImportById(id) != null)
+                SurveyRunBatchImport? current = _manager.GetSurveyRunBatchImportById(id);
+                if (current != null)
+                {
+                    if (current.LastModificationDate != expectedModifiedUtc)
+                        return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
                     return _manager.UpdateSurveyRunBatchImportById(id, data) ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
+                }
                 _logger.LogWarning("The given SurveyRunBatchImport has not been found in the database");
                 return NotFound();
             }
@@ -91,10 +97,15 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpDelete("{id}", Name = "DeleteSurveyRunBatchImportById")]
-        public ActionResult DeleteSurveyRunBatchImportById(Guid id)
+        public ActionResult DeleteSurveyRunBatchImportById(Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc)
         {
-            if (_manager.GetSurveyRunBatchImportById(id) != null)
+            SurveyRunBatchImport? current = _manager.GetSurveyRunBatchImportById(id);
+            if (current != null)
+            {
+                if (current.LastModificationDate != expectedModifiedUtc)
+                    return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
                 return _manager.DeleteSurveyRunBatchImportById(id) ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
+            }
 
             _logger.LogWarning("The SurveyRunBatchImport of given ID does not exist");
             return NotFound();

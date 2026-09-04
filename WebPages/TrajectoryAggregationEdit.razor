@@ -317,12 +317,13 @@
             }
 
             currentAggregationCase.MetaInfo ??= PseudoConstructors.ConstructMetaInfo();
+            DateTimeOffset? expectedModifiedUtc = currentAggregationCase.LastModificationDate;
             currentAggregationCase.LastModificationDate = DateTimeOffset.UtcNow;
             currentAggregationCase.TrajectoryAggregationList = [new TrajectoryAggregation { ID = SelectedAggregation?.ID == Guid.Empty ? Guid.NewGuid() : SelectedAggregation?.ID ?? Guid.NewGuid(), TrajectoryID = trajectoryId }];
 
             if (aggregationCaseIdBeingEdited is Guid id)
             {
-                await Api.ClientTrajectory.PutTrajectoryAggregationCaseByIdAsync(id, currentAggregationCase);
+                await Api.ClientTrajectory.PutTrajectoryAggregationCaseByIdAsync(id, ConcurrencyToken.Require(expectedModifiedUtc), currentAggregationCase);
                 currentAggregationCase = await Api.ClientTrajectory.GetTrajectoryAggregationCaseByIdAsync(id, false);
                 Snackbar.Add("Trajectory aggregation updated successfully", Severity.Success);
             }

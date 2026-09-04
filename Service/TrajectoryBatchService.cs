@@ -123,7 +123,7 @@ public sealed class TrajectoryBatchService
         List<TrajectoryIdentity> localIdentities = identityManager.GetAll();
         List<TrajectoryFeatureCategory> localCategories = featureManager.GetAll();
         CatalogResolution catalogs = ResolveCatalogs(document.CatalogDependencies, localIdentities, localCategories,
-            request.CatalogPolicy, errors);
+            request.CatalogPolicy, request.AllowNormalizedNameMapping, errors);
         if (errors.Count != 0) return RestoreFailure(TrajectoryBatchFailureKind.Conflict,
             "catalog_restore_conflict", "Catalog dependencies cannot be resolved. No changes were made.", errors);
 
@@ -353,13 +353,16 @@ public sealed class TrajectoryBatchService
 
     private static CatalogResolution ResolveCatalogs(TrajectoryBatchCatalogDependencies dependencies,
         List<TrajectoryIdentity> localIdentities, List<TrajectoryFeatureCategory> localCategories,
-        TrajectoryBatchCatalogRestorePolicy policy, List<TrajectoryBatchError> errors)
+        TrajectoryBatchCatalogRestorePolicy policy, bool allowNormalizedNameMapping,
+        List<TrajectoryBatchError> errors)
     {
         var result = new CatalogResolution(localIdentities, localCategories);
         foreach (TrajectoryIdentity source in dependencies.Identities)
         {
             TrajectoryIdentity? local = ResolveByIdOrName(source, source.MetaInfo!.ID, source.Name, localIdentities,
-                value => value.MetaInfo!.ID, value => value.Name, (_, _) => true, "identity", errors);
+                value => value.MetaInfo!.ID, value => value.Name,
+                (left, right) => SameName(left.Name, right.Name), "identity",
+                allowNormalizedNameMapping, errors);
             if (local == null && policy == TrajectoryBatchCatalogRestorePolicy.MapOrCreateMissing)
             {
                 local = source;
@@ -376,7 +379,8 @@ public sealed class TrajectoryBatchService
         foreach (TrajectoryFeatureCategory source in dependencies.FeatureCategories)
         {
             TrajectoryFeatureCategory? local = ResolveByIdOrName(source, source.MetaInfo!.ID, source.Name, localCategories,
-                value => value.MetaInfo!.ID, value => value.Name, SameCategory, "feature category", errors);
+                value => value.MetaInfo!.ID, value => value.Name, SameCategory, "feature category",
+                allowNormalizedNameMapping, errors);
             if (local == null && policy == TrajectoryBatchCatalogRestorePolicy.MapOrCreateMissing)
             {
                 local = source;
@@ -391,7 +395,22 @@ public sealed class TrajectoryBatchService
             result.CategoryMap[source.MetaInfo.ID] = local.MetaInfo!.ID;
             foreach (TrajectoryFeatureOption option in source.Options ?? [])
             {
-                TrajectoryFeatureOption? localOption = (local.Options ?? []).SingleOrDefault(value => SameName(value.Name, option.Name));
+                TrajectoryFeatureOption? localOption = (local.Options ?? []).SingleOrDefault(value => value.ID == option.ID);
+                if (localOption != null && !SameName(localOption.Name, option.Name))
+                {
+                    errors.Add(Error(null, "Document.CatalogDependencies.FeatureCategories.Options", "catalog_semantic_conflict",
+                        $"Local feature option '{option.ID}' has semantics incompatible with '{option.Name}'."));
+                    continue;
+                }
+                if (localOption == null && allowNormalizedNameMapping)
+                {
+                    List<TrajectoryFeatureOption> namedOptions = (local.Options ?? [])
+                        .Where(value => SameName(value.Name, option.Name)).ToList();
+                    if (namedOptions.Count > 1)
+                        errors.Add(Error(null, "Document.CatalogDependencies.FeatureCategories.Options", "ambiguous_catalog_match",
+                            $"More than one local feature option is named '{option.Name}'."));
+                    else if (namedOptions.Count == 1) localOption = namedOptions[0];
+                }
                 if (localOption == null)
                     errors.Add(Error(null, "Document.CatalogDependencies.FeatureCategories.Options", "catalog_semantic_conflict",
                         $"Feature category '{source.Name}' has no compatible option '{option.Name}'."));
@@ -408,7 +427,7 @@ public sealed class TrajectoryBatchService
 
     private static T? ResolveByIdOrName<T>(T source, Guid sourceId, string? sourceName, IEnumerable<T> locals,
         Func<T, Guid> id, Func<T, string?> name, Func<T, T, bool> compatible, string kind,
-        List<TrajectoryBatchError> errors) where T : class
+        bool allowNormalizedNameMapping, List<TrajectoryBatchError> errors) where T : class
     {
         T? byId = locals.FirstOrDefault(value => id(value) == sourceId);
         if (byId != null)
@@ -418,6 +437,7 @@ public sealed class TrajectoryBatchService
                 $"Local {kind} '{sourceId}' has semantics incompatible with '{sourceName}'."));
             return null;
         }
+        if (!allowNormalizedNameMapping) return null;
         List<T> byName = locals.Where(value => SameName(name(value), sourceName) && compatible(source, value)).ToList();
         if (byName.Count > 1)
             errors.Add(Error(null, "Document.CatalogDependencies", "ambiguous_catalog_match", $"More than one local {kind} is named '{sourceName}'."));
@@ -425,7 +445,8 @@ public sealed class TrajectoryBatchService
     }
 
     private static bool SameCategory(TrajectoryFeatureCategory left, TrajectoryFeatureCategory right) =>
-        left.IsExclusive == right.IsExclusive && left.HasValidityPeriod == right.HasValidityPeriod &&
+        SameName(left.Name, right.Name) && left.IsExclusive == right.IsExclusive &&
+        left.HasValidityPeriod == right.HasValidityPeriod &&
         (left.Options ?? []).Select(value => Normalize(value.Name)).ToHashSet().SetEquals((right.Options ?? []).Select(value => Normalize(value.Name)));
 
     private static void RemapAssignments(TrajectoryBatchExportDocument document, CatalogResolution catalogs)

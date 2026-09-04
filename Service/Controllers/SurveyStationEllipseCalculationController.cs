@@ -58,13 +58,17 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpDelete("{id}", Name = "DeleteSurveyStationEllipseCalculationById")]
-        public ActionResult DeleteSurveyStationEllipseCalculationById(Guid id)
+        public ActionResult DeleteSurveyStationEllipseCalculationById(Guid id,
+            [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc)
         {
-            if (_manager.GetSurveyStationEllipseCalculationById(id) == null)
+            Model.SurveyStationEllipseCalculation? current = _manager.GetSurveyStationEllipseCalculationById(id);
+            if (current == null)
             {
                 _logger.LogWarning("The SurveyStationEllipseCalculation of given ID does not exist");
                 return NotFound();
             }
+            if (current.LastModificationDate != expectedModifiedUtc)
+                return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
 
             return _manager.DeleteSurveyStationEllipseCalculationById(id) ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
         }

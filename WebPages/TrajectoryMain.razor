@@ -562,7 +562,7 @@
 
             if (confirmed)
             {
-                await Api.ClientTrajectory.DeleteTrajectoryByIdAsync(id);
+                await Api.ClientTrajectory.DeleteTrajectoryByIdAsync(id, ConcurrencyToken.Require(trajectory.LastModificationDate));
                 await LoadDataAsync();
             }
         }
@@ -651,7 +651,7 @@
             {
                 foreach (TrajectoryLight trajectory in toDelete)
                 {
-                    await Api.ClientTrajectory.DeleteTrajectoryByIdAsync(trajectory.MetaInfo.ID);
+                    await Api.ClientTrajectory.DeleteTrajectoryByIdAsync(trajectory.MetaInfo.ID, ConcurrencyToken.Require(trajectory.LastModificationDate));
                 }
                 // Reload data: this also clears selectedTrajectoryList and bumps _gridKey.
                 await LoadDataAsync();

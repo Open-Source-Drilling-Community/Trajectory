@@ -3,12 +3,32 @@
 <MudDivider Class="mb-4 pb-4"/>
 <MudText Class="mx-4 px-4 ym-4 pm-4" Typo="Typo.h5">Introduction</MudText>
 <MudText Class="mx-6 px-6 ym-4 pm-4" Typo="Typo.body1">
-
+    The Trajectory service owns survey runs, calculated or imported trajectories, interpolation and uncertainty
+    calculations, anti-collision results, and the shared identity and feature catalogs used to classify them.
+    Engineering values are stored in canonical SI units; depths and vertical coordinates are metres relative to WGS84.
 </MudText>
+
+<MudAlert Severity="Severity.Info" Class="mx-6 my-4">
+    Persisted calculation cases and results are durable. They are never removed automatically because they are older
+    than 90 days; deletion occurs only through an explicit user or API operation.
+</MudAlert>
 
 <MudDivider Class="my-4 py-4"/>
 <MudText Class="mx-4 px-4 ym-4 pm-4" Typo="Typo.h5">Data Input</MudText>
 <MudText Class="mx-6 px-6 ym-4 pm-4" Typo="Typo.body1">
+    Use Survey Runs to upload measured MD, inclination, and azimuth data, then create trajectories from those runs.
+    Large station and calculation-result arrays use chunked transfer. Backup / Restore exports dependency-closed,
+    versioned JSON documents and restores them atomically. Catalog UUIDs match exactly by default; normalized-name
+    mapping is available only as an explicit restore opt-in.
+</MudText>
+
+<MudDivider Class="my-4 py-4"/>
+<MudText Class="mx-4 px-4 ym-4 pm-4" Typo="Typo.h5">Service access</MudText>
+<MudText Class="mx-6 px-6 ym-4 pm-4" Typo="Typo.body1">
+    The REST/OpenAPI contract is available under <a href="/Trajectory/api/swagger">/Trajectory/api/swagger</a> and
+    MCP under <code>/Trajectory/api/mcp</code>. MCP callers should use the bounded trajectory and survey-run search
+    tools for discovery, then fetch selected records by UUID. Durable updates and deletes require the opaque
+    <code>LastModificationDate</code> value from the latest read.
 </MudText>
 
  <MudStack Spacing="2" Class="my-4 py-4">

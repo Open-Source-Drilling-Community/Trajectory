@@ -65,7 +65,8 @@ public sealed class TrajectoryBatchServiceTests
         {
             Document = exported.Document,
             ConflictPolicy = TrajectoryBatchRestoreConflictPolicy.FailIfExists,
-            CatalogPolicy = TrajectoryBatchCatalogRestorePolicy.MapExisting
+            CatalogPolicy = TrajectoryBatchCatalogRestorePolicy.MapExisting,
+            AllowNormalizedNameMapping = true
         });
         Assert.That(restored.IsSuccess, Is.True, ErrorText(restored.Error));
         Assert.Multiple(() =>
@@ -82,6 +83,67 @@ public sealed class TrajectoryBatchServiceTests
             Assert.That(roundTrip.Document!.SurveyRuns.Single(value => value.MetaInfo!.ID == parentId).SurveyMeasurementList![0].Annotation, Is.EqualTo("measurement"));
             Assert.That(roundTrip.Document.SurveyRuns.Single(value => value.MetaInfo!.ID == childId).SurveyStationList, Has.Count.EqualTo(1));
             Assert.That(roundTrip.Document.Trajectories.Single().SurveyStationList, Has.Count.EqualTo(1));
+        });
+    }
+
+    [Test]
+    public void Normalized_name_catalog_mapping_requires_explicit_opt_in()
+    {
+        using var source = new TestEnvironment();
+        TrajectoryIdentity sourceIdentity = source.Identities.GetAll().Single(value => value.Name == "NameForPlanning");
+        SurveyRun run = SurveyRun(Guid.NewGuid(), null, "Source", DateTimeOffset.UtcNow);
+        run.SurveyRunIdentityAssignments =
+        [
+            new() { ID = Guid.NewGuid(), IdentityID = sourceIdentity.MetaInfo!.ID, Value = "Plan" }
+        ];
+        TrajectoryBatchExportDocument document = Document(DateTimeOffset.UtcNow, [run], [], [sourceIdentity]);
+
+        using var target = new TestEnvironment();
+        TrajectoryBatchRestoreOutcome rejected = target.Service.Restore(new()
+        {
+            Document = document,
+            ConflictPolicy = TrajectoryBatchRestoreConflictPolicy.FailIfExists,
+            CatalogPolicy = TrajectoryBatchCatalogRestorePolicy.MapExisting
+        });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(rejected.IsSuccess, Is.False);
+            Assert.That(rejected.Error!.Errors.Any(value => value.Code == "catalog_definition_missing"), Is.True);
+            Assert.That(target.Service.Export(new() { Scope = TrajectoryBatchExportScope.All }).Document!.SurveyRuns, Is.Empty);
+        });
+    }
+
+    [Test]
+    public void Existing_catalog_uuid_with_different_content_is_rejected()
+    {
+        using var environment = new TestEnvironment();
+        TrajectoryIdentity localIdentity = environment.Identities.GetAll().First();
+        TrajectoryIdentity conflictingIdentity = new()
+        {
+            MetaInfo = new MetaInfo { ID = localIdentity.MetaInfo!.ID },
+            Name = localIdentity.Name + " changed",
+            CreationDate = localIdentity.CreationDate,
+            LastModificationDate = localIdentity.LastModificationDate
+        };
+        SurveyRun run = SurveyRun(Guid.NewGuid(), null, "Conflicting catalog", DateTimeOffset.UtcNow);
+        run.SurveyRunIdentityAssignments =
+        [
+            new() { ID = Guid.NewGuid(), IdentityID = conflictingIdentity.MetaInfo.ID, Value = "Value" }
+        ];
+
+        TrajectoryBatchRestoreOutcome outcome = environment.Service.Restore(new()
+        {
+            Document = Document(DateTimeOffset.UtcNow, [run], [], [conflictingIdentity]),
+            ConflictPolicy = TrajectoryBatchRestoreConflictPolicy.FailIfExists,
+            CatalogPolicy = TrajectoryBatchCatalogRestorePolicy.MapOrCreateMissing
+        });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(outcome.IsSuccess, Is.False);
+            Assert.That(outcome.Error!.Errors.Any(value => value.Code == "catalog_semantic_conflict"), Is.True);
+            Assert.That(environment.Service.Export(new() { Scope = TrajectoryBatchExportScope.All }).Document!.SurveyRuns, Is.Empty);
         });
     }
 

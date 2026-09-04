@@ -825,13 +825,14 @@
         try
         {
             currentCalculation_.MetaInfo ??= PseudoConstructors.ConstructMetaInfo();
+            DateTimeOffset? expectedModifiedUtc = currentCalculation_.LastModificationDate;
             currentCalculation_.ReferenceTrajectoryID = referenceId;
             currentCalculation_.LastModificationDate = DateTimeOffset.UtcNow;
             currentCalculation_.ResultList = null;
             currentCalculation_.IntervalResultList = null;
             if (currentCalculationId_ is Guid id)
             {
-                await Api.ClientTrajectory.PutTrajectoryMinimumDistanceCalculationByIdAsync(id, currentCalculation_);
+                await Api.ClientTrajectory.PutTrajectoryMinimumDistanceCalculationByIdAsync(id, ConcurrencyToken.Require(expectedModifiedUtc), currentCalculation_);
                 currentCalculation_ = await Api.ClientTrajectory.GetTrajectoryMinimumDistanceCalculationByIdAsync(id);
                 Snackbar.Add("Minimum distance calculation updated", Severity.Success);
             }
@@ -1432,7 +1433,8 @@
         {
             if (await ConfirmDeletion())
             {
-                await Api.ClientTrajectory.DeleteTrajectoryMinimumDistanceCalculationByIdAsync(id);
+                TrajectoryMinimumDistanceCalculation current = await Api.ClientTrajectory.GetTrajectoryMinimumDistanceCalculationByIdAsync(id);
+                await Api.ClientTrajectory.DeleteTrajectoryMinimumDistanceCalculationByIdAsync(id, ConcurrencyToken.Require(current.LastModificationDate));
                 await LoadDataAsync();
             }
         }
@@ -1457,7 +1459,7 @@
             {
                 foreach (TrajectoryMinimumDistanceCalculationLight item in toDelete)
                 {
-                    await Api.ClientTrajectory.DeleteTrajectoryMinimumDistanceCalculationByIdAsync(item.MetaInfo.ID);
+                    await Api.ClientTrajectory.DeleteTrajectoryMinimumDistanceCalculationByIdAsync(item.MetaInfo.ID, ConcurrencyToken.Require(item.LastModificationDate));
                 }
 
                 await LoadDataAsync();

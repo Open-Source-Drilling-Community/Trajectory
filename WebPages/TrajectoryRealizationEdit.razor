@@ -353,6 +353,7 @@
             return;
         }
 
+        DateTimeOffset? expectedModifiedUtc = currentCase.LastModificationDate;
         currentCase.TrajectoryID = trajectoryId;
         currentCase.LastModificationDate = DateTimeOffset.UtcNow;
         currentCase.CoarseningMaximumDistance = Math.Max(0.0, currentCase.CoarseningMaximumDistance);
@@ -361,7 +362,7 @@
         {
             if (caseIdBeingEdited is Guid id && id != Guid.Empty)
             {
-                await Api.ClientTrajectory.PutTrajectoryRealizationCaseByIdAsync(id, currentCase);
+                await Api.ClientTrajectory.PutTrajectoryRealizationCaseByIdAsync(id, ConcurrencyToken.Require(expectedModifiedUtc), currentCase);
             }
             else
             {

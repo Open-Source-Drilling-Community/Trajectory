@@ -39,13 +39,15 @@ internal static class TrajectoryMcpToolMetadata
         if (controller == "Trajectory" && action == "BatchExport")
             detail = "Create a versioned JSON backup of all records or an explicit selection. A selected trajectory automatically includes all survey runs referenced by its sections, and every selected survey run includes its parent chain. The document also carries the identity and feature definitions needed by those records.";
         else if (controller == "Trajectory" && action == "BatchRestore")
-            detail = "Restore a versioned dependency-closed backup. The service validates the complete document, maps compatible identity and feature definitions by UUID or normalized name, optionally creates missing definitions, writes survey runs before dependent trajectories, and atomically commits record changes without recalculation. Use FailIfExists for a non-destructive import or ReplaceExisting explicitly.";
+            detail = "Restore a versioned dependency-closed backup. The service validates the complete document, matches catalog definitions and options by exact UUID by default, optionally creates missing definitions, writes survey runs before dependent trajectories, and atomically commits record changes without recalculation. Normalized-name mapping of compatible definitions with different UUIDs occurs only when AllowNormalizedNameMapping is explicitly true. Use FailIfExists for a non-destructive import or ReplaceExisting explicitly.";
+        else if (action.StartsWith("Search", StringComparison.Ordinal))
+            detail = $"Return one deterministic bounded page of lightweight {resource} records with the total match count. Filter by free text and owned relationship/type fields, use offset for continuation, and keep limit between 1 and 500. Fetch a selected resource by UUID when complete data is needed.";
         else if (controller == "SurveyRun" && action == "PutSurveyMeasurementChunk")
             detail = "Upload or replace one staged measurement chunk. Use a zero-based chunkIndex; chunk.SurveyRunID must equal id and chunk.ChunkIndex must equal chunkIndex. Measurements use MD in metres and Inclination/Azimuth in radians. Upload every chunk, then call the commit tool once to assemble the run and start recalculation.";
         else if (controller == "SurveyRun" && action == "CommitSurveyMeasurementChunks")
             detail = "Commit all previously uploaded survey-measurement chunks for the survey-run id. Call this only after every zero-based chunk has been uploaded; committing assembles the measurements and triggers the survey-station calculation.";
         else if (controller == "SurveyRun" && action == "DeleteSurveyMeasurementChunks")
-            detail = "Delete the staged survey-measurement chunks for the survey-run id, for example to abandon or restart an incomplete chunked upload. This does not delete the survey run itself.";
+            detail = "Delete the staged survey-measurement chunks for the survey-run id, for example to abandon or restart an incomplete chunked upload. This does not delete the survey run itself and does not use the persisted survey run's concurrency token.";
         else if (action.Contains("ChunkCount", StringComparison.Ordinal))
             detail = $"Return the number of available result chunks for {resource}. Call this before requesting chunks, then retrieve zero-based chunkIndex values from 0 through count - 1. A count of zero means no chunks are currently available.";
         else if (action.Contains("Chunk", StringComparison.Ordinal) && action.StartsWith("Get", StringComparison.Ordinal))
@@ -79,13 +81,13 @@ internal static class TrajectoryMcpToolMetadata
         else if ((controller is "TrajectoryIdentity" or "TrajectoryFeatureCategory") && action.StartsWith("Put", StringComparison.Ordinal))
             detail = $"Replace an existing {resource}. Supply expectedModifiedUtc from the latest LastModificationDate; stale writes return a conflict. Definitions currently referenced by survey runs or trajectories remain protected.";
         else if (action.StartsWith("Put", StringComparison.Ordinal))
-            detail = $"Replace an existing instance of {resource}. The route id must be a non-empty UUID and must exactly match data.MetaInfo.ID; the target must already exist. Supply a complete representation because this is a full update, not a partial patch.";
+            detail = $"Replace an existing instance of {resource}. The route id must be a non-empty UUID and must exactly match data.MetaInfo.ID; the target must already exist. Supply expectedModifiedUtc copied exactly from the latest LastModificationDate; stale writes return conflict. Supply a complete representation because this is a full update, not a partial patch.";
         else if ((controller is "TrajectoryIdentity" or "TrajectoryFeatureCategory") && action.StartsWith("Delete", StringComparison.Ordinal))
             detail = $"Delete an unused {resource}. Supply expectedModifiedUtc from the latest LastModificationDate; referenced definitions and stale writes return a conflict.";
         else if (action.StartsWith("Delete", StringComparison.Ordinal))
             detail = controller == "Octrees"
                 ? "Remove one rebuildable derived spatial index without deleting its authoritative trajectory. Routine callers should not do this: subsequent spatial searches omit the trajectory until a rebuild or service-start reconciliation recreates the index."
-                : $"Permanently delete one stored instance of {resource}. The id must identify an existing resource; retrieve it first if the caller needs to verify the target.";
+                : $"Permanently delete one stored instance of {resource}. The id must identify an existing resource. Supply expectedModifiedUtc copied exactly from the latest LastModificationDate; stale deletes return conflict.";
         else if (controller == "Octrees" && action == "GetStatus")
             detail = "Return lightweight provenance and health for one trajectory's derived spatial index. State is one of Missing, NotIndexable, Stale or Current. The response reports source modification time, schema/calculation provenance, bucket count and detailed-code count without returning the large code array.";
         else if (controller == "Octrees" && action == "Get")
@@ -115,6 +117,8 @@ internal static class TrajectoryMcpToolMetadata
             JsonObject schema = SchemaFor(parameter.ParameterType, definitions, building);
             schema["description"] = DescribeParameter(controller, method.Name, parameter);
             if (name == "chunkIndex") schema["minimum"] = 0;
+            if (name == "offset") schema["minimum"] = 0;
+            if (name == "limit") { schema["minimum"] = 1; schema["maximum"] = 500; }
             if (name == "id" && parameter.ParameterType == typeof(string)) schema["minLength"] = 1;
             properties[name] = schema;
 
@@ -228,6 +232,9 @@ internal static class TrajectoryMcpToolMetadata
             "includeMeasurements" => "When true, include the survey measurement list in the response; false (default) omits it.",
             "includeCalculatedStations" => "When true, include calculated survey stations; false (default) omits them. Prefer station chunks for large runs.",
             "expectedModifiedUtc" => "Optimistic-concurrency token copied exactly from the resource's latest LastModificationDate.",
+            "query" => "Optional case-insensitive text matched against name, description, and UUID.",
+            "offset" => "Zero-based number of matching records to skip; must be non-negative.",
+            "limit" => "Maximum page size from 1 through 500; defaults to 100.",
             "chunk" => "Complete survey-measurement chunk. SurveyRunID and ChunkIndex must match the route arguments; MD is metres and Inclination/Azimuth are radians.",
             "request" when controller == "Trajectory" && action == "BatchExport" => "Backup scope and optional survey-run and trajectory UUID selections. For Selected, provide at least one UUID; dependent survey runs are added automatically.",
             "request" when controller == "Trajectory" && action == "BatchRestore" => "Complete backup document plus record-conflict and catalog-resolution policies. Restore validates the full graph before writing records.",
@@ -286,7 +293,7 @@ internal static class TrajectoryMcpToolMetadata
         {
             JsonObject schema = SchemaFor(property.PropertyType, definitions, building);
             ApplyDomainConstraints(type, property, schema, required);
-            schema["description"] = DescribeProperty(property.Name);
+            schema["description"] = DescribeProperty(type, property.Name);
             properties[property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name] = schema;
         }
         var definition = new JsonObject
@@ -357,6 +364,14 @@ internal static class TrajectoryMcpToolMetadata
         {
             schema["minimum"] = 0;
         }
+
+        if (((declaringType == typeof(TrajectoryMinimumDistanceCalculation) ||
+              declaringType == typeof(SurveyRunMinimumDistanceCalculation)) && property.Name == "OctreeMaximumDepth") ||
+            (declaringType == typeof(MinimumDistanceAdaptiveRefinementSettings) && property.Name == "MaximumDepth"))
+        {
+            schema["minimum"] = 1;
+            schema["maximum"] = 12;
+        }
     }
 
     private static Type? ResponsePayloadType(Type returnType)
@@ -373,8 +388,15 @@ internal static class TrajectoryMcpToolMetadata
         return type;
     }
 
-    private static string DescribeProperty(string name)
+    private static string DescribeProperty(Type declaringType, string name)
     {
+        if ((declaringType == typeof(TrajectoryMinimumDistanceCalculation) ||
+             declaringType == typeof(SurveyRunMinimumDistanceCalculation)) && name == "OctreeMaximumDepth")
+            return "Maximum octree subdivision level (dimensionless integer from 1 through 12).";
+        if (declaringType == typeof(MinimumDistanceAdaptiveRefinementSettings) && name == "MaximumDepth")
+            return "Maximum adaptive-refinement recursion level (dimensionless integer from 1 through 12).";
+        if (declaringType == typeof(TrajectoryBatchRestoreRequest) && name == nameof(TrajectoryBatchRestoreRequest.AllowNormalizedNameMapping))
+            return "Explicit opt-in to map compatible catalog definitions and options with different UUIDs by normalized name; false requires exact UUID matches.";
         if (name == "MD" || name.EndsWith("MD", StringComparison.Ordinal)) return "Measured/along-hole depth in SI metres.";
         if (name.Contains("Inclination", StringComparison.OrdinalIgnoreCase)) return "Inclination angle in SI radians.";
         if (name.Contains("Azimuth", StringComparison.OrdinalIgnoreCase)) return "Azimuth angle in SI radians.";

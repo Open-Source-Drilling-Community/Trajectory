@@ -23,7 +23,7 @@
     {
         HashSet<Guid> existing = (await Api.ClientTrajectory.GetAllTrajectoryIdentityIdAsync()).ToHashSet();
         foreach (TrajectoryIdentity item in items)
-            if (existing.Contains(item.MetaInfo.ID)) await Api.ClientTrajectory.PutTrajectoryIdentityByIdAsync(item.MetaInfo.ID, item.LastModificationDate, item);
+            if (existing.Contains(item.MetaInfo.ID)) await Api.ClientTrajectory.PutTrajectoryIdentityByIdAsync(item.MetaInfo.ID, ConcurrencyToken.Require(item.LastModificationDate), item);
             else await Api.ClientTrajectory.PostTrajectoryIdentityAsync(item);
         await ReloadAsync();
         Snackbar.Add("Identities saved", Severity.Success);
@@ -31,7 +31,7 @@
     private async Task DeleteAsync(TrajectoryIdentity item)
     {
         if (item.LastModificationDate == null) { items.Remove(item); return; }
-        try { await Api.ClientTrajectory.DeleteTrajectoryIdentityByIdAsync(item.MetaInfo.ID, item.LastModificationDate); items.Remove(item); }
+        try { await Api.ClientTrajectory.DeleteTrajectoryIdentityByIdAsync(item.MetaInfo.ID, ConcurrencyToken.Require(item.LastModificationDate)); items.Remove(item); }
         catch (ApiException ex) when (ex.StatusCode == 409) { Snackbar.Add("This identity is in use and cannot be deleted.", Severity.Warning); }
     }
 }

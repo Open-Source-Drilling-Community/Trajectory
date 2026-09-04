@@ -239,7 +239,8 @@
         {
             if (await ConfirmDeletion())
             {
-                await Api.ClientTrajectory.DeleteTrajectoryAggregationCaseByIdAsync(id);
+                TrajectoryAggregationCase current = await Api.ClientTrajectory.GetTrajectoryAggregationCaseByIdAsync(id, false);
+                await Api.ClientTrajectory.DeleteTrajectoryAggregationCaseByIdAsync(id, ConcurrencyToken.Require(current.LastModificationDate));
                 await LoadDataAsync();
             }
         }
@@ -260,7 +261,7 @@
             {
                 foreach (TrajectoryAggregationCaseLight item in toDelete)
                 {
-                    await Api.ClientTrajectory.DeleteTrajectoryAggregationCaseByIdAsync(item.MetaInfo.ID);
+                    await Api.ClientTrajectory.DeleteTrajectoryAggregationCaseByIdAsync(item.MetaInfo.ID, ConcurrencyToken.Require(item.LastModificationDate));
                 }
                 await LoadDataAsync();
             }

@@ -163,6 +163,54 @@ public sealed class McpToolRegistrationTests
         });
     }
 
+    [TestCase("trajectory_put_trajectory_by_id")]
+    [TestCase("trajectory_delete_trajectory_by_id")]
+    [TestCase("survey_run_put_survey_run_by_id")]
+    [TestCase("survey_run_delete_survey_run_by_id")]
+    [TestCase("interpolated_trajectory_put_interpolated_trajectory_by_id")]
+    [TestCase("interpolated_trajectory_delete_interpolated_trajectory_by_id")]
+    [TestCase("survey_run_batch_import_put_survey_run_batch_import_by_id")]
+    [TestCase("survey_run_batch_import_delete_survey_run_batch_import_by_id")]
+    [TestCase("trajectory_minimum_distance_calculation_put_trajectory_minimum_distance_calculation_by_id")]
+    [TestCase("trajectory_minimum_distance_calculation_delete_trajectory_minimum_distance_calculation_by_id")]
+    [TestCase("survey_run_minimum_distance_calculation_put_survey_run_minimum_distance_calculation_by_id")]
+    [TestCase("survey_run_minimum_distance_calculation_delete_survey_run_minimum_distance_calculation_by_id")]
+    [TestCase("trajectory_realization_case_put_trajectory_realization_case_by_id")]
+    [TestCase("trajectory_realization_case_delete_trajectory_realization_case_by_id")]
+    [TestCase("trajectory_aggregation_case_put_trajectory_aggregation_case_by_id")]
+    [TestCase("trajectory_aggregation_case_delete_trajectory_aggregation_case_by_id")]
+    [TestCase("survey_station_ellipse_calculation_delete_survey_station_ellipse_calculation_by_id")]
+    public void Durable_core_mutations_require_optimistic_concurrency(string toolName)
+    {
+        TrajectoryMcpEndpoint endpoint = Endpoint(toolName);
+        Assert.Multiple(() =>
+        {
+            Assert.That(endpoint.InputSchema!["properties"]!["expectedModifiedUtc"], Is.Not.Null);
+            Assert.That(endpoint.InputSchema["required"]!.AsArray().Select(value => value!.GetValue<string>()),
+                Does.Contain("expectedModifiedUtc"));
+            Assert.That(endpoint.Description, Does.Contain("expectedModifiedUtc"));
+        });
+    }
+
+    [Test]
+    public void Core_search_tools_are_bounded_and_replace_unbounded_heavy_mcp_lists()
+    {
+        TrajectoryMcpEndpoint trajectorySearch = Endpoint("trajectory_search_trajectory");
+        TrajectoryMcpEndpoint surveyRunSearch = Endpoint("survey_run_search_survey_run");
+        IReadOnlyList<TrajectoryMcpEndpoint> endpoints = TrajectoryRestMcpToolRegistrations.Endpoints;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(trajectorySearch.Description, Does.Contain("deterministic bounded page"));
+            Assert.That(trajectorySearch.InputSchema!["properties"]!["limit"]!["default"]!.GetValue<int>(), Is.EqualTo(100));
+            Assert.That(trajectorySearch.InputSchema["properties"]!["limit"]!["maximum"]!.GetValue<int>(), Is.EqualTo(500));
+            Assert.That(surveyRunSearch.InputSchema!["properties"]!["offset"]!["default"]!.GetValue<int>(), Is.Zero);
+            Assert.That(endpoints.Any(value => value.Name == "trajectory_get_all_trajectory"), Is.False);
+            Assert.That(endpoints.Any(value => value.Name == "survey_run_get_all_survey_run"), Is.False);
+            Assert.That(endpoints, Has.Count.EqualTo(121));
+        });
+    }
+
     [Test]
     public void Backup_tools_document_dependency_closure_and_restore_policies()
     {
@@ -180,13 +228,28 @@ public sealed class McpToolRegistrationTests
             Assert.That(restore.Description, Does.Contain("writes survey runs before"));
             Assert.That(restore.InputSchema!.ToJsonString(), Does.Contain("ConflictPolicy"));
             Assert.That(restore.InputSchema!.ToJsonString(), Does.Contain("CatalogPolicy"));
+            Assert.That(restore.InputSchema!.ToJsonString(), Does.Contain("AllowNormalizedNameMapping"));
             Assert.That(restoreProperties["ConflictPolicy"]!["enum"]!.AsArray()
                 .Select(value => value!.GetValue<string>()), Is.EqualTo(new[] { "FailIfExists", "ReplaceExisting" }));
             Assert.That(restoreProperties["CatalogPolicy"]!["enum"]!.AsArray()
                 .Select(value => value!.GetValue<string>()), Is.EqualTo(new[] { "MapExisting", "MapOrCreateMissing" }));
             Assert.That(restoreRequest["required"]!.AsArray().Select(value => value!.GetValue<string>()),
-                Is.EquivalentTo(new[] { "ConflictPolicy", "CatalogPolicy", "Document" }));
+                Is.EquivalentTo(new[] { "ConflictPolicy", "CatalogPolicy", "AllowNormalizedNameMapping", "Document" }));
             Assert.That(restore.OutputSchema.ToJsonString(), Does.Contain("TrajectoryBatchRestoreResponse"));
+        });
+    }
+
+    [Test]
+    public void Octree_depth_controls_are_dimensionless_and_bounded()
+    {
+        string schema = Endpoint("trajectory_minimum_distance_calculation_post_trajectory_minimum_distance_calculation").InputSchema!.ToJsonString();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(schema, Does.Contain("Maximum octree subdivision level (dimensionless integer from 1 through 12)."));
+            Assert.That(schema, Does.Contain("Maximum adaptive-refinement recursion level (dimensionless integer from 1 through 12)."));
+            Assert.That(schema, Does.Contain("\"minimum\":1,\"maximum\":12"));
+            Assert.That(schema, Does.Not.Contain("OctreeMaximumDepth\":{\"type\":\"integer\",\"description\":\"Length, depth or distance in SI metres."));
         });
     }
 

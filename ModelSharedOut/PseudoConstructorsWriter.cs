@@ -286,10 +286,12 @@ namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
                                 if (listStacks > 0)
                                 {
                                     if (p.Name.EndsWith("IdentityAssignments", StringComparison.Ordinal) ||
-                                        p.Name.EndsWith("FeatureAssignments", StringComparison.Ordinal))
+                                        p.Name.EndsWith("FeatureAssignments", StringComparison.Ordinal) ||
+                                        propBaseName.Contains("Light", StringComparison.Ordinal))
                                     {
-                                        // Assignment entries must reference an existing catalog definition.
-                                        // A fabricated placeholder is invalid, while an empty collection is valid.
+                                        // Assignment entries must reference an existing catalog definition, and
+                                        // lightweight projection types intentionally have no pseudo-constructor.
+                                        // An empty collection is valid for both cases.
                                         propertiesText += propertyName + $"new {propTypeName}(),";
                                         continue;
                                     }

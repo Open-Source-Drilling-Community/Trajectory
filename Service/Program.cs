@@ -25,11 +25,6 @@ builder.Services.AddSingleton<SqlConnectionManagerOctree>();
 builder.Services.AddSingleton<OctreeManager>();
 builder.Services.AddHostedService<OctreeReconciliationService>();
 
-// registering the database cleaner service through dependency injection
-builder.Services.AddHostedService(sp => new DatabaseCleanerService(
-    sp.GetRequiredService<ILogger<DatabaseCleanerService>>(),
-    sp.GetRequiredService<SqlConnectionManager>()));
-
 // serialization settings (using System.Json)
 builder.Services.AddControllers()
     .AddJsonOptions(options =>

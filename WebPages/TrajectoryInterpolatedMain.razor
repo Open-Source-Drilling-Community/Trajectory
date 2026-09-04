@@ -234,7 +234,8 @@
         {
             if (await ConfirmDeletion())
             {
-                await Api.ClientTrajectory.DeleteInterpolatedTrajectoryByIdAsync(id);
+                InterpolatedTrajectory current = await Api.ClientTrajectory.GetInterpolatedTrajectoryByIdAsync(id);
+                await Api.ClientTrajectory.DeleteInterpolatedTrajectoryByIdAsync(id, ConcurrencyToken.Require(current.LastModificationDate));
                 await LoadDataAsync();
             }
         }
@@ -255,7 +256,7 @@
             {
                 foreach (InterpolatedTrajectoryLight item in toDelete)
                 {
-                    await Api.ClientTrajectory.DeleteInterpolatedTrajectoryByIdAsync(item.MetaInfo.ID);
+                    await Api.ClientTrajectory.DeleteInterpolatedTrajectoryByIdAsync(item.MetaInfo.ID, ConcurrencyToken.Require(item.LastModificationDate));
                 }
                 await LoadDataAsync();
             }

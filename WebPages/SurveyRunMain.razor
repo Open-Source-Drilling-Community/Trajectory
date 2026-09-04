@@ -1129,12 +1129,13 @@
                 .OrderBy(measurement => measurement.MD ?? double.MaxValue)
                 .ToList();
             currentSurveyRun_.SurveyMeasurementList = surveyMeasurements;
+            DateTimeOffset? expectedModifiedUtc = currentSurveyRun_.LastModificationDate;
             currentSurveyRun_.LastModificationDate = DateTimeOffset.UtcNow;
             SurveyRun metadata = CreateSurveyRunMetadataCopy(currentSurveyRun_);
 
             if (surveyRunIdBeingEdited_ is Guid surveyRunId)
             {
-                await Api.ClientTrajectory.PutSurveyRunByIdAsync(surveyRunId, metadata);
+                await Api.ClientTrajectory.PutSurveyRunByIdAsync(surveyRunId, ConcurrencyToken.Require(expectedModifiedUtc), metadata);
                 await SaveSurveyMeasurementChunksAsync(surveyRunId, surveyMeasurements);
                 await Api.ClientTrajectory.CommitSurveyRunSurveyMeasurementChunksAsync(surveyRunId);
                 await RefreshSurveyRunAfterCalculationAsync(surveyRunId, surveyMeasurements);
@@ -1342,7 +1343,7 @@
 
             foreach (SurveyRunLight surveyRun in surveyRuns)
             {
-                await Api.ClientTrajectory.DeleteSurveyRunByIdAsync(surveyRun.MetaInfo.ID);
+                await Api.ClientTrajectory.DeleteSurveyRunByIdAsync(surveyRun.MetaInfo.ID, ConcurrencyToken.Require(surveyRun.LastModificationDate));
             }
 
             Snackbar.Add(surveyRuns.Count == 1 ? "Survey Run deleted successfully" : $"{surveyRuns.Count} Survey Runs deleted successfully", Severity.Success);
@@ -1370,7 +1371,7 @@
 
             if (result)
             {
-                await Api.ClientTrajectory.DeleteSurveyRunByIdAsync(id);
+                await Api.ClientTrajectory.DeleteSurveyRunByIdAsync(id, ConcurrencyToken.Require(surveyRun.LastModificationDate));
                 Snackbar.Add("Survey Run deleted successfully", Severity.Success);
                 await LoadDataAsync();
             }

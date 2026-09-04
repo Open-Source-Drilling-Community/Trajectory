@@ -510,15 +510,17 @@ else
         return true;
     }
 
-    private async Task<bool> PutStoredBatchImportAsync(Guid id, SharedSurveyRunBatchImport batchImport)
+    private async Task<bool> PutStoredBatchImportAsync(Guid id, DateTimeOffset? expectedModifiedUtc,
+        SharedSurveyRunBatchImport batchImport)
     {
-        await Api.ClientTrajectory.PutSurveyRunBatchImportByIdAsync(id, batchImport);
+        await Api.ClientTrajectory.PutSurveyRunBatchImportByIdAsync(id, ConcurrencyToken.Require(expectedModifiedUtc), batchImport);
         return true;
     }
 
     private async Task<bool> DeleteStoredBatchImportAsync(Guid id)
     {
-        await Api.ClientTrajectory.DeleteSurveyRunBatchImportByIdAsync(id);
+        SharedSurveyRunBatchImport current = await Api.ClientTrajectory.GetSurveyRunBatchImportByIdAsync(id);
+        await Api.ClientTrajectory.DeleteSurveyRunBatchImportByIdAsync(id, ConcurrencyToken.Require(current.LastModificationDate));
         return true;
     }
 
@@ -583,12 +585,13 @@ else
 
         try
         {
+            DateTimeOffset? expectedModifiedUtc = currentBatchImport_.LastModificationDate;
             SharedSurveyRunBatchImport snapshot = BuildStoredBatchImportSnapshot();
             bool success;
 
             if (snapshot.MetaInfo?.ID is Guid id && id != Guid.Empty && allBatchImportList_.Any(item => item.MetaInfo?.ID == id))
             {
-                success = await PutStoredBatchImportAsync(id, snapshot);
+                success = await PutStoredBatchImportAsync(id, expectedModifiedUtc, snapshot);
             }
             else
             {
@@ -626,8 +629,7 @@ else
         {
             currentBatchImport_.MetaInfo = new SharedMetaInfo();
         }
-        currentBatchImport_.LastModificationDate = DateTimeOffset.UtcNow;
-        return BuildBatchImportSnapshot(currentBatchImport_.LastModificationDate);
+        return BuildBatchImportSnapshot(DateTimeOffset.UtcNow);
     }
 
     private SharedSurveyRunBatchImport BuildBatchImportSnapshot(DateTimeOffset? lastModificationDate)
@@ -1161,10 +1163,11 @@ else
                         }
 
                         ApplySurveyRunToTrajectory(trajectory, row, surveyRun, importedStations, fieldId, cluster, well, baseTrajectoryName);
+                        DateTimeOffset expectedModifiedUtc = ConcurrencyToken.Require(trajectory.LastModificationDate);
                         trajectory.LastModificationDate = DateTimeOffset.UtcNow;
 
                         await SetCurrentRowStatusAsync("Replacing matching trajectory");
-                        await Api.ClientTrajectory.PutTrajectoryByIdAsync(existingTrajectoryId, trajectory);
+                        await Api.ClientTrajectory.PutTrajectoryByIdAsync(existingTrajectoryId, expectedModifiedUtc, trajectory);
                         await SetCurrentRowStatusAsync("Waiting for trajectory calculation");
                         if (!await WaitForTrajectoryCalculationAsync(existingTrajectoryId, SetCurrentRowStatusAsync, "Trajectory"))
                         {
@@ -2074,7 +2077,7 @@ else
         {
             if (trajectory?.MetaInfo?.ID is Guid trajectoryId && trajectoryId != Guid.Empty)
             {
-                await Api.ClientTrajectory.DeleteTrajectoryByIdAsync(trajectoryId);
+                await Api.ClientTrajectory.DeleteTrajectoryByIdAsync(trajectoryId, ConcurrencyToken.Require(trajectory.LastModificationDate));
             }
         }
     }

@@ -119,7 +119,8 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpPut("{id}", Name = "PutInterpolatedTrajectoryById")]
-        public async Task<ActionResult> PutInterpolatedTrajectoryById(Guid id, [FromBody] Model.InterpolatedTrajectory? data)
+        public async Task<ActionResult> PutInterpolatedTrajectoryById(Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc,
+            [FromBody] Model.InterpolatedTrajectory? data)
         {
             if (data?.MetaInfo == null || data.MetaInfo.ID != id)
             {
@@ -127,11 +128,14 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
                 return BadRequest();
             }
 
-            if (_manager.GetInterpolatedTrajectoryById(id) == null)
+            Model.InterpolatedTrajectory? current = _manager.GetInterpolatedTrajectoryById(id);
+            if (current == null)
             {
                 _logger.LogWarning("The given InterpolatedTrajectory has not been found in the database");
                 return NotFound();
             }
+            if (current.LastModificationDate != expectedModifiedUtc)
+                return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
 
             return await _manager.UpdateInterpolatedTrajectoryById(id, data)
                 ? Ok()
@@ -139,13 +143,16 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpDelete("{id}", Name = "DeleteInterpolatedTrajectoryById")]
-        public ActionResult DeleteInterpolatedTrajectoryById(Guid id)
+        public ActionResult DeleteInterpolatedTrajectoryById(Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc)
         {
-            if (_manager.GetInterpolatedTrajectoryById(id) == null)
+            Model.InterpolatedTrajectory? current = _manager.GetInterpolatedTrajectoryById(id);
+            if (current == null)
             {
                 _logger.LogWarning("The InterpolatedTrajectory of given ID does not exist");
                 return NotFound();
             }
+            if (current.LastModificationDate != expectedModifiedUtc)
+                return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
 
             return _manager.DeleteInterpolatedTrajectoryById(id)
                 ? Ok()

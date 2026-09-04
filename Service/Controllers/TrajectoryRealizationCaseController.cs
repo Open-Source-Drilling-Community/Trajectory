@@ -106,17 +106,21 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpPut("{id}", Name = "PutTrajectoryRealizationCaseById")]
-        public async Task<ActionResult> PutTrajectoryRealizationCaseById(Guid id, [FromBody] Model.TrajectoryRealizationCase? data)
+        public async Task<ActionResult> PutTrajectoryRealizationCaseById(Guid id,
+            [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc, [FromBody] Model.TrajectoryRealizationCase? data)
         {
             if (data?.MetaInfo == null || data.MetaInfo.ID != id)
             {
                 return BadRequest();
             }
 
-            if (_manager.GetTrajectoryRealizationCaseById(id) == null)
+            Model.TrajectoryRealizationCase? current = _manager.GetTrajectoryRealizationCaseById(id);
+            if (current == null)
             {
                 return NotFound();
             }
+            if (current.LastModificationDate != expectedModifiedUtc)
+                return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
 
             return await _manager.UpdateTrajectoryRealizationCaseById(id, data)
                 ? Ok()
@@ -124,12 +128,15 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpDelete("{id}", Name = "DeleteTrajectoryRealizationCaseById")]
-        public ActionResult DeleteTrajectoryRealizationCaseById(Guid id)
+        public ActionResult DeleteTrajectoryRealizationCaseById(Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc)
         {
-            if (_manager.GetTrajectoryRealizationCaseById(id) == null)
+            Model.TrajectoryRealizationCase? current = _manager.GetTrajectoryRealizationCaseById(id);
+            if (current == null)
             {
                 return NotFound();
             }
+            if (current.LastModificationDate != expectedModifiedUtc)
+                return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
 
             return _manager.DeleteTrajectoryRealizationCaseById(id)
                 ? Ok()

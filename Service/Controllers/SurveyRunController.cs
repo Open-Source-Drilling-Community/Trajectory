@@ -47,6 +47,33 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             return values != null ? Ok(values) : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
+        /// <summary>Returns one deterministic bounded page of lightweight survey runs.</summary>
+        [HttpGet("Search", Name = "SearchSurveyRun")]
+        public ActionResult<SurveyRunSearchResult> SearchSurveyRun(
+            [FromQuery] string? query = null, [FromQuery] Guid? fieldId = null,
+            [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null,
+            [FromQuery] Guid? wellBoreId = null, [FromQuery] Guid? surveyInstrumentId = null,
+            [FromQuery] SurveyRunType? surveyRunType = null, [FromQuery] int offset = 0,
+            [FromQuery] int limit = 100)
+        {
+            if (offset < 0 || limit is < 1 or > 500)
+                return BadRequest(new { error = "invalid_page", message = "offset must be non-negative and limit must be between 1 and 500." });
+            List<SurveyRunLight>? values = _manager.GetAllSurveyRunLight(
+                fieldId, clusterId, wellId, wellBoreId, surveyInstrumentId, surveyRunType);
+            if (values == null) return StatusCode(StatusCodes.Status500InternalServerError);
+            IEnumerable<SurveyRunLight> matches = values.Where(value => string.IsNullOrWhiteSpace(query) ||
+                $"{value.Name} {value.Description} {value.MetaInfo?.ID}".Contains(query, StringComparison.OrdinalIgnoreCase));
+            List<SurveyRunLight> ordered = matches
+                .OrderBy(value => value.Name, StringComparer.OrdinalIgnoreCase)
+                .ThenBy(value => value.MetaInfo?.ID)
+                .ToList();
+            return Ok(new SurveyRunSearchResult
+            {
+                Offset = offset, Limit = limit, TotalCount = ordered.Count,
+                Items = ordered.Skip(offset).Take(limit).ToList()
+            });
+        }
+
         [HttpGet("HeavyData", Name = "GetAllSurveyRun")]
         public ActionResult<IEnumerable<SurveyRun>> GetAllSurveyRun([FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null, [FromQuery] Guid? surveyInstrumentId = null, [FromQuery] SurveyRunType? surveyRunType = null)
         {
@@ -168,7 +195,8 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpPut("{id}", Name = "PutSurveyRunById")]
-        public async Task<ActionResult> PutSurveyRunById(Guid id, [FromBody] SurveyRun? data)
+        public async Task<ActionResult> PutSurveyRunById(Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc,
+            [FromBody] SurveyRun? data)
         {
             if (data == null || !_assignmentValidator.Validate(data))
             {
@@ -176,8 +204,11 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             }
             if (data?.MetaInfo?.ID == id)
             {
-                if (_manager.GetSurveyRunById(id) != null)
+                SurveyRun? current = _manager.GetSurveyRunById(id);
+                if (current != null)
                 {
+                    if (current.LastModificationDate != expectedModifiedUtc)
+                        return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
                     return await _manager.UpdateSurveyRunById(id, data) ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
                 }
 
@@ -190,10 +221,13 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
 
         [HttpDelete("{id}", Name = "DeleteSurveyRunById")]
-        public ActionResult DeleteSurveyRunById(Guid id)
+        public ActionResult DeleteSurveyRunById(Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc)
         {
-            if (_manager.GetSurveyRunById(id) != null)
+            SurveyRun? current = _manager.GetSurveyRunById(id);
+            if (current != null)
             {
+                if (current.LastModificationDate != expectedModifiedUtc)
+                    return Conflict(new { error = "stale_write", currentModifiedUtc = current.LastModificationDate });
                 return _manager.DeleteSurveyRunById(id) ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
             }
 

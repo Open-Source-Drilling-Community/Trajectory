@@ -287,6 +287,15 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
           }
         ],
         "requestBody": {
@@ -327,6 +336,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
             }
           }
         ],
@@ -815,6 +833,100 @@
         }
       }
     },
+    "/SurveyRun/Search": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "SearchSurveyRun",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fieldId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "clusterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "wellId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "wellBoreId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "surveyInstrumentId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "surveyRunType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunType"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunSearchResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/SurveyRun/HeavyData": {
       "get": {
         "tags": [
@@ -947,6 +1059,15 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
           }
         ],
         "requestBody": {
@@ -987,6 +1108,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
             }
           }
         ],
@@ -1406,6 +1536,15 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
           }
         ],
         "requestBody": {
@@ -1446,6 +1585,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
             }
           }
         ],
@@ -1585,6 +1733,15 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
           }
         ],
         "requestBody": {
@@ -1625,6 +1782,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
             }
           }
         ],
@@ -1880,6 +2046,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
             }
           }
         ],
@@ -2157,6 +2332,15 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
           }
         ],
         "requestBody": {
@@ -2197,6 +2381,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
             }
           }
         ],
@@ -2343,6 +2536,99 @@
                   "items": {
                     "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryLight"
                   }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Trajectory/Search": {
+      "get": {
+        "tags": [
+          "Trajectory"
+        ],
+        "operationId": "SearchTrajectory",
+        "parameters": [
+          {
+            "name": "query",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fieldId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "clusterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "wellId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "wellBoreId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "trajectoryType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryType"
+            }
+          },
+          {
+            "name": "isDefinitive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          },
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 100
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectorySearchResult"
                 }
               }
             }
@@ -2550,6 +2836,15 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
           }
         ],
         "requestBody": {
@@ -2590,6 +2885,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
             }
           }
         ],
@@ -3112,6 +3416,7 @@
           {
             "name": "expectedModifiedUtc",
             "in": "query",
+            "required": true,
             "schema": {
               "type": "string",
               "format": "date-time"
@@ -3161,6 +3466,7 @@
           {
             "name": "expectedModifiedUtc",
             "in": "query",
+            "required": true,
             "schema": {
               "type": "string",
               "format": "date-time"
@@ -3322,6 +3628,7 @@
           {
             "name": "expectedModifiedUtc",
             "in": "query",
+            "required": true,
             "schema": {
               "type": "string",
               "format": "date-time"
@@ -3371,6 +3678,7 @@
           {
             "name": "expectedModifiedUtc",
             "in": "query",
+            "required": true,
             "schema": {
               "type": "string",
               "format": "date-time"
@@ -3513,6 +3821,15 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
           }
         ],
         "requestBody": {
@@ -3553,6 +3870,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
             }
           }
         ],
@@ -3810,6 +4136,15 @@
               "type": "string",
               "format": "uuid"
             }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
           }
         ],
         "requestBody": {
@@ -3850,6 +4185,15 @@
             "schema": {
               "type": "string",
               "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
             }
           }
         ],
@@ -5850,6 +6194,31 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.Trajectory.Model.SurveyRunSearchResult": {
+        "type": "object",
+        "properties": {
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunLight"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.SurveyRunType": {
         "enum": [
           "Actual",
@@ -6688,6 +7057,9 @@
           "CatalogPolicy": {
             "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchCatalogRestorePolicy"
           },
+          "AllowNormalizedNameMapping": {
+            "type": "boolean"
+          },
           "Document": {
             "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryBatchExportDocument"
           }
@@ -7471,6 +7843,31 @@
               "items": {
                 "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint"
               }
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectorySearchResult": {
+        "type": "object",
+        "properties": {
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryLight"
             },
             "nullable": true
           }

@@ -6953,6 +6953,16 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CalculationParametersHash = "Default CalculationParametersHash",
 			};
 		}
+		public static SurveyRunSearchResult ConstructSurveyRunSearchResult()
+		{
+			return new SurveyRunSearchResult
+			{
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				Items = new List<SurveyRunLight>(),
+			};
+		}
 		public static TrajectoryBatchCatalogDependencies ConstructTrajectoryBatchCatalogDependencies()
 		{
 			return new TrajectoryBatchCatalogDependencies
@@ -7039,6 +7049,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 			{
 				ConflictPolicy = (TrajectoryBatchRestoreConflictPolicy)0,
 				CatalogPolicy = (TrajectoryBatchCatalogRestorePolicy)0,
+				AllowNormalizedNameMapping = false,
 				Document = ConstructTrajectoryBatchExportDocument(),
 			};
 		}
@@ -7118,6 +7129,16 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				ID = new Guid(),
 				IdentityID = null, 
 				Value = "Default Value",
+			};
+		}
+		public static TrajectorySearchResult ConstructTrajectorySearchResult()
+		{
+			return new TrajectorySearchResult
+			{
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				Items = new List<TrajectoryLight>(),
 			};
 		}
 	}

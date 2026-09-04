@@ -23,7 +23,7 @@ public class TrajectoryFeatureCategoryController : ControllerBase
     public ActionResult Post([FromBody] TrajectoryFeatureCategory? value) => value?.MetaInfo?.ID is Guid id && id != Guid.Empty
         ? manager.Add(value) ? Ok(value) : Conflict() : BadRequest();
     [HttpPut("{id}", Name = "PutTrajectoryFeatureCategoryById")]
-    public ActionResult Put(Guid id, [FromQuery] DateTimeOffset expectedModifiedUtc, [FromBody] TrajectoryFeatureCategory? value)
+    public ActionResult Put(Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc, [FromBody] TrajectoryFeatureCategory? value)
     {
         TrajectoryFeatureCategory? current = manager.Get(id);
         if (value?.MetaInfo?.ID != id) return BadRequest();
@@ -32,7 +32,7 @@ public class TrajectoryFeatureCategoryController : ControllerBase
         return manager.Update(id, value) ? Ok(value) : Conflict(new { error = "catalog_in_use_or_invalid" });
     }
     [HttpDelete("{id}", Name = "DeleteTrajectoryFeatureCategoryById")]
-    public ActionResult Delete(Guid id, [FromQuery] DateTimeOffset expectedModifiedUtc)
+    public ActionResult Delete(Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc)
     {
         TrajectoryFeatureCategory? current = manager.Get(id);
         if (current == null) return NotFound();
