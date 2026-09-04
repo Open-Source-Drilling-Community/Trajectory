@@ -1,4 +1,5 @@
 using Microsoft.AspNetCore.Mvc;
+using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using OSDC.Drilling.Trajectory.Service.Managers;
 using OSDC.DotnetLibraries.Drilling.Surveying;
@@ -20,13 +21,14 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         private readonly OctreeManager _octreeManager;
 
 
-        public OctreesController(ILogger<TrajectoryManager> loggerTrajectory, ILogger<OctreeManager> loggerOctree, Managers.SqlConnectionManager connectionManagerTrajectory, SqlConnectionManagerOctree connectionManagerOctree)
+        public OctreesController(ILogger<TrajectoryManager> loggerTrajectory, ILogger<OctreeManager> loggerOctree,
+            Managers.SqlConnectionManager connectionManagerTrajectory, OctreeManager octreeManager)
         {
             _loggerTrajectory = loggerTrajectory;
-            _trajectoryManager = TrajectoryManager.GetInstance(_loggerTrajectory, connectionManagerTrajectory);
+            _trajectoryManager = TrajectoryManager.GetInstance(_loggerTrajectory, connectionManagerTrajectory, octreeManager);
             
             _loggerOctree = loggerOctree;
-            _octreeManager = OctreeManager.GetInstance(_loggerOctree, connectionManagerOctree);
+            _octreeManager = octreeManager;
         }
 
         // GET api/Octrees
@@ -44,82 +46,40 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         }
         // POST api/Octrees
         [HttpPost("{id}")]
-        public void Post(Guid id)
+        public ActionResult Post(Guid id)
         {
-            if (!id.Equals(Guid.Empty))
-            {
-                bool inDatabase = _octreeManager.Contains(id);
-                if (!inDatabase)
-                {
-                    List<OctreeCodeLong>? leaves = GetLeavesFromTrajectory(id);
+            if (id == Guid.Empty) return BadRequest();
+            if (_octreeManager.Contains(id)) return Conflict();
 
-                    #region Save to database
-                    if (leaves != null)
-                    {
-                        if (_octreeManager.Contains(id))
-                        {
-                            _octreeManager.Update(id, leaves);
-                        }
-                        else
-                        {
-                            _octreeManager.Add(leaves, id, false, true, true);
-                        }
-                    }
-                    #endregion
-                }
-                else
-                {
-                    // We require that trajectories are registered in the trajectory database before we add them to the octree database
-                }
+            Model.Trajectory? trajectory = _trajectoryManager.GetTrajectoryById(id);
+            if (trajectory == null) return NotFound();
+            if (_octreeManager.Rebuild(trajectory))
+            {
+                return Ok();
             }
+            return UnprocessableEntity(new { error = "trajectory_has_no_indexable_uncertainty_envelope" });
         }
         // PUT api/Octrees/id
         [HttpPut("{id}")]
-        public void Put(Guid id)
+        public ActionResult Put(Guid id)
         {
-            if (!id.Equals(Guid.Empty))
+            if (id == Guid.Empty) return BadRequest();
+            Model.Trajectory? trajectory = _trajectoryManager.GetTrajectoryById(id);
+            if (trajectory == null) return NotFound();
+            if (_octreeManager.Rebuild(trajectory))
             {
-                bool inDatabase = _octreeManager.Contains(id);
-                if (!inDatabase)
-                {
-                    List<OctreeCodeLong>? leaves = GetLeavesFromTrajectory(id);
-
-                    #region Save to database
-                    if (leaves != null)
-                    {
-                        if (_octreeManager.Contains(id))
-                        {
-                            _octreeManager.Update(id, leaves);
-                        }
-                        else
-                        {
-                            _octreeManager.Add(leaves, id, false, true, true);
-                        }
-                    }
-                    #endregion
-                }
-                else
-                {
-                    // We require that trajectories are registered in the trajectory database before we add them to the octree database
-                }
+                return Ok();
             }
+            _octreeManager.Delete(id);
+            return UnprocessableEntity(new { error = "trajectory_has_no_indexable_uncertainty_envelope" });
         }
         // DELETE api/Octrees/id
         [HttpDelete("{id}")]
-        public void Delete(Guid id)
+        public ActionResult Delete(Guid id)
         {
-            _octreeManager.Delete(id);
-        }
-
-        private List<OctreeCodeLong>? GetLeavesFromTrajectory(Guid trajectoryId)
-        {
-            #region Load Trajectory from the microservices
-            List<SurveyStation>? surveyList = _trajectoryManager.GetTrajectoryById(trajectoryId)?.SurveyStationList;
-            #endregion
-
-            #region Use the SurveyList to extract leaves
-            return surveyList != null ? _octreeManager.GetLeavesFromSurveyList(surveyList) : null;
-            #endregion
+            if (id == Guid.Empty) return BadRequest();
+            if (!_octreeManager.Contains(id)) return NotFound();
+            return _octreeManager.Delete(id) ? Ok() : StatusCode(StatusCodes.Status500InternalServerError);
         }
     }
 }

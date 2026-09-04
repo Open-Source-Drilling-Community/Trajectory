@@ -142,9 +142,11 @@ public sealed class TrajectoryBatchServiceTests
             directory = Path.Combine(Path.GetTempPath(), "TrajectoryBatchServiceTests", Guid.NewGuid().ToString("N"));
             Directory.CreateDirectory(directory);
             var main = new SqlConnectionManagerTrajectory(Path.Combine(directory, "Trajectory.db"), NullLogger<SqlConnectionManagerTrajectory>.Instance);
+            var octreeConnection = new SqlConnectionManagerOctree(Path.Combine(directory, "GlobalAntiCollision.db"), NullLogger<SqlConnectionManagerOctree>.Instance);
+            var octree = new OctreeManager(NullLogger<OctreeManager>.Instance, octreeConnection);
             Identities = new(main);
             var categories = new TrajectoryFeatureCategoryManager(main);
-            Service = new(main, Identities, categories, NullLogger<TrajectoryBatchService>.Instance);
+            Service = new(main, Identities, categories, octree, NullLogger<TrajectoryBatchService>.Instance);
         }
 
         public void Dispose()

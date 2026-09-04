@@ -8,6 +8,7 @@ using OSDC.DotnetLibraries.General.Octree;
 using System;
 using System.Buffers.Binary;
 using System.Collections.Generic;
+using OSDC.Drilling.Trajectory.Model;
 
 namespace OSDC.Drilling.Trajectory.Service.Managers
 {
@@ -37,6 +38,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         private const double EnvelopePointSpacingToCellSizeRatio = 0.5;
         private const int MinEnvelopeMeshSectorCount = 36;
         private const int MaxEnvelopeMeshSectorCount = 240;
+        internal const double ConfidenceFactor = 0.999;
+        internal const int IndexSchemaVersion = 2;
+        internal const string CalculationParametersHash = "surface-neighbours-compact-depth23-cache21-confidence0.999-scale1-v2";
         #endregion
 
         #region Octree settings for debugging against octree database from the summer demo containing 16 duplicates of Ullrigg wells
@@ -53,7 +57,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         */
         #endregion
 
-        private OctreeManager(ILogger<OctreeManager> logger, SqlConnectionManagerOctree connectionManager)
+        public OctreeManager(ILogger<OctreeManager> logger, SqlConnectionManagerOctree connectionManager)
         {
             _logger = logger;
             _connectionManager = connectionManager;
@@ -83,7 +87,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 command.CommandText = $"DELETE FROM {SqlConnectionManagerOctree.CacheTableName}";
                 command.ExecuteNonQuery();
 
-                command.CommandText = $"DELETE FROM {SqlConnectionManagerOctree.WellboresTableName}";
+                command.CommandText = $"DELETE FROM {SqlConnectionManagerOctree.TrajectoryStateTableName}";
                 command.ExecuteNonQuery();
 
                 transaction.Commit();
@@ -107,7 +111,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
 
             using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT COUNT(*) FROM {SqlConnectionManagerOctree.WellboresTableName} WHERE TrajectoryID = @trajectoryId";
+            command.CommandText = $"SELECT COUNT(*) FROM {SqlConnectionManagerOctree.TrajectoryStateTableName} WHERE TrajectoryID = @trajectoryId";
             command.Parameters.AddWithValue("@trajectoryId", id.ToString());
 
             try
@@ -127,7 +131,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             if (surveyList is { Count: >= 2 })
             {
                 #region Calculate the uncertainty envelope at confidencefactor 0.999 and scalingFactor = 1.0 with point spacing linked to the octree cell size
-                double confidencefactor = 0.999;
+                double confidencefactor = ConfidenceFactor;
                 double scalingFactor = 1.0;
                 double targetPointSpacing = GetTargetEnvelopePointSpacing(OctreeDepthDetails);
                 double latitudeCellSize = GetOctreeCellSize(minX_, maxX_, OctreeDepthDetails);
@@ -189,55 +193,12 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
         public List<Guid> GetIDs()
         {
-            return GetAllTrajectoryIDs(false, true, true);
+            return GetAllTrajectoryIDs();
         }
 
         public List<OctreeCodeLong> Get(Guid ID)
         {
             return GetDetails(ID);
-        }
-
-        public bool AddDetails(Guid ID, List<OctreeCodeLong>? code)
-        {
-            return AddDetails(code, ID, false, true, true);
-        }
-
-        public bool AddInCache(byte[] octreeCode)
-        {
-            if (!HasValidCacheCode(octreeCode))
-            {
-                return false;
-            }
-            OctreeCodeLong truncatedCode = new(octreeCode[..octreeDepthCache_]);
-
-            using var connection = _connectionManager.GetConnection();
-            if (connection == null)
-            {
-                _logger.LogWarning("Impossible to access the SQLite database");
-                return false;
-            }
-
-            using var command = connection.CreateCommand();
-            command.CommandText =
-                $"INSERT OR IGNORE INTO {SqlConnectionManagerOctree.CacheTableName} (OctreeCodeCacheHigh, OctreeCodeCacheLow, TrajectoryID, IsPlanned, IsMeasured, IsDefinitive, OctreeCodeCount, OctreeCodes) VALUES (@cacheHigh, @cacheLow, @trajectoryId, @isPlanned, @isMeasured, @isDefinitive, @codeCount, @codes)";
-            AddCacheParameters(command, truncatedCode);
-            command.Parameters.AddWithValue("@trajectoryId", Guid.Empty.ToString());
-            command.Parameters.AddWithValue("@isPlanned", false);
-            command.Parameters.AddWithValue("@isMeasured", false);
-            command.Parameters.AddWithValue("@isDefinitive", false);
-            command.Parameters.AddWithValue("@codeCount", 0);
-            command.Parameters.Add("@codes", SqliteType.Blob).Value = Array.Empty<byte>();
-
-            try
-            {
-                command.ExecuteNonQuery();
-                return true;
-            }
-            catch (SqliteException ex)
-            {
-                _logger.LogError(ex, "Impossible to add an octree cache entry");
-                return false;
-            }
         }
 
         public bool Remove(Guid ID)
@@ -249,13 +210,16 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             return false;
         }
 
-        public bool Update(Guid ID, List<OctreeCodeLong>? code)
+        public bool Rebuild(Model.Trajectory? trajectory)
         {
-            if (!ID.Equals(Guid.Empty) && code != null)
+            if (trajectory?.MetaInfo?.ID is not Guid id || id == Guid.Empty)
             {
-                return Add(code, ID, false, true, true);
+                return false;
             }
-            return false;
+
+            List<OctreeCodeLong> codes = GetLeavesFromSurveyList(trajectory.SurveyStationList);
+            return Replace(codes, id, trajectory.TrajectoryType, trajectory.IsDefinitive,
+                trajectory.LastModificationDate);
         }
 
         public bool Delete(Guid trajectoryID)
@@ -281,7 +245,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 command.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
                 command.ExecuteNonQuery();
 
-                command.CommandText = $"DELETE FROM {SqlConnectionManagerOctree.WellboresTableName} WHERE TrajectoryID = @trajectoryId";
+                command.CommandText = $"DELETE FROM {SqlConnectionManagerOctree.TrajectoryStateTableName} WHERE TrajectoryID = @trajectoryId";
+                command.Parameters.Clear();
+                command.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
                 command.ExecuteNonQuery();
 
                 transaction.Commit();
@@ -297,30 +263,17 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
         public bool Add(List<OctreeCodeLong> codes, Guid trajectoryID, bool isPlanned, bool isMeasured, bool isDefinitive)
         {
-            if (!trajectoryID.Equals(Guid.Empty) && codes != null)
-            {
-                bool success = true;
-                if (Contains(trajectoryID))
-                {
-                    success &= Delete(trajectoryID);
-                }
-
-                if (success)
-                {
-                    success &= AddDetails(codes, trajectoryID, isPlanned, isMeasured, isDefinitive);
-                }
-
-                if (success)
-                {
-                    success &= AddCacheEntries(codes, trajectoryID, isPlanned, isMeasured, isDefinitive);
-                }
-
-                return success;
-            }
-            return false;
+            TrajectoryType type = isPlanned && !isMeasured ? TrajectoryType.Planned : TrajectoryType.Actual;
+            return Replace(codes, trajectoryID, type, isDefinitive, null);
         }
 
         public List<Guid> Search(List<OctreeCodeLong>? codes, bool isPlanned, bool isMeasured, bool isDefinitive, Guid? investigatedTrajectoryID = null)
+        {
+            TrajectoryType type = isPlanned && !isMeasured ? TrajectoryType.Planned : TrajectoryType.Actual;
+            return Search(codes, type, isDefinitive, investigatedTrajectoryID);
+        }
+
+        public List<Guid> Search(List<OctreeCodeLong>? codes, TrajectoryType trajectoryType, bool isDefinitive, Guid? investigatedTrajectoryID = null)
         {
             List<Guid> trajectoryIDs = [];
             if (codes == null || codes.Count == 0)
@@ -329,7 +282,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
 
             List<OctreeCodeLong> truncatedCodes = GetTruncatedCodes(codes);
-            List<Pair<OctreeCodeLong, Guid>> detailedList = GetDetails(truncatedCodes, isPlanned, isMeasured, isDefinitive, investigatedTrajectoryID);
+            List<Pair<OctreeCodeLong, Guid>> detailedList = GetDetails(truncatedCodes, trajectoryType, isDefinitive, investigatedTrajectoryID);
             HashSet<Guid> uniqueTrajectoryIDs = [];
             foreach (OctreeCodeLong code in codes)
             {
@@ -360,22 +313,16 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 command.CommandText = $"DROP INDEX IF EXISTS {SqlConnectionManagerOctree.CacheIndexName}";
                 command.ExecuteNonQuery();
 
-                command.CommandText = $"DROP INDEX IF EXISTS {SqlConnectionManagerOctree.WellboresTrajectoryIndexName}";
-                command.ExecuteNonQuery();
-
-                command.CommandText = $"DROP INDEX IF EXISTS {SqlConnectionManagerOctree.WellboresFilterIndexName}";
-                command.ExecuteNonQuery();
-
-                command.CommandText = $"DROP INDEX IF EXISTS {SqlConnectionManagerOctree.CacheIndexName}Lookup";
-                command.ExecuteNonQuery();
-
                 command.CommandText = $"DROP INDEX IF EXISTS {SqlConnectionManagerOctree.CacheTrajectoryIndexName}";
+                command.ExecuteNonQuery();
+
+                command.CommandText = $"DROP INDEX IF EXISTS {SqlConnectionManagerOctree.StateFilterIndexName}";
                 command.ExecuteNonQuery();
 
                 command.CommandText = $"DROP TABLE IF EXISTS {SqlConnectionManagerOctree.CacheTableName}";
                 command.ExecuteNonQuery();
 
-                command.CommandText = $"DROP TABLE IF EXISTS {SqlConnectionManagerOctree.WellboresTableName}";
+                command.CommandText = $"DROP TABLE IF EXISTS {SqlConnectionManagerOctree.TrajectoryStateTableName}";
                 command.ExecuteNonQuery();
 
                 return true;
@@ -387,69 +334,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
         }
 
-        private bool ContainsInCache(byte[]? octreeCode)
-        {
-            if (!HasValidCacheCode(octreeCode))
-            {
-                return false;
-            }
-            OctreeCodeLong truncatedCode = new(octreeCode![..octreeDepthCache_]);
-
-            using var connection = _connectionManager.GetConnection();
-            if (connection == null)
-            {
-                _logger.LogWarning("Impossible to access the SQLite database");
-                return false;
-            }
-
-            using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT 1 FROM {SqlConnectionManagerOctree.CacheTableName} WHERE OctreeCodeCacheHigh = @cacheHigh AND OctreeCodeCacheLow = @cacheLow LIMIT 1";
-            AddCacheParameters(command, truncatedCode);
-
-            try
-            {
-                return command.ExecuteScalar() != null;
-            }
-            catch (SqliteException ex)
-            {
-                _logger.LogError(ex, "Impossible to check the octree cache");
-                return false;
-            }
-        }
-
-        private List<Guid> GetDetails(OctreeCodeLong truncatedCode)
-        {
-            using var connection = _connectionManager.GetConnection();
-            if (connection == null)
-            {
-                _logger.LogWarning("Impossible to access the SQLite database");
-                return [];
-            }
-
-            using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT TrajectoryID FROM {SqlConnectionManagerOctree.CacheTableName} WHERE OctreeCodeCacheHigh = @cacheHigh AND OctreeCodeCacheLow = @cacheLow";
-            command.Parameters.AddWithValue("@cacheHigh", (long)truncatedCode.CodeHigh);
-            command.Parameters.AddWithValue("@cacheLow", (long)truncatedCode.CodeLow);
-
-            List<Guid> results = [];
-            try
-            {
-                using var reader = command.ExecuteReader();
-                while (reader.Read())
-                {
-                    results.Add(ReadGuid(reader, 0));
-                }
-            }
-            catch (SqliteException ex)
-            {
-                _logger.LogError(ex, "Impossible to retrieve trajectory ids for a truncated octree code");
-                return [];
-            }
-
-            return results;
-        }
-
-        private List<Pair<OctreeCodeLong, Guid>> GetDetails(List<OctreeCodeLong>? truncatedCodes, bool isPlanned, bool isMeasured, bool isDefinitive, Guid? ignoredTrajectoryID = null)
+        private List<Pair<OctreeCodeLong, Guid>> GetDetails(List<OctreeCodeLong>? truncatedCodes, TrajectoryType trajectoryType, bool isDefinitive, Guid? ignoredTrajectoryID = null)
         {
             if (truncatedCodes == null || truncatedCodes.Count == 0)
             {
@@ -471,9 +356,10 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 createTempCommand.CommandText =
                     """
                     CREATE TEMP TABLE IF NOT EXISTS TempOctreeCacheCodes (
+                        OctreeCodeCacheDepth INTEGER NOT NULL,
                         OctreeCodeCacheHigh BIGINT NOT NULL,
                         OctreeCodeCacheLow BIGINT NOT NULL,
-                        PRIMARY KEY (OctreeCodeCacheHigh, OctreeCodeCacheLow)
+                        PRIMARY KEY (OctreeCodeCacheDepth, OctreeCodeCacheHigh, OctreeCodeCacheLow)
                     ) WITHOUT ROWID
                     """;
                 createTempCommand.ExecuteNonQuery();
@@ -485,7 +371,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             {
                 insertTempCommand.Transaction = transaction;
                 insertTempCommand.CommandText =
-                    "INSERT OR IGNORE INTO TempOctreeCacheCodes (OctreeCodeCacheHigh, OctreeCodeCacheLow) VALUES (@cacheHigh, @cacheLow)";
+                    "INSERT OR IGNORE INTO TempOctreeCacheCodes (OctreeCodeCacheDepth, OctreeCodeCacheHigh, OctreeCodeCacheLow) VALUES (@cacheDepth, @cacheHigh, @cacheLow)";
                 foreach (OctreeCodeLong truncatedCode in truncatedCodes)
                 {
                     insertTempCommand.Parameters.Clear();
@@ -498,21 +384,22 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             command.Transaction = transaction;
             command.CommandText =
                 $"""
-                SELECT cache.TrajectoryID, cache.OctreeCodes
-                FROM {SqlConnectionManagerOctree.CacheTableName} cache
+                SELECT membership.TrajectoryID, membership.OctreeCodes
+                FROM {SqlConnectionManagerOctree.CacheTableName} membership
                 INNER JOIN TempOctreeCacheCodes c
-                    ON c.OctreeCodeCacheHigh = cache.OctreeCodeCacheHigh
-                   AND c.OctreeCodeCacheLow = cache.OctreeCodeCacheLow
-                WHERE cache.IsPlanned = @isPlanned
-                  AND cache.IsMeasured = @isMeasured
-                  AND cache.IsDefinitive = @isDefinitive
+                    ON c.OctreeCodeCacheDepth = membership.OctreeCodeCacheDepth
+                   AND c.OctreeCodeCacheHigh = membership.OctreeCodeCacheHigh
+                   AND c.OctreeCodeCacheLow = membership.OctreeCodeCacheLow
+                INNER JOIN {SqlConnectionManagerOctree.TrajectoryStateTableName} state
+                    ON state.TrajectoryID = membership.TrajectoryID
+                WHERE state.TrajectoryType = @trajectoryType
+                  AND state.IsDefinitive = @isDefinitive
                 """;
-            command.Parameters.AddWithValue("@isPlanned", isPlanned);
-            command.Parameters.AddWithValue("@isMeasured", isMeasured);
+            command.Parameters.AddWithValue("@trajectoryType", trajectoryType.ToString());
             command.Parameters.AddWithValue("@isDefinitive", isDefinitive);
             if (ignoredTrajectoryID != null)
             {
-                command.CommandText += " AND cache.TrajectoryID <> @ignoredTrajectoryId";
+                command.CommandText += " AND membership.TrajectoryID <> @ignoredTrajectoryId";
                 command.Parameters.AddWithValue("@ignoredTrajectoryId", ignoredTrajectoryID.Value.ToString());
             }
 
@@ -541,7 +428,69 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             return results;
         }
 
-        private List<Guid> GetAllTrajectoryIDs(bool isPlanned, bool isMeasured, bool isDefinitive)
+        public bool UpdateClassification(Guid trajectoryID, TrajectoryType trajectoryType, bool isDefinitive,
+            DateTimeOffset? sourceLastModificationDate = null)
+        {
+            if (trajectoryID == Guid.Empty) return false;
+            using var connection = _connectionManager.GetConnection();
+            if (connection == null)
+            {
+                _logger.LogWarning("Impossible to access the SQLite database");
+                return false;
+            }
+
+            using var command = connection.CreateCommand();
+            command.CommandText = $"UPDATE {SqlConnectionManagerOctree.TrajectoryStateTableName} " +
+                "SET TrajectoryType = @trajectoryType, IsDefinitive = @isDefinitive, " +
+                "SourceLastModificationDate = COALESCE(@sourceLastModificationDate, SourceLastModificationDate) " +
+                "WHERE TrajectoryID = @trajectoryId";
+            command.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
+            command.Parameters.AddWithValue("@trajectoryType", trajectoryType.ToString());
+            command.Parameters.AddWithValue("@isDefinitive", isDefinitive);
+            command.Parameters.AddWithValue("@sourceLastModificationDate",
+                (object?)sourceLastModificationDate?.ToString("O") ?? DBNull.Value);
+
+            try
+            {
+                return command.ExecuteNonQuery() == 1;
+            }
+            catch (SqliteException ex)
+            {
+                _logger.LogError(ex, "Impossible to update octree classification for trajectory {TrajectoryId}", trajectoryID);
+                return false;
+            }
+        }
+
+        public bool IsCurrent(Model.Trajectory? trajectory)
+        {
+            if (trajectory?.MetaInfo?.ID is not Guid trajectoryId || trajectoryId == Guid.Empty) return false;
+            using SqliteConnection? connection = _connectionManager.GetConnection();
+            if (connection == null) return false;
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = $"SELECT TrajectoryType, IsDefinitive, SourceLastModificationDate, " +
+                $"IndexSchemaVersion, ConfidenceFactor, CalculationParametersHash FROM {SqlConnectionManagerOctree.TrajectoryStateTableName} " +
+                "WHERE TrajectoryID = @trajectoryId";
+            command.Parameters.AddWithValue("@trajectoryId", trajectoryId.ToString());
+            try
+            {
+                using SqliteDataReader reader = command.ExecuteReader();
+                if (!reader.Read()) return false;
+                string? sourceModified = reader.IsDBNull(2) ? null : reader.GetString(2);
+                return string.Equals(reader.GetString(0), trajectory.TrajectoryType.ToString(), StringComparison.Ordinal) &&
+                    reader.GetInt64(1) == (trajectory.IsDefinitive ? 1 : 0) &&
+                    string.Equals(sourceModified, trajectory.LastModificationDate?.ToString("O"), StringComparison.Ordinal) &&
+                    reader.GetInt32(3) == IndexSchemaVersion &&
+                    Math.Abs(reader.GetDouble(4) - ConfidenceFactor) < 1e-12 &&
+                    string.Equals(reader.GetString(5), CalculationParametersHash, StringComparison.Ordinal);
+            }
+            catch (SqliteException ex)
+            {
+                _logger.LogError(ex, "Impossible to validate octree provenance for trajectory {TrajectoryId}", trajectoryId);
+                return false;
+            }
+        }
+
+        private List<Guid> GetAllTrajectoryIDs()
         {
             using var connection = _connectionManager.GetConnection();
             if (connection == null)
@@ -551,10 +500,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
 
             using var command = connection.CreateCommand();
-            command.CommandText = $"SELECT DISTINCT TrajectoryID FROM {SqlConnectionManagerOctree.WellboresTableName} WHERE IsPlanned = @isPlanned AND IsMeasured = @isMeasured AND IsDefinitive = @isDefinitive";
-            command.Parameters.AddWithValue("@isPlanned", isPlanned);
-            command.Parameters.AddWithValue("@isMeasured", isMeasured);
-            command.Parameters.AddWithValue("@isDefinitive", isDefinitive);
+            command.CommandText = $"SELECT TrajectoryID FROM {SqlConnectionManagerOctree.TrajectoryStateTableName} ORDER BY TrajectoryID";
 
             List<Guid> results = [];
             try
@@ -605,12 +551,15 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             return results;
         }
 
-        private bool AddDetails(List<OctreeCodeLong>? codes, Guid trajectoryID, bool isPlanned, bool isMeasured, bool isDefinitive)
+        private bool Replace(List<OctreeCodeLong>? codes, Guid trajectoryID, TrajectoryType trajectoryType,
+            bool isDefinitive, DateTimeOffset? sourceLastModificationDate)
         {
-            if (codes == null || codes.Count == 0)
+            if (trajectoryID == Guid.Empty || codes == null || codes.Count == 0)
             {
                 return false;
             }
+
+            Dictionary<OctreeCodeLong, byte[]> serializedGroups = GroupAndSerializeCodes(codes);
 
             using var connection = _connectionManager.GetConnection();
             if (connection == null)
@@ -620,126 +569,90 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
 
             using var transaction = connection.BeginTransaction();
-            using var command = connection.CreateCommand();
-            command.Transaction = transaction;
-            command.CommandText =
-                $"INSERT OR REPLACE INTO {SqlConnectionManagerOctree.WellboresTableName} (TrajectoryID, IsPlanned, IsMeasured, IsDefinitive) VALUES (@trajectoryId, @isPlanned, @isMeasured, @isDefinitive)";
-            command.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
-            command.Parameters.AddWithValue("@isPlanned", isPlanned);
-            command.Parameters.AddWithValue("@isMeasured", isMeasured);
-            command.Parameters.AddWithValue("@isDefinitive", isDefinitive);
-
             try
             {
-                int affected = command.ExecuteNonQuery();
+                using (SqliteCommand delete = connection.CreateCommand())
+                {
+                    delete.Transaction = transaction;
+                    delete.CommandText = $"DELETE FROM {SqlConnectionManagerOctree.CacheTableName} WHERE TrajectoryID = @trajectoryId";
+                    delete.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
+                    delete.ExecuteNonQuery();
+                }
+
+                using (SqliteCommand state = connection.CreateCommand())
+                {
+                    state.Transaction = transaction;
+                    state.CommandText = $"""
+                        INSERT INTO {SqlConnectionManagerOctree.TrajectoryStateTableName}
+                            (TrajectoryID, TrajectoryType, IsDefinitive, SourceLastModificationDate,
+                             IndexSchemaVersion, ConfidenceFactor, CalculationParametersHash)
+                        VALUES (@trajectoryId, @trajectoryType, @isDefinitive, @sourceLastModificationDate,
+                                @indexSchemaVersion, @confidenceFactor, @calculationParametersHash)
+                        ON CONFLICT(TrajectoryID) DO UPDATE SET
+                            TrajectoryType = excluded.TrajectoryType,
+                            IsDefinitive = excluded.IsDefinitive,
+                            SourceLastModificationDate = excluded.SourceLastModificationDate,
+                            IndexSchemaVersion = excluded.IndexSchemaVersion,
+                            ConfidenceFactor = excluded.ConfidenceFactor,
+                            CalculationParametersHash = excluded.CalculationParametersHash
+                        """;
+                    state.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
+                    state.Parameters.AddWithValue("@trajectoryType", trajectoryType.ToString());
+                    state.Parameters.AddWithValue("@isDefinitive", isDefinitive);
+                    state.Parameters.AddWithValue("@sourceLastModificationDate",
+                        (object?)sourceLastModificationDate?.ToString("O") ?? DBNull.Value);
+                    state.Parameters.AddWithValue("@indexSchemaVersion", IndexSchemaVersion);
+                    state.Parameters.AddWithValue("@confidenceFactor", ConfidenceFactor);
+                    state.Parameters.AddWithValue("@calculationParametersHash", CalculationParametersHash);
+                    if (state.ExecuteNonQuery() != 1) throw new InvalidOperationException("Octree trajectory state was not saved.");
+                }
+
+                using SqliteCommand membership = connection.CreateCommand();
+                membership.Transaction = transaction;
+                membership.CommandText =
+                    $"INSERT INTO {SqlConnectionManagerOctree.CacheTableName} " +
+                    "(OctreeCodeCacheDepth, OctreeCodeCacheHigh, OctreeCodeCacheLow, TrajectoryID, OctreeCodeCount, OctreeCodes) " +
+                    "VALUES (@cacheDepth, @cacheHigh, @cacheLow, @trajectoryId, @codeCount, @codes)";
+                foreach ((OctreeCodeLong prefix, byte[] serializedCodes) in serializedGroups)
+                {
+                    membership.Parameters.Clear();
+                    AddCacheParameters(membership, prefix);
+                    membership.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
+                    membership.Parameters.AddWithValue("@codeCount", serializedCodes.Length / 17);
+                    membership.Parameters.Add("@codes", SqliteType.Blob).Value = serializedCodes;
+                    if (membership.ExecuteNonQuery() != 1) throw new InvalidOperationException("Octree bucket membership was not saved.");
+                }
                 transaction.Commit();
-                return affected == 1;
+                return true;
             }
-            catch (SqliteException ex)
+            catch (Exception ex) when (ex is SqliteException or InvalidOperationException)
             {
                 transaction.Rollback();
-                _logger.LogError(ex, "Impossible to add octree details for trajectory {TrajectoryId}", trajectoryID);
+                _logger.LogError(ex, "Impossible to replace octree details for trajectory {TrajectoryId}", trajectoryID);
                 return false;
             }
         }
 
-        private bool AddCacheEntries(List<OctreeCodeLong> codes, Guid trajectoryID, bool isPlanned, bool isMeasured, bool isDefinitive)
+        private Dictionary<OctreeCodeLong, byte[]> GroupAndSerializeCodes(List<OctreeCodeLong> codes)
         {
-            if (codes.Count == 0)
-            {
-                return true;
-            }
-
-            Dictionary<OctreeCodeLong, List<OctreeCodeLong>> codesByTruncatedCode = new(OctreeCodeLongComparer.Instance);
+            Dictionary<OctreeCodeLong, List<OctreeCodeLong>> grouped = new(OctreeCodeLongComparer.Instance);
             foreach (OctreeCodeLong code in codes)
             {
-                OctreeCodeLong truncatedCode = CreateTruncatedCode(code);
-                if (!codesByTruncatedCode.TryGetValue(truncatedCode, out List<OctreeCodeLong>? groupedCodes))
+                OctreeCodeLong prefix = CreateTruncatedCode(code);
+                if (!grouped.TryGetValue(prefix, out List<OctreeCodeLong>? values))
                 {
-                    groupedCodes = [];
-                    codesByTruncatedCode[truncatedCode] = groupedCodes;
+                    values = [];
+                    grouped[prefix] = values;
                 }
-
-                groupedCodes.Add(code);
+                values.Add(code);
             }
-
-            using var connection = _connectionManager.GetConnection();
-            if (connection == null)
-            {
-                _logger.LogWarning("Impossible to access the SQLite database");
-                return false;
-            }
-
-            using var transaction = connection.BeginTransaction();
-            using var command = connection.CreateCommand();
-            command.Transaction = transaction;
-            command.CommandText =
-                $"INSERT OR REPLACE INTO {SqlConnectionManagerOctree.CacheTableName} (OctreeCodeCacheHigh, OctreeCodeCacheLow, TrajectoryID, IsPlanned, IsMeasured, IsDefinitive, OctreeCodeCount, OctreeCodes) VALUES (@cacheHigh, @cacheLow, @trajectoryId, @isPlanned, @isMeasured, @isDefinitive, @codeCount, @codes)";
-
-            try
-            {
-                foreach (KeyValuePair<OctreeCodeLong, List<OctreeCodeLong>> codesByTruncatedCodeEntry in codesByTruncatedCode)
-                {
-                    command.Parameters.Clear();
-                    AddCacheParameters(command, codesByTruncatedCodeEntry.Key);
-                    command.Parameters.AddWithValue("@trajectoryId", trajectoryID.ToString());
-                    command.Parameters.AddWithValue("@isPlanned", isPlanned);
-                    command.Parameters.AddWithValue("@isMeasured", isMeasured);
-                    command.Parameters.AddWithValue("@isDefinitive", isDefinitive);
-                    command.Parameters.AddWithValue("@codeCount", codesByTruncatedCodeEntry.Value.Count);
-                    command.Parameters.Add("@codes", SqliteType.Blob).Value = SerializeCodes(codesByTruncatedCodeEntry.Value);
-                    command.ExecuteNonQuery();
-                }
-
-                transaction.Commit();
-                return true;
-            }
-            catch (SqliteException ex)
-            {
-                transaction.Rollback();
-                _logger.LogError(ex, "Impossible to add octree cache entries");
-                return false;
-            }
-        }
-
-        private bool DeleteInCache(byte[]? octreeCode)
-        {
-            if (!HasValidCacheCode(octreeCode))
-            {
-                return false;
-            }
-            OctreeCodeLong truncatedCode = new(octreeCode![..octreeDepthCache_]);
-
-            using var connection = _connectionManager.GetConnection();
-            if (connection == null)
-            {
-                _logger.LogWarning("Impossible to access the SQLite database");
-                return false;
-            }
-
-            using var command = connection.CreateCommand();
-            command.CommandText = $"DELETE FROM {SqlConnectionManagerOctree.CacheTableName} WHERE OctreeCodeCacheHigh = @cacheHigh AND OctreeCodeCacheLow = @cacheLow";
-            AddCacheParameters(command, truncatedCode);
-
-            try
-            {
-                command.ExecuteNonQuery();
-                return true;
-            }
-            catch (SqliteException ex)
-            {
-                _logger.LogError(ex, "Impossible to delete an octree cache entry");
-                return false;
-            }
-        }
-
-        private bool HasValidCacheCode(byte[]? octreeCode)
-        {
-            return octreeCode != null && octreeCode.Length >= octreeDepthCache_;
+            return grouped.ToDictionary(pair => pair.Key, pair => SerializeCodes(pair.Value),
+                new OctreeCodeLongComparer());
         }
 
         private void AddCacheParameters(SqliteCommand command, OctreeCodeLong truncatedCode)
         {
+            command.Parameters.AddWithValue("@cacheDepth", truncatedCode.Depth);
             command.Parameters.AddWithValue("@cacheHigh", (long)truncatedCode.CodeHigh);
             command.Parameters.AddWithValue("@cacheLow", (long)truncatedCode.CodeLow);
         }

@@ -690,15 +690,15 @@ internal static class Program
         SqlConnectionManagerOctree octreeConnectionManager = new(NullLogger<SqlConnectionManagerOctree>.Instance);
         SqlConnectionManagerSeparationFactorResults separationConnectionManager = new(NullLogger<SqlConnectionManagerSeparationFactorResults>.Instance);
 
-        TrajectoryManager trajectoryManager = TrajectoryManager.GetInstance(NullLogger<TrajectoryManager>.Instance, trajectoryConnectionManager);
         OctreeManager octreeManager = OctreeManager.GetInstance(NullLogger<OctreeManager>.Instance, octreeConnectionManager);
+        TrajectoryManager trajectoryManager = TrajectoryManager.GetInstance(NullLogger<TrajectoryManager>.Instance, trajectoryConnectionManager, octreeManager);
         GlobalAntiCollisionManager globalAntiCollisionManager = GlobalAntiCollisionManager.GetInstance(NullLogger<GlobalAntiCollisionManager>.Instance, separationConnectionManager);
 
         OctreesController octreesController = new(
             NullLogger<TrajectoryManager>.Instance,
             NullLogger<OctreeManager>.Instance,
             trajectoryConnectionManager,
-            octreeConnectionManager);
+            octreeManager);
 
         GlobalAntiCollisionsController globalAntiCollisionsController = new(
             NullLogger<TrajectoryManager>.Instance,
@@ -706,7 +706,7 @@ internal static class Program
             NullLogger<OctreeManager>.Instance,
             trajectoryConnectionManager,
             separationConnectionManager,
-            octreeConnectionManager);
+            octreeManager);
 
         return new LocalHarness(
             trajectoryManager,

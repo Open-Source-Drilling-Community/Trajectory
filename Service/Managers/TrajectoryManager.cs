@@ -32,6 +32,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         private static TrajectoryManager? _instance = null;
         private readonly ILogger<TrajectoryManager> _logger;
         private readonly SqlConnectionManager _connectionManager;
+        private OctreeManager? _octreeManager;
         private const string SurveyStationOwnerType = "Trajectory";
         private const string SurveyRunStationOwnerType = "SurveyRun";
 
@@ -41,9 +42,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             _connectionManager = connectionManager;
         }
 
-        public static TrajectoryManager GetInstance(ILogger<TrajectoryManager> logger, SqlConnectionManager connectionManager)
+        public static TrajectoryManager GetInstance(ILogger<TrajectoryManager> logger, SqlConnectionManager connectionManager,
+            OctreeManager? octreeManager = null)
         {
             _instance ??= new TrajectoryManager(logger, connectionManager);
+            if (octreeManager != null) _instance._octreeManager = octreeManager;
             return _instance;
         }
 
@@ -522,6 +525,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     bool saved = InsertOrUpdateTrajectoryRecord(trajectory, false, null);
                     if (saved)
                     {
+                        InvalidateOctree(trajectory.MetaInfo.ID);
                         _ = Task.Run(() => RecalculateTrajectoryAsync(trajectory.MetaInfo.ID));
                     }
 
@@ -554,6 +558,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     bool saved = InsertOrUpdateTrajectoryRecord(trajectory, true, null);
                     if (saved)
                     {
+                        InvalidateOctree(guid);
                         _ = Task.Run(() => RecalculateTrajectoryAsync(guid));
                     }
 
@@ -608,10 +613,20 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
                 MarkCalculationState(trajectory, CalculationState.Completed, 1.0, null);
                 trajectory.LastModificationDate = DateTimeOffset.UtcNow;
-                if (!InsertOrUpdateTrajectoryRecord(trajectory, true, trajectory.SurveyStationList))
+                List<SurveyStation>? calculatedStations = trajectory.SurveyStationList;
+                if (!InsertOrUpdateTrajectoryRecord(trajectory, true, calculatedStations))
                 {
                     UpdateTrajectoryCalculationState(trajectoryId, CalculationState.Failed, 0.0, "Trajectory calculation failed while saving");
                     DeleteSurveyStationChunks(trajectoryId);
+                }
+                else if (_octreeManager != null)
+                {
+                    trajectory.SurveyStationList = calculatedStations;
+                    if (!_octreeManager.Rebuild(trajectory))
+                    {
+                        _octreeManager.Delete(trajectoryId);
+                        _logger.LogWarning("The trajectory was saved, but no valid uncertainty-envelope octree could be generated for {TrajectoryId}", trajectoryId);
+                    }
                 }
             }
             catch (Exception ex)
@@ -632,6 +647,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
 
             using SqliteTransaction transaction = connection.BeginTransaction();
+            List<Guid> trajectoriesMadeTemporary = [];
             try
             {
                 string metaInfo = JsonSerializer.Serialize(trajectory.MetaInfo, JsonSettings.Options);
@@ -674,7 +690,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 bool success = command.ExecuteNonQuery() == 1;
                 if (success && trajectory.IsDefinitive)
                 {
-                    success = UnsetOtherDefinitiveTrajectories(connection, transaction, trajectory.MetaInfo.ID, trajectory.WellBoreID, trajectory.TrajectoryType);
+                    success = UnsetOtherDefinitiveTrajectories(connection, transaction, trajectory.MetaInfo.ID,
+                        trajectory.WellBoreID, trajectory.TrajectoryType, trajectoriesMadeTemporary);
                 }
                 if (success)
                 {
@@ -684,6 +701,14 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 if (success)
                 {
                     transaction.Commit();
+                    foreach (Guid otherTrajectoryId in trajectoriesMadeTemporary)
+                    {
+                        if (_octreeManager != null && _octreeManager.Contains(otherTrajectoryId) &&
+                            !_octreeManager.UpdateClassification(otherTrajectoryId, trajectory.TrajectoryType, false))
+                        {
+                            _logger.LogError("Unable to update octree classification for trajectory {TrajectoryId}", otherTrajectoryId);
+                        }
+                    }
                 }
                 else
                 {
@@ -757,7 +782,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             transaction.Commit();
         }
 
-        private bool UnsetOtherDefinitiveTrajectories(SqliteConnection connection, SqliteTransaction transaction, Guid currentTrajectoryId, Guid wellBoreId, TrajectoryType trajectoryType)
+        private bool UnsetOtherDefinitiveTrajectories(SqliteConnection connection, SqliteTransaction transaction,
+            Guid currentTrajectoryId, Guid wellBoreId, TrajectoryType trajectoryType, List<Guid> trajectoriesMadeTemporary)
         {
             try
             {
@@ -802,6 +828,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     {
                         return false;
                     }
+                    trajectoriesMadeTemporary.Add(id);
                 }
 
                 return true;
@@ -963,6 +990,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         {
             if (!guid.Equals(Guid.Empty))
             {
+                if (_octreeManager != null && _octreeManager.Contains(guid) && !_octreeManager.Delete(guid))
+                {
+                    _logger.LogError("The trajectory {TrajectoryId} was not deleted because its octree could not be invalidated", guid);
+                    return false;
+                }
                 var connection = _connectionManager.GetConnection();
                 if (connection != null)
                 {
@@ -1008,6 +1040,14 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 _logger.LogWarning("The Trajectory ID is null or empty");
             }
             return false;
+        }
+
+        private void InvalidateOctree(Guid trajectoryId)
+        {
+            if (_octreeManager != null && _octreeManager.Contains(trajectoryId) && !_octreeManager.Delete(trajectoryId))
+            {
+                _logger.LogError("Unable to invalidate the octree for trajectory {TrajectoryId}; background recalculation will retry replacement", trajectoryId);
+            }
         }
 
         /// <summary>

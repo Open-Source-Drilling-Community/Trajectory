@@ -26,15 +26,29 @@ public sealed class TrajectoryBatchRestoreOutcome
 }
 
 /// <summary>Creates dependency-closed backups and restores them without recalculation.</summary>
-public sealed class TrajectoryBatchService(
-    SqlConnectionManager mainDatabase,
-    TrajectoryIdentityManager identityManager,
-    TrajectoryFeatureCategoryManager featureManager,
-    ILogger<TrajectoryBatchService> logger)
+public sealed class TrajectoryBatchService
 {
+    private readonly SqlConnectionManager mainDatabase;
+    private readonly TrajectoryIdentityManager identityManager;
+    private readonly TrajectoryFeatureCategoryManager featureManager;
+    private readonly OctreeManager octreeManager;
+    private readonly ILogger<TrajectoryBatchService> logger;
     private const string SurveyRunStationOwner = "SurveyRun";
     private const string TrajectoryStationOwner = "Trajectory";
     private const int MeasurementChunkSize = 5000;
+
+    public TrajectoryBatchService(SqlConnectionManager mainDatabase,
+        TrajectoryIdentityManager identityManager,
+        TrajectoryFeatureCategoryManager featureManager,
+        OctreeManager octreeManager,
+        ILogger<TrajectoryBatchService> logger)
+    {
+        this.mainDatabase = mainDatabase;
+        this.identityManager = identityManager;
+        this.featureManager = featureManager;
+        this.octreeManager = octreeManager;
+        this.logger = logger;
+    }
 
     public TrajectoryBatchExportOutcome Export(TrajectoryBatchExportRequest? request)
     {
@@ -151,6 +165,15 @@ public sealed class TrajectoryBatchService(
                 if (exists) replacedTrajectories++; else createdTrajectories++;
             }
             transaction.Commit();
+
+            foreach (Model.Trajectory trajectory in document.Trajectories)
+            {
+                if (!octreeManager.Rebuild(trajectory))
+                {
+                    octreeManager.Delete(trajectory.MetaInfo!.ID);
+                    logger.LogWarning("Restored trajectory {TrajectoryId}, but it has no indexable uncertainty envelope", trajectory.MetaInfo.ID);
+                }
+            }
 
             return new()
             {
@@ -607,6 +630,7 @@ public sealed class TrajectoryBatchService(
         if (command.ExecuteNonQuery() != 1) throw new InvalidOperationException($"Could not write trajectory '{trajectoryId}'.");
         if (!SurveyStationChunkStore.ReplaceChunks(connection, transaction, trajectoryId, TrajectoryStationOwner, stations))
             throw new InvalidOperationException($"Could not write trajectory stations for '{trajectoryId}'.");
+        trajectory.SurveyStationList = stations;
     }
 
     private static void AddCommon(SqliteCommand command, OSDC.DotnetLibraries.General.DataManagement.MetaInfo meta,

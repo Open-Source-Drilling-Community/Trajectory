@@ -52,6 +52,8 @@ dotnet test ServiceTest/ServiceTest.csproj
 
 `TrajectoryCatalogMigrationTests.cs` verifies that a version-1 `Trajectory.db` is upgraded to version 2 without rewriting existing records, that legacy identity and feature rows are copied into the main database, and that `TrajectoryCatalog.db` remains intact.
 
+`OctreePersistenceTests.cs` verifies the lossless version-1 to version-2 `GlobalAntiCollision.db` migration and its integrity-checked backup, atomic rollback of a failed replacement, trajectory-type/definitive filtering, classification changes, and complete indexed deletion of a trajectory's state and bucket memberships.
+
 `SqlConnectionManagerSafetyTests.cs` is also self-contained. It verifies transactional fresh creation, lossless adoption of an exact legacy schema, and fail-closed handling of malformed and newer databases. Run both self-contained groups without a live API with:
 
 ```bash

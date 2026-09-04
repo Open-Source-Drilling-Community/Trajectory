@@ -20,11 +20,11 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         private readonly TrajectoryAssignmentValidator _assignmentValidator;
         private readonly TrajectoryBatchService _batchService;
 
-        public TrajectoryController(ILogger<TrajectoryManager> logger, SqlConnectionManager connectionManager,
+        public TrajectoryController(ILogger<TrajectoryManager> logger, SqlConnectionManager connectionManager, OctreeManager octreeManager,
             TrajectoryAssignmentValidator assignmentValidator, TrajectoryBatchService batchService)
         {
             _logger = logger;
-            _trajectoryManager = TrajectoryManager.GetInstance(_logger, connectionManager);
+            _trajectoryManager = TrajectoryManager.GetInstance(_logger, connectionManager, octreeManager);
             _assignmentValidator = assignmentValidator;
             _batchService = batchService;
         }

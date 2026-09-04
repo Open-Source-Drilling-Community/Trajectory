@@ -22,6 +22,8 @@ builder.Services.AddSingleton<TrajectoryAssignmentValidator>();
 builder.Services.AddSingleton<TrajectoryBatchService>();
 builder.Services.AddSingleton<SqlConnectionManagerSeparationFactorResults>();
 builder.Services.AddSingleton<SqlConnectionManagerOctree>();
+builder.Services.AddSingleton<OctreeManager>();
+builder.Services.AddHostedService<OctreeReconciliationService>();
 
 // registering the database cleaner service through dependency injection
 builder.Services.AddHostedService(sp => new DatabaseCleanerService(

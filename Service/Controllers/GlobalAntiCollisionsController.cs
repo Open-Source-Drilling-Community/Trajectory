@@ -24,16 +24,17 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         private readonly GlobalAntiCollisionManager _globalAntiCollisionManager;
         private readonly OctreeManager _octreeManager;
 
-        public GlobalAntiCollisionsController(ILogger<TrajectoryManager> loggerTrajectory, ILogger<GlobalAntiCollisionManager> loggerGlobalAC, ILogger<OctreeManager> loggerOctree, Managers.SqlConnectionManager connectionManagerTrajectory, SqlConnectionManagerSeparationFactorResults connectionManagerGlobalAC, SqlConnectionManagerOctree connectionManagerOctree)
+        public GlobalAntiCollisionsController(ILogger<TrajectoryManager> loggerTrajectory, ILogger<GlobalAntiCollisionManager> loggerGlobalAC, ILogger<OctreeManager> loggerOctree,
+            Managers.SqlConnectionManager connectionManagerTrajectory, SqlConnectionManagerSeparationFactorResults connectionManagerGlobalAC, OctreeManager octreeManager)
         {
             _loggerTrajectory = loggerTrajectory;
-            _trajectoryManager = TrajectoryManager.GetInstance(_loggerTrajectory, connectionManagerTrajectory);
+            _trajectoryManager = TrajectoryManager.GetInstance(_loggerTrajectory, connectionManagerTrajectory, octreeManager);
 
             _loggerGlobalAC = loggerGlobalAC;
             _globalAntiCollisionManager = GlobalAntiCollisionManager.GetInstance(_loggerGlobalAC, connectionManagerGlobalAC);
 
             _loggerOctree = loggerOctree;
-            _octreeManager = OctreeManager.GetInstance(_loggerOctree, connectionManagerOctree);
+            _octreeManager = octreeManager;
         }
 
         // GET api/globalanticollisions
