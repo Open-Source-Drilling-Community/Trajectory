@@ -46,8 +46,6 @@ internal static class TrajectoryMcpToolMetadata
                 : "Check one stored survey run's externally owned Field, Cluster, Well, WellBore and SurveyInstrument UUIDs without modifying data. Missing resources are Invalid; configuration, transport, dependency-service and malformed-response failures are Unavailable, never Invalid. Optional unlinked references are valid.";
         else if (action == "AuditExternalReferences")
             detail = $"Check a deterministic UUID-ordered page of all or explicitly selected stored {resource} records without modifying data. Offset must be non-negative and limit is 1 through 100. Results and page counts distinguish Valid, Invalid and Unavailable checks; unavailable dependencies are never reported as missing data.";
-        else if (controller == "Octrees" && action == "Search")
-            detail = "Find trajectories whose indexed uncertainty envelopes overlap the reference trajectory's current octree index. Planned and actual filters may be combined; definitiveOnly excludes temporary trajectories when true. This is the candidate-discovery step before selecting trajectories for separation-factor calculation. A missing or stale reference index returns conflict.";
         else if (controller == "Octrees" && action == "QueueSearch")
             detail = "Queue an octree overlap search and return immediately with a server-generated job UUID. The request identifies a current reference trajectory index and selects planned, actual and definitive candidates. Poll the lightweight search-status tool until Completed or Failed, then retrieve the candidate UUIDs from the result tool.";
         else if (controller == "Octrees" && action == "GetSearchStatus")
