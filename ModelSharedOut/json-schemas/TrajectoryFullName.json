@@ -158,6 +158,35 @@
         }
       }
     },
+    "/GlobalAntiCollisions/{id}/Status": {
+      "get": {
+        "tags": [
+          "GlobalAntiCollisions"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollisionCalculationStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/InterpolatedTrajectory": {
       "get": {
         "tags": [
@@ -739,6 +768,131 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/Octrees/SearchJobs": {
+      "post": {
+        "tags": [
+          "Octrees"
+        ],
+        "operationId": "QueueOctreeSearch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.OctreeSearchJobRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.OctreeSearchJobRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.OctreeSearchJobRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.OctreeSearchJobStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Octrees/SearchJobs/{jobId}/Status": {
+      "get": {
+        "tags": [
+          "Octrees"
+        ],
+        "operationId": "GetOctreeSearchStatus",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.OctreeSearchJobStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Octrees/SearchJobs/{jobId}/Result": {
+      "get": {
+        "tags": [
+          "Octrees"
+        ],
+        "operationId": "GetOctreeSearchResult",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.OctreeSearchJobResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Octrees/SearchJobs/{jobId}": {
+      "delete": {
+        "tags": [
+          "Octrees"
+        ],
+        "operationId": "DeleteOctreeSearch",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -5305,6 +5459,47 @@
               "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.SeparationFactorResult"
             },
             "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollisionCalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollisionCalculationState": {
+        "enum": [
+          "Completed",
+          "Queued",
+          "Running",
+          "Failed"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollisionCalculationStatus": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollisionCalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -5699,6 +5894,86 @@
           },
           "CalculationParametersHash": {
             "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.OctreeSearchJobRequest": {
+        "type": "object",
+        "properties": {
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "IncludePlanned": {
+            "type": "boolean"
+          },
+          "IncludeActual": {
+            "type": "boolean"
+          },
+          "DefinitiveOnly": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.OctreeSearchJobResult": {
+        "type": "object",
+        "properties": {
+          "JobID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "CandidateTrajectoryIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.OctreeSearchJobStatus": {
+        "type": "object",
+        "properties": {
+          "JobID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "CandidateCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "CreatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "CompletedUtc": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           }
         },

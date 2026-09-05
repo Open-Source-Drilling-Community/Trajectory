@@ -355,7 +355,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         }
 
         public List<Guid> SearchByClassification(List<OctreeCodeLong>? codes, bool includePlanned, bool includeActual,
-            bool definitiveOnly, Guid? investigatedTrajectoryID = null)
+            bool definitiveOnly, Guid? investigatedTrajectoryID = null,
+            Action<double, string>? progress = null)
         {
             if (!includePlanned && !includeActual)
             {
@@ -365,11 +366,12 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             TrajectoryType? trajectoryType = includePlanned == includeActual
                 ? null
                 : includePlanned ? TrajectoryType.Planned : TrajectoryType.Actual;
-            return SearchCore(codes, trajectoryType, definitiveOnly ? true : null, investigatedTrajectoryID);
+            return SearchCore(codes, trajectoryType, definitiveOnly ? true : null, investigatedTrajectoryID, progress);
         }
 
         private List<Guid> SearchCore(List<OctreeCodeLong>? codes, TrajectoryType? trajectoryType,
-            bool? isDefinitive, Guid? investigatedTrajectoryID)
+            bool? isDefinitive, Guid? investigatedTrajectoryID,
+            Action<double, string>? progress = null)
         {
             List<Guid> trajectoryIDs = [];
             if (codes == null || codes.Count == 0)
@@ -377,17 +379,32 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 return trajectoryIDs;
             }
 
+            progress?.Invoke(0.02, "Preparing reference octree codes");
             List<OctreeCodeLong> truncatedCodes = GetTruncatedCodes(codes);
-            List<Pair<OctreeCodeLong, Guid>> detailedList = GetDetails(truncatedCodes, trajectoryType, isDefinitive, investigatedTrajectoryID);
+            progress?.Invoke(0.05, $"Loading {truncatedCodes.Count:N0} overlapping octree buckets");
+            List<Pair<OctreeCodeLong, Guid>> detailedList = GetDetails(truncatedCodes, trajectoryType, isDefinitive,
+                investigatedTrajectoryID,
+                (completed, total) => progress?.Invoke(0.05 + 0.2 * completed / Math.Max(1, total),
+                    $"Loaded {completed:N0}/{total:N0} octree buckets"));
+            progress?.Invoke(0.25,
+                $"Checking {codes.Count:N0} reference codes against {detailedList.Count:N0} candidate codes");
             HashSet<Guid> uniqueTrajectoryIDs = [];
-            foreach (OctreeCodeLong code in codes)
+            int progressInterval = Math.Max(1, codes.Count / 100);
+            for (int codeIndex = 0; codeIndex < codes.Count; codeIndex++)
             {
+                OctreeCodeLong code = codes[codeIndex];
                 foreach (Pair<OctreeCodeLong, Guid> detail in detailedList)
                 {
                     if (code.Intersect(detail.Left) && uniqueTrajectoryIDs.Add(detail.Right))
                     {
                         trajectoryIDs.Add(detail.Right);
                     }
+                }
+                int completed = codeIndex + 1;
+                if (completed == codes.Count || completed % progressInterval == 0)
+                {
+                    progress?.Invoke(0.25 + 0.74 * completed / codes.Count,
+                        $"Checked {completed:N0}/{codes.Count:N0} reference octree codes");
                 }
             }
 
@@ -431,7 +448,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         }
 
         private List<Pair<OctreeCodeLong, Guid>> GetDetails(List<OctreeCodeLong>? truncatedCodes,
-            TrajectoryType? trajectoryType, bool? isDefinitive, Guid? ignoredTrajectoryID = null)
+            TrajectoryType? trajectoryType, bool? isDefinitive, Guid? ignoredTrajectoryID = null,
+            Action<int, int>? progress = null)
         {
             if (truncatedCodes == null || truncatedCodes.Count == 0)
             {
@@ -469,11 +487,18 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 insertTempCommand.Transaction = transaction;
                 insertTempCommand.CommandText =
                     "INSERT OR IGNORE INTO TempOctreeCacheCodes (OctreeCodeCacheDepth, OctreeCodeCacheHigh, OctreeCodeCacheLow) VALUES (@cacheDepth, @cacheHigh, @cacheLow)";
-                foreach (OctreeCodeLong truncatedCode in truncatedCodes)
+                for (int codeIndex = 0; codeIndex < truncatedCodes.Count; codeIndex++)
                 {
+                    OctreeCodeLong truncatedCode = truncatedCodes[codeIndex];
                     insertTempCommand.Parameters.Clear();
                     AddCacheParameters(insertTempCommand, truncatedCode);
                     insertTempCommand.ExecuteNonQuery();
+                    int completed = codeIndex + 1;
+                    int progressInterval = Math.Max(1, truncatedCodes.Count / 100);
+                    if (completed == truncatedCodes.Count || completed % progressInterval == 0)
+                    {
+                        progress?.Invoke(completed, truncatedCodes.Count);
+                    }
                 }
             }
 

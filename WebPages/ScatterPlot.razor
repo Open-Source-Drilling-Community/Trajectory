@@ -329,10 +329,10 @@
             layout.XAxis.ElementAt(i).AutoRange = XAxisReversed
                 ? Plotly.Blazor.LayoutLib.XAxisLib.AutoRangeEnum.Reversed
                 : Plotly.Blazor.LayoutLib.XAxisLib.AutoRangeEnum.True;
-            layout.XAxis.ElementAt(i).RangeMode = Plotly.Blazor.LayoutLib.XAxisLib.RangeModeEnum.Normal;
-            layout.XAxis.ElementAt(i).Range = XAxisStartsAtZero
-                ? [0, null!]
-                : null;
+            layout.XAxis.ElementAt(i).RangeMode = XAxisStartsAtZero
+                ? Plotly.Blazor.LayoutLib.XAxisLib.RangeModeEnum.ToZero
+                : Plotly.Blazor.LayoutLib.XAxisLib.RangeModeEnum.Normal;
+            layout.XAxis.ElementAt(i).Range = null;
             layout.XAxis.ElementAt(i).ShowGrid = ShowCartesianGrid;
         }
 

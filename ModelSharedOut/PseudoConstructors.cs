@@ -3219,6 +3219,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					{
 						ConstructSeparationFactorResult(),
 					},
+				CalculationState = (GlobalAntiCollisionCalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
 			};
 		}
 		public static MeasuredDepthRange ConstructMeasuredDepthRange()
@@ -6945,6 +6948,16 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				Instance = "Default Instance",
 			};
 		}
+		public static GlobalAntiCollisionCalculationStatus ConstructGlobalAntiCollisionCalculationStatus()
+		{
+			return new GlobalAntiCollisionCalculationStatus
+			{
+				ID = "Default ID",
+				CalculationState = (GlobalAntiCollisionCalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+			};
+		}
 		public static ExternalReferenceIssue ConstructExternalReferenceIssue()
 		{
 			return new ExternalReferenceIssue
@@ -6971,6 +6984,42 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				IndexSchemaVersion = null,
 				ConfidenceFactor = null,
 				CalculationParametersHash = "Default CalculationParametersHash",
+			};
+		}
+		public static OctreeSearchJobRequest ConstructOctreeSearchJobRequest()
+		{
+			return new OctreeSearchJobRequest
+			{
+				ReferenceTrajectoryID = new Guid(),
+				IncludePlanned = false,
+				IncludeActual = false,
+				DefinitiveOnly = false,
+			};
+		}
+		public static OctreeSearchJobResult ConstructOctreeSearchJobResult()
+		{
+			return new OctreeSearchJobResult
+			{
+				JobID = new Guid(),
+				ReferenceTrajectoryID = new Guid(),
+				CandidateTrajectoryIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static OctreeSearchJobStatus ConstructOctreeSearchJobStatus()
+		{
+			return new OctreeSearchJobStatus
+			{
+				JobID = new Guid(),
+				ReferenceTrajectoryID = new Guid(),
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				CandidateCount = null,
+				CreatedUtc = DateTimeOffset.UtcNow,
+				CompletedUtc = DateTimeOffset.UtcNow,
 			};
 		}
 		public static SurveyRunExternalReferenceAuditRequest ConstructSurveyRunExternalReferenceAuditRequest()
@@ -7206,8 +7255,8 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 			return new TrajectoryFeatureAssignment
 			{
 				ID = new Guid(),
-				FeatureCategoryID = null, 
-				FeatureOptionID = null, 
+				FeatureCategoryID = null,
+				FeatureOptionID = null,
 				FromDate = DateTimeOffset.UtcNow,
 				ToDate = DateTimeOffset.UtcNow,
 			};
@@ -7218,8 +7267,8 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 			{
 				MetaInfo = ConstructMetaInfo(),
 				Name = "Default Name",
-				IsExclusive = false, 
-				HasValidityPeriod = false, 
+				IsExclusive = false,
+				HasValidityPeriod = false,
 				Options = new List<TrajectoryFeatureOption>
 					{
 						ConstructTrajectoryFeatureOption(),
@@ -7251,7 +7300,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 			return new TrajectoryIdentityAssignment
 			{
 				ID = new Guid(),
-				IdentityID = null, 
+				IdentityID = null,
 				Value = "Default Value",
 			};
 		}

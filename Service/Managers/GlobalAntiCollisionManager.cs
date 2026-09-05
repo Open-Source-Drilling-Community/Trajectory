@@ -24,7 +24,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             _logger = logger;
             _connectionManager = connectionManager;
 
-            Thread thread = new Thread(new ThreadStart(GC));
+            Thread thread = new Thread(new ThreadStart(GC))
+            {
+                IsBackground = true,
+                Name = "GlobalAntiCollisionResultCleanup"
+            };
             thread.Start();
         }
 

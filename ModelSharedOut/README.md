@@ -8,7 +8,7 @@ This project stores OpenAPI schemas and generates C# classes that are used by do
 
 It includes the Trajectory service schema together with other related schemas needed by clients and reusable UI components.
 
-The generated output includes client types and methods for trajectory realization cases, including light data, full case data, and chunked realization retrieval. It also contains the versioned batch export/restore document, conflict and catalog policies (including the explicit normalized-name-mapping opt-in), the two dependency-aware backup endpoints, bounded trajectory/survey-run search, single-record external-reference validation and bounded audit results, optimistic-concurrency parameters for durable mutations, and the typed octree index status/provenance and filtered overlap-search contracts exposed by `GetOctreeIndexStatusAsync` and `SearchOctreeIndexAsync`.
+The generated output includes client types and methods for trajectory realization cases, including light data, full case data, and chunked realization retrieval. It also contains the versioned batch export/restore document, conflict and catalog policies (including the explicit normalized-name-mapping opt-in), the two dependency-aware backup endpoints, bounded trajectory/survey-run search, single-record external-reference validation and bounded audit results, optimistic-concurrency parameters for durable mutations, the typed octree index status/provenance, synchronous and asynchronous filtered overlap-search contracts, and lightweight polling contracts for long octree scans and separation-factor calculations without repeatedly transferring result payloads.
 
 ## Dependencies
 

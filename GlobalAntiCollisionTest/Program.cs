@@ -55,6 +55,7 @@ internal static class Program
 
             string runtimeRoot = InitializeLocalRuntimeDirectory();
             harness = CreateLocalHarness();
+            await harness.GlobalAntiCollisionWorker.StartAsync(CancellationToken.None);
 
             trajectories = await LoadTestTrajectoriesAsync(remoteTrajectoryClient);
             if (fillBoreholeRadiusFromWellboreArchitecture)
@@ -135,6 +136,7 @@ internal static class Program
             if (harness != null && !string.IsNullOrWhiteSpace(globalAntiCollisionId))
             {
                 harness.GlobalAntiCollisionManager.Remove(globalAntiCollisionId);
+                await harness.GlobalAntiCollisionWorker.StopAsync(CancellationToken.None);
             }
 
             remoteTrajectoryClient?.Dispose();
@@ -281,7 +283,8 @@ internal static class Program
         GlobalAntiCollisionModel postPayload = CreateGlobalAntiCollision(globalAntiCollisionId, referenceTrajectory, configuredComparisonTrajectories, 0.999);
         Console.WriteLine($"\tStarting GlobalAntiCollisionsController.Post for reference trajectory {FormatTrajectoryLabel(referenceTrajectory)}...");
         Stopwatch postStopwatch = Stopwatch.StartNew();
-        await globalAntiCollisionsController.Post(postPayload);
+        globalAntiCollisionsController.Post(postPayload);
+        await WaitForGlobalAntiCollisionAsync(globalAntiCollisionsController, globalAntiCollisionId);
         postStopwatch.Stop();
         Console.WriteLine($"\tFinished GlobalAntiCollisionsController.Post in {postStopwatch.Elapsed.TotalSeconds:F2} s.");
 
@@ -315,7 +318,8 @@ internal static class Program
             Console.WriteLine();
             Console.WriteLine($"\tStarting GlobalAntiCollisionsController.Put for reference trajectory {FormatTrajectoryLabel(referenceTrajectory)}...");
             Stopwatch putStopwatch = Stopwatch.StartNew();
-            await globalAntiCollisionsController.Put(globalAntiCollisionId, putPayload);
+            globalAntiCollisionsController.Put(globalAntiCollisionId, putPayload);
+            await WaitForGlobalAntiCollisionAsync(globalAntiCollisionsController, globalAntiCollisionId);
             putStopwatch.Stop();
             Console.WriteLine($"\tFinished GlobalAntiCollisionsController.Put in {putStopwatch.Elapsed.TotalSeconds:F2} s.");
 
@@ -695,26 +699,37 @@ internal static class Program
         OctreeManager octreeManager = OctreeManager.GetInstance(NullLogger<OctreeManager>.Instance, octreeConnectionManager);
         TrajectoryManager trajectoryManager = TrajectoryManager.GetInstance(NullLogger<TrajectoryManager>.Instance, trajectoryConnectionManager, octreeManager);
         GlobalAntiCollisionManager globalAntiCollisionManager = GlobalAntiCollisionManager.GetInstance(NullLogger<GlobalAntiCollisionManager>.Instance, separationConnectionManager);
+        GlobalAntiCollisionCalculationWorker globalAntiCollisionWorker = new(
+            NullLogger<GlobalAntiCollisionCalculationWorker>.Instance,
+            NullLogger<GlobalAntiCollisionManager>.Instance,
+            NullLogger<TrajectoryManager>.Instance,
+            trajectoryConnectionManager,
+            separationConnectionManager,
+            octreeManager);
+        OctreeSearchJobWorker octreeSearchJobWorker = new(
+            NullLogger<OctreeSearchJobWorker>.Instance,
+            NullLogger<TrajectoryManager>.Instance,
+            trajectoryConnectionManager,
+            octreeManager);
 
         OctreesController octreesController = new(
             NullLogger<TrajectoryManager>.Instance,
             NullLogger<OctreeManager>.Instance,
             trajectoryConnectionManager,
-            octreeManager);
+            octreeManager,
+            octreeSearchJobWorker);
 
         GlobalAntiCollisionsController globalAntiCollisionsController = new(
-            NullLogger<TrajectoryManager>.Instance,
             NullLogger<GlobalAntiCollisionManager>.Instance,
-            NullLogger<OctreeManager>.Instance,
-            trajectoryConnectionManager,
             separationConnectionManager,
-            octreeManager);
+            globalAntiCollisionWorker);
 
         return new LocalHarness(
             trajectoryManager,
             trajectoryConnectionManager,
             octreeManager,
             globalAntiCollisionManager,
+            globalAntiCollisionWorker,
             octreesController,
             globalAntiCollisionsController);
     }
@@ -1377,6 +1392,25 @@ internal static class Program
         }
     }
 
+    private static async Task WaitForGlobalAntiCollisionAsync(
+        GlobalAntiCollisionsController controller,
+        string id)
+    {
+        GlobalAntiCollisionCalculationStatus? status;
+        do
+        {
+            await Task.Delay(250);
+            status = ValueOf(controller.GetStatus(id));
+            Ensure(status != null, "The queued global anti-collision calculation status should remain available.");
+            Console.Write($"\r\t{status!.CalculationProgress:P0} {status.CalculationMessage ?? status.CalculationState.ToString()}   ");
+        }
+        while (status.CalculationState is GlobalAntiCollisionCalculationState.Queued or GlobalAntiCollisionCalculationState.Running);
+
+        Console.WriteLine();
+        Ensure(status.CalculationState == GlobalAntiCollisionCalculationState.Completed,
+            $"Global anti-collision calculation failed: {status.CalculationMessage}");
+    }
+
     private static T? ValueOf<T>(ActionResult<T> actionResult) where T : class =>
         actionResult.Value ?? (actionResult.Result as OkObjectResult)?.Value as T;
 
@@ -1385,6 +1419,7 @@ internal static class Program
         SqlConnectionManagerTrajectory TrajectoryConnectionManager,
         OctreeManager OctreeManager,
         GlobalAntiCollisionManager GlobalAntiCollisionManager,
+        GlobalAntiCollisionCalculationWorker GlobalAntiCollisionWorker,
         OctreesController OctreesController,
         GlobalAntiCollisionsController GlobalAntiCollisionsController);
 

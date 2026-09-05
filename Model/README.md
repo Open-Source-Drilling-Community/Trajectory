@@ -16,7 +16,7 @@ It is the main implementation project behind the Trajectory service. It does not
 - shared identity and feature catalog models, with assignments on both survey runs and trajectories
 - versioned backup/restore contract types for dependency-closed survey-run and trajectory documents
 - deterministic bounded search-result contracts for trajectory and survey-run discovery
-- typed octree-index health and provenance states for lightweight REST and MCP inspection
+- typed octree-index health/provenance plus transient asynchronous search request, status, and result contracts
 - read-only Trajectory and SurveyRun external-reference validation and bounded-audit request/result contracts, with distinct `Valid`, `Invalid`, and `Unavailable` states
 
 Persisted and wire-level engineering quantities use SI units. Depths and vertical coordinates are metres relative to WGS84; alternative depth references are UI presentation transformations and must be converted back before persistence.

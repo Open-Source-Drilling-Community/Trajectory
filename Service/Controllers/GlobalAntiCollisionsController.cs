@@ -3,308 +3,159 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
 using OSDC.Drilling.GlobalAntiCollision;
 using OSDC.Drilling.Trajectory.Service.Managers;
-using OSDC.DotnetLibraries.Drilling.Surveying;
-using OSDC.DotnetLibraries.General.Common;
-using OSDC.DotnetLibraries.General.Octree;
-using System;
-using System.Collections.Generic;
-using System.Linq;
-using System.Threading.Tasks;
 
-namespace OSDC.Drilling.Trajectory.Service.Controllers
+namespace OSDC.Drilling.Trajectory.Service.Controllers;
+
+[Produces("application/json")]
+[Route("[controller]")]
+[ApiController]
+public class GlobalAntiCollisionsController : ControllerBase
 {
-    [Produces("application/json")]
-    [Route("[controller]")]
-    [ApiController]
-    public class GlobalAntiCollisionsController : ControllerBase
+    private readonly ILogger<GlobalAntiCollisionManager> logger_;
+    private readonly GlobalAntiCollisionManager manager_;
+    private readonly GlobalAntiCollisionCalculationWorker worker_;
+
+    public GlobalAntiCollisionsController(
+        ILogger<GlobalAntiCollisionManager> logger,
+        SqlConnectionManagerSeparationFactorResults connectionManager,
+        GlobalAntiCollisionCalculationWorker worker)
     {
-        private readonly ILogger<TrajectoryManager> _loggerTrajectory;
-        private readonly ILogger<GlobalAntiCollisionManager> _loggerGlobalAC;
-        private readonly ILogger<OctreeManager> _loggerOctree;
-        private readonly TrajectoryManager _trajectoryManager;
-        private readonly GlobalAntiCollisionManager _globalAntiCollisionManager;
-        private readonly OctreeManager _octreeManager;
+        logger_ = logger;
+        manager_ = GlobalAntiCollisionManager.GetInstance(logger_, connectionManager);
+        worker_ = worker;
+    }
 
-        public GlobalAntiCollisionsController(ILogger<TrajectoryManager> loggerTrajectory, ILogger<GlobalAntiCollisionManager> loggerGlobalAC, ILogger<OctreeManager> loggerOctree,
-            Managers.SqlConnectionManager connectionManagerTrajectory, SqlConnectionManagerSeparationFactorResults connectionManagerGlobalAC, OctreeManager octreeManager)
+    [HttpGet]
+    public IEnumerable<string> Get() => manager_.GetIDs();
+
+    [HttpGet("{id}")]
+    public ActionResult<GlobalAntiCollision.GlobalAntiCollision> Get(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
         {
-            _loggerTrajectory = loggerTrajectory;
-            _trajectoryManager = TrajectoryManager.GetInstance(_loggerTrajectory, connectionManagerTrajectory, octreeManager);
+            return BadRequest(new { error = "invalid_id" });
+        }
+        GlobalAntiCollision.GlobalAntiCollision? value = manager_.Get(id);
+        return value == null ? NotFound() : Ok(value);
+    }
 
-            _loggerGlobalAC = loggerGlobalAC;
-            _globalAntiCollisionManager = GlobalAntiCollisionManager.GetInstance(_loggerGlobalAC, connectionManagerGlobalAC);
+    [HttpGet("{id}/Status")]
+    public ActionResult<GlobalAntiCollisionCalculationStatus> GetStatus(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
+        {
+            return BadRequest(new { error = "invalid_id" });
+        }
+        GlobalAntiCollisionCalculationStatus? status = worker_.GetStatus(id);
+        return status == null ? NotFound() : Ok(status);
+    }
 
-            _loggerOctree = loggerOctree;
-            _octreeManager = octreeManager;
+    /// <summary>
+    /// Creates and queues a global anti-collision calculation. Poll GET
+    /// GlobalAntiCollisions/{id}/Status for progress, then GET the record once completed.
+    /// </summary>
+    [HttpPost]
+    public ActionResult<GlobalAntiCollision.GlobalAntiCollision> Post(
+        [FromBody] GlobalAntiCollision.GlobalAntiCollision? value)
+    {
+        if (value == null || string.IsNullOrWhiteSpace(value.ID))
+        {
+            logger_.LogWarning("Post value or its ID is missing");
+            return BadRequest(new { error = "invalid_global_anti_collision" });
+        }
+        if (value.ReferenceTrajectoryID == Guid.Empty && value.ReferenceWellPathID == Guid.Empty)
+        {
+            return BadRequest(new { error = "reference_trajectory_or_well_path_required" });
+        }
+        if (manager_.Contains(value.ID))
+        {
+            return Conflict(new { error = "global_anti_collision_already_exists" });
         }
 
-        // GET api/globalanticollisions
-        [HttpGet]
-        public IEnumerable<string> Get()
+        MarkQueued(value);
+        if (!manager_.Add(value))
         {
-            var ids = _globalAntiCollisionManager.GetIDs();
-            return ids;
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { error = "global_anti_collision_create_failed" });
+        }
+        if (!worker_.Queue(value.ID))
+        {
+            manager_.Remove(value.ID);
+            return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                new { error = "global_anti_collision_queue_unavailable" });
+        }
+        return Ok(value);
+    }
+
+    /// <summary>
+    /// Replaces and requeues an existing global anti-collision calculation.
+    /// </summary>
+    [HttpPut("{id}")]
+    public ActionResult<GlobalAntiCollision.GlobalAntiCollision> Put(string id,
+        [FromBody] GlobalAntiCollision.GlobalAntiCollision? value)
+    {
+        if (string.IsNullOrWhiteSpace(id) || value == null ||
+            string.IsNullOrWhiteSpace(value.ID) || !string.Equals(id, value.ID, StringComparison.Ordinal))
+        {
+            logger_.LogWarning("Put route ID and body ID are missing or inconsistent");
+            return BadRequest(new { error = "route_body_id_mismatch" });
+        }
+        if (value.ReferenceTrajectoryID == Guid.Empty && value.ReferenceWellPathID == Guid.Empty)
+        {
+            return BadRequest(new { error = "reference_trajectory_or_well_path_required" });
+        }
+        if (!manager_.Contains(id))
+        {
+            return NotFound();
+        }
+        GlobalAntiCollisionCalculationStatus? currentStatus = worker_.GetStatus(id);
+        if (currentStatus?.CalculationState is GlobalAntiCollisionCalculationState.Queued or GlobalAntiCollisionCalculationState.Running)
+        {
+            return Conflict(new { error = "global_anti_collision_calculation_in_progress" });
         }
 
-        // GET api/globalanticollisions/id
-        [HttpGet("{id}")]
-        public ActionResult<GlobalAntiCollision.GlobalAntiCollision> Get(string id)
+        MarkQueued(value);
+        if (!manager_.Update(id, value))
         {
-            if (string.IsNullOrWhiteSpace(id)) return BadRequest(new { error = "invalid_id" });
-            GlobalAntiCollision.GlobalAntiCollision? value = _globalAntiCollisionManager.Get(id);
-            return value == null ? NotFound() : Ok(value);
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { error = "global_anti_collision_update_failed" });
         }
-
-        // POST api/globalanticollisions
-        [HttpPost]
-        public async Task<ActionResult<GlobalAntiCollision.GlobalAntiCollision>> Post(
-            [FromBody] GlobalAntiCollision.GlobalAntiCollision? value)
+        if (!worker_.Queue(id))
         {
-            if (value == null || string.IsNullOrWhiteSpace(value.ID))
-            {
-                _loggerGlobalAC.LogWarning("Post value or its ID is missing");
-                return BadRequest(new { error = "invalid_global_anti_collision" });
-            }
-
-            GlobalAntiCollision.GlobalAntiCollision? globalAntiCollision = _globalAntiCollisionManager.Get(value.ID);
-            if (globalAntiCollision != null)
-            {
-                return Conflict(new { error = "global_anti_collision_already_exists" });
-            }
-
-            try
-            {
-                Model.Trajectory? referenceTrajectory = PrepareCalculationInput(value, out List<SurveyStation>? referenceSurveyList);
-                await CalculateIfPossibleAsync(value, referenceTrajectory, referenceSurveyList);
-                return _globalAntiCollisionManager.Add(value)
-                    ? Ok(value)
-                    : StatusCode(StatusCodes.Status500InternalServerError,
-                        new { error = "global_anti_collision_create_failed" });
-            }
-            catch (Exception ex)
-            {
-                _loggerGlobalAC.LogError(ex, "Unable to create global anti-collision calculation {Id}", value.ID);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { error = "global_anti_collision_calculation_failed" });
-            }
+            value.CalculationState = GlobalAntiCollisionCalculationState.Failed;
+            value.CalculationMessage = "The calculation queue is unavailable";
+            manager_.Update(id, value);
+            return StatusCode(StatusCodes.Status503ServiceUnavailable,
+                new { error = "global_anti_collision_queue_unavailable" });
         }
+        return Ok(value);
+    }
 
-        // PUT api/globalanticollisions/id
-        [HttpPut("{id}")]
-        public async Task<ActionResult<GlobalAntiCollision.GlobalAntiCollision>> Put(string id,
-            [FromBody] GlobalAntiCollision.GlobalAntiCollision? value)
+    [HttpDelete("{id}")]
+    public ActionResult Delete(string id)
+    {
+        if (string.IsNullOrWhiteSpace(id))
         {
-            if (string.IsNullOrWhiteSpace(id) || value == null ||
-                string.IsNullOrWhiteSpace(value.ID) || !string.Equals(id, value.ID, StringComparison.Ordinal))
-            {
-                _loggerGlobalAC.LogWarning("Put route ID and body ID are missing or inconsistent");
-                return BadRequest(new { error = "route_body_id_mismatch" });
-            }
-
-            if (!_globalAntiCollisionManager.Contains(id)) return NotFound();
-
-            try
-            {
-                Model.Trajectory? referenceTrajectory = PrepareCalculationInput(value, out List<SurveyStation>? referenceSurveyList);
-                await CalculateIfPossibleAsync(value, referenceTrajectory, referenceSurveyList);
-                return _globalAntiCollisionManager.Update(id, value)
-                    ? Ok(value)
-                    : StatusCode(StatusCodes.Status500InternalServerError,
-                        new { error = "global_anti_collision_update_failed" });
-            }
-            catch (Exception ex)
-            {
-                _loggerGlobalAC.LogError(ex, "Unable to update global anti-collision calculation {Id}", id);
-                return StatusCode(StatusCodes.Status500InternalServerError,
-                    new { error = "global_anti_collision_calculation_failed" });
-            }
+            return BadRequest(new { error = "invalid_id" });
         }
-
-        // DELETE api/globalanticollisions/id
-        [HttpDelete("{id}")]
-        public ActionResult Delete(string id)
+        if (!manager_.Contains(id))
         {
-            if (string.IsNullOrWhiteSpace(id)) return BadRequest(new { error = "invalid_id" });
-            if (!_globalAntiCollisionManager.Contains(id)) return NotFound();
-            return _globalAntiCollisionManager.Remove(id)
-                ? Ok()
-                : StatusCode(StatusCodes.Status500InternalServerError,
-                    new { error = "global_anti_collision_delete_failed" });
+            return NotFound();
         }
-
-        private Model.Trajectory? PrepareCalculationInput(
-            GlobalAntiCollision.GlobalAntiCollision value,
-            out List<SurveyStation>? referenceSurveyList)
+        if (!manager_.Remove(id))
         {
-            Model.Trajectory? referenceTrajectory = null;
-            referenceSurveyList = null;
-            List<Guid>? requestedComparisonTrajectoryIds =
-                value.ComparisonTrajectoryIDs is { Count: > 0 }
-                    ? [.. value.ComparisonTrajectoryIDs.Where(id => id != Guid.Empty)]
-                    : null;
-
-            if (!value.ReferenceWellPathID.Equals(Guid.Empty))
-            {
-                #region Load WellPath and Architecture
-                referenceSurveyList = null;
-                #endregion
-
-                #region Use the SurveyList and Architecture to extract leaves
-                List<OctreeCodeLong>? leaves = referenceSurveyList != null ? _octreeManager.GetLeavesFromSurveyList(referenceSurveyList) : null;
-                #endregion
-
-                value.ComparisonTrajectoryIDs = FilterComparisonTrajectoryIds(
-                    _octreeManager.Search(leaves, Model.TrajectoryType.Actual, true, null),
-                    requestedComparisonTrajectoryIds);
-                value.ReferenceTrajectoryID = Guid.Empty;
-            }
-            else if (!value.ReferenceTrajectoryID.Equals(Guid.Empty))
-            {
-                #region Load Trajectory from the microservices
-                referenceTrajectory = _trajectoryManager.GetTrajectoryById(value.ReferenceTrajectoryID);
-                referenceSurveyList = referenceTrajectory?.SurveyStationList;
-                #endregion
-
-                // Explicit comparison IDs come from a caller-visible octree scan and may include
-                // planned or non-definitive trajectories. Revalidate spatial overlap across all
-                // classifications before calculating. An omitted selection retains the historical
-                // actual-and-definitive default.
-                List<Guid> candidateTrajectoryIds = requestedComparisonTrajectoryIds is { Count: > 0 }
-                    ? _octreeManager.SearchByClassification(_octreeManager.Get(value.ReferenceTrajectoryID), true, true, false,
-                        value.ReferenceTrajectoryID)
-                    : _octreeManager.Search(_octreeManager.Get(value.ReferenceTrajectoryID), Model.TrajectoryType.Actual, true,
-                        value.ReferenceTrajectoryID);
-                value.ComparisonTrajectoryIDs = FilterComparisonTrajectoryIds(
-                    candidateTrajectoryIds, requestedComparisonTrajectoryIds);
-                value.ReferenceWellPathID = Guid.Empty;
-            }
-
-            return referenceTrajectory;
+            return StatusCode(StatusCodes.Status500InternalServerError,
+                new { error = "global_anti_collision_delete_failed" });
         }
+        worker_.Forget(id);
+        return Ok();
+    }
 
-        private static List<Guid> FilterComparisonTrajectoryIds(List<Guid>? candidateTrajectoryIds, List<Guid>? requestedComparisonTrajectoryIds)
-        {
-            if (candidateTrajectoryIds == null || candidateTrajectoryIds.Count == 0)
-            {
-                return [];
-            }
-
-            if (requestedComparisonTrajectoryIds == null || requestedComparisonTrajectoryIds.Count == 0)
-            {
-                return candidateTrajectoryIds;
-            }
-
-            HashSet<Guid> requestedIds = [.. requestedComparisonTrajectoryIds];
-            return candidateTrajectoryIds.Where(id => requestedIds.Contains(id)).ToList();
-        }
-
-        private async Task CalculateIfPossibleAsync(
-            GlobalAntiCollision.GlobalAntiCollision value,
-            Model.Trajectory? referenceTrajectory,
-            List<SurveyStation>? referenceSurveyList)
-        {
-            List<Model.Trajectory> comparisonTrajectories = GetComparisonTrajectories(value.ComparisonTrajectoryIDs);
-            if (comparisonTrajectories.Count == 0)
-            {
-                return;
-            }
-
-            await _trajectoryManager.EnsureBoreholeRadiiAsync(referenceTrajectory);
-            await Task.WhenAll(comparisonTrajectories
-                .Select(trajectory => _trajectoryManager.EnsureBoreholeRadiiAsync(trajectory)));
-
-            List<List<SurveyStation>> comparisonSurveyLists = comparisonTrajectories
-                .Select(trajectory => trajectory.SurveyStationList!)
-                .ToList();
-
-            if (Numeric.IsUndefined(value.ConfidenceFactor) || value.ConfidenceFactor <= 0 || value.ConfidenceFactor > 0.999)
-            {
-                value.ConfidenceFactor = 0.999;
-            }
-
-            List<MeasuredDepthRange?> referenceMdRanges = [];
-            List<MeasuredDepthRange?> comparisonMdRanges = [];
-            BuildRelevantMdRanges(referenceSurveyList, comparisonSurveyLists, value.ConfidenceFactor, referenceMdRanges, comparisonMdRanges);
-
-            List<AntiCollisionPairMdConstraints> pairMdConstraints =
-                await SidetrackRelationshipResolver.GetAntiCollisionPairMdConstraintsAsync(
-                    referenceTrajectory,
-                    comparisonTrajectories,
-                    _loggerGlobalAC);
-
-            value.Calculate(
-                referenceSurveyList,
-                comparisonSurveyLists,
-                referenceMdRanges,
-                comparisonMdRanges,
-                pairMdConstraints.Select(constraints => constraints.ReferenceMinimumMD).ToList(),
-                pairMdConstraints.Select(constraints => constraints.ComparisonMinimumMD).ToList());
-        }
-
-        private List<Model.Trajectory> GetComparisonTrajectories(List<Guid>? comparisonTrajectoryIds)
-        {
-            if (comparisonTrajectoryIds == null || comparisonTrajectoryIds.Count == 0)
-            {
-                return [];
-            }
-
-            List<Model.Trajectory>? comparisonTrajectories = _trajectoryManager.GetListOfTrajectoryById(comparisonTrajectoryIds);
-            if (comparisonTrajectories == null)
-            {
-                return [];
-            }
-
-            Dictionary<Guid, Model.Trajectory> trajectoriesById = [];
-            foreach (Model.Trajectory comparisonTrajectory in comparisonTrajectories)
-            {
-                if (comparisonTrajectory?.MetaInfo?.ID is Guid comparisonTrajectoryId && comparisonTrajectoryId != Guid.Empty)
-                {
-                    trajectoriesById[comparisonTrajectoryId] = comparisonTrajectory;
-                }
-            }
-
-            List<Model.Trajectory> filteredComparisonTrajectories = [];
-            List<Guid> filteredComparisonTrajectoryIds = [];
-            foreach (Guid comparisonTrajectoryId in comparisonTrajectoryIds)
-            {
-                if (trajectoriesById.TryGetValue(comparisonTrajectoryId, out Model.Trajectory? comparisonTrajectory) &&
-                    comparisonTrajectory.SurveyStationList != null)
-                {
-                    filteredComparisonTrajectories.Add(comparisonTrajectory);
-                    filteredComparisonTrajectoryIds.Add(comparisonTrajectoryId);
-                }
-            }
-
-            comparisonTrajectoryIds.Clear();
-            comparisonTrajectoryIds.AddRange(filteredComparisonTrajectoryIds);
-            return filteredComparisonTrajectories;
-        }
-
-        private static void BuildRelevantMdRanges(
-            List<SurveyStation>? referenceSurveyList,
-            List<List<SurveyStation>> comparisonSurveyLists,
-            double confidenceFactor,
-            List<MeasuredDepthRange?> referenceMdRanges,
-            List<MeasuredDepthRange?> comparisonMdRanges)
-        {
-            foreach (List<SurveyStation> comparisonSurveyList in comparisonSurveyLists)
-            {
-                if (RelevantMdRangeCalculator.TryGetRelevantMdRanges(
-                    referenceSurveyList,
-                    comparisonSurveyList,
-                    confidenceFactor,
-                    out MeasuredDepthRange? referenceRange,
-                    out MeasuredDepthRange? comparisonRange))
-                {
-                    referenceMdRanges.Add(referenceRange);
-                    comparisonMdRanges.Add(comparisonRange);
-                }
-                else
-                {
-                    referenceMdRanges.Add(null);
-                    comparisonMdRanges.Add(null);
-                }
-            }
-        }
+    private static void MarkQueued(GlobalAntiCollision.GlobalAntiCollision value)
+    {
+        value.SeparationFactorResults = [];
+        value.CalculationState = GlobalAntiCollisionCalculationState.Queued;
+        value.CalculationProgress = 0.0;
+        value.CalculationMessage = "Calculation queued";
     }
 }

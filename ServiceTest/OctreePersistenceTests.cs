@@ -137,6 +137,31 @@ public sealed class OctreePersistenceTests
     }
 
     [Test]
+    public void Classified_search_reports_measured_bucket_and_intersection_progress()
+    {
+        WithManager((_, manager) =>
+        {
+            var sharedCode = new OctreeCodeLong(23, 80UL, 160UL);
+            Guid candidateId = Guid.NewGuid();
+            Assert.That(manager.Add([sharedCode], candidateId, false, true, true), Is.True);
+            List<(double Progress, string Message)> updates = [];
+
+            List<Guid> result = manager.SearchByClassification(
+                [sharedCode], true, true, true, Guid.NewGuid(),
+                (progress, message) => updates.Add((progress, message)));
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(result, Is.EqualTo(new[] { candidateId }));
+                Assert.That(updates.Select(update => update.Progress), Is.Ordered.Ascending);
+                Assert.That(updates.Last().Progress, Is.EqualTo(0.99).Within(1e-9));
+                Assert.That(updates.Any(update => update.Message.Contains("Loaded")), Is.True);
+                Assert.That(updates.Any(update => update.Message.Contains("Checked")), Is.True);
+            });
+        });
+    }
+
+    [Test]
     public void Status_reports_provenance_counts_currentness_and_filtered_ids()
     {
         WithManager((_, manager) =>

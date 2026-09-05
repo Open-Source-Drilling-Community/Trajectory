@@ -27,6 +27,10 @@ builder.Services.AddSingleton<SqlConnectionManagerSeparationFactorResults>();
 builder.Services.AddSingleton<SqlConnectionManagerOctree>();
 builder.Services.AddSingleton<OctreeManager>();
 builder.Services.AddHostedService<OctreeReconciliationService>();
+builder.Services.AddSingleton<OctreeSearchJobWorker>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<OctreeSearchJobWorker>());
+builder.Services.AddSingleton<GlobalAntiCollisionCalculationWorker>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<GlobalAntiCollisionCalculationWorker>());
 
 // serialization settings (using System.Json)
 builder.Services.AddControllers()

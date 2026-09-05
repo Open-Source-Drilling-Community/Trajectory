@@ -25,7 +25,7 @@ internal static class TrajectoryMcpToolMetadata
         ["SurveyStationEllipseCalculation"] = "a survey-station uncertainty-ellipse calculation",
         ["TrajectoryRealizationCase"] = "a stochastic trajectory-realization case",
         ["TrajectoryAggregationCase"] = "a case that aggregates multiple trajectories against a common reference",
-        ["GlobalAntiCollisions"] = "a global anti-collision configuration used by the trajectory calculations",
+        ["GlobalAntiCollisions"] = "an asynchronous global anti-collision calculation job",
         ["Octrees"] = "a cached spatial octree generated for a trajectory"
     };
 
@@ -48,6 +48,14 @@ internal static class TrajectoryMcpToolMetadata
             detail = $"Check a deterministic UUID-ordered page of all or explicitly selected stored {resource} records without modifying data. Offset must be non-negative and limit is 1 through 100. Results and page counts distinguish Valid, Invalid and Unavailable checks; unavailable dependencies are never reported as missing data.";
         else if (controller == "Octrees" && action == "Search")
             detail = "Find trajectories whose indexed uncertainty envelopes overlap the reference trajectory's current octree index. Planned and actual filters may be combined; definitiveOnly excludes temporary trajectories when true. This is the candidate-discovery step before selecting trajectories for separation-factor calculation. A missing or stale reference index returns conflict.";
+        else if (controller == "Octrees" && action == "QueueSearch")
+            detail = "Queue an octree overlap search and return immediately with a server-generated job UUID. The request identifies a current reference trajectory index and selects planned, actual and definitive candidates. Poll the lightweight search-status tool until Completed or Failed, then retrieve the candidate UUIDs from the result tool.";
+        else if (controller == "Octrees" && action == "GetSearchStatus")
+            detail = "Return lightweight state, measured progress and the current processing stage for a queued octree overlap search. Poll this operation instead of keeping the initial request open or repeatedly requesting candidate results.";
+        else if (controller == "Octrees" && action == "GetSearchResult")
+            detail = "Return candidate trajectory UUIDs for a completed octree overlap search. A queued, running or failed job returns conflict; poll the status tool first. Delete the transient job after consuming its result.";
+        else if (controller == "Octrees" && action == "DeleteSearch")
+            detail = "Delete a completed or failed transient octree-search job. This does not modify trajectory data or persistent octree indexes; running work is not cancelled.";
         else if (action.StartsWith("Search", StringComparison.Ordinal))
             detail = $"Return one deterministic bounded page of lightweight {resource} records with the total match count. Filter by free text and owned relationship/type fields, use offset for continuation, and keep limit between 1 and 500. Fetch a selected resource by UUID when complete data is needed.";
         else if (controller == "SurveyRun" && action == "PutSurveyMeasurementChunk")
@@ -81,9 +89,11 @@ internal static class TrajectoryMcpToolMetadata
                 ? "Create a missing derived spatial index from the trajectory's current uncertainty-envelope stations and return its new status/provenance. Normal trajectory writes and startup reconciliation maintain this index automatically; use this operational repair only when status reports Missing. Existing indexes return conflict."
                 : "Force an atomic rebuild of the trajectory's derived spatial index from its current uncertainty-envelope stations and return its new status/provenance. Normal trajectory writes and startup reconciliation maintain this index automatically; use this operational repair only when status reports Missing or Stale.";
         else if (controller == "GlobalAntiCollisions" && action == "Put")
-            detail = "Replace an existing global anti-collision configuration. The route id and the configuration body's identity must designate the same stored configuration; supply the complete configuration, not a partial patch.";
+            detail = "Replace and requeue an existing global anti-collision calculation. The route id and body ID must match, and a queued or running job returns conflict rather than racing two calculations. The service derives calculation state/progress/results; poll the status tool until CalculationState is Completed or Failed.";
         else if (controller == "GlobalAntiCollisions" && action == "Delete")
-            detail = "Permanently delete the global anti-collision configuration identified by its unique string id.";
+            detail = "Delete the transient global anti-collision calculation job and its completed results. Do this after retrieving a terminal result; deleting a running job removes its polling record but does not cancel work already executing.";
+        else if (controller == "GlobalAntiCollisions" && action == "GetStatus")
+            detail = "Return only CalculationState, CalculationProgress, and CalculationMessage for a global anti-collision job. Poll this lightweight operation instead of repeatedly retrieving the potentially large result payload.";
         else if (action.StartsWith("Post", StringComparison.Ordinal))
             detail = DescribeCreate(controller, resource);
         else if ((controller is "TrajectoryIdentity" or "TrajectoryFeatureCategory") && action.StartsWith("Put", StringComparison.Ordinal))
@@ -104,8 +114,8 @@ internal static class TrajectoryMcpToolMetadata
                 : "Return the serialized spatial-octree codes cached for the trajectory UUID. These are derived acceleration data for anti-collision and proximity calculations. Normal trajectory writes maintain them automatically; inspect status rather than rebuilding routinely.";
         else if (controller == "GlobalAntiCollisions" && action == "Get")
             detail = method.GetParameters().Length == 0
-                ? "List the string identifiers of all global anti-collision configurations. Use an identifier with the by-id tool to inspect the complete configuration."
-                : "Return the complete global anti-collision configuration identified by id, including its trajectory selection and calculation settings.";
+                ? "List the string identifiers of all global anti-collision calculation jobs. Use an identifier with the by-id tool to inspect progress or retrieve completed results."
+                : "Return one global anti-collision job, including CalculationState, CalculationProgress, CalculationMessage, and any results produced so far. Poll this lightweight request until the state is Completed or Failed.";
         else
             detail = $"Operate on {resource}.";
 
@@ -216,7 +226,7 @@ internal static class TrajectoryMcpToolMetadata
         if (controller is "TrajectoryIdentity" or "TrajectoryFeatureCategory")
             return $"Create {resource}. MetaInfo.ID must be a caller-assigned, non-empty UUID. Feature option IDs must also be non-empty UUIDs.";
         if (controller == "GlobalAntiCollisions")
-            return "Create a global anti-collision configuration. Supply the complete configuration body with its unique string identity and trajectory-selection/calculation settings.";
+            return "Create and queue a global anti-collision calculation. Supply a unique string ID, one reference trajectory or well-path ID, the selected comparison trajectory IDs, and the confidence factor. The service returns immediately, derives state/progress/results, and continues independently of the caller's HTTP request. Poll the by-id tool until CalculationState is Completed or Failed.";
         return $"Create {resource}. data.MetaInfo.ID must be a caller-assigned, non-empty UUID that is not already stored; duplicate identifiers are rejected. Supply SI values: lengths/depths in metres, angles in radians and curvature in radians per metre.";
     }
 
@@ -228,6 +238,7 @@ internal static class TrajectoryMcpToolMetadata
             "id" when controller == "GlobalAntiCollisions" => "Unique string identifier of the global anti-collision configuration.",
             "id" when controller == "Octrees" => "Non-empty UUID of the trajectory whose spatial octree is addressed.",
             "id" => $"Non-empty UUID of the {SplitWords(controller).ToLowerInvariant()} resource.",
+            "jobId" when controller == "Octrees" => "Server-generated non-empty UUID of the transient octree-search job.",
             "caseId" => "Non-empty UUID of the trajectory aggregation case.",
             "trajectoryId" when controller == "TrajectoryAggregationCase" => "Non-empty UUID of the trajectory within the aggregation case.",
             "trajectoryId" => "Non-empty UUID of the source trajectory.",
@@ -254,9 +265,10 @@ internal static class TrajectoryMcpToolMetadata
             "chunk" => "Complete survey-measurement chunk. SurveyRunID and ChunkIndex must match the route arguments; MD is metres and Inclination/Azimuth are radians.",
             "request" when controller == "Trajectory" && action == "BatchExport" => "Backup scope and optional survey-run and trajectory UUID selections. For Selected, provide at least one UUID; dependent survey runs are added automatically.",
             "request" when controller == "Trajectory" && action == "BatchRestore" => "Complete backup document plus record-conflict and catalog-resolution policies. Restore validates the full graph before writing records.",
+            "request" when controller == "Octrees" && action == "QueueSearch" => "Octree search filters and the non-empty UUID of the current reference trajectory index.",
             "request" when action == "AuditExternalReferences" => "Audit scope (All or Selected), optional selected resource UUIDs, and deterministic offset/limit page. Selected UUIDs must be non-empty and unique; limit is 1 through 100.",
             "data" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation. Follow the nested schema and SI-unit annotations.",
-            "value" when controller == "GlobalAntiCollisions" => "Complete global anti-collision configuration JSON representation.",
+            "value" when controller == "GlobalAntiCollisions" => "Global anti-collision request. CalculationState, CalculationProgress, CalculationMessage, and SeparationFactorResults are server-derived and ignored on create or update.",
             "value" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation.",
             _ => $"Value for {SplitWords(action).ToLowerInvariant()}."
         };
@@ -373,6 +385,28 @@ internal static class TrajectoryMcpToolMetadata
                  nameof(OctreeIndexStatus.SurveyStationCount) or
                  nameof(OctreeIndexStatus.BucketCount) or
                  nameof(OctreeIndexStatus.OctreeCodeCount))
+        {
+            required.Add(property.Name);
+        }
+        else if (declaringType == typeof(OctreeSearchJobRequest))
+        {
+            if (property.Name == nameof(OctreeSearchJobRequest.ReferenceTrajectoryID))
+                required.Add(property.Name);
+            else if (property.Name is nameof(OctreeSearchJobRequest.IncludePlanned) or
+                     nameof(OctreeSearchJobRequest.IncludeActual) or
+                     nameof(OctreeSearchJobRequest.DefinitiveOnly))
+                schema["default"] = true;
+        }
+        else if (declaringType == typeof(OctreeSearchJobStatus) && property.Name is
+                 nameof(OctreeSearchJobStatus.JobID) or
+                 nameof(OctreeSearchJobStatus.ReferenceTrajectoryID) or
+                 nameof(OctreeSearchJobStatus.CalculationState) or
+                 nameof(OctreeSearchJobStatus.CalculationProgress) or
+                 nameof(OctreeSearchJobStatus.CreatedUtc))
+        {
+            required.Add(property.Name);
+        }
+        else if (declaringType == typeof(OctreeSearchJobResult))
         {
             required.Add(property.Name);
         }

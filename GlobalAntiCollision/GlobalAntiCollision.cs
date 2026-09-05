@@ -43,6 +43,22 @@ namespace OSDC.Drilling.GlobalAntiCollision
         /// the set of Results associated with the investigated trajectory
         /// </summary>
         public List<SeparationFactorResult> SeparationFactorResults { get; set; } = [];
+
+        /// <summary>
+        /// Current state of an asynchronously executed anti-collision calculation.
+        /// Existing persisted records without this property deserialize as completed.
+        /// </summary>
+        public GlobalAntiCollisionCalculationState CalculationState { get; set; } = GlobalAntiCollisionCalculationState.Completed;
+
+        /// <summary>
+        /// Completed fraction of the calculation, from 0 to 1.
+        /// </summary>
+        public double CalculationProgress { get; set; } = 1.0;
+
+        /// <summary>
+        /// Human-readable, non-sensitive description of the current calculation stage.
+        /// </summary>
+        public string? CalculationMessage { get; set; }
         
         /// <summary>
         /// default constructor
@@ -78,6 +94,9 @@ namespace OSDC.Drilling.GlobalAntiCollision
                 dest.ReferenceTrajectoryID = ReferenceTrajectoryID;
                 dest.ComparisonTrajectoryIDs = [.. ComparisonTrajectoryIDs];
                 dest.ConfidenceFactor = ConfidenceFactor;
+                dest.CalculationState = CalculationState;
+                dest.CalculationProgress = CalculationProgress;
+                dest.CalculationMessage = CalculationMessage;
                 dest.SeparationFactorResults ??= [];
                 dest.SeparationFactorResults.Clear();
                 foreach (SeparationFactorResult sf in SeparationFactorResults)
@@ -113,7 +132,8 @@ namespace OSDC.Drilling.GlobalAntiCollision
             List<MeasuredDepthRange?>? referenceMdRanges = null,
             List<MeasuredDepthRange?>? comparisonMdRanges = null,
             List<double?>? referenceMinimumMDs = null,
-            List<double?>? comparisonMinimumMDs = null)
+            List<double?>? comparisonMinimumMDs = null,
+            Action<int, int>? progressCallback = null)
         {
             if (comparisonSurveyLists != null && referenceSurveyList != null)
             {
@@ -139,6 +159,7 @@ namespace OSDC.Drilling.GlobalAntiCollision
 
                     if (surveysRef.Count == 0 || surveysCmp.Count == 0)
                     {
+                        progressCallback?.Invoke(i + 1, comparisonSurveyLists.Count);
                         continue;
                     }
 
@@ -165,6 +186,7 @@ namespace OSDC.Drilling.GlobalAntiCollision
                         referenceMinimumMD.HasValue ? null : sharedReferenceCache);
                     if (directionalProfile == null)
                     {
+                        progressCallback?.Invoke(i + 1, comparisonSurveyLists.Count);
                         continue;
                     }
 
@@ -190,6 +212,7 @@ namespace OSDC.Drilling.GlobalAntiCollision
                     ExpandMdRangesToProfile(sfr);
 
                     SeparationFactorResults.Add(sfr);
+                    progressCallback?.Invoke(i + 1, comparisonSurveyLists.Count);
                 }
             }
         }

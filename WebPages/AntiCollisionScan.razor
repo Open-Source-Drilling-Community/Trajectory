@@ -30,7 +30,7 @@
         Find trajectories whose 99.9% uncertainty envelopes overlap the reference trajectory, then calculate separation factors only over relevant measured-depth ranges.
     </MudText>
 
-    @if (isLoading_)
+    @if (isLoading_ && !isCalculating_ && !isScanning_)
     {
         <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
     }
@@ -80,6 +80,7 @@
             </MudItem>
             <MudItem xs="12" sm="6" lg="4">
                 <MudSelect Label="Trajectory" T="Guid?" Value="@selectedReferenceTrajectoryId_" ValueChanged="@OnReferenceTrajectoryChanged"
+                           ToStringFunc="@GetReferenceTrajectoryDisplayName"
                            Clearable="true" ShrinkLabel Disabled="@(selectedWellBoreId_ == null)">
                     @foreach (TrajectoryLight trajectory in AvailableReferenceTrajectories)
                     {
@@ -111,6 +112,13 @@
         {
             <MudText Typo="Typo.caption" Color="Color.Error">Select planned, actual, or both.</MudText>
         }
+        @if (isScanning_)
+        {
+            <MudProgressLinear Value="@(scanProgress_ * 100.0)" Color="Color.Primary" Class="mt-3 mb-1" />
+            <MudText Typo="Typo.caption" Color="Color.Secondary">
+                @scanMessage_ (@scanProgress_.ToString("P0"))
+            </MudText>
+        }
     </MudPaper>
 
     @if (hasScanned_)
@@ -127,6 +135,14 @@
                 </MudButton>
             </MudToolBar>
 
+            @if (isCalculating_)
+            {
+                <MudProgressLinear Value="@(calculationProgress_ * 100.0)" Color="Color.Primary" Class="mb-1" />
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
+                    @calculationMessage_ (@calculationProgress_.ToString("P0"))
+                </MudText>
+            }
+
             @if (candidateTrajectories_.Count == 0)
             {
                 <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">No indexed uncertainty envelopes overlap the reference trajectory for these filters.</MudAlert>
@@ -137,7 +153,6 @@
                     <HeaderContent>
                         <MudTh></MudTh>
                         <MudTh>Trajectory</MudTh>
-                        <MudTh>Field</MudTh>
                         <MudTh>Cluster</MudTh>
                         <MudTh>Well</MudTh>
                         <MudTh>WellBore</MudTh>
@@ -151,7 +166,6 @@
                                          Color="Color.Primary" />
                         </MudTd>
                         <MudTd DataLabel="Trajectory">@context.Name</MudTd>
-                        <MudTd DataLabel="Field">@GetFieldName(context)</MudTd>
                         <MudTd DataLabel="Cluster">@GetClusterName(context)</MudTd>
                         <MudTd DataLabel="Well">@GetWellName(context)</MudTd>
                         <MudTd DataLabel="WellBore">@GetWellBoreName(context)</MudTd>
@@ -216,7 +230,7 @@
                              XValuesList="@PlotSafetyFactors" YValuesList="@PlotReferenceDepths"
                              XAxisTitle="Separation factor" YAxisTitle="Reference MD"
                              XUnit="DimensionLessStandard" YUnit="DepthDrilling"
-                             XAxisStartsAtZero="true" YAxisReversed="true" />
+                             XAxisStartsAtZero="true" YAxisUsesDepthReference="true" YAxisReversed="true" />
             </MudPaper>
         }
     }
@@ -253,13 +267,19 @@
     private bool definitiveOnly_ = true;
     private bool showAllReferenceDepths_;
     private bool isLoading_;
+    private bool isScanning_;
+    private bool isCalculating_;
     private bool hasScanned_;
+    private double calculationProgress_;
+    private string calculationMessage_ = string.Empty;
+    private double scanProgress_;
+    private string scanMessage_ = string.Empty;
     private string? errorMessage_;
 
     private bool CanScan => !isLoading_ && selectedReferenceTrajectoryId_.HasValue && (includePlanned_ || includeActual_);
     private bool CanCalculate => !isLoading_ && selectedCandidateIds_.Count > 0;
     private IReadOnlyList<SafetyFactorTableRow> DisplayedTableRows => showAllReferenceDepths_ ? allTableRows_ : condensedTableRows_;
-    private string MeasuredDepthUnitLabel => unitReferenceTag_?.GetUnitLabel("DepthDrilling") ?? "m";
+    private string MeasuredDepthUnitLabel => unitReferenceTag_?.GetDepthUnitLabel("DepthDrilling") ?? "m";
     private List<string> PlotNames => plotSeries_.Select(series => series.Name).ToList();
     private List<int> PlotModes => plotSeries_.Select(_ => 1).ToList();
     private List<string> PlotColors => plotSeries_.Select(series => series.Color).ToList();
@@ -411,11 +431,52 @@
         isLoading_ = true;
         errorMessage_ = null;
         ResetResults();
+        Guid? searchJobId = null;
+        bool cleanupSearchJob = false;
         try
         {
-            List<Guid> candidateIds = await Api.ClientTrajectory.SearchOctreeIndexAsync(
-                referenceId, includePlanned_, includeActual_, definitiveOnly_);
-            HashSet<Guid> candidates = [.. candidateIds];
+            var request = new OctreeSearchJobRequest
+            {
+                ReferenceTrajectoryID = referenceId,
+                IncludePlanned = includePlanned_,
+                IncludeActual = includeActual_,
+                DefinitiveOnly = definitiveOnly_
+            };
+            OctreeSearchJobStatus status = await Api.ClientTrajectory.QueueOctreeSearchAsync(request);
+            searchJobId = status.JobID;
+            isScanning_ = true;
+            UpdateScanProgress(status);
+
+            int consecutivePollingFailures = 0;
+            while (status.CalculationState is CalculationState.Queued or CalculationState.Running)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                try
+                {
+                    status = await Api.ClientTrajectory.GetOctreeSearchStatusAsync(searchJobId.Value);
+                    consecutivePollingFailures = 0;
+                    UpdateScanProgress(status);
+                    await InvokeAsync(StateHasChanged);
+                }
+                catch (Exception ex) when (++consecutivePollingFailures < 5)
+                {
+                    Logger.LogWarning(ex,
+                        "Transient failure while polling octree search {SearchJobId} ({FailureCount}/5)",
+                        searchJobId, consecutivePollingFailures);
+                    scanMessage_ = "Waiting for a progress update";
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+
+            cleanupSearchJob = true;
+            if (status.CalculationState == CalculationState.Failed)
+            {
+                errorMessage_ = status.CalculationMessage ?? "The octree anti-collision scan failed.";
+                return;
+            }
+
+            OctreeSearchJobResult result = await Api.ClientTrajectory.GetOctreeSearchResultAsync(searchJobId.Value);
+            HashSet<Guid> candidates = [.. result.CandidateTrajectoryIDs];
             candidateTrajectories_ = trajectories_
                 .Where(item => item.MetaInfo?.ID is Guid id && candidates.Contains(id))
                 .OrderBy(item => item.Name)
@@ -438,8 +499,35 @@
         }
         finally
         {
+            if (searchJobId.HasValue && cleanupSearchJob)
+            {
+                try
+                {
+                    await Api.ClientTrajectory.DeleteOctreeSearchAsync(searchJobId.Value);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning(ex, "Unable to remove transient octree search {SearchJobId}", searchJobId);
+                }
+            }
+            isScanning_ = false;
+            scanProgress_ = 0.0;
+            scanMessage_ = string.Empty;
             isLoading_ = false;
         }
+    }
+
+    private void UpdateScanProgress(OctreeSearchJobStatus status)
+    {
+        scanProgress_ = Math.Clamp(status.CalculationProgress, 0.0, 1.0);
+        scanMessage_ = status.CalculationMessage ?? status.CalculationState switch
+        {
+            CalculationState.Queued => "Octree scan queued",
+            CalculationState.Running => "Searching octree indexes",
+            CalculationState.Completed => "Octree scan completed",
+            CalculationState.Failed => "Octree scan failed",
+            _ => "Searching octree indexes"
+        };
     }
 
     private async Task CalculateAsync()
@@ -453,6 +541,7 @@
         errorMessage_ = null;
         string calculationId = $"web-scan-{Guid.NewGuid():N}";
         bool created = false;
+        bool cleanupCalculation = false;
         try
         {
             referenceTrajectory_ = await Api.ClientTrajectory.GetTrajectoryByIdAsync(referenceId, true);
@@ -467,6 +556,47 @@
             };
             calculationResult_ = await Api.ClientTrajectory.GlobalAntiCollisionsPOSTAsync(request);
             created = true;
+            isCalculating_ = true;
+            UpdateCalculationProgress(calculationResult_);
+            GlobalAntiCollisionCalculationStatus status = new()
+            {
+                ID = calculationId,
+                CalculationState = calculationResult_.CalculationState,
+                CalculationProgress = calculationResult_.CalculationProgress,
+                CalculationMessage = calculationResult_.CalculationMessage
+            };
+
+            int consecutivePollingFailures = 0;
+            while (status.CalculationState is GlobalAntiCollisionCalculationState.Queued or GlobalAntiCollisionCalculationState.Running)
+            {
+                await Task.Delay(TimeSpan.FromSeconds(1));
+                try
+                {
+                    status = await Api.ClientTrajectory.StatusAsync(calculationId);
+                    consecutivePollingFailures = 0;
+                    UpdateCalculationProgress(status);
+                    await InvokeAsync(StateHasChanged);
+                }
+                catch (Exception ex) when (++consecutivePollingFailures < 5)
+                {
+                    Logger.LogWarning(ex,
+                        "Transient failure while polling anti-collision calculation {CalculationId} ({FailureCount}/5)",
+                        calculationId, consecutivePollingFailures);
+                    calculationMessage_ = "Waiting for a progress update";
+                    await InvokeAsync(StateHasChanged);
+                }
+            }
+
+            if (status.CalculationState == GlobalAntiCollisionCalculationState.Failed)
+            {
+                cleanupCalculation = true;
+                errorMessage_ = status.CalculationMessage ?? "The separation-factor calculation failed.";
+                calculationResult_ = null;
+                return;
+            }
+
+            calculationResult_ = await Api.ClientTrajectory.GlobalAntiCollisionsGETAsync(calculationId);
+            cleanupCalculation = true;
             BuildPresentationData();
             if ((calculationResult_.SeparationFactorResults?.Count ?? 0) < selectedCandidateIds_.Count)
             {
@@ -481,7 +611,7 @@
         }
         finally
         {
-            if (created)
+            if (created && cleanupCalculation)
             {
                 try
                 {
@@ -492,8 +622,37 @@
                     Logger.LogWarning(ex, "Unable to remove transient anti-collision calculation {CalculationId}", calculationId);
                 }
             }
+            isCalculating_ = false;
+            calculationProgress_ = 0.0;
+            calculationMessage_ = string.Empty;
             isLoading_ = false;
         }
+    }
+
+    private void UpdateCalculationProgress(GlobalAntiCollision calculation)
+    {
+        calculationProgress_ = Math.Clamp(calculation.CalculationProgress, 0.0, 1.0);
+        calculationMessage_ = calculation.CalculationMessage ?? calculation.CalculationState switch
+        {
+            GlobalAntiCollisionCalculationState.Queued => "Calculation queued",
+            GlobalAntiCollisionCalculationState.Running => "Calculating separation factors",
+            GlobalAntiCollisionCalculationState.Completed => "Calculation completed",
+            GlobalAntiCollisionCalculationState.Failed => "Calculation failed",
+            _ => "Calculating separation factors"
+        };
+    }
+
+    private void UpdateCalculationProgress(GlobalAntiCollisionCalculationStatus status)
+    {
+        calculationProgress_ = Math.Clamp(status.CalculationProgress, 0.0, 1.0);
+        calculationMessage_ = status.CalculationMessage ?? status.CalculationState switch
+        {
+            GlobalAntiCollisionCalculationState.Queued => "Calculation queued",
+            GlobalAntiCollisionCalculationState.Running => "Calculating separation factors",
+            GlobalAntiCollisionCalculationState.Completed => "Calculation completed",
+            GlobalAntiCollisionCalculationState.Failed => "Calculation failed",
+            _ => "Calculating separation factors"
+        };
     }
 
     private void BuildPresentationData()
@@ -656,8 +815,10 @@
     private Well? FindWell(Guid id) => wells_.FirstOrDefault(item => item.MetaInfo?.ID == id);
     private WellBore? FindWellBore(Guid id) => wellBores_.FirstOrDefault(item => item.MetaInfo?.ID == id);
     private TrajectoryLight? FindTrajectory(Guid id) => trajectories_.FirstOrDefault(item => item.MetaInfo?.ID == id);
+    private string GetReferenceTrajectoryDisplayName(Guid? id) => id is Guid trajectoryId
+        ? FindTrajectory(trajectoryId)?.Name ?? trajectoryId.ToString()
+        : string.Empty;
     private string GetTrajectoryName(Guid id) => FindTrajectory(id)?.Name ?? id.ToString();
-    private string GetFieldName(TrajectoryLight trajectory) => trajectory.FieldID is Guid id ? FindField(id)?.Name ?? "-" : "-";
     private string GetClusterName(TrajectoryLight trajectory)
     {
         if (trajectory.WellID is Guid wellId && FindWell(wellId)?.IsSingleWell == true) return "Single well";
@@ -666,9 +827,12 @@
     private string GetWellName(TrajectoryLight trajectory) => trajectory.WellID is Guid id ? FindWell(id)?.Name ?? "-" : "-";
     private string GetWellBoreName(TrajectoryLight trajectory) => FindWellBore(trajectory.WellBoreID)?.Name ?? "-";
     private static double DepthKey(double value) => Math.Round(value, MdPrecision, MidpointRounding.AwayFromZero);
-    private string FormatMeasuredDepth(double value) => (unitReferenceTag_?.FromSI(value, "DepthDrilling") ?? value).ToString("0.###");
-    private static string FormatSafetyFactor(SafetyFactorTableRow row, Guid trajectoryId) =>
-        row.Values.TryGetValue(trajectoryId, out double? value) && value.HasValue ? value.Value.ToString("0.###") : "-";
+    private string FormatMeasuredDepth(double value) =>
+        unitReferenceTag_?.FromWGS84DepthSI(value, "DepthDrilling", false) ?? value.ToString();
+    private string FormatSafetyFactor(SafetyFactorTableRow row, Guid trajectoryId) =>
+        row.Values.TryGetValue(trajectoryId, out double? value) && value.HasValue
+            ? unitReferenceTag_?.FromSI(value.Value, "DimensionLessStandard", false) ?? value.Value.ToString()
+            : "-";
 
     private sealed class SafetyFactorTableRow
     {

@@ -17228,6 +17228,35 @@
         }
       }
     },
+    "/GlobalAntiCollisions/{id}/Status": {
+      "get": {
+        "tags": [
+          "GlobalAntiCollisions"
+        ],
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/GlobalAntiCollisionCalculationStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Octrees/{id}/Status": {
       "get": {
         "tags": [
@@ -17314,6 +17343,131 @@
                 }
               }
             }
+          }
+        }
+      }
+    },
+    "/Octrees/SearchJobs": {
+      "post": {
+        "tags": [
+          "Octrees"
+        ],
+        "operationId": "QueueOctreeSearch",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OctreeSearchJobRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OctreeSearchJobRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OctreeSearchJobRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OctreeSearchJobStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Octrees/SearchJobs/{jobId}/Status": {
+      "get": {
+        "tags": [
+          "Octrees"
+        ],
+        "operationId": "GetOctreeSearchStatus",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OctreeSearchJobStatus"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Octrees/SearchJobs/{jobId}/Result": {
+      "get": {
+        "tags": [
+          "Octrees"
+        ],
+        "operationId": "GetOctreeSearchResult",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OctreeSearchJobResult"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/Octrees/SearchJobs/{jobId}": {
+      "delete": {
+        "tags": [
+          "Octrees"
+        ],
+        "operationId": "DeleteOctreeSearch",
+        "parameters": [
+          {
+            "name": "jobId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
           }
         }
       }
@@ -28724,6 +28878,17 @@
               "$ref": "#/components/schemas/SeparationFactorResult"
             },
             "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/GlobalAntiCollisionCalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
           }
         }
       },
@@ -38776,6 +38941,35 @@
         },
         "additionalProperties": { }
       },
+      "GlobalAntiCollisionCalculationState": {
+        "enum": [
+          "Completed",
+          "Queued",
+          "Running",
+          "Failed"
+        ],
+        "type": "string"
+      },
+      "GlobalAntiCollisionCalculationStatus": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "nullable": true
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/GlobalAntiCollisionCalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
       "ExternalReferenceAuditScope": {
         "enum": [
           "All",
@@ -38868,6 +39062,83 @@
           },
           "CalculationParametersHash": {
             "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "OctreeSearchJobRequest": {
+        "type": "object",
+        "properties": {
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "IncludePlanned": {
+            "type": "boolean"
+          },
+          "IncludeActual": {
+            "type": "boolean"
+          },
+          "DefinitiveOnly": {
+            "type": "boolean"
+          }
+        }
+      },
+      "OctreeSearchJobResult": {
+        "type": "object",
+        "properties": {
+          "JobID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "CandidateTrajectoryIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "OctreeSearchJobStatus": {
+        "type": "object",
+        "properties": {
+          "JobID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "CandidateCount": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "CreatedUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "CompletedUtc": {
+            "type": "string",
+            "format": "date-time",
             "nullable": true
           }
         }
