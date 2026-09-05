@@ -342,13 +342,34 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             return Replace(codes, trajectoryID, type, isDefinitive, null);
         }
 
-        public List<Guid> Search(List<OctreeCodeLong>? codes, bool isPlanned, bool isMeasured, bool isDefinitive, Guid? investigatedTrajectoryID = null)
+        public List<Guid> Search(List<OctreeCodeLong>? codes, bool isPlanned, bool isMeasured,
+            bool isDefinitive, Guid? investigatedTrajectoryID = null)
         {
             TrajectoryType type = isPlanned && !isMeasured ? TrajectoryType.Planned : TrajectoryType.Actual;
             return Search(codes, type, isDefinitive, investigatedTrajectoryID);
         }
 
         public List<Guid> Search(List<OctreeCodeLong>? codes, TrajectoryType trajectoryType, bool isDefinitive, Guid? investigatedTrajectoryID = null)
+        {
+            return SearchCore(codes, trajectoryType, isDefinitive, investigatedTrajectoryID);
+        }
+
+        public List<Guid> SearchByClassification(List<OctreeCodeLong>? codes, bool includePlanned, bool includeActual,
+            bool definitiveOnly, Guid? investigatedTrajectoryID = null)
+        {
+            if (!includePlanned && !includeActual)
+            {
+                return [];
+            }
+
+            TrajectoryType? trajectoryType = includePlanned == includeActual
+                ? null
+                : includePlanned ? TrajectoryType.Planned : TrajectoryType.Actual;
+            return SearchCore(codes, trajectoryType, definitiveOnly ? true : null, investigatedTrajectoryID);
+        }
+
+        private List<Guid> SearchCore(List<OctreeCodeLong>? codes, TrajectoryType? trajectoryType,
+            bool? isDefinitive, Guid? investigatedTrajectoryID)
         {
             List<Guid> trajectoryIDs = [];
             if (codes == null || codes.Count == 0)
@@ -409,7 +430,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
         }
 
-        private List<Pair<OctreeCodeLong, Guid>> GetDetails(List<OctreeCodeLong>? truncatedCodes, TrajectoryType trajectoryType, bool isDefinitive, Guid? ignoredTrajectoryID = null)
+        private List<Pair<OctreeCodeLong, Guid>> GetDetails(List<OctreeCodeLong>? truncatedCodes,
+            TrajectoryType? trajectoryType, bool? isDefinitive, Guid? ignoredTrajectoryID = null)
         {
             if (truncatedCodes == null || truncatedCodes.Count == 0)
             {
@@ -467,11 +489,18 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                    AND c.OctreeCodeCacheLow = membership.OctreeCodeCacheLow
                 INNER JOIN {SqlConnectionManagerOctree.TrajectoryStateTableName} state
                     ON state.TrajectoryID = membership.TrajectoryID
-                WHERE state.TrajectoryType = @trajectoryType
-                  AND state.IsDefinitive = @isDefinitive
+                WHERE 1 = 1
                 """;
-            command.Parameters.AddWithValue("@trajectoryType", trajectoryType.ToString());
-            command.Parameters.AddWithValue("@isDefinitive", isDefinitive);
+            if (trajectoryType.HasValue)
+            {
+                command.CommandText += " AND state.TrajectoryType = @trajectoryType";
+                command.Parameters.AddWithValue("@trajectoryType", trajectoryType.Value.ToString());
+            }
+            if (isDefinitive.HasValue)
+            {
+                command.CommandText += " AND state.IsDefinitive = @isDefinitive";
+                command.Parameters.AddWithValue("@isDefinitive", isDefinitive.Value);
+            }
             if (ignoredTrajectoryID != null)
             {
                 command.CommandText += " AND membership.TrajectoryID <> @ignoredTrajectoryId";

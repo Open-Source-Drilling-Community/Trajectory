@@ -1,0 +1,682 @@
+@page "/AntiCollisionScan"
+@inject ILogger<AntiCollisionScan> Logger
+@inject ISnackbar Snackbar
+@inject ITrajectoryAPIUtils Api
+
+<MudUnitAndReferenceChoiceTag @ref="unitReferenceTag_"
+                              HttpHost="@Api.HostNameUnitConversion"
+                              HttpBasePath="@Api.HostBasePathUnitConversion"
+                              HttpController="UnitSystem/"
+                              UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
+                              UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName"
+                              DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
+                              DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
+                              GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                              MeanSeaLevelDepthReferenceSource="@DataUtils.MeanSeaLevelDepthReferenceSource"
+                              SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
+                              RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
+                              PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
+                              PositionReferenceNameChanged="@DataUtils.UpdatePositionReferenceName"
+                              WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
+                              CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
+                              FieldPositionReferenceSource="@DataUtils.FieldPositionReferenceSource"
+                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource"
+                              AzimuthReferenceName="@DataUtils.UnitAndReferenceParameters.AzimuthReferenceName"
+                              AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName"
+                              GridConvergenceSource="@DataUtils.GridConvergenceSource"
+                              MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource">
+    <MudText Typo="Typo.h5" Class="mt-4 mb-1">Anti-collision scan</MudText>
+    <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-4">
+        Find trajectories whose 99.9% uncertainty envelopes overlap the reference trajectory, then calculate separation factors only over relevant measured-depth ranges.
+    </MudText>
+
+    @if (isLoading_)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Primary" Class="mb-4" />
+    }
+
+    @if (!string.IsNullOrWhiteSpace(errorMessage_))
+    {
+        <MudAlert Severity="Severity.Error" Variant="Variant.Outlined" Class="mb-4">@errorMessage_</MudAlert>
+    }
+
+    <MudPaper Outlined="true" Class="pa-4 mb-4">
+        <MudText Typo="Typo.h6" Class="mb-3">Reference trajectory</MudText>
+        <MudGrid>
+            <MudItem xs="12" sm="6" lg="2">
+                <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId_" ValueChanged="@OnFieldChanged" Clearable="true" ShrinkLabel>
+                    @foreach (Field field in AvailableFields)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6" lg="2">
+                <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId_" ValueChanged="@OnClusterChanged"
+                           Clearable="true" ShrinkLabel Disabled="@(selectedFieldId_ == null)">
+                    @foreach (Cluster cluster in AvailableClusters)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6" lg="2">
+                <MudSelect Label="Well" T="Guid?" Value="@selectedWellId_" ValueChanged="@OnWellChanged"
+                           Clearable="true" ShrinkLabel Disabled="@(selectedFieldId_ == null)">
+                    @foreach (Well well in AvailableWells)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6" lg="2">
+                <MudSelect Label="WellBore" T="Guid?" Value="@selectedWellBoreId_" ValueChanged="@OnWellBoreChanged"
+                           Clearable="true" ShrinkLabel Disabled="@(selectedWellId_ == null)">
+                    @foreach (WellBore wellBore in AvailableWellBores)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)wellBore.MetaInfo.ID)">@wellBore.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" sm="6" lg="4">
+                <MudSelect Label="Trajectory" T="Guid?" Value="@selectedReferenceTrajectoryId_" ValueChanged="@OnReferenceTrajectoryChanged"
+                           Clearable="true" ShrinkLabel Disabled="@(selectedWellBoreId_ == null)">
+                    @foreach (TrajectoryLight trajectory in AvailableReferenceTrajectories)
+                    {
+                        <MudSelectItem T="Guid?" Value="@((Guid?)trajectory.MetaInfo.ID)">@trajectory.Name</MudSelectItem>
+                    }
+                </MudSelect>
+            </MudItem>
+        </MudGrid>
+
+        <MudDivider Class="my-4" />
+        <MudGrid Class="align-center">
+            <MudItem xs="12" sm="4" md="3">
+                <MudCheckBox T="bool" Value="@includePlanned_" ValueChanged="@OnIncludePlannedChanged" Label="Include planned" Color="Color.Primary" />
+            </MudItem>
+            <MudItem xs="12" sm="4" md="3">
+                <MudCheckBox T="bool" Value="@includeActual_" ValueChanged="@OnIncludeActualChanged" Label="Include actual" Color="Color.Primary" />
+            </MudItem>
+            <MudItem xs="12" sm="4" md="3">
+                <MudCheckBox T="bool" Value="@definitiveOnly_" ValueChanged="@OnDefinitiveOnlyChanged" Label="Definitive only" Color="Color.Primary" />
+            </MudItem>
+            <MudItem xs="12" md="3" Class="d-flex justify-end">
+                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Search"
+                           OnClick="@ScanAsync" Disabled="@(!CanScan)">
+                    Scan
+                </MudButton>
+            </MudItem>
+        </MudGrid>
+        @if (!includePlanned_ && !includeActual_)
+        {
+            <MudText Typo="Typo.caption" Color="Color.Error">Select planned, actual, or both.</MudText>
+        }
+    </MudPaper>
+
+    @if (hasScanned_)
+    {
+        <MudPaper Outlined="true" Class="pa-4 mb-4">
+            <MudToolBar Dense="true" Class="px-0">
+                <MudText Typo="Typo.h6">Overlapping trajectories (@candidateTrajectories_.Count)</MudText>
+                <MudSpacer />
+                <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@SelectAllCandidates" Disabled="@(candidateTrajectories_.Count == 0)">All</MudButton>
+                <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@ClearCandidateSelection" Disabled="@(selectedCandidateIds_.Count == 0)">None</MudButton>
+                <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Calculate"
+                           OnClick="@CalculateAsync" Disabled="@(!CanCalculate)">
+                    Calculate safety factors
+                </MudButton>
+            </MudToolBar>
+
+            @if (candidateTrajectories_.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">No indexed uncertainty envelopes overlap the reference trajectory for these filters.</MudAlert>
+            }
+            else
+            {
+                <MudTable Items="@candidateTrajectories_" T="TrajectoryLight" Dense="true" Hover="true" Bordered="true" Striped="true" Elevation="0">
+                    <HeaderContent>
+                        <MudTh></MudTh>
+                        <MudTh>Trajectory</MudTh>
+                        <MudTh>Field</MudTh>
+                        <MudTh>Cluster</MudTh>
+                        <MudTh>Well</MudTh>
+                        <MudTh>WellBore</MudTh>
+                        <MudTh>Type</MudTh>
+                        <MudTh>Definitive</MudTh>
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Selected">
+                            <MudCheckBox T="bool" Value="@IsCandidateSelected(context)"
+                                         ValueChanged="@((bool selected) => SetCandidateSelected(context, selected))"
+                                         Color="Color.Primary" />
+                        </MudTd>
+                        <MudTd DataLabel="Trajectory">@context.Name</MudTd>
+                        <MudTd DataLabel="Field">@GetFieldName(context)</MudTd>
+                        <MudTd DataLabel="Cluster">@GetClusterName(context)</MudTd>
+                        <MudTd DataLabel="Well">@GetWellName(context)</MudTd>
+                        <MudTd DataLabel="WellBore">@GetWellBoreName(context)</MudTd>
+                        <MudTd DataLabel="Type">@context.TrajectoryType</MudTd>
+                        <MudTd DataLabel="Definitive">@(context.IsDefinitive ? "Yes" : "No")</MudTd>
+                    </RowTemplate>
+                </MudTable>
+            }
+        </MudPaper>
+    }
+
+    @if (calculationResult_ != null)
+    {
+        <MudPaper Outlined="true" Class="pa-4 mb-4">
+            <MudToolBar Dense="true" Class="px-0">
+                <MudText Typo="Typo.h6">Separation factors</MudText>
+                <MudSpacer />
+                <MudSwitch T="bool" @bind-Value="showAllReferenceDepths_" Color="Color.Primary"
+                           Label="Show every reference survey depth" />
+            </MudToolBar>
+            <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
+                @(showAllReferenceDepths_
+                    ? "All reference survey depths are shown; a dash means no separation calculation was needed for that trajectory at that depth."
+                    : "Only reference depths having at least one calculated comparison are shown.")
+            </MudText>
+
+            @if (resultTrajectoryIds_.Count == 0)
+            {
+                <MudAlert Severity="Severity.Info" Variant="Variant.Outlined">The selected candidates produced no relevant separation-factor intervals.</MudAlert>
+            }
+            else
+            {
+                <MudTable Items="@DisplayedTableRows" T="SafetyFactorTableRow" Height="420px" FixedHeader="true"
+                          Virtualize="true" Dense="true" Hover="true" Bordered="true" Striped="true" Elevation="0">
+                    <HeaderContent>
+                        <MudTh>Reference MD [@MeasuredDepthUnitLabel]</MudTh>
+                        @foreach (Guid trajectoryId in resultTrajectoryIds_)
+                        {
+                            <MudTh>@GetTrajectoryName(trajectoryId)</MudTh>
+                        }
+                    </HeaderContent>
+                    <RowTemplate>
+                        <MudTd DataLabel="Reference MD">@FormatMeasuredDepth(context.ReferenceMD)</MudTd>
+                        @foreach (Guid trajectoryId in resultTrajectoryIds_)
+                        {
+                            <MudTd DataLabel="@GetTrajectoryName(trajectoryId)">@FormatSafetyFactor(context, trajectoryId)</MudTd>
+                        }
+                    </RowTemplate>
+                </MudTable>
+            }
+        </MudPaper>
+
+        @if (plotSeries_.Count > 0)
+        {
+            <MudPaper Outlined="true" Class="pa-4 mb-6">
+                <MudText Typo="Typo.h6" Class="mb-1">Separation-factor profiles</MudText>
+                <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
+                    Reference measured depth increases downward. Click a legend entry to show or hide every calculated interval for that trajectory.
+                </MudText>
+                <ScatterPlot NameList="@PlotNames" ModeFlagList="@PlotModes" ColorList="@PlotColors"
+                             ShowLegendList="@PlotShowLegend" LegendGroupList="@PlotLegendGroups" ToggleLegendGroups="true"
+                             XValuesList="@PlotSafetyFactors" YValuesList="@PlotReferenceDepths"
+                             XAxisTitle="Separation factor" YAxisTitle="Reference MD"
+                             XUnit="DimensionLessStandard" YUnit="DepthDrilling"
+                             XAxisStartsAtZero="true" YAxisReversed="true" />
+            </MudPaper>
+        }
+    }
+</MudUnitAndReferenceChoiceTag>
+
+@code {
+    private static readonly string[] PlotPalette =
+        ["#1769aa", "#c23b22", "#4f7d20", "#7b3f98", "#bf7f00", "#00838f", "#8d5a3b", "#455a64"];
+    private const double ConfidenceFactor = 0.999;
+    private const int MdPrecision = 6;
+
+    private MudUnitAndReferenceChoiceTag? unitReferenceTag_;
+    private List<Field> fields_ = [];
+    private List<Cluster> clusters_ = [];
+    private List<Well> wells_ = [];
+    private List<WellBore> wellBores_ = [];
+    private List<Rig> rigs_ = [];
+    private List<TrajectoryLight> trajectories_ = [];
+    private List<TrajectoryLight> candidateTrajectories_ = [];
+    private readonly HashSet<Guid> selectedCandidateIds_ = [];
+    private List<Guid> resultTrajectoryIds_ = [];
+    private List<SafetyFactorTableRow> allTableRows_ = [];
+    private List<SafetyFactorTableRow> condensedTableRows_ = [];
+    private List<SafetyFactorPlotSeries> plotSeries_ = [];
+    private Trajectory? referenceTrajectory_;
+    private GlobalAntiCollision? calculationResult_;
+    private Guid? selectedFieldId_;
+    private Guid? selectedClusterId_;
+    private Guid? selectedWellId_;
+    private Guid? selectedWellBoreId_;
+    private Guid? selectedReferenceTrajectoryId_;
+    private bool includePlanned_ = true;
+    private bool includeActual_ = true;
+    private bool definitiveOnly_ = true;
+    private bool showAllReferenceDepths_;
+    private bool isLoading_;
+    private bool hasScanned_;
+    private string? errorMessage_;
+
+    private bool CanScan => !isLoading_ && selectedReferenceTrajectoryId_.HasValue && (includePlanned_ || includeActual_);
+    private bool CanCalculate => !isLoading_ && selectedCandidateIds_.Count > 0;
+    private IReadOnlyList<SafetyFactorTableRow> DisplayedTableRows => showAllReferenceDepths_ ? allTableRows_ : condensedTableRows_;
+    private string MeasuredDepthUnitLabel => unitReferenceTag_?.GetUnitLabel("DepthDrilling") ?? "m";
+    private List<string> PlotNames => plotSeries_.Select(series => series.Name).ToList();
+    private List<int> PlotModes => plotSeries_.Select(_ => 1).ToList();
+    private List<string> PlotColors => plotSeries_.Select(series => series.Color).ToList();
+    private List<bool> PlotShowLegend => plotSeries_.Select(series => series.ShowLegend).ToList();
+    private List<string> PlotLegendGroups => plotSeries_.Select(series => series.TrajectoryID.ToString()).ToList();
+    private List<List<object>> PlotSafetyFactors => plotSeries_.Select(series => series.Points.Select(point => (object)point.SafetyFactor).ToList()).ToList();
+    private List<List<object>> PlotReferenceDepths => plotSeries_.Select(series => series.Points.Select(point => (object)point.ReferenceMD).ToList()).ToList();
+
+    private List<Field> AvailableFields => fields_.Where(item => item.MetaInfo != null).OrderBy(item => item.Name).ToList();
+    private List<Cluster> AvailableClusters => clusters_
+        .Where(item => item.MetaInfo != null && !item.IsSingleWell && selectedFieldId_ != null && item.FieldID == selectedFieldId_)
+        .OrderBy(item => item.Name).ToList();
+    private List<Well> AvailableWells => wells_
+        .Where(item => item.MetaInfo != null && selectedFieldId_ != null && MatchesSelectedField(item) &&
+                       (selectedClusterId_ == null || item.IsSingleWell || item.ClusterID == selectedClusterId_))
+        .OrderBy(item => item.Name).ToList();
+    private List<WellBore> AvailableWellBores => wellBores_
+        .Where(item => item.MetaInfo != null && selectedWellId_ != null && item.WellID == selectedWellId_)
+        .OrderBy(item => item.Name).ToList();
+    private List<TrajectoryLight> AvailableReferenceTrajectories => trajectories_
+        .Where(item => item.MetaInfo != null && item.CalculationState == CalculationState.Completed &&
+                       (selectedFieldId_ == null || MatchesSelectedField(item)) &&
+                       (selectedClusterId_ == null || item.ClusterID == selectedClusterId_) &&
+                       (selectedWellId_ == null || item.WellID == selectedWellId_) &&
+                       (selectedWellBoreId_ == null || item.WellBoreID == selectedWellBoreId_))
+        .OrderBy(item => item.Name).ToList();
+
+    protected override async Task OnInitializedAsync()
+    {
+        await LoadDataAsync();
+    }
+
+    private async Task LoadDataAsync()
+    {
+        isLoading_ = true;
+        errorMessage_ = null;
+        try
+        {
+            Task<List<Field>> fieldTask = Api.ClientField.GetAllFieldAsync();
+            Task<List<Cluster>> clusterTask = Api.ClientCluster.GetAllClusterAsync();
+            Task<List<Well>> wellTask = Api.ClientWell.GetAllWellAsync();
+            Task<List<WellBore>> wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
+            Task<List<TrajectoryLight>> trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
+            Task<ICollection<Rig>> rigTask = Api.GetAllRigReferencesAsync();
+            await Task.WhenAll(fieldTask, clusterTask, wellTask, wellBoreTask, trajectoryTask, rigTask);
+
+            fields_ = (await fieldTask).OrderBy(item => item.Name).ToList();
+            clusters_ = (await clusterTask).OrderBy(item => item.Name).ToList();
+            wells_ = (await wellTask).OrderBy(item => item.Name).ToList();
+            wellBores_ = (await wellBoreTask).OrderBy(item => item.Name).ToList();
+            trajectories_ = (await trajectoryTask).OrderBy(item => item.Name).ToList();
+            rigs_ = (await rigTask).OrderBy(item => item.Name).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Unable to load anti-collision scan context");
+            errorMessage_ = "Unable to load the trajectory and contextual data required for an anti-collision scan.";
+        }
+        finally
+        {
+            isLoading_ = false;
+        }
+    }
+
+    private Task OnFieldChanged(Guid? value)
+    {
+        selectedFieldId_ = value;
+        selectedClusterId_ = null;
+        selectedWellId_ = null;
+        selectedWellBoreId_ = null;
+        selectedReferenceTrajectoryId_ = null;
+        ResetScan();
+        return Task.CompletedTask;
+    }
+
+    private Task OnClusterChanged(Guid? value)
+    {
+        selectedClusterId_ = value;
+        selectedWellId_ = null;
+        selectedWellBoreId_ = null;
+        selectedReferenceTrajectoryId_ = null;
+        ResetScan();
+        return Task.CompletedTask;
+    }
+
+    private Task OnWellChanged(Guid? value)
+    {
+        selectedWellId_ = value;
+        selectedWellBoreId_ = null;
+        selectedReferenceTrajectoryId_ = null;
+        if (value is Guid wellId && FindWell(wellId) is Well well)
+        {
+            selectedClusterId_ = well.IsSingleWell ? null : well.ClusterID;
+            selectedFieldId_ ??= FindFieldId(well);
+        }
+        ResetScan();
+        return Task.CompletedTask;
+    }
+
+    private Task OnWellBoreChanged(Guid? value)
+    {
+        selectedWellBoreId_ = value;
+        selectedReferenceTrajectoryId_ = null;
+        ResetScan();
+        return Task.CompletedTask;
+    }
+
+    private async Task OnReferenceTrajectoryChanged(Guid? value)
+    {
+        selectedReferenceTrajectoryId_ = value;
+        ResetScan();
+        DataUtils.ApplyTrajectoryReferenceValues(value, trajectories_, wellBores_, wells_, clusters_, rigs_);
+        try
+        {
+            TrajectoryReferenceDatumUtils.Apply(
+                await TrajectoryReferenceDatumUtils.ResolveForTrajectoryAsync(Api, value, trajectories_, wellBores_, wells_, clusters_));
+        }
+        catch (Exception ex)
+        {
+            Logger.LogWarning(ex, "Optional reference-datum lookup failed for anti-collision trajectory {TrajectoryId}", value);
+        }
+    }
+
+    private void OnIncludePlannedChanged(bool value)
+    {
+        includePlanned_ = value;
+        ResetScan();
+    }
+
+    private void OnIncludeActualChanged(bool value)
+    {
+        includeActual_ = value;
+        ResetScan();
+    }
+
+    private void OnDefinitiveOnlyChanged(bool value)
+    {
+        definitiveOnly_ = value;
+        ResetScan();
+    }
+
+    private async Task ScanAsync()
+    {
+        if (!CanScan || selectedReferenceTrajectoryId_ is not Guid referenceId)
+        {
+            return;
+        }
+
+        isLoading_ = true;
+        errorMessage_ = null;
+        ResetResults();
+        try
+        {
+            List<Guid> candidateIds = await Api.ClientTrajectory.SearchOctreeIndexAsync(
+                referenceId, includePlanned_, includeActual_, definitiveOnly_);
+            HashSet<Guid> candidates = [.. candidateIds];
+            candidateTrajectories_ = trajectories_
+                .Where(item => item.MetaInfo?.ID is Guid id && candidates.Contains(id))
+                .OrderBy(item => item.Name)
+                .ToList();
+            selectedCandidateIds_.Clear();
+            selectedCandidateIds_.UnionWith(candidateTrajectories_.Select(item => item.MetaInfo.ID));
+            hasScanned_ = true;
+        }
+        catch (ApiException ex)
+        {
+            Logger.LogError(ex, "Octree scan failed for trajectory {TrajectoryId}", referenceId);
+            errorMessage_ = ex.StatusCode == 409
+                ? "The reference trajectory's spatial index is missing or stale. Save or recalculate the trajectory and try again."
+                : "The octree anti-collision scan failed.";
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Octree scan failed for trajectory {TrajectoryId}", referenceId);
+            errorMessage_ = "The octree anti-collision scan failed.";
+        }
+        finally
+        {
+            isLoading_ = false;
+        }
+    }
+
+    private async Task CalculateAsync()
+    {
+        if (!CanCalculate || selectedReferenceTrajectoryId_ is not Guid referenceId)
+        {
+            return;
+        }
+
+        isLoading_ = true;
+        errorMessage_ = null;
+        string calculationId = $"web-scan-{Guid.NewGuid():N}";
+        bool created = false;
+        try
+        {
+            referenceTrajectory_ = await Api.ClientTrajectory.GetTrajectoryByIdAsync(referenceId, true);
+            var request = new GlobalAntiCollision
+            {
+                ID = calculationId,
+                ConfidenceFactor = ConfidenceFactor,
+                ReferenceTrajectoryID = referenceId,
+                ReferenceWellPathID = Guid.Empty,
+                ComparisonTrajectoryIDs = selectedCandidateIds_.OrderBy(id => id).ToList(),
+                SeparationFactorResults = []
+            };
+            calculationResult_ = await Api.ClientTrajectory.GlobalAntiCollisionsPOSTAsync(request);
+            created = true;
+            BuildPresentationData();
+            if ((calculationResult_.SeparationFactorResults?.Count ?? 0) < selectedCandidateIds_.Count)
+            {
+                Snackbar.Add("Some selected trajectories had no relevant separation-factor interval.", Severity.Info);
+            }
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Separation-factor calculation failed for trajectory {TrajectoryId}", referenceId);
+            errorMessage_ = "The separation-factor calculation failed.";
+            ResetResults();
+        }
+        finally
+        {
+            if (created)
+            {
+                try
+                {
+                    await Api.ClientTrajectory.GlobalAntiCollisionsDELETEAsync(calculationId);
+                }
+                catch (Exception ex)
+                {
+                    Logger.LogWarning(ex, "Unable to remove transient anti-collision calculation {CalculationId}", calculationId);
+                }
+            }
+            isLoading_ = false;
+        }
+    }
+
+    private void BuildPresentationData()
+    {
+        List<SeparationFactorResult> results = calculationResult_?.SeparationFactorResults ?? [];
+        resultTrajectoryIds_ = results.Select(result => result.ComparisonTrajectoryID).Distinct().OrderBy(GetTrajectoryName).ToList();
+
+        Dictionary<Guid, Dictionary<double, double>> factors = [];
+        foreach (SeparationFactorResult result in results)
+        {
+            Dictionary<double, double> byDepth = [];
+            foreach (SeparationFactorPoint point in result.SeparationFactorProfile ?? [])
+            {
+                // The calculation engine uses a negative comparison MD for reference samples at
+                // which no comparison candidate exists. Those samples remain empty in the full
+                // table and delimit independent plotted intervals.
+                if (!double.IsFinite(point.ReferenceMD) || !double.IsFinite(point.ComparisonMD) ||
+                    point.ComparisonMD < 0 || !double.IsFinite(point.SeparationFactor))
+                {
+                    continue;
+                }
+                double key = DepthKey(point.ReferenceMD);
+                if (!byDepth.TryGetValue(key, out double current) || point.SeparationFactor < current)
+                {
+                    byDepth[key] = point.SeparationFactor;
+                }
+            }
+            factors[result.ComparisonTrajectoryID] = byDepth;
+        }
+
+        List<double> allDepths = referenceTrajectory_?.SurveyStationList?
+            .Where(station => station.MD.HasValue && double.IsFinite(station.MD.Value))
+            .Select(station => DepthKey(station.MD!.Value))
+            .Distinct().OrderBy(value => value).ToList() ?? [];
+        List<double> calculatedDepths = factors.Values.SelectMany(values => values.Keys).Distinct().OrderBy(value => value).ToList();
+        allTableRows_ = CreateTableRows(allDepths, factors);
+        condensedTableRows_ = CreateTableRows(calculatedDepths, factors);
+        plotSeries_ = CreatePlotSeries(factors);
+    }
+
+    private List<SafetyFactorTableRow> CreateTableRows(IEnumerable<double> depths,
+        IReadOnlyDictionary<Guid, Dictionary<double, double>> factors)
+    {
+        return depths.Select(depth => new SafetyFactorTableRow
+        {
+            ReferenceMD = depth,
+            Values = resultTrajectoryIds_.ToDictionary(
+                id => id,
+                id => factors.TryGetValue(id, out Dictionary<double, double>? values) && values.TryGetValue(depth, out double value)
+                    ? (double?)value
+                    : null)
+        }).ToList();
+    }
+
+    private List<SafetyFactorPlotSeries> CreatePlotSeries(
+        IReadOnlyDictionary<Guid, Dictionary<double, double>> factors)
+    {
+        var series = new List<SafetyFactorPlotSeries>();
+        for (int trajectoryIndex = 0; trajectoryIndex < resultTrajectoryIds_.Count; trajectoryIndex++)
+        {
+            Guid trajectoryId = resultTrajectoryIds_[trajectoryIndex];
+            if (!factors.TryGetValue(trajectoryId, out Dictionary<double, double>? values) || values.Count == 0)
+            {
+                continue;
+            }
+
+            double splitThreshold = CalculateSplitThreshold(values.Keys.OrderBy(value => value).ToList());
+            List<SafetyFactorPlotPoint> current = [];
+            bool firstSegment = true;
+            double? previousDepth = null;
+            foreach ((double depth, double safetyFactor) in values.OrderBy(entry => entry.Key))
+            {
+                if (previousDepth.HasValue && depth - previousDepth.Value > splitThreshold && current.Count > 0)
+                {
+                    AddPlotSeries(series, trajectoryId, trajectoryIndex, current, firstSegment);
+                    current = [];
+                    firstSegment = false;
+                }
+                current.Add(new SafetyFactorPlotPoint(depth, safetyFactor));
+                previousDepth = depth;
+            }
+            AddPlotSeries(series, trajectoryId, trajectoryIndex, current, firstSegment);
+        }
+        return series;
+    }
+
+    private void AddPlotSeries(List<SafetyFactorPlotSeries> target, Guid trajectoryId, int trajectoryIndex,
+        List<SafetyFactorPlotPoint> points, bool showLegend)
+    {
+        if (points.Count == 0)
+        {
+            return;
+        }
+        target.Add(new SafetyFactorPlotSeries(
+            trajectoryId,
+            GetTrajectoryName(trajectoryId),
+            PlotPalette[trajectoryIndex % PlotPalette.Length],
+            showLegend,
+            points));
+    }
+
+    private static double CalculateSplitThreshold(IReadOnlyList<double> referenceDepths)
+    {
+        List<double> steps = referenceDepths.Zip(referenceDepths.Skip(1), (left, right) => right - left)
+            .Where(step => step > 1e-6 && double.IsFinite(step)).OrderBy(step => step).ToList();
+        if (steps.Count == 0)
+        {
+            return double.PositiveInfinity;
+        }
+        return 1.5 * steps[steps.Count / 2];
+    }
+
+    private void ResetScan()
+    {
+        hasScanned_ = false;
+        candidateTrajectories_ = [];
+        selectedCandidateIds_.Clear();
+        ResetResults();
+    }
+
+    private void ResetResults()
+    {
+        calculationResult_ = null;
+        referenceTrajectory_ = null;
+        resultTrajectoryIds_ = [];
+        allTableRows_ = [];
+        condensedTableRows_ = [];
+        plotSeries_ = [];
+    }
+
+    private void SelectAllCandidates()
+    {
+        selectedCandidateIds_.UnionWith(candidateTrajectories_.Select(item => item.MetaInfo.ID));
+        ResetResults();
+    }
+    private void ClearCandidateSelection()
+    {
+        selectedCandidateIds_.Clear();
+        ResetResults();
+    }
+    private bool IsCandidateSelected(TrajectoryLight trajectory) => trajectory.MetaInfo?.ID is Guid id && selectedCandidateIds_.Contains(id);
+    private void SetCandidateSelected(TrajectoryLight trajectory, bool selected)
+    {
+        if (trajectory.MetaInfo?.ID is not Guid id)
+        {
+            return;
+        }
+        if (selected) selectedCandidateIds_.Add(id);
+        else selectedCandidateIds_.Remove(id);
+        ResetResults();
+    }
+
+    private bool MatchesSelectedField(Well well) => selectedFieldId_ == null ||
+        (well.IsSingleWell ? well.ClusterID == selectedFieldId_ : well.ClusterID is Guid clusterId && FindCluster(clusterId)?.FieldID == selectedFieldId_);
+    private bool MatchesSelectedField(TrajectoryLight trajectory) => selectedFieldId_ == null || trajectory.FieldID == selectedFieldId_ ||
+        trajectory.WellID is Guid wellId && FindWell(wellId) is Well well && MatchesSelectedField(well);
+    private Guid? FindFieldId(Well well) => well.IsSingleWell ? well.ClusterID : well.ClusterID is Guid clusterId ? FindCluster(clusterId)?.FieldID : null;
+    private Field? FindField(Guid id) => fields_.FirstOrDefault(item => item.MetaInfo?.ID == id);
+    private Cluster? FindCluster(Guid id) => clusters_.FirstOrDefault(item => item.MetaInfo?.ID == id);
+    private Well? FindWell(Guid id) => wells_.FirstOrDefault(item => item.MetaInfo?.ID == id);
+    private WellBore? FindWellBore(Guid id) => wellBores_.FirstOrDefault(item => item.MetaInfo?.ID == id);
+    private TrajectoryLight? FindTrajectory(Guid id) => trajectories_.FirstOrDefault(item => item.MetaInfo?.ID == id);
+    private string GetTrajectoryName(Guid id) => FindTrajectory(id)?.Name ?? id.ToString();
+    private string GetFieldName(TrajectoryLight trajectory) => trajectory.FieldID is Guid id ? FindField(id)?.Name ?? "-" : "-";
+    private string GetClusterName(TrajectoryLight trajectory)
+    {
+        if (trajectory.WellID is Guid wellId && FindWell(wellId)?.IsSingleWell == true) return "Single well";
+        return trajectory.ClusterID is Guid id ? FindCluster(id)?.Name ?? "-" : "-";
+    }
+    private string GetWellName(TrajectoryLight trajectory) => trajectory.WellID is Guid id ? FindWell(id)?.Name ?? "-" : "-";
+    private string GetWellBoreName(TrajectoryLight trajectory) => FindWellBore(trajectory.WellBoreID)?.Name ?? "-";
+    private static double DepthKey(double value) => Math.Round(value, MdPrecision, MidpointRounding.AwayFromZero);
+    private string FormatMeasuredDepth(double value) => (unitReferenceTag_?.FromSI(value, "DepthDrilling") ?? value).ToString("0.###");
+    private static string FormatSafetyFactor(SafetyFactorTableRow row, Guid trajectoryId) =>
+        row.Values.TryGetValue(trajectoryId, out double? value) && value.HasValue ? value.Value.ToString("0.###") : "-";
+
+    private sealed class SafetyFactorTableRow
+    {
+        public double ReferenceMD { get; init; }
+        public Dictionary<Guid, double?> Values { get; init; } = [];
+    }
+
+    private sealed record SafetyFactorPlotPoint(double ReferenceMD, double SafetyFactor);
+    private sealed record SafetyFactorPlotSeries(Guid TrajectoryID, string Name, string Color, bool ShowLegend,
+        List<SafetyFactorPlotPoint> Points);
+}

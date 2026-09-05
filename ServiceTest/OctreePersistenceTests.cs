@@ -122,6 +122,13 @@ public sealed class OctreePersistenceTests
                 Assert.That(manager.Search([sharedCode], TrajectoryType.Actual, true), Is.EqualTo(new[] { actualDefinitive }));
                 Assert.That(manager.Search([sharedCode], TrajectoryType.Planned, true), Is.EqualTo(new[] { plannedDefinitive }));
                 Assert.That(manager.Search([sharedCode], TrajectoryType.Actual, false), Is.EqualTo(new[] { actualTemporary }));
+                Assert.That(manager.SearchByClassification([sharedCode], true, true, true),
+                    Is.EquivalentTo(new[] { actualDefinitive, plannedDefinitive }));
+                Assert.That(manager.SearchByClassification([sharedCode], true, true, false),
+                    Is.EquivalentTo(new[] { actualDefinitive, plannedDefinitive, actualTemporary }));
+                Assert.That(manager.SearchByClassification([sharedCode], false, true, false),
+                    Is.EquivalentTo(new[] { actualDefinitive, actualTemporary }));
+                Assert.That(manager.SearchByClassification([sharedCode], false, false, false), Is.Empty);
             });
 
             Assert.That(manager.UpdateClassification(actualTemporary, TrajectoryType.Planned, true), Is.True);

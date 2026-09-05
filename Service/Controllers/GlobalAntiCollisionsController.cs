@@ -154,7 +154,7 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
                 #endregion
 
                 value.ComparisonTrajectoryIDs = FilterComparisonTrajectoryIds(
-                    _octreeManager.Search(leaves, false, true, true, null),
+                    _octreeManager.Search(leaves, Model.TrajectoryType.Actual, true, null),
                     requestedComparisonTrajectoryIds);
                 value.ReferenceTrajectoryID = Guid.Empty;
             }
@@ -165,9 +165,17 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
                 referenceSurveyList = referenceTrajectory?.SurveyStationList;
                 #endregion
 
+                // Explicit comparison IDs come from a caller-visible octree scan and may include
+                // planned or non-definitive trajectories. Revalidate spatial overlap across all
+                // classifications before calculating. An omitted selection retains the historical
+                // actual-and-definitive default.
+                List<Guid> candidateTrajectoryIds = requestedComparisonTrajectoryIds is { Count: > 0 }
+                    ? _octreeManager.SearchByClassification(_octreeManager.Get(value.ReferenceTrajectoryID), true, true, false,
+                        value.ReferenceTrajectoryID)
+                    : _octreeManager.Search(_octreeManager.Get(value.ReferenceTrajectoryID), Model.TrajectoryType.Actual, true,
+                        value.ReferenceTrajectoryID);
                 value.ComparisonTrajectoryIDs = FilterComparisonTrajectoryIds(
-                    _octreeManager.Search(_octreeManager.Get(value.ReferenceTrajectoryID), false, true, true, value.ReferenceTrajectoryID),
-                    requestedComparisonTrajectoryIds);
+                    candidateTrajectoryIds, requestedComparisonTrajectoryIds);
                 value.ReferenceWellPathID = Guid.Empty;
             }
 

@@ -15,7 +15,7 @@ public sealed class McpToolRegistrationTests
     {
         var endpoints = TrajectoryRestMcpToolRegistrations.Endpoints;
 
-        Assert.That(endpoints, Has.Count.EqualTo(125));
+        Assert.That(endpoints, Has.Count.EqualTo(126));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Is.Unique);
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("."));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("usage_statistics"));
@@ -53,7 +53,7 @@ public sealed class McpToolRegistrationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(tools, Has.Length.EqualTo(125));
+            Assert.That(tools, Has.Length.EqualTo(126));
             Assert.That(tools.All(tool => !string.IsNullOrWhiteSpace(tool.ProtocolTool.Title)), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema.HasValue), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.Annotations is not null), Is.True);
@@ -207,7 +207,7 @@ public sealed class McpToolRegistrationTests
             Assert.That(surveyRunSearch.InputSchema!["properties"]!["offset"]!["default"]!.GetValue<int>(), Is.Zero);
             Assert.That(endpoints.Any(value => value.Name == "trajectory_get_all_trajectory"), Is.False);
             Assert.That(endpoints.Any(value => value.Name == "survey_run_get_all_survey_run"), Is.False);
-            Assert.That(endpoints, Has.Count.EqualTo(125));
+            Assert.That(endpoints, Has.Count.EqualTo(126));
         });
     }
 
@@ -282,6 +282,7 @@ public sealed class McpToolRegistrationTests
     {
         TrajectoryMcpEndpoint list = Endpoint("octrees_get");
         TrajectoryMcpEndpoint status = Endpoint("octrees_get_status");
+        TrajectoryMcpEndpoint search = Endpoint("octrees_search");
         TrajectoryMcpEndpoint rebuild = Endpoint("octrees_put");
         TrajectoryMcpEndpoint delete = Endpoint("octrees_delete");
         JsonObject listProperties = list.InputSchema["properties"]!.AsObject();
@@ -301,6 +302,11 @@ public sealed class McpToolRegistrationTests
             Assert.That(statusProperties["ConfidenceFactor"]!["maximum"]!.GetValue<double>(), Is.EqualTo(0.999));
             Assert.That(statusDefinition["required"]!.AsArray().Select(value => value!.GetValue<string>()),
                 Does.Contain("TrajectoryID"));
+            Assert.That(search.InputSchema["properties"]!["includePlanned"]!["default"]!.GetValue<bool>(), Is.True);
+            Assert.That(search.InputSchema["properties"]!["includeActual"]!["default"]!.GetValue<bool>(), Is.True);
+            Assert.That(search.InputSchema["properties"]!["definitiveOnly"]!["default"]!.GetValue<bool>(), Is.True);
+            Assert.That(search.Description, Does.Contain("candidate-discovery"));
+            Assert.That(search.Behavior.ReadOnlyHint, Is.True);
             Assert.That(rebuild.Description, Does.Contain("automatically"));
             Assert.That(rebuild.Description, Does.Contain("return its new status/provenance"));
             Assert.That(delete.Description, Does.Contain("without deleting its authoritative trajectory"));

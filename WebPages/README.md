@@ -13,6 +13,7 @@ It currently provides routed pages for:
 - `TrajectoryRealizationEdit`
 - trajectory aggregation
 - survey-run and trajectory minimum-distance calculations
+- `AntiCollisionScan`, for filtered octree candidate discovery and separation-factor tables and profiles
 - supporting UI components used by those pages
 - `TrajectoryIdentities` and `TrajectoryFeatures`
 - `TrajectoryBackupRestore`, for dependency-aware JSON backup and restore
@@ -37,6 +38,12 @@ The edit page supports:
 - export of realized trajectories to a user-selected file
 
 Exported columns per realization are `MD`, `Incl`, `Az`, `TVD`, `North`, `East`, `DLS`, `BUR`, `TUR`, and `VSect`. The export dialog lets the user choose separator, units and references, and whether realizations are written side by side or one after another.
+
+## Anti-collision scan
+
+`AntiCollisionScan` selects a reference trajectory through the standard Field, Cluster, Well, WellBore, and Trajectory hierarchy. Pseudo-clusters belonging to single wells are omitted from the Cluster selector while those wells remain selectable at Well level. The scan can include planned trajectories, actual trajectories, or both, and can restrict candidates to definitive trajectories.
+
+Candidate discovery uses the service's persistent uncertainty-envelope octree and requires the reference index to be current. Users can select all or some overlapping trajectories before requesting separation factors. The calculation then refines each pair to the relevant measured-depth ranges. Results are shown as either every reference survey depth (with empty cells where no comparison was needed) or only depths with at least one result, and as color-coded interactive curves with positive depth downward. Disjoint intervals share a legend group, so one legend click toggles every interval for a trajectory.
 
 ## Dependencies
 

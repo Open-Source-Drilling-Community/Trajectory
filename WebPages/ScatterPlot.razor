@@ -29,6 +29,12 @@
     public List<bool>? ShowLegendList { get; set; }
 
     [Parameter]
+    public List<string>? LegendGroupList { get; set; }
+
+    [Parameter]
+    public bool ToggleLegendGroups { get; set; }
+
+    [Parameter]
     public List<List<object>>? XValuesList { get; set; }
 
     [Parameter]
@@ -273,6 +279,7 @@
             data.Add(new Scatter
             {
                 Name = name,
+                LegendGroup = LegendGroupList != null && i < LegendGroupList.Count ? LegendGroupList[i] : null,
                 Mode = modeFlag,
                 Marker = marker,
                 Line = line,
@@ -309,6 +316,12 @@
         layout.Width = PlotWidth > 0 ? PlotWidth : null;
         layout.Title.Text = PlotTitle;
         layout.Annotations = Annotations;
+        layout.Legend = ToggleLegendGroups
+            ? [new Plotly.Blazor.LayoutLib.Legend
+                {
+                    GroupClick = Plotly.Blazor.LayoutLib.LegendLib.GroupClickEnum.ToggleGroup
+                }]
+            : null;
 
         for (int i = 0; i < layout.XAxis.Count; ++i)
         {
@@ -433,6 +446,8 @@
         AppendListSignature(builder, ColorList);
         AppendListSignature(builder, MarkerSizeList);
         AppendListSignature(builder, ShowLegendList);
+        AppendListSignature(builder, LegendGroupList);
+        builder.Append(ToggleLegendGroups).Append('|');
         AppendNestedListSignature(builder, XValuesList);
         AppendNestedListSignature(builder, YValuesList);
         if (Annotations != null)

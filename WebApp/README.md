@@ -2,7 +2,7 @@
 
 `WebApp` is the ASP.NET Core Blazor host application for Trajectory under `OSDC.Drilling.Trajectory.WebApp`.
 
-It provides the application shell, host-owned `/Home` route, startup configuration, routing, and static assets for the UI. Survey Run, Trajectory, calculation, catalog, backup/restore, and usage-statistics pages are provided by the `WebPages` Razor class library.
+It provides the application shell, host-owned `/Home` route, startup configuration, routing, and static assets for the UI. Survey Run, Trajectory, anti-collision scan, calculation, catalog, backup/restore, and usage-statistics pages are provided by the `WebPages` Razor class library.
 
 ## Container
 
@@ -40,7 +40,7 @@ https://awe.web.intra.norceresearch.no/Trajectory/api/swagger
 
 ## Navigation
 
-Home is the first side-menu entry. The menu then exposes Survey Run and Trajectory management, the shared Identities and Features catalogs, trajectory calculations, batch import and dependency-aware Backup / Restore, reporting views, contextual data, calculators, and endpoint-level Usage Statistics. Survey Run and Trajectory editors both assign definitions from the shared catalogs. Contextual data is ordered Field, Cluster, Well, WellBore, Rig, and Survey Instrument. Calculators provide cartographic conversion, MSL/WGS84 vertical-datum conversion, gravitational and magnetic vectors, and unit conversion.
+Home is the first side-menu entry. The menu then exposes Survey Run and Trajectory management, the shared Identities and Features catalogs, the octree-backed Anti-collision Scan, trajectory calculations, batch import and dependency-aware Backup / Restore, reporting views, contextual data, calculators, and endpoint-level Usage Statistics. Survey Run and Trajectory editors both assign definitions from the shared catalogs. Contextual data is ordered Field, Cluster, Well, WellBore, Rig, and Survey Instrument. Calculators provide cartographic conversion, MSL/WGS84 vertical-datum conversion, gravitational and magnetic vectors, and unit conversion.
 
 ## Funding
 

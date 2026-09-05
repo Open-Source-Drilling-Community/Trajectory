@@ -55,6 +55,32 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             Model.Trajectory? trajectory = _trajectoryManager.GetTrajectoryById(id);
             return trajectory == null ? NotFound() : Ok(_octreeManager.GetStatus(trajectory));
         }
+
+        // GET api/Octrees/id/Search
+        [HttpGet("{id}/Search", Name = "SearchOctreeIndex")]
+        public ActionResult<List<Guid>> Search(Guid id, [FromQuery] bool includePlanned = true,
+            [FromQuery] bool includeActual = true, [FromQuery] bool definitiveOnly = true)
+        {
+            if (id == Guid.Empty || !includePlanned && !includeActual)
+            {
+                return BadRequest(new { error = "invalid_octree_search" });
+            }
+
+            Model.Trajectory? trajectory = _trajectoryManager.GetTrajectoryById(id);
+            if (trajectory == null)
+            {
+                return NotFound();
+            }
+
+            Model.OctreeIndexStatus status = _octreeManager.GetStatus(trajectory);
+            if (!status.IsCurrent)
+            {
+                return Conflict(new { error = "octree_index_not_current", state = status.State.ToString() });
+            }
+
+            return Ok(_octreeManager.SearchByClassification(_octreeManager.Get(id), includePlanned, includeActual,
+                definitiveOnly, id));
+        }
         // POST api/Octrees
         [HttpPost("{id}")]
         public ActionResult<Model.OctreeIndexStatus> Post(Guid id)

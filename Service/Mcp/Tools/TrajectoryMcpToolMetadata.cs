@@ -46,6 +46,8 @@ internal static class TrajectoryMcpToolMetadata
                 : "Check one stored survey run's externally owned Field, Cluster, Well, WellBore and SurveyInstrument UUIDs without modifying data. Missing resources are Invalid; configuration, transport, dependency-service and malformed-response failures are Unavailable, never Invalid. Optional unlinked references are valid.";
         else if (action == "AuditExternalReferences")
             detail = $"Check a deterministic UUID-ordered page of all or explicitly selected stored {resource} records without modifying data. Offset must be non-negative and limit is 1 through 100. Results and page counts distinguish Valid, Invalid and Unavailable checks; unavailable dependencies are never reported as missing data.";
+        else if (controller == "Octrees" && action == "Search")
+            detail = "Find trajectories whose indexed uncertainty envelopes overlap the reference trajectory's current octree index. Planned and actual filters may be combined; definitiveOnly excludes temporary trajectories when true. This is the candidate-discovery step before selecting trajectories for separation-factor calculation. A missing or stale reference index returns conflict.";
         else if (action.StartsWith("Search", StringComparison.Ordinal))
             detail = $"Return one deterministic bounded page of lightweight {resource} records with the total match count. Filter by free text and owned relationship/type fields, use offset for continuation, and keep limit between 1 and 500. Fetch a selected resource by UUID when complete data is needed.";
         else if (controller == "SurveyRun" && action == "PutSurveyMeasurementChunk")
@@ -237,6 +239,9 @@ internal static class TrajectoryMcpToolMetadata
             "trajectoryType" => "Optional trajectory-type enum filter (for example Actual or Planned); omit it to include every type.",
             "surveyRunType" => "Optional survey-run-type enum filter; omit it to include every type.",
             "isDefinitive" => "Optional filter for the definitive trajectory flag; omit it to include both definitive and non-definitive trajectories.",
+            "includePlanned" => "Include spatially overlapping planned trajectories in the candidate result.",
+            "includeActual" => "Include spatially overlapping actual trajectories in the candidate result.",
+            "definitiveOnly" => "When true, include only definitive trajectories; false also includes temporary trajectories.",
             "chunkIndex" => "Zero-based index of the requested or uploaded chunk; must be non-negative.",
             "includeResults" => "When true, embed calculated result arrays; false (default) returns the case and status without large results. Prefer chunk tools for large results.",
             "includeRealizations" => "When true, embed all stochastic realization arrays; false (default) omits them. Prefer realization chunks for large results.",
