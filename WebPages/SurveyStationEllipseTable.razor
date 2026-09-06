@@ -54,11 +54,11 @@
     @if (highestTvdPath_ is { Count: > 0 } || lowestTvdPath_ is { Count: > 0 })
     {
         <MudDivider Class="my-4" />
-        <MudTabs Elevation="0" Rounded="false" PanelClass="pt-2">
-            <MudTabPanel Text="Highest TVD">
+        <MudTabs Elevation="0" Rounded="false">
+            <MudTabPanel Text="Highest TVD" Class="pt-2">
                 @PathTable(highestTvdPath_)
             </MudTabPanel>
-            <MudTabPanel Text="Lowest TVD">
+            <MudTabPanel Text="Lowest TVD" Class="pt-2">
                 @PathTable(lowestTvdPath_)
             </MudTabPanel>
         </MudTabs>

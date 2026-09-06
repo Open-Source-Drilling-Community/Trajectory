@@ -194,6 +194,8 @@
     <MudText Typo="Typo.body1" Class="mb-2">
         The <b>Survey Display</b> menu shows survey runs and trajectories grouped by their WellBore, Well, Cluster,
         or Field, so a set of paths can be reviewed in its drilling-program context without leaving this application.
+        Position-reference choices include Field-relative coordinates and a cartographic grid offset calculated from
+        the owning Field through its coordinate-conversion API; unavailable derived references fall back to WGS84.
         The <b>Contextual Data</b> menu gives read access to the underlying <MudLink Href="/Trajectory/webapp/Field">
         Field</MudLink>, <MudLink Href="/Trajectory/webapp/Cluster">Cluster</MudLink>,
         <MudLink Href="/Trajectory/webapp/Well">Well</MudLink>,

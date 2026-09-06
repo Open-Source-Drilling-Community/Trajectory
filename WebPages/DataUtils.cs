@@ -24,7 +24,7 @@ public static class DataUtils
         public static string? DateReferenceName { get; set; }
     }
 
-    public static void ApplyTrajectoryReferenceValues(Guid? trajectoryID, List<TrajectoryLight>? trajectoryList, List<WellBore>? wellBores, List<Well>? wells, List<Cluster>? clusters, List<Rig>? rigs)
+    public static void ApplyTrajectoryReferenceValues(Guid? trajectoryID, List<TrajectoryLight>? trajectoryList, List<WellBore>? wellBores, List<Well>? wells, List<Cluster>? clusters, List<Rig>? rigs, List<Field>? fields = null)
     {
         DataUtils.GroundMudLineDepthReferenceSource.GroundMudLineDepthReference = 0;
         DataUtils.MeanSeaLevelDepthReferenceSource.MeanSeaLevelDepthReference = null;
@@ -34,10 +34,9 @@ public static class DataUtils
         DataUtils.MagneticDeclinationSource.MagneticDeclination = null;
         DataUtils.WellHeadPositionReferenceSource.WellHeadNorthPositionReference = 0;
         DataUtils.WellHeadPositionReferenceSource.WellHeadEastPositionReference = 0;
-        DataUtils.CartographicGridPositionReferenceSource.CartographicGridNorthPositionReference = 0;
-        DataUtils.CartographicGridPositionReferenceSource.CartographicGridEastPositionReference = 0;
-        DataUtils.FieldPositionReferenceSource.FieldNorthPositionReference = 0;
-        DataUtils.FieldPositionReferenceSource.FieldEastPositionReference = 0;
+        DataUtils.CartographicGridPositionReferenceSource.CartographicGridNorthPositionReference = null;
+        DataUtils.CartographicGridPositionReferenceSource.CartographicGridEastPositionReference = null;
+        ApplyFieldPositionReference(null);
         DataUtils.ClusterPositionReferenceSource.ClusterNorthPositionReference = 0;
         DataUtils.ClusterPositionReferenceSource.ClusterEastPositionReference = 0;
         TrajectoryLight? trajectory = null;
@@ -114,6 +113,9 @@ public static class DataUtils
                     }
                 }
             }
+            Guid? fieldID = trajectory.FieldID ?? cluster?.FieldID;
+            Field? field = fields?.FirstOrDefault(candidate => candidate?.MetaInfo?.ID == fieldID);
+            ApplyFieldPositionReference(field);
             Slot? slot = FindSlot(cluster, slotID);
             if (rig == null && rigs != null && cluster != null && cluster.IsFixedPlatform && cluster.RigID != null)
             {
@@ -167,12 +169,12 @@ public static class DataUtils
         }
     }
 
-    public static void ApplySurveyRunReferenceValues(Guid? surveyRunID, List<SurveyRunLight>? surveyRunList, List<WellBore>? wellBores, List<Well>? wells, List<Cluster>? clusters, List<Rig>? rigs)
+    public static void ApplySurveyRunReferenceValues(Guid? surveyRunID, List<SurveyRunLight>? surveyRunList, List<WellBore>? wellBores, List<Well>? wells, List<Cluster>? clusters, List<Rig>? rigs, List<Field>? fields = null)
     {
         SurveyRunLight? surveyRun = surveyRunList?.FirstOrDefault(item => item?.MetaInfo?.ID == surveyRunID);
         if (surveyRun?.MetaInfo == null)
         {
-            ApplyTrajectoryReferenceValues(null, null, wellBores, wells, clusters, rigs);
+            ApplyTrajectoryReferenceValues(null, null, wellBores, wells, clusters, rigs, fields);
             return;
         }
 
@@ -184,7 +186,20 @@ public static class DataUtils
             WellID = surveyRun.WellID,
             WellBoreID = surveyRun.WellBoreID
         };
-        ApplyTrajectoryReferenceValues(surveyRun.MetaInfo.ID, [proxyTrajectory], wellBores, wells, clusters, rigs);
+        ApplyTrajectoryReferenceValues(surveyRun.MetaInfo.ID, [proxyTrajectory], wellBores, wells, clusters, rigs, fields);
+    }
+
+    public static void ApplyFieldPositionReference(Field? field)
+    {
+        FieldPositionReferenceSource.FieldNorthPositionReference = -field?.ReferencePoint?.RiemannianNorth;
+        FieldPositionReferenceSource.FieldEastPositionReference = -field?.ReferencePoint?.RiemannianEast;
+
+        if ((FieldPositionReferenceSource.FieldNorthPositionReference == null ||
+             FieldPositionReferenceSource.FieldEastPositionReference == null) &&
+            string.Equals(UnitAndReferenceParameters.PositionReferenceName, "Field", StringComparison.Ordinal))
+        {
+            UnitAndReferenceParameters.PositionReferenceName = "WGS84";
+        }
     }
 
     private static Guid? FindSlotIdFromWellBoreHierarchy(WellBore? wellBore, List<WellBore>? wellBores, List<Well>? wells)

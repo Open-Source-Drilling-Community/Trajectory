@@ -44,6 +44,8 @@ https://awe.web.intra.norceresearch.no/Trajectory/api/swagger
 
 Home is the first side-menu entry. The menu then exposes Survey Run and Trajectory management, the shared Identities and Features catalogs, the octree-backed Anti-collision Scan, trajectory calculations, batch import and dependency-aware Backup / Restore, reporting views, contextual data, calculators, and endpoint-level Usage Statistics. Survey Run and Trajectory editors both assign definitions from the shared catalogs. Contextual data is ordered Field, Cluster, Well, WellBore, Rig, and Survey Instrument. Calculators provide cartographic conversion, MSL/WGS84 vertical-datum conversion, gravitational and magnetic vectors, and unit conversion.
 
+Trajectory and survey-run visualizations expose `Field` and `Cartographic` position references when the selected hierarchy resolves to a Field with a persisted reference point. Cartographic coordinates are resolved through the Field coordinate-conversion API; unavailable reference values fall back to WGS84.
+
 ## Funding
 
 The current work has been funded by the [Research Council of Norway](https://www.forskningsradet.no/) and [Industry partners](https://www.digiwells.no/about/board/) in the framework of the centre for research-based innovation [SFI Digiwells (2020-2028)](https://www.digiwells.no/) focused on digitalization, drilling engineering, and geosteering.

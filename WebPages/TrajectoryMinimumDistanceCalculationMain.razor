@@ -908,7 +908,7 @@
 
     private async Task<bool> ConfirmCloseWithoutSavingAsync()
     {
-        bool? result = await DialogService.ShowMessageBox(
+        bool? result = await DialogService.ShowMessageBoxAsync(
             "Unsaved changes",
             "Some changes have not been saved. Close without saving?",
             yesText: "Close without saving",
@@ -1474,7 +1474,8 @@
 
     private async Task ApplyTrajectoryReferenceValuesAsync()
     {
-        DataUtils.ApplyTrajectoryReferenceValues(selectedReferenceTrajectoryId_, trajectoryLightList_, wellBoreList_, wellList_, clusterList_, rigList_);
+        DataUtils.ApplyTrajectoryReferenceValues(selectedReferenceTrajectoryId_, trajectoryLightList_, wellBoreList_, wellList_, clusterList_, rigList_, fieldList_);
+        await CartographicPositionReferenceUtils.ApplyForTrajectoryAsync(Api, selectedReferenceTrajectoryId_, trajectoryLightList_, clusterList_, fieldList_, logger);
         TrajectoryReferenceDatumUtils.Apply(
             await TrajectoryReferenceDatumUtils.ResolveForTrajectoryAsync(Api, selectedReferenceTrajectoryId_, trajectoryLightList_, wellBoreList_, wellList_, clusterList_));
     }

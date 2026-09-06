@@ -393,7 +393,7 @@
 
     private async Task<bool> ConfirmCloseWithoutSavingAsync()
     {
-        bool? result = await DialogService.ShowMessageBox(
+        bool? result = await DialogService.ShowMessageBoxAsync(
             "Unsaved changes",
             "Some changes have not been saved. Close without saving?",
             yesText: "Close without saving",
@@ -649,7 +649,8 @@
     private string DepthReferenceRenderKey => Parent?.DepthReferenceName ?? DataUtils.UnitAndReferenceParameters.DepthReferenceName ?? "DepthReference";
     private async Task UpdateReferenceSourcesAsync()
     {
-        DataUtils.ApplyTrajectoryReferenceValues(selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList, RigList);
+        DataUtils.ApplyTrajectoryReferenceValues(selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList, RigList, FieldList);
+        await CartographicPositionReferenceUtils.ApplyForTrajectoryAsync(Api, selectedTrajectoryId, TrajectoryList, ClusterList, FieldList, logger);
         TrajectoryReferenceDatumUtils.Apply(
             await TrajectoryReferenceDatumUtils.ResolveForTrajectoryAsync(Api, selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList));
     }

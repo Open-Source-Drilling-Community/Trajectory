@@ -1400,7 +1400,7 @@
 
     private async Task<bool> ConfirmCloseWithoutSavingAsync()
     {
-        bool? result = await DialogService.ShowMessageBox(
+        bool? result = await DialogService.ShowMessageBoxAsync(
             "Unsaved changes",
             "Some changes have not been saved. Close without saving?",
             yesText: "Close without saving",
@@ -1723,6 +1723,9 @@
         DataUtils.RotaryTableDepthReferenceSource.RotaryTableDepthReference = 0;
         DataUtils.WellHeadPositionReferenceSource.WellHeadNorthPositionReference = 0;
         DataUtils.WellHeadPositionReferenceSource.WellHeadEastPositionReference = 0;
+        DataUtils.ApplyFieldPositionReference(null);
+        DataUtils.ClusterPositionReferenceSource.ClusterNorthPositionReference = 0;
+        DataUtils.ClusterPositionReferenceSource.ClusterEastPositionReference = 0;
 
         if (selectedWellBoreId_ is not Guid wellBoreId)
         {
@@ -1737,6 +1740,7 @@
         Cluster? cluster = well?.ClusterID is Guid clusterId
             ? clusterList_?.FirstOrDefault(item => item?.MetaInfo?.ID == clusterId)
             : null;
+        Field? field = fieldList_?.FirstOrDefault(item => item?.MetaInfo?.ID == (currentSurveyRun_?.FieldID ?? cluster?.FieldID));
         Rig? rig = FindRigForWellBore(wellBore, cluster);
 
         if (cluster?.GroundMudLineDepth?.GaussianValue?.Mean is { } groundMudLineDepth)
@@ -1751,6 +1755,9 @@
         TrajectoryReferenceDatumUtils.Apply(
             await TrajectoryReferenceDatumUtils.ResolveForWellBoreAsync(Api, wellBoreId, wellBoreList_, wellList_, clusterList_));
 
+        DataUtils.ApplyFieldPositionReference(field);
+        await CartographicPositionReferenceUtils.ApplyAsync(Api, field, logger);
+        UpdateClusterPositionReference(cluster);
         UpdateWellheadPositionReference(well, cluster);
         measurementReferenceRenderVersion_++;
     }
@@ -1789,6 +1796,26 @@
                 DataUtils.WellHeadPositionReferenceSource.WellHeadNorthPositionReference = -surveyPoint.RiemannianNorth;
                 DataUtils.WellHeadPositionReferenceSource.WellHeadEastPositionReference = -surveyPoint.RiemannianEast;
             }
+        }
+    }
+
+    private static void UpdateClusterPositionReference(Cluster? cluster)
+    {
+        if (cluster?.ReferenceLatitude?.GaussianValue?.Mean is not { } latitude ||
+            cluster.ReferenceLongitude?.GaussianValue?.Mean is not { } longitude)
+        {
+            return;
+        }
+
+        OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint surveyPoint = new()
+        {
+            Latitude = latitude,
+            Longitude = longitude
+        };
+        if (surveyPoint.RiemannianNorth != null && surveyPoint.RiemannianEast != null)
+        {
+            DataUtils.ClusterPositionReferenceSource.ClusterNorthPositionReference = -surveyPoint.RiemannianNorth;
+            DataUtils.ClusterPositionReferenceSource.ClusterEastPositionReference = -surveyPoint.RiemannianEast;
         }
     }
 

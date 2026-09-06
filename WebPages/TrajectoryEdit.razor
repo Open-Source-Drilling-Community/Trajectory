@@ -107,7 +107,7 @@
                                 FeatureAssignments="traj.TrajectoryFeatureAssignments" />
     <MudExpansionPanels Class="mt-4 mb-4" Style="overflow-y: auto; max-height: none;">
         @* Survey run sections *@
-        <MudExpansionPanel Text="Survey run sections" @bind-IsExpanded="isSurveyExpanded">
+        <MudExpansionPanel Text="Survey run sections" @bind-Expanded="isSurveyExpanded">
             <MudToolBar>
                 <MudText Typo="Typo.h6">Survey run sections</MudText>
                 <MudSpacer />
@@ -124,7 +124,7 @@
                       @bind-SelectedItems="selectedSurveyRunSections"
                       Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true">
                 <HeaderContent>
-                    <MudTHeadRow IsCheckable="true">
+                    <MudTHeadRow Checkable="true">
                         <MudTh>Survey Run</MudTh>
                         <MudTh>Start MD [@Parent?.GetDepthUnitLabel("DepthDrilling")]</MudTh>
                         <MudTh />
@@ -582,7 +582,7 @@
 
     private async Task<bool> ConfirmCloseWithoutSavingAsync()
     {
-        bool? result = await DialogService.ShowMessageBox(
+        bool? result = await DialogService.ShowMessageBoxAsync(
             "Unsaved changes",
             "Some changes have not been saved. Close without saving?",
             yesText: "Close without saving",

@@ -287,7 +287,7 @@
     {
         if (!CanRestore || _document == null) return;
         bool replacing = _conflictPolicy == TrajectoryBatchRestoreConflictPolicy.ReplaceExisting;
-        bool? confirmed = await DialogService.ShowMessageBox(
+        bool? confirmed = await DialogService.ShowMessageBoxAsync(
             "Restore trajectory data",
             replacing
                 ? $"Restore {DocumentRecordCount} record(s) and replace matching UUIDs?"

@@ -175,9 +175,13 @@ class Program
                             "WellBore.json" => 20,
                             "Well.json" => 30,
                             "Cluster.json" => 40,
-                            "Field.json" => 50,
+                            // Field.json is the Field-owned (non-merged) contract. Process it
+                            // after dependency bundles so their older transitive Field schema
+                            // cannot replace the authoritative resource shape.
+                            "Field.json" => 90,
                             "Rig.json" => 60,
                             "SurveyInstrument.json" => 70,
+                            "EarthGeodesy.json" => 85,
                             "TrajectoryFullName.json" => 100,
                             _ => 0
                         })

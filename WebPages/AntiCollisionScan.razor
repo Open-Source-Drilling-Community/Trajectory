@@ -455,7 +455,8 @@
     {
         selectedReferenceTrajectoryId_ = value;
         ResetScan();
-        DataUtils.ApplyTrajectoryReferenceValues(value, trajectories_, wellBores_, wells_, clusters_, rigs_);
+        DataUtils.ApplyTrajectoryReferenceValues(value, trajectories_, wellBores_, wells_, clusters_, rigs_, fields_);
+        await CartographicPositionReferenceUtils.ApplyForTrajectoryAsync(Api, value, trajectories_, clusters_, fields_, Logger);
         try
         {
             TrajectoryReferenceDatumUtils.Apply(
