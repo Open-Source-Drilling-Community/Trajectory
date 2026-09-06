@@ -309,6 +309,9 @@ public sealed class McpToolRegistrationTests
             Assert.That(statusDefinition["required"]!.AsArray().Select(value => value!.GetValue<string>()),
                 Does.Contain("TrajectoryID"));
             Assert.That(queueSearch.Description, Does.Contain("return immediately"));
+            Assert.That(queueSearch.Description, Does.Contain("swept-AABB"));
+            Assert.That(queueSearch.Description, Does.Contain("depth 22"));
+            Assert.That(queueSearch.Description, Does.Contain("conservative for every supported separation-factor request"));
             Assert.That(searchRequest["required"]!.AsArray().Select(value => value!.GetValue<string>()),
                 Does.Contain("ReferenceTrajectoryID"));
             Assert.That(searchRequest["properties"]!["ReferenceTrajectoryID"]!["not"]!["const"]!.GetValue<string>(),
@@ -323,7 +326,8 @@ public sealed class McpToolRegistrationTests
             Assert.That(searchJobStatus["properties"]!["CalculationProgress"]!["maximum"]!.GetValue<double>(), Is.EqualTo(1.0));
             Assert.That(searchJobStatus["allOf"]!.AsArray(), Has.Count.EqualTo(2));
             Assert.That(searchResult.Description, Does.Contain("poll the status tool first"));
-            Assert.That(searchResult.Description, Does.Contain("candidate discovery, not a separation-factor result"));
+            Assert.That(searchResult.Description, Does.Contain("may contain false positives"));
+            Assert.That(searchResult.Description, Does.Contain("only the separation-factor calculation determines"));
             Assert.That(searchResultDefinition["properties"]!["CandidateTrajectoryIDs"]!["uniqueItems"]!.GetValue<bool>(), Is.True);
             Assert.That(deleteSearch.Description, Does.Contain("does not modify trajectory data"));
             Assert.That(deleteSearch.Behavior.DestructiveHint, Is.True);

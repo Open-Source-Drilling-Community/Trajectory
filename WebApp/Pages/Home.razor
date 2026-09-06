@@ -148,9 +148,12 @@
     <MudText Typo="Typo.body1" Class="mb-2">
         Running a full minimum-distance or separation-factor calculation against every other trajectory in the
         database for every edit would not scale. Instead, the service maintains a persistent, whole-Earth
-        <b>global anti-collision octree index</b>: each trajectory's uncertainty envelope (at a fixed high confidence
-        factor) is encoded as a compact set of octree cell codes at a coarse "cache" depth and a detailed depth of 23
-        — roughly 4.8&nbsp;m resolution at the Earth's scale spanned by the tree. Membership is stored as one row per
+        <b>global anti-collision octree index</b>: each trajectory's 99.9%-confidence uncertainty volume is enclosed
+        by a one-cell-padded union of short, solid, axis-aligned boxes swept between successive uncertainty ellipses.
+        The conservative cover is encoded at a detailed depth of 22 — approximately 4.5&nbsp;m north-south,
+        9.0&nbsp;m east-west at the equator (about 5.0&nbsp;m near Valhall), and 9.54&nbsp;m vertically. Filling the volume and its ends prevents strict
+        containment or end entry from being missed; box corners may add candidates that the separation-factor
+        calculation subsequently rejects. Membership is stored as one row per
         <code>(octree depth, coarse code, trajectory UUID)</code>, so a spatial query first narrows candidates by
         coarse bucket, joins the derived <code>TrajectoryType</code> / <code>IsDefinitive</code> state for filtering,
         and only then performs exact intersection on the detailed codes.

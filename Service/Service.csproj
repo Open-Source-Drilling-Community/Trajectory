@@ -30,6 +30,10 @@
 		<ProjectReference Include="..\Model\Model.csproj" />
 	</ItemGroup>
 
+	<ItemGroup>
+		<InternalsVisibleTo Include="ServiceTest" />
+	</ItemGroup>
+
 	<Target Name="CreateSwaggerJson" AfterTargets="Build" Condition="$(Configuration)=='Debug'">
 		<Exec Command="dotnet swagger tofile --output &quot;$(MSBuildProjectDirectory)\..\ModelSharedOut\json-schemas\TrajectoryFullName.json&quot; &quot;$(TargetPath)&quot; v1" WorkingDirectory="$(ProjectDir)" />
 	</Target>

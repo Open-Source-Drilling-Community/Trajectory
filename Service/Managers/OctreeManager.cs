@@ -26,7 +26,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
         #region Octree settings
         private int octreeDepthCache_ = SqlConnectionManagerOctree.OctreeDepthCache;
-        public int OctreeDepthDetails { get; } = 23; // Corresponds to 40 000 000 m / 2^23 ~ 4.8 m
+        public int OctreeDepthDetails { get; } = 22; // Corresponds to 40 000 000 m / 2^22 ~ 9.5 m vertically
 
         private double minX_ = -Numeric.PI / 2.0;
         private double minY_ = -Numeric.PI;
@@ -39,8 +39,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         private const int MinEnvelopeMeshSectorCount = 36;
         private const int MaxEnvelopeMeshSectorCount = 240;
         public const double ConfidenceFactor = 0.999;
-        public const int IndexSchemaVersion = 2;
-        public const string CalculationParametersHash = "surface-neighbours-compact-depth23-cache21-confidence0.999-scale1-v2";
+        public const int IndexSchemaVersion = 3;
+        public const string CalculationParametersHash = "solid-swept-aabb-neighbours-compact-depth22-cache21-confidence0.999-scale1-v3";
         #endregion
 
         #region Octree settings for debugging against octree database from the summer demo containing 16 duplicates of Ullrigg wells
@@ -152,40 +152,37 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     out _);
 
                 HashSet<OctreeCodeLong> leafCodes = new(OctreeCodeLongComparer.Instance);
-                if (ok && ellipses is { Count: > 2 })
+                if (ok && ellipses is { Count: > 1 })
                 {
-                    foreach (UncertaintyEllipse ellipse in ellipses)
+                    for (int ellipseIndex = 0; ellipseIndex < ellipses.Count - 1; ellipseIndex++)
                     {
-                        // We allow for zero ellipse radius here since that is typical for the first ellipse at MD = 0
-                        List<SurveyPoint>? ellipseVertices = ellipse.EllipseVertices;
-                        if (ellipse.EllipseRadii?[0] is not double ellipseRadius ||
-                            !Numeric.GE(ellipseRadius, 0.0) ||
-                            ellipseVertices == null)
+                        IEnumerable<SurveyPoint> points = (ellipses[ellipseIndex].EllipseVertices ?? [])
+                            .Concat(ellipses[ellipseIndex + 1].EllipseVertices ?? []);
+                        List<SurveyPoint> boundedPoints = points
+                            .Where(point => point.Latitude is double latitude && double.IsFinite(latitude) &&
+                                            point.Longitude is double longitude && double.IsFinite(longitude) &&
+                                            point.TVD is double tvd && double.IsFinite(tvd))
+                            .ToList();
+                        if (boundedPoints.Count == 0)
                         {
                             continue;
                         }
 
-                        // Fill the ellipse coordinates for each well into the corresponding octree
-                        foreach (SurveyPoint sp in ellipseVertices) // Previously surveyList.UncertaintyEnvelope[n].EllipseCoordinates)
-                        {
-                            if (sp.Latitude is double latitude &&
-                                sp.Longitude is double longitude &&
-                                sp.TVD is double tvd)
-                            {
-                                AddPointAndNeighbourCodes(
-                                    latitude,
-                                    longitude,
-                                    tvd,
-                                    latitudeCellSize,
-                                    longitudeCellSize,
-                                    verticalCellSize,
-                                    leafCodes);
-                            }
-                        }
+                        AddPaddedAabbCodes(
+                            boundedPoints.Min(point => point.Latitude!.Value),
+                            boundedPoints.Max(point => point.Latitude!.Value),
+                            boundedPoints.Min(point => point.Longitude!.Value),
+                            boundedPoints.Max(point => point.Longitude!.Value),
+                            boundedPoints.Min(point => point.TVD!.Value),
+                            boundedPoints.Max(point => point.TVD!.Value),
+                            latitudeCellSize,
+                            longitudeCellSize,
+                            verticalCellSize,
+                            leafCodes);
                     }
                 }
 
-                leaves = CompactLeafCodes(leafCodes, OctreeDepthDetails);
+                leaves = CompactLeafCodes(leafCodes, OctreeDepthDetails, octreeDepthCache_);
                 #endregion
             }
             return leaves ?? [];
@@ -869,25 +866,36 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             return Math.Min(latitudeCellSize, Math.Min(longitudeCellSizeAtEquator, verticalCellSize));
         }
 
-        private void AddPointAndNeighbourCodes(
-            double x,
-            double y,
-            double z,
+        private void AddPaddedAabbCodes(
+            double minimumX,
+            double maximumX,
+            double minimumY,
+            double maximumY,
+            double minimumZ,
+            double maximumZ,
             double xCellSize,
             double yCellSize,
             double zCellSize,
             HashSet<OctreeCodeLong> leafCodes)
         {
-            for (int xOffset = -1; xOffset <= 1; xOffset++)
+            int cellCount = 1 << OctreeDepthDetails;
+            int minimumXIndex = Math.Max(0, ToCellIndex(minimumX, minX_, xCellSize, cellCount) - 1);
+            int maximumXIndex = Math.Min(cellCount - 1, ToCellIndex(maximumX, minX_, xCellSize, cellCount) + 1);
+            int minimumYIndex = Math.Max(0, ToCellIndex(minimumY, minY_, yCellSize, cellCount) - 1);
+            int maximumYIndex = Math.Min(cellCount - 1, ToCellIndex(maximumY, minY_, yCellSize, cellCount) + 1);
+            int minimumZIndex = Math.Max(0, ToCellIndex(minimumZ, minZ_, zCellSize, cellCount) - 1);
+            int maximumZIndex = Math.Min(cellCount - 1, ToCellIndex(maximumZ, minZ_, zCellSize, cellCount) + 1);
+
+            for (int xIndex = minimumXIndex; xIndex <= maximumXIndex; xIndex++)
             {
-                double expandedX = x + xOffset * xCellSize;
-                for (int yOffset = -1; yOffset <= 1; yOffset++)
+                double x = minX_ + (xIndex + 0.5) * xCellSize;
+                for (int yIndex = minimumYIndex; yIndex <= maximumYIndex; yIndex++)
                 {
-                    double expandedY = y + yOffset * yCellSize;
-                    for (int zOffset = -1; zOffset <= 1; zOffset++)
+                    double y = minY_ + (yIndex + 0.5) * yCellSize;
+                    for (int zIndex = minimumZIndex; zIndex <= maximumZIndex; zIndex++)
                     {
-                        double expandedZ = z + zOffset * zCellSize;
-                        if (TryCreateOctreeCode(expandedX, expandedY, expandedZ, OctreeDepthDetails, out OctreeCodeLong code))
+                        double z = minZ_ + (zIndex + 0.5) * zCellSize;
+                        if (TryCreateOctreeCode(x, y, z, OctreeDepthDetails, out OctreeCodeLong code))
                         {
                             leafCodes.Add(code);
                         }
@@ -896,7 +904,12 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
         }
 
-        private bool TryCreateOctreeCode(double x, double y, double z, int depth, out OctreeCodeLong code)
+        private static int ToCellIndex(double value, double minimum, double cellSize, int cellCount)
+        {
+            return Math.Clamp((int)Math.Floor((value - minimum) / cellSize), 0, cellCount - 1);
+        }
+
+        internal bool TryCreateOctreeCode(double x, double y, double z, int depth, out OctreeCodeLong code)
         {
             code = default;
             if (depth < 1 || depth > Octree<OctreeCodeLong>.MaxDepthOctreeCodeLong ||
@@ -978,10 +991,13 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             return double.IsFinite(value) && value >= min && value <= max;
         }
 
-        private static List<OctreeCodeLong> CompactLeafCodes(HashSet<OctreeCodeLong> leafCodes, int depth)
+        internal static List<OctreeCodeLong> CompactLeafCodes(
+            HashSet<OctreeCodeLong> leafCodes,
+            int depth,
+            int minimumDepth)
         {
             HashSet<OctreeCodeLong> compactedCodes = leafCodes;
-            for (int currentDepth = depth; currentDepth > 1; currentDepth--)
+            for (int currentDepth = depth; currentDepth > minimumDepth; currentDepth--)
             {
                 Dictionary<OctreeCodeLong, byte> childMasksByParent = new(OctreeCodeLongComparer.Instance);
                 foreach (OctreeCodeLong code in compactedCodes)

@@ -36,7 +36,7 @@ Start the service first, then run:
 dotnet test ServiceTest/ServiceTest.csproj
 ```
 
-The current full suite contains 65 tests. Run self-contained tests while the service is stopped with:
+Run self-contained tests while the service is stopped with:
 
 ```powershell
 dotnet test .\ServiceTest\ServiceTest.csproj --filter "FullyQualifiedName!~ServiceTest.Tests&FullyQualifiedName!~McpServerHttpTests"
@@ -63,6 +63,16 @@ For the full suite, launch `Service` at port 8080 from an isolated working direc
 `TrajectoryCatalogMigrationTests.cs` verifies that a version-1 `Trajectory.db` is upgraded to version 2 without rewriting existing records, that legacy identity and feature rows are copied into the main database, and that `TrajectoryCatalog.db` remains intact.
 
 `OctreePersistenceTests.cs` verifies the lossless version-1 to version-2 `GlobalAntiCollision.db` migration and its integrity-checked backup, atomic rollback of a failed replacement, exact and combined planned/actual/definitive overlap filtering, status/provenance/count reporting, classification changes, and complete indexed deletion of a trajectory's state and bucket memberships.
+
+`OctreeEnvelopeCoverageTests.cs` characterizes the spatial broad phase. It verifies detection of a crossing between longitudinal mesh samples, strict concentric containment, entry through an uncertainty-volume end, and continuous relevant-MD range coverage.
+
+`OctreeCoverageBenchmarkTests.cs` is an explicit, read-only benchmark against the development Trajectory API. It compares the production one-cell-padded solid swept-AABB cover at depth 22 with the same representation at depths 20, 21, and 23 using fresh isolated SQLite databases. Every representation is compacted without crossing the database cache depth. It is excluded from normal CI runs. Run it deliberately with:
+
+```powershell
+dotnet test .\ServiceTest\ServiceTest.csproj --filter FullyQualifiedName~OctreeCoverageBenchmarkTests --configuration Release --logger "console;verbosity=detailed" -- NUnit.ExplicitMode=Relaxed
+```
+
+The corrected 2026-09-06 run over 15 development trajectories found 81 candidate pairs at depth 23 and 90 at depth 22. Depth 23 used 104,513 compacted codes and a 3.9 MiB fresh database; depth 22 used 35,373 codes and 3.4 MiB. Across one scan per reference trajectory, persisted search took about 54 seconds at depth 23 and 5 seconds at depth 22. A separate production Valhall slot-coordinate analysis, assuming one occupied well per each of 119 defined slots, estimated that depth 22 would add an average 5.63 slot-proximity candidates per reference well relative to depth 23, concentrated at DP and WP. Depth 22 is retained as the compromise between broad-phase speed and downstream separation-factor work. Treat these figures as dataset-specific benchmark snapshots, not fixed performance guarantees.
 
 `SqlConnectionManagerSafetyTests.cs` is also self-contained. It verifies transactional fresh creation, lossless adoption of an exact legacy schema, and fail-closed handling of malformed and newer databases. To run only it and the MCP registration checks:
 
