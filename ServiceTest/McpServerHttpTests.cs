@@ -105,6 +105,53 @@ public sealed class McpServerHttpTests
     }
 
     [Test]
+    public async Task Octree_scan_rejects_an_empty_classification_selection_before_queueing()
+    {
+        var result = await _client.CallToolAsync("octrees_queue_search", new Dictionary<string, object?>
+        {
+            ["request"] = new Dictionary<string, object?>
+            {
+                ["ReferenceTrajectoryID"] = Guid.NewGuid(),
+                ["IncludePlanned"] = false,
+                ["IncludeActual"] = false,
+                ["DefinitiveOnly"] = true
+            }
+        }, cancellationToken: CancellationToken.None);
+        JsonObject payload = ErrorPayload(result);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsError, Is.True);
+            Assert.That(payload["error"]?.GetValue<string>(), Is.EqualTo("validation_failed"));
+            Assert.That(payload["message"]?.GetValue<string>(), Does.Contain("cannot both be false"));
+        });
+    }
+
+    [Test]
+    public async Task Separation_factor_submission_rejects_server_derived_fields_before_queueing()
+    {
+        var result = await _client.CallToolAsync("global_anti_collisions_post", new Dictionary<string, object?>
+        {
+            ["value"] = new Dictionary<string, object?>
+            {
+                ["ID"] = $"mcp-contract-{Guid.NewGuid():N}",
+                ["ConfidenceFactor"] = 0.999,
+                ["ReferenceTrajectoryID"] = Guid.NewGuid(),
+                ["ComparisonTrajectoryIDs"] = new[] { Guid.NewGuid() },
+                ["CalculationProgress"] = 0.5
+            }
+        }, cancellationToken: CancellationToken.None);
+        JsonObject payload = ErrorPayload(result);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.IsError, Is.True);
+            Assert.That(payload["error"]?.GetValue<string>(), Is.EqualTo("validation_failed"));
+            Assert.That(payload["message"]?.GetValue<string>(), Does.Contain("server-derived"));
+        });
+    }
+
+    [Test]
     public async Task Missing_resources_are_returned_as_stable_mcp_errors()
     {
         var result = await _client.CallToolAsync("trajectory_get_trajectory_by_id",

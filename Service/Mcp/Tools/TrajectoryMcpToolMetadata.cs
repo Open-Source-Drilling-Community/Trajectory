@@ -3,6 +3,7 @@ using System.Reflection;
 using System.Text.Json.Nodes;
 using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
+using OSDC.Drilling.GlobalAntiCollision;
 using OSDC.Drilling.Trajectory.Model;
 
 namespace OSDC.Drilling.Trajectory.Service.Mcp.Tools;
@@ -47,11 +48,11 @@ internal static class TrajectoryMcpToolMetadata
         else if (action == "AuditExternalReferences")
             detail = $"Check a deterministic UUID-ordered page of all or explicitly selected stored {resource} records without modifying data. Offset must be non-negative and limit is 1 through 100. Results and page counts distinguish Valid, Invalid and Unavailable checks; unavailable dependencies are never reported as missing data.";
         else if (controller == "Octrees" && action == "QueueSearch")
-            detail = "Queue an octree overlap search and return immediately with a server-generated job UUID. The request identifies a current reference trajectory index and selects planned, actual and definitive candidates. Poll the lightweight search-status tool until Completed or Failed, then retrieve the candidate UUIDs from the result tool.";
+            detail = "Queue an octree uncertainty-envelope overlap scan and return immediately with a server-generated job UUID. ReferenceTrajectoryID must have a Current index; IncludePlanned and IncludeActual cannot both be false, and DefinitiveOnly controls whether temporary indexes participate. The reference trajectory is excluded from candidates. Poll octrees_get_search_status until Completed or Failed, call octrees_get_search_result only after Completed, then delete the transient job.";
         else if (controller == "Octrees" && action == "GetSearchStatus")
-            detail = "Return lightweight state, measured progress and the current processing stage for a queued octree overlap search. Poll this operation instead of keeping the initial request open or repeatedly requesting candidate results.";
+            detail = "Return lightweight state, measured progress from 0 through 1, the current processing stage, and the terminal candidate count for a queued octree scan. Poll while CalculationState is Queued or Running. On Completed retrieve the result; on Failed inspect CalculationMessage and resubmit if appropriate. Jobs are transient in-memory state and terminal jobs expire after one hour, so NotFound after restart or expiry requires a new scan.";
         else if (controller == "Octrees" && action == "GetSearchResult")
-            detail = "Return candidate trajectory UUIDs for a completed octree overlap search. A queued, running or failed job returns conflict; poll the status tool first. Delete the transient job after consuming its result.";
+            detail = "Return the unique candidate trajectory UUIDs from a Completed octree scan. Candidates satisfy the requested planned/actual and definitive filters and have at least one intersecting 99.9%-confidence octree cell with the reference envelope; this is candidate discovery, not a separation-factor result. A Queued, Running or Failed job returns conflict; poll the status tool first. Select the candidates to compare, submit them to global_anti_collisions_post, and delete this transient scan job after consuming the result.";
         else if (controller == "Octrees" && action == "DeleteSearch")
             detail = "Delete a completed or failed transient octree-search job. This does not modify trajectory data or persistent octree indexes; running work is not cancelled.";
         else if (action.StartsWith("Search", StringComparison.Ordinal))
@@ -87,11 +88,11 @@ internal static class TrajectoryMcpToolMetadata
                 ? "Create a missing derived spatial index from the trajectory's current uncertainty-envelope stations and return its new status/provenance. Normal trajectory writes and startup reconciliation maintain this index automatically; use this operational repair only when status reports Missing. Existing indexes return conflict."
                 : "Force an atomic rebuild of the trajectory's derived spatial index from its current uncertainty-envelope stations and return its new status/provenance. Normal trajectory writes and startup reconciliation maintain this index automatically; use this operational repair only when status reports Missing or Stale.";
         else if (controller == "GlobalAntiCollisions" && action == "Put")
-            detail = "Replace and requeue an existing global anti-collision calculation. The route id and body ID must match, and a queued or running job returns conflict rather than racing two calculations. The service derives calculation state/progress/results; poll the status tool until CalculationState is Completed or Failed.";
+            detail = "Replace and requeue an existing separation-factor calculation. The route id and body ID must match, and a Queued or Running job returns conflict rather than racing two calculations. Submit only configuration fields; the service derives state, progress, message, relevant measured-depth ranges and profiles. Poll global_anti_collisions_get_status until Completed or Failed, then retrieve the full result with global_anti_collisions_get_by_id.";
         else if (controller == "GlobalAntiCollisions" && action == "Delete")
-            detail = "Delete the transient global anti-collision calculation job and its completed results. Do this after retrieving a terminal result; deleting a running job removes its polling record but does not cancel work already executing.";
+            detail = "Delete the durable separation-factor job and its completed results. Do this after retrieving a terminal result; deleting a running job removes its polling record but does not cancel work already executing.";
         else if (controller == "GlobalAntiCollisions" && action == "GetStatus")
-            detail = "Return only CalculationState, CalculationProgress, and CalculationMessage for a global anti-collision job. Poll this lightweight operation instead of repeatedly retrieving the potentially large result payload.";
+            detail = "Return only ID, CalculationState, CalculationProgress, and CalculationMessage as a lightweight status for a durable separation-factor job. Poll while state is Queued or Running instead of repeatedly retrieving the potentially large result. Interrupted work is persisted as Queued and resumes after a normal service restart. Retrieve profiles only after Completed; Failed is terminal until the request is replaced and requeued.";
         else if (action.StartsWith("Post", StringComparison.Ordinal))
             detail = DescribeCreate(controller, resource);
         else if ((controller is "TrajectoryIdentity" or "TrajectoryFeatureCategory") && action.StartsWith("Put", StringComparison.Ordinal))
@@ -113,7 +114,7 @@ internal static class TrajectoryMcpToolMetadata
         else if (controller == "GlobalAntiCollisions" && action == "Get")
             detail = method.GetParameters().Length == 0
                 ? "List the string identifiers of all global anti-collision calculation jobs. Use an identifier with the by-id tool to inspect progress or retrieve completed results."
-                : "Return one global anti-collision job, including CalculationState, CalculationProgress, CalculationMessage, and any results produced so far. Poll this lightweight request until the state is Completed or Failed.";
+                : "Return one separation-factor job and its profile results. Poll global_anti_collisions_get_status first and call this potentially large operation after Completed. Each result identifies one comparison trajectory, gives the relevant reference and comparison measured-depth intervals in SI metres, and contains profile points with ReferenceMD and ComparisonMD in SI metres and a dimensionless SeparationFactor. Disjoint relevant intervals may therefore produce separate plotted line segments in clients.";
         else
             detail = $"Operate on {resource}.";
 
@@ -156,6 +157,7 @@ internal static class TrajectoryMcpToolMetadata
             ["required"] = required,
             ["additionalProperties"] = false
         };
+        ApplyInputOperationConstraints(controller, method.Name, definitions);
         if (definitions.Count > 0) result["$defs"] = definitions;
         return result;
     }
@@ -186,11 +188,147 @@ internal static class TrajectoryMcpToolMetadata
             ["type"] = "object",
             ["description"] = "Successful MCP result. Failed requests are returned as MCP errors with a stable error envelope.",
             ["properties"] = properties,
-            ["required"] = new JsonArray("status"),
+            ["required"] = payloadType is null ? new JsonArray("status") : new JsonArray("status", "data"),
             ["additionalProperties"] = false
         };
+        ApplyOutputOperationConstraints(payloadType, definitions);
         if (definitions.Count > 0) result["$defs"] = definitions;
         return result;
+    }
+
+    private static void ApplyInputOperationConstraints(string controller, string action, JsonObject definitions)
+    {
+        if (controller == "Octrees" && action == "QueueSearch" &&
+            definitions[nameof(OctreeSearchJobRequest)] is JsonObject searchRequest)
+        {
+            // Omitted flags retain their true model defaults. Explicitly setting both false is invalid.
+            searchRequest["not"] = new JsonObject
+            {
+                ["properties"] = new JsonObject
+                {
+                    [nameof(OctreeSearchJobRequest.IncludePlanned)] = new JsonObject { ["const"] = false },
+                    [nameof(OctreeSearchJobRequest.IncludeActual)] = new JsonObject { ["const"] = false }
+                },
+                ["required"] = new JsonArray(nameof(OctreeSearchJobRequest.IncludePlanned), nameof(OctreeSearchJobRequest.IncludeActual))
+            };
+        }
+
+        if (controller != "GlobalAntiCollisions" || action is not ("Post" or "Put") ||
+            definitions[nameof(GlobalAntiCollision.GlobalAntiCollision)] is not JsonObject calculation ||
+            calculation["properties"] is not JsonObject properties)
+        {
+            return;
+        }
+
+        // These values are exclusively owned by the worker. Omitting them from the closed MCP
+        // input shape prevents callers from presenting derived state or results as facts.
+        properties.Remove(nameof(GlobalAntiCollision.GlobalAntiCollision.CalculationState));
+        properties.Remove(nameof(GlobalAntiCollision.GlobalAntiCollision.CalculationProgress));
+        properties.Remove(nameof(GlobalAntiCollision.GlobalAntiCollision.CalculationMessage));
+        properties.Remove(nameof(GlobalAntiCollision.GlobalAntiCollision.SeparationFactorResults));
+        definitions.Remove(nameof(SeparationFactorResult));
+        definitions.Remove(nameof(SeparationFactorPoint));
+        definitions.Remove(nameof(MeasuredDepthRange));
+
+        if (properties[nameof(GlobalAntiCollision.GlobalAntiCollision.ComparisonTrajectoryIDs)] is JsonObject comparisons)
+        {
+            comparisons["minItems"] = 1;
+            comparisons["uniqueItems"] = true;
+        }
+
+        // The inactive alternative may be omitted or explicitly Guid.Empty on the REST DTO, but
+        // exactly one reference must be non-empty in an MCP submission.
+        foreach (string referenceName in new[]
+                 {
+                     nameof(GlobalAntiCollision.GlobalAntiCollision.ReferenceTrajectoryID),
+                     nameof(GlobalAntiCollision.GlobalAntiCollision.ReferenceWellPathID)
+                 })
+        {
+            if (properties[referenceName] is JsonObject referenceSchema)
+            {
+                referenceSchema.Remove("not");
+            }
+        }
+
+        string emptyUuid = Guid.Empty.ToString();
+        calculation["oneOf"] = new JsonArray(
+            ReferenceChoice(nameof(GlobalAntiCollision.GlobalAntiCollision.ReferenceTrajectoryID),
+                nameof(GlobalAntiCollision.GlobalAntiCollision.ReferenceWellPathID), emptyUuid),
+            ReferenceChoice(nameof(GlobalAntiCollision.GlobalAntiCollision.ReferenceWellPathID),
+                nameof(GlobalAntiCollision.GlobalAntiCollision.ReferenceTrajectoryID), emptyUuid));
+        calculation["required"] = new JsonArray(
+            nameof(GlobalAntiCollision.GlobalAntiCollision.ID),
+            nameof(GlobalAntiCollision.GlobalAntiCollision.ConfidenceFactor),
+            nameof(GlobalAntiCollision.GlobalAntiCollision.ComparisonTrajectoryIDs));
+        calculation["description"] = "Closed MCP submission for an asynchronous separation-factor job. Exactly one reference identifier must be non-empty; calculation state and results are server-derived.";
+    }
+
+    private static JsonObject ReferenceChoice(string selectedName, string inactiveName, string emptyUuid) => new()
+    {
+        ["properties"] = new JsonObject
+        {
+            [selectedName] = new JsonObject { ["not"] = new JsonObject { ["const"] = emptyUuid } },
+            [inactiveName] = new JsonObject { ["const"] = emptyUuid }
+        },
+        ["required"] = new JsonArray(selectedName)
+    };
+
+    private static void ApplyOutputOperationConstraints(Type? payloadType, JsonObject definitions)
+    {
+        if (payloadType == typeof(OctreeSearchJobStatus) &&
+            definitions[nameof(OctreeSearchJobStatus)] is JsonObject searchStatus)
+        {
+            searchStatus["allOf"] = new JsonArray(
+                TerminalStatusRule(nameof(CalculationState.Completed), requireCandidateCount: true),
+                TerminalStatusRule(nameof(CalculationState.Failed), requireCandidateCount: false));
+        }
+        else if (payloadType == typeof(OctreeSearchJobResult) &&
+                 definitions[nameof(OctreeSearchJobResult)]?["properties"]?[nameof(OctreeSearchJobResult.CandidateTrajectoryIDs)] is JsonObject candidates)
+        {
+            candidates["uniqueItems"] = true;
+        }
+        else if (payloadType == typeof(GlobalAntiCollision.GlobalAntiCollision) &&
+                 definitions[nameof(GlobalAntiCollision.GlobalAntiCollision)] is JsonObject calculation)
+        {
+            calculation["required"] = new JsonArray(
+                nameof(GlobalAntiCollision.GlobalAntiCollision.ID),
+                nameof(GlobalAntiCollision.GlobalAntiCollision.ConfidenceFactor),
+                nameof(GlobalAntiCollision.GlobalAntiCollision.ReferenceWellPathID),
+                nameof(GlobalAntiCollision.GlobalAntiCollision.ReferenceTrajectoryID),
+                nameof(GlobalAntiCollision.GlobalAntiCollision.ComparisonTrajectoryIDs),
+                nameof(GlobalAntiCollision.GlobalAntiCollision.SeparationFactorResults),
+                nameof(GlobalAntiCollision.GlobalAntiCollision.CalculationState),
+                nameof(GlobalAntiCollision.GlobalAntiCollision.CalculationProgress));
+        }
+        else if (payloadType == typeof(GlobalAntiCollisionCalculationStatus) &&
+                 definitions[nameof(GlobalAntiCollisionCalculationStatus)] is JsonObject calculationStatus)
+        {
+            calculationStatus["required"] = new JsonArray(
+                nameof(GlobalAntiCollisionCalculationStatus.ID),
+                nameof(GlobalAntiCollisionCalculationStatus.CalculationState),
+                nameof(GlobalAntiCollisionCalculationStatus.CalculationProgress));
+        }
+    }
+
+    private static JsonObject TerminalStatusRule(string terminalState, bool requireCandidateCount)
+    {
+        var required = new JsonArray(nameof(OctreeSearchJobStatus.CompletedUtc));
+        if (requireCandidateCount)
+        {
+            required.Add(nameof(OctreeSearchJobStatus.CandidateCount));
+        }
+        return new JsonObject
+        {
+            ["if"] = new JsonObject
+            {
+                ["properties"] = new JsonObject
+                {
+                    [nameof(OctreeSearchJobStatus.CalculationState)] = new JsonObject { ["const"] = terminalState }
+                },
+                ["required"] = new JsonArray(nameof(OctreeSearchJobStatus.CalculationState))
+            },
+            ["then"] = new JsonObject { ["required"] = required }
+        };
     }
 
     public static McpToolBehavior CreateBehavior(string controller, MethodInfo method, string verbs)
@@ -224,7 +362,7 @@ internal static class TrajectoryMcpToolMetadata
         if (controller is "TrajectoryIdentity" or "TrajectoryFeatureCategory")
             return $"Create {resource}. MetaInfo.ID must be a caller-assigned, non-empty UUID. Feature option IDs must also be non-empty UUIDs.";
         if (controller == "GlobalAntiCollisions")
-            return "Create and queue a global anti-collision calculation. Supply a unique string ID, one reference trajectory or well-path ID, the selected comparison trajectory IDs, and the confidence factor. The service returns immediately, derives state/progress/results, and continues independently of the caller's HTTP request. Poll the by-id tool until CalculationState is Completed or Failed.";
+            return "Create and queue a separation-factor calculation after octree candidate discovery. Supply a unique string ID, exactly one non-empty reference trajectory or well-path ID, at least one unique non-empty comparison trajectory UUID, and a confidence factor greater than 0 and at most 0.999. Do not submit calculation state, progress, message, ranges or results: the service derives them and restricts work to geometrically relevant measured-depth intervals. The service returns immediately and continues independently of the caller. Poll global_anti_collisions_get_status while Queued or Running; after Completed retrieve profiles with global_anti_collisions_get_by_id, then delete the job when no longer needed.";
         return $"Create {resource}. data.MetaInfo.ID must be a caller-assigned, non-empty UUID that is not already stored; duplicate identifiers are rejected. Supply SI values: lengths/depths in metres, angles in radians and curvature in radians per metre.";
     }
 
@@ -266,7 +404,7 @@ internal static class TrajectoryMcpToolMetadata
             "request" when controller == "Octrees" && action == "QueueSearch" => "Octree search filters and the non-empty UUID of the current reference trajectory index.",
             "request" when action == "AuditExternalReferences" => "Audit scope (All or Selected), optional selected resource UUIDs, and deterministic offset/limit page. Selected UUIDs must be non-empty and unique; limit is 1 through 100.",
             "data" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation. Follow the nested schema and SI-unit annotations.",
-            "value" when controller == "GlobalAntiCollisions" => "Global anti-collision request. CalculationState, CalculationProgress, CalculationMessage, and SeparationFactorResults are server-derived and ignored on create or update.",
+            "value" when controller == "GlobalAntiCollisions" => "Separation-factor job configuration. Supply ID, ConfidenceFactor, exactly one reference identifier, and unique selected comparison trajectory UUIDs. Server-derived calculation and result fields are not accepted by MCP.",
             "value" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation.",
             _ => $"Value for {SplitWords(action).ToLowerInvariant()}."
         };
@@ -319,6 +457,10 @@ internal static class TrajectoryMcpToolMetadata
                      .OrderBy(property => property.MetadataToken))
         {
             JsonObject schema = SchemaFor(property.PropertyType, definitions, building);
+            if (IsNullable(property))
+            {
+                schema = AllowNull(schema);
+            }
             ApplyDomainConstraints(type, property, schema, required);
             schema["description"] = DescribeProperty(type, property.Name);
             properties[property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name] = schema;
@@ -408,11 +550,29 @@ internal static class TrajectoryMcpToolMetadata
         {
             required.Add(property.Name);
         }
+        else if (declaringType == typeof(SeparationFactorPoint) || declaringType == typeof(MeasuredDepthRange))
+        {
+            required.Add(property.Name);
+        }
+        else if (declaringType == typeof(SeparationFactorResult) &&
+                 property.Name is nameof(SeparationFactorResult.ComparisonTrajectoryID) or
+                                  nameof(SeparationFactorResult.SeparationFactorProfile))
+        {
+            required.Add(property.Name);
+        }
         else if (declaringType.FullName == "OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision" &&
-                 property.Name == "ID")
+                  property.Name == "ID")
         {
             schema["minLength"] = 1;
             required.Add(property.Name);
+        }
+
+        if (declaringType == typeof(GlobalAntiCollision.GlobalAntiCollision) &&
+            property.Name is nameof(GlobalAntiCollision.GlobalAntiCollision.ReferenceTrajectoryID) or
+                             nameof(GlobalAntiCollision.GlobalAntiCollision.ReferenceWellPathID))
+        {
+            // One of these two alternative references is intentionally Guid.Empty on the wire.
+            schema.Remove("not");
         }
 
         if (property.Name == "CalculationProgress")
@@ -455,6 +615,94 @@ internal static class TrajectoryMcpToolMetadata
 
     private static string DescribeProperty(Type declaringType, string name)
     {
+        if (declaringType == typeof(OctreeSearchJobRequest))
+        {
+            return name switch
+            {
+                nameof(OctreeSearchJobRequest.ReferenceTrajectoryID) => "Non-empty UUID of the reference trajectory. Its 99.9%-confidence octree index must be Current.",
+                nameof(OctreeSearchJobRequest.IncludePlanned) => "Include planned trajectory indexes. This and IncludeActual cannot both be false; defaults to true.",
+                nameof(OctreeSearchJobRequest.IncludeActual) => "Include actual trajectory indexes. This and IncludePlanned cannot both be false; defaults to true.",
+                nameof(OctreeSearchJobRequest.DefinitiveOnly) => "True includes only definitive trajectories; false includes both definitive and temporary trajectories. Defaults to true.",
+                _ => SplitWords(name) + "."
+            };
+        }
+        if (declaringType == typeof(OctreeSearchJobStatus))
+        {
+            return name switch
+            {
+                nameof(OctreeSearchJobStatus.JobID) => "Server-generated UUID used with the status, result and delete tools.",
+                nameof(OctreeSearchJobStatus.ReferenceTrajectoryID) => "UUID of the scanned reference trajectory.",
+                nameof(OctreeSearchJobStatus.CalculationState) => "Transient job state: Queued, Running, Completed or Failed.",
+                nameof(OctreeSearchJobStatus.CalculationProgress) => "Measured completion fraction from 0 through 1.",
+                nameof(OctreeSearchJobStatus.CalculationMessage) => "Sanitized current-stage or terminal-failure message.",
+                nameof(OctreeSearchJobStatus.CandidateCount) => "Number of unique candidates; present when CalculationState is Completed.",
+                nameof(OctreeSearchJobStatus.CreatedUtc) => "UTC creation timestamp of the transient job.",
+                nameof(OctreeSearchJobStatus.CompletedUtc) => "UTC terminal timestamp; present when CalculationState is Completed or Failed.",
+                _ => SplitWords(name) + "."
+            };
+        }
+        if (declaringType == typeof(OctreeSearchJobResult))
+        {
+            return name == nameof(OctreeSearchJobResult.CandidateTrajectoryIDs)
+                ? "Unique trajectory UUIDs whose indexed uncertainty-envelope cells overlap the reference after applying the requested classification filters. The reference UUID is excluded."
+                : SplitWords(name) + ".";
+        }
+        if (declaringType == typeof(GlobalAntiCollision.GlobalAntiCollision))
+        {
+            return name switch
+            {
+                nameof(GlobalAntiCollision.GlobalAntiCollision.ID) => "Caller-assigned non-empty string identifier of this durable asynchronous job.",
+                nameof(GlobalAntiCollision.GlobalAntiCollision.ConfidenceFactor) => "Uncertainty-envelope confidence factor greater than 0 and at most 0.999.",
+                nameof(GlobalAntiCollision.GlobalAntiCollision.ReferenceTrajectoryID) => "Reference trajectory UUID. Exactly one of this and ReferenceWellPathID must be non-empty on submission.",
+                nameof(GlobalAntiCollision.GlobalAntiCollision.ReferenceWellPathID) => "Reference well-path UUID. Exactly one of this and ReferenceTrajectoryID must be non-empty on submission.",
+                nameof(GlobalAntiCollision.GlobalAntiCollision.ComparisonTrajectoryIDs) => "Unique non-empty trajectory UUIDs selected for comparison, normally from a completed octree scan. The service retains only valid spatial candidates with calculated stations.",
+                nameof(GlobalAntiCollision.GlobalAntiCollision.SeparationFactorResults) => "Server-derived results, one per comparison trajectory that produced a valid profile.",
+                nameof(GlobalAntiCollision.GlobalAntiCollision.CalculationState) => "Server-derived asynchronous state: Queued, Running, Completed or Failed.",
+                nameof(GlobalAntiCollision.GlobalAntiCollision.CalculationProgress) => "Server-derived completion fraction from 0 through 1.",
+                nameof(GlobalAntiCollision.GlobalAntiCollision.CalculationMessage) => "Server-derived sanitized stage or failure message; may be null after successful completion.",
+                _ => SplitWords(name) + "."
+            };
+        }
+        if (declaringType == typeof(GlobalAntiCollisionCalculationStatus))
+        {
+            return name switch
+            {
+                nameof(GlobalAntiCollisionCalculationStatus.ID) => "Identifier of the durable separation-factor job.",
+                nameof(GlobalAntiCollisionCalculationStatus.CalculationState) => "Current state: Queued, Running, Completed or Failed.",
+                nameof(GlobalAntiCollisionCalculationStatus.CalculationProgress) => "Measured completion fraction from 0 through 1.",
+                nameof(GlobalAntiCollisionCalculationStatus.CalculationMessage) => "Sanitized current-stage or terminal-failure message; may be null after successful completion.",
+                _ => SplitWords(name) + "."
+            };
+        }
+        if (declaringType == typeof(SeparationFactorResult))
+        {
+            return name switch
+            {
+                nameof(SeparationFactorResult.ComparisonTrajectoryID) => "Non-empty UUID of the comparison trajectory represented by this result.",
+                nameof(SeparationFactorResult.ReferenceMDRange) => "Relevant measured-depth interval on the reference trajectory in SI metres; null when no bounded interval was derived.",
+                nameof(SeparationFactorResult.ComparisonMDRange) => "Relevant measured-depth interval on the comparison trajectory in SI metres; null when no bounded interval was derived.",
+                nameof(SeparationFactorResult.SeparationFactorProfile) => "Calculated profile points within the relevant depth interval. Clients may split non-contiguous reference-depth runs into separate plotted lines.",
+                _ => SplitWords(name) + "."
+            };
+        }
+        if (declaringType == typeof(SeparationFactorPoint))
+        {
+            return name switch
+            {
+                nameof(SeparationFactorPoint.ReferenceMD) => "Reference-trajectory measured depth in SI metres.",
+                nameof(SeparationFactorPoint.ComparisonMD) => "Corresponding comparison-trajectory measured depth in SI metres; legacy no-correspondence points may use -1.",
+                nameof(SeparationFactorPoint.SeparationFactor) => "Dimensionless separation factor at the reference/comparison depth pair.",
+                _ => SplitWords(name) + "."
+            };
+        }
+        if (declaringType == typeof(MeasuredDepthRange))
+        {
+            return name == nameof(MeasuredDepthRange.StartMD)
+                ? "Inclusive interval start measured depth in SI metres."
+                : name == nameof(MeasuredDepthRange.EndMD)
+                    ? "Inclusive interval end measured depth in SI metres; must be greater than or equal to StartMD."
+                    : SplitWords(name) + ".";
+        }
         if ((declaringType == typeof(TrajectoryMinimumDistanceCalculation) ||
              declaringType == typeof(SurveyRunMinimumDistanceCalculation)) && name == "OctreeMaximumDepth")
             return "Maximum octree subdivision level (dimensionless integer from 1 through 12).";
@@ -507,6 +755,15 @@ internal static class TrajectoryMcpToolMetadata
         if (parameter.ParameterType.IsValueType) return false;
         return Nullability.Create(parameter).ReadState is not NullabilityState.NotNull;
     }
+
+    private static bool IsNullable(PropertyInfo property) =>
+        Nullable.GetUnderlyingType(property.PropertyType) is not null ||
+        (!property.PropertyType.IsValueType && Nullability.Create(property).ReadState is not NullabilityState.NotNull);
+
+    private static JsonObject AllowNull(JsonObject schema) => new()
+    {
+        ["anyOf"] = new JsonArray(schema, new JsonObject { ["type"] = "null" })
+    };
 
     private static string DefinitionName(Type type)
     {

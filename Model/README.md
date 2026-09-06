@@ -16,12 +16,14 @@ It is the main implementation project behind the Trajectory service. It does not
 - shared identity and feature catalog models, with assignments on both survey runs and trajectories
 - versioned backup/restore contract types for dependency-closed survey-run and trajectory documents
 - deterministic bounded search-result contracts for trajectory and survey-run discovery
-- typed octree-index health/provenance plus transient asynchronous search request, status, and result contracts
+- typed octree-index health/provenance plus transient asynchronous search request, status, and result contracts; scan requests select planned and/or actual trajectories and can restrict results to definitive trajectories
 - read-only Trajectory and SurveyRun external-reference validation and bounded-audit request/result contracts, with distinct `Valid`, `Invalid`, and `Unavailable` states
 
 Persisted and wire-level engineering quantities use SI units. Depths and vertical coordinates are metres relative to WGS84; alternative depth references are UI presentation transformations and must be converted back before persistence.
 
 Field, Cluster, Well, WellBore, WellBore Architecture, Rig, and Survey Instrument identifiers are identifiers owned by other microservices. The model carries those UUIDs without embedding the external resources. Trajectory and SurveyRun validation/audit result types report confirmed missing references separately from an unavailable dependency.
+
+`OctreeSearchJobRequest`, `OctreeSearchJobStatus`, and `OctreeSearchJobResult` support the non-blocking anti-collision candidate scan. A request identifies one reference trajectory and its planned/actual/definitive filters. Status carries a server-generated job UUID, state, measured progress, stage message, and terminal candidate count; the terminal result contains unique overlapping trajectory UUIDs. This state is transient and derived—the service owns queueing, retention, and validation.
 
 ## Trajectory Realizations
 

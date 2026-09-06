@@ -132,12 +132,14 @@
     </MudText>
     <MudText Typo="Typo.body1" Class="mt-2">
         The <MudLink Href="/Trajectory/webapp/AntiCollisionScan">Anti-collision Scan</MudLink> page selects a
-        reference through the Field/Cluster/Well/WellBore hierarchy, finds overlapping planned or actual trajectory
+        reference through searchable Field/Cluster/Well/WellBore/Trajectory selectors that match any part of a name,
+        finds overlapping planned or actual trajectory
         envelopes through the global octree, and calculates separation-factor tables and interactive depth profiles
         only for the selected candidates and relevant measured-depth intervals. Both octree discovery and
         separation-factor work run as background service jobs; the page shows measured stage progress and retrieves
         each result only when its job completes, so scans lasting several minutes do not depend on one long HTTP
-        request.
+        request. The profile depth axis can fit the union of calculated intervals or show the complete reference
+        trajectory.
     </MudText>
 </MudPaper>
 
@@ -270,7 +272,8 @@
                 <td>
                     JSON endpoints under <code>/Trajectory/api</code> for survey-run and trajectory CRUD, chunked
                     measurement/station transfer, identity and feature catalog management, interpolation,
-                    realization, aggregation, station-ellipse, minimum-distance, and octree status/repair operations,
+                    realization, aggregation, station-ellipse, minimum-distance, asynchronous octree candidate scans,
+                    durable separation-factor jobs, and octree status/repair operations,
                     external-reference validation/audit, and batch export/restore, documented and explorable through
                     the Swagger UI at <code>/Trajectory/api/swagger</code>. Suited to scripts, backend integration,
                     and any HTTP client.
@@ -280,11 +283,12 @@
                 <td><b>MCP</b></td>
                 <td>
                     A Model Context Protocol server exposed as Streamable HTTP at <code>/Trajectory/api/mcp</code>
-                    (and WebSocket at <code>/Trajectory/api/mcp/ws</code>), publishing 125 tools — every non-statistics
-                    REST operation plus connectivity <code>ping</code> — with strict, closed input/output JSON
-                    Schemas and bounded search tools in place of unrestricted full-list operations, so AI agents and
-                    MCP-aware tooling can query, create, update, calculate, and back up survey runs and trajectories
-                    directly.
+                    (and WebSocket at <code>/Trajectory/api/mcp/ws</code>), publishing 130 REST-backed tools plus
+                    connectivity <code>ping</code>. The two unrestricted primary-resource list operations are omitted
+                    in favor of bounded search tools. Strict, closed input/output JSON Schemas guide agents through
+                    queued octree scan/status/result calls and durable separation-factor queue/status/result calls;
+                    invalid filter combinations, comparison sets, reference choices, and caller-supplied derived
+                    calculation fields are rejected before work is queued.
                 </td>
             </tr>
             <tr>

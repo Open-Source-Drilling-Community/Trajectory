@@ -4,7 +4,7 @@
 
 It provides the application shell, host-owned `/Home` route, startup configuration, routing, and static assets for the UI. Survey Run, Trajectory, anti-collision scan, calculation, catalog, backup/restore, and usage-statistics pages are provided by the `WebPages` Razor class library.
 
-The anti-collision scan submits both octree candidate discovery and selected separation-factor comparisons as background service jobs. Each phase polls a lightweight status endpoint and shows measured progress, allowing multi-minute work to continue without an HTTP request timeout; candidate UUIDs and complete calculation results are downloaded only after their respective jobs complete.
+The anti-collision scan provides case-insensitive partial-name search in its Field, Cluster, Well, WellBore, and Trajectory selectors. It submits both octree candidate discovery and selected separation-factor comparisons as background service jobs. Each phase polls a lightweight status endpoint and shows measured progress, allowing multi-minute work to continue without an HTTP request timeout; candidate UUIDs and complete calculation results are downloaded only after their respective jobs complete. Its separation-factor graph can show either the union of calculated depth intervals or the whole reference trajectory.
 
 ## Container
 

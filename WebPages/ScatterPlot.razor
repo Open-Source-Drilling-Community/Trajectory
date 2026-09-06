@@ -68,6 +68,12 @@
     public bool YAxisReversed { get; set; }
 
     [Parameter]
+    public double? YAxisMinimum { get; set; }
+
+    [Parameter]
+    public double? YAxisMaximum { get; set; }
+
+    [Parameter]
     public bool XAxisStartsAtZero { get; set; }
 
     [Parameter]
@@ -339,9 +345,22 @@
         for (int i = 0; i < layout.YAxis.Count; ++i)
         {
             layout.YAxis.ElementAt(i).Title.Text = ShowAxisTitles ? YAxisTitle + yUnitLabel : string.Empty;
-            layout.YAxis.ElementAt(i).AutoRange = YAxisReversed
-                ? Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.Reversed
-                : Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.True;
+            double? yMinimum = ConvertYAxisBound(YAxisMinimum);
+            double? yMaximum = ConvertYAxisBound(YAxisMaximum);
+            if (yMinimum.HasValue && yMaximum.HasValue && yMinimum.Value < yMaximum.Value)
+            {
+                layout.YAxis.ElementAt(i).AutoRange = Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.False;
+                layout.YAxis.ElementAt(i).Range = YAxisReversed
+                    ? [yMaximum.Value, yMinimum.Value]
+                    : [yMinimum.Value, yMaximum.Value];
+            }
+            else
+            {
+                layout.YAxis.ElementAt(i).AutoRange = YAxisReversed
+                    ? Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.Reversed
+                    : Plotly.Blazor.LayoutLib.YAxisLib.AutoRangeEnum.True;
+                layout.YAxis.ElementAt(i).Range = null;
+            }
             layout.YAxis.ElementAt(i).RangeMode = Plotly.Blazor.LayoutLib.YAxisLib.RangeModeEnum.Normal;
             layout.YAxis.ElementAt(i).ShowGrid = ShowCartesianGrid;
 
@@ -420,6 +439,20 @@
         return double.IsNaN(converted) ? null : converted;
     }
 
+    private double? ConvertYAxisBound(double? value)
+    {
+        if (!value.HasValue || YUnit == null)
+        {
+            return null;
+        }
+
+        return YAxisUsesDepthReference
+            ? ConvertDepthForPlot(value.Value, YUnit)
+            : YAxisUsesPositionReference
+                ? ConvertPositionForPlot(value.Value, YUnit, YAxisPositionDirection)
+                : Parent?.FromSI(value.Value, YUnit);
+    }
+
     private string BuildPlotSignature()
     {
         StringBuilder builder = new();
@@ -431,6 +464,8 @@
             .Append(ShowAxisTitles).Append('|')
             .Append(XAxisReversed).Append('|')
             .Append(YAxisReversed).Append('|')
+            .Append(YAxisMinimum).Append('|')
+            .Append(YAxisMaximum).Append('|')
             .Append(XAxisStartsAtZero).Append('|')
             .Append(ShowCartesianGrid).Append('|')
             .Append(AspectRatio).Append('|')

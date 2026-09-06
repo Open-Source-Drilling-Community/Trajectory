@@ -113,6 +113,11 @@ public static class TrajectoryRestMcpToolRegistrations
             return false;
         }
 
+        if (!ValidateOperationArguments(method, arguments, out error))
+        {
+            return false;
+        }
+
         for (int index = 0; index < parameters.Length; index++)
         {
             ParameterInfo parameter = parameters[index];
@@ -150,6 +155,125 @@ public static class TrajectoryRestMcpToolRegistrations
             }
         }
         return true;
+    }
+
+    private static bool ValidateOperationArguments(MethodInfo method, JsonObject? arguments, out JsonNode? error)
+    {
+        error = null;
+        if (method.DeclaringType == typeof(OctreesController) && method.Name == "QueueSearch" &&
+            arguments?["request"] is JsonObject searchRequest)
+        {
+            string[] allowedSearchFields = ["ReferenceTrajectoryID", "IncludePlanned", "IncludeActual", "DefinitiveOnly"];
+            string? unexpectedSearchField = searchRequest.Select(item => item.Key)
+                .FirstOrDefault(name => !allowedSearchFields.Contains(name, StringComparer.Ordinal));
+            if (unexpectedSearchField is not null)
+            {
+                error = McpToolResponses.Validation($"Unexpected octree search field '{unexpectedSearchField}'.");
+                return false;
+            }
+            if (!TryReadNonEmptyUuid(searchRequest, "ReferenceTrajectoryID", out _))
+            {
+                error = McpToolResponses.Validation("ReferenceTrajectoryID must be a non-empty UUID.");
+                return false;
+            }
+            if (ReadBoolean(searchRequest, "IncludePlanned", defaultValue: true) == false &&
+                ReadBoolean(searchRequest, "IncludeActual", defaultValue: true) == false)
+            {
+                error = McpToolResponses.Validation("IncludePlanned and IncludeActual cannot both be false.");
+                return false;
+            }
+        }
+
+        if (method.DeclaringType != typeof(GlobalAntiCollisionsController) ||
+            method.Name is not ("Post" or "Put") || arguments?["value"] is not JsonObject calculation)
+        {
+            return true;
+        }
+
+        string[] derivedFields = ["CalculationState", "CalculationProgress", "CalculationMessage", "SeparationFactorResults"];
+        string? suppliedDerivedField = derivedFields.FirstOrDefault(calculation.ContainsKey);
+        if (suppliedDerivedField is not null)
+        {
+            error = McpToolResponses.Validation($"'{suppliedDerivedField}' is server-derived and must not be submitted.");
+            return false;
+        }
+        string[] allowedCalculationFields = ["ID", "ConfidenceFactor", "ReferenceWellPathID", "ReferenceTrajectoryID", "ComparisonTrajectoryIDs"];
+        string? unexpectedCalculationField = calculation.Select(item => item.Key)
+            .FirstOrDefault(name => !allowedCalculationFields.Contains(name, StringComparer.Ordinal));
+        if (unexpectedCalculationField is not null)
+        {
+            error = McpToolResponses.Validation($"Unexpected separation-factor field '{unexpectedCalculationField}'.");
+            return false;
+        }
+
+        if (calculation["ID"] is not JsonValue idNode || !idNode.TryGetValue(out string? bodyId) ||
+            string.IsNullOrWhiteSpace(bodyId))
+        {
+            error = McpToolResponses.Validation("Global anti-collision ID must be a non-empty string.");
+            return false;
+        }
+        if (method.Name == "Put" && arguments?["id"] is JsonValue routeIdNode &&
+            routeIdNode.TryGetValue(out string? routeId) && !string.Equals(routeId, bodyId, StringComparison.Ordinal))
+        {
+            error = McpToolResponses.Validation("Route id and value.ID must match exactly.");
+            return false;
+        }
+
+        bool hasTrajectoryReference = TryReadNonEmptyUuid(calculation, "ReferenceTrajectoryID", out Guid trajectoryReference);
+        bool hasWellPathReference = TryReadNonEmptyUuid(calculation, "ReferenceWellPathID", out _);
+        if (hasTrajectoryReference == hasWellPathReference)
+        {
+            error = McpToolResponses.Validation("Exactly one of ReferenceTrajectoryID and ReferenceWellPathID must be a non-empty UUID.");
+            return false;
+        }
+
+        if (calculation["ConfidenceFactor"] is not JsonValue confidenceNode ||
+            !confidenceNode.TryGetValue(out double confidenceFactor) || !double.IsFinite(confidenceFactor) ||
+            confidenceFactor <= 0.0 || confidenceFactor > 0.999)
+        {
+            error = McpToolResponses.Validation("ConfidenceFactor must be finite, greater than 0, and at most 0.999.");
+            return false;
+        }
+
+        if (calculation["ComparisonTrajectoryIDs"] is not JsonArray comparisons || comparisons.Count == 0)
+        {
+            error = McpToolResponses.Validation("ComparisonTrajectoryIDs must contain at least one UUID selected for comparison.");
+            return false;
+        }
+
+        HashSet<Guid> uniqueComparisons = [];
+        foreach (JsonNode? comparison in comparisons)
+        {
+            if (comparison is not JsonValue comparisonNode ||
+                !comparisonNode.TryGetValue(out string? comparisonText) ||
+                !Guid.TryParse(comparisonText, out Guid comparisonId) || comparisonId == Guid.Empty)
+            {
+                error = McpToolResponses.Validation("Every ComparisonTrajectoryIDs entry must be a non-empty UUID.");
+                return false;
+            }
+            if (!uniqueComparisons.Add(comparisonId))
+            {
+                error = McpToolResponses.Validation("ComparisonTrajectoryIDs must not contain duplicate UUIDs.");
+                return false;
+            }
+            if (hasTrajectoryReference && comparisonId == trajectoryReference)
+            {
+                error = McpToolResponses.Validation("The reference trajectory cannot also be a comparison trajectory.");
+                return false;
+            }
+        }
+
+        return true;
+    }
+
+    private static bool ReadBoolean(JsonObject value, string propertyName, bool defaultValue) =>
+        value[propertyName] is JsonValue node && node.TryGetValue(out bool parsed) ? parsed : defaultValue;
+
+    private static bool TryReadNonEmptyUuid(JsonObject value, string propertyName, out Guid id)
+    {
+        id = Guid.Empty;
+        return value[propertyName] is JsonValue node && node.TryGetValue(out string? text) &&
+               Guid.TryParse(text, out id) && id != Guid.Empty;
     }
 
     private static bool IsNullable(ParameterInfo parameter)

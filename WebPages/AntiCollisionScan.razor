@@ -44,49 +44,33 @@
         <MudText Typo="Typo.h6" Class="mb-3">Reference trajectory</MudText>
         <MudGrid>
             <MudItem xs="12" sm="6" lg="2">
-                <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId_" ValueChanged="@OnFieldChanged" Clearable="true" ShrinkLabel>
-                    @foreach (Field field in AvailableFields)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
-                    }
-                </MudSelect>
+                <MudAutocomplete Label="Field" T="Guid?" Value="@selectedFieldId_" ValueChanged="@OnFieldChanged"
+                                 SearchFunc="@SearchFieldsAsync" ToStringFunc="@GetFieldDisplayName"
+                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel />
             </MudItem>
             <MudItem xs="12" sm="6" lg="2">
-                <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId_" ValueChanged="@OnClusterChanged"
-                           Clearable="true" ShrinkLabel Disabled="@(selectedFieldId_ == null)">
-                    @foreach (Cluster cluster in AvailableClusters)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
-                    }
-                </MudSelect>
+                <MudAutocomplete Label="Cluster" T="Guid?" Value="@selectedClusterId_" ValueChanged="@OnClusterChanged"
+                                 SearchFunc="@SearchClustersAsync" ToStringFunc="@GetClusterDisplayName"
+                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                                 Disabled="@(selectedFieldId_ == null)" />
             </MudItem>
             <MudItem xs="12" sm="6" lg="2">
-                <MudSelect Label="Well" T="Guid?" Value="@selectedWellId_" ValueChanged="@OnWellChanged"
-                           Clearable="true" ShrinkLabel Disabled="@(selectedFieldId_ == null)">
-                    @foreach (Well well in AvailableWells)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
-                    }
-                </MudSelect>
+                <MudAutocomplete Label="Well" T="Guid?" Value="@selectedWellId_" ValueChanged="@OnWellChanged"
+                                 SearchFunc="@SearchWellsAsync" ToStringFunc="@GetWellDisplayName"
+                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                                 Disabled="@(selectedFieldId_ == null)" />
             </MudItem>
             <MudItem xs="12" sm="6" lg="2">
-                <MudSelect Label="WellBore" T="Guid?" Value="@selectedWellBoreId_" ValueChanged="@OnWellBoreChanged"
-                           Clearable="true" ShrinkLabel Disabled="@(selectedWellId_ == null)">
-                    @foreach (WellBore wellBore in AvailableWellBores)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)wellBore.MetaInfo.ID)">@wellBore.Name</MudSelectItem>
-                    }
-                </MudSelect>
+                <MudAutocomplete Label="WellBore" T="Guid?" Value="@selectedWellBoreId_" ValueChanged="@OnWellBoreChanged"
+                                 SearchFunc="@SearchWellBoresAsync" ToStringFunc="@GetWellBoreDisplayName"
+                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                                 Disabled="@(selectedWellId_ == null)" />
             </MudItem>
             <MudItem xs="12" sm="6" lg="4">
-                <MudSelect Label="Trajectory" T="Guid?" Value="@selectedReferenceTrajectoryId_" ValueChanged="@OnReferenceTrajectoryChanged"
-                           ToStringFunc="@GetReferenceTrajectoryDisplayName"
-                           Clearable="true" ShrinkLabel Disabled="@(selectedWellBoreId_ == null)">
-                    @foreach (TrajectoryLight trajectory in AvailableReferenceTrajectories)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)trajectory.MetaInfo.ID)">@trajectory.Name</MudSelectItem>
-                    }
-                </MudSelect>
+                <MudAutocomplete Label="Trajectory" T="Guid?" Value="@selectedReferenceTrajectoryId_" ValueChanged="@OnReferenceTrajectoryChanged"
+                                 SearchFunc="@SearchReferenceTrajectoriesAsync" ToStringFunc="@GetReferenceTrajectoryDisplayName"
+                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                                 Disabled="@(selectedWellBoreId_ == null)" />
             </MudItem>
         </MudGrid>
 
@@ -221,15 +205,25 @@
         @if (plotSeries_.Count > 0)
         {
             <MudPaper Outlined="true" Class="pa-4 mb-6">
-                <MudText Typo="Typo.h6" Class="mb-1">Separation-factor profiles</MudText>
+                <MudToolBar Dense="true" Class="px-0">
+                    <MudText Typo="Typo.h6">Separation-factor profiles</MudText>
+                    <MudSpacer />
+                    <MudSwitch T="bool" @bind-Value="showWholeTrajectoryOnGraph_" Color="Color.Primary"
+                               Label="Show whole reference trajectory" />
+                </MudToolBar>
                 <MudText Typo="Typo.caption" Color="Color.Secondary" Class="mb-3">
+                    @(showWholeTrajectoryOnGraph_
+                        ? "The depth axis covers the complete reference trajectory."
+                        : "The depth axis covers the union of all calculated separation intervals.")
                     Reference measured depth increases downward. Click a legend entry to show or hide every calculated interval for that trajectory.
                 </MudText>
                 <ScatterPlot NameList="@PlotNames" ModeFlagList="@PlotModes" ColorList="@PlotColors"
                              ShowLegendList="@PlotShowLegend" LegendGroupList="@PlotLegendGroups" ToggleLegendGroups="true"
                              XValuesList="@PlotSafetyFactors" YValuesList="@PlotReferenceDepths"
+                             PlotHeight="700"
                              XAxisTitle="Separation factor" YAxisTitle="Reference MD"
                              XUnit="DimensionLessStandard" YUnit="DepthDrilling"
+                             YAxisMinimum="@GraphMinimumReferenceDepth" YAxisMaximum="@GraphMaximumReferenceDepth"
                              XAxisStartsAtZero="true" YAxisUsesDepthReference="true" YAxisReversed="true" />
             </MudPaper>
         }
@@ -266,6 +260,7 @@
     private bool includeActual_ = true;
     private bool definitiveOnly_ = true;
     private bool showAllReferenceDepths_;
+    private bool showWholeTrajectoryOnGraph_;
     private bool isLoading_;
     private bool isScanning_;
     private bool isCalculating_;
@@ -287,6 +282,19 @@
     private List<string> PlotLegendGroups => plotSeries_.Select(series => series.TrajectoryID.ToString()).ToList();
     private List<List<object>> PlotSafetyFactors => plotSeries_.Select(series => series.Points.Select(point => (object)point.SafetyFactor).ToList()).ToList();
     private List<List<object>> PlotReferenceDepths => plotSeries_.Select(series => series.Points.Select(point => (object)point.ReferenceMD).ToList()).ToList();
+    private double? GraphMinimumReferenceDepth => GetGraphReferenceDepthBound(useMinimum: true);
+    private double? GraphMaximumReferenceDepth => GetGraphReferenceDepthBound(useMinimum: false);
+
+    private double? GetGraphReferenceDepthBound(bool useMinimum)
+    {
+        IEnumerable<double> depths = showWholeTrajectoryOnGraph_
+            ? allTableRows_.Select(row => row.ReferenceMD)
+            : plotSeries_.SelectMany(series => series.Points).Select(point => point.ReferenceMD);
+        List<double> finiteDepths = depths.Where(double.IsFinite).ToList();
+        return finiteDepths.Count == 0
+            ? null
+            : useMinimum ? finiteDepths.Min() : finiteDepths.Max();
+    }
 
     private List<Field> AvailableFields => fields_.Where(item => item.MetaInfo != null).OrderBy(item => item.Name).ToList();
     private List<Cluster> AvailableClusters => clusters_
@@ -306,6 +314,49 @@
                        (selectedWellId_ == null || item.WellID == selectedWellId_) &&
                        (selectedWellBoreId_ == null || item.WellBoreID == selectedWellBoreId_))
         .OrderBy(item => item.Name).ToList();
+
+    private Task<IEnumerable<Guid?>> SearchFieldsAsync(string? searchText, CancellationToken cancellationToken) =>
+        Task.FromResult(FilterByName(AvailableFields, searchText, item => item.Name, item => item.MetaInfo.ID));
+
+    private Task<IEnumerable<Guid?>> SearchClustersAsync(string? searchText, CancellationToken cancellationToken) =>
+        Task.FromResult(FilterByName(AvailableClusters, searchText, item => item.Name, item => item.MetaInfo.ID));
+
+    private Task<IEnumerable<Guid?>> SearchWellsAsync(string? searchText, CancellationToken cancellationToken) =>
+        Task.FromResult(FilterByName(AvailableWells, searchText, item => item.Name, item => item.MetaInfo.ID));
+
+    private Task<IEnumerable<Guid?>> SearchWellBoresAsync(string? searchText, CancellationToken cancellationToken) =>
+        Task.FromResult(FilterByName(AvailableWellBores, searchText, item => item.Name, item => item.MetaInfo.ID));
+
+    private Task<IEnumerable<Guid?>> SearchReferenceTrajectoriesAsync(string? searchText, CancellationToken cancellationToken) =>
+        Task.FromResult(FilterByName(AvailableReferenceTrajectories, searchText, item => item.Name, item => item.MetaInfo.ID));
+
+    private static IEnumerable<Guid?> FilterByName<T>(IEnumerable<T> items, string? searchText,
+        Func<T, string?> getName, Func<T, Guid> getId)
+    {
+        string? term = searchText?.Trim();
+        return items
+            .Where(item => string.IsNullOrEmpty(term) ||
+                           (getName(item)?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
+                           getId(item).ToString("D").Contains(term, StringComparison.OrdinalIgnoreCase))
+            .Select(item => (Guid?)getId(item));
+    }
+
+    private string GetFieldDisplayName(Guid? id) => GetDisplayName(id, fields_, item => item.Name, item => item.MetaInfo?.ID);
+    private string GetClusterDisplayName(Guid? id) => GetDisplayName(id, clusters_, item => item.Name, item => item.MetaInfo?.ID);
+    private string GetWellDisplayName(Guid? id) => GetDisplayName(id, wells_, item => item.Name, item => item.MetaInfo?.ID);
+    private string GetWellBoreDisplayName(Guid? id) => GetDisplayName(id, wellBores_, item => item.Name, item => item.MetaInfo?.ID);
+
+    private static string GetDisplayName<T>(Guid? id, IEnumerable<T> items, Func<T, string?> getName, Func<T, Guid?> getId)
+    {
+        if (id is not Guid value)
+        {
+            return string.Empty;
+        }
+
+        T? item = items.FirstOrDefault(candidate => getId(candidate) == value);
+        string? name = item is null ? null : getName(item);
+        return string.IsNullOrWhiteSpace(name) ? value.ToString("D") : name;
+    }
 
     protected override async Task OnInitializedAsync()
     {

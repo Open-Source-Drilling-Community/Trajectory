@@ -293,6 +293,7 @@ public sealed class McpToolRegistrationTests
         JsonObject statusProperties = statusDefinition["properties"]!.AsObject();
         JsonObject searchRequest = queueSearch.InputSchema["$defs"]!["OctreeSearchJobRequest"]!.AsObject();
         JsonObject searchJobStatus = searchStatus.OutputSchema["$defs"]!["OctreeSearchJobStatus"]!.AsObject();
+        JsonObject searchResultDefinition = searchResult.OutputSchema["$defs"]!["OctreeSearchJobResult"]!.AsObject();
 
         Assert.Multiple(() =>
         {
@@ -312,11 +313,18 @@ public sealed class McpToolRegistrationTests
                 Does.Contain("ReferenceTrajectoryID"));
             Assert.That(searchRequest["properties"]!["ReferenceTrajectoryID"]!["not"]!["const"]!.GetValue<string>(),
                 Is.EqualTo(Guid.Empty.ToString()));
+            Assert.That(searchRequest["not"]!["required"]!.AsArray().Select(value => value!.GetValue<string>()),
+                Is.EquivalentTo(new[] { "IncludePlanned", "IncludeActual" }));
+            Assert.That(queueSearch.Description, Does.Contain("cannot both be false"));
             Assert.That(searchStatus.Description, Does.Contain("measured progress"));
+            Assert.That(searchStatus.Description, Does.Contain("expire after one hour"));
             Assert.That(searchStatus.Behavior.ReadOnlyHint, Is.True);
             Assert.That(searchJobStatus["properties"]!["CalculationProgress"]!["minimum"]!.GetValue<double>(), Is.Zero);
             Assert.That(searchJobStatus["properties"]!["CalculationProgress"]!["maximum"]!.GetValue<double>(), Is.EqualTo(1.0));
+            Assert.That(searchJobStatus["allOf"]!.AsArray(), Has.Count.EqualTo(2));
             Assert.That(searchResult.Description, Does.Contain("poll the status tool first"));
+            Assert.That(searchResult.Description, Does.Contain("candidate discovery, not a separation-factor result"));
+            Assert.That(searchResultDefinition["properties"]!["CandidateTrajectoryIDs"]!["uniqueItems"]!.GetValue<bool>(), Is.True);
             Assert.That(deleteSearch.Description, Does.Contain("does not modify trajectory data"));
             Assert.That(deleteSearch.Behavior.DestructiveHint, Is.True);
             Assert.That(rebuild.Description, Does.Contain("automatically"));
@@ -334,19 +342,40 @@ public sealed class McpToolRegistrationTests
         TrajectoryMcpEndpoint get = Endpoint("global_anti_collisions_get_by_id");
         TrajectoryMcpEndpoint status = Endpoint("global_anti_collisions_get_status");
         JsonObject definition = create.InputSchema["$defs"]!["GlobalAntiCollision"]!.AsObject();
+        JsonObject properties = definition["properties"]!.AsObject();
+        JsonObject outputDefinition = get.OutputSchema["$defs"]!["GlobalAntiCollision"]!.AsObject();
+        JsonObject resultDefinition = get.OutputSchema["$defs"]!["SeparationFactorResult"]!.AsObject();
 
         Assert.Multiple(() =>
         {
             Assert.That(definition["required"]!.AsArray().Select(value => value!.GetValue<string>()),
-                Does.Contain("ID"));
-            Assert.That(definition["properties"]!["ID"]!["minLength"]!.GetValue<int>(), Is.EqualTo(1));
+                Is.EquivalentTo(new[] { "ID", "ConfidenceFactor", "ComparisonTrajectoryIDs" }));
+            Assert.That(properties["ID"]!["minLength"]!.GetValue<int>(), Is.EqualTo(1));
+            Assert.That(properties["ComparisonTrajectoryIDs"]!["minItems"]!.GetValue<int>(), Is.EqualTo(1));
+            Assert.That(properties["ComparisonTrajectoryIDs"]!["uniqueItems"]!.GetValue<bool>(), Is.True);
+            Assert.That(definition["oneOf"]!.AsArray(), Has.Count.EqualTo(2));
+            Assert.That(properties.ContainsKey("CalculationState"), Is.False);
+            Assert.That(properties.ContainsKey("CalculationProgress"), Is.False);
+            Assert.That(properties.ContainsKey("CalculationMessage"), Is.False);
+            Assert.That(properties.ContainsKey("SeparationFactorResults"), Is.False);
+            Assert.That(create.InputSchema["$defs"]!.AsObject().ContainsKey("SeparationFactorResult"), Is.False);
             Assert.That(create.OutputSchema.ToJsonString(), Does.Contain("GlobalAntiCollision"));
             Assert.That(update.OutputSchema.ToJsonString(), Does.Contain("GlobalAntiCollision"));
             Assert.That(get.OutputSchema.ToJsonString(), Does.Contain("GlobalAntiCollision"));
             Assert.That(status.OutputSchema.ToJsonString(), Does.Contain("GlobalAntiCollisionCalculationStatus"));
+            Assert.That(get.OutputSchema["required"]!.AsArray().Select(value => value!.GetValue<string>()),
+                Is.EquivalentTo(new[] { "status", "data" }));
+            Assert.That(outputDefinition["required"]!.AsArray().Select(value => value!.GetValue<string>()),
+                Does.Contain("SeparationFactorResults"));
+            Assert.That(resultDefinition["properties"]!["ReferenceMDRange"]!["anyOf"]!.AsArray(), Has.Count.EqualTo(2));
+            Assert.That(resultDefinition["properties"]!["SeparationFactorProfile"]!["description"]!.GetValue<string>(),
+                Does.Contain("non-contiguous"));
             Assert.That(create.Description, Does.Contain("returns immediately"));
+            Assert.That(create.Description, Does.Contain("relevant measured-depth intervals"));
             Assert.That(update.Description, Does.Contain("route id and body ID must match"));
             Assert.That(status.Description, Does.Contain("lightweight"));
+            Assert.That(get.Description, Does.Contain("SI metres"));
+            Assert.That(get.Description, Does.Contain("dimensionless SeparationFactor"));
             Assert.That(status.Behavior.ReadOnlyHint, Is.True);
         });
     }

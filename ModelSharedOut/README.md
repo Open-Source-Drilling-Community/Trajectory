@@ -10,6 +10,8 @@ It includes the Trajectory service schema together with other related schemas ne
 
 The generated output includes client types and methods for trajectory realization cases, including light data, full case data, and chunked realization retrieval. It also contains the versioned batch export/restore document, conflict and catalog policies (including the explicit normalized-name-mapping opt-in), the two dependency-aware backup endpoints, bounded trajectory/survey-run search, single-record external-reference validation and bounded audit results, optimistic-concurrency parameters for durable mutations, the typed octree index status/provenance, the asynchronous filtered overlap-search contract, and lightweight polling contracts for long octree scans and separation-factor calculations without repeatedly transferring result payloads.
 
+For anti-collision clients, the generated REST sequence is `QueueOctreeSearchAsync` → repeated `GetOctreeSearchStatusAsync` calls → `GetOctreeSearchResultAsync` after completion. The returned candidate UUIDs can be selected for a durable Global Anti-Collision separation-factor request, which is then polled through its lightweight status endpoint before downloading its potentially large terminal profile. Reference and comparison measured depths are SI metres and separation factors are dimensionless. The MCP server advertises a deliberately narrower creation schema than the generated REST DTO: agents cannot submit server-derived calculation state, progress, messages, relevant-depth ranges, or results.
+
 ## Dependencies
 
 `ModelSharedOut` depends on:
