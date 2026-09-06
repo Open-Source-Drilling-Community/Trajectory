@@ -67,6 +67,14 @@ public class GlobalAntiCollisionsController : ControllerBase
         {
             return BadRequest(new { error = "reference_trajectory_or_well_path_required" });
         }
+        if (!IsValidConfidenceFactor(value.ConfidenceFactor))
+        {
+            return BadRequest(new
+            {
+                error = "invalid_confidence_factor",
+                maximumConfidenceFactor = GlobalAntiCollision.GlobalAntiCollision.MaximumConfidenceFactor
+            });
+        }
         if (manager_.Contains(value.ID))
         {
             return Conflict(new { error = "global_anti_collision_already_exists" });
@@ -103,6 +111,14 @@ public class GlobalAntiCollisionsController : ControllerBase
         if (value.ReferenceTrajectoryID == Guid.Empty && value.ReferenceWellPathID == Guid.Empty)
         {
             return BadRequest(new { error = "reference_trajectory_or_well_path_required" });
+        }
+        if (!IsValidConfidenceFactor(value.ConfidenceFactor))
+        {
+            return BadRequest(new
+            {
+                error = "invalid_confidence_factor",
+                maximumConfidenceFactor = GlobalAntiCollision.GlobalAntiCollision.MaximumConfidenceFactor
+            });
         }
         if (!manager_.Contains(id))
         {
@@ -158,4 +174,7 @@ public class GlobalAntiCollisionsController : ControllerBase
         value.CalculationProgress = 0.0;
         value.CalculationMessage = "Calculation queued";
     }
+
+    internal static bool IsValidConfidenceFactor(double confidenceFactor) =>
+        GlobalAntiCollision.GlobalAntiCollision.IsConfidenceFactorSupported(confidenceFactor);
 }

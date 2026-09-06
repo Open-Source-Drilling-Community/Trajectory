@@ -22,6 +22,8 @@
     <PackageReadmeFile>README.md</PackageReadmeFile>
 
     <GeneratePackageOnBuild>true</GeneratePackageOnBuild>
+
+    <Version>1.1.0</Version>
   </PropertyGroup>
 
   <ItemGroup>

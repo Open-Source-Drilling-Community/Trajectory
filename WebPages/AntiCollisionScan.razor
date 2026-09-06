@@ -113,11 +113,20 @@
                 <MudSpacer />
                 <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@SelectAllCandidates" Disabled="@(candidateTrajectories_.Count == 0)">All</MudButton>
                 <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@ClearCandidateSelection" Disabled="@(selectedCandidateIds_.Count == 0)">None</MudButton>
+                <div style="width: 190px; margin-left: 12px; margin-right: 12px;">
+                    <MudInputWithUnitAdornment QuantityName="ProportionStandard" QuantityLabel="Confidence factor"
+                                               SIValue="@confidenceFactor_" SIValueChanged="@OnConfidenceFactorChanged"
+                                               Immediate="true" />
+                </div>
                 <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Calculate"
                            OnClick="@CalculateAsync" Disabled="@(!CanCalculate)">
                     Calculate safety factors
                 </MudButton>
             </MudToolBar>
+
+            <MudText Typo="Typo.caption" Color="@(IsConfidenceFactorValid ? Color.Secondary : Color.Error)" Class="mb-2">
+                The confidence factor must be greater than 0 and no greater than 99.9%, the confidence used by the octree scan.
+            </MudText>
 
             @if (isCalculating_)
             {
@@ -233,7 +242,8 @@
 @code {
     private static readonly string[] PlotPalette =
         ["#1769aa", "#c23b22", "#4f7d20", "#7b3f98", "#bf7f00", "#00838f", "#8d5a3b", "#455a64"];
-    private const double ConfidenceFactor = 0.999;
+    private const double DefaultConfidenceFactor = 0.95;
+    private const double MaximumConfidenceFactor = 0.999;
     private const int MdPrecision = 6;
 
     private MudUnitAndReferenceChoiceTag? unitReferenceTag_;
@@ -261,6 +271,7 @@
     private bool definitiveOnly_ = true;
     private bool showAllReferenceDepths_;
     private bool showWholeTrajectoryOnGraph_;
+    private double confidenceFactor_ = DefaultConfidenceFactor;
     private bool isLoading_;
     private bool isScanning_;
     private bool isCalculating_;
@@ -272,7 +283,9 @@
     private string? errorMessage_;
 
     private bool CanScan => !isLoading_ && selectedReferenceTrajectoryId_.HasValue && (includePlanned_ || includeActual_);
-    private bool CanCalculate => !isLoading_ && selectedCandidateIds_.Count > 0;
+    private bool IsConfidenceFactorValid => double.IsFinite(confidenceFactor_) &&
+        confidenceFactor_ > 0.0 && confidenceFactor_ <= MaximumConfidenceFactor;
+    private bool CanCalculate => !isLoading_ && selectedCandidateIds_.Count > 0 && IsConfidenceFactorValid;
     private IReadOnlyList<SafetyFactorTableRow> DisplayedTableRows => showAllReferenceDepths_ ? allTableRows_ : condensedTableRows_;
     private string MeasuredDepthUnitLabel => unitReferenceTag_?.GetDepthUnitLabel("DepthDrilling") ?? "m";
     private List<string> PlotNames => plotSeries_.Select(series => series.Name).ToList();
@@ -599,7 +612,7 @@
             var request = new GlobalAntiCollision
             {
                 ID = calculationId,
-                ConfidenceFactor = ConfidenceFactor,
+                ConfidenceFactor = confidenceFactor_,
                 ReferenceTrajectoryID = referenceId,
                 ReferenceWellPathID = Guid.Empty,
                 ComparisonTrajectoryIDs = selectedCandidateIds_.OrderBy(id => id).ToList(),
@@ -844,6 +857,13 @@
         selectedCandidateIds_.Clear();
         ResetResults();
     }
+
+    private void OnConfidenceFactorChanged(double value)
+    {
+        confidenceFactor_ = value;
+        ResetResults();
+    }
+
     private bool IsCandidateSelected(TrajectoryLight trajectory) => trajectory.MetaInfo?.ID is Guid id && selectedCandidateIds_.Contains(id);
     private void SetCandidateSelected(TrajectoryLight trajectory, bool selected)
     {

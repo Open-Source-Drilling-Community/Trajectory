@@ -8,6 +8,22 @@ namespace OSDC.Drilling.GlobalAntiCollision
     public class GlobalAntiCollision : ICloneable
     {
         /// <summary>
+        /// Default confidence used by interactive separation-factor workflows.
+        /// </summary>
+        public const double DefaultConfidenceFactor = 0.95;
+
+        /// <summary>
+        /// Maximum confidence supported by separation-factor calculations. This must not
+        /// exceed the confidence used by the octree broad-phase uncertainty volume.
+        /// </summary>
+        public const double MaximumConfidenceFactor = 0.999;
+
+        public static bool IsConfidenceFactorSupported(double confidenceFactor) =>
+            double.IsFinite(confidenceFactor) &&
+            confidenceFactor > 0.0 &&
+            confidenceFactor <= MaximumConfidenceFactor;
+
+        /// <summary>
         /// If true, each comparison pair is evaluated in both directions and valid reverse-direction points are merged
         /// back into the requested reference/comparison orientation. This is slower, but reduces direction-dependent minima.
         /// </summary>
@@ -135,6 +151,14 @@ namespace OSDC.Drilling.GlobalAntiCollision
             List<double?>? comparisonMinimumMDs = null,
             Action<int, int>? progressCallback = null)
         {
+            if (!IsConfidenceFactorSupported(ConfidenceFactor))
+            {
+                throw new ArgumentOutOfRangeException(
+                    nameof(ConfidenceFactor),
+                    ConfidenceFactor,
+                    $"Confidence factor must be greater than 0 and at most {MaximumConfidenceFactor}.");
+            }
+
             if (comparisonSurveyLists != null && referenceSurveyList != null)
             {
                 SeparationFactorResults.Clear();

@@ -229,9 +229,10 @@ public static class TrajectoryRestMcpToolRegistrations
 
         if (calculation["ConfidenceFactor"] is not JsonValue confidenceNode ||
             !confidenceNode.TryGetValue(out double confidenceFactor) || !double.IsFinite(confidenceFactor) ||
-            confidenceFactor <= 0.0 || confidenceFactor > 0.999)
+            confidenceFactor <= 0.0 ||
+            confidenceFactor > GlobalAntiCollision.GlobalAntiCollision.MaximumConfidenceFactor)
         {
-            error = McpToolResponses.Validation("ConfidenceFactor must be finite, greater than 0, and at most 0.999.");
+            error = McpToolResponses.Validation($"ConfidenceFactor must be finite, greater than 0, and at most {GlobalAntiCollision.GlobalAntiCollision.MaximumConfidenceFactor}.");
             return false;
         }
 

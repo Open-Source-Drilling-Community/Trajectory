@@ -138,8 +138,9 @@
         only for the selected candidates and relevant measured-depth intervals. Both octree discovery and
         separation-factor work run as background service jobs; the page shows measured stage progress and retrieves
         each result only when its job completes, so scans lasting several minutes do not depend on one long HTTP
-        request. The profile depth axis can fit the union of calculated intervals or show the complete reference
-        trajectory.
+        request. Separation-factor confidence is selected through the shared Unit Reference system, defaults to
+        95%, and cannot exceed the octree encoding confidence of 99.9%. The profile depth axis can fit the union of
+        calculated intervals or show the complete reference trajectory.
     </MudText>
 </MudPaper>
 

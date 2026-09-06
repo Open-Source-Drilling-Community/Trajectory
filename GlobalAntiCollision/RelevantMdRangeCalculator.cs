@@ -8,7 +8,6 @@ namespace OSDC.Drilling.GlobalAntiCollision
 {
     public static class RelevantMdRangeCalculator
     {
-        private const double DefaultConfidenceFactor = 0.999;
         private const int MeshSectorCount = 36;
 
         public static bool TryGetRelevantMdRanges(
@@ -159,8 +158,8 @@ namespace OSDC.Drilling.GlobalAntiCollision
         {
             ellipses = null;
             double clampedConfidenceFactor =
-                Numeric.IsUndefined(confidenceFactor) || confidenceFactor <= 0 || confidenceFactor > DefaultConfidenceFactor
-                    ? DefaultConfidenceFactor
+                !GlobalAntiCollision.IsConfidenceFactorSupported(confidenceFactor)
+                    ? GlobalAntiCollision.MaximumConfidenceFactor
                     : confidenceFactor;
 
             double? minimumDeltaMD = MinimumMDBetweenSurveyStations(surveyStations);

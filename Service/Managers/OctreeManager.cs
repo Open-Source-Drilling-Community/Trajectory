@@ -38,7 +38,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         private const double EnvelopePointSpacingToCellSizeRatio = 0.5;
         private const int MinEnvelopeMeshSectorCount = 36;
         private const int MaxEnvelopeMeshSectorCount = 240;
-        public const double ConfidenceFactor = 0.999;
+        public const double ConfidenceFactor = GlobalAntiCollision.GlobalAntiCollision.MaximumConfidenceFactor;
         public const int IndexSchemaVersion = 3;
         public const string CalculationParametersHash = "solid-swept-aabb-neighbours-compact-depth22-cache21-confidence0.999-scale1-v3";
         #endregion

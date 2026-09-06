@@ -583,7 +583,7 @@ internal static class TrajectoryMcpToolMetadata
         else if (property.Name == "ConfidenceFactor")
         {
             schema["exclusiveMinimum"] = 0.0;
-            schema["maximum"] = 0.999;
+            schema["maximum"] = GlobalAntiCollision.GlobalAntiCollision.MaximumConfidenceFactor;
         }
         else if (property.Name.EndsWith("Count", StringComparison.Ordinal))
         {

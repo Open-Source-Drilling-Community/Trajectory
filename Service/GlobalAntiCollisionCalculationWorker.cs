@@ -152,9 +152,9 @@ public sealed class GlobalAntiCollisionCalculationWorker : BackgroundService
                 .Select(trajectory => trajectory.SurveyStationList!)
                 .ToList();
 
-            if (Numeric.IsUndefined(value.ConfidenceFactor) || value.ConfidenceFactor <= 0 || value.ConfidenceFactor > 0.999)
+            if (!GlobalAntiCollision.GlobalAntiCollision.IsConfidenceFactorSupported(value.ConfidenceFactor))
             {
-                value.ConfidenceFactor = 0.999;
+                value.ConfidenceFactor = GlobalAntiCollision.GlobalAntiCollision.MaximumConfidenceFactor;
             }
 
             List<MeasuredDepthRange?> referenceMdRanges = [];
