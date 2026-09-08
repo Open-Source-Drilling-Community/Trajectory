@@ -140,8 +140,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     calculation.MetaInfo.ID = Guid.NewGuid();
                 }
 
-                calculation.CreationDate ??= DateTimeOffset.UtcNow;
-                calculation.LastModificationDate = DateTimeOffset.UtcNow;
+                DateTimeOffset now = DateTimeOffset.UtcNow;
+                calculation.CreationDate = now;
+                calculation.LastModificationDate = now;
                 calculation.Name = string.IsNullOrWhiteSpace(calculation.Name) ? "Survey station ellipse calculation" : calculation.Name;
                 calculation.Description ??= string.Empty;
 

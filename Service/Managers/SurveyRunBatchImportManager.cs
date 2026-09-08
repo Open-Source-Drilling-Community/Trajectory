@@ -155,6 +155,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 return false;
             if (GetSurveyRunBatchImportById(id) != null)
                 return false;
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            batchImport.CreationDate = now;
+            batchImport.LastModificationDate = now;
             return InsertOrUpdate(batchImport, false);
         }
 
@@ -162,6 +165,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         {
             if (id == Guid.Empty || batchImport?.MetaInfo?.ID != id)
                 return false;
+            batchImport.CreationDate = GetSurveyRunBatchImportById(id)?.CreationDate ?? batchImport.CreationDate;
             batchImport.LastModificationDate = DateTimeOffset.UtcNow;
             return InsertOrUpdate(batchImport, true);
         }

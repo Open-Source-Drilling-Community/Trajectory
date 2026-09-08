@@ -55,7 +55,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             get
             {
                 int count = 0;
-                var connection = _connectionManager.GetConnection();
+                using var connection = _connectionManager.GetConnection();
                 if (connection != null)
                 {
                     var command = connection.CreateCommand();
@@ -83,7 +83,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
         public bool Clear()
         {
-            var connection = _connectionManager.GetConnection();
+            using var connection = _connectionManager.GetConnection();
             if (connection != null)
             {
                 bool success = false;
@@ -115,11 +115,12 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         public bool Contains(Guid guid)
         {
             int count = 0;
-            var connection = _connectionManager.GetConnection();
+            using var connection = _connectionManager.GetConnection();
             if (connection != null)
             {
                 var command = connection.CreateCommand();
-                command.CommandText = $"SELECT COUNT(*) FROM TrajectoryTable WHERE ID = '{guid}'";
+                command.CommandText = "SELECT COUNT(*) FROM TrajectoryTable WHERE ID = @id";
+                command.Parameters.AddWithValue("@id", guid.ToString());
                 try
                 {
                     using SqliteDataReader reader = command.ExecuteReader();
@@ -167,7 +168,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         public List<Guid>? GetAllTrajectoryId()
         {
             List<Guid> ids = [];
-            var connection = _connectionManager.GetConnection();
+            using var connection = _connectionManager.GetConnection();
             if (connection != null)
             {
                 var command = connection.CreateCommand();
@@ -202,7 +203,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         public List<OSDC.DotnetLibraries.General.DataManagement.MetaInfo?>? GetAllTrajectoryMetaInfo()
         {
             List<OSDC.DotnetLibraries.General.DataManagement.MetaInfo?> metaInfos = new();
-            var connection = _connectionManager.GetConnection();
+            using var connection = _connectionManager.GetConnection();
             if (connection != null)
             {
                 var command = connection.CreateCommand();
@@ -240,12 +241,13 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         {
             if (!trajId.Equals(Guid.Empty))
             {
-                var connection = _connectionManager.GetConnection();
+                using var connection = _connectionManager.GetConnection();
                 if (connection != null)
                 {
                     Model.Trajectory? trajectory;
                     var command = connection.CreateCommand();
-                    command.CommandText = $"SELECT Trajectory FROM TrajectoryTable WHERE ID = '{trajId}'";
+                    command.CommandText = "SELECT Trajectory FROM TrajectoryTable WHERE ID = @id";
+                    command.Parameters.AddWithValue("@id", trajId.ToString());
                     try
                     {
                         using var reader = command.ExecuteReader();
@@ -253,6 +255,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                         {
                             string data = reader.GetString(0);
                             trajectory = JsonSerializer.Deserialize<Model.Trajectory>(data, JsonSettings.Options);
+                            EnsureRevision(trajectory);
                             if (trajectory != null && trajectory.MetaInfo != null && !trajectory.MetaInfo.ID.Equals(trajId))
                                 throw new SqliteException("SQLite database corrupted: returned Trajectory is null or has been jsonified with the wrong ID.", 1);
                             if (includeCalculatedStations && trajectory != null)
@@ -295,12 +298,13 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         {
             if (!wellBoreId.Equals(Guid.Empty))
             {
-                var connection = _connectionManager.GetConnection();
+                using var connection = _connectionManager.GetConnection();
                 if (connection != null)
                 {
                     Model.Trajectory? trajectory;
                     var command = connection.CreateCommand();
-                    command.CommandText = $"SELECT Trajectory FROM TrajectoryTable WHERE WellBoreID = '{wellBoreId}'";
+                    command.CommandText = "SELECT Trajectory FROM TrajectoryTable WHERE WellBoreID = @wellBoreId";
+                    command.Parameters.AddWithValue("@wellBoreId", wellBoreId.ToString());
                     try
                     {
                         using var reader = command.ExecuteReader();
@@ -308,6 +312,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                         {
                             string data = reader.GetString(0);
                             trajectory = JsonSerializer.Deserialize<Model.Trajectory>(data, JsonSettings.Options);
+                            EnsureRevision(trajectory);
                             if (trajectory != null && trajectory.MetaInfo != null && !trajectory.WellBoreID.Equals(wellBoreId))
                                 throw new SqliteException("SQLite database corrupted: returned Trajectory is null or its wellbore ID has been jsonified with the wrong ID.", 1);
                             if (trajectory?.MetaInfo?.ID is Guid trajectoryId)
@@ -355,7 +360,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
             if (!trajIdList.Contains(Guid.Empty))
             {
-                var connection = _connectionManager.GetConnection();
+                using var connection = _connectionManager.GetConnection();
                 if (connection != null)
                 {
                     Dictionary<Guid, Model.Trajectory> trajectoriesById = [];
@@ -383,6 +388,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                             Guid returnedId = Guid.Parse(reader.GetString(0));
                             string data = reader.GetString(1);
                             Model.Trajectory? trajectory = JsonSerializer.Deserialize<Model.Trajectory>(data, JsonSettings.Options);
+                            EnsureRevision(trajectory);
 
                             if (trajectory == null || trajectory.MetaInfo == null || trajectory.MetaInfo.ID != returnedId || !trajIdList.Contains(returnedId))
                             {
@@ -430,7 +436,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         public List<Model.Trajectory?>? GetAllTrajectory(Guid? fieldId = null, Guid? clusterId = null, Guid? wellId = null, Guid? wellBoreId = null, TrajectoryType? trajectoryType = null, bool? isDefinitive = null)
         {
             List<Model.Trajectory?> vals = [];
-            var connection = _connectionManager.GetConnection();
+            using var connection = _connectionManager.GetConnection();
             if (connection != null)
             {
                 var command = connection.CreateCommand();
@@ -443,6 +449,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     {
                         string data = reader.GetString(0);
                         Model.Trajectory? trajectory = JsonSerializer.Deserialize<Model.Trajectory>(data, JsonSettings.Options);
+                        EnsureRevision(trajectory);
                         if (trajectory?.MetaInfo?.ID is Guid trajectoryId)
                         {
                             trajectory.SurveyStationList ??= GetSurveyStationListByTrajectoryId(trajectoryId);
@@ -472,7 +479,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         public List<Model.TrajectoryLight>? GetAllTrajectoryLight(Guid? fieldId = null, Guid? clusterId = null, Guid? wellId = null, Guid? wellBoreId = null, TrajectoryType? trajectoryType = null, bool? isDefinitive = null)
         {
             List<Model.TrajectoryLight>? trajectoryLightList = [];
-            var connection = _connectionManager.GetConnection();
+            using var connection = _connectionManager.GetConnection();
             if (connection != null)
             {
                 var command = connection.CreateCommand();
@@ -484,6 +491,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     while (reader.Read() && !reader.IsDBNull(0))
                     {
                         Model.Trajectory? trajectory = JsonSerializer.Deserialize<Model.Trajectory>(reader.GetString(0), JsonSettings.Options);
+                        EnsureRevision(trajectory);
                         if (trajectory != null)
                         {
                             trajectoryLightList.Add(CreateDataLightInstance(trajectory));
@@ -521,6 +529,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                         return Task.FromResult(false);
                     }
 
+                    DateTimeOffset now = DateTimeOffset.UtcNow;
+                    trajectory.CreationDate = now;
+                    trajectory.LastModificationDate = now;
                     MarkCalculationState(trajectory, CalculationState.Running, 0.0, "Calculation queued");
                     bool saved = InsertOrUpdateTrajectoryRecord(trajectory, false, null);
                     if (saved)
@@ -554,6 +565,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             {
                 if (guid != Guid.Empty && trajectory != null && trajectory.MetaInfo != null && trajectory.MetaInfo.ID == guid)
                 {
+                    Model.Trajectory? stored = GetTrajectoryById(guid, includeCalculatedStations: false);
+                    trajectory.CreationDate = stored?.CreationDate ?? trajectory.CreationDate;
+                    trajectory.LastModificationDate = DateTimeOffset.UtcNow;
                     MarkCalculationState(trajectory, CalculationState.Running, 0.0, "Calculation queued");
                     bool saved = InsertOrUpdateTrajectoryRecord(trajectory, true, null);
                     if (saved)
@@ -590,6 +604,14 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             trajectory.CalculationState = state;
             trajectory.CalculationProgress = System.Math.Clamp(progress, 0.0, 1.0);
             trajectory.CalculationMessage = message;
+        }
+
+        private static void EnsureRevision(Model.Trajectory? trajectory)
+        {
+            if (trajectory != null)
+            {
+                trajectory.LastModificationDate ??= trajectory.CreationDate ?? DateTimeOffset.UnixEpoch;
+            }
         }
 
         private async Task RecalculateTrajectoryAsync(Guid trajectoryId)
@@ -995,7 +1017,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     _logger.LogError("The trajectory {TrajectoryId} was not deleted because its octree could not be invalidated", guid);
                     return false;
                 }
-                var connection = _connectionManager.GetConnection();
+                using var connection = _connectionManager.GetConnection();
                 if (connection != null)
                 {
                     using var transaction = connection.BeginTransaction();
@@ -1006,7 +1028,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                         var command = connection.CreateCommand();
                         command.Transaction = transaction;
                         SurveyStationChunkStore.DeleteChunks(connection, transaction, guid, SurveyStationOwnerType);
-                        command.CommandText = $"DELETE FROM TrajectoryTable WHERE ID = '{guid}'";
+                        command.CommandText = "DELETE FROM TrajectoryTable WHERE ID = @id";
+                        command.Parameters.AddWithValue("@id", guid.ToString());
                         int count = command.ExecuteNonQuery();
                         if (count < 0)
                         {
@@ -1225,7 +1248,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 return null;
             }
 
-            var connection = _connectionManager.GetConnection();
+            using var connection = _connectionManager.GetConnection();
             if (connection != null)
             {
                 var command = connection.CreateCommand();

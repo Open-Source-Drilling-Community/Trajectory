@@ -230,6 +230,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     return Task.FromResult(false);
                 }
 
+                DateTimeOffset now = DateTimeOffset.UtcNow;
+                calculation.CreationDate = now;
+                calculation.LastModificationDate = now;
                 MarkCalculationState(calculation, CalculationState.Running, 0.0, "Calculation queued");
                 bool saved = InsertOrUpdateTrajectoryMinimumDistanceCalculation(calculation, false, null, replaceResultChunks: false);
                 if (saved)
@@ -255,6 +258,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     return Task.FromResult(false);
                 }
 
+                calculation.CreationDate =
+                    GetTrajectoryMinimumDistanceCalculationById(id, includeResults: false)?.CreationDate
+                    ?? calculation.CreationDate;
                 calculation.LastModificationDate = DateTimeOffset.UtcNow;
                 MarkCalculationState(calculation, CalculationState.Running, 0.0, "Calculation queued");
                 bool saved = InsertOrUpdateTrajectoryMinimumDistanceCalculation(calculation, true, null, replaceResultChunks: true);

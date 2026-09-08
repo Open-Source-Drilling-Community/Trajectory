@@ -221,6 +221,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 surveyRun.SurveyMeasurementList = measurements;
             }
 
+            DateTimeOffset now = DateTimeOffset.UtcNow;
+            surveyRun.CreationDate = now;
+            surveyRun.LastModificationDate = now;
             MarkCalculationState(surveyRun, CalculationState.Running, 0.0, "Calculation queued");
             bool saved = InsertOrUpdateSurveyRun(surveyRun, false);
             if (saved)
@@ -261,6 +264,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 surveyRun.SurveyStationList ??= existingSurveyRun.SurveyStationList;
             }
 
+            surveyRun.CreationDate = GetSurveyRunById(id, includeMeasurements: false, includeCalculatedStations: false)?.CreationDate
+                ?? surveyRun.CreationDate;
             surveyRun.LastModificationDate = DateTimeOffset.UtcNow;
             MarkCalculationState(surveyRun, CalculationState.Running, 0.0, "Calculation queued");
             bool saved = InsertOrUpdateSurveyRun(surveyRun, true);

@@ -305,6 +305,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     return Task.FromResult(false);
                 }
 
+                DateTimeOffset now = DateTimeOffset.UtcNow;
+                interpolatedTrajectory.CreationDate = now;
+                interpolatedTrajectory.LastModificationDate = now;
                 MarkCalculationState(interpolatedTrajectory, CalculationState.Running, 0.0, "Calculation queued");
                 bool saved = InsertOrUpdateInterpolatedTrajectory(interpolatedTrajectory, false, null);
                 if (saved)
@@ -331,6 +334,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     return Task.FromResult(false);
                 }
 
+                interpolatedTrajectory.CreationDate =
+                    GetInterpolatedTrajectoryById(id, includeCalculatedStations: false)?.CreationDate
+                    ?? interpolatedTrajectory.CreationDate;
                 interpolatedTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
                 MarkCalculationState(interpolatedTrajectory, CalculationState.Running, 0.0, "Calculation queued");
                 bool saved = InsertOrUpdateInterpolatedTrajectory(interpolatedTrajectory, true, null);

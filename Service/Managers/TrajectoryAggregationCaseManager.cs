@@ -242,6 +242,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     return Task.FromResult(false);
                 }
 
+                DateTimeOffset now = DateTimeOffset.UtcNow;
+                value.CreationDate = now;
+                value.LastModificationDate = now;
                 PrepareForQueuedCalculation(value);
                 bool saved = InsertOrUpdateTrajectoryAggregationCase(value, false, replaceChunks: false);
                 if (saved)
@@ -266,6 +269,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     return Task.FromResult(false);
                 }
 
+                value.CreationDate =
+                    GetTrajectoryAggregationCaseById(id, includeResults: false)?.CreationDate ?? value.CreationDate;
                 value.LastModificationDate = DateTimeOffset.UtcNow;
                 PrepareForQueuedCalculation(value);
                 bool saved = InsertOrUpdateTrajectoryAggregationCase(value, true, replaceChunks: true);

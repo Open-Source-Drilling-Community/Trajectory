@@ -208,6 +208,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     return Task.FromResult(false);
                 }
 
+                DateTimeOffset now = DateTimeOffset.UtcNow;
+                value.CreationDate = now;
+                value.LastModificationDate = now;
                 MarkCalculationState(value, CalculationState.Running, 0.0, "Calculation queued");
                 bool saved = InsertOrUpdateTrajectoryRealizationCase(value, false, null);
                 if (saved)
@@ -232,6 +235,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     return Task.FromResult(false);
                 }
 
+                value.CreationDate =
+                    GetTrajectoryRealizationCaseById(id, includeRealizations: false)?.CreationDate ?? value.CreationDate;
                 value.LastModificationDate = DateTimeOffset.UtcNow;
                 MarkCalculationState(value, CalculationState.Running, 0.0, "Calculation queued");
                 bool saved = InsertOrUpdateTrajectoryRealizationCase(value, true, null);
