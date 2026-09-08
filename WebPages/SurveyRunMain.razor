@@ -1607,7 +1607,7 @@
             ? clusterList_?.FirstOrDefault(item => item?.MetaInfo?.ID == clusterId)
             : null;
 
-        return cluster?.ReferenceDepth?.GaussianValue?.Mean;
+        return cluster?.ReferencePoint?.TVD;
     }
 
     private WellBore? GetSelectedWellBore() =>
@@ -1801,8 +1801,8 @@
 
     private static void UpdateClusterPositionReference(Cluster? cluster)
     {
-        if (cluster?.ReferenceLatitude?.GaussianValue?.Mean is not { } latitude ||
-            cluster.ReferenceLongitude?.GaussianValue?.Mean is not { } longitude)
+        if (cluster?.ReferencePoint?.Latitude is not { } latitude ||
+            cluster.ReferencePoint?.Longitude is not { } longitude)
         {
             return;
         }

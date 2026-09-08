@@ -35,3 +35,5 @@ dotnet run --project .\ModelSharedIn\ModelSharedIn.csproj
 ```
 
 Answer `Y` only after reviewing the input schemas. Inspect the generated diff for route or short type-name collisions, then build the solution so downstream compilation validates the result.
+
+Refresh each input from its owning repository before running the generator. In particular, use the current Survey Instrument service schema so shared catalogue policies and batch restore DTOs are not silently omitted from the Trajectory model contract.

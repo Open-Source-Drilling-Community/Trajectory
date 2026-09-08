@@ -72,8 +72,8 @@ public static class TrajectoryReferenceDatumUtils
         ModelShared.Cluster? cluster = clusters?.FirstOrDefault(item => item?.MetaInfo?.ID == well?.ClusterID);
         ModelShared.Slot? slot = ResolveSlot(well, cluster, clusters);
 
-        double? latitude = slot?.Latitude?.GaussianValue?.Mean ?? cluster?.ReferenceLatitude?.GaussianValue?.Mean;
-        double? longitude = slot?.Longitude?.GaussianValue?.Mean ?? cluster?.ReferenceLongitude?.GaussianValue?.Mean;
+        double? latitude = slot?.Latitude?.GaussianValue?.Mean ?? cluster?.ReferencePoint?.Latitude;
+        double? longitude = slot?.Longitude?.GaussianValue?.Mean ?? cluster?.ReferencePoint?.Longitude;
         if (latitude == null || longitude == null)
         {
             return null;
@@ -82,7 +82,7 @@ public static class TrajectoryReferenceDatumUtils
         return new ReferenceLocation(
             latitude.Value,
             longitude.Value,
-            cluster?.ReferenceDepth?.GaussianValue?.Mean ?? 0.0,
+            cluster?.ReferencePoint?.TVD ?? 0.0,
             cluster?.FieldID);
     }
 

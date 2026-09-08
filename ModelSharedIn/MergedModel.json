@@ -10453,6 +10453,14 @@
           }
         }
       },
+      "SurveyInstrumentBatchCatalogRestorePolicy": {
+        "enum": [
+          "Unspecified",
+          "MapExisting",
+          "MapOrCreateMissing"
+        ],
+        "type": "string"
+      },
       "SurveyInstrumentBatchError": {
         "type": "object",
         "properties": {
@@ -10559,6 +10567,9 @@
         "properties": {
           "ConflictPolicy": {
             "$ref": "#/components/schemas/SurveyInstrumentBatchRestoreConflictPolicy"
+          },
+          "CatalogPolicy": {
+            "$ref": "#/components/schemas/SurveyInstrumentBatchCatalogRestorePolicy"
           },
           "Document": {
             "$ref": "#/components/schemas/SurveyInstrumentBatchExportDocument"

@@ -43,8 +43,8 @@ public static class MslDepthReferenceUtils
 
         return CalculateMeanSeaLevelDepthReferenceAsync(
             api.ClientVerticalDatum,
-            slot?.Latitude?.GaussianValue?.Mean ?? cluster?.ReferenceLatitude?.GaussianValue?.Mean,
-            slot?.Longitude?.GaussianValue?.Mean ?? cluster?.ReferenceLongitude?.GaussianValue?.Mean);
+            slot?.Latitude?.GaussianValue?.Mean ?? cluster?.ReferencePoint?.Latitude,
+            slot?.Longitude?.GaussianValue?.Mean ?? cluster?.ReferencePoint?.Longitude);
     }
 
     private static ModelShared.WellBore? ResolveRootWellBore(ModelShared.WellBore? wellBore, IEnumerable<ModelShared.WellBore>? wellBores)

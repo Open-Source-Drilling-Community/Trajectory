@@ -119,12 +119,12 @@ namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
                 //  Nullables are set to null.
                 //if this is not desired, this  
                 //'else if' should be commented
-                defaultValue = $"null, ";
+                defaultValue = $"null,";
             }
             else if (propBaseName == "double")
             {
                 // doubles are set to 0.0
-                defaultValue = "0.0, ";
+                defaultValue = "0.0,";
             }
             else if (propBaseName == "string")
             {
@@ -135,12 +135,12 @@ namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
             else if (propBaseName == "int64" || propBaseName == "int32" || propBaseName == "int16" || propBaseName == "int8" || propBaseName == "int")
             {
                 //  Set int to 0
-                defaultValue = "0, ";
+                defaultValue = "0,";
             }
             else if (propBaseName.Contains("boolean"))
             {
                 // Set booleans to "false"
-                defaultValue = "false, ";
+                defaultValue = "false,";
             }
             else if (propBaseName == "guid")
             {

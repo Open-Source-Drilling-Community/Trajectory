@@ -1414,7 +1414,7 @@ else
     }
 
     private static double? GetWellheadMd(Cluster? cluster) =>
-        cluster?.ReferenceDepth?.GaussianValue?.Mean;
+        cluster?.ReferencePoint?.TVD;
 
     private static double EstimateMdStep(List<SurveyStation> surveyStations)
     {
@@ -2251,7 +2251,7 @@ else
         WellBore? wellBore = row.WellBoreId is Guid wellBoreId ? FindWellBoreById(wellBoreId) : null;
         Well? well = wellBore?.WellID is Guid wellId ? FindWellById(wellId) : null;
         Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null;
-        return cluster?.ReferenceDepth?.GaussianValue?.Mean;
+        return cluster?.ReferencePoint?.TVD;
     }
 
     private bool IsRowSidetrack(SurveyRunImportRowState row) =>

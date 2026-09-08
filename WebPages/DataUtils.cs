@@ -154,12 +154,12 @@ public static class DataUtils
                 }
             }
             if (cluster != null && 
-                cluster.ReferenceLatitude != null && cluster.ReferenceLatitude.GaussianValue != null && cluster.ReferenceLatitude.GaussianValue.Mean != null &&
-                cluster.ReferenceLongitude != null && cluster.ReferenceLongitude.GaussianValue != null && cluster.ReferenceLongitude.GaussianValue.Mean != null)
+                cluster.ReferencePoint?.Latitude != null &&
+                cluster.ReferencePoint?.Longitude != null)
             {
                 OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint surveyPoint = new ();
-                surveyPoint.Latitude = cluster.ReferenceLatitude.GaussianValue.Mean;
-                surveyPoint.Longitude = cluster.ReferenceLongitude.GaussianValue.Mean;
+                surveyPoint.Latitude = cluster.ReferencePoint.Latitude;
+                surveyPoint.Longitude = cluster.ReferencePoint.Longitude;
                 if (surveyPoint.RiemannianNorth != null && surveyPoint.RiemannianEast != null)
                 {
                     DataUtils.ClusterPositionReferenceSource.ClusterNorthPositionReference = -surveyPoint.RiemannianNorth;

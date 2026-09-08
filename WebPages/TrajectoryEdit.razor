@@ -1798,7 +1798,7 @@
                     ? FindClusterById(trajectoryClusterId)
                     : null;
 
-        return cluster?.ReferenceDepth?.GaussianValue?.Mean;
+        return cluster?.ReferencePoint?.TVD;
     }
 
     private void DeleteSurveyRunSection(TrajectorySurveyRunSection section)

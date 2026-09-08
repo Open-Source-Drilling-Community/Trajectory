@@ -40,6 +40,8 @@ For anti-collision clients, the generated REST sequence is `QueueOctreeSearchAsy
 
 For a Trajectory REST contract change, first build `Service` so its build target refreshes `json-schemas/TrajectoryFullName.json`. Refresh other dependency schemas from their owning repositories when those contracts change. Then run from the repository root:
 
+Dependency refreshes include their current merged service schemas where Trajectory consumes composed APIs. This is especially important for Cluster's `ReferencePoint`, nullable Rig equipment properties, and the WellBore Architecture aggregate contract.
+
 ```powershell
 dotnet build .\Service\Service.csproj
 dotnet run --project .\ModelSharedOut\ModelSharedOut.csproj
