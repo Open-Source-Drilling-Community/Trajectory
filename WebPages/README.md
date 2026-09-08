@@ -105,7 +105,7 @@ The package, assembly, and static-web-asset base identity are all `OSDC.Drilling
 
 ## Identities and features
 
-`TrajectoryIdentities` and `TrajectoryFeatures` manage the catalogs shared by survey runs and trajectories. `IdentityFeatureAssignments` is embedded in both resource editors and enforces each category's option and validity-period shape through the service API.
+`TrajectoryIdentities` and `TrajectoryFeatures` manage the catalogs shared by survey runs and trajectories. The feature page follows the common resource-service catalog layout: a compact category/options grid, bulk selection and deletion, consistent add/save/reload actions, validation, and deletion confirmation. `IdentityFeatureAssignments` is embedded in both resource editors and enforces each category's option and validity-period shape through the service API.
 
 ## Backup and restore
 
