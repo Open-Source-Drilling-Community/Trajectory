@@ -103,6 +103,6 @@ public static class MslDepthReferenceUtils
             });
 
         ModelShared.EarthVerticalDatumSample? sample = response.Samples?.FirstOrDefault();
-        return sample?.Wgs84EllipsoidalDepth;
+        return -sample?.Wgs84EllipsoidalDepth;
     }
 }
