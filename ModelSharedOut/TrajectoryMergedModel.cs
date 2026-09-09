@@ -37765,6 +37765,24 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class FixedPlatformProperties
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("DrillFloorDepth")]
+        public GaussianDrillingProperty DrillFloorDepth { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class FloatValve
     {
 
@@ -39466,14 +39484,6 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("FixedPlatformProperties")]
         public FixedPlatformProperties FixedPlatformProperties { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("DrillFloorElevation")]
-        [System.Obsolete]
-        public double? DrillFloorElevation { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("IsFixedPlatform")]
-        [System.Obsolete]
-        public bool IsFixedPlatform { get; set; }
-
         [System.Text.Json.Serialization.JsonPropertyName("ClusterID")]
         public System.Guid? ClusterID { get; set; }
 
@@ -40101,9 +40111,6 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("IsFixedPlatform")]
-        public bool IsFixedPlatform { get; set; }
-
         [System.Text.Json.Serialization.JsonPropertyName("ClusterID")]
         public System.Guid? ClusterID { get; set; }
 
@@ -40574,14 +40581,6 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("FixedPlatformProperties")]
         public FixedPlatformProperties FixedPlatformProperties { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("DrillFloorElevation")]
-        [System.Obsolete]
-        public double? DrillFloorElevation { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("IsFixedPlatform")]
-        [System.Obsolete]
-        public bool IsFixedPlatform { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ClusterID")]
         public System.Guid? ClusterID { get; set; }
@@ -48529,24 +48528,6 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("DeleteTrajectoryByIdPerDay")]
         public History DeleteTrajectoryByIdPerDay { get; set; }
-
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
-
-        [System.Text.Json.Serialization.JsonExtensionData]
-        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
-        {
-            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
-            set { _additionalProperties = value; }
-        }
-
-    }
-
-    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class FixedPlatformProperties
-    {
-
-        [System.Text.Json.Serialization.JsonPropertyName("DrillFloorDepth")]
-        public GaussianDrillingProperty DrillFloorDepth { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 

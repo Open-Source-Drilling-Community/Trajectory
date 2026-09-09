@@ -13587,6 +13587,19 @@
           }
         }
       },
+      "FixedPlatformProperties": {
+        "type": "object",
+        "properties": {
+          "DrillFloorDepth": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GaussianDrillingProperty"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
       "FloatValve": {
         "type": "object",
         "properties": {
@@ -15783,13 +15796,13 @@
             ],
             "nullable": true
           },
-          "DrillFloorElevation": {
-            "type": "number",
-            "format": "double",
+          "FixedPlatformProperties": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FixedPlatformProperties"
+              }
+            ],
             "nullable": true
-          },
-          "IsFixedPlatform": {
-            "type": "boolean"
           },
           "ClusterID": {
             "type": "string",
@@ -16368,9 +16381,6 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
-          },
-          "IsFixedPlatform": {
-            "type": "boolean"
           },
           "ClusterID": {
             "type": "string",
@@ -17154,13 +17164,13 @@
             ],
             "nullable": true
           },
-          "DrillFloorElevation": {
-            "type": "number",
-            "format": "double",
+          "FixedPlatformProperties": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FixedPlatformProperties"
+              }
+            ],
             "nullable": true
-          },
-          "IsFixedPlatform": {
-            "type": "boolean"
           },
           "ClusterID": {
             "type": "string",

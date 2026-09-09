@@ -20967,6 +20967,19 @@
           }
         }
       },
+      "FixedPlatformProperties": {
+        "type": "object",
+        "properties": {
+          "DrillFloorDepth": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GaussianDrillingProperty"
+              }
+            ],
+            "nullable": true
+          }
+        }
+      },
       "FloatValve": {
         "type": "object",
         "properties": {
@@ -23171,16 +23184,6 @@
             ],
             "nullable": true
           },
-          "DrillFloorElevation": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "deprecated": true
-          },
-          "IsFixedPlatform": {
-            "type": "boolean",
-            "deprecated": true
-          },
           "ClusterID": {
             "type": "string",
             "format": "uuid",
@@ -23758,9 +23761,6 @@
             "type": "string",
             "format": "date-time",
             "nullable": true
-          },
-          "IsFixedPlatform": {
-            "type": "boolean"
           },
           "ClusterID": {
             "type": "string",
@@ -24551,16 +24551,6 @@
               }
             ],
             "nullable": true
-          },
-          "DrillFloorElevation": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "deprecated": true
-          },
-          "IsFixedPlatform": {
-            "type": "boolean",
-            "deprecated": true
           },
           "ClusterID": {
             "type": "string",
@@ -32211,19 +32201,6 @@
           },
           "DeleteTrajectoryByIdPerDay": {
             "$ref": "#/components/schemas/History"
-          }
-        }
-      },
-      "FixedPlatformProperties": {
-        "type": "object",
-        "properties": {
-          "DrillFloorDepth": {
-            "allOf": [
-              {
-                "$ref": "#/components/schemas/GaussianDrillingProperty"
-              }
-            ],
-            "nullable": true
           }
         }
       },
