@@ -3734,6 +3734,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				LastModificationDate = DateTimeOffset.UtcNow,
 				WellID = null,
 				RigID = null,
+				RigJobs = new List<RigJob>
+					{
+						ConstructRigJob(),
+					},
 				IsSidetrack = false,
 				ParentWellBoreID = null,
 				TieInPointAlongHoleDepth = ConstructGaussianDrillingProperty(),
@@ -4004,6 +4008,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 			{
 				WellID = null,
 				RigID = null,
+				RigJobs = new List<RigJob>
+					{
+						ConstructRigJob(),
+					},
 				IsSidetrack = false,
 				ParentWellBoreID = null,
 				TieInPointAlongHoleDepth = ConstructGaussianDrillingProperty(),
@@ -6486,6 +6494,18 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				PositionsTransformed = 0,
 				CatalogReads = 0,
 				CatalogWrites = 0,
+			};
+		}
+		public static RigJob ConstructRigJob()
+		{
+			return new RigJob
+			{
+				RigJobID = new Guid(),
+				RigID = new Guid(),
+				StartDate = DateTimeOffset.UtcNow,
+				EndDate = DateTimeOffset.UtcNow,
+				DrillFloorDepthSource = (DrillFloorDepthSource)0,
+				DrillFloorDepth = ConstructGaussianDrillingProperty(),
 			};
 		}
 	}

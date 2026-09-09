@@ -66,11 +66,12 @@ public static class DataUtils
                 }
             }
             Rig? rig = null;
-            if (rigs != null && wellBore != null && wellBore.RigID != null)
+            Guid? wellBoreRigId = ResolveCurrentRigId(wellBore, null);
+            if (rigs != null && wellBoreRigId is Guid initialRigId)
             {
                 foreach (var r in rigs)
                 {
-                    if (r != null && r.MetaInfo != null && r.MetaInfo.ID == wellBore.RigID)
+                    if (r != null && r.MetaInfo != null && r.MetaInfo.ID == initialRigId)
                     {
                         rig = r;
                         break;
@@ -117,11 +118,12 @@ public static class DataUtils
             Field? field = fields?.FirstOrDefault(candidate => candidate?.MetaInfo?.ID == fieldID);
             ApplyFieldPositionReference(field);
             Slot? slot = FindSlot(cluster, slotID);
-            if (rig == null && rigs != null && cluster != null && cluster.IsFixedPlatform && cluster.RigID != null)
+            Guid? resolvedRigId = ResolveCurrentRigId(wellBore, cluster);
+            if (rig == null && rigs != null && resolvedRigId is Guid fallbackRigId)
             {
                 foreach (var r in rigs)
                 {
-                    if (r != null && r.MetaInfo != null && r.MetaInfo.ID == cluster.RigID)
+                    if (r != null && r.MetaInfo != null && r.MetaInfo.ID == fallbackRigId)
                     {
                         rig = r;
                         break;
@@ -136,7 +138,7 @@ public static class DataUtils
             {
                 ApplyTopWaterDepthWGS84(cluster.TopWaterDepth.GaussianValue.Mean);
             }
-            if (rig?.FixedPlatformProperties?.DrillFloorDepth?.GaussianValue?.Mean is double drillFloorDepth)
+            if (ResolveDrillFloorDepthWgs84(wellBore, cluster, rigs) is double drillFloorDepth)
             {
                 ApplyRotaryTableDepthnWGS84(drillFloorDepth);
             }
@@ -187,6 +189,37 @@ public static class DataUtils
             WellBoreID = surveyRun.WellBoreID
         };
         ApplyTrajectoryReferenceValues(surveyRun.MetaInfo.ID, [proxyTrajectory], wellBores, wells, clusters, rigs, fields);
+    }
+
+    /// <summary>
+    /// Resolves the latest historical rig. An authoritative empty RigJobs list
+    /// intentionally suppresses legacy Cluster fallback.
+    /// </summary>
+    public static Guid? ResolveCurrentRigId(WellBore? wellBore, Cluster? cluster)
+    {
+        if (wellBore?.RigJobs is not null)
+            return wellBore.RigJobs.OrderBy(job => job.StartDate).LastOrDefault()?.RigID;
+#pragma warning disable CS0612
+        return wellBore?.RigID ?? cluster?.RigID;
+#pragma warning restore CS0612
+    }
+
+    public static double? ResolveDrillFloorDepthWgs84(WellBore? wellBore, Cluster? cluster, IEnumerable<Rig>? rigs)
+    {
+        if (wellBore?.RigJobs is not null)
+        {
+            RigJob? latest = wellBore.RigJobs.OrderBy(job => job.StartDate).LastOrDefault();
+            if (latest is null) return null;
+            if (latest.DrillFloorDepthSource == DrillFloorDepthSource.RigJob)
+                return latest.DrillFloorDepth?.GaussianValue?.Mean;
+            return rigs?.FirstOrDefault(rig => rig?.MetaInfo?.ID == latest.RigID)?
+                .FixedPlatformProperties?.DrillFloorDepth?.GaussianValue?.Mean;
+        }
+
+        Guid? rigId = ResolveCurrentRigId(wellBore, cluster);
+        return rigId is Guid id
+            ? rigs?.FirstOrDefault(rig => rig?.MetaInfo?.ID == id)?.FixedPlatformProperties?.DrillFloorDepth?.GaussianValue?.Mean
+            : null;
     }
 
     public static void ApplyFieldPositionReference(Field? field)

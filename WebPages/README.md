@@ -27,6 +27,8 @@ This package makes the Trajectory, TrajectoryInterpolation, and TrajectoryRealiz
 
 Trajectory and survey-run plots offer `Field` and `Cartographic` position references when the selected resource resolves to a Field with a persisted reference point. The Field offset comes from the authoritative Field contract, while the cartographic offset is calculated through the Field coordinate-conversion API. Unavailable references fall back to WGS84 rather than presenting or relabelling zero-offset coordinates.
 
+The current Rig and rotary-table depth reference come from the latest chronological WellBore `RigJob`. Mobile-rig jobs use their job-owned Gaussian drill-floor depth; Platform Rig jobs resolve the depth owned by the Rig. `RigJobs = []` is authoritative and suppresses inference from Cluster data, while `RigJobs = null` retains the legacy direct-`RigID`/Cluster fallback during migration. Only the depth mean is reference-transformed; its standard uncertainty remains a length.
+
 ## Trajectory Realization UI
 
 The trajectory realization page lets a user create stochastic realization cases from an existing reference trajectory. The reference trajectory is selected through the field, cluster, well, wellbore, and trajectory selectors.

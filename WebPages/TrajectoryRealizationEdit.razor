@@ -730,15 +730,9 @@
         {
             Guid? wellBoreId = selectedWellBoreId ?? (selectedTrajectoryId is Guid trajectoryId ? GetTrajectoryWellBoreId(trajectoryId) : null);
             WellBore? wellBore = wellBoreId is Guid wbId ? FindWellBoreById(wbId) : null;
-            Guid? rigId = wellBore?.RigID;
-            if (rigId == null && wellBore?.WellID is Guid wellId)
-            {
-                Well? well = FindWellById(wellId);
-                if (well?.ClusterID is Guid clusterId)
-                {
-                    rigId = FindClusterById(clusterId)?.RigID;
-                }
-            }
+            Well? well = wellBore?.WellID is Guid wellId ? FindWellById(wellId) : null;
+            Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null;
+            Guid? rigId = DataUtils.ResolveCurrentRigId(wellBore, cluster);
             return rigId is Guid resolvedRigId ? RigList?.FirstOrDefault(rig => rig?.MetaInfo?.ID == resolvedRigId)?.Name ?? "NA" : "NA";
         }
     }

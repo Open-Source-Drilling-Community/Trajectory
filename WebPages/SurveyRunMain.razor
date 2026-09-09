@@ -1741,8 +1741,6 @@
             ? clusterList_?.FirstOrDefault(item => item?.MetaInfo?.ID == clusterId)
             : null;
         Field? field = fieldList_?.FirstOrDefault(item => item?.MetaInfo?.ID == (currentSurveyRun_?.FieldID ?? cluster?.FieldID));
-        Rig? rig = FindRigForWellBore(wellBore, cluster);
-
         if (cluster?.GroundMudLineDepth?.GaussianValue?.Mean is { } groundMudLineDepth)
         {
             DataUtils.ApplyGroundMudLineDepthWGS84(groundMudLineDepth);
@@ -1751,7 +1749,7 @@
         {
             DataUtils.ApplyTopWaterDepthWGS84(topWaterDepth);
         }
-        DataUtils.ApplyRotaryTableDepthnWGS84(rig?.FixedPlatformProperties?.DrillFloorDepth?.GaussianValue?.Mean);
+        DataUtils.ApplyRotaryTableDepthnWGS84(DataUtils.ResolveDrillFloorDepthWgs84(wellBore, cluster, rigList_));
         TrajectoryReferenceDatumUtils.Apply(
             await TrajectoryReferenceDatumUtils.ResolveForWellBoreAsync(Api, wellBoreId, wellBoreList_, wellList_, clusterList_));
 
@@ -1760,19 +1758,6 @@
         UpdateClusterPositionReference(cluster);
         UpdateWellheadPositionReference(well, cluster);
         measurementReferenceRenderVersion_++;
-    }
-
-    private Rig? FindRigForWellBore(WellBore? wellBore, Cluster? cluster)
-    {
-        Guid? rigId = wellBore?.RigID;
-        if (rigId == null && cluster?.IsFixedPlatform == true && cluster.RigID != null)
-        {
-            rigId = cluster.RigID;
-        }
-
-        return rigId is Guid definedRigId
-            ? rigList_?.FirstOrDefault(rig => rig?.MetaInfo?.ID == definedRigId)
-            : null;
     }
 
     private static void UpdateWellheadPositionReference(Well? well, Cluster? cluster)

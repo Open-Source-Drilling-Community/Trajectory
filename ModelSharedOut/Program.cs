@@ -166,13 +166,14 @@ class Program
                         .EnumerateFiles(jsonInputsDirectory, "*.json")
                         .Where(file => !string.Equals(Path.GetFileName(file), JSON_BUNDLE, StringComparison.OrdinalIgnoreCase))
                         // Dependency bundles contain transitive schemas as well as their own.
-                        // Process dependants before their authoritative dependencies, then the
-                        // local Trajectory contract last, so short-name collisions resolve to the
-                        // service that owns each model.
+                        // Process dependants before their authoritative dependencies. The local
+                        // Trajectory contract owns Trajectory types, while WellBore.json must be
+                        // processed after it because TrajectoryFullName can carry an older
+                        // transitive WellBore schema from a dependency assembly.
                         .OrderBy(file => Path.GetFileName(file) switch
                         {
                             "WellBoreArchitecture.json" => 10,
-                            "WellBore.json" => 20,
+                            "WellBore.json" => 110,
                             "Well.json" => 30,
                             "Cluster.json" => 40,
                             // Field.json is the Field-owned (non-merged) contract. Process it

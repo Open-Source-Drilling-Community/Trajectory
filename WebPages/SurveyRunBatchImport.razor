@@ -2044,19 +2044,7 @@ else
 
     private double ResolveRotaryTableOffset(WellBore? wellBore, Cluster? cluster)
     {
-        Guid? rigId = wellBore?.RigID;
-        if (rigId == null && cluster?.RigID != null)
-        {
-            rigId = cluster.RigID;
-        }
-
-        if (rigId is not Guid resolvedRigId)
-        {
-            return 0.0;
-        }
-
-        Rig? rig = rigList_?.FirstOrDefault(item => item?.MetaInfo?.ID == resolvedRigId);
-        return rig?.FixedPlatformProperties?.DrillFloorDepth?.GaussianValue?.Mean is double drillFloorDepthWgs84
+        return DataUtils.ResolveDrillFloorDepthWgs84(wellBore, cluster, rigList_) is double drillFloorDepthWgs84
             ? -drillFloorDepthWgs84
             : 0.0;
     }
