@@ -2585,6 +2585,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				DrillstringHeaveCompensator = ConstructDrillstringHeaveCompensator(),
 				DrillingMarineRiser = ConstructDrillingMarineRiser(),
 				RiserHeaveCompensator = ConstructRiserHeaveCompensator(),
+				FixedPlatformProperties = ConstructFixedPlatformProperties(),
 				DrillFloorElevation = null,
 				IsFixedPlatform = false,
 				ClusterID = null,
@@ -3016,6 +3017,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				DrillstringHeaveCompensator = ConstructDrillstringHeaveCompensator(),
 				DrillingMarineRiser = ConstructDrillingMarineRiser(),
 				RiserHeaveCompensator = ConstructRiserHeaveCompensator(),
+				FixedPlatformProperties = ConstructFixedPlatformProperties(),
 				DrillFloorElevation = null,
 				IsFixedPlatform = false,
 				ClusterID = null,
@@ -5665,6 +5667,13 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				PostTrajectoryPerDay = ConstructHistory(),
 				PutTrajectoryByIdPerDay = ConstructHistory(),
 				DeleteTrajectoryByIdPerDay = ConstructHistory(),
+			};
+		}
+		public static FixedPlatformProperties ConstructFixedPlatformProperties()
+		{
+			return new FixedPlatformProperties
+			{
+				DrillFloorDepth = ConstructGaussianDrillingProperty(),
 			};
 		}
 		public static SurveyInstrumentBatchCatalogDependencies ConstructSurveyInstrumentBatchCatalogDependencies()

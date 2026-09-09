@@ -1751,7 +1751,7 @@
         {
             DataUtils.ApplyTopWaterDepthWGS84(topWaterDepth);
         }
-        DataUtils.ApplyRotaryTableDepthnWGS84(rig?.DrillFloorElevation);
+        DataUtils.ApplyRotaryTableDepthnWGS84(rig?.FixedPlatformProperties?.DrillFloorDepth?.GaussianValue?.Mean);
         TrajectoryReferenceDatumUtils.Apply(
             await TrajectoryReferenceDatumUtils.ResolveForWellBoreAsync(Api, wellBoreId, wellBoreList_, wellList_, clusterList_));
 

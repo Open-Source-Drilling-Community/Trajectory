@@ -2056,8 +2056,8 @@ else
         }
 
         Rig? rig = rigList_?.FirstOrDefault(item => item?.MetaInfo?.ID == resolvedRigId);
-        return rig?.DrillFloorElevation is double rotaryTableDepthWgs84
-            ? -rotaryTableDepthWgs84
+        return rig?.FixedPlatformProperties?.DrillFloorDepth?.GaussianValue?.Mean is double drillFloorDepthWgs84
+            ? -drillFloorDepthWgs84
             : 0.0;
     }
 

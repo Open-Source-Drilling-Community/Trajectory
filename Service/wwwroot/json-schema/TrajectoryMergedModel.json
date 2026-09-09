@@ -16396,7 +16396,12 @@
         "type": "object",
         "properties": {
           "GaussianValue": {
-            "$ref": "#/components/schemas/GaussianDistribution"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GaussianDistribution"
+              }
+            ],
+            "nullable": true
           }
         }
       },
@@ -23158,13 +23163,23 @@
             ],
             "nullable": true
           },
+          "FixedPlatformProperties": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FixedPlatformProperties"
+              }
+            ],
+            "nullable": true
+          },
           "DrillFloorElevation": {
             "type": "number",
             "format": "double",
-            "nullable": true
+            "nullable": true,
+            "deprecated": true
           },
           "IsFixedPlatform": {
-            "type": "boolean"
+            "type": "boolean",
+            "deprecated": true
           },
           "ClusterID": {
             "type": "string",
@@ -24529,13 +24544,23 @@
             ],
             "nullable": true
           },
+          "FixedPlatformProperties": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/FixedPlatformProperties"
+              }
+            ],
+            "nullable": true
+          },
           "DrillFloorElevation": {
             "type": "number",
             "format": "double",
-            "nullable": true
+            "nullable": true,
+            "deprecated": true
           },
           "IsFixedPlatform": {
-            "type": "boolean"
+            "type": "boolean",
+            "deprecated": true
           },
           "ClusterID": {
             "type": "string",
@@ -32186,6 +32211,19 @@
           },
           "DeleteTrajectoryByIdPerDay": {
             "$ref": "#/components/schemas/History"
+          }
+        }
+      },
+      "FixedPlatformProperties": {
+        "type": "object",
+        "properties": {
+          "DrillFloorDepth": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GaussianDrillingProperty"
+              }
+            ],
+            "nullable": true
           }
         }
       },

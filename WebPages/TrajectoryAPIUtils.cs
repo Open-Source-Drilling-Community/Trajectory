@@ -85,7 +85,8 @@ public class TrajectoryAPIUtils : APIUtils, ITrajectoryAPIUtils
             Description = rig.Description,
             CreationDate = rig.CreationDate,
             LastModificationDate = rig.LastModificationDate,
-            DrillFloorElevation = rig.DrillFloorElevation
+            RigType = rig.RigType,
+            FixedPlatformProperties = rig.FixedPlatformProperties
         }).ToList();
     }
 

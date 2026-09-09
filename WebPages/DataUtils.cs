@@ -136,9 +136,9 @@ public static class DataUtils
             {
                 ApplyTopWaterDepthWGS84(cluster.TopWaterDepth.GaussianValue.Mean);
             }
-            if (rig != null && rig.DrillFloorElevation != null)
+            if (rig?.FixedPlatformProperties?.DrillFloorDepth?.GaussianValue?.Mean is double drillFloorDepth)
             {
-                ApplyRotaryTableDepthnWGS84(rig.DrillFloorElevation);
+                ApplyRotaryTableDepthnWGS84(drillFloorDepth);
             }
             if (slot != null && 
                 slot.Latitude != null && slot.Latitude.GaussianValue != null && slot.Latitude.GaussianValue.Mean != null &&
