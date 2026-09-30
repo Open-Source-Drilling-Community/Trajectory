@@ -15,6 +15,10 @@
     <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveTrajectory">Save</MudButton>
     <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditorAsync">Close</MudButton>
 </MudContainer>
+@if (currentTrajectory is { CalculationState: CalculationState.Running or CalculationState.Queued })
+{
+    <MudProgressLinear Value="@(100.0 * currentTrajectory.CalculationProgress)" Color="Color.Info" Class="mb-3" />
+}
 
 @if (currentTrajectory is { } traj)
 {
@@ -605,9 +609,7 @@
                     DateTimeOffset expectedModifiedUtc = ConcurrencyToken.Require(currentTrajectory.LastModificationDate);
                     currentTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
                     await Api.ClientTrajectory.PutTrajectoryByIdAsync(trajectoryId, expectedModifiedUtc, currentTrajectory);
-                    currentTrajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(trajectoryId);
-                    currentTrajectory.SurveyStationList ??= [];
-                    ResetCalculatedStationLoadingState();
+                    await RefreshTrajectoryAfterCalculationAsync(trajectoryId);
                     SyncSelectorsFromWellBore(currentTrajectory.WellBoreID);
                     MarkTrajectoryClean();
                     Snackbar.Add("Trajectory updated successfully", Severity.Success);
@@ -619,10 +621,9 @@
                     currentTrajectory.CreationDate = DateTimeOffset.UtcNow;
                     currentTrajectory.LastModificationDate = DateTimeOffset.UtcNow;
                     await Api.ClientTrajectory.PostTrajectoryAsync(currentTrajectory);
-                    currentTrajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(currentTrajectory.MetaInfo.ID);
-                    trajectoryIdBeingEdited = currentTrajectory.MetaInfo.ID;
-                    currentTrajectory.SurveyStationList ??= [];
-                    ResetCalculatedStationLoadingState();
+                    Guid createdTrajectoryId = currentTrajectory.MetaInfo.ID;
+                    trajectoryIdBeingEdited = createdTrajectoryId;
+                    await RefreshTrajectoryAfterCalculationAsync(createdTrajectoryId);
                     SyncSelectorsFromWellBore(currentTrajectory.WellBoreID);
                     MarkTrajectoryClean();
                     Snackbar.Add("Trajectory created successfully", Severity.Success);
@@ -637,6 +638,46 @@
         {
             logger.LogError(ex, "Error saving Trajectory");
             Snackbar.Add("Error saving Trajectory: " + ex.Message, Severity.Warning);
+        }
+    }
+
+    private async Task RefreshTrajectoryAfterCalculationAsync(Guid trajectoryId)
+    {
+        currentTrajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(trajectoryId);
+        await PollTrajectoryCalculationAsync(trajectoryId);
+        currentTrajectory = await Api.ClientTrajectory.GetTrajectoryByIdAsync(trajectoryId);
+        currentTrajectory.SurveyStationList ??= [];
+        ResetCalculatedStationLoadingState();
+
+        if (currentTrajectory.CalculationState == CalculationState.Completed)
+        {
+            await LoadTrajectoryCalculatedStationsAsync(currentTrajectory);
+        }
+    }
+
+    private async Task PollTrajectoryCalculationAsync(Guid trajectoryId)
+    {
+        for (int attempt = 0; attempt < 120; attempt++)
+        {
+            List<TrajectoryLight> lights = ((IEnumerable<TrajectoryLight>)await Api.ClientTrajectory.GetAllTrajectoryLightAsync()).ToList();
+            TrajectoryLight? light = lights.FirstOrDefault(item => item.MetaInfo?.ID == trajectoryId);
+            if (light == null)
+            {
+                return;
+            }
+
+            currentTrajectory.CalculationState = light.CalculationState;
+            currentTrajectory.CalculationProgress = light.CalculationProgress;
+            currentTrajectory.CalculationMessage = light.CalculationMessage;
+            await InvokeAsync(StateHasChanged);
+
+            if (light.CalculationState != CalculationState.Running &&
+                light.CalculationState != CalculationState.Queued)
+            {
+                return;
+            }
+
+            await Task.Delay(TimeSpan.FromSeconds(1));
         }
     }
 

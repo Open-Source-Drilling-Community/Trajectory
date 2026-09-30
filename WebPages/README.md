@@ -35,6 +35,9 @@ The current Rig and rotary-table depth reference come from the latest chronologi
 The SurveyRun editor displays and edits the observed angles, per-station reference overrides, UTC measurement time, applied corrections, canonical geodetic/true-north angles, and correction status. Inclination reference, azimuth reference, and measurement time can also be applied to every station in one operation; individual rows remain editable afterward, and an empty bulk time clears every station time. Run defaults select geodetic versus gravity vertical, true versus magnetic north, geomagnetic model policy, and an optional UTC acquisition interval. Changing a run default, geomagnetic model, acquisition interval, or bulk station setting invalidates affected computed corrections and clears the stale calculated trajectory until it is recalculated. Manual corrections are retained as explicit overrides.
 
 Direct and batch imports can read an optional UTC timestamp column (or fixed-width field), declare gravity-vertical and/or magnetic-north source data, and supply a per-run acquisition interval when individual times are unavailable. Batch configurations and exported association descriptions retain these settings. Survey-measurement TSV export includes raw readings, corrected values, timestamps, correction state, evaluation context, and dependency-model hashes so it is suitable for audit rather than only trajectory reconstruction.
+
+After a Trajectory is saved, the editor polls its background calculation state and then reloads the calculated station chunks. The calculated table and plots therefore refresh when calculation completes even when their expansion panel was already open when Save was selected.
+
 ## Trajectory Realization UI
 
 The trajectory realization page lets a user create stochastic realization cases from an existing reference trajectory. The reference trajectory is selected through the field, cluster, well, wellbore, and trajectory selectors.

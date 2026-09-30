@@ -46,6 +46,7 @@ The repository supports the following main trajectory workflows:
 - trajectory interpolation cases
 - stochastic trajectory realization cases based on survey station wellbore position uncertainty
 - trajectory aggregation, station-ellipse, and survey-run/trajectory minimum-distance calculations
+- Trajectory editor save operations poll the background calculation and reload the calculated station chunks, so an already-open calculated table is refreshed when the calculation completes
 - automatically maintained global anti-collision octree indexes
 - shared identity and feature catalogs
 - versioned, dependency-closed backup and atomic restore
