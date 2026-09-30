@@ -62,8 +62,7 @@ internal static class SurveyRunCorrectionService
                 continue;
             }
 
-            SurveyStation? station = stations.FirstOrDefault(value =>
-                value.MD is { } stationMd && measurement.MD is { } measurementMd && Math.Abs(stationMd - measurementMd) <= 1e-8);
+            SurveyStation? station = ResolveEvaluationStation(surveyRun, stations, measurement);
             if (station?.Latitude is not { } latitude || station.Longitude is not { } longitude ||
                 (station.TVD ?? station.Z) is not { } depth || !double.IsFinite(latitude) ||
                 !double.IsFinite(longitude) || !double.IsFinite(depth))
@@ -214,6 +213,35 @@ internal static class SurveyRunCorrectionService
         if (run.AcquisitionStartUtc is { } start && run.AcquisitionEndUtc is { } end && end >= start)
             return ((start + TimeSpan.FromTicks((end - start).Ticks / 2)).ToUniversalTime(), SurveyCorrectionTimeMethod.RunAcquisitionMidpoint);
         return (null, SurveyCorrectionTimeMethod.NotRequired);
+    }
+
+    private static SurveyStation? ResolveEvaluationStation(
+        SurveyRun surveyRun,
+        IEnumerable<SurveyStation> stations,
+        SurveyMeasurement measurement)
+    {
+        SurveyStation? station = stations.FirstOrDefault(value =>
+            (value.MD ?? value.Abscissa) is { } stationMd && measurement.MD is { } measurementMd &&
+            Math.Abs(stationMd - measurementMd) <= 1e-8);
+        if (station != null)
+        {
+            return station;
+        }
+
+        // Measurements immediately above a resolved tie-in can be retained to provide
+        // directional context, although the calculated survey begins at the tie-in and
+        // therefore has no station at those earlier MDs. Earth reference fields vary
+        // negligibly over that short interval, so evaluate them at the authoritative
+        // tie-in position rather than rejecting the complete survey run.
+        if (measurement.MD is { } md &&
+            surveyRun.TieInPoint is { } tieIn &&
+            (tieIn.MD ?? tieIn.Abscissa) is { } tieInMd &&
+            md < tieInMd)
+        {
+            return tieIn;
+        }
+
+        return null;
     }
 
     private static EarthMagneticFieldModel SelectModel(SurveyRun run, DateTimeOffset time) => run.GeomagneticModel switch

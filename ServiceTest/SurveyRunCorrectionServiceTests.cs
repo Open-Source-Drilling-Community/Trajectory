@@ -111,6 +111,66 @@ public sealed class SurveyRunCorrectionServiceTests
         });
     }
 
+    [Test]
+    public async Task Measurement_above_tie_in_uses_tie_in_position_for_reference_evaluation()
+    {
+        SurveyRun run = CreateRun(SurveyInclinationReference.GravityVertical, SurveyAzimuthReference.MagneticNorth);
+        SurveyMeasurement measurement = run.SurveyMeasurementList!.Single();
+        measurement.MD = -99.22;
+        measurement.MeasurementTimeUtc = new DateTimeOffset(1962, 4, 30, 0, 0, 0, TimeSpan.Zero);
+        run.TieInPoint = new SurveyStation
+        {
+            MD = -91.2,
+            Latitude = 1.0285845008237529,
+            Longitude = 0.09961438594882861,
+            TVD = -91.2
+        };
+        run.SurveyStationList =
+        [
+            new SurveyStation { MD = -91.2, Latitude = 1.0285845008237529, Longitude = 0.09961438594882861, TVD = -91.2 },
+            new SurveyStation { MD = -49.22, Latitude = 1.0286, Longitude = 0.0997, TVD = -49.3 }
+        ];
+        var client = new StubReferenceModelClient
+        {
+            GravityResponse = new EarthGravityEvaluationResponse
+            {
+                Model = new EarthGravityModelInfo { ID = "EGM96", DataVersion = "v1", CoefficientSHA256 = "gravity-sha" },
+                Samples =
+                [
+                    new EarthGravitySample { Gravity = new EarthGravityVector { North = 0.0, East = 0.0, Down = 9.81 } }
+                ]
+            },
+            MagneticResponse = new EvaluateEarthMagneticFieldResponse
+            {
+                Model = new EarthMagneticModelInfo { ID = "IGRF14-A", MetadataSHA256 = "metadata-sha", CoefficientSHA256 = "magnetic-sha" },
+                Samples =
+                [
+                    new EarthMagneticFieldSample { North = 20e-6, East = 5e-6, Down = 40e-6, Declination = Math.Atan2(5.0, 20.0) }
+                ]
+            }
+        };
+
+        (bool success, _) = await SurveyRunCorrectionService.ApplyAsync(
+            run, NullLogger.Instance, referenceModelClient: client);
+
+        EarthGravityPosition evaluatedPosition = client.GravityRequests.Single().Positions.Single();
+        EarthMagneticFieldEvaluationPoint magneticPosition = client.MagneticRequests.Single().Samples.Single();
+        Assert.Multiple(() =>
+        {
+            Assert.That(success, Is.True);
+            Assert.That(evaluatedPosition.Latitude, Is.EqualTo(run.TieInPoint.Latitude));
+            Assert.That(evaluatedPosition.Longitude, Is.EqualTo(run.TieInPoint.Longitude));
+            Assert.That(evaluatedPosition.Depth, Is.EqualTo(run.TieInPoint.TVD));
+            Assert.That(client.MagneticRequests.Single().Model, Is.EqualTo(EarthMagneticFieldModel.IGRF14));
+            Assert.That(magneticPosition.Latitude, Is.EqualTo(run.TieInPoint.Latitude));
+            Assert.That(magneticPosition.Longitude, Is.EqualTo(run.TieInPoint.Longitude));
+            Assert.That(magneticPosition.Depth, Is.EqualTo(run.TieInPoint.TVD));
+            Assert.That(magneticPosition.DateTimeUtc, Is.EqualTo(measurement.MeasurementTimeUtc));
+            Assert.That(measurement.Correction!.Status, Is.EqualTo(SurveyCorrectionStatus.Completed));
+            Assert.That(measurement.Correction.EvaluatedDepthWgs84, Is.EqualTo(-91.2));
+        });
+    }
+
     private static SurveyRun CreateRun(SurveyInclinationReference inclinationReference, SurveyAzimuthReference azimuthReference)
     {
         return new SurveyRun

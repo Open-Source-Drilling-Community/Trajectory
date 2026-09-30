@@ -42,7 +42,7 @@ The solution currently contains:
 The repository supports the following main trajectory workflows:
 
 - trajectory creation, editing, storage, and retrieval
-- survey-run import, raw-observation/reference correction, editing, calculation, and chunked station transfer
+- survey-run import, raw-observation/reference correction, editing, calculation, and chunked station transfer; retained measurements above a resolved tie-in use the tie-in WGS84 position for local Earth-reference evaluation while the calculated survey begins at the tie-in
 - trajectory interpolation cases
 - stochastic trajectory realization cases based on survey station wellbore position uncertainty
 - trajectory aggregation, station-ellipse, and survey-run/trajectory minimum-distance calculations
