@@ -8,7 +8,7 @@ The solution currently contains:
 
 - `ModelSharedIn`
   - auto-generated C# classes for upstream model dependencies
-  - source OpenAPI schemas for Field, Cluster, Well, WellBore, WellBore Architecture, and Survey Instrument
+  - source OpenAPI schemas for Field, Cluster, Well, WellBore, WellBore Architecture, Survey Instrument, Earth Gravity, and Earth Magnetic Field
 - `Model`
   - domain model and trajectory calculation logic
   - trajectory interpolation and stochastic trajectory realization calculations
@@ -29,7 +29,7 @@ The solution currently contains:
   - depends on `WebPages`
   - provides the host shell, routing, configuration, and static assets for the UI
 - `ModelTest`
-  - NUnit project reserved for model and computation tests; it currently has no discoverable cases
+  - NUnit tests for model and computation behavior, including survey-reference vector transforms
 - `ServiceTest`
   - self-contained contract/persistence tests and integration tests for the running service API
 - `GlobalAntiCollisionTest`
@@ -42,7 +42,7 @@ The solution currently contains:
 The repository supports the following main trajectory workflows:
 
 - trajectory creation, editing, storage, and retrieval
-- survey-run import, editing, calculation, and chunked station transfer
+- survey-run import, raw-observation/reference correction, editing, calculation, and chunked station transfer
 - trajectory interpolation cases
 - stochastic trajectory realization cases based on survey station wellbore position uncertainty
 - trajectory aggregation, station-ellipse, and survey-run/trajectory minimum-distance calculations
@@ -107,7 +107,7 @@ The current work has been funded by the [Research Council of Norway](https://www
 
 - The service exposes its REST operations through MCP over streamable HTTP at `/trajectory/api/mcp` and WebSocket at `/trajectory/api/mcp/ws`.
 - Persisted Trajectory resources and calculation cases receive server-owned creation and initial modification timestamps; caller-provided values are not authoritative. Legacy trajectories without timestamps expose a deterministic effective revision.
-- MCP exposes 130 REST-backed tools plus `ping`; the usage-statistics controller is intentionally excluded. The unbounded full-list operations for trajectories and survey runs remain in REST for compatibility but are replaced in MCP by deterministic `trajectory_search_trajectory` and `survey_run_search_survey_run` pages (default 100, maximum 500) with text and relationship/type filters. Read-only `validate_external_references` tools check one Trajectory or SurveyRun, while the corresponding audit tools check UUID-ordered pages of at most 100 stored records. These checks cover Field, Cluster, Well and WellBore references plus SurveyInstrument for SurveyRuns; missing resources are distinguished from unavailable dependency services. Every tool publishes a title, strict input and success-output schemas, safety annotations, and operation-specific workflow guidance. Schemas enforce non-empty UUIDs, reject unknown arguments, constrain usable backup/restore policies, and document nested models, chunk indexes, identity/feature assignments, nullability, and SI units. Octree candidate discovery is exposed only through its queued scan/status/result workflow and rejects requests that exclude both planned and actual trajectories. Separation-factor submissions require exactly one reference, a valid confidence factor and unique selected comparison UUIDs while rejecting server-derived state/results; callers poll lightweight status and retrieve terminal profiles with explicit relevant MD ranges in SI metres. Successful calls provide structured JSON and text fallback; failures use stable sanitized MCP error envelopes.
+- MCP exposes 130 REST-backed tools plus `ping`; the usage-statistics controller is intentionally excluded. The unbounded full-list operations for trajectories and survey runs remain in REST for compatibility but are replaced in MCP by deterministic `trajectory_search_trajectory` and `survey_run_search_survey_run` pages (default 100, maximum 500) with text and relationship/type filters. Read-only `validate_external_references` tools check one Trajectory or SurveyRun, while the corresponding audit tools check UUID-ordered pages of at most 100 stored records. These checks cover Field, Cluster, Well and WellBore references plus SurveyInstrument for SurveyRuns; missing resources are distinguished from unavailable dependency services. Every tool publishes a title, strict input and success-output schemas, safety annotations, and operation-specific workflow guidance. Schemas enforce non-empty UUIDs, reject unknown arguments, constrain usable backup/restore policies, and document nested models, chunk indexes, identity/feature assignments, nullability, and SI units. Survey-run REST/OpenAPI and MCP schemas explicitly distinguish observed gravity/geodetic and magnetic/true-north references from canonical WGS84-geodetic inclination and true-north azimuth; run-level defaults reject `InheritRun`. Octree candidate discovery is exposed only through its queued scan/status/result workflow and rejects requests that exclude both planned and actual trajectories. Separation-factor submissions require exactly one reference, a valid confidence factor and unique selected comparison UUIDs while rejecting server-derived state/results; callers poll lightweight status and retrieve terminal profiles with explicit relevant MD ranges in SI metres. Successful calls provide structured JSON and text fallback; failures use stable sanitized MCP error envelopes.
 - The trajectory editor supports mean-sea-level depth references through the Vertical Datum integration.
 - Survey runs and trajectories share extensible identity and feature catalogs. Both editors support assignments; catalog definitions are managed from the `TrajectoryIdentities` and `TrajectoryFeatures` pages.
 - The Backup / Restore page creates versioned JSON backups. Survey runs may be selected independently; selecting a trajectory automatically includes its referenced survey runs and their parent chains. Restore validates the complete dependency graph, resolves the shared catalogs, writes survey runs before trajectories, and commits record changes atomically without recalculation. Catalog UUIDs are matched exactly by default; normalized-name mapping requires an explicit opt-in.

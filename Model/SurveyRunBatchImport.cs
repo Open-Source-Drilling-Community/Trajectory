@@ -31,6 +31,8 @@ namespace OSDC.Drilling.Trajectory.Model
         public string? DepthReferenceName { get; set; }
         public string? FileName { get; set; }
         public string? FileContentBase64 { get; set; }
+        public DateTimeOffset? AcquisitionStartUtc { get; set; }
+        public DateTimeOffset? AcquisitionEndUtc { get; set; }
     }
 
     public class SurveyImportSettings
@@ -44,11 +46,17 @@ namespace OSDC.Drilling.Trajectory.Model
         public int SurveyImportMDColumn { get; set; }
         public int SurveyImportInclinationColumn { get; set; }
         public int SurveyImportAzimuthColumn { get; set; }
+        public int SurveyImportTimeColumn { get; set; }
+        public SurveyInclinationReference DefaultInclinationReference { get; set; } = SurveyInclinationReference.GeodeticVertical;
+        public SurveyAzimuthReference DefaultAzimuthReference { get; set; } = SurveyAzimuthReference.TrueNorth;
+        public SurveyGeomagneticModel GeomagneticModel { get; set; } = SurveyGeomagneticModel.Automatic;
         public int SurveyImportMDStart { get; set; }
         public int SurveyImportMDWidth { get; set; }
         public int SurveyImportInclinationStart { get; set; }
         public int SurveyImportInclinationWidth { get; set; }
         public int SurveyImportAzimuthStart { get; set; }
         public int SurveyImportAzimuthWidth { get; set; }
+        public int SurveyImportTimeStart { get; set; }
+        public int SurveyImportTimeWidth { get; set; }
     }
 }

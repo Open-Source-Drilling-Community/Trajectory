@@ -111,7 +111,40 @@ public sealed class McpToolRegistrationTests
             Assert.That(chunkIndex["minimum"]?.GetValue<int>(), Is.EqualTo(0));
             Assert.That(serialized, Does.Contain("SurveyMeasurementList"));
             Assert.That(serialized, Does.Contain("Measured/along-hole depth in SI metres"));
-            Assert.That(serialized, Does.Contain("Inclination angle in SI radians"));
+            Assert.That(serialized, Does.Contain("Canonical inclination from the local WGS84 geodetic-down axis in SI radians"));
+        });
+    }
+
+    [Test]
+    public void Survey_run_contract_distinguishes_observed_references_from_canonical_angles()
+    {
+        TrajectoryMcpEndpoint endpoint = Endpoint("survey_run_post_survey_run");
+        JsonObject definitions = endpoint.InputSchema["$defs"]!.AsObject();
+        JsonObject runProperties = definitions["SurveyRun"]!["properties"]!.AsObject();
+        JsonObject measurementProperties = definitions["SurveyMeasurement"]!["properties"]!.AsObject();
+        JsonObject correctionProperties = definitions["SurveyMeasurementCorrection"]!["properties"]!.AsObject();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(endpoint.Description, Does.Contain("canonical WGS84-geodetic/true-north"));
+            Assert.That(runProperties["DefaultInclinationReference"]!["enum"]!.AsArray()
+                .Select(value => value!.GetValue<string>()),
+                Is.EquivalentTo(new[] { "GeodeticVertical", "GravityVertical" }));
+            Assert.That(runProperties["DefaultAzimuthReference"]!["enum"]!.AsArray()
+                .Select(value => value!.GetValue<string>()),
+                Is.EquivalentTo(new[] { "TrueNorth", "MagneticNorth" }));
+            Assert.That(measurementProperties["InclinationReference"]!["description"]!.GetValue<string>(),
+                Does.Contain("Vertical reference"));
+            Assert.That(measurementProperties["AzimuthReference"]!["description"]!.GetValue<string>(),
+                Does.Contain("North reference"));
+            Assert.That(measurementProperties["Inclination"]!["description"]!.GetValue<string>(),
+                Does.Contain("WGS84 geodetic-down axis"));
+            Assert.That(measurementProperties["Azimuth"]!["description"]!.GetValue<string>(),
+                Does.Contain("geodetic true north"));
+            Assert.That(correctionProperties["GravityNorth"]!["description"]!.GetValue<string>(),
+                Does.Contain("metres per second squared"));
+            Assert.That(correctionProperties["EvaluatedDepthWgs84"]!["description"]!.GetValue<string>(),
+                Does.Contain("WGS84 reference ellipsoid"));
         });
     }
 

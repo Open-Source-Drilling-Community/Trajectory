@@ -8,6 +8,8 @@ namespace OSDC.Drilling.Trajectory.Service
         public static string? WellBoreHostURL { get; set; }
         public static string? WellBoreArchitectureHostURL { get; set; }
         public static string? SurveyInstrumentHostURL { get; set; }
+        public static string? EarthGravityHostURL { get; set; }
+        public static string? EarthMagneticFieldHostURL { get; set; }
 
     }
 }

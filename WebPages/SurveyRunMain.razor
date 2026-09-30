@@ -1,4 +1,4 @@
-﻿@page "/SurveyRun"
+@page "/SurveyRun"
 @inject ILogger<SurveyRunMain> logger
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
@@ -127,6 +127,39 @@
                 </MudItem>
             </MudGrid>
 
+            <MudGrid Class="mt-2">
+                <MudItem xs="12" md="3">
+                    <MudSelect T="SurveyInclinationReference" Label="Observed inclination reference" Value="@surveyRun.DefaultInclinationReference" ValueChanged="OnDefaultInclinationReferenceChanged" ShrinkLabel>
+                        @foreach (SurveyInclinationReference value in Enum.GetValues<SurveyInclinationReference>().Where(value => value != SurveyInclinationReference.InheritRun))
+                        {
+                            <MudSelectItem T="SurveyInclinationReference" Value="@value">@GetInclinationReferenceLabel(value)</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudSelect T="SurveyAzimuthReference" Label="Observed azimuth reference" Value="@surveyRun.DefaultAzimuthReference" ValueChanged="OnDefaultAzimuthReferenceChanged" ShrinkLabel>
+                        @foreach (SurveyAzimuthReference value in Enum.GetValues<SurveyAzimuthReference>().Where(value => value != SurveyAzimuthReference.InheritRun))
+                        {
+                            <MudSelectItem T="SurveyAzimuthReference" Value="@value">@GetAzimuthReferenceLabel(value)</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudSelect T="SurveyGeomagneticModel" Label="Geomagnetic model" Value="@surveyRun.GeomagneticModel" ValueChanged="OnGeomagneticModelChanged" ShrinkLabel>
+                        @foreach (SurveyGeomagneticModel value in Enum.GetValues<SurveyGeomagneticModel>())
+                        {
+                            <MudSelectItem T="SurveyGeomagneticModel" Value="@value">@value</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudTextField T="string" Label="Acquisition start UTC" Value="@FormatUtcInput(surveyRun.AcquisitionStartUtc)" ValueChanged="value => SetAcquisitionStart(value)" Placeholder="yyyy-MM-ddTHH:mm:ssZ" ShrinkLabel />
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudTextField T="string" Label="Acquisition end UTC" Value="@FormatUtcInput(surveyRun.AcquisitionEndUtc)" ValueChanged="value => SetAcquisitionEnd(value)" Placeholder="yyyy-MM-ddTHH:mm:ssZ" ShrinkLabel />
+                </MudItem>
+            </MudGrid>
+
             <IdentityFeatureAssignments IdentityAssignments="surveyRun.SurveyRunIdentityAssignments"
                                         FeatureAssignments="surveyRun.SurveyRunFeatureAssignments" />
 
@@ -175,6 +208,9 @@
                             <MudItem xs="12" md="2">
                                 <MudNumericField T="int" Label="Az column" @bind-Value="surveyImportAzimuthColumn_" Min="1" Immediate="true" />
                             </MudItem>
+                            <MudItem xs="12" md="2">
+                                <MudNumericField T="int" Label="UTC time column (0 = none)" @bind-Value="surveyImportTimeColumn_" Min="0" Immediate="true" />
+                            </MudItem>
                         }
                         else
                         {
@@ -195,6 +231,12 @@
                             </MudItem>
                             <MudItem xs="12" md="2">
                                 <MudNumericField T="int" Label="Az width" @bind-Value="surveyImportAzimuthWidth_" Min="1" Immediate="true" />
+                            </MudItem>
+                            <MudItem xs="12" md="2">
+                                <MudNumericField T="int" Label="UTC time start (0 = none)" @bind-Value="surveyImportTimeStart_" Min="0" Immediate="true" />
+                            </MudItem>
+                            <MudItem xs="12" md="2">
+                                <MudNumericField T="int" Label="UTC time width" @bind-Value="surveyImportTimeWidth_" Min="1" Immediate="true" />
                             </MudItem>
                         }
                         <MudItem xs="12" md="2">
@@ -239,36 +281,69 @@
             <MudTable Items="@SurveyMeasurements" MultiSelection="true" T="SurveyMeasurement"
                       @key="MeasurementReferenceRenderKey"
                       @bind-SelectedItems="selectedSurveyStations_"
-                      Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true">
+                      Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" HorizontalScrollbar="true">
                 <HeaderContent>
                     <MudTh></MudTh>
-                    <MudTh>Measured Depth [@DepthUnitLabel]</MudTh>
-                    <MudTh>Inclination [@AngleUnitLabel]</MudTh>
-                    <MudTh>Azimuth [@AzimuthUnitLabel]</MudTh>
+                    <MudTh>MD [@DepthUnitLabel]</MudTh>
+                    <MudTh>Observed inclination [@AngleUnitLabel]</MudTh>
+                    <MudTh>Inclination reference</MudTh>
+                    <MudTh>Inclination correction [@AngleUnitLabel]</MudTh>
+                    <MudTh>Geodetic inclination [@AngleUnitLabel]</MudTh>
+                    <MudTh>Observed azimuth [@AngleUnitLabel]</MudTh>
+                    <MudTh>Azimuth reference</MudTh>
+                    <MudTh>Azimuth correction [@AngleUnitLabel]</MudTh>
+                    <MudTh>True-north azimuth [@AngleUnitLabel]</MudTh>
+                    <MudTh>Measurement time UTC</MudTh>
+                    <MudTh>Correction status</MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
                     <MudTd DataLabel="Measured Depth">
-                        <MudInputWithUnit QuantityName="DepthDrilling"
-                                          @key="MeasurementReferenceRenderKey"
+                        <MudInputWithUnit QuantityName="DepthDrilling" @key="MeasurementReferenceRenderKey"
                                           DrillingSignalReference="@DrillingSignalReferenceType.Depth"
                                           SIValueNullable="@context.MD"
                                           SIValueNullableChanged="@(val => OnSurveyStationMdChanged(context, val))" />
                     </MudTd>
-                    <MudTd DataLabel="Inclination">
+                    <MudTd DataLabel="Observed inclination">
                         <MudInputWithUnit QuantityName="PlaneAngleDrilling"
-                                          SIValueNullable="@context.Inclination"
-                                          SIValueNullableChanged="@(val => OnSurveyStationInclinationChanged(context, val))" />
+                                          SIValueNullable="@GetObservedInclination(context)"
+                                          SIValueNullableChanged="@(val => OnObservedInclinationChanged(context, val))" />
                     </MudTd>
-                    <MudTd DataLabel="Azimuth">
-                        <MudInputWithUnit QuantityName="PlaneAngleDrilling"
-                                          DrillingSignalReference="@DrillingSignalReferenceType.Azimuth"
-                                          SIValueNullable="@context.Azimuth"
-                                          SIValueNullableChanged="@(val => OnSurveyStationAzimuthChanged(context, val))" />
+                    <MudTd DataLabel="Inclination reference">
+                        <MudSelect T="SurveyInclinationReference?" Value="@context.InclinationReference" ValueChanged="@(val => OnInclinationReferenceChanged(context, val))" Clearable="true" Dense="true">
+                            @foreach (SurveyInclinationReference value in Enum.GetValues<SurveyInclinationReference>().Where(value => value != SurveyInclinationReference.InheritRun))
+                            {
+                                <MudSelectItem T="SurveyInclinationReference?" Value="@((SurveyInclinationReference?)value)">@GetInclinationReferenceLabel(value)</MudSelectItem>
+                            }
+                        </MudSelect>
                     </MudTd>
-                    <MudTd>
-                        <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteSurveyStation(context))" />
+                    <MudTd DataLabel="Inclination correction">
+                        <MudInputWithUnit QuantityName="PlaneAngleDrilling" SIValueNullable="@context.Correction?.AppliedInclinationCorrection"
+                                          SIValueNullableChanged="@(val => OnInclinationCorrectionChanged(context, val))" />
                     </MudTd>
+                    <MudTd DataLabel="Geodetic inclination">@FormatAngleValue(context.Inclination)</MudTd>
+                    <MudTd DataLabel="Observed azimuth">
+                        <MudInputWithUnit QuantityName="PlaneAngleDrilling" SIValueNullable="@GetObservedAzimuth(context)"
+                                          SIValueNullableChanged="@(val => OnObservedAzimuthChanged(context, val))" />
+                    </MudTd>
+                    <MudTd DataLabel="Azimuth reference">
+                        <MudSelect T="SurveyAzimuthReference?" Value="@context.AzimuthReference" ValueChanged="@(val => OnAzimuthReferenceChanged(context, val))" Clearable="true" Dense="true">
+                            @foreach (SurveyAzimuthReference value in Enum.GetValues<SurveyAzimuthReference>().Where(value => value != SurveyAzimuthReference.InheritRun))
+                            {
+                                <MudSelectItem T="SurveyAzimuthReference?" Value="@((SurveyAzimuthReference?)value)">@GetAzimuthReferenceLabel(value)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudTd>
+                    <MudTd DataLabel="Azimuth correction">
+                        <MudInputWithUnit QuantityName="PlaneAngleDrilling" SIValueNullable="@context.Correction?.AppliedAzimuthCorrection"
+                                          SIValueNullableChanged="@(val => OnAzimuthCorrectionChanged(context, val))" />
+                    </MudTd>
+                    <MudTd DataLabel="True-north azimuth">@FormatAngleValue(context.Azimuth)</MudTd>
+                    <MudTd DataLabel="Measurement time UTC">
+                        <MudTextField T="string" Value="@FormatUtcInput(context.MeasurementTimeUtc)" ValueChanged="value => SetMeasurementTime(context, value)" Placeholder="yyyy-MM-ddTHH:mm:ssZ" />
+                    </MudTd>
+                    <MudTd DataLabel="Correction status">@(context.Correction?.Status.ToString() ?? "Pending")</MudTd>
+                    <MudTd><MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteSurveyStation(context))" /></MudTd>
                 </RowTemplate>
             </MudTable>
 
@@ -631,12 +706,15 @@
     private int surveyImportMDColumn_ = 1;
     private int surveyImportInclinationColumn_ = 2;
     private int surveyImportAzimuthColumn_ = 3;
+    private int surveyImportTimeColumn_;
     private int surveyImportMDStart_ = 1;
     private int surveyImportMDWidth_ = 12;
     private int surveyImportInclinationStart_ = 13;
     private int surveyImportInclinationWidth_ = 12;
     private int surveyImportAzimuthStart_ = 25;
     private int surveyImportAzimuthWidth_ = 12;
+    private int surveyImportTimeStart_;
+    private int surveyImportTimeWidth_ = 25;
     private static readonly JsonSerializerOptions SurveyRunDirtySnapshotJsonOptions = new()
     {
         WriteIndented = false
@@ -901,9 +979,9 @@
             SurveyRunFeatureAssignments = new List<TrajectoryFeatureAssignment>(),
             SurveyMeasurementList = new List<SurveyMeasurement>
             {
-                new() { MD = 0, Inclination = 0, Azimuth = 0 },
-                new() { MD = 100, Inclination = 0, Azimuth = 0 },
-                new() { MD = 200, Inclination = 0, Azimuth = 0 }
+                new() { MeasurementID = Guid.NewGuid(), MD = 0, Inclination = 0, Azimuth = 0, ObservedInclination = 0, ObservedAzimuth = 0, InclinationReference = SurveyInclinationReference.InheritRun, AzimuthReference = SurveyAzimuthReference.InheritRun },
+                new() { MeasurementID = Guid.NewGuid(), MD = 100, Inclination = 0, Azimuth = 0, ObservedInclination = 0, ObservedAzimuth = 0, InclinationReference = SurveyInclinationReference.InheritRun, AzimuthReference = SurveyAzimuthReference.InheritRun },
+                new() { MeasurementID = Guid.NewGuid(), MD = 200, Inclination = 0, Azimuth = 0, ObservedInclination = 0, ObservedAzimuth = 0, InclinationReference = SurveyInclinationReference.InheritRun, AzimuthReference = SurveyAzimuthReference.InheritRun }
             },
             SurveyStationList = []
         };
@@ -1069,6 +1147,8 @@
             Description = source.Description,
             CreationDate = source.CreationDate,
             LastModificationDate = source.LastModificationDate,
+            AcquisitionStartUtc = source.AcquisitionStartUtc,
+            AcquisitionEndUtc = source.AcquisitionEndUtc,
             FieldID = source.FieldID,
             ClusterID = source.ClusterID,
             WellID = source.WellID,
@@ -1076,6 +1156,9 @@
             SurveyInstrumentID = source.SurveyInstrumentID,
             SurveyRunType = source.SurveyRunType,
             CalculationType = source.CalculationType,
+            DefaultInclinationReference = source.DefaultInclinationReference,
+            DefaultAzimuthReference = source.DefaultAzimuthReference,
+            GeomagneticModel = source.GeomagneticModel,
             ParentSurveyRunID = source.ParentSurveyRunID,
             SurveyRunIdentityAssignments = source.SurveyRunIdentityAssignments,
             SurveyRunFeatureAssignments = source.SurveyRunFeatureAssignments,
@@ -1279,6 +1362,11 @@
             Name = currentSurveyRun_?.Name,
             Description = currentSurveyRun_?.Description,
             CreationDate = currentSurveyRun_?.CreationDate,
+            AcquisitionStartUtc = currentSurveyRun_?.AcquisitionStartUtc,
+            AcquisitionEndUtc = currentSurveyRun_?.AcquisitionEndUtc,
+            DefaultInclinationReference = currentSurveyRun_?.DefaultInclinationReference,
+            DefaultAzimuthReference = currentSurveyRun_?.DefaultAzimuthReference,
+            GeomagneticModel = currentSurveyRun_?.GeomagneticModel,
             SelectedFieldId = selectedFieldId_,
             SelectedClusterId = selectedClusterId_,
             SelectedWellId = selectedWellId_,
@@ -1298,19 +1386,29 @@
             SurveyImportMDColumn = surveyImportMDColumn_,
             SurveyImportInclinationColumn = surveyImportInclinationColumn_,
             SurveyImportAzimuthColumn = surveyImportAzimuthColumn_,
+            SurveyImportTimeColumn = surveyImportTimeColumn_,
             SurveyImportMDStart = surveyImportMDStart_,
             SurveyImportMDWidth = surveyImportMDWidth_,
             SurveyImportInclinationStart = surveyImportInclinationStart_,
             SurveyImportInclinationWidth = surveyImportInclinationWidth_,
             SurveyImportAzimuthStart = surveyImportAzimuthStart_,
             SurveyImportAzimuthWidth = surveyImportAzimuthWidth_,
+            SurveyImportTimeStart = surveyImportTimeStart_,
+            SurveyImportTimeWidth = surveyImportTimeWidth_,
             SurveyImportFileName = surveyImportFileName_,
             Measurements = currentSurveyRun_?.SurveyMeasurementList?
                 .Select(measurement => new
                 {
+                    measurement.MeasurementID,
                     measurement.MD,
                     measurement.Inclination,
                     measurement.Azimuth,
+                    measurement.ObservedInclination,
+                    measurement.ObservedAzimuth,
+                    measurement.MeasurementTimeUtc,
+                    measurement.InclinationReference,
+                    measurement.AzimuthReference,
+                    measurement.Correction,
                     measurement.Annotation
                 })
                 .ToList()
@@ -1571,6 +1669,55 @@
         UpdatePlots();
         return InvokeAsync(StateHasChanged);
     }
+
+    private void OnDefaultInclinationReferenceChanged(SurveyInclinationReference value)
+    {
+        if (currentSurveyRun_ == null || currentSurveyRun_.DefaultInclinationReference == value) return;
+        currentSurveyRun_.DefaultInclinationReference = value;
+        InvalidateReferenceCorrections(measurement => measurement.InclinationReference == SurveyInclinationReference.InheritRun);
+    }
+
+    private void OnDefaultAzimuthReferenceChanged(SurveyAzimuthReference value)
+    {
+        if (currentSurveyRun_ == null || currentSurveyRun_.DefaultAzimuthReference == value) return;
+        currentSurveyRun_.DefaultAzimuthReference = value;
+        InvalidateReferenceCorrections(measurement => measurement.AzimuthReference == SurveyAzimuthReference.InheritRun);
+    }
+
+    private void OnGeomagneticModelChanged(SurveyGeomagneticModel value)
+    {
+        if (currentSurveyRun_ == null || currentSurveyRun_.GeomagneticModel == value) return;
+        currentSurveyRun_.GeomagneticModel = value;
+        InvalidateReferenceCorrections(measurement =>
+            (measurement.AzimuthReference == SurveyAzimuthReference.InheritRun
+                ? currentSurveyRun_.DefaultAzimuthReference
+                : measurement.AzimuthReference) == SurveyAzimuthReference.MagneticNorth);
+    }
+
+    private void InvalidateReferenceCorrections(Func<SurveyMeasurement, bool> predicate)
+    {
+        if (currentSurveyRun_?.SurveyMeasurementList != null)
+        {
+            foreach (SurveyMeasurement measurement in currentSurveyRun_.SurveyMeasurementList.Where(predicate))
+                MarkCorrectionPending(measurement);
+        }
+        ClearCalculatedSurveyRunData();
+        UpdatePlots();
+    }
+
+    private static string GetInclinationReferenceLabel(SurveyInclinationReference value) => value switch
+    {
+        SurveyInclinationReference.GeodeticVertical => "WGS84 geodetic vertical",
+        SurveyInclinationReference.GravityVertical => "Local gravity vertical",
+        _ => "Inherit run default"
+    };
+
+    private static string GetAzimuthReferenceLabel(SurveyAzimuthReference value) => value switch
+    {
+        SurveyAzimuthReference.TrueNorth => "WGS84 true north",
+        SurveyAzimuthReference.MagneticNorth => "Magnetic north",
+        _ => "Inherit run default"
+    };
 
     private void ClearCalculatedSurveyRunData()
     {
@@ -1880,7 +2027,7 @@
             .Select(measurement => measurement.MD ?? 0)
             .DefaultIfEmpty(0)
             .Max();
-        currentSurveyRun_.SurveyMeasurementList.Add(new SurveyMeasurement { MD = lastMD + 10.0, Inclination = 0, Azimuth = 0 });
+        currentSurveyRun_.SurveyMeasurementList.Add(new SurveyMeasurement { MeasurementID = Guid.NewGuid(), MD = lastMD + 10.0, Inclination = 0, Azimuth = 0, ObservedInclination = 0, ObservedAzimuth = 0, InclinationReference = SurveyInclinationReference.InheritRun, AzimuthReference = SurveyAzimuthReference.InheritRun });
         ClearInvalidParentSurveyRunSelection();
         ClearCalculatedSurveyRunData();
         UpdatePlots();
@@ -1908,6 +2055,127 @@
         UpdatePlots();
     }
 
+    private static double? GetObservedInclination(SurveyMeasurement measurement) => measurement.ObservedInclination ?? measurement.Inclination;
+
+    private static double? GetObservedAzimuth(SurveyMeasurement measurement) => measurement.ObservedAzimuth ?? measurement.Azimuth;
+
+    private void OnObservedInclinationChanged(SurveyMeasurement measurement, double? value)
+    {
+        measurement.ObservedInclination = value;
+        measurement.Inclination = value;
+        MarkCorrectionPending(measurement);
+        ClearCalculatedSurveyRunData();
+        UpdatePlots();
+    }
+
+    private void OnObservedAzimuthChanged(SurveyMeasurement measurement, double? value)
+    {
+        measurement.ObservedAzimuth = value;
+        measurement.Azimuth = value;
+        MarkCorrectionPending(measurement);
+        ClearCalculatedSurveyRunData();
+        UpdatePlots();
+    }
+
+    private void OnInclinationReferenceChanged(SurveyMeasurement measurement, SurveyInclinationReference? value)
+    {
+        measurement.InclinationReference = value ?? SurveyInclinationReference.InheritRun;
+        MarkCorrectionPending(measurement);
+        ClearCalculatedSurveyRunData();
+    }
+
+    private void OnAzimuthReferenceChanged(SurveyMeasurement measurement, SurveyAzimuthReference? value)
+    {
+        measurement.AzimuthReference = value ?? SurveyAzimuthReference.InheritRun;
+        MarkCorrectionPending(measurement);
+        ClearCalculatedSurveyRunData();
+    }
+
+    private void OnInclinationCorrectionChanged(SurveyMeasurement measurement, double? value)
+    {
+        measurement.Correction ??= new SurveyMeasurementCorrection();
+        measurement.Correction.AppliedInclinationCorrection = value;
+        measurement.Correction.Source = SurveyCorrectionSource.ManualOverride;
+        measurement.Correction.Status = value.HasValue ? SurveyCorrectionStatus.Completed : SurveyCorrectionStatus.Pending;
+        if (GetObservedInclination(measurement) is { } observed && value is { } correction)
+            measurement.Inclination = observed + correction;
+        ClearCalculatedSurveyRunData();
+    }
+
+    private void OnAzimuthCorrectionChanged(SurveyMeasurement measurement, double? value)
+    {
+        measurement.Correction ??= new SurveyMeasurementCorrection();
+        measurement.Correction.AppliedAzimuthCorrection = value;
+        measurement.Correction.Source = SurveyCorrectionSource.ManualOverride;
+        measurement.Correction.Status = value.HasValue ? SurveyCorrectionStatus.Completed : SurveyCorrectionStatus.Pending;
+        if (GetObservedAzimuth(measurement) is { } observed && value is { } correction)
+            measurement.Azimuth = NormalizeAzimuth(observed + correction);
+        ClearCalculatedSurveyRunData();
+    }
+
+    private static void MarkCorrectionPending(SurveyMeasurement measurement)
+    {
+        measurement.Correction = new SurveyMeasurementCorrection
+        {
+            Source = SurveyCorrectionSource.None,
+            Status = SurveyCorrectionStatus.Pending
+        };
+    }
+
+    private static double NormalizeAzimuth(double value)
+    {
+        double normalized = value % (2.0 * Math.PI);
+        return normalized < 0.0 ? normalized + 2.0 * Math.PI : normalized;
+    }
+
+    private static string FormatUtcInput(DateTimeOffset? value) => value?.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss'Z'", CultureInfo.InvariantCulture) ?? string.Empty;
+
+    private void SetAcquisitionStart(string? value)
+    {
+        if (TryParseUtcInput(value, out DateTimeOffset? parsed))
+        {
+            currentSurveyRun_!.AcquisitionStartUtc = parsed;
+            InvalidateReferenceCorrections(measurement =>
+                (measurement.AzimuthReference == SurveyAzimuthReference.InheritRun
+                    ? currentSurveyRun_.DefaultAzimuthReference
+                    : measurement.AzimuthReference) == SurveyAzimuthReference.MagneticNorth);
+        }
+        else Snackbar.Add("Acquisition start must be a valid UTC date-time.", Severity.Warning);
+    }
+
+    private void SetAcquisitionEnd(string? value)
+    {
+        if (TryParseUtcInput(value, out DateTimeOffset? parsed))
+        {
+            currentSurveyRun_!.AcquisitionEndUtc = parsed;
+            InvalidateReferenceCorrections(measurement =>
+                (measurement.AzimuthReference == SurveyAzimuthReference.InheritRun
+                    ? currentSurveyRun_.DefaultAzimuthReference
+                    : measurement.AzimuthReference) == SurveyAzimuthReference.MagneticNorth);
+        }
+        else Snackbar.Add("Acquisition end must be a valid UTC date-time.", Severity.Warning);
+    }
+
+    private void SetMeasurementTime(SurveyMeasurement measurement, string? value)
+    {
+        if (TryParseUtcInput(value, out DateTimeOffset? parsed))
+        {
+            measurement.MeasurementTimeUtc = parsed;
+            MarkCorrectionPending(measurement);
+            ClearCalculatedSurveyRunData();
+        }
+        else Snackbar.Add("Measurement time must be a valid UTC date-time.", Severity.Warning);
+    }
+
+    private static bool TryParseUtcInput(string? value, out DateTimeOffset? parsed)
+    {
+        parsed = null;
+        if (string.IsNullOrWhiteSpace(value)) return true;
+        if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture,
+            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out DateTimeOffset dateTime)) return false;
+        parsed = dateTime.ToUniversalTime();
+        return true;
+    }
     private void DeleteSurveyStation(SurveyMeasurement measurement)
     {
         currentSurveyRun_?.SurveyMeasurementList?.Remove(measurement);
@@ -1978,20 +2246,20 @@
 
             foreach (string line in lines)
             {
-                if (!TryParseSurveyStationLine(line, out SurveyStation? station))
+                if (!TryParseSurveyMeasurementLine(line, out SurveyMeasurement? measurement))
                 {
                     skippedLines++;
                     continue;
                 }
 
-                if (station?.MD == null || previousMD is { } previous && station.MD <= previous)
+                if (measurement?.MD == null || previousMD is { } previous && measurement.MD <= previous)
                 {
                     skippedLines++;
                     continue;
                 }
 
-                importedMeasurements.Add(SurveyMeasurement.FromSurveyStation(station));
-                previousMD = station.MD;
+                importedMeasurements.Add(measurement);
+                previousMD = measurement.MD;
             }
 
             if (importedMeasurements.Count == 0)
@@ -2021,23 +2289,21 @@
         }
     }
 
-    private bool TryParseSurveyStationLine(string line, out SurveyStation? station)
+    private bool TryParseSurveyMeasurementLine(string line, out SurveyMeasurement? measurement)
     {
-        station = null;
-        if (string.IsNullOrWhiteSpace(line))
-        {
-            return false;
-        }
+        measurement = null;
+        if (string.IsNullOrWhiteSpace(line)) return false;
 
         string? mdToken;
         string? inclinationToken;
         string? azimuthToken;
-
+        string? timeToken;
         if (!IsDelimitedImportFormat)
         {
             mdToken = ReadFixedWidthToken(line, surveyImportMDStart_, surveyImportMDWidth_);
             inclinationToken = ReadFixedWidthToken(line, surveyImportInclinationStart_, surveyImportInclinationWidth_);
             azimuthToken = ReadFixedWidthToken(line, surveyImportAzimuthStart_, surveyImportAzimuthWidth_);
+            timeToken = surveyImportTimeStart_ > 0 ? ReadFixedWidthToken(line, surveyImportTimeStart_, surveyImportTimeWidth_) : null;
         }
         else
         {
@@ -2045,24 +2311,35 @@
             mdToken = ReadColumnToken(columns, surveyImportMDColumn_);
             inclinationToken = ReadColumnToken(columns, surveyImportInclinationColumn_);
             azimuthToken = ReadColumnToken(columns, surveyImportAzimuthColumn_);
+            timeToken = surveyImportTimeColumn_ > 0 ? ReadColumnToken(columns, surveyImportTimeColumn_) : null;
         }
 
         if (!TryParseImportedNumber(mdToken, out double md) ||
             !TryParseImportedNumber(inclinationToken, out double inclination) ||
-            !TryParseImportedNumber(azimuthToken, out double azimuth))
-        {
-            return false;
-        }
+            !TryParseImportedNumber(azimuthToken, out double azimuth) ||
+            !TryParseUtcInput(timeToken, out DateTimeOffset? measurementTime)) return false;
 
-        station = new SurveyStation
+        double inclinationSi = ConvertAngleToSI(inclination, selectedSurveyImportInclinationUnit_);
+        double azimuthSi = ConvertAngleToSI(azimuth, selectedSurveyImportAzimuthUnit_);
+        measurement = new SurveyMeasurement
         {
+            MeasurementID = Guid.NewGuid(),
             MD = ConvertDepthToSI(md, selectedSurveyImportMDUnit_),
-            Inclination = ConvertAngleToSI(inclination, selectedSurveyImportInclinationUnit_),
-            Azimuth = ConvertAngleToSI(azimuth, selectedSurveyImportAzimuthUnit_)
+            ObservedInclination = inclinationSi,
+            ObservedAzimuth = azimuthSi,
+            Inclination = inclinationSi,
+            Azimuth = azimuthSi,
+            MeasurementTimeUtc = measurementTime,
+            InclinationReference = SurveyInclinationReference.InheritRun,
+            AzimuthReference = SurveyAzimuthReference.InheritRun,
+            Correction = new SurveyMeasurementCorrection
+            {
+                Source = SurveyCorrectionSource.None,
+                Status = SurveyCorrectionStatus.Pending
+            }
         };
         return true;
     }
-
     private List<string> SplitDelimitedColumns(string line)
     {
         return selectedSurveyImportSeparator_ switch
@@ -2336,19 +2613,30 @@
 
         string[] headers =
         [
-            "Measured Depth [m]",
-            "Inclination [rad]",
-            "Azimuth [rad]"
+            "Measurement ID", "Measured Depth [m]", "Observed Inclination [rad]", "Inclination Reference",
+            "Applied Inclination Correction [rad]", "Geodetic Inclination [rad]", "Observed Azimuth [rad]",
+            "Azimuth Reference", "Applied Azimuth Correction [rad]", "True Azimuth [rad]", "Measurement Time UTC",
+            "Correction Source", "Correction Status", "Correction Message", "Magnetic Declination [rad]",
+            "Evaluation Latitude [rad]", "Evaluation Longitude [rad]", "Evaluation Depth WGS84 [m]", "Evaluation Time UTC",
+            "Gravity Model ID", "Gravity Model Version", "Gravity Coefficient SHA256", "Geomagnetic Model ID",
+            "Geomagnetic Metadata SHA256", "Geomagnetic Coefficient SHA256", "Correction Algorithm Version"
         ];
-        string content = BuildTabSeparatedContent(
-            headers,
-            surveyMeasurements.Select(measurement => new[]
-            {
-                FormatExportNumber(measurement.MD),
-                FormatExportNumber(measurement.Inclination),
-                FormatExportNumber(measurement.Azimuth)
-            }));
-
+        string content = BuildTabSeparatedContent(headers, surveyMeasurements.Select(measurement => new[]
+        {
+            measurement.MeasurementID.ToString(), FormatExportNumber(measurement.MD),
+            FormatExportNumber(measurement.ObservedInclination ?? measurement.Inclination), measurement.InclinationReference.ToString(),
+            FormatExportNumber(measurement.Correction?.AppliedInclinationCorrection), FormatExportNumber(measurement.Inclination),
+            FormatExportNumber(measurement.ObservedAzimuth ?? measurement.Azimuth), measurement.AzimuthReference.ToString(),
+            FormatExportNumber(measurement.Correction?.AppliedAzimuthCorrection), FormatExportNumber(measurement.Azimuth),
+            FormatUtcInput(measurement.MeasurementTimeUtc), measurement.Correction?.Source.ToString() ?? string.Empty,
+            measurement.Correction?.Status.ToString() ?? string.Empty, measurement.Correction?.Message ?? string.Empty,
+            FormatExportNumber(measurement.Correction?.MagneticDeclination), FormatExportNumber(measurement.Correction?.EvaluatedLatitude),
+            FormatExportNumber(measurement.Correction?.EvaluatedLongitude), FormatExportNumber(measurement.Correction?.EvaluatedDepthWgs84),
+            FormatUtcInput(measurement.Correction?.EvaluationTimeUtc), measurement.Correction?.GravityModelID ?? string.Empty,
+            measurement.Correction?.GravityModelVersion ?? string.Empty, measurement.Correction?.GravityCoefficientSHA256 ?? string.Empty,
+            measurement.Correction?.GeomagneticModelID ?? string.Empty, measurement.Correction?.GeomagneticMetadataSHA256 ?? string.Empty,
+            measurement.Correction?.GeomagneticCoefficientSHA256 ?? string.Empty, measurement.Correction?.AlgorithmVersion ?? string.Empty
+        }));
         try
         {
             string surveyRunName = string.IsNullOrWhiteSpace(currentSurveyRun_.Name) ? "survey-run" : currentSurveyRun_.Name;

@@ -19,12 +19,14 @@
             <MudText Typo="Typo.h5" Class="mb-3">What is a survey run</MudText>
             <MudText Typo="Typo.body1" Class="mb-2">
                 A <b>SurveyRun</b> is an imported measured survey dataset acquired with one survey instrument: a
-                compact, editable list of <code>SurveyMeasurement</code> entries (measured depth, inclination,
-                azimuth) tied to a <code>SurveyInstrumentID</code>, plus a tie-in point resolved from its
+                compact, editable list of <code>SurveyMeasurement</code> entries that preserves measured depth, original
+                observed inclination/azimuth, their vertical and north references, optional UTC measurement time, and
+                the applied correction with Earth-model provenance. Run-level defaults and an acquisition interval
+                support historical files. Each run is tied to a <code>SurveyInstrumentID</code>, plus a tie-in point resolved from its
                 <code>WellBoreID</code>, parent <code>WellID</code>, <code>ClusterID</code>, and
                 <code>FieldID</code> chain, or from an upstream sidetrack point. Calculating a survey run turns the
-                raw measurements into full <code>SurveyStation</code> records — position, inclination, azimuth, and,
-                once an instrument error model is attached, an uncertainty covariance matrix — using the minimum
+                observations into WGS84-geodetic/true-north <code>SurveyStation</code> records—position, inclination, and azimuth—calling Earth Gravity and Earth Magnetic Field when required. Once an
+                instrument error model is attached, calculation also produces an uncertainty covariance matrix using the minimum
                 curvature method.
             </MudText>
             <MudText Typo="Typo.body1">

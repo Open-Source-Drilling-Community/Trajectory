@@ -43,6 +43,7 @@ builder.Services.AddControllers()
 builder.Services.AddSwaggerGen(config =>
 {
     config.CustomSchemaIds(type => type.FullName);
+    config.SchemaFilter<TrajectorySemanticSchemaFilter>();
 });
 
 builder.Services.Configure<McpHubOptions>(builder.Configuration.GetSection(McpHubOptions.SectionName));
@@ -96,6 +97,10 @@ if (!String.IsNullOrEmpty(builder.Configuration["WellHostURL"]))
     ServiceConfiguration.WellHostURL = builder.Configuration["WellHostURL"];
 if (!String.IsNullOrEmpty(builder.Configuration["SurveyInstrumentHostURL"]))
     ServiceConfiguration.SurveyInstrumentHostURL = builder.Configuration["SurveyInstrumentHostURL"];
+if (!String.IsNullOrEmpty(builder.Configuration["EarthGravityHostURL"]))
+    ServiceConfiguration.EarthGravityHostURL = builder.Configuration["EarthGravityHostURL"];
+if (!String.IsNullOrEmpty(builder.Configuration["EarthMagneticFieldHostURL"]))
+    ServiceConfiguration.EarthMagneticFieldHostURL = builder.Configuration["EarthMagneticFieldHostURL"];
 
 if (builder.Environment.IsDevelopment())
 {

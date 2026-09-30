@@ -1,0 +1,368 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "OSDC Earth Gravity distributed shared model",
+    "description": "Generated API client and DTO contract consumed by WebPages and ServiceTest.",
+    "version": "1.0"
+  },
+  "paths": {
+    "/EarthGravity": {
+      "get": {
+        "tags": [
+          "EarthGravity"
+        ],
+        "summary": "Returns the loaded EGM96 model information for service discovery.",
+        "description": "This is the microservice entry endpoint. It returns the same model identity and provenance as the ModelInfo endpoint.",
+        "operationId": "GetEarthGravityEntry",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EarthGravityModelInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/EarthGravity/Evaluate": {
+      "post": {
+        "tags": [
+          "EarthGravity"
+        ],
+        "summary": "Synchronously evaluates EGM96 total gravity for WGS84 positions expressed in OSDC SI units.",
+        "description": "This operation is stateless. Latitude and longitude are radians. Depth is metres, positive downward from the WGS84 reference ellipsoid. Gravity is returned in the local north-east-down frame. The complete request is rejected if any position is invalid.",
+        "operationId": "EvaluateEarthGravity",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EarthGravityEvaluationRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EarthGravityEvaluationRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/EarthGravityEvaluationRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EarthGravityEvaluationResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EarthGravityValidationProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/EarthGravity/ModelInfo": {
+      "get": {
+        "tags": [
+          "EarthGravity"
+        ],
+        "summary": "Returns the loaded EGM96 model identity, provenance, degree, order, runtime version, and coefficient hash.",
+        "operationId": "GetEarthGravityModelInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EarthGravityModelInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/EarthGravityUsageStatistics": {
+      "get": {
+        "tags": [
+          "EarthGravityUsageStatistics"
+        ],
+        "summary": "Returns cumulative usage counters persisted by this service. This operation is intentionally not exposed as an MCP tool.",
+        "operationId": "GetEarthGravityUsageStatistics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageStatisticsEarthGravity"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "EarthGravityEvaluationRequest": {
+        "required": [
+          "Positions"
+        ],
+        "type": "object",
+        "properties": {
+          "Positions": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EarthGravityPosition"
+            },
+            "description": "Positions to evaluate. The entire request is rejected when any item is invalid."
+          }
+        },
+        "description": "A stateless synchronous EGM96 evaluation request."
+      },
+      "EarthGravityEvaluationResponse": {
+        "type": "object",
+        "properties": {
+          "Model": {
+            "$ref": "#/components/schemas/EarthGravityModelInfo"
+          },
+          "Samples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EarthGravitySample"
+            },
+            "nullable": true
+          }
+        },
+        "description": "EGM96 results in the same order as the request positions."
+      },
+      "EarthGravityModelInfo": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "ID": {
+            "type": "string",
+            "nullable": true
+          },
+          "Publisher": {
+            "type": "string",
+            "nullable": true
+          },
+          "ReleaseDate": {
+            "type": "string",
+            "nullable": true
+          },
+          "DataVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "Degree": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "GeographicLibVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "ReferenceEllipsoid": {
+            "type": "string",
+            "nullable": true
+          },
+          "IncludesCentrifugalAcceleration": {
+            "type": "boolean"
+          },
+          "CoefficientSHA256": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "description": "Identity and provenance of the Earth gravity model used for an evaluation."
+      },
+      "EarthGravityPosition": {
+        "type": "object",
+        "properties": {
+          "Latitude": {
+            "maximum": 1.5707963267948966,
+            "minimum": -1.5707963267948966,
+            "type": "number",
+            "description": "WGS84 geodetic latitude in SI radians, between -π/2 and π/2.",
+            "format": "double"
+          },
+          "Longitude": {
+            "maximum": 3.141592653589793,
+            "minimum": -3.141592653589793,
+            "type": "number",
+            "description": "WGS84 geodetic longitude in SI radians, between -π and π.",
+            "format": "double"
+          },
+          "Depth": {
+            "type": "number",
+            "description": "Depth in SI metres, positive downward, with zero at the WGS84 reference ellipsoid. A negative value is above the ellipsoid. This is not a mean-sea-level, geoid, seabed, rig, or local-datum depth.",
+            "format": "double"
+          }
+        },
+        "description": "A position referred to the WGS84 reference ellipsoid and expressed using OSDC SI conventions."
+      },
+      "EarthGravitySample": {
+        "type": "object",
+        "properties": {
+          "Position": {
+            "$ref": "#/components/schemas/EarthGravityPosition"
+          },
+          "Gravity": {
+            "$ref": "#/components/schemas/EarthGravityVector"
+          }
+        },
+        "description": "An evaluated WGS84 position and its corresponding EGM96 gravity vector."
+      },
+      "EarthGravityValidationError": {
+        "type": "object",
+        "properties": {
+          "PositionIndex": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "Property": {
+            "type": "string",
+            "nullable": true
+          },
+          "Code": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "EarthGravityValidationProblem": {
+        "type": "object",
+        "properties": {
+          "Error": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          },
+          "Errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EarthGravityValidationError"
+            },
+            "nullable": true
+          }
+        },
+        "description": "Details returned when an evaluation request is rejected atomically."
+      },
+      "EarthGravityVector": {
+        "type": "object",
+        "properties": {
+          "North": {
+            "type": "number",
+            "description": "Northerly acceleration component in SI metres per second squared.",
+            "format": "double"
+          },
+          "East": {
+            "type": "number",
+            "description": "Easterly acceleration component in SI metres per second squared.",
+            "format": "double"
+          },
+          "Down": {
+            "type": "number",
+            "description": "Downward acceleration component in SI metres per second squared; normally positive.",
+            "format": "double"
+          },
+          "Magnitude": {
+            "type": "number",
+            "description": "Magnitude of the gravity vector in SI metres per second squared.",
+            "format": "double",
+            "readOnly": true
+          },
+          "TotalPotential": {
+            "type": "number",
+            "description": "Total gravitational plus centrifugal potential in SI square metres per square second.",
+            "format": "double"
+          }
+        },
+        "description": "Total gravity acceleration in the local north-east-down frame."
+      },
+      "UsageStatisticsEarthGravity": {
+        "type": "object",
+        "properties": {
+          "StartedAt": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "Scope": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "RestEvaluations": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "MCPEvaluations": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "FailedEvaluations": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "PositionsEvaluated": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "ModelInfoRequests": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "StatisticsRequests": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          }
+        }
+      }
+    }
+  }
+}

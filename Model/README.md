@@ -25,6 +25,12 @@ Field, Cluster, Well, WellBore, WellBore Architecture, Rig, and Survey Instrumen
 
 `OctreeSearchJobRequest`, `OctreeSearchJobStatus`, and `OctreeSearchJobResult` support the non-blocking anti-collision candidate scan. A request identifies one reference trajectory and its planned/actual/definitive filters. Status carries a server-generated job UUID, state, measured progress, stage message, and terminal candidate count; the terminal result contains unique overlapping trajectory UUIDs. This state is transient and derived—the service owns queueing, retention, and validation.
 
+
+## Survey measurement references
+
+`SurveyMeasurement` preserves the instrument-facing observation separately from the canonical trajectory angles. `ObservedInclination` and `ObservedAzimuth` retain the original values; `Inclination` is the corrected angle from the local WGS84 geodetic-down axis (opposite the outward ellipsoid normal) and `Azimuth` is corrected to true north. Station reference fields may inherit the SurveyRun defaults. Each measurement has a stable UUID, an optional UTC acquisition time, and a correction record containing the applied angular differences, evaluation position/depth/time, status, source, dependency-model provenance, and algorithm version.
+
+A SurveyRun may define a complete UTC acquisition interval for historical files. When a magnetic observation has no station time, its correction uses the interval midpoint and records that choice. Gravity-vertical and magnetic-north transformations use the full Earth Gravity and Earth Magnetic Field vectors in the local north-east-down frame. The calculated `SurveyStation` remains the canonical trajectory abstraction and is unchanged.
 ## Trajectory Realizations
 
 Trajectory realization generation is implemented by `TrajectoryRealizationCase`.

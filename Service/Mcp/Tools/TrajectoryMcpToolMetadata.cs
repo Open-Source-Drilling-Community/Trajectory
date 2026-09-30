@@ -16,7 +16,7 @@ internal static class TrajectoryMcpToolMetadata
     private static readonly IReadOnlyDictionary<string, string> ResourceDescriptions = new Dictionary<string, string>(StringComparer.Ordinal)
     {
         ["Trajectory"] = "a calculated or imported wellbore trajectory and its survey stations",
-        ["SurveyRun"] = "a survey run containing measured MD, inclination and azimuth values and its calculated survey stations",
+        ["SurveyRun"] = "a survey run preserving observed MD/inclination/azimuth references and canonical WGS84-geodetic/true-north calculated survey stations",
         ["TrajectoryIdentity"] = "an identity definition shared by survey runs and trajectories",
         ["TrajectoryFeatureCategory"] = "a feature category and its options shared by survey runs and trajectories",
         ["SurveyRunBatchImport"] = "a batch-import definition used to create or update survey runs",
@@ -398,7 +398,7 @@ internal static class TrajectoryMcpToolMetadata
             "query" => "Optional case-insensitive text matched against name, description, and UUID.",
             "offset" => "Zero-based number of matching records to skip; must be non-negative.",
             "limit" => "Maximum page size from 1 through 500; defaults to 100.",
-            "chunk" => "Complete survey-measurement chunk. SurveyRunID and ChunkIndex must match the route arguments; MD is metres and Inclination/Azimuth are radians.",
+            "chunk" => "Complete survey-measurement chunk. SurveyRunID and ChunkIndex must match the route arguments. MD is SI metres; observed and canonical angles are SI radians. Inclination/Azimuth are canonical WGS84-geodetic/true-north values, while ObservedInclination/ObservedAzimuth retain the submitted reference-frame values.",
             "request" when controller == "Trajectory" && action == "BatchExport" => "Backup scope and optional survey-run and trajectory UUID selections. For Selected, provide at least one UUID; dependent survey runs are added automatically.",
             "request" when controller == "Trajectory" && action == "BatchRestore" => "Complete backup document plus record-conflict and catalog-resolution policies. Restore validates the full graph before writing records.",
             "request" when controller == "Octrees" && action == "QueueSearch" => "Octree search filters and the non-empty UUID of the current reference trajectory index.",
@@ -427,11 +427,16 @@ internal static class TrajectoryMcpToolMetadata
             return new JsonObject { ["type"] = "integer" };
         if (type == typeof(float) || type == typeof(double) || type == typeof(decimal)) return new JsonObject { ["type"] = "number" };
         if (type.IsEnum)
-            return new JsonObject
+        {
+            var enumSchema = new JsonObject
             {
                 ["type"] = "string",
                 ["enum"] = new JsonArray(Enum.GetNames(type).Select(value => (JsonNode?)JsonValue.Create(value)).ToArray())
             };
+            string? description = DescribeReferenceEnum(type);
+            if (description != null) enumSchema["description"] = description;
+            return enumSchema;
+        }
         if (TryGetDictionaryValue(type, out Type? valueType))
             return new JsonObject { ["type"] = "object", ["additionalProperties"] = SchemaFor(valueType!, definitions, building) };
         if (TryGetEnumerableElement(type, out Type? elementType))
@@ -478,6 +483,19 @@ internal static class TrajectoryMcpToolMetadata
 
     private static void ApplyDomainConstraints(Type declaringType, PropertyInfo property, JsonObject schema, JsonArray required)
     {
+        if ((typeof(SurveyRunLight).IsAssignableFrom(declaringType) || declaringType == typeof(SurveyImportSettings)) &&
+            property.Name == nameof(SurveyRunLight.DefaultInclinationReference))
+        {
+            schema["enum"] = new JsonArray(nameof(SurveyInclinationReference.GeodeticVertical), nameof(SurveyInclinationReference.GravityVertical));
+            required.Add(property.Name);
+        }
+        else if ((typeof(SurveyRunLight).IsAssignableFrom(declaringType) || declaringType == typeof(SurveyImportSettings)) &&
+                 property.Name == nameof(SurveyRunLight.DefaultAzimuthReference))
+        {
+            schema["enum"] = new JsonArray(nameof(SurveyAzimuthReference.TrueNorth), nameof(SurveyAzimuthReference.MagneticNorth));
+            required.Add(property.Name);
+        }
+        else
         if (declaringType == typeof(TrajectoryBatchExportRequest) && property.Name == nameof(TrajectoryBatchExportRequest.Scope))
         {
             schema["enum"] = new JsonArray("All", "Selected");
@@ -615,6 +633,55 @@ internal static class TrajectoryMcpToolMetadata
 
     private static string DescribeProperty(Type declaringType, string name)
     {
+        if (typeof(SurveyRunLight).IsAssignableFrom(declaringType) || declaringType == typeof(SurveyImportSettings))
+        {
+            if (name == nameof(SurveyRunLight.DefaultInclinationReference))
+                return "Run-level observed-inclination reference. GeodeticVertical uses the local WGS84 geodetic-down axis (opposite the outward ellipsoid normal); GravityVertical follows the local total-gravity vector. InheritRun is forbidden here.";
+            if (name == nameof(SurveyRunLight.DefaultAzimuthReference))
+                return "Run-level observed-azimuth reference. TrueNorth uses WGS84 geodetic north; MagneticNorth uses the evaluated geomagnetic field. InheritRun is forbidden here.";
+            if (name == nameof(SurveyRunLight.GeomagneticModel))
+                return "Geomagnetic model for MagneticNorth observations. Automatic selects WMM2025 for 2025 or later and IGRF14 for earlier instants.";
+            if (name == nameof(SurveyRunLight.AcquisitionStartUtc))
+                return "Earliest known UTC acquisition instant; supply it together with AcquisitionEndUtc when magnetic observations lack station times.";
+            if (name == nameof(SurveyRunLight.AcquisitionEndUtc))
+                return "Latest known UTC acquisition instant; supply it together with AcquisitionStartUtc when magnetic observations lack station times.";
+        }
+        if (declaringType == typeof(SurveyMeasurement))
+        {
+            return name switch
+            {
+                nameof(SurveyMeasurement.MeasurementID) => "Stable measurement UUID independent of list position.",
+                nameof(SurveyMeasurement.MD) => "Measured or along-hole depth in canonical SI metres.",
+                nameof(SurveyMeasurement.Inclination) => "Canonical inclination from the local WGS84 geodetic-down axis in SI radians, after reference correction.",
+                nameof(SurveyMeasurement.Azimuth) => "Canonical clockwise azimuth from WGS84 geodetic true north in SI radians, after reference correction.",
+                nameof(SurveyMeasurement.ObservedInclination) => "Original observed inclination in SI radians before transformation from InclinationReference.",
+                nameof(SurveyMeasurement.ObservedAzimuth) => "Original observed clockwise azimuth in SI radians before transformation from AzimuthReference.",
+                nameof(SurveyMeasurement.MeasurementTimeUtc) => "UTC measurement instant used for magnetic correction; the run acquisition midpoint is the fallback.",
+                nameof(SurveyMeasurement.InclinationReference) => "Vertical reference of ObservedInclination. InheritRun selects the survey-run default.",
+                nameof(SurveyMeasurement.AzimuthReference) => "North reference of ObservedAzimuth. InheritRun selects the survey-run default.",
+                nameof(SurveyMeasurement.Correction) => "Frozen correction result and Earth-model provenance used to derive canonical angles.",
+                _ => SplitWords(name) + "."
+            };
+        }
+        if (declaringType == typeof(SurveyMeasurementCorrection))
+        {
+            return name switch
+            {
+                nameof(SurveyMeasurementCorrection.AppliedInclinationCorrection) => "Signed canonical-minus-observed inclination correction in SI radians.",
+                nameof(SurveyMeasurementCorrection.AppliedAzimuthCorrection) => "Shortest signed canonical-minus-observed azimuth correction in SI radians.",
+                nameof(SurveyMeasurementCorrection.MagneticDeclination) => "Evaluated magnetic declination clockwise from WGS84 geodetic true north in SI radians.",
+                nameof(SurveyMeasurementCorrection.GravityNorth) => "North component of total gravity in the local WGS84 north-east-down frame, in SI metres per second squared.",
+                nameof(SurveyMeasurementCorrection.GravityEast) => "East component of total gravity in the local WGS84 north-east-down frame, in SI metres per second squared.",
+                nameof(SurveyMeasurementCorrection.GravityDown) => "Down component of total gravity in the local WGS84 north-east-down frame, in SI metres per second squared.",
+                nameof(SurveyMeasurementCorrection.EvaluatedLatitude) => "Evaluated WGS84 geodetic latitude in SI radians.",
+                nameof(SurveyMeasurementCorrection.EvaluatedLongitude) => "Evaluated WGS84 geodetic longitude in SI radians.",
+                nameof(SurveyMeasurementCorrection.EvaluatedDepthWgs84) => "Evaluated depth in SI metres, positive downward from the WGS84 reference ellipsoid.",
+                nameof(SurveyMeasurementCorrection.EvaluationTimeUtc) => "UTC instant used to evaluate the geomagnetic model.",
+                nameof(SurveyMeasurementCorrection.TimeMethod) => "Method used to select EvaluationTimeUtc.",
+                nameof(SurveyMeasurementCorrection.AlgorithmVersion) => "Opaque reference-correction algorithm version.",
+                _ => SplitWords(name) + "."
+            };
+        }
         if (declaringType == typeof(OctreeSearchJobRequest))
         {
             return name switch
@@ -733,6 +800,14 @@ internal static class TrajectoryMcpToolMetadata
         if (name.EndsWith("List", StringComparison.Ordinal) || name.EndsWith("Results", StringComparison.Ordinal)) return $"Collection of {SplitWords(name)} values.";
         return SplitWords(name) + ".";
     }
+
+    private static string? DescribeReferenceEnum(Type type) => type == typeof(SurveyInclinationReference)
+        ? "Observed-inclination reference: GeodeticVertical is the local WGS84 geodetic-down axis (opposite the outward ellipsoid normal), GravityVertical follows the local total-gravity vector, and InheritRun uses the run default."
+        : type == typeof(SurveyAzimuthReference)
+            ? "Observed-azimuth reference: TrueNorth is WGS84 geodetic north, MagneticNorth is the evaluated geomagnetic-field direction projected onto the selected reference plane, and InheritRun uses the run default."
+            : type == typeof(SurveyGeomagneticModel)
+                ? "Geomagnetic model selection. Automatic uses WMM2025 for 2025 or later and IGRF14 for earlier instants."
+                : null;
 
     private static bool TryGetEnumerableElement(Type type, out Type? elementType)
     {

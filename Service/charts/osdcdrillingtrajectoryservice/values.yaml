@@ -18,6 +18,8 @@ serviceUrls:
   WellBoreHostURL: "http://osdcwellboreservice/"
   WellBoreArchitectureHostURL: "http://osdcwellborearchitectureservice/"
   SurveyInstrumentHostURL: "http://osdcsurveyinstrumentservice/"
+  EarthGravityHostURL: "http://osdcearthgravityservice/"
+  EarthMagneticFieldHostURL: "http://osdcearthmagneticfieldservice/"
 nameOverride: "osdcdrillingtrajectoryservice"
 fullnameOverride: "osdctrajectoryservice"
 serviceAccount:

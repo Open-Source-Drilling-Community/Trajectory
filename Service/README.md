@@ -52,6 +52,14 @@ Trajectory realization cases are exposed through:
 
 The light data endpoint is intended for grids and polling calculation status. Realized trajectories are stored separately in chunks, with 25 realizations per chunk by default, so clients can load large result sets progressively.
 
+
+## Survey reference correction
+
+SurveyRun calculation preserves raw observed inclination/azimuth and converts them to WGS84-geodetic inclination and true-north azimuth before producing canonical survey stations. Gravity-referenced observations are evaluated through Earth Gravity, and magnetic-north observations through Earth Magnetic Field, after an initial station-position calculation. The service iterates position-dependent corrections to convergence, records the applied differences and model provenance per measurement, and persists station-level failures for diagnosis. A completed station time is preferred for magnetic evaluation; otherwise a complete SurveyRun acquisition interval is required and its midpoint is used.
+
+Configure `EarthGravityHostURL` and `EarthMagneticFieldHostURL`. Development defaults use the DigiWells development endpoints; production and Helm defaults use `osdcearthgravityservice` and `osdcearthmagneticfieldservice`. Dependency failure fails the SurveyRun calculation without discarding the raw observation.
+
+The REST/OpenAPI and MCP contracts carry the same reference-frame semantics and SI units. Run defaults must be concrete (`GeodeticVertical` or `GravityVertical`, and `TrueNorth` or `MagneticNorth`); `InheritRun` is valid only on an individual measurement. Dependency exception details are logged server-side while persisted and returned failure messages remain sanitized.
 ## Related Projects
 
 - `Model` contains the main model and trajectory calculation logic used by the service.
@@ -129,7 +137,7 @@ Optional registration with an external MCP hub is configured in `appsettings.jso
 
 The service uses the `/trajectory/api` path base. For integration tests, launch it on `http://localhost:8080`; the generated client calls `http://localhost:8080/Trajectory/api/` and routing is case-insensitive in the deployed ingress.
 
-External-reference diagnostics read `FieldHostURL`, `ClusterHostURL`, `WellHostURL`, `WellBoreHostURL`, and `SurveyInstrumentHostURL`. Development values point to the public development host; the Helm chart supplies in-cluster OSDC service URLs in production. These calls are diagnostic only: dependency unavailability is returned as `Unavailable` and never blocks or mutates a Trajectory or SurveyRun write.
+External-reference diagnostics read `FieldHostURL`, `ClusterHostURL`, `WellHostURL`, `WellBoreHostURL`, and `SurveyInstrumentHostURL`. Those diagnostic calls return dependency unavailability as `Unavailable` and never block or mutate a Trajectory or SurveyRun write. Survey correction separately reads `EarthGravityHostURL` and `EarthMagneticFieldHostURL`; an unavailable required correction dependency causes calculation to fail while preserving the submitted observation. Development values point to the public development host, and the Helm chart supplies in-cluster OSDC service URLs in production.
 
 The databases and usage history are relative to the service working directory and are mounted under the durable `/home` volume in containers. Use an isolated test working directory when running destructive integration tests; never clear a developer or deployed database to make a test repeatable.
 

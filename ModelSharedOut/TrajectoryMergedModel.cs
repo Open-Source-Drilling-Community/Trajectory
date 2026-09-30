@@ -45998,6 +45998,30 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("SurveyImportAzimuthColumn")]
         public int SurveyImportAzimuthColumn { get; set; }
 
+        [System.Text.Json.Serialization.JsonPropertyName("SurveyImportTimeColumn")]
+        public int SurveyImportTimeColumn { get; set; }
+
+        /// <summary>
+        /// Reference vertical for an observed inclination. GeodeticVertical is the local positive-down axis perpendicular to the WGS84 ellipsoid (opposite its outward normal); GravityVertical follows the local total-gravity vector; InheritRun uses the survey run default. InheritRun is forbidden for a run-level default.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("DefaultInclinationReference")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurveyInclinationReference>))]
+        public SurveyInclinationReference DefaultInclinationReference { get; set; }
+
+        /// <summary>
+        /// North reference for an observed clockwise azimuth. TrueNorth is WGS84 geodetic north projected onto the plane perpendicular to the selected vertical; MagneticNorth is the evaluated geomagnetic-field vector projected onto that plane; InheritRun uses the survey run default. InheritRun is forbidden for a run-level default.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("DefaultAzimuthReference")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurveyAzimuthReference>))]
+        public SurveyAzimuthReference DefaultAzimuthReference { get; set; }
+
+        /// <summary>
+        /// Geomagnetic model selection copied to every survey run created by this import.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("GeomagneticModel")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurveyGeomagneticModel>))]
+        public SurveyGeomagneticModel GeomagneticModel { get; set; }
+
         [System.Text.Json.Serialization.JsonPropertyName("SurveyImportMDStart")]
         public int SurveyImportMDStart { get; set; }
 
@@ -46016,6 +46040,12 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("SurveyImportAzimuthWidth")]
         public int SurveyImportAzimuthWidth { get; set; }
 
+        [System.Text.Json.Serialization.JsonPropertyName("SurveyImportTimeStart")]
+        public int SurveyImportTimeStart { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("SurveyImportTimeWidth")]
+        public int SurveyImportTimeWidth { get; set; }
+
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
@@ -46031,14 +46061,67 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class SurveyMeasurement
     {
 
+        /// <summary>
+        /// Stable UUID for this measurement, independent of list position.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("MeasurementID")]
+        public System.Guid MeasurementID { get; set; }
+
+        /// <summary>
+        /// Measured or along-hole depth in canonical SI metres.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MD")]
         public double? MD { get; set; }
 
+        /// <summary>
+        /// Canonical inclination from the local WGS84 geodetic-down axis in SI radians, after reference correction.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Inclination")]
         public double? Inclination { get; set; }
 
+        /// <summary>
+        /// Canonical clockwise azimuth from WGS84 geodetic true north in SI radians, after reference correction.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Azimuth")]
         public double? Azimuth { get; set; }
+
+        /// <summary>
+        /// Original observed inclination in SI radians before transformation from InclinationReference.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("ObservedInclination")]
+        public double? ObservedInclination { get; set; }
+
+        /// <summary>
+        /// Original observed clockwise azimuth in SI radians before transformation from AzimuthReference.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("ObservedAzimuth")]
+        public double? ObservedAzimuth { get; set; }
+
+        /// <summary>
+        /// UTC measurement instant. Required for magnetic correction when the survey run has no complete acquisition interval.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("MeasurementTimeUtc")]
+        public System.DateTimeOffset? MeasurementTimeUtc { get; set; }
+
+        /// <summary>
+        /// Reference vertical for an observed inclination. GeodeticVertical is the local positive-down axis perpendicular to the WGS84 ellipsoid (opposite its outward normal); GravityVertical follows the local total-gravity vector; InheritRun uses the survey run default.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("InclinationReference")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurveyInclinationReference>))]
+        public SurveyInclinationReference InclinationReference { get; set; }
+
+        /// <summary>
+        /// North reference for an observed clockwise azimuth. TrueNorth is WGS84 geodetic north projected onto the plane perpendicular to the selected vertical; MagneticNorth is the evaluated geomagnetic-field vector projected onto that plane; InheritRun uses the survey run default.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("AzimuthReference")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurveyAzimuthReference>))]
+        public SurveyAzimuthReference AzimuthReference { get; set; }
+
+        /// <summary>
+        /// Frozen correction result and Earth-model provenance used to derive canonical inclination and azimuth.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("Correction")]
+        public SurveyMeasurementCorrection Correction { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Annotation")]
         public string Annotation { get; set; }
@@ -46142,6 +46225,18 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
+        /// <summary>
+        /// Earliest known survey-run acquisition instant in UTC; required together with AcquisitionEndUtc when station times are absent for magnetic correction.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("AcquisitionStartUtc")]
+        public System.DateTimeOffset? AcquisitionStartUtc { get; set; }
+
+        /// <summary>
+        /// Latest known survey-run acquisition instant in UTC; required together with AcquisitionStartUtc when station times are absent for magnetic correction.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("AcquisitionEndUtc")]
+        public System.DateTimeOffset? AcquisitionEndUtc { get; set; }
+
         [System.Text.Json.Serialization.JsonPropertyName("FieldID")]
         public System.Guid? FieldID { get; set; }
 
@@ -46164,6 +46259,27 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("CalculationType")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<TrajectoryCalculationType>))]
         public TrajectoryCalculationType CalculationType { get; set; }
+
+        /// <summary>
+        /// Reference vertical for an observed inclination. GeodeticVertical is the local positive-down axis perpendicular to the WGS84 ellipsoid (opposite its outward normal); GravityVertical follows the local total-gravity vector; InheritRun uses the survey run default. InheritRun is forbidden for a run-level default.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("DefaultInclinationReference")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurveyInclinationReference>))]
+        public SurveyInclinationReference DefaultInclinationReference { get; set; }
+
+        /// <summary>
+        /// North reference for an observed clockwise azimuth. TrueNorth is WGS84 geodetic north projected onto the plane perpendicular to the selected vertical; MagneticNorth is the evaluated geomagnetic-field vector projected onto that plane; InheritRun uses the survey run default. InheritRun is forbidden for a run-level default.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("DefaultAzimuthReference")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurveyAzimuthReference>))]
+        public SurveyAzimuthReference DefaultAzimuthReference { get; set; }
+
+        /// <summary>
+        /// Geomagnetic model selection used by measurements whose effective azimuth reference is MagneticNorth.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("GeomagneticModel")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurveyGeomagneticModel>))]
+        public SurveyGeomagneticModel GeomagneticModel { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ParentSurveyRunID")]
         public System.Guid? ParentSurveyRunID { get; set; }
@@ -46312,6 +46428,12 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("FileContentBase64")]
         public string FileContentBase64 { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("AcquisitionStartUtc")]
+        public System.DateTimeOffset? AcquisitionStartUtc { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("AcquisitionEndUtc")]
+        public System.DateTimeOffset? AcquisitionEndUtc { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -46469,6 +46591,18 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
+        /// <summary>
+        /// Earliest known survey-run acquisition instant in UTC; required together with AcquisitionEndUtc when station times are absent for magnetic correction.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("AcquisitionStartUtc")]
+        public System.DateTimeOffset? AcquisitionStartUtc { get; set; }
+
+        /// <summary>
+        /// Latest known survey-run acquisition instant in UTC; required together with AcquisitionStartUtc when station times are absent for magnetic correction.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("AcquisitionEndUtc")]
+        public System.DateTimeOffset? AcquisitionEndUtc { get; set; }
+
         [System.Text.Json.Serialization.JsonPropertyName("FieldID")]
         public System.Guid? FieldID { get; set; }
 
@@ -46491,6 +46625,27 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("CalculationType")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<TrajectoryCalculationType>))]
         public TrajectoryCalculationType CalculationType { get; set; }
+
+        /// <summary>
+        /// Reference vertical for an observed inclination. GeodeticVertical is the local positive-down axis perpendicular to the WGS84 ellipsoid (opposite its outward normal); GravityVertical follows the local total-gravity vector; InheritRun uses the survey run default. InheritRun is forbidden for a run-level default.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("DefaultInclinationReference")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurveyInclinationReference>))]
+        public SurveyInclinationReference DefaultInclinationReference { get; set; }
+
+        /// <summary>
+        /// North reference for an observed clockwise azimuth. TrueNorth is WGS84 geodetic north projected onto the plane perpendicular to the selected vertical; MagneticNorth is the evaluated geomagnetic-field vector projected onto that plane; InheritRun uses the survey run default. InheritRun is forbidden for a run-level default.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("DefaultAzimuthReference")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurveyAzimuthReference>))]
+        public SurveyAzimuthReference DefaultAzimuthReference { get; set; }
+
+        /// <summary>
+        /// Geomagnetic model selection used by measurements whose effective azimuth reference is MagneticNorth.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("GeomagneticModel")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurveyGeomagneticModel>))]
+        public SurveyGeomagneticModel GeomagneticModel { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ParentSurveyRunID")]
         public System.Guid? ParentSurveyRunID { get; set; }
@@ -50815,6 +50970,228 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("CatalogWrites")]
         public long CatalogWrites { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    /// <summary>
+    /// North reference for an observed clockwise azimuth. TrueNorth is WGS84 geodetic north projected onto the plane perpendicular to the selected vertical; MagneticNorth is the evaluated geomagnetic-field vector projected onto that plane; InheritRun uses the survey run default.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum SurveyAzimuthReference
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"TrueNorth")]
+        TrueNorth = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MagneticNorth")]
+        MagneticNorth = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"InheritRun")]
+        InheritRun = 2,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum SurveyCorrectionSource
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"None")]
+        None = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Computed")]
+        Computed = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Supplied")]
+        Supplied = 2,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ManualOverride")]
+        ManualOverride = 3,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum SurveyCorrectionStatus
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"NotRequired")]
+        NotRequired = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Pending")]
+        Pending = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Completed")]
+        Completed = 2,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Failed")]
+        Failed = 3,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum SurveyCorrectionTimeMethod
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"NotRequired")]
+        NotRequired = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"StationMeasurementTime")]
+        StationMeasurementTime = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"RunAcquisitionMidpoint")]
+        RunAcquisitionMidpoint = 2,
+
+    }
+
+    /// <summary>
+    /// Geomagnetic model used for magnetic-north correction: Automatic selects WMM2025 for 2025 or later and IGRF14 for earlier instants; an explicit value pins that model.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum SurveyGeomagneticModel
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Automatic")]
+        Automatic = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"WMM2025")]
+        WMM2025 = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"IGRF14")]
+        IGRF14 = 2,
+
+    }
+
+    /// <summary>
+    /// Reference vertical for an observed inclination. GeodeticVertical is the local positive-down axis perpendicular to the WGS84 ellipsoid (opposite its outward normal); GravityVertical follows the local total-gravity vector; InheritRun uses the survey run default.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum SurveyInclinationReference
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"GeodeticVertical")]
+        GeodeticVertical = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"GravityVertical")]
+        GravityVertical = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"InheritRun")]
+        InheritRun = 2,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class SurveyMeasurementCorrection
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("Source")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurveyCorrectionSource>))]
+        public SurveyCorrectionSource Source { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Status")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurveyCorrectionStatus>))]
+        public SurveyCorrectionStatus Status { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Message")]
+        public string Message { get; set; }
+
+        /// <summary>
+        /// Signed canonical-minus-observed inclination correction in SI radians.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("AppliedInclinationCorrection")]
+        public double? AppliedInclinationCorrection { get; set; }
+
+        /// <summary>
+        /// Shortest signed canonical-minus-observed azimuth correction in SI radians.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("AppliedAzimuthCorrection")]
+        public double? AppliedAzimuthCorrection { get; set; }
+
+        /// <summary>
+        /// Evaluated magnetic declination clockwise from geodetic true north in SI radians.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("MagneticDeclination")]
+        public double? MagneticDeclination { get; set; }
+
+        /// <summary>
+        /// North component of total gravity in the local WGS84 north-east-down frame, in SI metres per second squared.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("GravityNorth")]
+        public double? GravityNorth { get; set; }
+
+        /// <summary>
+        /// East component of total gravity in the local WGS84 north-east-down frame, in SI metres per second squared.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("GravityEast")]
+        public double? GravityEast { get; set; }
+
+        /// <summary>
+        /// Down component of total gravity in the local WGS84 north-east-down frame, in SI metres per second squared.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("GravityDown")]
+        public double? GravityDown { get; set; }
+
+        /// <summary>
+        /// WGS84 geodetic latitude used for the correction, in SI radians.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("EvaluatedLatitude")]
+        public double? EvaluatedLatitude { get; set; }
+
+        /// <summary>
+        /// WGS84 geodetic longitude used for the correction, in SI radians.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("EvaluatedLongitude")]
+        public double? EvaluatedLongitude { get; set; }
+
+        /// <summary>
+        /// Depth used for the correction in SI metres, positive downward from the WGS84 reference ellipsoid.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("EvaluatedDepthWgs84")]
+        public double? EvaluatedDepthWgs84 { get; set; }
+
+        /// <summary>
+        /// UTC instant used to evaluate the geomagnetic model.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("EvaluationTimeUtc")]
+        public System.DateTimeOffset? EvaluationTimeUtc { get; set; }
+
+        /// <summary>
+        /// How EvaluationTimeUtc was selected: station measurement time, survey-run acquisition midpoint, or not required.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("TimeMethod")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurveyCorrectionTimeMethod>))]
+        public SurveyCorrectionTimeMethod TimeMethod { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("GravityModelID")]
+        public string GravityModelID { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("GravityModelVersion")]
+        public string GravityModelVersion { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("GravityCoefficientSHA256")]
+        public string GravityCoefficientSHA256 { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("GeomagneticModelID")]
+        public string GeomagneticModelID { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("GeomagneticMetadataSHA256")]
+        public string GeomagneticMetadataSHA256 { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("GeomagneticCoefficientSHA256")]
+        public string GeomagneticCoefficientSHA256 { get; set; }
+
+        /// <summary>
+        /// Opaque version of the reference-correction algorithm.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("AlgorithmVersion")]
+        public string AlgorithmVersion { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 

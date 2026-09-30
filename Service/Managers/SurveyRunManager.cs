@@ -42,6 +42,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 Description = surveyRun.Description,
                 CreationDate = surveyRun.CreationDate,
                 LastModificationDate = surveyRun.LastModificationDate,
+                AcquisitionStartUtc = surveyRun.AcquisitionStartUtc,
+                AcquisitionEndUtc = surveyRun.AcquisitionEndUtc,
                 FieldID = surveyRun.FieldID,
                 ClusterID = surveyRun.ClusterID,
                 WellID = surveyRun.WellID,
@@ -49,6 +51,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 SurveyInstrumentID = surveyRun.SurveyInstrumentID,
                 SurveyRunType = surveyRun.SurveyRunType,
                 CalculationType = surveyRun.CalculationType,
+                DefaultInclinationReference = surveyRun.DefaultInclinationReference,
+                DefaultAzimuthReference = surveyRun.DefaultAzimuthReference,
+                GeomagneticModel = surveyRun.GeomagneticModel,
                 ParentSurveyRunID = surveyRun.ParentSurveyRunID,
                 CalculationState = surveyRun.CalculationState,
                 CalculationProgress = surveyRun.CalculationProgress,
@@ -335,9 +340,13 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             if (surveyRun?.MetaInfo == null ||
                 surveyRun.MetaInfo.ID == Guid.Empty ||
                 surveyRun.WellBoreID == Guid.Empty ||
-                surveyRun.SurveyInstrumentID == Guid.Empty)
+                surveyRun.SurveyInstrumentID == Guid.Empty ||
+                surveyRun.DefaultInclinationReference == SurveyInclinationReference.InheritRun ||
+                surveyRun.DefaultAzimuthReference == SurveyAzimuthReference.InheritRun ||
+                (surveyRun.AcquisitionStartUtc.HasValue != surveyRun.AcquisitionEndUtc.HasValue) ||
+                (surveyRun.AcquisitionStartUtc is { } acquisitionStart && surveyRun.AcquisitionEndUtc is { } acquisitionEnd && acquisitionEnd < acquisitionStart))
             {
-                _logger.LogWarning("The SurveyRun or its required IDs are null or empty");
+                _logger.LogWarning("The SurveyRun metadata, required IDs, reference defaults, or acquisition interval are invalid");
                 return false;
             }
 
@@ -370,6 +379,24 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             {
                 _logger.LogWarning("Impossible to calculate the SurveyRun");
                 return false;
+            }
+
+            for (int iteration = 0; iteration < 3; iteration++)
+            {
+                (bool success, double maximumAngularChange) = await SurveyRunCorrectionService.ApplyAsync(surveyRun, _logger);
+                if (!success)
+                {
+                    return false;
+                }
+                if (!surveyRun.Calculate())
+                {
+                    _logger.LogWarning("Impossible to recalculate the corrected SurveyRun");
+                    return false;
+                }
+                if (maximumAngularChange <= SurveyRunCorrectionService.ConvergenceToleranceRadians)
+                {
+                    break;
+                }
             }
 
             if (!await CalculateSurveyRunUncertaintyAsync(surveyRun))
@@ -411,7 +438,13 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 surveyRun.SurveyMeasurementList ??= GetSurveyMeasurementListBySurveyRunId(surveyRunId);
                 if (!await ValidateAndPrepareSurveyRunAsync(surveyRun))
                 {
-                    UpdateSurveyRunCalculationState(surveyRunId, CalculationState.Failed, 0.0, "Survey run calculation failed");
+                    string failureMessage = surveyRun.SurveyMeasurementList?
+                        .Select(measurement => measurement.Correction?.Message)
+                        .FirstOrDefault(message => !string.IsNullOrWhiteSpace(message))
+                        ?? "Survey run calculation failed";
+                    MarkCalculationState(surveyRun, CalculationState.Failed, 0.0, failureMessage);
+                    surveyRun.LastModificationDate = DateTimeOffset.UtcNow;
+                    InsertOrUpdateSurveyRun(surveyRun, true);
                     DeleteSurveyStationChunks(surveyRunId);
                     return;
                 }
@@ -509,6 +542,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     _logger.LogWarning("The SurveyRun contains a survey measurement without a defined measured depth");
                     return false;
                 }
+                measurement.MeasurementID = measurement.MeasurementID == Guid.Empty ? Guid.NewGuid() : measurement.MeasurementID;
+                measurement.Inclination ??= measurement.ObservedInclination;
+                measurement.Azimuth ??= measurement.ObservedAzimuth;
                 if (measurement.Inclination is not { } inclination || !Numeric.IsDefined(inclination) ||
                     measurement.Azimuth is not { } azimuth || !Numeric.IsDefined(azimuth))
                 {

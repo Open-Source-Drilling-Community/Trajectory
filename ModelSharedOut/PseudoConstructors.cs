@@ -4796,21 +4796,34 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				SurveyImportMDColumn = 0,
 				SurveyImportInclinationColumn = 0,
 				SurveyImportAzimuthColumn = 0,
+				SurveyImportTimeColumn = 0,
+				DefaultInclinationReference = (SurveyInclinationReference)0,
+				DefaultAzimuthReference = (SurveyAzimuthReference)0,
+				GeomagneticModel = (SurveyGeomagneticModel)0,
 				SurveyImportMDStart = 0,
 				SurveyImportMDWidth = 0,
 				SurveyImportInclinationStart = 0,
 				SurveyImportInclinationWidth = 0,
 				SurveyImportAzimuthStart = 0,
 				SurveyImportAzimuthWidth = 0,
+				SurveyImportTimeStart = 0,
+				SurveyImportTimeWidth = 0,
 			};
 		}
 		public static SurveyMeasurement ConstructSurveyMeasurement()
 		{
 			return new SurveyMeasurement
 			{
+				MeasurementID = new Guid(),
 				MD = null,
 				Inclination = null,
 				Azimuth = null,
+				ObservedInclination = null,
+				ObservedAzimuth = null,
+				MeasurementTimeUtc = DateTimeOffset.UtcNow,
+				InclinationReference = (SurveyInclinationReference)0,
+				AzimuthReference = (SurveyAzimuthReference)0,
+				Correction = ConstructSurveyMeasurementCorrection(),
 				Annotation = "Default Annotation",
 			};
 		}
@@ -4854,6 +4867,8 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				Description = "Default Description",
 				CreationDate = DateTimeOffset.UtcNow,
 				LastModificationDate = DateTimeOffset.UtcNow,
+				AcquisitionStartUtc = DateTimeOffset.UtcNow,
+				AcquisitionEndUtc = DateTimeOffset.UtcNow,
 				FieldID = null,
 				ClusterID = null,
 				WellID = null,
@@ -4861,6 +4876,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				SurveyInstrumentID = new Guid(),
 				SurveyRunType = (SurveyRunType)0,
 				CalculationType = (TrajectoryCalculationType)0,
+				DefaultInclinationReference = (SurveyInclinationReference)0,
+				DefaultAzimuthReference = (SurveyAzimuthReference)0,
+				GeomagneticModel = (SurveyGeomagneticModel)0,
 				ParentSurveyRunID = null,
 				CalculationState = (CalculationState)0,
 				CalculationProgress = 0.0,
@@ -4911,6 +4929,8 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				DepthReferenceName = "Default DepthReferenceName",
 				FileName = "Default FileName",
 				FileContentBase64 = "Default FileContentBase64",
+				AcquisitionStartUtc = DateTimeOffset.UtcNow,
+				AcquisitionEndUtc = DateTimeOffset.UtcNow,
 			};
 		}
 		public static SurveyRunExternalReferenceAuditRequest ConstructSurveyRunExternalReferenceAuditRequest()
@@ -6494,6 +6514,33 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				PositionsTransformed = 0,
 				CatalogReads = 0,
 				CatalogWrites = 0,
+			};
+		}
+		public static SurveyMeasurementCorrection ConstructSurveyMeasurementCorrection()
+		{
+			return new SurveyMeasurementCorrection
+			{
+				Source = (SurveyCorrectionSource)0,
+				Status = (SurveyCorrectionStatus)0,
+				Message = "Default Message",
+				AppliedInclinationCorrection = null,
+				AppliedAzimuthCorrection = null,
+				MagneticDeclination = null,
+				GravityNorth = null,
+				GravityEast = null,
+				GravityDown = null,
+				EvaluatedLatitude = null,
+				EvaluatedLongitude = null,
+				EvaluatedDepthWgs84 = null,
+				EvaluationTimeUtc = DateTimeOffset.UtcNow,
+				TimeMethod = (SurveyCorrectionTimeMethod)0,
+				GravityModelID = "Default GravityModelID",
+				GravityModelVersion = "Default GravityModelVersion",
+				GravityCoefficientSHA256 = "Default GravityCoefficientSHA256",
+				GeomagneticModelID = "Default GeomagneticModelID",
+				GeomagneticMetadataSHA256 = "Default GeomagneticMetadataSHA256",
+				GeomagneticCoefficientSHA256 = "Default GeomagneticCoefficientSHA256",
+				AlgorithmVersion = "Default AlgorithmVersion",
 			};
 		}
 		public static RigJob ConstructRigJob()

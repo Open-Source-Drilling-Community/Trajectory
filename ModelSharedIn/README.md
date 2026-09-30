@@ -4,7 +4,7 @@
 
 ## Responsibility
 
-This project stores upstream OpenAPI schema files and generates C# classes from them. The checked-in inputs are `Field.json`, `Cluster.json`, `Well.json`, `WellBore.json`, `WellBoreArchitecture.json`, and `SurveyInstrument.json` under `json-schemas`.
+This project stores upstream OpenAPI schema files and generates C# classes from them. The checked-in inputs are `Field.json`, `Cluster.json`, `Well.json`, `WellBore.json`, `WellBoreArchitecture.json`, `SurveyInstrument.json`, `EarthGravity.json`, and `EarthMagneticField.json` under `json-schemas`.
 
 It supports the distributed shared model approach for dependencies that the Trajectory model consumes from other services.
 
@@ -37,3 +37,7 @@ dotnet run --project .\ModelSharedIn\ModelSharedIn.csproj
 Answer `Y` only after reviewing the input schemas. Inspect the generated diff for route or short type-name collisions, then build the solution so downstream compilation validates the result.
 
 Refresh each input from its owning repository before running the generator. In particular, use the current Survey Instrument service schema so shared catalogue policies and batch restore DTOs are not silently omitted from the Trajectory model contract.
+
+## Earth reference dependencies
+
+`EarthGravity.json` and `EarthMagneticField.json` are copied from the authoritative `Service/wwwroot/json-schema` output of the Earth Gravity and Earth Magnetic Field repositories. Their adjacent `.sha256` files pin the reviewed inputs. Refresh the schema and checksum together, regenerate this project, and inspect the generated diff; do not hand-edit the generated dependency DTOs.

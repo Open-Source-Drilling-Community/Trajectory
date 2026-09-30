@@ -141,6 +141,29 @@ else
                         }
                     </MudSelect>
                 </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudSelect T="SurveyInclinationReference" Label="Inclination reference" @bind-Value="defaultInclinationReference_" ShrinkLabel>
+                        <MudSelectItem Value="SurveyInclinationReference.GeodeticVertical">WGS84 geodetic vertical</MudSelectItem>
+                        <MudSelectItem Value="SurveyInclinationReference.GravityVertical">Gravity vertical</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudSelect T="SurveyAzimuthReference" Label="Azimuth reference" @bind-Value="defaultAzimuthReference_" ShrinkLabel>
+                        <MudSelectItem Value="SurveyAzimuthReference.TrueNorth">True north</MudSelectItem>
+                        <MudSelectItem Value="SurveyAzimuthReference.MagneticNorth">Magnetic north</MudSelectItem>
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudSelect T="SurveyGeomagneticModel" Label="Magnetic model" @bind-Value="geomagneticModel_" ShrinkLabel Disabled="@(defaultAzimuthReference_ != SurveyAzimuthReference.MagneticNorth)">
+                        @foreach (SurveyGeomagneticModel model in Enum.GetValues<SurveyGeomagneticModel>())
+                        {
+                            <MudSelectItem Value="@model">@model</MudSelectItem>
+                        }
+                    </MudSelect>
+                </MudItem>
+                <MudItem xs="12" md="3">
+                    <MudNumericField T="int" Label="UTC time column (0 = none)" @bind-Value="surveyImportTimeColumn_" Min="0" Immediate="true" />
+                </MudItem>
                 @if (IsFixedWidthImportFormat)
                 {
                     <MudItem xs="12" md="2">
@@ -160,6 +183,12 @@ else
                     </MudItem>
                     <MudItem xs="12" md="2">
                         <MudNumericField T="int" Label="Az width" @bind-Value="surveyImportAzimuthWidth_" Min="1" Immediate="true" />
+                    </MudItem>
+                    <MudItem xs="12" md="2">
+                        <MudNumericField T="int" Label="UTC time start (0 = none)" @bind-Value="surveyImportTimeStart_" Min="0" Immediate="true" />
+                    </MudItem>
+                    <MudItem xs="12" md="2">
+                        <MudNumericField T="int" Label="UTC time width" @bind-Value="surveyImportTimeWidth_" Min="1" Immediate="true" />
                     </MudItem>
                 }
             </MudGrid>
@@ -278,6 +307,12 @@ else
                             }
                         </MudSelect>
                     </MudTd>
+                    <MudTd DataLabel="Acquired from (UTC)">
+                        <MudTextField T="string" Value="@FormatUtcInput(context.AcquisitionStartUtc)" ValueChanged="@(value => context.AcquisitionStartUtc = ParseUtcInput(value))" Placeholder="2025-01-31T12:00:00Z" />
+                    </MudTd>
+                    <MudTd DataLabel="Acquired to (UTC)">
+                        <MudTextField T="string" Value="@FormatUtcInput(context.AcquisitionEndUtc)" ValueChanged="@(value => context.AcquisitionEndUtc = ParseUtcInput(value))" Placeholder="2025-01-31T12:00:00Z" />
+                    </MudTd>
                     <MudTd DataLabel="File name">
                         <MudText>@(string.IsNullOrWhiteSpace(context.FileName) ? "No file selected" : context.FileName)</MudText>
                     </MudTd>
@@ -353,12 +388,18 @@ else
     private int surveyImportMDColumn_ = 1;
     private int surveyImportInclinationColumn_ = 2;
     private int surveyImportAzimuthColumn_ = 3;
+    private int surveyImportTimeColumn_;
+    private SurveyInclinationReference defaultInclinationReference_ = SurveyInclinationReference.GeodeticVertical;
+    private SurveyAzimuthReference defaultAzimuthReference_ = SurveyAzimuthReference.TrueNorth;
+    private SurveyGeomagneticModel geomagneticModel_ = SurveyGeomagneticModel.Automatic;
     private int surveyImportMDStart_ = 1;
     private int surveyImportMDWidth_ = 12;
     private int surveyImportInclinationStart_ = 13;
     private int surveyImportInclinationWidth_ = 12;
     private int surveyImportAzimuthStart_ = 25;
     private int surveyImportAzimuthWidth_ = 12;
+    private int surveyImportTimeStart_;
+    private int surveyImportTimeWidth_ = 25;
 
     private bool IsDelimitedImportFormat => selectedSurveyImportFormat_ == "Separated";
     private bool IsFixedWidthImportFormat => selectedSurveyImportFormat_ == "Fixed width";
@@ -658,12 +699,18 @@ else
                 SurveyImportMDColumn = surveyImportMDColumn_,
                 SurveyImportInclinationColumn = surveyImportInclinationColumn_,
                 SurveyImportAzimuthColumn = surveyImportAzimuthColumn_,
+                SurveyImportTimeColumn = surveyImportTimeColumn_,
+                DefaultInclinationReference = defaultInclinationReference_,
+                DefaultAzimuthReference = defaultAzimuthReference_,
+                GeomagneticModel = geomagneticModel_,
                 SurveyImportMDStart = surveyImportMDStart_,
                 SurveyImportMDWidth = surveyImportMDWidth_,
                 SurveyImportInclinationStart = surveyImportInclinationStart_,
                 SurveyImportInclinationWidth = surveyImportInclinationWidth_,
                 SurveyImportAzimuthStart = surveyImportAzimuthStart_,
-                SurveyImportAzimuthWidth = surveyImportAzimuthWidth_
+                SurveyImportAzimuthWidth = surveyImportAzimuthWidth_,
+                SurveyImportTimeStart = surveyImportTimeStart_,
+                SurveyImportTimeWidth = surveyImportTimeWidth_
             },
             Rows = rows_
                 .Select(row => new SharedSurveyRunBatchImportRow
@@ -674,7 +721,9 @@ else
                     ParentSurveyRunId = row.ParentSurveyRunId,
                     DepthReferenceName = row.DepthReferenceName,
                     FileName = row.FileName,
-                    FileContentBase64 = row.FileContent == null ? null : Convert.ToBase64String(row.FileContent)
+                    FileContentBase64 = row.FileContent == null ? null : Convert.ToBase64String(row.FileContent),
+                    AcquisitionStartUtc = row.AcquisitionStartUtc,
+                    AcquisitionEndUtc = row.AcquisitionEndUtc
                 })
                 .ToList()
         };
@@ -717,12 +766,18 @@ else
         surveyImportMDColumn_ = settings.SurveyImportMDColumn > 0 ? settings.SurveyImportMDColumn : surveyImportMDColumn_;
         surveyImportInclinationColumn_ = settings.SurveyImportInclinationColumn > 0 ? settings.SurveyImportInclinationColumn : surveyImportInclinationColumn_;
         surveyImportAzimuthColumn_ = settings.SurveyImportAzimuthColumn > 0 ? settings.SurveyImportAzimuthColumn : surveyImportAzimuthColumn_;
+        surveyImportTimeColumn_ = Math.Max(0, settings.SurveyImportTimeColumn);
+        defaultInclinationReference_ = settings.DefaultInclinationReference == SurveyInclinationReference.InheritRun ? SurveyInclinationReference.GeodeticVertical : settings.DefaultInclinationReference;
+        defaultAzimuthReference_ = settings.DefaultAzimuthReference == SurveyAzimuthReference.InheritRun ? SurveyAzimuthReference.TrueNorth : settings.DefaultAzimuthReference;
+        geomagneticModel_ = settings.GeomagneticModel;
         surveyImportMDStart_ = settings.SurveyImportMDStart > 0 ? settings.SurveyImportMDStart : surveyImportMDStart_;
         surveyImportMDWidth_ = settings.SurveyImportMDWidth > 0 ? settings.SurveyImportMDWidth : surveyImportMDWidth_;
         surveyImportInclinationStart_ = settings.SurveyImportInclinationStart > 0 ? settings.SurveyImportInclinationStart : surveyImportInclinationStart_;
         surveyImportInclinationWidth_ = settings.SurveyImportInclinationWidth > 0 ? settings.SurveyImportInclinationWidth : surveyImportInclinationWidth_;
         surveyImportAzimuthStart_ = settings.SurveyImportAzimuthStart > 0 ? settings.SurveyImportAzimuthStart : surveyImportAzimuthStart_;
         surveyImportAzimuthWidth_ = settings.SurveyImportAzimuthWidth > 0 ? settings.SurveyImportAzimuthWidth : surveyImportAzimuthWidth_;
+        surveyImportTimeStart_ = settings.SurveyImportTimeStart > 0 ? settings.SurveyImportTimeStart : surveyImportTimeStart_;
+        surveyImportTimeWidth_ = settings.SurveyImportTimeWidth > 0 ? settings.SurveyImportTimeWidth : surveyImportTimeWidth_;
 
         rows_.Clear();
         foreach (SharedSurveyRunBatchImportRow row in batchImport.Rows ?? [])
@@ -736,6 +791,8 @@ else
                 DepthReferenceName = string.IsNullOrWhiteSpace(row.DepthReferenceName) ? commonDepthReference_ : row.DepthReferenceName,
                 FileName = row.FileName,
                 FileContent = string.IsNullOrWhiteSpace(row.FileContentBase64) ? null : Convert.FromBase64String(row.FileContentBase64),
+                AcquisitionStartUtc = row.AcquisitionStartUtc,
+                AcquisitionEndUtc = row.AcquisitionEndUtc,
                 Status = "Ready"
             });
         }
@@ -761,12 +818,18 @@ else
         surveyImportMDColumn_ = 1;
         surveyImportInclinationColumn_ = 2;
         surveyImportAzimuthColumn_ = 3;
+        surveyImportTimeColumn_ = 0;
+        defaultInclinationReference_ = SurveyInclinationReference.GeodeticVertical;
+        defaultAzimuthReference_ = SurveyAzimuthReference.TrueNorth;
+        geomagneticModel_ = SurveyGeomagneticModel.Automatic;
         surveyImportMDStart_ = 1;
         surveyImportMDWidth_ = 12;
         surveyImportInclinationStart_ = 13;
         surveyImportInclinationWidth_ = 12;
         surveyImportAzimuthStart_ = 25;
         surveyImportAzimuthWidth_ = 12;
+        surveyImportTimeStart_ = 0;
+        surveyImportTimeWidth_ = 25;
         rows_.Clear();
         rows_.Add(new SurveyRunImportRowState { DepthReferenceName = commonDepthReference_ });
     }
@@ -1090,7 +1153,8 @@ else
                     await SetCurrentRowStatusAsync("Parsing file");
                     string content = Encoding.UTF8.GetString(row.FileContent);
                     DepthReferenceContext depthReferenceContext = await BuildDepthReferenceContextAsync(row.DepthReferenceName, cluster, wellBore);
-                    List<SurveyStation> importedStations = ParseSurveyStations(content, row, depthReferenceContext, out int skippedLines);
+                    List<SurveyMeasurement> importedMeasurements = ParseSurveyMeasurements(content, depthReferenceContext, out int skippedLines);
+                    List<SurveyStation> importedStations = importedMeasurements.Select(measurement => measurement.ToSurveyStation()).ToList();
                     int truncatedSidetrackStations = NormalizeSidetrackSurveyStations(row, importedStations, out importedStations);
                     skippedLines += truncatedSidetrackStations;
 
@@ -1141,7 +1205,8 @@ else
                     allSurveyRunHeavyList_ ??= [];
                     allSurveyRunHeavyList_.Add(surveyRun);
                     await SetCurrentRowStatusAsync("Uploading survey measurements");
-                    await UploadSurveyMeasurementChunksAsync(surveyRun.MetaInfo.ID, importedStations.Select(SurveyMeasurement.FromSurveyStation).ToList());
+                    importedMeasurements = AlignMeasurementsToStations(importedMeasurements, importedStations);
+                    await UploadSurveyMeasurementChunksAsync(surveyRun.MetaInfo.ID, importedMeasurements);
                     await SetCurrentRowStatusAsync("Committing survey measurements");
                     await Api.ClientTrajectory.CommitSurveyRunSurveyMeasurementChunksAsync(surveyRun.MetaInfo.ID);
                     await SetCurrentRowStatusAsync("Waiting for survey run calculation");
@@ -1233,6 +1298,11 @@ else
             WellBoreID = row.WellBoreId ?? Guid.Empty,
             SurveyInstrumentID = surveyInstrumentId,
             SurveyRunType = SurveyRunType.Actual,
+            AcquisitionStartUtc = row.AcquisitionStartUtc,
+            AcquisitionEndUtc = row.AcquisitionEndUtc,
+            DefaultInclinationReference = defaultInclinationReference_,
+            DefaultAzimuthReference = defaultAzimuthReference_,
+            GeomagneticModel = geomagneticModel_,
             CalculationType = TrajectoryCalculationType.MinimumCurvatureMethod,
             ParentSurveyRunID = row.ParentSurveyRunId,
             SurveyMeasurementList = null,
@@ -1465,12 +1535,18 @@ else
                 SurveyImportMDColumn = surveyImportMDColumn_,
                 SurveyImportInclinationColumn = surveyImportInclinationColumn_,
                 SurveyImportAzimuthColumn = surveyImportAzimuthColumn_,
+                SurveyImportTimeColumn = surveyImportTimeColumn_,
+                DefaultInclinationReference = defaultInclinationReference_,
+                DefaultAzimuthReference = defaultAzimuthReference_,
+                GeomagneticModel = geomagneticModel_,
                 SurveyImportMDStart = surveyImportMDStart_,
                 SurveyImportMDWidth = surveyImportMDWidth_,
                 SurveyImportInclinationStart = surveyImportInclinationStart_,
                 SurveyImportInclinationWidth = surveyImportInclinationWidth_,
                 SurveyImportAzimuthStart = surveyImportAzimuthStart_,
-                SurveyImportAzimuthWidth = surveyImportAzimuthWidth_
+                SurveyImportAzimuthWidth = surveyImportAzimuthWidth_,
+                SurveyImportTimeStart = surveyImportTimeStart_,
+                SurveyImportTimeWidth = surveyImportTimeWidth_
             },
             Rows = rows_
                 .Select(row => new SurveyRunBatchDescriptionRow
@@ -1480,7 +1556,9 @@ else
                     ParentSurveyRunId = row.ParentSurveyRunId,
                     DepthReferenceName = row.DepthReferenceName,
                     FileName = row.FileName,
-                    FileContentBase64 = row.FileContent == null ? null : Convert.ToBase64String(row.FileContent)
+                    FileContentBase64 = row.FileContent == null ? null : Convert.ToBase64String(row.FileContent),
+                    AcquisitionStartUtc = row.AcquisitionStartUtc,
+                    AcquisitionEndUtc = row.AcquisitionEndUtc
                 })
                 .ToList()
         };
@@ -1529,12 +1607,18 @@ else
                 surveyImportMDColumn_ = package.Settings.SurveyImportMDColumn;
                 surveyImportInclinationColumn_ = package.Settings.SurveyImportInclinationColumn;
                 surveyImportAzimuthColumn_ = package.Settings.SurveyImportAzimuthColumn;
+                surveyImportTimeColumn_ = Math.Max(0, package.Settings.SurveyImportTimeColumn);
+                defaultInclinationReference_ = package.Settings.DefaultInclinationReference == SurveyInclinationReference.InheritRun ? SurveyInclinationReference.GeodeticVertical : package.Settings.DefaultInclinationReference;
+                defaultAzimuthReference_ = package.Settings.DefaultAzimuthReference == SurveyAzimuthReference.InheritRun ? SurveyAzimuthReference.TrueNorth : package.Settings.DefaultAzimuthReference;
+                geomagneticModel_ = package.Settings.GeomagneticModel;
                 surveyImportMDStart_ = package.Settings.SurveyImportMDStart;
                 surveyImportMDWidth_ = package.Settings.SurveyImportMDWidth;
                 surveyImportInclinationStart_ = package.Settings.SurveyImportInclinationStart;
                 surveyImportInclinationWidth_ = package.Settings.SurveyImportInclinationWidth;
                 surveyImportAzimuthStart_ = package.Settings.SurveyImportAzimuthStart;
                 surveyImportAzimuthWidth_ = package.Settings.SurveyImportAzimuthWidth;
+                surveyImportTimeStart_ = Math.Max(0, package.Settings.SurveyImportTimeStart);
+                surveyImportTimeWidth_ = package.Settings.SurveyImportTimeWidth > 0 ? package.Settings.SurveyImportTimeWidth : surveyImportTimeWidth_;
             }
 
             NormalizeSelectionChain();
@@ -1549,7 +1633,9 @@ else
                     ParentSurveyRunId = row.ParentSurveyRunId,
                     DepthReferenceName = string.IsNullOrWhiteSpace(row.DepthReferenceName) ? commonDepthReference_ : row.DepthReferenceName,
                     FileName = row.FileName,
-                    FileContent = string.IsNullOrWhiteSpace(row.FileContentBase64) ? null : Convert.FromBase64String(row.FileContentBase64)
+                    FileContent = string.IsNullOrWhiteSpace(row.FileContentBase64) ? null : Convert.FromBase64String(row.FileContentBase64),
+                    AcquisitionStartUtc = row.AcquisitionStartUtc,
+                    AcquisitionEndUtc = row.AcquisitionEndUtc
                 };
                 rowState.Status = rowState.FileContent == null ? "Imported" : BuildFileLoadedStatus(rowState);
                 rows_.Add(rowState);
@@ -1757,7 +1843,14 @@ else
 
     private bool TryParseSurveyStationLine(string line, DepthReferenceContext depthReferenceContext, out SurveyStation? station)
     {
-        station = null;
+        bool parsed = TryParseSurveyMeasurementLine(line, depthReferenceContext, out SurveyMeasurement? measurement);
+        station = parsed ? measurement?.ToSurveyStation() : null;
+        return parsed;
+    }
+
+    private bool TryParseSurveyMeasurementLine(string line, DepthReferenceContext depthReferenceContext, out SurveyMeasurement? measurement)
+    {
+        measurement = null;
         if (string.IsNullOrWhiteSpace(line))
         {
             return false;
@@ -1766,12 +1859,13 @@ else
         string? mdToken;
         string? inclinationToken;
         string? azimuthToken;
-
+        string? timeToken;
         if (IsFixedWidthImportFormat)
         {
             mdToken = ReadFixedWidthToken(line, surveyImportMDStart_, surveyImportMDWidth_);
             inclinationToken = ReadFixedWidthToken(line, surveyImportInclinationStart_, surveyImportInclinationWidth_);
             azimuthToken = ReadFixedWidthToken(line, surveyImportAzimuthStart_, surveyImportAzimuthWidth_);
+            timeToken = surveyImportTimeStart_ > 0 ? ReadFixedWidthToken(line, surveyImportTimeStart_, surveyImportTimeWidth_) : null;
         }
         else
         {
@@ -1779,6 +1873,7 @@ else
             mdToken = ReadColumnToken(columns, surveyImportMDColumn_);
             inclinationToken = ReadColumnToken(columns, surveyImportInclinationColumn_);
             azimuthToken = ReadColumnToken(columns, surveyImportAzimuthColumn_);
+            timeToken = surveyImportTimeColumn_ > 0 ? ReadColumnToken(columns, surveyImportTimeColumn_) : null;
         }
 
         if (!TryParseImportedNumber(mdToken, out double md) ||
@@ -1788,19 +1883,78 @@ else
             return false;
         }
 
-        station = new SurveyStation
+        DateTimeOffset? measurementTime = ParseUtcInput(timeToken);
+        if (!string.IsNullOrWhiteSpace(timeToken) && measurementTime == null)
         {
+            return false;
+        }
+
+        double inclinationSI = ConvertAngleToSI(inclination, selectedSurveyImportInclinationUnit_);
+        double azimuthSI = ConvertAngleToSI(azimuth, selectedSurveyImportAzimuthUnit_);
+        measurement = new SurveyMeasurement
+        {
+            MeasurementID = Guid.NewGuid(),
             MD = ConvertDepthToSI(md, selectedSurveyImportMDUnit_, depthReferenceContext),
-            Inclination = ConvertAngleToSI(inclination, selectedSurveyImportInclinationUnit_),
-            Azimuth = ConvertAngleToSI(azimuth, selectedSurveyImportAzimuthUnit_)
+            ObservedInclination = inclinationSI,
+            ObservedAzimuth = azimuthSI,
+            Inclination = inclinationSI,
+            Azimuth = azimuthSI,
+            MeasurementTimeUtc = measurementTime,
+            InclinationReference = SurveyInclinationReference.InheritRun,
+            AzimuthReference = SurveyAzimuthReference.InheritRun,
+            Correction = new SurveyMeasurementCorrection { Status = SurveyCorrectionStatus.Pending }
         };
         return true;
     }
 
+    private List<SurveyMeasurement> ParseSurveyMeasurements(string content, DepthReferenceContext depthReferenceContext, out int skippedLines)
+    {
+        List<SurveyMeasurement> measurements = [];
+        skippedLines = 0;
+        double? previousMD = null;
+        foreach (string line in content.Split(["\r\n", "\n", "\r"], StringSplitOptions.None))
+        {
+            if (!TryParseSurveyMeasurementLine(line, depthReferenceContext, out SurveyMeasurement? measurement) || measurement?.MD is not { } md || (previousMD is { } lastMD && md <= lastMD))
+            {
+                skippedLines++;
+                continue;
+            }
+            measurements.Add(measurement);
+            previousMD = md;
+        }
+        return measurements;
+    }
+
+    private static List<SurveyMeasurement> AlignMeasurementsToStations(List<SurveyMeasurement> measurements, List<SurveyStation> stations)
+    {
+        return stations.Select(station =>
+        {
+            double? md = station.MD ?? station.Abscissa;
+            SurveyMeasurement? existing = measurements.FirstOrDefault(measurement => measurement.MD.HasValue && md.HasValue && Math.Abs(measurement.MD.Value - md.Value) < 1e-9);
+            if (existing != null)
+            {
+                return existing;
+            }
+            SurveyMeasurement generated = SurveyMeasurement.FromSurveyStation(station);
+            generated.MeasurementID = Guid.NewGuid();
+            generated.ObservedInclination = generated.Inclination;
+            generated.ObservedAzimuth = generated.Azimuth;
+            generated.InclinationReference = SurveyInclinationReference.InheritRun;
+            generated.AzimuthReference = SurveyAzimuthReference.InheritRun;
+            return generated;
+        }).ToList();
+    }
+
+    private static string FormatUtcInput(DateTimeOffset? value) => value?.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture) ?? string.Empty;
+
+    private static DateTimeOffset? ParseUtcInput(string? value) =>
+        DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out DateTimeOffset parsed)
+            ? parsed
+            : null;
     private List<string> SplitDelimitedColumns(string line)
     {
         List<string> columns = SplitDelimitedColumns(line, selectedSurveyImportSeparator_);
-        int requiredColumnCount = new[] { surveyImportMDColumn_, surveyImportInclinationColumn_, surveyImportAzimuthColumn_ }.Max();
+        int requiredColumnCount = new[] { surveyImportMDColumn_, surveyImportInclinationColumn_, surveyImportAzimuthColumn_, surveyImportTimeColumn_ }.Max();
         if (columns.Count >= requiredColumnCount)
         {
             return columns;
@@ -2413,6 +2567,8 @@ else
         public string DepthReferenceName { get; set; } = "Rotary table";
         public string? FileName { get; set; }
         public byte[]? FileContent { get; set; }
+        public DateTimeOffset? AcquisitionStartUtc { get; set; }
+        public DateTimeOffset? AcquisitionEndUtc { get; set; }
         public string Status { get; set; } = "Ready";
     }
 
@@ -2436,6 +2592,8 @@ else
         public string? DepthReferenceName { get; set; }
         public string? FileName { get; set; }
         public string? FileContentBase64 { get; set; }
+        public DateTimeOffset? AcquisitionStartUtc { get; set; }
+        public DateTimeOffset? AcquisitionEndUtc { get; set; }
     }
 
     private sealed class SurveyImportSettingsPackage
@@ -2449,12 +2607,18 @@ else
         public int SurveyImportMDColumn { get; set; }
         public int SurveyImportInclinationColumn { get; set; }
         public int SurveyImportAzimuthColumn { get; set; }
+        public int SurveyImportTimeColumn { get; set; }
+        public SurveyInclinationReference DefaultInclinationReference { get; set; } = SurveyInclinationReference.GeodeticVertical;
+        public SurveyAzimuthReference DefaultAzimuthReference { get; set; } = SurveyAzimuthReference.TrueNorth;
+        public SurveyGeomagneticModel GeomagneticModel { get; set; } = SurveyGeomagneticModel.Automatic;
         public int SurveyImportMDStart { get; set; }
         public int SurveyImportMDWidth { get; set; }
         public int SurveyImportInclinationStart { get; set; }
         public int SurveyImportInclinationWidth { get; set; }
         public int SurveyImportAzimuthStart { get; set; }
         public int SurveyImportAzimuthWidth { get; set; }
+        public int SurveyImportTimeStart { get; set; }
+        public int SurveyImportTimeWidth { get; set; }
     }
 
     private sealed class DepthReferenceContext

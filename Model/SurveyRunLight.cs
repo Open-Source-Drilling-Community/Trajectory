@@ -14,6 +14,10 @@ namespace OSDC.Drilling.Trajectory.Model
         public string? Description { get; set; }
         public DateTimeOffset? CreationDate { get; set; }
         public DateTimeOffset? LastModificationDate { get; set; }
+        /// <summary>Earliest known UTC acquisition time for this survey run.</summary>
+        public DateTimeOffset? AcquisitionStartUtc { get; set; }
+        /// <summary>Latest known UTC acquisition time for this survey run.</summary>
+        public DateTimeOffset? AcquisitionEndUtc { get; set; }
         public Guid? FieldID { get; set; }
         public Guid? ClusterID { get; set; }
         public Guid? WellID { get; set; }
@@ -21,6 +25,9 @@ namespace OSDC.Drilling.Trajectory.Model
         public Guid SurveyInstrumentID { get; set; }
         public SurveyRunType SurveyRunType { get; set; } = SurveyRunType.Actual;
         public TrajectoryCalculationType CalculationType { get; set; } = TrajectoryCalculationType.MinimumCurvatureMethod;
+        public SurveyInclinationReference DefaultInclinationReference { get; set; } = SurveyInclinationReference.GeodeticVertical;
+        public SurveyAzimuthReference DefaultAzimuthReference { get; set; } = SurveyAzimuthReference.TrueNorth;
+        public SurveyGeomagneticModel GeomagneticModel { get; set; } = SurveyGeomagneticModel.Automatic;
         public Guid? ParentSurveyRunID { get; set; }
         public CalculationState CalculationState { get; set; } = CalculationState.Completed;
         public double CalculationProgress { get; set; } = 1.0;

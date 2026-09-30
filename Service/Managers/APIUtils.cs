@@ -42,6 +42,16 @@ public static class APIUtils
     public static readonly HttpClient HttpClientSurveyInstrument = APIUtils.SetHttpClient(HostNameSurveyInstrument, HostBasePathSurveyInstrument);
     public static readonly Client ClientSurveyInstrument = new Client(APIUtils.HttpClientSurveyInstrument.BaseAddress!.ToString(), APIUtils.HttpClientSurveyInstrument);
 
+    public static readonly string HostNameEarthGravity = OSDC.Drilling.Trajectory.Service.ServiceConfiguration.EarthGravityHostURL!;
+    public static readonly string HostBasePathEarthGravity = "EarthGravity/api/";
+    public static readonly HttpClient HttpClientEarthGravity = APIUtils.SetHttpClient(HostNameEarthGravity, HostBasePathEarthGravity);
+    public static readonly Client ClientEarthGravity = new Client(APIUtils.HttpClientEarthGravity.BaseAddress!.ToString(), APIUtils.HttpClientEarthGravity);
+
+    public static readonly string HostNameEarthMagneticField = OSDC.Drilling.Trajectory.Service.ServiceConfiguration.EarthMagneticFieldHostURL!;
+    public static readonly string HostBasePathEarthMagneticField = "EarthMagneticField/api/";
+    public static readonly HttpClient HttpClientEarthMagneticField = APIUtils.SetHttpClient(HostNameEarthMagneticField, HostBasePathEarthMagneticField);
+    public static readonly Client ClientEarthMagneticField = new Client(APIUtils.HttpClientEarthMagneticField.BaseAddress!.ToString(), APIUtils.HttpClientEarthMagneticField);
+
     // API utility methods
     public static HttpClient SetHttpClient(string host, string microServiceUri)
     {

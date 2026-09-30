@@ -1,0 +1,461 @@
+{
+  "openapi": "3.0.3",
+  "info": {
+    "title": "OSDC Earth Magnetic Field distributed shared model",
+    "description": "Generated API client and DTO contract consumed by WebPages and ServiceTest.",
+    "version": "1.0"
+  },
+  "paths": {
+    "/EarthMagneticField": {
+      "get": {
+        "tags": [
+          "EarthMagneticField"
+        ],
+        "summary": "Returns installed model information and public conventions for service discovery.",
+        "operationId": "GetEarthMagneticFieldEntry",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EarthMagneticFieldServiceInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/EarthMagneticField/Evaluate": {
+      "post": {
+        "tags": [
+          "EarthMagneticField"
+        ],
+        "summary": "Synchronously evaluates WMM2025 or IGRF14 at a batch of WGS84 positions and UTC instants.",
+        "description": "This operation is stateless. Latitude/longitude use SI radians, depth is metres positive downward from WGS84, UTC is mandatory, and results use north-east-down teslas with angles in radians. One invalid sample rejects the complete request.",
+        "operationId": "EvaluateEarthMagneticField",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateEarthMagneticFieldRequest"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateEarthMagneticFieldRequest"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/EvaluateEarthMagneticFieldRequest"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EvaluateEarthMagneticFieldResponse"
+                }
+              }
+            }
+          },
+          "422": {
+            "description": "Unprocessable Content",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EarthMagneticFieldValidationProblem"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/EarthMagneticField/ModelInfo": {
+      "get": {
+        "tags": [
+          "EarthMagneticField"
+        ],
+        "summary": "Returns WMM2025 and IGRF14 identities, validity bounds, conventions, and coefficient hashes.",
+        "operationId": "GetEarthMagneticFieldModelInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/EarthMagneticFieldServiceInfo"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/EarthMagneticFieldUsageStatistics": {
+      "get": {
+        "tags": [
+          "EarthMagneticFieldUsageStatistics"
+        ],
+        "summary": "Returns cumulative usage counters persisted by this service. This operation is intentionally not exposed as an MCP tool.",
+        "operationId": "GetEarthMagneticFieldUsageStatistics",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/UsageStatisticsEarthMagneticField"
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+  },
+  "components": {
+    "schemas": {
+      "EarthMagneticFieldEvaluationPoint": {
+        "required": [
+          "DateTimeUtc"
+        ],
+        "type": "object",
+        "properties": {
+          "Latitude": {
+            "maximum": 1.5707963267948966,
+            "minimum": -1.5707963267948966,
+            "type": "number",
+            "description": "WGS84 geodetic latitude in SI radians, between -π/2 and π/2.",
+            "format": "double"
+          },
+          "Longitude": {
+            "maximum": 3.141592653589793,
+            "minimum": -3.141592653589793,
+            "type": "number",
+            "description": "WGS84 geodetic longitude in SI radians, between -π and π.",
+            "format": "double"
+          },
+          "Depth": {
+            "type": "number",
+            "description": "Depth in SI metres, positive downward from the WGS84 reference ellipsoid.",
+            "format": "double"
+          },
+          "DateTimeUtc": {
+            "type": "string",
+            "description": "UTC evaluation instant. JSON input must contain Z or the equivalent +00:00 offset.",
+            "format": "date-time"
+          }
+        },
+        "description": "A WGS84 position and UTC instant at which to evaluate the magnetic field."
+      },
+      "EarthMagneticFieldModel": {
+        "enum": [
+          "WMM2025",
+          "IGRF14"
+        ],
+        "type": "string",
+        "description": "Geomagnetic reference model used for an evaluation batch."
+      },
+      "EarthMagneticFieldSample": {
+        "type": "object",
+        "properties": {
+          "Input": {
+            "$ref": "#/components/schemas/EarthMagneticFieldEvaluationPoint"
+          },
+          "North": {
+            "type": "number",
+            "description": "Northerly magnetic-flux-density component in SI teslas.",
+            "format": "double"
+          },
+          "East": {
+            "type": "number",
+            "description": "Easterly magnetic-flux-density component in SI teslas.",
+            "format": "double"
+          },
+          "Down": {
+            "type": "number",
+            "description": "Downward magnetic-flux-density component in SI teslas.",
+            "format": "double"
+          },
+          "HorizontalIntensity": {
+            "type": "number",
+            "description": "Horizontal magnetic-flux-density magnitude in SI teslas.",
+            "format": "double"
+          },
+          "TotalIntensity": {
+            "type": "number",
+            "description": "Total magnetic-flux-density magnitude in SI teslas.",
+            "format": "double"
+          },
+          "Declination": {
+            "type": "number",
+            "description": "Declination in SI radians, positive east of geodetic north; null when horizontal intensity is zero.",
+            "format": "double",
+            "nullable": true
+          },
+          "Inclination": {
+            "type": "number",
+            "description": "Inclination in SI radians, positive downward from horizontal; null when total intensity is zero.",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "description": "A geomagnetic-field result in the public north-east-down frame."
+      },
+      "EarthMagneticFieldServiceInfo": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CoordinateFrame": {
+            "type": "string",
+            "nullable": true
+          },
+          "TimeConvention": {
+            "type": "string",
+            "nullable": true
+          },
+          "DepthReference": {
+            "type": "string",
+            "nullable": true
+          },
+          "DepthPositiveDirection": {
+            "type": "string",
+            "nullable": true
+          },
+          "Models": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EarthMagneticModelInfo"
+            },
+            "nullable": true
+          }
+        },
+        "description": "Installed models and public conventions of the stateless service."
+      },
+      "EarthMagneticFieldValidationError": {
+        "type": "object",
+        "properties": {
+          "SampleIndex": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "Property": {
+            "type": "string",
+            "nullable": true
+          },
+          "Code": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "EarthMagneticFieldValidationProblem": {
+        "type": "object",
+        "properties": {
+          "Error": {
+            "type": "string",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          },
+          "Errors": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EarthMagneticFieldValidationError"
+            },
+            "nullable": true
+          }
+        },
+        "description": "Details returned when an evaluation request is rejected atomically."
+      },
+      "EarthMagneticModelInfo": {
+        "type": "object",
+        "properties": {
+          "Model": {
+            "$ref": "#/components/schemas/EarthMagneticFieldModel"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "ID": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "ReleaseDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "MinimumUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "MaximumUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "MinimumDepth": {
+            "type": "number",
+            "format": "double"
+          },
+          "MaximumDepth": {
+            "type": "number",
+            "format": "double"
+          },
+          "Degree": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Order": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "GeographicLibVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "ReferenceEllipsoid": {
+            "type": "string",
+            "nullable": true
+          },
+          "CoordinateFrame": {
+            "type": "string",
+            "nullable": true
+          },
+          "MagneticFluxDensityUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "AngleUnit": {
+            "type": "string",
+            "nullable": true
+          },
+          "DepthPositiveDirection": {
+            "type": "string",
+            "nullable": true
+          },
+          "ConcurrentEvaluationEnabled": {
+            "type": "boolean"
+          },
+          "MetadataSHA256": {
+            "type": "string",
+            "nullable": true
+          },
+          "CoefficientSHA256": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "description": "Identity, validity, and provenance of one installed geomagnetic reference model."
+      },
+      "EvaluateEarthMagneticFieldRequest": {
+        "required": [
+          "Samples"
+        ],
+        "type": "object",
+        "properties": {
+          "Model": {
+            "$ref": "#/components/schemas/EarthMagneticFieldModel"
+          },
+          "Samples": {
+            "minItems": 1,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EarthMagneticFieldEvaluationPoint"
+            },
+            "description": "Evaluation points. Any invalid sample rejects the complete request."
+          }
+        },
+        "description": "A stateless synchronous geomagnetic-field evaluation request."
+      },
+      "EvaluateEarthMagneticFieldResponse": {
+        "type": "object",
+        "properties": {
+          "Model": {
+            "$ref": "#/components/schemas/EarthMagneticModelInfo"
+          },
+          "Samples": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/EarthMagneticFieldSample"
+            },
+            "nullable": true
+          }
+        },
+        "description": "Geomagnetic results in the same order as the request samples."
+      },
+      "UsageStatisticsEarthMagneticField": {
+        "type": "object",
+        "properties": {
+          "StartedAt": {
+            "type": "string",
+            "format": "date-time",
+            "readOnly": true
+          },
+          "Scope": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "RestEvaluations": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "MCPEvaluations": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "FailedEvaluations": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "SamplesEvaluated": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "ModelInfoRequests": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          },
+          "StatisticsRequests": {
+            "type": "integer",
+            "format": "int64",
+            "readOnly": true
+          }
+        }
+      }
+    }
+  }
+}

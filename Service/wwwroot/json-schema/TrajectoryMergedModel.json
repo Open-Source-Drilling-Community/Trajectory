@@ -29479,6 +29479,46 @@
             "type": "integer",
             "format": "int32"
           },
+          "SurveyImportTimeColumn": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "DefaultInclinationReference": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyInclinationReference"
+              }
+            ],
+            "not": {
+              "enum": [
+                "InheritRun"
+              ]
+            },
+            "description": "Reference vertical for an observed inclination. GeodeticVertical is the local positive-down axis perpendicular to the WGS84 ellipsoid (opposite its outward normal); GravityVertical follows the local total-gravity vector; InheritRun uses the survey run default. InheritRun is forbidden for a run-level default.",
+            "x-osdc-semantic": "RunLevelReferenceDefault"
+          },
+          "DefaultAzimuthReference": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyAzimuthReference"
+              }
+            ],
+            "not": {
+              "enum": [
+                "InheritRun"
+              ]
+            },
+            "description": "North reference for an observed clockwise azimuth. TrueNorth is WGS84 geodetic north projected onto the plane perpendicular to the selected vertical; MagneticNorth is the evaluated geomagnetic-field vector projected onto that plane; InheritRun uses the survey run default. InheritRun is forbidden for a run-level default.",
+            "x-osdc-semantic": "RunLevelReferenceDefault"
+          },
+          "GeomagneticModel": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyGeomagneticModel"
+              }
+            ],
+            "description": "Geomagnetic model selection copied to every survey run created by this import."
+          },
           "SurveyImportMDStart": {
             "type": "integer",
             "format": "int32"
@@ -29502,26 +29542,96 @@
           "SurveyImportAzimuthWidth": {
             "type": "integer",
             "format": "int32"
+          },
+          "SurveyImportTimeStart": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SurveyImportTimeWidth": {
+            "type": "integer",
+            "format": "int32"
           }
         }
       },
       "SurveyMeasurement": {
         "type": "object",
         "properties": {
+          "MeasurementID": {
+            "type": "string",
+            "description": "Stable UUID for this measurement, independent of list position.",
+            "format": "uuid"
+          },
           "MD": {
             "type": "number",
+            "description": "Measured or along-hole depth in canonical SI metres.",
             "format": "double",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": "MeasuredDepth",
+            "x-si-unit": "m"
           },
           "Inclination": {
             "type": "number",
+            "description": "Canonical inclination from the local WGS84 geodetic-down axis in SI radians, after reference correction.",
             "format": "double",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": "GeodeticInclination",
+            "x-si-unit": "rad"
           },
           "Azimuth": {
             "type": "number",
+            "description": "Canonical clockwise azimuth from WGS84 geodetic true north in SI radians, after reference correction.",
             "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": "TrueNorthAzimuth",
+            "x-si-unit": "rad"
+          },
+          "ObservedInclination": {
+            "type": "number",
+            "description": "Original observed inclination in SI radians before transformation from InclinationReference.",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": "ObservedInclination",
+            "x-si-unit": "rad"
+          },
+          "ObservedAzimuth": {
+            "type": "number",
+            "description": "Original observed clockwise azimuth in SI radians before transformation from AzimuthReference.",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": "ObservedAzimuth",
+            "x-si-unit": "rad"
+          },
+          "MeasurementTimeUtc": {
+            "type": "string",
+            "description": "UTC measurement instant. Required for magnetic correction when the survey run has no complete acquisition interval.",
+            "format": "date-time",
             "nullable": true
+          },
+          "InclinationReference": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyInclinationReference"
+              }
+            ],
+            "description": "Reference vertical for an observed inclination. GeodeticVertical is the local positive-down axis perpendicular to the WGS84 ellipsoid (opposite its outward normal); GravityVertical follows the local total-gravity vector; InheritRun uses the survey run default.",
+            "x-osdc-semantic": "SurveyInclinationReference"
+          },
+          "AzimuthReference": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyAzimuthReference"
+              }
+            ],
+            "description": "North reference for an observed clockwise azimuth. TrueNorth is WGS84 geodetic north projected onto the plane perpendicular to the selected vertical; MagneticNorth is the evaluated geomagnetic-field vector projected onto that plane; InheritRun uses the survey run default.",
+            "x-osdc-semantic": "SurveyAzimuthReference"
+          },
+          "Correction": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyMeasurementCorrection"
+              }
+            ],
+            "description": "Frozen correction result and Earth-model provenance used to derive canonical inclination and azimuth."
           },
           "Annotation": {
             "type": "string",
@@ -29625,6 +29735,18 @@
             "format": "date-time",
             "nullable": true
           },
+          "AcquisitionStartUtc": {
+            "type": "string",
+            "description": "Earliest known survey-run acquisition instant in UTC; required together with AcquisitionEndUtc when station times are absent for magnetic correction.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "AcquisitionEndUtc": {
+            "type": "string",
+            "description": "Latest known survey-run acquisition instant in UTC; required together with AcquisitionStartUtc when station times are absent for magnetic correction.",
+            "format": "date-time",
+            "nullable": true
+          },
           "FieldID": {
             "type": "string",
             "format": "uuid",
@@ -29653,6 +29775,42 @@
           },
           "CalculationType": {
             "$ref": "#/components/schemas/TrajectoryCalculationType"
+          },
+          "DefaultInclinationReference": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyInclinationReference"
+              }
+            ],
+            "not": {
+              "enum": [
+                "InheritRun"
+              ]
+            },
+            "description": "Reference vertical for an observed inclination. GeodeticVertical is the local positive-down axis perpendicular to the WGS84 ellipsoid (opposite its outward normal); GravityVertical follows the local total-gravity vector; InheritRun uses the survey run default. InheritRun is forbidden for a run-level default.",
+            "x-osdc-semantic": "RunLevelReferenceDefault"
+          },
+          "DefaultAzimuthReference": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyAzimuthReference"
+              }
+            ],
+            "not": {
+              "enum": [
+                "InheritRun"
+              ]
+            },
+            "description": "North reference for an observed clockwise azimuth. TrueNorth is WGS84 geodetic north projected onto the plane perpendicular to the selected vertical; MagneticNorth is the evaluated geomagnetic-field vector projected onto that plane; InheritRun uses the survey run default. InheritRun is forbidden for a run-level default.",
+            "x-osdc-semantic": "RunLevelReferenceDefault"
+          },
+          "GeomagneticModel": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyGeomagneticModel"
+              }
+            ],
+            "description": "Geomagnetic model selection used by measurements whose effective azimuth reference is MagneticNorth."
           },
           "ParentSurveyRunID": {
             "type": "string",
@@ -29823,6 +29981,16 @@
           "FileContentBase64": {
             "type": "string",
             "nullable": true
+          },
+          "AcquisitionStartUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "AcquisitionEndUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
           }
         }
       },
@@ -29983,6 +30151,18 @@
             "format": "date-time",
             "nullable": true
           },
+          "AcquisitionStartUtc": {
+            "type": "string",
+            "description": "Earliest known survey-run acquisition instant in UTC; required together with AcquisitionEndUtc when station times are absent for magnetic correction.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "AcquisitionEndUtc": {
+            "type": "string",
+            "description": "Latest known survey-run acquisition instant in UTC; required together with AcquisitionStartUtc when station times are absent for magnetic correction.",
+            "format": "date-time",
+            "nullable": true
+          },
           "FieldID": {
             "type": "string",
             "format": "uuid",
@@ -30011,6 +30191,42 @@
           },
           "CalculationType": {
             "$ref": "#/components/schemas/TrajectoryCalculationType"
+          },
+          "DefaultInclinationReference": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyInclinationReference"
+              }
+            ],
+            "not": {
+              "enum": [
+                "InheritRun"
+              ]
+            },
+            "description": "Reference vertical for an observed inclination. GeodeticVertical is the local positive-down axis perpendicular to the WGS84 ellipsoid (opposite its outward normal); GravityVertical follows the local total-gravity vector; InheritRun uses the survey run default. InheritRun is forbidden for a run-level default.",
+            "x-osdc-semantic": "RunLevelReferenceDefault"
+          },
+          "DefaultAzimuthReference": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyAzimuthReference"
+              }
+            ],
+            "not": {
+              "enum": [
+                "InheritRun"
+              ]
+            },
+            "description": "North reference for an observed clockwise azimuth. TrueNorth is WGS84 geodetic north projected onto the plane perpendicular to the selected vertical; MagneticNorth is the evaluated geomagnetic-field vector projected onto that plane; InheritRun uses the survey run default. InheritRun is forbidden for a run-level default.",
+            "x-osdc-semantic": "RunLevelReferenceDefault"
+          },
+          "GeomagneticModel": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyGeomagneticModel"
+              }
+            ],
+            "description": "Geomagnetic model selection used by measurements whose effective azimuth reference is MagneticNorth."
           },
           "ParentSurveyRunID": {
             "type": "string",
@@ -34440,6 +34656,189 @@
             "type": "integer",
             "format": "int64",
             "readOnly": true
+          }
+        }
+      },
+      "SurveyAzimuthReference": {
+        "enum": [
+          "TrueNorth",
+          "MagneticNorth",
+          "InheritRun"
+        ],
+        "type": "string",
+        "description": "North reference for an observed clockwise azimuth. TrueNorth is WGS84 geodetic north projected onto the plane perpendicular to the selected vertical; MagneticNorth is the evaluated geomagnetic-field vector projected onto that plane; InheritRun uses the survey run default."
+      },
+      "SurveyCorrectionSource": {
+        "enum": [
+          "None",
+          "Computed",
+          "Supplied",
+          "ManualOverride"
+        ],
+        "type": "string"
+      },
+      "SurveyCorrectionStatus": {
+        "enum": [
+          "NotRequired",
+          "Pending",
+          "Completed",
+          "Failed"
+        ],
+        "type": "string"
+      },
+      "SurveyCorrectionTimeMethod": {
+        "enum": [
+          "NotRequired",
+          "StationMeasurementTime",
+          "RunAcquisitionMidpoint"
+        ],
+        "type": "string"
+      },
+      "SurveyGeomagneticModel": {
+        "enum": [
+          "Automatic",
+          "WMM2025",
+          "IGRF14"
+        ],
+        "type": "string",
+        "description": "Geomagnetic model used for magnetic-north correction: Automatic selects WMM2025 for 2025 or later and IGRF14 for earlier instants; an explicit value pins that model."
+      },
+      "SurveyInclinationReference": {
+        "enum": [
+          "GeodeticVertical",
+          "GravityVertical",
+          "InheritRun"
+        ],
+        "type": "string",
+        "description": "Reference vertical for an observed inclination. GeodeticVertical is the local positive-down axis perpendicular to the WGS84 ellipsoid (opposite its outward normal); GravityVertical follows the local total-gravity vector; InheritRun uses the survey run default."
+      },
+      "SurveyMeasurementCorrection": {
+        "type": "object",
+        "properties": {
+          "Source": {
+            "$ref": "#/components/schemas/SurveyCorrectionSource"
+          },
+          "Status": {
+            "$ref": "#/components/schemas/SurveyCorrectionStatus"
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          },
+          "AppliedInclinationCorrection": {
+            "type": "number",
+            "description": "Signed canonical-minus-observed inclination correction in SI radians.",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": "PlaneAngle",
+            "x-si-unit": "rad"
+          },
+          "AppliedAzimuthCorrection": {
+            "type": "number",
+            "description": "Shortest signed canonical-minus-observed azimuth correction in SI radians.",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": "PlaneAngle",
+            "x-si-unit": "rad"
+          },
+          "MagneticDeclination": {
+            "type": "number",
+            "description": "Evaluated magnetic declination clockwise from geodetic true north in SI radians.",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": "PlaneAngle",
+            "x-si-unit": "rad"
+          },
+          "GravityNorth": {
+            "type": "number",
+            "description": "North component of total gravity in the local WGS84 north-east-down frame, in SI metres per second squared.",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": "Acceleration",
+            "x-si-unit": "m/s2"
+          },
+          "GravityEast": {
+            "type": "number",
+            "description": "East component of total gravity in the local WGS84 north-east-down frame, in SI metres per second squared.",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": "Acceleration",
+            "x-si-unit": "m/s2"
+          },
+          "GravityDown": {
+            "type": "number",
+            "description": "Down component of total gravity in the local WGS84 north-east-down frame, in SI metres per second squared.",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": "Acceleration",
+            "x-si-unit": "m/s2"
+          },
+          "EvaluatedLatitude": {
+            "type": "number",
+            "description": "WGS84 geodetic latitude used for the correction, in SI radians.",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": "GeodeticLatitude",
+            "x-si-unit": "rad"
+          },
+          "EvaluatedLongitude": {
+            "type": "number",
+            "description": "WGS84 geodetic longitude used for the correction, in SI radians.",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": "GeodeticLongitude",
+            "x-si-unit": "rad"
+          },
+          "EvaluatedDepthWgs84": {
+            "type": "number",
+            "description": "Depth used for the correction in SI metres, positive downward from the WGS84 reference ellipsoid.",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": "Wgs84Depth",
+            "x-si-unit": "m"
+          },
+          "EvaluationTimeUtc": {
+            "type": "string",
+            "description": "UTC instant used to evaluate the geomagnetic model.",
+            "format": "date-time",
+            "nullable": true
+          },
+          "TimeMethod": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyCorrectionTimeMethod"
+              }
+            ],
+            "description": "How EvaluationTimeUtc was selected: station measurement time, survey-run acquisition midpoint, or not required."
+          },
+          "GravityModelID": {
+            "type": "string",
+            "nullable": true
+          },
+          "GravityModelVersion": {
+            "type": "string",
+            "nullable": true
+          },
+          "GravityCoefficientSHA256": {
+            "type": "string",
+            "nullable": true
+          },
+          "GeomagneticModelID": {
+            "type": "string",
+            "nullable": true
+          },
+          "GeomagneticMetadataSHA256": {
+            "type": "string",
+            "nullable": true
+          },
+          "GeomagneticCoefficientSHA256": {
+            "type": "string",
+            "nullable": true
+          },
+          "AlgorithmVersion": {
+            "type": "string",
+            "description": "Opaque version of the reference-correction algorithm.",
+            "nullable": true
           }
         }
       },

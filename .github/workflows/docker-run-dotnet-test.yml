@@ -15,6 +15,10 @@ jobs:
     steps:
     - uses: actions/checkout@v4
 
+    - name: Verify pinned dependency schemas
+      working-directory: ModelSharedIn/json-schemas
+      run: sha256sum --check EarthGravity.sha256 EarthMagneticField.sha256
+
     - name: Build OSDC Trajectory service image
       run: docker build --file Service/Dockerfile --tag osdcdrillingtrajectoryservice:test .
 

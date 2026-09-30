@@ -33,7 +33,7 @@
             <MudTextField Value="@FormatDate(traj.LastModificationDate)" Label="Last Updated" ReadOnly="true" ShrinkLabel />
         </MudItem>
         <MudItem xs="2">
-            <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId" ValueChanged="OnFieldChanged" ShrinkLabel Clearable="true">
+            <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId" ValueChanged="OnFieldChanged" ToStringFunc="@FormatFieldName" ShrinkLabel Clearable="true">
                 @if (AvailableFields.Count > 0)
                 {
                     @foreach (Field field in AvailableFields)
@@ -46,7 +46,7 @@
             </MudSelect>
         </MudItem>
         <MudItem xs="2">
-            <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId" ValueChanged="OnClusterChanged" ShrinkLabel Clearable="true">
+            <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId" ValueChanged="OnClusterChanged" ToStringFunc="@FormatClusterName" ShrinkLabel Clearable="true">
                 @if (AvailableClusters.Count > 0)
                 {
                     @foreach (Cluster cluster in AvailableClusters)
@@ -59,7 +59,7 @@
             </MudSelect>
         </MudItem>
         <MudItem xs="2">
-            <MudSelect Label="Well" T="Guid?" Value="@selectedWellId" ValueChanged="OnWellChanged" ShrinkLabel Clearable="true">
+            <MudSelect Label="Well" T="Guid?" Value="@selectedWellId" ValueChanged="OnWellChanged" ToStringFunc="@FormatWellName" ShrinkLabel Clearable="true">
                 @if (AvailableWells.Count > 0)
                 {
                     @foreach (Well well in AvailableWells)
@@ -72,7 +72,7 @@
             </MudSelect>
         </MudItem>
         <MudItem xs="3">
-            <MudSelect Label="WellBore" T="Guid?" Value="@selectedWellBoreId" ValueChanged="OnWellBoreChanged" ShrinkLabel Clearable="true">
+            <MudSelect Label="WellBore" T="Guid?" Value="@selectedWellBoreId" ValueChanged="OnWellBoreChanged" ToStringFunc="@FormatWellBoreName" ShrinkLabel Clearable="true">
                 @if (AvailableWellBores.Count > 0)
                 {
                     @foreach (WellBore wb in AvailableWellBores)
@@ -1006,6 +1006,20 @@
 
     private WellBore? FindWellBoreById(Guid wellBoreId) =>
         WellBoreList?.FirstOrDefault(wb => wb?.MetaInfo?.ID == wellBoreId);
+
+    private string FormatFieldName(Guid? fieldId) =>
+        fieldId is Guid id
+            ? FieldList?.FirstOrDefault(field => field?.MetaInfo?.ID == id)?.Name ?? id.ToString()
+            : string.Empty;
+
+    private string FormatClusterName(Guid? clusterId) =>
+        clusterId is Guid id ? FindClusterById(id)?.Name ?? id.ToString() : string.Empty;
+
+    private string FormatWellName(Guid? wellId) =>
+        wellId is Guid id ? FindWellById(id)?.Name ?? id.ToString() : string.Empty;
+
+    private string FormatWellBoreName(Guid? wellBoreId) =>
+        wellBoreId is Guid id ? FindWellBoreById(id)?.Name ?? id.ToString() : string.Empty;
 
     private static string GetSurveyRunDisplayName(SurveyRunLight surveyRun) =>
         $"{surveyRun.Name} ({surveyRun.SurveyRunType})";
