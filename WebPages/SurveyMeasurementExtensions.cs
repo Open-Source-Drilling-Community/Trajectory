@@ -4,6 +4,26 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 {
     public partial class SurveyMeasurement
     {
+        public const string CurrentCorrectionAlgorithmVersion = "1";
+
+        public static SurveyMeasurementCorrection CreatePendingCorrection()
+        {
+            return new SurveyMeasurementCorrection
+            {
+                Source = SurveyCorrectionSource.None,
+                Status = SurveyCorrectionStatus.Pending,
+                AlgorithmVersion = CurrentCorrectionAlgorithmVersion
+            };
+        }
+
+        public void EnsureCorrectionContractDefaults()
+        {
+            if (Correction != null && string.IsNullOrWhiteSpace(Correction.AlgorithmVersion))
+            {
+                Correction.AlgorithmVersion = CurrentCorrectionAlgorithmVersion;
+            }
+        }
+
         public SurveyStation ToSurveyStation()
         {
             return new SurveyStation

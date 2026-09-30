@@ -91,7 +91,7 @@ https://awe.web.intra.norceresearch.no/Trajectory/api/swagger
 
 The service and host web application are deployed as Docker containers using Kubernetes and Helm.
 
-The Helm charts are named `osdcdrillingtrajectoryservice` and `osdcdrillingtrajectorywebappclient`. The service chart deliberately retains the historical `trajectory-claim` PVC and all database filenames. Use `--set persistence.existingClaim=trajectory-claim` for the identity cutover, and do not uninstall the legacy release before verifying the selected cluster, namespace, mounted claim, image digest, and existing record counts. Its `Recreate` strategy prevents overlapping SQLite writers.
+The Helm charts are named `osdcdrillingtrajectoryservice` and `osdcdrillingtrajectorywebappclient`. The service chart deliberately retains the historical `trajectory-claim` PVC and all database filenames. Use `--set persistence.existingClaim=trajectory-claim` for the identity cutover, and do not uninstall the legacy release before verifying the selected cluster, namespace, mounted claim, image digest, and existing record counts. Its `Recreate` strategy prevents overlapping service pods from writing SQLite. Within the single service process, private connection caches, a bounded busy timeout, and WAL journaling serialize short concurrent writer transactions instead of abandoning background calculations with `SQLITE_LOCKED`.
 
 ## Funding
 

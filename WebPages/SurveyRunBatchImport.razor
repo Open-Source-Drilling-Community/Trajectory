@@ -1312,6 +1312,11 @@ else
 
     private async Task UploadSurveyMeasurementChunksAsync(Guid surveyRunId, List<SurveyMeasurement> measurements)
     {
+        foreach (SurveyMeasurement measurement in measurements)
+        {
+            measurement.EnsureCorrectionContractDefaults();
+        }
+
         await Api.ClientTrajectory.DeleteSurveyRunSurveyMeasurementChunksAsync(surveyRunId);
         int chunkIndex = 0;
         foreach (List<SurveyMeasurement> measurementChunk in measurements.Chunk(SurveyMeasurementChunkSize).Select(chunk => chunk.ToList()))
@@ -1902,7 +1907,7 @@ else
             MeasurementTimeUtc = measurementTime,
             InclinationReference = SurveyInclinationReference.InheritRun,
             AzimuthReference = SurveyAzimuthReference.InheritRun,
-            Correction = new SurveyMeasurementCorrection { Status = SurveyCorrectionStatus.Pending }
+            Correction = SurveyMeasurement.CreatePendingCorrection()
         };
         return true;
     }

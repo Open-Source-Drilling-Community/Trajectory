@@ -233,7 +233,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             bool saved = InsertOrUpdateSurveyRun(surveyRun, false);
             if (saved)
             {
-                _ = Task.Run(() => RecalculateSurveyRunAsync(surveyRun.MetaInfo!.ID));
+                _ = Task.Run(() => RecalculateSurveyRunAsync(surveyRun.MetaInfo!.ID, now));
             }
 
             return Task.FromResult(saved);
@@ -271,12 +271,13 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
             surveyRun.CreationDate = GetSurveyRunById(id, includeMeasurements: false, includeCalculatedStations: false)?.CreationDate
                 ?? surveyRun.CreationDate;
-            surveyRun.LastModificationDate = DateTimeOffset.UtcNow;
+            DateTimeOffset calculationVersion = DateTimeOffset.UtcNow;
+            surveyRun.LastModificationDate = calculationVersion;
             MarkCalculationState(surveyRun, CalculationState.Running, 0.0, "Calculation queued");
             bool saved = InsertOrUpdateSurveyRun(surveyRun, true);
             if (saved)
             {
-                _ = Task.Run(() => RecalculateSurveyRunAsync(id));
+                _ = Task.Run(() => RecalculateSurveyRunAsync(id, calculationVersion));
             }
 
             return Task.FromResult(saved);
@@ -424,10 +425,14 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             return true;
         }
 
-        private async Task RecalculateSurveyRunAsync(Guid surveyRunId)
+        private async Task RecalculateSurveyRunAsync(Guid surveyRunId, DateTimeOffset calculationVersion)
         {
             try
             {
+                if (!IsCurrentCalculationRequest(surveyRunId, calculationVersion))
+                {
+                    return;
+                }
                 UpdateSurveyRunCalculationState(surveyRunId, CalculationState.Running, 0.05, "Preparing survey run calculation");
                 SurveyRun? surveyRun = GetSurveyRunById(surveyRunId, includeMeasurements: true, includeCalculatedStations: false);
                 if (surveyRun == null)
@@ -438,6 +443,10 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 surveyRun.SurveyMeasurementList ??= GetSurveyMeasurementListBySurveyRunId(surveyRunId);
                 if (!await ValidateAndPrepareSurveyRunAsync(surveyRun))
                 {
+                    if (!IsCurrentCalculationRequest(surveyRunId, calculationVersion))
+                    {
+                        return;
+                    }
                     string failureMessage = surveyRun.SurveyMeasurementList?
                         .Select(measurement => measurement.Correction?.Message)
                         .FirstOrDefault(message => !string.IsNullOrWhiteSpace(message))
@@ -449,6 +458,10 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     return;
                 }
 
+                if (!IsCurrentCalculationRequest(surveyRunId, calculationVersion))
+                {
+                    return;
+                }
                 MarkCalculationState(surveyRun, CalculationState.Completed, 1.0, null);
                 surveyRun.LastModificationDate = DateTimeOffset.UtcNow;
                 if (!InsertOrUpdateSurveyRun(surveyRun, true))
@@ -460,10 +473,16 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error during background SurveyRun calculation");
-                UpdateSurveyRunCalculationState(surveyRunId, CalculationState.Failed, 0.0, "Survey run calculation failed");
-                DeleteSurveyStationChunks(surveyRunId);
+                if (IsCurrentCalculationRequest(surveyRunId, calculationVersion))
+                {
+                    UpdateSurveyRunCalculationState(surveyRunId, CalculationState.Failed, 0.0, "Survey run calculation failed");
+                    DeleteSurveyStationChunks(surveyRunId);
+                }
             }
         }
+
+        private bool IsCurrentCalculationRequest(Guid surveyRunId, DateTimeOffset calculationVersion) =>
+            GetSurveyRunById(surveyRunId, includeMeasurements: false, includeCalculatedStations: false)?.LastModificationDate == calculationVersion;
 
         private async Task<bool> CalculateSurveyRunUncertaintyAsync(SurveyRun surveyRun)
         {
@@ -1038,11 +1057,12 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
             surveyRun.SurveyMeasurementList = measurements;
             MarkCalculationState(surveyRun, CalculationState.Running, 0.0, "Calculation queued");
-            surveyRun.LastModificationDate = DateTimeOffset.UtcNow;
+            DateTimeOffset calculationVersion = DateTimeOffset.UtcNow;
+            surveyRun.LastModificationDate = calculationVersion;
             bool saved = InsertOrUpdateSurveyRun(surveyRun, true);
             if (saved)
             {
-                _ = Task.Run(() => RecalculateSurveyRunAsync(surveyRunId));
+                _ = Task.Run(() => RecalculateSurveyRunAsync(surveyRunId, calculationVersion));
             }
 
             return Task.FromResult(saved);

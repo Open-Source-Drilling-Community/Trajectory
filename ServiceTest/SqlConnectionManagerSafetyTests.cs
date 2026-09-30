@@ -85,6 +85,48 @@ public sealed class SqlConnectionManagerSafetyTests
         });
     }
 
+    [Test]
+    public async Task Concurrent_writer_waits_for_active_transaction_instead_of_failing_locked()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "trajectory-db-safety", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        string path = Path.Combine(directory, "Trajectory.db");
+        try
+        {
+            var manager = new TestConnectionManager(path, Schema);
+            using SqliteConnection firstConnection = manager.GetConnection()!;
+            using SqliteTransaction firstTransaction = firstConnection.BeginTransaction();
+            using (SqliteCommand firstCommand = firstConnection.CreateCommand())
+            {
+                firstCommand.Transaction = firstTransaction;
+                firstCommand.CommandText = "INSERT INTO TrajectoryTable (ID, Name) VALUES ('first', 'first writer')";
+                firstCommand.ExecuteNonQuery();
+            }
+
+            Task<int> secondWriter = Task.Run(() =>
+            {
+                using SqliteConnection secondConnection = manager.GetConnection()!;
+                using SqliteCommand secondCommand = secondConnection.CreateCommand();
+                secondCommand.CommandText = "INSERT INTO TrajectoryTable (ID, Name) VALUES ('second', 'second writer')";
+                return secondCommand.ExecuteNonQuery();
+            });
+
+            await Task.Delay(100);
+            Assert.That(secondWriter.IsCompleted, Is.False, "The second writer should wait while the first transaction is active.");
+
+            firstTransaction.Commit();
+            Assert.That(await secondWriter, Is.EqualTo(1));
+
+            using SqliteConnection verification = manager.GetConnection()!;
+            Assert.That(Scalar<long>(verification, "SELECT COUNT(*) FROM TrajectoryTable"), Is.EqualTo(2));
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            Directory.Delete(directory, recursive: true);
+        }
+    }
+
     private static void WithDatabase(Action<string> test)
     {
         string directory = Path.Combine(Path.GetTempPath(), "trajectory-db-safety", Guid.NewGuid().ToString("N"));

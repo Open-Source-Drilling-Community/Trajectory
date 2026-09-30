@@ -9,6 +9,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers;
 /// </summary>
 public abstract class SqlConnectionManager
 {
+    private const int BusyTimeoutSeconds = 30;
     private readonly ILogger _logger;
     private readonly string _connectionString;
     private readonly string _dbPath;
@@ -89,7 +90,11 @@ public abstract class SqlConnectionManager
     {
         DataSource = dbPath,
         Mode = SqliteOpenMode.ReadWriteCreate,
-        Cache = SqliteCacheMode.Shared
+        // Shared-cache write contention returns SQLITE_LOCKED immediately and bypasses
+        // SQLite's busy handler. Private caches allow concurrent requests to wait for
+        // the short-lived writer transaction instead of leaving calculations stranded.
+        Cache = SqliteCacheMode.Private,
+        DefaultTimeout = BusyTimeoutSeconds
     }.ToString();
 
     protected static IReadOnlyDictionary<string, string[]> CreateDefaultIndexDefinitions(
@@ -119,6 +124,9 @@ public abstract class SqlConnectionManager
             _logger.LogInformation(File.Exists(_dbPath) ? "Opening database {DbPath}" : "Creating database {DbPath}", _dbPath);
             using SqliteConnection connection = new(_connectionString);
             connection.Open();
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = "PRAGMA journal_mode=WAL; PRAGMA busy_timeout=30000;";
+            command.ExecuteNonQuery();
         }
         catch (Exception exception)
         {

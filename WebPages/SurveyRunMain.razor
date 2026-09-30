@@ -278,6 +278,44 @@
                 <MudButton OnClick="@DeleteSurveyStations" Color="@Color.Error" Class="add-item-btn"
                            Disabled="@(!selectedSurveyStations_.Any())">Delete</MudButton>
             </MudToolBar>
+            <MudPaper Class="pa-3 mb-2" Outlined="true">
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Apply to all survey measurements</MudText>
+                <MudGrid>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="SurveyInclinationReference" Label="Inclination reference for all" @bind-Value="bulkInclinationReference_" Dense="true" ShrinkLabel>
+                            @foreach (SurveyInclinationReference value in Enum.GetValues<SurveyInclinationReference>())
+                            {
+                                <MudSelectItem T="SurveyInclinationReference" Value="@value">@GetInclinationReferenceLabel(value)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="1" Class="d-flex align-end">
+                        <MudButton OnClick="ApplyInclinationReferenceToAll" Color="Color.Primary" Variant="Variant.Outlined"
+                                   Disabled="@(!SurveyMeasurements.Any())">Apply all</MudButton>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="SurveyAzimuthReference" Label="Azimuth reference for all" @bind-Value="bulkAzimuthReference_" Dense="true" ShrinkLabel>
+                            @foreach (SurveyAzimuthReference value in Enum.GetValues<SurveyAzimuthReference>())
+                            {
+                                <MudSelectItem T="SurveyAzimuthReference" Value="@value">@GetAzimuthReferenceLabel(value)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="1" Class="d-flex align-end">
+                        <MudButton OnClick="ApplyAzimuthReferenceToAll" Color="Color.Primary" Variant="Variant.Outlined"
+                                   Disabled="@(!SurveyMeasurements.Any())">Apply all</MudButton>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudTextField T="string" Label="Measurement time UTC for all" @bind-Value="bulkMeasurementTimeUtc_"
+                                      Placeholder="yyyy-MM-ddTHH:mm:ssZ" ShrinkLabel />
+                    </MudItem>
+                    <MudItem xs="12" md="1" Class="d-flex align-end">
+                        <MudButton OnClick="ApplyMeasurementTimeToAll" Color="Color.Primary" Variant="Variant.Outlined"
+                                   Disabled="@(!SurveyMeasurements.Any())">Apply all</MudButton>
+                    </MudItem>
+                </MudGrid>
+                <MudText Typo="Typo.caption">An empty measurement time clears the time on every station. Individual rows remain editable after applying a bulk value.</MudText>
+            </MudPaper>
             <MudTable Items="@SurveyMeasurements" MultiSelection="true" T="SurveyMeasurement"
                       @key="MeasurementReferenceRenderKey"
                       @bind-SelectedItems="selectedSurveyStations_"
@@ -646,6 +684,9 @@
     private int calculatedStationChunksLoaded_;
     private int calculatedStationsLoaded_;
     private HashSet<SurveyMeasurement> selectedSurveyStations_ = [];
+    private SurveyInclinationReference bulkInclinationReference_ = SurveyInclinationReference.InheritRun;
+    private SurveyAzimuthReference bulkAzimuthReference_ = SurveyAzimuthReference.InheritRun;
+    private string? bulkMeasurementTimeUtc_;
     private const int SurveyMeasurementChunkSize = 5000;
     private const string SidetrackTieInAnnotation = "Sidetrack tie-in";
 
@@ -994,6 +1035,7 @@
         selectedSurveyInstrumentId_ = null;
         selectedParentSurveyRunId_ = null;
         selectedSurveyStations_.Clear();
+        ResetBulkMeasurementValues();
         ResetCalculatedStationLoadingState();
         EnsureSurveyImportUnitsSelected();
         await UpdateSelectedSurveyRunReferenceSourceAsync();
@@ -1018,6 +1060,7 @@
             selectedSurveyInstrumentId_ = currentSurveyRun_.SurveyInstrumentID == Guid.Empty ? null : currentSurveyRun_.SurveyInstrumentID;
             selectedParentSurveyRunId_ = currentSurveyRun_.ParentSurveyRunID;
             selectedSurveyStations_.Clear();
+            ResetBulkMeasurementValues();
             isEditing_ = true;
             await InvokeAsync(StateHasChanged);
             currentSurveyRun_.SurveyStationList ??= new List<SurveyStation>();
@@ -1120,6 +1163,11 @@
 
     private async Task SaveSurveyMeasurementChunksAsync(Guid surveyRunId, List<SurveyMeasurement> measurements)
     {
+        foreach (SurveyMeasurement measurement in measurements)
+        {
+            measurement.EnsureCorrectionContractDefaults();
+        }
+
         await Api.ClientTrajectory.DeleteSurveyRunSurveyMeasurementChunksAsync(surveyRunId);
         int chunkIndex = 0;
         foreach (List<SurveyMeasurement> measurementChunk in measurements.Chunk(SurveyMeasurementChunkSize).Select(chunk => chunk.ToList()))
@@ -2091,9 +2139,65 @@
         ClearCalculatedSurveyRunData();
     }
 
+    private void ResetBulkMeasurementValues()
+    {
+        bulkInclinationReference_ = SurveyInclinationReference.InheritRun;
+        bulkAzimuthReference_ = SurveyAzimuthReference.InheritRun;
+        bulkMeasurementTimeUtc_ = null;
+    }
+
+    private void ApplyInclinationReferenceToAll()
+    {
+        List<SurveyMeasurement> measurements = SurveyMeasurements.ToList();
+        foreach (SurveyMeasurement measurement in measurements)
+        {
+            measurement.InclinationReference = bulkInclinationReference_;
+            MarkCorrectionPending(measurement);
+        }
+        CompleteBulkMeasurementChange(measurements.Count, "inclination reference");
+    }
+
+    private void ApplyAzimuthReferenceToAll()
+    {
+        List<SurveyMeasurement> measurements = SurveyMeasurements.ToList();
+        foreach (SurveyMeasurement measurement in measurements)
+        {
+            measurement.AzimuthReference = bulkAzimuthReference_;
+            MarkCorrectionPending(measurement);
+        }
+        CompleteBulkMeasurementChange(measurements.Count, "azimuth reference");
+    }
+
+    private void ApplyMeasurementTimeToAll()
+    {
+        if (!TryParseUtcInput(bulkMeasurementTimeUtc_, out DateTimeOffset? parsed))
+        {
+            Snackbar.Add("Measurement time must be a valid UTC date-time.", Severity.Warning);
+            return;
+        }
+
+        List<SurveyMeasurement> measurements = SurveyMeasurements.ToList();
+        foreach (SurveyMeasurement measurement in measurements)
+        {
+            measurement.MeasurementTimeUtc = parsed;
+            MarkCorrectionPending(measurement);
+        }
+        CompleteBulkMeasurementChange(measurements.Count, "measurement time");
+    }
+
+    private void CompleteBulkMeasurementChange(int measurementCount, string fieldName)
+    {
+        if (measurementCount == 0) return;
+        measurementReferenceRenderVersion_++;
+        ClearCalculatedSurveyRunData();
+        UpdatePlots();
+        Snackbar.Add($"Applied {fieldName} to {measurementCount:N0} survey measurements.", Severity.Success);
+    }
+
     private void OnInclinationCorrectionChanged(SurveyMeasurement measurement, double? value)
     {
-        measurement.Correction ??= new SurveyMeasurementCorrection();
+        measurement.Correction ??= SurveyMeasurement.CreatePendingCorrection();
+        measurement.EnsureCorrectionContractDefaults();
         measurement.Correction.AppliedInclinationCorrection = value;
         measurement.Correction.Source = SurveyCorrectionSource.ManualOverride;
         measurement.Correction.Status = value.HasValue ? SurveyCorrectionStatus.Completed : SurveyCorrectionStatus.Pending;
@@ -2104,7 +2208,8 @@
 
     private void OnAzimuthCorrectionChanged(SurveyMeasurement measurement, double? value)
     {
-        measurement.Correction ??= new SurveyMeasurementCorrection();
+        measurement.Correction ??= SurveyMeasurement.CreatePendingCorrection();
+        measurement.EnsureCorrectionContractDefaults();
         measurement.Correction.AppliedAzimuthCorrection = value;
         measurement.Correction.Source = SurveyCorrectionSource.ManualOverride;
         measurement.Correction.Status = value.HasValue ? SurveyCorrectionStatus.Completed : SurveyCorrectionStatus.Pending;
@@ -2115,11 +2220,7 @@
 
     private static void MarkCorrectionPending(SurveyMeasurement measurement)
     {
-        measurement.Correction = new SurveyMeasurementCorrection
-        {
-            Source = SurveyCorrectionSource.None,
-            Status = SurveyCorrectionStatus.Pending
-        };
+        measurement.Correction = SurveyMeasurement.CreatePendingCorrection();
     }
 
     private static double NormalizeAzimuth(double value)
@@ -2332,11 +2433,7 @@
             MeasurementTimeUtc = measurementTime,
             InclinationReference = SurveyInclinationReference.InheritRun,
             AzimuthReference = SurveyAzimuthReference.InheritRun,
-            Correction = new SurveyMeasurementCorrection
-            {
-                Source = SurveyCorrectionSource.None,
-                Status = SurveyCorrectionStatus.Pending
-            }
+            Correction = SurveyMeasurement.CreatePendingCorrection()
         };
         return true;
     }
