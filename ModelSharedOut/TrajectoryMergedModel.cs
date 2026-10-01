@@ -53334,11 +53334,11 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     {
 
         /// <summary>
-        /// Total along-hole length from the final source-trajectory station through the lead-in and both steering sections, in canonical SI metres.
+        /// Total along-hole length of the upstream and downstream steering sections, excluding LeadInLength, in canonical SI metres.
         /// </summary>
-        [System.Text.Json.Serialization.JsonPropertyName("OverallDrilledLength")]
+        [System.Text.Json.Serialization.JsonPropertyName("SteeringLength")]
         [System.ComponentModel.DataAnnotations.Range(0.0D, double.MaxValue)]
-        public double OverallDrilledLength { get; set; }
+        public double SteeringLength { get; set; }
 
         /// <summary>
         /// Dimensionless positive ratio of upstream to downstream steering-section length.
@@ -53451,7 +53451,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public int AzimuthBranch { get; set; }
 
         /// <summary>
-        /// Exactly one overall constraint measured from the final source-trajectory station: Departure or DrilledLength.
+        /// Exactly one constraint: overall Departure from the final source-trajectory station, or SteeringLength for the two steering sections.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Extent")]
         public GeosteeringExtentConstraint Extent { get; set; }

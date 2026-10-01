@@ -1,0 +1,4 @@
+.well-path-input-value,
+.well-path-input-value ::deep * {
+    font-weight: 700 !important;
+}

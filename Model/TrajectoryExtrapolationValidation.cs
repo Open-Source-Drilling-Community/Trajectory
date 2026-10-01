@@ -17,6 +17,7 @@ namespace OSDC.Drilling.Trajectory.Model
             if (value.SourceTrajectoryID == System.Guid.Empty) errors.Add("source_trajectory_required");
             if (!DefinedPositive(value.InterpolationInterval)) errors.Add("interpolation_interval_must_be_positive");
             if (!System.Enum.IsDefined(value.Mode)) errors.Add("mode_invalid");
+            UpgradeLegacyGeosteeringExtent(value);
 
             switch (value.Specification)
             {
@@ -48,6 +49,28 @@ namespace OSDC.Drilling.Trajectory.Model
             return errors;
         }
 
+        /// <summary>
+        /// Converts the retired total-length representation into the length of the two steering
+        /// sections. This keeps persisted pre-rename cases geometrically unchanged.
+        /// </summary>
+        public static void UpgradeLegacyGeosteeringExtent(TrajectoryExtrapolationCase value)
+        {
+            if (value.Specification is not GeosteeringTrajectoryExtrapolationSpecification
+                {
+                    Extent: DrilledLengthGeosteeringExtentConstraint drilled
+                } geosteering ||
+                drilled.LegacyOverallDrilledLength is not double legacyOverallLength)
+            {
+                return;
+            }
+
+            if (!DefinedPositive(drilled.SteeringLength))
+            {
+                drilled.SteeringLength = legacyOverallLength - geosteering.LeadInLength;
+            }
+            drilled.LegacyOverallDrilledLength = null;
+        }
+
         private static void ValidateGeosteering(GeosteeringTrajectoryExtrapolationSpecification value, List<string> errors)
         {
             if (!DefinedNonNegative(value.LeadInLength)) errors.Add("lead_in_length_must_be_non_negative");
@@ -63,10 +86,7 @@ namespace OSDC.Drilling.Trajectory.Model
                     if (!Defined(departure.DepartureBearing)) errors.Add("departure_bearing_required");
                     break;
                 case DrilledLengthGeosteeringExtentConstraint drilled:
-                    if (!DefinedPositive(drilled.OverallDrilledLength)) errors.Add("overall_drilled_length_must_be_positive");
-                    if (Defined(drilled.OverallDrilledLength) && Defined(value.LeadInLength) &&
-                        drilled.OverallDrilledLength <= value.LeadInLength)
-                        errors.Add("overall_drilled_length_must_exceed_lead_in_length");
+                    if (!DefinedPositive(drilled.SteeringLength)) errors.Add("steering_length_must_be_positive");
                     if (!DefinedPositive(drilled.SteeringLengthRatio)) errors.Add("steering_length_ratio_must_be_positive");
                     break;
                 case null:

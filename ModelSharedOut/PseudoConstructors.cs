@@ -6792,7 +6792,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new DrilledLengthGeosteeringExtentConstraint
 			{
-				OverallDrilledLength = 0.0,
+				SteeringLength = 0.0,
 				SteeringLengthRatio = 0.0,
 			};
 		}

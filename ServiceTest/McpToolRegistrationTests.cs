@@ -482,9 +482,10 @@ public sealed class McpToolRegistrationTests
             Assert.That(geosteering["properties"]!["LeadInLength"]!["minimum"]!.GetValue<double>(), Is.Zero);
             Assert.That(geosteering["properties"]!["EndInclination"]!["maximum"]!.GetValue<double>(), Is.EqualTo(Math.PI).Within(1e-12));
             Assert.That(departure["properties"]!["DepartureDistance"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
-            Assert.That(drilledLength["properties"]!["OverallDrilledLength"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
+            Assert.That(drilledLength["properties"]!["SteeringLength"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
             Assert.That(drilledLength["properties"]!["SteeringLengthRatio"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
-            Assert.That(drilledLength["properties"]!["OverallDrilledLength"]!["description"]!.GetValue<string>(), Does.Contain("must exceed LeadInLength"));
+            Assert.That(drilledLength["properties"]!["SteeringLength"]!["description"]!.GetValue<string>(), Does.Contain("excluding LeadInLength"));
+            Assert.That(drilledLength["properties"]!.AsObject().ContainsKey("OverallDrilledLength"), Is.False);
             Assert.That(properties.ContainsKey("CalculationState"), Is.False);
             Assert.That(properties.ContainsKey("SolvedSectionList"), Is.False);
             Assert.That(properties.ContainsKey("SurveyStationList"), Is.False);

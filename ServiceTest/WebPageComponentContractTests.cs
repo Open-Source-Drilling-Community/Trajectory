@@ -254,6 +254,7 @@ public sealed class WebPageComponentContractTests
         string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
             "..", "..", "..", ".."));
         string editor = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryExtrapolationEdit.razor"));
+        string editorStyles = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryExtrapolationEdit.razor.css"));
         string main = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryExtrapolationMain.razor"));
         int sourceSelector = editor.IndexOf(">Trajectory to extrapolate<", StringComparison.Ordinal);
         int mode = editor.IndexOf("Label=\"Extrapolation mode\"", StringComparison.Ordinal);
@@ -276,6 +277,22 @@ public sealed class WebPageComponentContractTests
             Assert.That(main, Does.Contain("WellHeadPositionReferenceSource=\"@DataUtils.WellHeadPositionReferenceSource\""));
             Assert.That(main, Does.Contain("GridConvergenceSource=\"@DataUtils.GridConvergenceSource\""));
             Assert.That(main, Does.Contain("MagneticDeclinationSource=\"@DataUtils.MagneticDeclinationSource\""));
+            Assert.That(editor, Does.Not.Contain("<MudInputWithUnit "),
+                "The extrapolation editor must not mix title-unit and value-adornment input components.");
+            Assert.That(Regex.Matches(editor, "<MudInputWithUnitAdornment(?=\\s|>)").Count, Is.GreaterThan(20));
+            Assert.That(editor, Does.Contain("<MudInputWithUnitAdornment QuantityLabel=\"Target TVD\" QuantityName=\"DepthDrilling\" DrillingSignalReference=\"DrillingSignalReferenceType.Depth\""));
+            Assert.That(editor, Does.Contain("<MudInputWithUnitAdornment QuantityLabel=\"End azimuth\" QuantityName=\"PlaneAngleDrilling\" DrillingSignalReference=\"DrillingSignalReferenceType.Azimuth\""));
+            Assert.That(editor, Does.Contain("<MudInputWithUnitAdornment QuantityLabel=\"Departure bearing\" QuantityName=\"PlaneAngleDrilling\" DrillingSignalReference=\"DrillingSignalReferenceType.Azimuth\""));
+            Assert.That(editor, Does.Not.Contain("QuantityLabel=\"Target WGS84 vertical depth\""));
+            Assert.That(editor, Does.Not.Contain("QuantityLabel=\"End true-north azimuth\""));
+            Assert.That(editor, Does.Not.Contain("Label=\"Azimuth branch\""));
+            Assert.That(editor, Does.Contain("geosteering.AzimuthBranch = 0;"));
+            Assert.That(editor, Does.Contain("Label=\"Upstream steering-section length ratio\" Min=\"0.01\" Max=\"99.99\""));
+            Assert.That(editor, Does.Contain("QuantityLabel=\"Steering length\" QuantityName=\"DepthDrilling\""));
+            Assert.That(editor, Does.Contain("@drilled.SteeringLength"));
+            Assert.That(editor, Does.Not.Contain("Overall drilled length"));
+            Assert.That(editor, Does.Contain("AdornmentText=\"%\""));
+            Assert.That(editor, Does.Contain("boundedPercentage / (100.0 - boundedPercentage)"));
             Assert.That(editor, Does.Contain("@DepthHeader(\"End MD\")"));
             Assert.That(editor, Does.Contain("@PositionHeader(NorthCoordinateLabel)"));
             Assert.That(editor, Does.Contain("@AzimuthHeader(\"Az\")"));
@@ -298,12 +315,76 @@ public sealed class WebPageComponentContractTests
             Assert.That(editor, Does.Contain("section.Role == TrajectoryExtrapolationSectionRole.WellPathSection"));
             Assert.That(editor, Does.Contain("SIValue=\"@context.End?.Inclination\""));
             Assert.That(editor, Does.Contain("SIValue=\"@context.End?.RiemannianNorth\""));
-            Assert.That(editor, Does.Contain("Style=\"@WellPathInputStyle(context.SectionID, WellPathResultValue.Length)\""));
-            Assert.That(editor, Does.Contain("Style=\"@WellPathInputStyle(context.SectionID, WellPathResultValue.EndInclination)\""));
-            Assert.That(editor, Does.Contain("Style=\"@WellPathInputStyle(context.SectionID, WellPathResultValue.CircularArcCurvature)\""));
+            Assert.That(editor, Does.Contain("class=\"@WellPathInputClass(context.SectionID, WellPathResultValue.Length)\""));
+            Assert.That(editor, Does.Contain("class=\"@WellPathInputClass(context.SectionID, WellPathResultValue.EndInclination)\""));
+            Assert.That(editor, Does.Contain("class=\"@WellPathInputClass(context.SectionID, WellPathResultValue.CircularArcCurvature)\""));
             Assert.That(editor, Does.Contain("section.SectionID == sectionId"));
-            Assert.That(editor, Does.Contain("return wasInput ? \"font-weight: 700;\" : null;"));
+            Assert.That(editor, Does.Contain("well-path-result-value well-path-input-value"));
+            Assert.That(editorStyles, Does.Contain(".well-path-input-value ::deep *"));
+            Assert.That(editorStyles, Does.Contain("font-weight: 700 !important;"));
             Assert.That(editor, Does.Contain("value.Mode != TrajectoryExtrapolationMode.WellPath"));
+        });
+    }
+
+    [Test]
+    public void Trajectory_extrapolation_can_be_exported_or_saved_as_a_planned_survey_run()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", ".."));
+        string editor = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryExtrapolationEdit.razor"));
+        string surveyRunEditor = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "SurveyRunMain.razor"));
+        string trajectoryEditor = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryEdit.razor"));
+        string exportUtility = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "SurveyStationAsciiExport.cs"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(editor, Does.Contain("OnClick=\"SaveAsSurveyRunAsync\">Save as survey run"));
+            Assert.That(editor, Does.Contain("OnClick=\"ExportInterpolatedExtrapolationAsync\">Export ASCII"));
+            Assert.That(editor, Does.Contain("SurveyRunType = SurveyRunType.Planned"));
+            Assert.That(editor, Does.Contain("WellBoreID = source.WellBoreID"));
+            Assert.That(editor, Does.Contain("SurveyInstrumentID = parentSurveyRun.SurveyInstrumentID"));
+            Assert.That(editor, Does.Contain("source.SurveyRunSectionList?.AsEnumerable().Reverse()"));
+            Assert.That(editor, Does.Contain("ParentSurveyRunID = parentSurveyRunId"));
+            Assert.That(editor, Does.Contain("SurveyMeasurementList = measurements"));
+            Assert.That(editor, Does.Contain("await Api.ClientTrajectory.PostSurveyRunAsync(surveyRun)"));
+            Assert.That(editor, Does.Not.Contain("CommitSurveyRunSurveyMeasurementChunksAsync(surveyRunId)"),
+                "Creating the planned run should use the service's atomic inline-measurement transaction.");
+            Assert.That(editor, Does.Contain("PromptAsync(\"Export interpolated extrapolation\", \"File name\""));
+            Assert.That(editor, Does.Contain("SurveyStationAsciiExport.EnsureTsvFileName"));
+            Assert.That(editor, Does.Contain("SurveyStationAsciiExport.BuildTabSeparated"));
+            Assert.That(surveyRunEditor, Does.Contain("SurveyStationAsciiExport.BuildTabSeparated"));
+            Assert.That(trajectoryEditor, Does.Contain("SurveyStationAsciiExport.BuildTabSeparated"));
+            Assert.That(exportUtility, Does.Contain("Measured Depth"));
+            Assert.That(exportUtility, Does.Contain("Vertical Section"));
+            Assert.That(exportUtility, Does.Contain("DLS"));
+            Assert.That(exportUtility, Does.Contain("BUR"));
+            Assert.That(exportUtility, Does.Contain("TR"));
+        });
+    }
+
+    [Test]
+    public void Trajectory_host_loads_the_generated_scoped_style_bundle()
+    {
+        string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", "..", "WebApp", "Pages", "_Layout.cshtml"));
+        string source = File.ReadAllText(path);
+
+        Assert.That(source, Does.Contain("<link href=\"WebApp.styles.css\" rel=\"stylesheet\" />"));
+    }
+
+    [Test]
+    public void Trajectory_reference_datum_lookup_resolves_a_ranked_applicable_grid_transformation()
+    {
+        string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", "..", "WebPages", "TrajectoryReferenceDatumUtils.cs"));
+        string source = File.ReadAllText(path);
+        string method = GetMethodSource(source, "private static async Task<double?> ResolveGridConvergenceAsync", "private sealed record ReferenceLocation");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(method, Does.Contain("SelectionPolicy = ModelShared.FieldTransformationSelectionPolicy.FirstAvailable"));
+            Assert.That(method, Does.Contain("ApplicabilityPolicy = ModelShared.FieldApplicabilityPolicy.RequireApplicable"));
+            Assert.That(method, Does.Contain("DepthPolicy = ModelShared.FieldDepthTransformationPolicy.AllowUntransformedDepthFor2D"));
         });
     }
 

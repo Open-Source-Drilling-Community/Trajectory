@@ -6909,11 +6909,11 @@
           }
         ],
         "properties": {
-          "OverallDrilledLength": {
+          "SteeringLength": {
             "minimum": 0.0,
             "exclusiveMinimum": true,
             "type": "number",
-            "description": "Total along-hole length from the final source-trajectory station through the lead-in and both steering sections, in canonical SI metres.",
+            "description": "Total along-hole length of the upstream and downstream steering sections, excluding LeadInLength, in canonical SI metres.",
             "format": "double",
             "x-osdc-semantic": "DrilledLength",
             "x-si-unit": "m"
@@ -7072,7 +7072,7 @@
                 "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.GeosteeringExtentConstraint"
               }
             ],
-            "description": "Exactly one overall constraint measured from the final source-trajectory station: Departure or DrilledLength.",
+            "description": "Exactly one constraint: overall Departure from the final source-trajectory station, or SteeringLength for the two steering sections.",
             "nullable": true
           }
         },

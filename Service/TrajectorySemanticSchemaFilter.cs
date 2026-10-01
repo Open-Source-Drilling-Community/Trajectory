@@ -61,7 +61,7 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
             Describe(schema, "TargetVerticalDepth", "Absolute WGS84 vertical depth target, positive downward in canonical SI metres.", "Wgs84Depth", "m");
             Describe(schema, "EndInclination", "Target inclination from the local WGS84 geodetic-down axis in SI radians.", "GeodeticInclination", "rad");
             Describe(schema, "EndAzimuth", "Target clockwise azimuth from WGS84 geodetic true north in SI radians.", "TrueNorthAzimuth", "rad");
-            Describe(schema, "Extent", "Exactly one overall constraint measured from the final source-trajectory station: Departure or DrilledLength.");
+            Describe(schema, "Extent", "Exactly one constraint: overall Departure from the final source-trajectory station, or SteeringLength for the two steering sections.");
             SetMinimum(schema, "LeadInLength", 0.0m);
             SetRange(schema, "EndInclination", 0.0m, (decimal)Math.PI);
         }
@@ -78,9 +78,9 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
         }
         if (context.Type == typeof(DrilledLengthGeosteeringExtentConstraint))
         {
-            Describe(schema, "OverallDrilledLength", "Total along-hole length from the final source-trajectory station through the lead-in and both steering sections, in canonical SI metres.", "DrilledLength", "m");
+            Describe(schema, "SteeringLength", "Total along-hole length of the upstream and downstream steering sections, excluding LeadInLength, in canonical SI metres.", "DrilledLength", "m");
             Describe(schema, "SteeringLengthRatio", "Dimensionless positive ratio of upstream to downstream steering-section length.", "LengthRatio", "1");
-            SetExclusiveMinimum(schema, "OverallDrilledLength", 0.0m);
+            SetExclusiveMinimum(schema, "SteeringLength", 0.0m);
             SetExclusiveMinimum(schema, "SteeringLengthRatio", 0.0m);
         }
 

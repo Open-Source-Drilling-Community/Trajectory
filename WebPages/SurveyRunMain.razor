@@ -3139,38 +3139,13 @@
             Snackbar.Add("No calculated survey run to export", Severity.Warning);
             return;
         }
+        if (UnitReference == null)
+        {
+            Snackbar.Add("Unit and reference settings are not ready", Severity.Warning);
+            return;
+        }
 
-        string[] headers =
-        [
-            "Origin",
-            $"Measured Depth [{DepthUnitLabel}]",
-            $"Inclination [{AngleUnitLabel}]",
-            $"Azimuth [{AzimuthUnitLabel}]",
-            $"Vertical Depth [{DepthUnitLabel}]",
-            $"{NorthCoordinateLabel} [{PositionUnitLabel}]",
-            $"{EastCoordinateLabel} [{PositionUnitLabel}]",
-            $"Vertical Section [{LengthUnitLabel}]",
-            $"Curvature [{CurvatureUnitLabel}]",
-            $"BUR [{CurvatureUnitLabel}]",
-            $"TR [{CurvatureUnitLabel}]"
-        ];
-
-        string content = BuildTabSeparatedContent(
-            headers,
-            calculatedStations.Select(station => new[]
-            {
-                IsCalculatedBitStation(station) ? "Extrapolated" : "Measured",
-                ConvertDepthForExport(station.MD),
-                ConvertQuantityForExport(station.Inclination, "PlaneAngleDrilling"),
-                ConvertAzimuthForExport(station.Azimuth),
-                ConvertDepthForExport(station.TVD),
-                ConvertPositionForExport(station.RiemannianNorth, PositionDirectionType.North),
-                ConvertPositionForExport(station.RiemannianEast, PositionDirectionType.East),
-                ConvertQuantityForExport(station.VerticalSection, "DepthDrilling"),
-                ConvertQuantityForExport(station.Curvature, "CurvatureDrilling"),
-                ConvertQuantityForExport(station.BUR, "CurvatureDrilling"),
-                ConvertQuantityForExport(station.TUR, "CurvatureDrilling")
-            }));
+        string content = SurveyStationAsciiExport.BuildTabSeparated(UnitReference, calculatedStations);
 
         try
         {

@@ -435,7 +435,7 @@ internal static class TrajectoryMcpToolMetadata
     private static string DescribeCreate(string controller, string resource)
     {
         if (controller == "TrajectoryExtrapolationCase")
-            return "Create a trajectory extrapolation case and queue its calculation. Select exactly one discriminated specification matching Mode. FixedLength extends straight or continues the fitted last section; ReconnectToTrajectory optionally continues a lead-in, advances from the closest point on a reference trajectory, and solves two steering sections; Geosteering optionally continues a lead-in then reaches a target depth and attitude using either overall departure/bearing or overall drilled length/steering-length ratio; WellPath requires exactly 3 × section-count constraints. The server derives timestamps, endpoint snapshots, solved sections and sampled stations. Poll status, then retrieve station chunks. SI units are metres, radians, and radians per metre.";
+            return "Create a trajectory extrapolation case and queue its calculation. Select exactly one discriminated specification matching Mode. FixedLength extends straight or continues the fitted last section; ReconnectToTrajectory optionally continues a lead-in, advances from the closest point on a reference trajectory, and solves two steering sections; Geosteering optionally continues a lead-in then reaches a target depth and attitude using either overall departure/bearing or steering length/steering-length ratio; WellPath requires exactly 3 × section-count constraints. The server derives timestamps, endpoint snapshots, solved sections and sampled stations. Poll status, then retrieve station chunks. SI units are metres, radians, and radians per metre.";
         if (controller is "TrajectoryMinimumDistanceCalculation" or "SurveyRunMinimumDistanceCalculation" or "SurveyStationEllipseCalculation" or "TrajectoryRealizationCase" or "TrajectoryAggregationCase" or "InterpolatedTrajectory")
             return $"Create {resource} and start its calculation. data.MetaInfo.ID must be a caller-assigned, non-empty UUID that is not already stored. Poll the corresponding by-id or light-list tool for CalculationState/CalculationProgress; retrieve large outputs through the result chunk tools where available. All lengths and distances are metres and angles are radians.";
         if (controller is "Trajectory" or "SurveyRun")
@@ -788,7 +788,7 @@ internal static class TrajectoryMcpToolMetadata
         else if (declaringType == typeof(DrilledLengthGeosteeringExtentConstraint))
         {
             required.Add(property.Name);
-            if (property.Name is nameof(DrilledLengthGeosteeringExtentConstraint.OverallDrilledLength) or
+            if (property.Name is nameof(DrilledLengthGeosteeringExtentConstraint.SteeringLength) or
                 nameof(DrilledLengthGeosteeringExtentConstraint.SteeringLengthRatio))
                 schema["exclusiveMinimum"] = 0.0;
         }
@@ -1020,7 +1020,7 @@ internal static class TrajectoryMcpToolMetadata
                 nameof(GeosteeringTrajectoryExtrapolationSpecification.TargetVerticalDepth) => "Absolute target WGS84 vertical depth, positive downward in SI metres.",
                 nameof(GeosteeringTrajectoryExtrapolationSpecification.EndInclination) => "Target inclination from the local WGS84 geodetic-down axis, from 0 through pi radians.",
                 nameof(GeosteeringTrajectoryExtrapolationSpecification.EndAzimuth) => "Target clockwise azimuth from WGS84 geodetic true north in SI radians.",
-                nameof(GeosteeringTrajectoryExtrapolationSpecification.Extent) => "Exactly one overall extent measured from the final source station: Departure or DrilledLength.",
+                nameof(GeosteeringTrajectoryExtrapolationSpecification.Extent) => "Exactly one extent: overall Departure from the final source station, or SteeringLength for the two steering sections.",
                 _ => SplitWords(name) + "."
             };
         }
@@ -1029,8 +1029,8 @@ internal static class TrajectoryMcpToolMetadata
                 ? "Positive overall horizontal departure from the final source station in SI metres."
                 : "Overall departure bearing clockwise and positive east of WGS84 true north in SI radians.";
         if (declaringType == typeof(DrilledLengthGeosteeringExtentConstraint))
-            return name == nameof(DrilledLengthGeosteeringExtentConstraint.OverallDrilledLength)
-                ? "Positive total drilled length from the final source station through lead-in and both steering sections, in SI metres; it must exceed LeadInLength."
+            return name == nameof(DrilledLengthGeosteeringExtentConstraint.SteeringLength)
+                ? "Positive combined length of the upstream and downstream steering sections, excluding LeadInLength, in SI metres."
                 : "Positive dimensionless upstream-to-downstream steering-section length ratio.";
         if (declaringType == typeof(AntiCollisionTrajectoryAgeCondition))
             return name == nameof(AntiCollisionTrajectoryAgeCondition.AgeThresholdSeconds)

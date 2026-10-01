@@ -281,9 +281,8 @@ namespace OSDC.Drilling.Trajectory.Model
                         specification.CurveType, specification.AzimuthBranch, 1.0, out pair);
                     break;
                 case DrilledLengthGeosteeringExtentConstraint drilled:
-                    double steeringLength = drilled.OverallDrilledLength - specification.LeadInLength;
-                    double downstreamLength = steeringLength / (1.0 + drilled.SteeringLengthRatio);
-                    double upstreamLength = steeringLength - downstreamLength;
+                    double downstreamLength = drilled.SteeringLength / (1.0 + drilled.SteeringLengthRatio);
+                    double upstreamLength = drilled.SteeringLength - downstreamLength;
                     solved = TryCalculateDrilledLengthPair(ToPoint(steeringStart), upstreamLength,
                         downstreamLength, specification, out pair);
                     break;

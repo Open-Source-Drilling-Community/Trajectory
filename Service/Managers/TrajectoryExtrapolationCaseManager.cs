@@ -102,6 +102,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             {
                 string? json = command.ExecuteScalar() as string;
                 TrajectoryExtrapolationCase? result = json == null ? null : JsonSerializer.Deserialize<TrajectoryExtrapolationCase>(json, JsonSettings.Options);
+                if (result != null) TrajectoryExtrapolationValidation.UpgradeLegacyGeosteeringExtent(result);
                 if (result != null && includeResults) result.SurveyStationList = GetSurveyStationList(id);
                 return result;
             }
@@ -225,6 +226,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     TrajectoryExtrapolationCase? value = JsonSerializer.Deserialize<TrajectoryExtrapolationCase>(reader.GetString(0), JsonSettings.Options);
                     if (value != null)
                     {
+                        TrajectoryExtrapolationValidation.UpgradeLegacyGeosteeringExtent(value);
                         if (includeResults && value.MetaInfo != null) value.SurveyStationList = GetSurveyStationList(value.MetaInfo.ID);
                         result.Add(value);
                     }

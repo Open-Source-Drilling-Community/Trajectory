@@ -152,8 +152,13 @@ namespace OSDC.Drilling.Trajectory.Model
     [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
     public sealed class DrilledLengthGeosteeringExtentConstraint : GeosteeringExtentConstraint
     {
-        /// <summary>Total length from the final source station through the lead-in and both steering sections.</summary>
-        public double OverallDrilledLength { get; set; }
+        /// <summary>Total length of the upstream and downstream steering sections, excluding the lead-in.</summary>
+        public double SteeringLength { get; set; }
+        /// <summary>Legacy persisted total from the final source station, including the lead-in.</summary>
+        [JsonInclude]
+        [JsonPropertyName("OverallDrilledLength")]
+        [JsonIgnore(Condition = JsonIgnoreCondition.WhenWritingNull)]
+        internal double? LegacyOverallDrilledLength { get; set; }
         /// <summary>Positive ratio of upstream steering-section length to downstream steering-section length.</summary>
         public double SteeringLengthRatio { get; set; } = 1.0;
     }

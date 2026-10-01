@@ -156,6 +156,12 @@ public static class TrajectoryReferenceDatumUtils
                     FieldID = fieldId,
                     SourceGeographicReference = ModelShared.FieldGeographicReference.Wgs84,
                     ProjectionApplicabilityPolicy = ModelShared.FieldApplicabilityPolicy.RequireApplicable,
+                    Transformation = new ModelShared.FieldTransformationOptions
+                    {
+                        SelectionPolicy = ModelShared.FieldTransformationSelectionPolicy.FirstAvailable,
+                        ApplicabilityPolicy = ModelShared.FieldApplicabilityPolicy.RequireApplicable,
+                        DepthPolicy = ModelShared.FieldDepthTransformationPolicy.AllowUntransformedDepthFor2D
+                    },
                     Positions =
                     [
                         new ModelShared.FieldForwardConversionPosition

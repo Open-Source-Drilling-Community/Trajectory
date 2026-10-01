@@ -31,7 +31,8 @@ public sealed class OpenApiTrajectoryExtrapolationContractTests
             Assert.That(geosteering["properties"]!["EndInclination"]!["maximum"]!.GetValue<double>(), Is.EqualTo(Math.PI).Within(1e-12));
             Assert.That(departure["properties"]!["DepartureDistance"]!["exclusiveMinimum"]!.GetValue<bool>(), Is.True);
             Assert.That(drilledLength["properties"]!["SteeringLengthRatio"]!["exclusiveMinimum"]!.GetValue<bool>(), Is.True);
-            Assert.That(drilledLength["properties"]!["OverallDrilledLength"]!["description"]!.GetValue<string>(), Does.Contain("final source-trajectory station"));
+            Assert.That(drilledLength["properties"]!["SteeringLength"]!["description"]!.GetValue<string>(), Does.Contain("excluding LeadInLength"));
+            Assert.That(drilledLength["properties"]!.AsObject().ContainsKey("OverallDrilledLength"), Is.False);
         });
     }
 }

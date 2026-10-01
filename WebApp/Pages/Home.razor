@@ -193,17 +193,20 @@
         The <MudLink Href="/Trajectory/webapp/TrajectoryExtrapolation">Trajectory Extrapolation</MudLink> page
         starts from the last calculated station of a source trajectory. It can extend a selected length in a straight
         line or by continuing the last fitted curve, reconnect to an advanced point and tangent on another trajectory
-        with a two-section solver, solve a geosteering target from overall departure/bearing or overall drilled length,
+        with a two-section solver, solve a geosteering target from overall departure/bearing or steering length,
         or solve a user-defined well path made from circular-arc, constant-build-and-turn, and constant-curvature-and-toolface sections.
     </MudText>
     <MudText Typo="Typo.body1">
         Reconnect and geosteering calculations may first continue the source trajectory's current curve for a lead-in;
-        overall geosteering departure and drilled length remain referenced to the original final source station.
+        overall geosteering departure remains referenced to the original final source station, while steering length
+        covers only the two steering sections and excludes the lead-in.
         The well-path table accepts exactly three constraints per section on average, prevents overdetermined prefixes,
         and keeps incompatible curve parameter pairs separate. Calculations run in the service, are polled through a
         lightweight status, and persist frozen endpoint/revision metadata plus chunked survey stations. Lengths are
         stored in metres, angles in radians, and curvature/rates in radians per metre; the page applies the selected
-        display units without changing those canonical values.
+        display units without changing those canonical values. The interpolated result can be exported using the same
+        ASCII structure as calculated Survey Runs and Trajectories, or saved atomically as a planned Survey Run in the
+        source WellBore after entering its name; the last usable source Survey Run supplies its survey instrument.
     </MudText>
 </MudPaper>
 

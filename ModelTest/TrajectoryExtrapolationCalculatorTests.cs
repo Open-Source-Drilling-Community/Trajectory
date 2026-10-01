@@ -4,6 +4,7 @@ using OSDC.DotnetLibraries.Drilling.Section;
 using OSDC.DotnetLibraries.General.DataManagement;
 using OSDC.DotnetLibraries.General.Math;
 using System.Text.Json;
+using System.Text.Json.Nodes;
 using TrajectoryModel = OSDC.Drilling.Trajectory.Model.Trajectory;
 
 namespace OSDC.Drilling.Trajectory.ModelTest;
@@ -307,7 +308,7 @@ public class TrajectoryExtrapolationCalculatorTests
                 CurveType = ExtrapolationCurveType.ConstantCurvatureAndToolface,
                 Extent = new DrilledLengthGeosteeringExtentConstraint
                 {
-                    OverallDrilledLength = 100,
+                    SteeringLength = 100,
                     SteeringLengthRatio = 1.5
                 }
             });
@@ -324,7 +325,7 @@ public class TrajectoryExtrapolationCalculatorTests
     }
 
     [Test]
-    public void GeosteeringRequiresOverallLengthToExceedLeadIn()
+    public void GeosteeringRequiresPositiveSteeringLength()
     {
         TrajectoryExtrapolationCase calculation = Case(
             TrajectoryExtrapolationMode.Geosteering,
@@ -337,13 +338,81 @@ public class TrajectoryExtrapolationCalculatorTests
                 CurveType = ExtrapolationCurveType.CircularArc,
                 Extent = new DrilledLengthGeosteeringExtentConstraint
                 {
-                    OverallDrilledLength = 30,
+                    SteeringLength = 0,
                     SteeringLengthRatio = 1
                 }
             });
 
         Assert.That(TrajectoryExtrapolationValidation.Validate(calculation),
-            Does.Contain("overall_drilled_length_must_exceed_lead_in_length"));
+            Does.Contain("steering_length_must_be_positive"));
+    }
+
+    [Test]
+    public void LegacyOverallDrilledLengthIsUpgradedWithoutChangingSteeringGeometry()
+    {
+        TrajectoryExtrapolationCase calculation = Case(
+            TrajectoryExtrapolationMode.Geosteering,
+            new GeosteeringTrajectoryExtrapolationSpecification
+            {
+                LeadInLength = 30,
+                TargetVerticalDepth = 1100,
+                EndInclination = 0.5,
+                EndAzimuth = 0.2,
+                CurveType = ExtrapolationCurveType.CircularArc,
+                Extent = new DrilledLengthGeosteeringExtentConstraint
+                {
+                    SteeringLength = 170,
+                    SteeringLengthRatio = 1
+                }
+            });
+        JsonObject persisted = JsonNode.Parse(JsonSerializer.Serialize(calculation))!.AsObject();
+        JsonObject extent = persisted["Specification"]!["Extent"]!.AsObject();
+        extent.Remove("SteeringLength");
+        extent["OverallDrilledLength"] = 200.0;
+
+        TrajectoryExtrapolationCase restored = persisted.Deserialize<TrajectoryExtrapolationCase>()!;
+        List<string> errors = TrajectoryExtrapolationValidation.Validate(restored);
+        DrilledLengthGeosteeringExtentConstraint upgraded =
+            (DrilledLengthGeosteeringExtentConstraint)((GeosteeringTrajectoryExtrapolationSpecification)restored.Specification!).Extent!;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(errors, Is.Empty);
+            Assert.That(upgraded.SteeringLength, Is.EqualTo(170.0).Within(1e-12));
+            Assert.That(JsonSerializer.Serialize(restored), Does.Not.Contain("OverallDrilledLength"));
+        });
+    }
+
+    [Test]
+    public void GeosteeringNearHorizontalCircularArcCaseSucceedsWithEqualSectionLengths()
+    {
+        SurveyStation previous = Station(597.78, 1.5809192364564637, 2.3724260522358924,
+            256.0565783569098, 6534980.332099356, 328968.7600223668);
+        SurveyStation last = Station(639.18, 1.579872038905267, 2.3673645974051083,
+            255.65917215939598, 6534950.660957943, 328997.6290649575);
+        TrajectoryExtrapolationCase calculation = Case(
+            TrajectoryExtrapolationMode.Geosteering,
+            new GeosteeringTrajectoryExtrapolationSpecification
+            {
+                LeadInLength = 30.0,
+                TargetVerticalDepth = 258.78,
+                EndInclination = Math.PI / 2.0,
+                EndAzimuth = 140.0 * Math.PI / 180.0,
+                CurveType = ExtrapolationCurveType.CircularArc,
+                Extent = new DrilledLengthGeosteeringExtentConstraint
+                {
+                    SteeringLength = 170.0,
+                    SteeringLengthRatio = 1.0
+                }
+            });
+
+        bool success = TrajectoryExtrapolationCalculator.Calculate(
+            calculation, SourceTrajectory(previous, last), _ => null);
+
+        Assert.That(success, Is.True, calculation.CalculationMessage);
+        Assert.That(calculation.SolvedSectionList, Has.Count.EqualTo(3));
+        Assert.That(calculation.SolvedSectionList![1].Length, Is.EqualTo(85.0).Within(1.0e-6));
+        Assert.That(calculation.SolvedSectionList[2].Length, Is.EqualTo(85.0).Within(1.0e-6));
     }
 
     [Test]
@@ -419,7 +488,7 @@ public class TrajectoryExtrapolationCalculatorTests
         Assert.That(((GeosteeringTrajectoryExtrapolationSpecification)roundTrip!.Specification!).Extent,
             Is.TypeOf<DepartureGeosteeringExtentConstraint>());
         const string invalid = """
-            {"ExtentType":"Departure","DepartureDistance":120,"DepartureBearing":0.4,"OverallDrilledLength":150}
+            {"ExtentType":"Departure","DepartureDistance":120,"DepartureBearing":0.4,"SteeringLength":150}
             """;
         Assert.Throws<JsonException>(() => JsonSerializer.Deserialize<GeosteeringExtentConstraint>(invalid));
     }
