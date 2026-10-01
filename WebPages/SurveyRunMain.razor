@@ -31,6 +31,8 @@
                               AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName"
                               GridConvergenceSource="@DataUtils.GridConvergenceSource"
                               MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource">
+    <NavigationLock ConfirmExternalNavigation="@HasUnsavedSurveyRunChanges()"
+                    OnBeforeInternalNavigation="OnBeforeInternalNavigationAsync" />
     @if (isEditing_)
     {
         <MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Survey Run</MudText>
@@ -117,41 +119,9 @@
                         }
                     </MudSelect>
                 </MudItem>
-                <MudItem xs="12" md="3">
-                    <MudSelect T="TrajectoryCalculationType" Label="Calculation method" Value="@surveyRun.CalculationType" ValueChanged="OnCalculationTypeChanged" ShrinkLabel>
-                        @foreach (TrajectoryCalculationType method in TrajectoryCalculationTypes)
-                        {
-                            <MudSelectItem T="TrajectoryCalculationType" Value="@method">@GetCalculationMethodLabel(method)</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
             </MudGrid>
 
             <MudGrid Class="mt-2">
-                <MudItem xs="12" md="3">
-                    <MudSelect T="SurveyInclinationReference" Label="Observed inclination reference" Value="@surveyRun.DefaultInclinationReference" ValueChanged="OnDefaultInclinationReferenceChanged" ShrinkLabel>
-                        @foreach (SurveyInclinationReference value in Enum.GetValues<SurveyInclinationReference>().Where(value => value != SurveyInclinationReference.InheritRun))
-                        {
-                            <MudSelectItem T="SurveyInclinationReference" Value="@value">@GetInclinationReferenceLabel(value)</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" md="3">
-                    <MudSelect T="SurveyAzimuthReference" Label="Observed azimuth reference" Value="@surveyRun.DefaultAzimuthReference" ValueChanged="OnDefaultAzimuthReferenceChanged" ShrinkLabel>
-                        @foreach (SurveyAzimuthReference value in Enum.GetValues<SurveyAzimuthReference>().Where(value => value != SurveyAzimuthReference.InheritRun))
-                        {
-                            <MudSelectItem T="SurveyAzimuthReference" Value="@value">@GetAzimuthReferenceLabel(value)</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" md="3">
-                    <MudSelect T="SurveyGeomagneticModel" Label="Geomagnetic model" Value="@surveyRun.GeomagneticModel" ValueChanged="OnGeomagneticModelChanged" ShrinkLabel>
-                        @foreach (SurveyGeomagneticModel value in Enum.GetValues<SurveyGeomagneticModel>())
-                        {
-                            <MudSelectItem T="SurveyGeomagneticModel" Value="@value">@value</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
                 <MudItem xs="12" md="3">
                     <MudTextField T="string" Label="Acquisition start UTC" Value="@FormatUtcInput(surveyRun.AcquisitionStartUtc)" ValueChanged="value => SetAcquisitionStart(value)" Placeholder="yyyy-MM-ddTHH:mm:ssZ" ShrinkLabel />
                 </MudItem>
@@ -159,37 +129,6 @@
                     <MudTextField T="string" Label="Acquisition end UTC" Value="@FormatUtcInput(surveyRun.AcquisitionEndUtc)" ValueChanged="value => SetAcquisitionEnd(value)" Placeholder="yyyy-MM-ddTHH:mm:ssZ" ShrinkLabel />
                 </MudItem>
             </MudGrid>
-
-            <MudPaper Class="pa-3 mt-3" Outlined="true">
-                <MudGrid>
-                    <MudItem xs="12" md="3">
-                        <MudSwitch T="bool" Value="@HasBitExtrapolation" ValueChanged="OnBitExtrapolationEnabledChanged"
-                                   Color="Color.Primary" Label="Add terminal bit extrapolation" />
-                    </MudItem>
-                    @if (surveyRun.BitExtrapolation is { } bitExtrapolation)
-                    {
-                        <MudItem xs="12" md="4">
-                            <MudSelect T="SurveyRunBitExtrapolationMode" Label="Bit-station source"
-                                       Value="@bitExtrapolation.Mode" ValueChanged="OnBitExtrapolationModeChanged" ShrinkLabel>
-                                <MudSelectItem T="SurveyRunBitExtrapolationMode" Value="SurveyRunBitExtrapolationMode.CalculateFromLastMeasurement">Calculate from last measurement</MudSelectItem>
-                                <MudSelectItem T="SurveyRunBitExtrapolationMode" Value="SurveyRunBitExtrapolationMode.LastStationAlreadyExtrapolated">Last row is already extrapolated</MudSelectItem>
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="12" md="3">
-                            <MudInputWithUnit QuantityName="DepthDrilling"
-                                              SIValueNullable="@((double?)bitExtrapolation.MeasurementToolToBitDistance)"
-                                              SIValueNullableChanged="OnMeasurementToolToBitDistanceChanged"
-                                              Label="Measurement tool to bit distance" />
-                        </MudItem>
-                        <MudItem xs="12">
-                            <MudText Typo="Typo.caption">
-                                The distance is stored in SI metres. The run calculation method continues the last measured curve;
-                                a run with one measured station uses a straight extension. The extrapolated bit station is not a new instrument measurement.
-                            </MudText>
-                        </MudItem>
-                    }
-                </MudGrid>
-            </MudPaper>
 
             <IdentityFeatureAssignments IdentityAssignments="surveyRun.SurveyRunIdentityAssignments"
                                         FeatureAssignments="surveyRun.SurveyRunFeatureAssignments" />
@@ -303,12 +242,70 @@
 
             <MudToolBar Class="mt-4">
                 <MudText Typo="Typo.h6">Survey measurements</MudText>
-                <MudSpacer />
-                <MudButton OnClick="ExportSurveyStationsAsync" Color="@Color.Primary" Variant="Variant.Outlined" Class="add-item-btn">Export</MudButton>
-                <MudButton OnClick="@AddSurveyStation" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
-                <MudButton OnClick="@DeleteSurveyStations" Color="@Color.Error" Class="add-item-btn"
-                           Disabled="@(!selectedSurveyStations_.Any())">Delete</MudButton>
             </MudToolBar>
+            <MudPaper Class="pa-3 mb-2" Outlined="true">
+                <MudText Typo="Typo.subtitle2" Class="mb-2">Survey measurement settings</MudText>
+                <MudGrid>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="TrajectoryCalculationType" Label="Calculation method" Value="@surveyRun.CalculationType" ValueChanged="OnCalculationTypeChanged" ShrinkLabel>
+                            @foreach (TrajectoryCalculationType method in TrajectoryCalculationTypes)
+                            {
+                                <MudSelectItem T="TrajectoryCalculationType" Value="@method">@GetCalculationMethodLabel(method)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="SurveyInclinationReference" Label="Observed inclination reference" Value="@surveyRun.DefaultInclinationReference" ValueChanged="OnDefaultInclinationReferenceChanged" ShrinkLabel>
+                            @foreach (SurveyInclinationReference value in Enum.GetValues<SurveyInclinationReference>().Where(value => value != SurveyInclinationReference.InheritRun))
+                            {
+                                <MudSelectItem T="SurveyInclinationReference" Value="@value">@GetInclinationReferenceLabel(value)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="SurveyAzimuthReference" Label="Observed azimuth reference" Value="@surveyRun.DefaultAzimuthReference" ValueChanged="OnDefaultAzimuthReferenceChanged" ShrinkLabel>
+                            @foreach (SurveyAzimuthReference value in Enum.GetValues<SurveyAzimuthReference>().Where(value => value != SurveyAzimuthReference.InheritRun))
+                            {
+                                <MudSelectItem T="SurveyAzimuthReference" Value="@value">@GetAzimuthReferenceLabel(value)</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudSelect T="SurveyGeomagneticModel" Label="Geomagnetic model" Value="@surveyRun.GeomagneticModel" ValueChanged="OnGeomagneticModelChanged" ShrinkLabel>
+                            @foreach (SurveyGeomagneticModel value in Enum.GetValues<SurveyGeomagneticModel>())
+                            {
+                                <MudSelectItem T="SurveyGeomagneticModel" Value="@value">@value</MudSelectItem>
+                            }
+                        </MudSelect>
+                    </MudItem>
+                    <MudItem xs="12" md="3">
+                        <MudSwitch T="bool" Value="@HasBitExtrapolation" ValueChanged="OnBitExtrapolationEnabledChanged"
+                                   Color="Color.Primary" Label="Add terminal bit extrapolation" />
+                    </MudItem>
+                    @if (surveyRun.BitExtrapolation is { } bitExtrapolation)
+                    {
+                        <MudItem xs="12" md="4">
+                            <MudSelect T="SurveyRunBitExtrapolationMode" Label="Bit-station source"
+                                       Value="@bitExtrapolation.Mode" ValueChanged="OnBitExtrapolationModeChanged" ShrinkLabel>
+                                <MudSelectItem T="SurveyRunBitExtrapolationMode" Value="SurveyRunBitExtrapolationMode.CalculateFromLastMeasurement">Calculate from last measurement</MudSelectItem>
+                                <MudSelectItem T="SurveyRunBitExtrapolationMode" Value="SurveyRunBitExtrapolationMode.LastStationAlreadyExtrapolated">Last row is already extrapolated</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudInputWithUnit QuantityName="DepthDrilling"
+                                              SIValueNullable="@((double?)bitExtrapolation.MeasurementToolToBitDistance)"
+                                              SIValueNullableChanged="OnMeasurementToolToBitDistanceChanged"
+                                              QuantityLabel="Measurement tool to bit distance" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudText Typo="Typo.caption">
+                                The survey run calculation method continues the last measured curve;
+                                a survey run with one measured station uses a straight extension. The extrapolated bit station is not a new instrument measurement.
+                            </MudText>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudPaper>
             <MudPaper Class="pa-3 mb-2" Outlined="true">
                 <MudText Typo="Typo.subtitle2" Class="mb-2">Apply to all survey measurements</MudText>
                 <MudGrid>
@@ -347,6 +344,15 @@
                 </MudGrid>
                 <MudText Typo="Typo.caption">An empty measurement time clears the time on every station. Individual rows remain editable after applying a bulk value.</MudText>
             </MudPaper>
+            <MudToolBar Dense="true" Class="mb-1">
+                <MudSpacer />
+                <MudButton OnClick="SaveSurveyRunAsync" Color="Color.Success" Variant="Variant.Filled"
+                           StartIcon="@Icons.Material.Filled.Calculate" Class="add-item-btn">Calculate</MudButton>
+                <MudButton OnClick="ExportSurveyStationsAsync" Color="@Color.Primary" Variant="Variant.Outlined" Class="add-item-btn">Export</MudButton>
+                <MudButton OnClick="@AddSurveyStation" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
+                <MudButton OnClick="@DeleteSurveyStations" Color="@Color.Error" Class="add-item-btn"
+                           Disabled="@(!selectedSurveyStations_.Any())">Delete</MudButton>
+            </MudToolBar>
             <MudTable Items="@SurveyMeasurements" MultiSelection="true" T="SurveyMeasurement"
                       @key="MeasurementReferenceRenderKey"
                       @bind-SelectedItems="selectedSurveyStations_"
@@ -394,8 +400,15 @@
                         </MudSelect>
                     </MudTd>
                     <MudTd DataLabel="Inclination correction">
-                        <MudInputWithUnit QuantityName="PlaneAngleDrilling" SIValueNullable="@context.Correction?.AppliedInclinationCorrection"
-                                          SIValueNullableChanged="@(val => OnInclinationCorrectionChanged(context, val))" Disabled="@IsExtrapolated(context)" />
+                        @if (IsExtrapolated(context))
+                        {
+                            @FormatAngleValue(context.Correction?.AppliedInclinationCorrection)
+                        }
+                        else
+                        {
+                            <MudInputWithUnit QuantityName="PlaneAngleDrilling" SIValueNullable="@context.Correction?.AppliedInclinationCorrection"
+                                              SIValueNullableChanged="@(val => OnInclinationCorrectionChanged(context, val))" />
+                        }
                     </MudTd>
                     <MudTd DataLabel="Geodetic inclination">@FormatAngleValue(context.Inclination)</MudTd>
                     <MudTd DataLabel="Observed azimuth">
@@ -411,8 +424,15 @@
                         </MudSelect>
                     </MudTd>
                     <MudTd DataLabel="Azimuth correction">
-                        <MudInputWithUnit QuantityName="PlaneAngleDrilling" SIValueNullable="@context.Correction?.AppliedAzimuthCorrection"
-                                          SIValueNullableChanged="@(val => OnAzimuthCorrectionChanged(context, val))" Disabled="@IsExtrapolated(context)" />
+                        @if (IsExtrapolated(context))
+                        {
+                            @FormatAngleValue(context.Correction?.AppliedAzimuthCorrection)
+                        }
+                        else
+                        {
+                            <MudInputWithUnit QuantityName="PlaneAngleDrilling" SIValueNullable="@context.Correction?.AppliedAzimuthCorrection"
+                                              SIValueNullableChanged="@(val => OnAzimuthCorrectionChanged(context, val))" />
+                        }
                     </MudTd>
                     <MudTd DataLabel="True-north azimuth">@FormatAngleValue(context.Azimuth)</MudTd>
                     <MudTd DataLabel="Measurement time UTC">
@@ -710,6 +730,7 @@
     private List<SurveyInstrumentLight>? surveyInstrumentList_;
 
     private bool isEditing_;
+    private bool isNavigationConfirmationOpen_;
     private bool hasRenderedUnitReference_;
     private string? cleanSurveyRunSnapshot_;
     private Guid? surveyRunIdBeingEdited_;
@@ -946,9 +967,8 @@
             var rigTask = Api.GetAllRigReferencesAsync();
             var surveyInstrumentTask = Api.ClientSurveyInstrument.GetAllSurveyInstrumentLightAsync();
             var surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
-            var surveyRunHeavyTask = Api.ClientTrajectory.GetAllSurveyRunAsync();
 
-            await Task.WhenAll(fieldTask, clusterTask, wellTask, wellBoreTask, rigTask, surveyInstrumentTask, surveyRunTask, surveyRunHeavyTask);
+            await Task.WhenAll(fieldTask, clusterTask, wellTask, wellBoreTask, rigTask, surveyInstrumentTask, surveyRunTask);
 
             fieldList_ = fieldTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
             clusterList_ = clusterTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
@@ -957,7 +977,7 @@
             rigList_ = rigTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
             surveyInstrumentList_ = surveyInstrumentTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
             allSurveyRunList_ = surveyRunTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
-            allSurveyRunHeavyList_ = surveyRunHeavyTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
+            allSurveyRunHeavyList_ = [];
             surveyRunList_ = ApplySurveyRunFilters();
             gridKey_++;
             StartCalculationPollingIfNeeded();
@@ -1091,6 +1111,7 @@
         ResetCalculatedStationLoadingState();
         EnsureSurveyImportUnitsSelected();
         await UpdateSelectedSurveyRunReferenceSourceAsync();
+        await LoadParentSurveyRunsAsync();
         UpdatePlots();
         MarkSurveyRunClean();
         isEditing_ = true;
@@ -1123,6 +1144,7 @@
             ResetCalculatedStationLoadingState();
             EnsureSurveyImportUnitsSelected();
             await UpdateSelectedSurveyRunReferenceSourceAsync();
+            await LoadParentSurveyRunsAsync();
             UpdatePlots();
             MarkSurveyRunClean();
         }
@@ -1352,7 +1374,7 @@
             selectedParentSurveyRunId_ = currentSurveyRun_.ParentSurveyRunID;
             selectedSurveyStations_.Clear();
             allSurveyRunList_ = ((IEnumerable<SurveyRunLight>)await Api.ClientTrajectory.GetAllSurveyRunLightAsync()).OrderBy(item => item.Name).ToList();
-            allSurveyRunHeavyList_ = ((IEnumerable<SurveyRun>)await Api.ClientTrajectory.GetAllSurveyRunAsync()).OrderBy(item => item.Name).ToList();
+            await LoadParentSurveyRunsAsync();
             surveyRunList_ = ApplySurveyRunFilters();
             UpdatePlots();
             MarkSurveyRunClean();
@@ -1476,6 +1498,11 @@
             DefaultInclinationReference = currentSurveyRun_?.DefaultInclinationReference,
             DefaultAzimuthReference = currentSurveyRun_?.DefaultAzimuthReference,
             GeomagneticModel = currentSurveyRun_?.GeomagneticModel,
+            BitExtrapolation = currentSurveyRun_?.BitExtrapolation == null ? null : new
+            {
+                currentSurveyRun_.BitExtrapolation.Mode,
+                currentSurveyRun_.BitExtrapolation.MeasurementToolToBitDistance
+            },
             SelectedFieldId = selectedFieldId_,
             SelectedClusterId = selectedClusterId_,
             SelectedWellId = selectedWellId_,
@@ -1509,6 +1536,7 @@
                 .Select(measurement => new
                 {
                     measurement.MeasurementID,
+                    measurement.Origin,
                     measurement.MD,
                     measurement.Inclination,
                     measurement.Azimuth,
@@ -1611,9 +1639,45 @@
             "Unsaved changes",
             "Some changes have not been saved. Close without saving?",
             yesText: "Close without saving",
-            cancelText: "Stay");
+            cancelText: "Stay",
+            options: new DialogOptions
+            {
+                MaxWidth = MaxWidth.ExtraSmall,
+                FullWidth = false,
+                CloseOnEscapeKey = true
+            });
 
         return result == true;
+    }
+
+    private async Task OnBeforeInternalNavigationAsync(LocationChangingContext context)
+    {
+        if (!HasUnsavedSurveyRunChanges())
+        {
+            return;
+        }
+
+        if (isNavigationConfirmationOpen_)
+        {
+            context.PreventNavigation();
+            return;
+        }
+
+        isNavigationConfirmationOpen_ = true;
+        try
+        {
+            if (!await ConfirmCloseWithoutSavingAsync())
+            {
+                context.PreventNavigation();
+                return;
+            }
+
+            cleanSurveyRunSnapshot_ = null;
+        }
+        finally
+        {
+            isNavigationConfirmationOpen_ = false;
+        }
     }
 
     private static string GetSurveyRunDisplayName(SurveyRunLight surveyRun)
@@ -1713,6 +1777,7 @@
     {
         selectedWellBoreId_ = wellBoreId;
         await UpdateSelectedSurveyRunReferenceSourceAsync();
+        await LoadParentSurveyRunsAsync();
         ClearInvalidParentSurveyRunSelection();
         ClearCalculatedSurveyRunData();
         UpdatePlots();
@@ -2316,6 +2381,18 @@
         MarkCorrectionPending(measurement);
         ClearCalculatedSurveyRunData();
         UpdatePlots();
+    }
+
+    private async Task LoadParentSurveyRunsAsync()
+    {
+        Guid? wellBoreFilter = IsSelectedWellBoreSidetrack()
+            ? GetSelectedWellBore()?.ParentWellBoreID
+            : null;
+        allSurveyRunHeavyList_ = ((IEnumerable<SurveyRun>)await Api.ClientTrajectory.GetAllSurveyRunAsync(
+                wellBoreId: wellBoreFilter))
+            .Where(item => item?.MetaInfo != null)
+            .OrderBy(item => item.Name)
+            .ToList();
     }
 
     private void OnObservedAzimuthChanged(SurveyMeasurement measurement, double? value)

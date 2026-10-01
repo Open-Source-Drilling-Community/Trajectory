@@ -198,9 +198,37 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
         public List<SurveyRunLight>? GetAllSurveyRunLight(Guid? fieldId = null, Guid? clusterId = null, Guid? wellId = null, Guid? wellBoreId = null, Guid? surveyInstrumentId = null, SurveyRunType? surveyRunType = null)
         {
-            return GetAllSurveyRun(fieldId, clusterId, wellId, wellBoreId, surveyInstrumentId, surveyRunType)?
-                .Select(CreateDataLightInstance)
-                .ToList();
+            List<SurveyRunLight> values = [];
+            using SqliteConnection? connection = _connectionManager.GetConnection();
+            if (connection == null)
+            {
+                _logger.LogWarning("Impossible to access the SQLite database");
+                return null;
+            }
+
+            SqliteCommand command = connection.CreateCommand();
+            command.CommandText = "SELECT SurveyRun FROM SurveyRunTable" +
+                BuildFilterClause(fieldId, clusterId, wellId, wellBoreId, surveyInstrumentId, surveyRunType);
+            AddFilterParameters(command, fieldId, clusterId, wellId, wellBoreId, surveyInstrumentId, surveyRunType);
+            try
+            {
+                using SqliteDataReader reader = command.ExecuteReader();
+                while (reader.Read() && !reader.IsDBNull(0))
+                {
+                    SurveyRun? surveyRun = JsonSerializer.Deserialize<SurveyRun>(reader.GetString(0), JsonSettings.Options);
+                    if (surveyRun != null)
+                    {
+                        // Lightweight discovery must not read the separately stored calculated-station chunks.
+                        values.Add(CreateDataLightInstance(surveyRun));
+                    }
+                }
+                return values;
+            }
+            catch (SqliteException ex)
+            {
+                _logger.LogError(ex, "Impossible to get lightweight Survey Runs from SurveyRunTable");
+                return null;
+            }
         }
 
         public Task<bool> AddSurveyRun(SurveyRun? surveyRun)
