@@ -166,6 +166,53 @@ public class TrajectoryExtrapolationCalculatorTests
     }
 
     [Test]
+    public void WellPathFailureExplainsAConstraintWithNoSensitivityToTheRemainingUnknown()
+    {
+        TrajectoryModel source = SourceTrajectory(Station(
+            1082.0,
+            20.5 * System.Math.PI / 180.0,
+            167.0 * System.Math.PI / 180.0,
+            1033.65,
+            -286.46,
+            43.70));
+        TrajectoryExtrapolationCase calculation = Case(
+            TrajectoryExtrapolationMode.WellPath,
+            new WellPathExtrapolationSpecification
+            {
+                SectionList =
+                [
+                    new ConstantBuildAndTurnWellPathSectionSpecification
+                    {
+                        Length = 30.0,
+                        BuildRate = 4.1 * System.Math.PI / 180.0 / 30.0,
+                        TurnRate = -3.1 * System.Math.PI / 180.0 / 30.0
+                    },
+                    new CircularArcWellPathSectionSpecification
+                    {
+                        Curvature = 0.0,
+                        StartToolface = 0.0
+                    },
+                    new ConstantCurvatureAndToolfaceWellPathSectionSpecification
+                    {
+                        Length = 30.0,
+                        EndInclination = 35.0 * System.Math.PI / 180.0,
+                        Curvature = 3.0 * System.Math.PI / 180.0 / 30.0,
+                        Toolface = 25.0 * System.Math.PI / 180.0
+                    }
+                ]
+            });
+
+        bool success = TrajectoryExtrapolationCalculator.Calculate(calculation, source, _ => null);
+
+        Assert.That(success, Is.False);
+        Assert.That(calculation.CalculationMessage, Does.Contain("run of sections ending at section 3"));
+        Assert.That(calculation.CalculationMessage, Does.Contain("end inclination of section 3"));
+        Assert.That(calculation.CalculationMessage, Does.Contain("has no sensitivity"));
+        Assert.That(calculation.CalculationMessage, Does.Contain("length of section 2"));
+        Assert.That(calculation.CalculationMessage, Does.Contain("requested 35"));
+    }
+
+    [Test]
     public void ReconnectFindsClosestReferencePointAdvancesAndReachesTargetTangent()
     {
         TrajectoryModel source = SourceTrajectory(

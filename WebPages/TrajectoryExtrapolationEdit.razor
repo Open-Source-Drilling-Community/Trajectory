@@ -60,6 +60,50 @@
 </MudGrid>
 
 <MudPaper Class="pa-4 mt-4" Outlined="true">
+    <MudText Typo="Typo.subtitle1" Class="mb-2">Starting survey station</MudText>
+    @if (isLoadingSourceLastSurveyStation)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Info" />
+        <MudText Typo="Typo.caption">Loading the final calculated station of the source trajectory…</MudText>
+    }
+    else if (sourceLastSurveyStation is SurveyStation startingStation)
+    {
+        <MudTable Items="@(new[] { startingStation })" T="SurveyStation" Dense="true" Bordered="true" ReadOnly="true">
+            <HeaderContent>
+                <MudTh>@DepthHeader("MD")</MudTh>
+                <MudTh>@InclinationHeader("Incl")</MudTh>
+                <MudTh>@AzimuthHeader("Az")</MudTh>
+                <MudTh>@DepthHeader("TVD")</MudTh>
+                <MudTh>@PositionHeader(NorthCoordinateLabel)</MudTh>
+                <MudTh>@PositionHeader(EastCoordinateLabel)</MudTh>
+                <MudTh>@CurvatureHeader("DLS")</MudTh>
+                <MudTh>@CurvatureHeader("BUR")</MudTh>
+                <MudTh>@CurvatureHeader("TR")</MudTh>
+                <MudTh>@LengthHeader("Vertical section")</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd DataLabel="MD"><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.MD" /></MudTd>
+                <MudTd DataLabel="Incl"><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Inclination" /></MudTd>
+                <MudTd DataLabel="Az"><MudSpanWithUnit QuantityName="PlaneAngleDrilling" DrillingSignalReference="DrillingSignalReferenceType.Azimuth" SIValue="@context.Azimuth" /></MudTd>
+                <MudTd DataLabel="TVD"><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.TVD" /></MudTd>
+                <MudTd DataLabel="@NorthCoordinateLabel"><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.North" SIValue="@context.RiemannianNorth" /></MudTd>
+                <MudTd DataLabel="@EastCoordinateLabel"><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.East" SIValue="@context.RiemannianEast" /></MudTd>
+                <MudTd DataLabel="DLS"><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.Curvature" /></MudTd>
+                <MudTd DataLabel="BUR"><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.BUR" /></MudTd>
+                <MudTd DataLabel="TR"><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.TUR" /></MudTd>
+                <MudTd DataLabel="Vertical section"><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.VerticalSection" /></MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+    else
+    {
+        <MudText Typo="Typo.body2">@(string.IsNullOrWhiteSpace(sourceLastSurveyStationError)
+            ? "Select a calculated source trajectory to show its final survey station."
+            : sourceLastSurveyStationError)</MudText>
+    }
+</MudPaper>
+
+<MudPaper Class="pa-4 mt-4" Outlined="true">
     @if (value.Specification is FixedLengthExtrapolationSpecification fixedLength)
     {
         <MudGrid>
@@ -150,13 +194,68 @@
             </RowTemplate>
         </MudTable>
         <MudText Typo="Typo.caption" Color="@(ConstraintCount == 3 * wellPath.SectionList.Count ? Color.Success : Color.Warning)">Constraints: @ConstraintCount / @(3 * wellPath.SectionList.Count)</MudText>
+
+        <MudText Typo="Typo.subtitle1" Class="mt-4 mb-2">Calculated well path</MudText>
+        <MudText Typo="Typo.caption" Class="mb-2">Values supplied as well-path input constraints are shown in bold.</MudText>
+        @if (value.CalculationState is CalculationState.Queued or CalculationState.Running)
+        {
+            <MudProgressLinear Value="@(100 * value.CalculationProgress)" />
+        }
+        else if (WellPathSolvedSections.Count > 0)
+        {
+            <MudTable T="TrajectoryExtrapolationSolvedSection" Items="@WellPathSolvedSections"
+                      Dense="true" Bordered="true" Hover="true" ReadOnly="true" Style="overflow-x:auto">
+                <HeaderContent>
+                    <MudTh>#</MudTh>
+                    <MudTh>Curve</MudTh>
+                    <MudTh>@LengthHeader("Length")</MudTh>
+                    <MudTh>@DepthHeader("End MD")</MudTh>
+                    <MudTh>@InclinationHeader("End incl")</MudTh>
+                    <MudTh>@AzimuthHeader("End az")</MudTh>
+                    <MudTh>@DepthHeader("End TVD")</MudTh>
+                    <MudTh>@PositionHeader($"End {NorthCoordinateLabel}")</MudTh>
+                    <MudTh>@PositionHeader($"End {EastCoordinateLabel}")</MudTh>
+                    <MudTh>@CurvatureHeader("CA curvature")</MudTh>
+                    <MudTh>@PlaneAngleHeader("CA start toolface")</MudTh>
+                    <MudTh>@CurvatureHeader("Build rate")</MudTh>
+                    <MudTh>@CurvatureHeader("Turn rate")</MudTh>
+                    <MudTh>@CurvatureHeader("Curvature")</MudTh>
+                    <MudTh>@PlaneAngleHeader("Toolface")</MudTh>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="#">@(context.SectionIndex + 1)</MudTd>
+                    <MudTd DataLabel="Curve">@context.CurveType</MudTd>
+                    <MudTd DataLabel="Length" Style="@WellPathInputStyle(context.SectionID, WellPathResultValue.Length)"><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.Length" /></MudTd>
+                    <MudTd DataLabel="End MD"><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.EndMD" /></MudTd>
+                    <MudTd DataLabel="End incl" Style="@WellPathInputStyle(context.SectionID, WellPathResultValue.EndInclination)"><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.End?.Inclination" /></MudTd>
+                    <MudTd DataLabel="End az" Style="@WellPathInputStyle(context.SectionID, WellPathResultValue.EndAzimuth)"><MudSpanWithUnit QuantityName="PlaneAngleDrilling" DrillingSignalReference="DrillingSignalReferenceType.Azimuth" SIValue="@context.End?.Azimuth" /></MudTd>
+                    <MudTd DataLabel="End TVD" Style="@WellPathInputStyle(context.SectionID, WellPathResultValue.EndVerticalDepth)"><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.End?.TVD" /></MudTd>
+                    <MudTd DataLabel="@($"End {NorthCoordinateLabel}")" Style="@WellPathInputStyle(context.SectionID, WellPathResultValue.EndNorth)"><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.North" SIValue="@context.End?.RiemannianNorth" /></MudTd>
+                    <MudTd DataLabel="@($"End {EastCoordinateLabel}")" Style="@WellPathInputStyle(context.SectionID, WellPathResultValue.EndEast)"><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.East" SIValue="@context.End?.RiemannianEast" /></MudTd>
+                    <MudTd DataLabel="CA curvature" Style="@WellPathInputStyle(context.SectionID, WellPathResultValue.CircularArcCurvature)"><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.CircularArcCurvature" /></MudTd>
+                    <MudTd DataLabel="CA start toolface" Style="@WellPathInputStyle(context.SectionID, WellPathResultValue.CircularArcStartToolface)"><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.CircularArcStartToolface" /></MudTd>
+                    <MudTd DataLabel="Build rate" Style="@WellPathInputStyle(context.SectionID, WellPathResultValue.BuildRate)"><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.ConstantBuildRate" /></MudTd>
+                    <MudTd DataLabel="Turn rate" Style="@WellPathInputStyle(context.SectionID, WellPathResultValue.TurnRate)"><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.ConstantTurnRate" /></MudTd>
+                    <MudTd DataLabel="Curvature" Style="@WellPathInputStyle(context.SectionID, WellPathResultValue.ConstantCurvature)"><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.ConstantCurvature" /></MudTd>
+                    <MudTd DataLabel="Toolface" Style="@WellPathInputStyle(context.SectionID, WellPathResultValue.ConstantToolface)"><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.ConstantToolface" /></MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+        else if (value.CalculationState == CalculationState.Failed)
+        {
+            <MudAlert Severity="Severity.Error" Dense="true">@value.CalculationMessage</MudAlert>
+        }
+        else
+        {
+            <MudText Typo="Typo.body2">Save and calculate to show the solved well-path sections.</MudText>
+        }
     }
 </MudPaper>
 
 <MudPaper Class="pa-4 mt-4" Outlined="true">
     <MudText Typo="Typo.subtitle1">Calculation: @value.CalculationState @value.CalculationMessage</MudText>
     @if (value.CalculationState is CalculationState.Queued or CalculationState.Running) { <MudProgressLinear Value="@(100 * value.CalculationProgress)" /> }
-    @if (value.SolvedSectionList is { Count: > 0 })
+    @if (value.Mode != TrajectoryExtrapolationMode.WellPath && value.SolvedSectionList is { Count: > 0 })
     {
         <MudTable Items="@value.SolvedSectionList" T="TrajectoryExtrapolationSolvedSection" Dense="true" Bordered="true">
             <HeaderContent>
@@ -254,12 +353,31 @@
     private Guid? sourceClusterId;
     private Guid? sourceWellId;
     private Guid? sourceWellBoreId;
+    private SurveyStation? sourceLastSurveyStation;
+    private bool isLoadingSourceLastSurveyStation;
+    private string? sourceLastSurveyStationError;
+    private int sourceLastSurveyStationLoadVersion;
     private int stationCount;
     private readonly List<SurveyStation> interpolatedExtrapolationStations = [];
     private bool isLoadingSurveyStations;
     private int loadedSurveyStationChunkCount;
     private int totalSurveyStationChunkCount;
     private enum GeosteeringExtentChoice { Departure, DrilledLength }
+    private enum WellPathResultValue
+    {
+        Length,
+        EndInclination,
+        EndAzimuth,
+        EndVerticalDepth,
+        EndNorth,
+        EndEast,
+        CircularArcCurvature,
+        CircularArcStartToolface,
+        BuildRate,
+        TurnRate,
+        ConstantCurvature,
+        ConstantToolface
+    }
 
     private double SurveyStationLoadingProgressPercent => totalSurveyStationChunkCount == 0
         ? 0
@@ -288,6 +406,7 @@
                 value = await Api.ClientTrajectory.GetTrajectoryExtrapolationCaseByIdAsync(id, false);
                 InitializeSourceHierarchy();
                 await UpdateSourceReferenceValuesAsync();
+                await LoadSourceLastSurveyStationAsync(SelectedSourceTrajectoryId);
                 if (value.CalculationState is CalculationState.Queued or CalculationState.Running) _ = PollAsync();
                 else await LoadSurveyStationsAsync();
             }
@@ -368,6 +487,7 @@
 
     private async Task OnSourceFieldChanged(Guid? id)
     {
+        ClearSourceLastSurveyStation();
         sourceFieldId = id;
         sourceClusterId = null;
         sourceWellId = null;
@@ -378,6 +498,7 @@
 
     private async Task OnSourceClusterChanged(Guid? id)
     {
+        ClearSourceLastSurveyStation();
         sourceClusterId = id;
         sourceWellId = null;
         sourceWellBoreId = null;
@@ -387,6 +508,7 @@
 
     private async Task OnSourceWellChanged(Guid? id)
     {
+        ClearSourceLastSurveyStation();
         sourceWellId = id;
         sourceWellBoreId = null;
         value.SourceTrajectoryID = Guid.Empty;
@@ -395,6 +517,7 @@
 
     private async Task OnSourceWellBoreChanged(Guid? id)
     {
+        ClearSourceLastSurveyStation();
         sourceWellBoreId = id;
         value.SourceTrajectoryID = Guid.Empty;
         await UpdateSourceReferenceValuesAsync();
@@ -402,8 +525,75 @@
 
     private async Task OnSourceTrajectoryChanged(Guid? id)
     {
+        ClearSourceLastSurveyStation();
         value.SourceTrajectoryID = id ?? Guid.Empty;
+        Task startingStationTask = LoadSourceLastSurveyStationAsync(SelectedSourceTrajectoryId);
         await UpdateSourceReferenceValuesAsync();
+        await startingStationTask;
+    }
+
+    private void ClearSourceLastSurveyStation()
+    {
+        sourceLastSurveyStationLoadVersion++;
+        sourceLastSurveyStation = null;
+        sourceLastSurveyStationError = null;
+        isLoadingSourceLastSurveyStation = false;
+    }
+
+    private async Task LoadSourceLastSurveyStationAsync(Guid? trajectoryId)
+    {
+        int loadVersion = ++sourceLastSurveyStationLoadVersion;
+        sourceLastSurveyStation = null;
+        sourceLastSurveyStationError = null;
+        isLoadingSourceLastSurveyStation = trajectoryId is Guid id && id != Guid.Empty;
+        await InvokeAsync(StateHasChanged);
+
+        if (trajectoryId is not Guid sourceTrajectoryId || sourceTrajectoryId == Guid.Empty)
+        {
+            return;
+        }
+
+        try
+        {
+            int chunkCount = await Api.ClientTrajectory.GetTrajectorySurveyStationChunkCountAsync(sourceTrajectoryId);
+            for (int chunkIndex = chunkCount - 1; chunkIndex >= 0; chunkIndex--)
+            {
+                SurveyStationChunk chunk = await Api.ClientTrajectory.GetTrajectorySurveyStationChunkAsync(sourceTrajectoryId, chunkIndex);
+                SurveyStation? lastStation = chunk.SurveyStationList?
+                    .Where(station => station != null)
+                    .OrderBy(station => station.MD)
+                    .LastOrDefault();
+                if (lastStation != null)
+                {
+                    if (loadVersion == sourceLastSurveyStationLoadVersion && SelectedSourceTrajectoryId == sourceTrajectoryId)
+                    {
+                        sourceLastSurveyStation = lastStation;
+                    }
+                    return;
+                }
+            }
+
+            if (loadVersion == sourceLastSurveyStationLoadVersion)
+            {
+                sourceLastSurveyStationError = "The selected trajectory has no calculated survey stations.";
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Unable to load the final calculated station of source trajectory {TrajectoryId}", sourceTrajectoryId);
+            if (loadVersion == sourceLastSurveyStationLoadVersion)
+            {
+                sourceLastSurveyStationError = "The starting survey station could not be loaded.";
+            }
+        }
+        finally
+        {
+            if (loadVersion == sourceLastSurveyStationLoadVersion)
+            {
+                isLoadingSourceLastSurveyStation = false;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
     }
 
     private Guid? FindFieldId(Well well) =>
@@ -449,6 +639,48 @@
     private string PlaneAngleHeader(string name) => $"{name} [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]";
 
     private IEnumerable<TrajectoryLight> ReferenceTrajectories => trajectories.Where(x => x.MetaInfo.ID != value.SourceTrajectoryID);
+    private List<TrajectoryExtrapolationSolvedSection> WellPathSolvedSections => value.SolvedSectionList?
+        .Where(section => section.Role == TrajectoryExtrapolationSectionRole.WellPathSection)
+        .OrderBy(section => section.SectionIndex)
+        .ToList() ?? [];
+
+    private string? WellPathInputStyle(Guid sectionId, WellPathResultValue resultValue)
+    {
+        if (value.Specification is not WellPathExtrapolationSpecification wellPath)
+        {
+            return null;
+        }
+
+        WellPathSectionSpecification? input = wellPath.SectionList.FirstOrDefault(section => section.SectionID == sectionId);
+        if (input == null)
+        {
+            return null;
+        }
+        bool wasInput = resultValue switch
+        {
+            WellPathResultValue.Length => input.Length.HasValue,
+            WellPathResultValue.EndInclination => input.EndInclination.HasValue,
+            WellPathResultValue.EndAzimuth => input.EndAzimuth.HasValue,
+            WellPathResultValue.EndVerticalDepth => input.EndVerticalDepth.HasValue,
+            WellPathResultValue.EndNorth => input.EndNorth.HasValue,
+            WellPathResultValue.EndEast => input.EndEast.HasValue,
+            WellPathResultValue.CircularArcCurvature =>
+                input is CircularArcWellPathSectionSpecification circularArc && circularArc.Curvature.HasValue,
+            WellPathResultValue.CircularArcStartToolface =>
+                input is CircularArcWellPathSectionSpecification circularArc && circularArc.StartToolface.HasValue,
+            WellPathResultValue.BuildRate =>
+                input is ConstantBuildAndTurnWellPathSectionSpecification buildAndTurn && buildAndTurn.BuildRate.HasValue,
+            WellPathResultValue.TurnRate =>
+                input is ConstantBuildAndTurnWellPathSectionSpecification buildAndTurn && buildAndTurn.TurnRate.HasValue,
+            WellPathResultValue.ConstantCurvature =>
+                input is ConstantCurvatureAndToolfaceWellPathSectionSpecification curvatureAndToolface && curvatureAndToolface.Curvature.HasValue,
+            WellPathResultValue.ConstantToolface =>
+                input is ConstantCurvatureAndToolfaceWellPathSectionSpecification curvatureAndToolface && curvatureAndToolface.Toolface.HasValue,
+            _ => false
+        };
+        return wasInput ? "font-weight: 700;" : null;
+    }
+
     private void SetInterval(double? interval) => value.InterpolationInterval = interval ?? 0;
     private void ModeChanged(TrajectoryExtrapolationMode mode)
     {

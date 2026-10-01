@@ -258,11 +258,20 @@ public sealed class WebPageComponentContractTests
         int sourceSelector = editor.IndexOf(">Trajectory to extrapolate<", StringComparison.Ordinal);
         int mode = editor.IndexOf("Label=\"Extrapolation mode\"", StringComparison.Ordinal);
         int interval = editor.IndexOf("QuantityLabel=\"Interpolation interval\"", StringComparison.Ordinal);
+        int startingStation = editor.IndexOf(">Starting survey station<", StringComparison.Ordinal);
+        int specification = editor.IndexOf("value.Specification is FixedLengthExtrapolationSpecification", StringComparison.Ordinal);
+        int wellPathInput = editor.IndexOf(">Well-path constraints<", StringComparison.Ordinal);
+        int wellPathResult = editor.IndexOf(">Calculated well path<", StringComparison.Ordinal);
+        int calculationPanel = editor.IndexOf("Calculation: @value.CalculationState", StringComparison.Ordinal);
 
         Assert.Multiple(() =>
         {
             Assert.That(mode, Is.GreaterThan(sourceSelector));
             Assert.That(interval, Is.GreaterThan(mode));
+            Assert.That(startingStation, Is.GreaterThan(interval));
+            Assert.That(startingStation, Is.LessThan(specification));
+            Assert.That(wellPathResult, Is.GreaterThan(wellPathInput));
+            Assert.That(wellPathResult, Is.LessThan(calculationPanel));
             Assert.That(main, Does.Contain("GroundMudLineDepthReferenceSource=\"@DataUtils.GroundMudLineDepthReferenceSource\""));
             Assert.That(main, Does.Contain("WellHeadPositionReferenceSource=\"@DataUtils.WellHeadPositionReferenceSource\""));
             Assert.That(main, Does.Contain("GridConvergenceSource=\"@DataUtils.GridConvergenceSource\""));
@@ -281,6 +290,20 @@ public sealed class WebPageComponentContractTests
             Assert.That(editor, Does.Contain("SIValue=\"@context.TUR\""));
             Assert.That(editor, Does.Contain("SIValue=\"@context.VerticalSection\""));
             Assert.That(editor, Does.Contain("interpolatedExtrapolationStations.AddRange(chunk.SurveyStationList)"));
+            Assert.That(editor, Does.Contain("Items=\"@(new[] { startingStation })\""));
+            Assert.That(editor, Does.Contain("GetTrajectorySurveyStationChunkCountAsync(sourceTrajectoryId)"));
+            Assert.That(editor, Does.Contain("for (int chunkIndex = chunkCount - 1; chunkIndex >= 0; chunkIndex--)"));
+            Assert.That(editor, Does.Contain("sourceLastSurveyStation = lastStation"));
+            Assert.That(editor, Does.Contain("Items=\"@WellPathSolvedSections\""));
+            Assert.That(editor, Does.Contain("section.Role == TrajectoryExtrapolationSectionRole.WellPathSection"));
+            Assert.That(editor, Does.Contain("SIValue=\"@context.End?.Inclination\""));
+            Assert.That(editor, Does.Contain("SIValue=\"@context.End?.RiemannianNorth\""));
+            Assert.That(editor, Does.Contain("Style=\"@WellPathInputStyle(context.SectionID, WellPathResultValue.Length)\""));
+            Assert.That(editor, Does.Contain("Style=\"@WellPathInputStyle(context.SectionID, WellPathResultValue.EndInclination)\""));
+            Assert.That(editor, Does.Contain("Style=\"@WellPathInputStyle(context.SectionID, WellPathResultValue.CircularArcCurvature)\""));
+            Assert.That(editor, Does.Contain("section.SectionID == sectionId"));
+            Assert.That(editor, Does.Contain("return wasInput ? \"font-weight: 700;\" : null;"));
+            Assert.That(editor, Does.Contain("value.Mode != TrajectoryExtrapolationMode.WellPath"));
         });
     }
 
