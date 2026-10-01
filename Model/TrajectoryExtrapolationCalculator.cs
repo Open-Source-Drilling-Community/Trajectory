@@ -144,7 +144,18 @@ namespace OSDC.Drilling.Trajectory.Model
                 calculation.CalculationMessage = "The straight extension could not be calculated.";
                 return false;
             }
-            AddSamples(calculation.SurveyStationList!, section, start.MD!.Value, end.MD!.Value, calculation.InterpolationInterval);
+            int firstExtensionStationIndex = calculation.SurveyStationList!.Count;
+            AddSamples(calculation.SurveyStationList, section, start.MD!.Value, end.MD!.Value, calculation.InterpolationInterval);
+            for (int index = firstExtensionStationIndex; index < calculation.SurveyStationList.Count; index++)
+            {
+                // A straight continuation has no dogleg, build, or turn. Stamp the exact values
+                // explicitly because section interpolation may carry diagnostics from its curved
+                // source endpoint into an otherwise straight zero-curvature segment.
+                calculation.SurveyStationList[index].Curvature = 0.0;
+                calculation.SurveyStationList[index].Toolface = 0.0;
+                calculation.SurveyStationList[index].BUR = 0.0;
+                calculation.SurveyStationList[index].TUR = 0.0;
+            }
             calculation.SolvedSectionList = [CreateSolvedSection(Guid.NewGuid(), 0,
                 TrajectoryExtrapolationSectionRole.FixedLengthExtension,
                 ExtrapolationCurveType.ConstantCurvatureAndToolface, start, section.End, section)];

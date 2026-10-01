@@ -41,6 +41,42 @@ public class TrajectoryExtrapolationCalculatorTests
     }
 
     [Test]
+    public void StraightExtensionRetainsSourceEndpointRatesAndWritesZeroRatesOnEveryNewSample()
+    {
+        SurveyStation sourceEndpoint = Station(1082.0, 20.5 * System.Math.PI / 180.0,
+            167.0 * System.Math.PI / 180.0, 1033.65, -286.46, 43.70);
+        sourceEndpoint.Curvature = 4.24 * System.Math.PI / 180.0 / 30.0;
+        sourceEndpoint.BUR = 4.10 * System.Math.PI / 180.0 / 30.0;
+        sourceEndpoint.TUR = -3.10 * System.Math.PI / 180.0 / 30.0;
+        sourceEndpoint.Toolface = 0.3;
+        sourceEndpoint.VerticalSection = 290.301;
+        TrajectoryModel source = SourceTrajectory(sourceEndpoint);
+        TrajectoryExtrapolationCase calculation = Case(
+            TrajectoryExtrapolationMode.FixedLength,
+            new FixedLengthExtrapolationSpecification
+            {
+                Length = 60.0,
+                ExtensionType = FixedLengthExtrapolationType.Straight
+            });
+
+        bool success = TrajectoryExtrapolationCalculator.Calculate(calculation, source, _ => null);
+
+        Assert.That(success, Is.True, calculation.CalculationMessage);
+        Assert.That(calculation.SurveyStationList, Has.Count.EqualTo(3));
+        Assert.Multiple(() =>
+        {
+            Assert.That(calculation.SurveyStationList![0].Curvature, Is.EqualTo(sourceEndpoint.Curvature));
+            Assert.That(calculation.SurveyStationList[0].BUR, Is.EqualTo(sourceEndpoint.BUR));
+            Assert.That(calculation.SurveyStationList[0].TUR, Is.EqualTo(sourceEndpoint.TUR));
+            Assert.That(calculation.SurveyStationList.Skip(1).All(station => station.Curvature == 0.0), Is.True);
+            Assert.That(calculation.SurveyStationList.Skip(1).All(station => station.BUR == 0.0), Is.True);
+            Assert.That(calculation.SurveyStationList.Skip(1).All(station => station.TUR == 0.0), Is.True);
+            Assert.That(calculation.SurveyStationList[1].VerticalSection, Is.GreaterThan(sourceEndpoint.VerticalSection!.Value));
+            Assert.That(calculation.SurveyStationList[2].VerticalSection, Is.GreaterThan(calculation.SurveyStationList[1].VerticalSection!.Value));
+        });
+    }
+
+    [Test]
     public void ContinueBuildAndTurnReconstructsTheLastInterval()
     {
         double tenDegrees = System.Math.PI / 18.0;
