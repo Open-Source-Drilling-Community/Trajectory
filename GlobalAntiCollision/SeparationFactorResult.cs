@@ -27,6 +27,9 @@ namespace OSDC.Drilling.GlobalAntiCollision
         [JsonConverter(typeof(SeparationFactorProfileJsonConverter))]
         public List<SeparationFactorPoint> SeparationFactorProfile { get; set; } = [];
 
+        /// <summary>Frozen policy decision and comparison-side evidence for this result.</summary>
+        public AntiCollisionPolicyEvaluation? PolicyEvaluation { get; set; }
+
         /// <summary>
         /// Default Constructor - required for deserialization
         /// </summary>
@@ -66,6 +69,7 @@ namespace OSDC.Drilling.GlobalAntiCollision
                 dest.ComparisonTrajectoryID = ComparisonTrajectoryID;
                 dest.ReferenceMDRange = ReferenceMDRange != null ? new MeasuredDepthRange(ReferenceMDRange) : null;
                 dest.ComparisonMDRange = ComparisonMDRange != null ? new MeasuredDepthRange(ComparisonMDRange) : null;
+                dest.PolicyEvaluation = PolicyEvaluation;
                 dest.SeparationFactorProfile ??= [];
                 dest.SeparationFactorProfile.Clear();
 

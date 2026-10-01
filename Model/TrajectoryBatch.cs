@@ -1,5 +1,6 @@
 using System;
 using System.Collections.Generic;
+using OSDC.Drilling.GlobalAntiCollision;
 
 namespace OSDC.Drilling.Trajectory.Model;
 
@@ -26,7 +27,7 @@ public sealed class TrajectoryBatchExportRequest
 public sealed class TrajectoryBatchExportDocument
 {
     public const string CurrentFormatIdentifier = "OSDC.Drilling.Trajectory.BatchExport";
-    public const int CurrentSchemaVersion = 1;
+    public const int CurrentSchemaVersion = 2;
 
     public string FormatIdentifier { get; set; } = CurrentFormatIdentifier;
     public int SchemaVersion { get; set; } = CurrentSchemaVersion;
@@ -34,6 +35,8 @@ public sealed class TrajectoryBatchExportDocument
     public TrajectoryBatchCatalogDependencies CatalogDependencies { get; set; } = new();
     public List<SurveyRun> SurveyRuns { get; set; } = [];
     public List<Trajectory> Trajectories { get; set; } = [];
+    public List<AntiCollisionPolicyRevision> AntiCollisionPolicyRevisions { get; set; } = [];
+    public List<FieldAntiCollisionPolicyAssignment> FieldAntiCollisionPolicyAssignments { get; set; } = [];
 }
 
 public sealed class TrajectoryBatchCatalogDependencies
@@ -76,9 +79,15 @@ public sealed class TrajectoryBatchRestoreResponse
     public int CreatedTrajectoryCount { get; set; }
     public int ReplacedTrajectoryCount { get; set; }
     public int CreatedCatalogDefinitionCount { get; set; }
+    public int CreatedAntiCollisionPolicyRevisionCount { get; set; }
+    public int ReplacedAntiCollisionPolicyRevisionCount { get; set; }
+    public int CreatedFieldPolicyAssignmentCount { get; set; }
+    public int ReplacedFieldPolicyAssignmentCount { get; set; }
     public List<TrajectoryBatchCatalogMapping> CatalogMappings { get; set; } = [];
     public List<Guid> SurveyRunIDs { get; set; } = [];
     public List<Guid> TrajectoryIDs { get; set; } = [];
+    public List<Guid> AntiCollisionPolicyRevisionIDs { get; set; } = [];
+    public List<Guid> FieldAntiCollisionPolicyAssignmentIDs { get; set; } = [];
 }
 
 public sealed class TrajectoryBatchCatalogMapping

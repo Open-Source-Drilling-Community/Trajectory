@@ -7,6 +7,9 @@ FROM mcr.microsoft.com/dotnet/sdk:8.0 AS build
 
 WORKDIR /src
 COPY ["Service/Service.csproj", "Service/"]
+COPY ["GlobalAntiCollision/GlobalAntiCollision.csproj", "GlobalAntiCollision/"]
+COPY ["Model/Model.csproj", "Model/"]
+COPY ["ModelSharedIn/ModelSharedIn.csproj", "ModelSharedIn/"]
 RUN dotnet restore "Service/Service.csproj"
 
 COPY . .

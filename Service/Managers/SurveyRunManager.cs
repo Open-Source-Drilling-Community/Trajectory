@@ -368,6 +368,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 return false;
             }
 
+            if (!ValidateBitExtrapolation(surveyRun, measurements))
+            {
+                return false;
+            }
+
             surveyRun.SurveyMeasurementList = measurements;
             surveyRun.SurveyStationList = null;
 
@@ -418,6 +423,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
 
             if (!ValidateSurveyMeasurementSequence(measurements, true))
+            {
+                return false;
+            }
+
+            if (!ValidateBitExtrapolation(surveyRun, measurements))
             {
                 return false;
             }
@@ -509,26 +519,40 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 return false;
             }
 
+            bool hasTerminalExtrapolation = surveyRun.BitExtrapolation != null && stations.Count > 1;
+            List<SurveyStation> uncertaintyStations = hasTerminalExtrapolation
+                ? stations.Take(stations.Count - 1).ToList()
+                : stations;
+            if (uncertaintyStations.Count == 0)
+            {
+                return false;
+            }
+
             OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument surveyTool = ConvertSurveyInstrument(surveyInstrument);
-            foreach (SurveyStation station in stations)
+            foreach (SurveyStation station in uncertaintyStations)
             {
                 station.SurveyTool = surveyTool;
             }
 
             try
             {
-                return surveyInstrument.ModelType switch
+                bool success = surveyInstrument.ModelType switch
                 {
                     OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.MWD_WolffDeWardt or
                     OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.Gyro_WolffDeWardt =>
-                        CovarianceCalculatorWolffDeWardt.Calculate(stations),
+                        CovarianceCalculatorWolffDeWardt.Calculate(uncertaintyStations),
 
                     OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.MWD_ISCWSA or
                     OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.Gyro_ISCWSA =>
-                        CovarianceCalculatorISCWSA.Calculate(stations),
+                        CovarianceCalculatorISCWSA.Calculate(uncertaintyStations),
 
                     _ => false
                 };
+                if (success && hasTerminalExtrapolation)
+                {
+                    CopyTerminalUncertainty(uncertaintyStations[^1], stations[^1]);
+                }
+                return success;
             }
             catch (Exception ex)
             {
@@ -581,6 +605,28 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             return true;
         }
 
+        private bool ValidateBitExtrapolation(SurveyRun surveyRun, List<SurveyMeasurement> measurements)
+        {
+            List<string> errors = SurveyRunBitExtrapolationValidation.Validate(surveyRun, measurements);
+            foreach (string error in errors)
+            {
+                _logger.LogWarning("Invalid SurveyRun bit extrapolation: {Error}", error);
+            }
+            if (errors.Count > 0) return false;
+            foreach (SurveyMeasurement measurement in measurements)
+                SurveyRunBitExtrapolationValidation.ClearNonMeasurementMetadata(measurement);
+            return true;
+        }
+
+        private static void CopyTerminalUncertainty(SurveyStation source, SurveyStation target)
+        {
+            target.SurveyTool = source.SurveyTool;
+            target.Covariance = source.Covariance;
+            target.Bias = source.Bias;
+            target.EigenValues = source.EigenValues;
+            target.EigenVectors = source.EigenVectors;
+        }
+
         private static List<SurveyMeasurement>? GetSurveyMeasurementList(SurveyRun surveyRun)
         {
             if (surveyRun.SurveyMeasurementList is { Count: > 0 } measurements)
@@ -591,11 +637,17 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     .ToList();
             }
 
-            return surveyRun.SurveyStationList?
+            List<SurveyMeasurement>? converted = surveyRun.SurveyStationList?
                 .Where(station => station != null)
                 .Select(SurveyMeasurement.FromSurveyStation)
                 .OrderBy(measurement => measurement.MD)
                 .ToList();
+            if (surveyRun.BitExtrapolation?.Mode == SurveyRunBitExtrapolationMode.LastStationAlreadyExtrapolated &&
+                converted is { Count: > 0 })
+            {
+                converted[^1].Origin = SurveyMeasurementOrigin.Extrapolated;
+            }
+            return converted;
         }
 
         private async Task<bool> ResolveTieInPointAsync(SurveyRun surveyRun)
@@ -709,7 +761,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     MD = md - parentTieInMd,
                     Inclination = measurement.Inclination,
                     Azimuth = measurement.Azimuth,
-                    Annotation = measurement.Annotation
+                    Annotation = measurement.Annotation,
+                    Origin = measurement.Origin
                 });
             }
 
@@ -1052,6 +1105,13 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             if (measurements is not { Count: > 0 })
             {
                 _logger.LogWarning("Impossible to commit SurveyRun measurement chunks: no measurements found");
+                return Task.FromResult(false);
+            }
+
+            if (!ValidateSurveyMeasurementSequence(measurements, true) ||
+                !ValidateBitExtrapolation(surveyRun, measurements))
+            {
+                _logger.LogWarning("Impossible to commit SurveyRun measurement chunks: the complete sequence or bit extrapolation is invalid");
                 return Task.FromResult(false);
             }
 

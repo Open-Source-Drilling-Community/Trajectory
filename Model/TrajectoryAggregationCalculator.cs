@@ -171,8 +171,8 @@ namespace OSDC.Drilling.Trajectory.Model
                 case TrajectoryAggregationSectionType.CircularArc:
                     return new CircularArcSection
                     {
-                        Start = new Geometry.CurvilinearPoint3D(start),
-                        End = end,
+                        Start = ToTrajectoryPoint(start),
+                        End = ToTrajectoryPoint(end),
                         Circle =
                         {
                             Curvature = fitted.FirstParameter,
@@ -182,8 +182,8 @@ namespace OSDC.Drilling.Trajectory.Model
                 case TrajectoryAggregationSectionType.ConstantBuildAndTurn:
                     return new BuildAndTurnArcSection
                     {
-                        Start = new Geometry.CurvilinearPoint3D(start),
-                        End = end,
+                        Start = ToTrajectoryPoint(start),
+                        End = ToTrajectoryPoint(end),
                         BuildAndTurn =
                         {
                             BUR = fitted.FirstParameter,
@@ -193,8 +193,8 @@ namespace OSDC.Drilling.Trajectory.Model
                 case TrajectoryAggregationSectionType.ConstantCurvatureAndToolface:
                     return new ConstantCurvatureAndToolfaceArcSection
                     {
-                        Start = new Geometry.CurvilinearPoint3D(start),
-                        End = end,
+                        Start = ToTrajectoryPoint(start),
+                        End = ToTrajectoryPoint(end),
                         CTCCurve =
                         {
                             Curvature = fitted.FirstParameter,
@@ -335,11 +335,21 @@ namespace OSDC.Drilling.Trajectory.Model
 
         private static CircularArcSection? CreateReferenceCircularArc(SurveyPoint start, SurveyPoint end)
         {
-            Geometry.CurvilinearPoint3D startPoint = ToCurvilinearPoint(start);
-            Geometry.CurvilinearPoint3D endPoint = ToCurvilinearPoint(end);
+            Geometry.TrajectoryPoint3D startPoint = ToTrajectoryPoint(ToCurvilinearPoint(start));
+            Geometry.TrajectoryPoint3D endPoint = ToTrajectoryPoint(ToCurvilinearPoint(end));
             CircularArcSection section = new(startPoint, endPoint);
             return section;
         }
+
+        private static Geometry.TrajectoryPoint3D ToTrajectoryPoint(Geometry.CurvilinearPoint3D point) => new()
+        {
+            Abscissa = point.Abscissa,
+            Inclination = point.Inclination,
+            Azimuth = point.Azimuth,
+            X = point.X,
+            Y = point.Y,
+            Z = point.Z
+        };
 
         private static List<TrajectoryAggregationDistanceResult> CalculateDistances(List<SurveyPoint> referencePoints, List<SectionRuntime> sectionChain)
         {

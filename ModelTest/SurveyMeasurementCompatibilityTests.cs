@@ -35,6 +35,7 @@ public class SurveyMeasurementCompatibilityTests
             Assert.That(measurement.Azimuth, Is.EqualTo(0.2));
             Assert.That(measurement.ObservedInclination, Is.Null);
             Assert.That(measurement.ObservedAzimuth, Is.Null);
+            Assert.That(measurement.Origin, Is.EqualTo(SurveyMeasurementOrigin.Measured));
         });
     }
 }

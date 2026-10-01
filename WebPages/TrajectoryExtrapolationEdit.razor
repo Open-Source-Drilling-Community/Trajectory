@@ -1,0 +1,221 @@
+@inject ILogger<TrajectoryExtrapolationEdit> logger
+@inject ISnackbar Snackbar
+@inject ITrajectoryAPIUtils Api
+
+<MudText Typo="Typo.h6" Class="mt-4 mb-3">Trajectory Extrapolation</MudText>
+<MudStack Row="true" Class="mb-4">
+    <MudButton Color="Color.Success" OnClick="SaveAsync">Save and calculate</MudButton>
+    <MudButton Color="Color.Error" OnClick="@(() => ValueChanged.InvokeAsync())">Close</MudButton>
+</MudStack>
+
+<MudGrid>
+    <MudItem xs="12" md="3"><MudTextField @bind-Value="value.Name" Label="Name" Required="true" /></MudItem>
+    <MudItem xs="12" md="3"><MudTextField @bind-Value="value.Description" Label="Description" /></MudItem>
+    <MudItem xs="12" md="3">
+        <MudSelect T="Guid" @bind-Value="value.SourceTrajectoryID" Label="Source trajectory" Required="true">
+            @foreach (TrajectoryLight item in trajectories) { <MudSelectItem T="Guid" Value="@item.MetaInfo.ID">@item.Name</MudSelectItem> }
+        </MudSelect>
+    </MudItem>
+    <MudItem xs="12" md="3">
+        <MudInputWithUnit QuantityLabel="Interpolation interval" QuantityName="DepthDrilling"
+                          SIValueNullable="@value.InterpolationInterval" SIValueNullableChanged="SetInterval" />
+    </MudItem>
+    <MudItem xs="12" md="3">
+        <MudSelect T="TrajectoryExtrapolationMode" Value="@value.Mode" ValueChanged="ModeChanged" Label="Extrapolation mode">
+            @foreach (TrajectoryExtrapolationMode mode in Enum.GetValues<TrajectoryExtrapolationMode>()) { <MudSelectItem Value="@mode">@mode</MudSelectItem> }
+        </MudSelect>
+    </MudItem>
+</MudGrid>
+
+<MudPaper Class="pa-4 mt-4" Outlined="true">
+    @if (value.Specification is FixedLengthExtrapolationSpecification fixedLength)
+    {
+        <MudGrid>
+            <MudItem xs="12" md="4"><MudInputWithUnit QuantityLabel="Extension length" QuantityName="DepthDrilling" SIValueNullable="@fixedLength.Length" SIValueNullableChanged="x => fixedLength.Length = x ?? 0" /></MudItem>
+            <MudItem xs="12" md="5"><MudSelect T="FixedLengthExtrapolationType" @bind-Value="fixedLength.ExtensionType" Label="Continuation"><MudSelectItem Value="FixedLengthExtrapolationType.Straight">Straight</MudSelectItem><MudSelectItem Value="FixedLengthExtrapolationType.ContinueCircularArc">Continue circular arc</MudSelectItem><MudSelectItem Value="FixedLengthExtrapolationType.ContinueConstantBuildAndTurn">Continue constant build and turn</MudSelectItem><MudSelectItem Value="FixedLengthExtrapolationType.ContinueConstantCurvatureAndToolface">Continue constant curvature and toolface</MudSelectItem></MudSelect></MudItem>
+        </MudGrid>
+    }
+    else if (value.Specification is ReconnectTrajectoryExtrapolationSpecification reconnect)
+    {
+        <MudGrid>
+            <MudItem xs="12" md="4"><MudSelect T="Guid" @bind-Value="reconnect.ReferenceTrajectoryID" Label="Reference trajectory">@foreach (TrajectoryLight item in ReferenceTrajectories) { <MudSelectItem Value="@item.MetaInfo.ID">@item.Name</MudSelectItem> }</MudSelect></MudItem>
+            <MudItem xs="12" md="3"><MudInputWithUnit QuantityLabel="Advance from closest reference point" QuantityName="DepthDrilling" SIValueNullable="@reconnect.ReferenceMDAdvance" SIValueNullableChanged="x => reconnect.ReferenceMDAdvance = x ?? 0" /></MudItem>
+            <MudItem xs="12" md="3"><MudInputWithUnit QuantityLabel="Lead-in continuation" QuantityName="DepthDrilling" SIValueNullable="@reconnect.LeadInLength" SIValueNullableChanged="x => reconnect.LeadInLength = x ?? 0" /></MudItem>
+            <MudItem xs="12" md="3"><MudSelect T="ExtrapolationCurveType" @bind-Value="reconnect.CurveType" Label="Double-section curve">@foreach (ExtrapolationCurveType type in Enum.GetValues<ExtrapolationCurveType>()) { <MudSelectItem Value="@type">@type</MudSelectItem> }</MudSelect></MudItem>
+            <MudItem xs="12" md="1"><MudNumericField T="int" @bind-Value="reconnect.AzimuthBranch" Label="Az branch" /></MudItem>
+            @if (reconnect.CurveType == ExtrapolationCurveType.ConstantBuildAndTurn) { <MudItem xs="12" md="2"><MudNumericField T="double" @bind-Value="reconnect.JunctionCurvatureRatio" Label="Curvature ratio" /></MudItem> }
+        </MudGrid>
+    }
+    else if (value.Specification is GeosteeringTrajectoryExtrapolationSpecification geosteering)
+    {
+        <MudText Typo="Typo.body2" Class="mb-3">
+            Departure and overall drilled length are measured from the final source-trajectory station. The lead-in continues the current source curve before the two RSS steering sections begin.
+        </MudText>
+        <MudGrid>
+            <MudItem xs="12" md="3"><MudInputWithUnit QuantityLabel="Lead-in continuation" QuantityName="DepthDrilling" SIValueNullable="@geosteering.LeadInLength" SIValueNullableChanged="x => geosteering.LeadInLength = x ?? 0" /></MudItem>
+            <MudItem xs="12" md="3"><MudInputWithUnit QuantityLabel="Target WGS84 vertical depth" QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValueNullable="@geosteering.TargetVerticalDepth" SIValueNullableChanged="x => geosteering.TargetVerticalDepth = x ?? 0" /></MudItem>
+            <MudItem xs="12" md="3"><MudInputWithUnit QuantityLabel="End inclination" QuantityName="PlaneAngleDrilling" SIValueNullable="@geosteering.EndInclination" SIValueNullableChanged="x => geosteering.EndInclination = x ?? 0" /></MudItem>
+            <MudItem xs="12" md="3"><MudInputWithUnit QuantityLabel="End true-north azimuth" QuantityName="PlaneAngleDrilling" DrillingSignalReference="DrillingSignalReferenceType.Azimuth" SIValueNullable="@geosteering.EndAzimuth" SIValueNullableChanged="x => geosteering.EndAzimuth = x ?? 0" /></MudItem>
+            <MudItem xs="12" md="3"><MudSelect T="ExtrapolationCurveType" @bind-Value="geosteering.CurveType" Label="Steering-section curve">@foreach (ExtrapolationCurveType type in Enum.GetValues<ExtrapolationCurveType>()) { <MudSelectItem Value="@type">@type</MudSelectItem> }</MudSelect></MudItem>
+            <MudItem xs="12" md="2"><MudNumericField T="int" @bind-Value="geosteering.AzimuthBranch" Label="Azimuth branch" /></MudItem>
+            <MudItem xs="12" md="3">
+                <MudSelect T="GeosteeringExtentChoice" Value="@ExtentChoice(geosteering)" ValueChanged="x => ChangeGeosteeringExtent(geosteering, x)" Label="Overall constraint">
+                    <MudSelectItem Value="GeosteeringExtentChoice.Departure">Departure and bearing</MudSelectItem>
+                    <MudSelectItem Value="GeosteeringExtentChoice.DrilledLength">Overall drilled length</MudSelectItem>
+                </MudSelect>
+            </MudItem>
+            @if (geosteering.Extent is DepartureGeosteeringExtentConstraint departure)
+            {
+                <MudItem xs="12" md="3"><MudInputWithUnit QuantityLabel="Overall departure" QuantityName="PositionDrilling" SIValueNullable="@departure.DepartureDistance" SIValueNullableChanged="x => departure.DepartureDistance = x ?? 0" /></MudItem>
+                <MudItem xs="12" md="3"><MudInputWithUnit QuantityLabel="Departure bearing" QuantityName="PlaneAngleDrilling" DrillingSignalReference="DrillingSignalReferenceType.Azimuth" SIValueNullable="@departure.DepartureBearing" SIValueNullableChanged="x => departure.DepartureBearing = x ?? 0" /></MudItem>
+            }
+            else if (geosteering.Extent is DrilledLengthGeosteeringExtentConstraint drilled)
+            {
+                <MudItem xs="12" md="3"><MudInputWithUnit QuantityLabel="Overall drilled length" QuantityName="DepthDrilling" SIValueNullable="@drilled.OverallDrilledLength" SIValueNullableChanged="x => drilled.OverallDrilledLength = x ?? 0" /></MudItem>
+                <MudItem xs="12" md="3"><MudNumericField T="double" @bind-Value="drilled.SteeringLengthRatio" Label="Upstream / downstream length ratio" Min="0.000001" /></MudItem>
+            }
+        </MudGrid>
+    }
+    else if (value.Specification is WellPathExtrapolationSpecification wellPath)
+    {
+        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+            <MudText Typo="Typo.subtitle1">Well-path constraints</MudText>
+            <MudButton Color="Color.Success" Size="Size.Small" OnClick="AddSection">Add section</MudButton>
+            <MudText Typo="Typo.caption">Specify exactly 3 × sections constraints; each section needs at least one, and no prefix may have more than 3 × its section count.</MudText>
+        </MudStack>
+        <MudTable T="WellPathSectionSpecification" Items="@wellPath.SectionList" Dense="true" Bordered="true" Hover="true" Style="overflow-x:auto">
+            <HeaderContent><MudTh>Curve</MudTh><MudTh>Length</MudTh><MudTh>Incl</MudTh><MudTh>Az</MudTh><MudTh>Vertical depth</MudTh><MudTh>North</MudTh><MudTh>East</MudTh><MudTh>CA curvature</MudTh><MudTh>CA start toolface</MudTh><MudTh>Build rate</MudTh><MudTh>Turn rate</MudTh><MudTh>Curvature</MudTh><MudTh>Toolface</MudTh><MudTh></MudTh></HeaderContent>
+            <RowTemplate>
+                <MudTd><MudSelect T="ExtrapolationCurveType" Value="@CurveType(context)" ValueChanged="x => ChangeCurve(context, x)" Dense="true">@foreach (ExtrapolationCurveType type in Enum.GetValues<ExtrapolationCurveType>()) { <MudSelectItem Value="@type">@type</MudSelectItem> }</MudSelect></MudTd>
+                <MudTd><MudInputWithUnit QuantityLabel="Length" QuantityName="DepthDrilling" SIValueNullable="@context.Length" SIValueNullableChanged="x => context.Length = x" /></MudTd>
+                <MudTd><MudInputWithUnit QuantityLabel="Incl" QuantityName="PlaneAngleDrilling" SIValueNullable="@context.EndInclination" SIValueNullableChanged="x => context.EndInclination = x" /></MudTd>
+                <MudTd><MudInputWithUnit QuantityLabel="Az" QuantityName="PlaneAngleDrilling" DrillingSignalReference="DrillingSignalReferenceType.Azimuth" SIValueNullable="@context.EndAzimuth" SIValueNullableChanged="x => context.EndAzimuth = x" /></MudTd>
+                <MudTd><MudInputWithUnit QuantityLabel="TVD" QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValueNullable="@context.EndVerticalDepth" SIValueNullableChanged="x => context.EndVerticalDepth = x" /></MudTd>
+                <MudTd><MudInputWithUnit QuantityLabel="North" QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.North" SIValueNullable="@context.EndNorth" SIValueNullableChanged="x => context.EndNorth = x" /></MudTd>
+                <MudTd><MudInputWithUnit QuantityLabel="East" QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.East" SIValueNullable="@context.EndEast" SIValueNullableChanged="x => context.EndEast = x" /></MudTd>
+                <MudTd>@if (context is CircularArcWellPathSectionSpecification ca) { <MudInputWithUnit QuantityLabel="CA curvature" QuantityName="CurvatureDrilling" SIValueNullable="@ca.Curvature" SIValueNullableChanged="x => ca.Curvature = x" /> }</MudTd>
+                <MudTd>@if (context is CircularArcWellPathSectionSpecification ca) { <MudInputWithUnit QuantityLabel="Start toolface" QuantityName="PlaneAngleDrilling" SIValueNullable="@ca.StartToolface" SIValueNullableChanged="x => ca.StartToolface = x" /> }</MudTd>
+                <MudTd>@if (context is ConstantBuildAndTurnWellPathSectionSpecification bt) { <MudInputWithUnit QuantityLabel="Build" QuantityName="CurvatureDrilling" SIValueNullable="@bt.BuildRate" SIValueNullableChanged="x => bt.BuildRate = x" /> }</MudTd>
+                <MudTd>@if (context is ConstantBuildAndTurnWellPathSectionSpecification bt) { <MudInputWithUnit QuantityLabel="Turn" QuantityName="CurvatureDrilling" SIValueNullable="@bt.TurnRate" SIValueNullableChanged="x => bt.TurnRate = x" /> }</MudTd>
+                <MudTd>@if (context is ConstantCurvatureAndToolfaceWellPathSectionSpecification ct) { <MudInputWithUnit QuantityLabel="Curvature" QuantityName="CurvatureDrilling" SIValueNullable="@ct.Curvature" SIValueNullableChanged="x => ct.Curvature = x" /> }</MudTd>
+                <MudTd>@if (context is ConstantCurvatureAndToolfaceWellPathSectionSpecification ct) { <MudInputWithUnit QuantityLabel="Toolface" QuantityName="PlaneAngleDrilling" SIValueNullable="@ct.Toolface" SIValueNullableChanged="x => ct.Toolface = x" /> }</MudTd>
+                <MudTd><MudIconButton Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => RemoveSection(context.SectionID))" /></MudTd>
+            </RowTemplate>
+        </MudTable>
+        <MudText Typo="Typo.caption" Color="@(ConstraintCount == 3 * wellPath.SectionList.Count ? Color.Success : Color.Warning)">Constraints: @ConstraintCount / @(3 * wellPath.SectionList.Count)</MudText>
+    }
+</MudPaper>
+
+<MudPaper Class="pa-4 mt-4" Outlined="true">
+    <MudText Typo="Typo.subtitle1">Calculation: @value.CalculationState @value.CalculationMessage</MudText>
+    @if (value.CalculationState is CalculationState.Queued or CalculationState.Running) { <MudProgressLinear Value="@(100 * value.CalculationProgress)" /> }
+    @if (value.SolvedSectionList is { Count: > 0 })
+    {
+        <MudTable Items="@value.SolvedSectionList" T="TrajectoryExtrapolationSolvedSection" Dense="true" Bordered="true">
+            <HeaderContent><MudTh>#</MudTh><MudTh>Role</MudTh><MudTh>Type</MudTh><MudTh>Length</MudTh><MudTh>End MD</MudTh><MudTh>CA curvature</MudTh><MudTh>CA toolface</MudTh><MudTh>Build</MudTh><MudTh>Turn</MudTh><MudTh>Curvature</MudTh><MudTh>Toolface</MudTh></HeaderContent>
+            <RowTemplate><MudTd>@context.SectionIndex</MudTd><MudTd>@context.Role</MudTd><MudTd>@context.CurveType</MudTd><MudTd><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.Length" /></MudTd><MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.EndMD" /></MudTd><MudTd>@context.CircularArcCurvature</MudTd><MudTd>@context.CircularArcStartToolface</MudTd><MudTd>@context.ConstantBuildRate</MudTd><MudTd>@context.ConstantTurnRate</MudTd><MudTd>@context.ConstantCurvature</MudTd><MudTd>@context.ConstantToolface</MudTd></RowTemplate>
+        </MudTable>
+        <MudText Typo="Typo.caption">@stationCount sampled stations available in chunked results.</MudText>
+    }
+</MudPaper>
+
+@code {
+    [Parameter] public Guid? CaseId { get; set; }
+    [Parameter] public EventCallback ValueChanged { get; set; }
+    private TrajectoryExtrapolationCase value = NewCase();
+    private List<TrajectoryLight> trajectories = [];
+    private int stationCount;
+    private enum GeosteeringExtentChoice { Departure, DrilledLength }
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            trajectories = (await Api.ClientTrajectory.GetAllTrajectoryLightAsync()).OrderBy(x => x.Name).ToList();
+            if (CaseId is Guid id) value = await Api.ClientTrajectory.GetTrajectoryExtrapolationCaseByIdAsync(id, false);
+            if (value.CalculationState is CalculationState.Queued or CalculationState.Running) _ = PollAsync();
+            else await LoadResultCountAsync();
+        }
+        catch (Exception ex) { logger.LogError(ex, "Unable to load trajectory extrapolation editor"); Snackbar.Add("Unable to load the extrapolation.", Severity.Error); }
+    }
+
+    private static TrajectoryExtrapolationCase NewCase() => new() { MetaInfo = PseudoConstructors.ConstructMetaInfo(), Name = "New extrapolation", InterpolationInterval = 30, Mode = TrajectoryExtrapolationMode.FixedLength, Specification = new FixedLengthExtrapolationSpecification { Length = 30, ExtensionType = FixedLengthExtrapolationType.Straight }, SolvedSectionList = [], SurveyStationList = [] };
+    private IEnumerable<TrajectoryLight> ReferenceTrajectories => trajectories.Where(x => x.MetaInfo.ID != value.SourceTrajectoryID);
+    private void SetInterval(double? interval) => value.InterpolationInterval = interval ?? 0;
+    private void ModeChanged(TrajectoryExtrapolationMode mode)
+    {
+        value.Mode = mode;
+        value.Specification = mode switch
+        {
+            TrajectoryExtrapolationMode.FixedLength => new FixedLengthExtrapolationSpecification { Length = 30 },
+            TrajectoryExtrapolationMode.ReconnectToTrajectory => new ReconnectTrajectoryExtrapolationSpecification { ReferenceMDAdvance = 30, JunctionCurvatureRatio = 1 },
+            TrajectoryExtrapolationMode.Geosteering => new GeosteeringTrajectoryExtrapolationSpecification
+            {
+                CurveType = ExtrapolationCurveType.ConstantCurvatureAndToolface,
+                Extent = new DrilledLengthGeosteeringExtentConstraint { OverallDrilledLength = 60, SteeringLengthRatio = 1 }
+            },
+            _ => new WellPathExtrapolationSpecification { SectionList = [] }
+        };
+    }
+
+    private static GeosteeringExtentChoice ExtentChoice(GeosteeringTrajectoryExtrapolationSpecification specification) =>
+        specification.Extent is DepartureGeosteeringExtentConstraint
+            ? GeosteeringExtentChoice.Departure
+            : GeosteeringExtentChoice.DrilledLength;
+
+    private static void ChangeGeosteeringExtent(GeosteeringTrajectoryExtrapolationSpecification specification,
+        GeosteeringExtentChoice choice)
+    {
+        specification.Extent = choice == GeosteeringExtentChoice.Departure
+            ? new DepartureGeosteeringExtentConstraint { DepartureDistance = 30 }
+            : new DrilledLengthGeosteeringExtentConstraint { OverallDrilledLength = 60, SteeringLengthRatio = 1 };
+    }
+
+    private async Task SaveAsync()
+    {
+        try
+        {
+            if (string.IsNullOrWhiteSpace(value.Name) || value.SourceTrajectoryID == Guid.Empty) { Snackbar.Add("Name and source trajectory are required.", Severity.Warning); return; }
+            DateTimeOffset? expected = value.LastModificationDate;
+            if (CaseId is Guid id) value = await Api.ClientTrajectory.PutTrajectoryExtrapolationCaseByIdAsync(id, ConcurrencyToken.Require(expected), value);
+            else { value.MetaInfo.ID = value.MetaInfo.ID == Guid.Empty ? Guid.NewGuid() : value.MetaInfo.ID; value = await Api.ClientTrajectory.PostTrajectoryExtrapolationCaseAsync(value); CaseId = value.MetaInfo.ID; }
+            Snackbar.Add("Extrapolation queued.", Severity.Success);
+            _ = PollAsync();
+        }
+        catch (ApiException ex) { logger.LogError(ex, "Unable to save trajectory extrapolation"); Snackbar.Add(ex.Response ?? ex.Message, Severity.Error); }
+    }
+
+    private async Task PollAsync()
+    {
+        if (value.MetaInfo.ID == Guid.Empty) return;
+        for (int i = 0; i < 120; i++)
+        {
+            await Task.Delay(TimeSpan.FromSeconds(2));
+            value = await Api.ClientTrajectory.GetTrajectoryExtrapolationCaseByIdAsync(value.MetaInfo.ID, false);
+            await InvokeAsync(StateHasChanged);
+            if (value.CalculationState is not (CalculationState.Queued or CalculationState.Running)) { await LoadResultCountAsync(); return; }
+        }
+    }
+
+    private async Task LoadResultCountAsync()
+    {
+        stationCount = 0;
+        if (value.MetaInfo.ID == Guid.Empty || value.CalculationState != CalculationState.Completed) return;
+        int chunks = await Api.ClientTrajectory.GetTrajectoryExtrapolationSurveyStationChunkCountAsync(value.MetaInfo.ID);
+        for (int i = 0; i < chunks; i++) stationCount += (await Api.ClientTrajectory.GetTrajectoryExtrapolationSurveyStationChunkAsync(value.MetaInfo.ID, i)).StationCount;
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private void AddSection() { if (value.Specification is WellPathExtrapolationSpecification p) p.SectionList.Add(new CircularArcWellPathSectionSpecification { SectionID = Guid.NewGuid(), Length = 30, Curvature = 0, StartToolface = 0 }); }
+    private void RemoveSection(Guid id) { if (value.Specification is WellPathExtrapolationSpecification p) p.SectionList.RemoveAll(x => x.SectionID == id); }
+    private static ExtrapolationCurveType CurveType(WellPathSectionSpecification section) => section switch { CircularArcWellPathSectionSpecification => ExtrapolationCurveType.CircularArc, ConstantBuildAndTurnWellPathSectionSpecification => ExtrapolationCurveType.ConstantBuildAndTurn, _ => ExtrapolationCurveType.ConstantCurvatureAndToolface };
+    private void ChangeCurve(WellPathSectionSpecification old, ExtrapolationCurveType type)
+    {
+        if (value.Specification is not WellPathExtrapolationSpecification path) return;
+        WellPathSectionSpecification replacement = type switch { ExtrapolationCurveType.CircularArc => new CircularArcWellPathSectionSpecification(), ExtrapolationCurveType.ConstantBuildAndTurn => new ConstantBuildAndTurnWellPathSectionSpecification(), _ => new ConstantCurvatureAndToolfaceWellPathSectionSpecification() };
+        replacement.SectionID = old.SectionID; replacement.Length = old.Length; replacement.EndInclination = old.EndInclination; replacement.EndAzimuth = old.EndAzimuth; replacement.EndVerticalDepth = old.EndVerticalDepth; replacement.EndNorth = old.EndNorth; replacement.EndEast = old.EndEast;
+        path.SectionList[path.SectionList.IndexOf(old)] = replacement;
+    }
+    private int ConstraintCount => value.Specification is not WellPathExtrapolationSpecification p ? 0 : p.SectionList.Sum(Count);
+    private static int Count(WellPathSectionSpecification s) => new double?[] { s.Length, s.EndInclination, s.EndAzimuth, s.EndVerticalDepth, s.EndNorth, s.EndEast }.Count(x => x.HasValue) + s switch { CircularArcWellPathSectionSpecification x => (x.Curvature.HasValue ? 1 : 0) + (x.StartToolface.HasValue ? 1 : 0), ConstantBuildAndTurnWellPathSectionSpecification x => (x.BuildRate.HasValue ? 1 : 0) + (x.TurnRate.HasValue ? 1 : 0), ConstantCurvatureAndToolfaceWellPathSectionSpecification x => (x.Curvature.HasValue ? 1 : 0) + (x.Toolface.HasValue ? 1 : 0), _ => 0 };
+}

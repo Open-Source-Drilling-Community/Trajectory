@@ -15502,6 +15502,779 @@
           }
         }
       }
+    },
+    "/AntiCollisionPolicyRevision": {
+      "get": {
+        "tags": [
+          "AntiCollisionPolicyRevision"
+        ],
+        "operationId": "GetAllAntiCollisionPolicyRevisionId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AntiCollisionPolicyRevision"
+        ],
+        "operationId": "PostAntiCollisionPolicyRevision",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AntiCollisionPolicyRevisionCreate"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/AntiCollisionPolicyRevisionCreate"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/AntiCollisionPolicyRevisionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AntiCollisionPolicyRevision"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/AntiCollisionPolicyRevision/HeavyData": {
+      "get": {
+        "tags": [
+          "AntiCollisionPolicyRevision"
+        ],
+        "operationId": "GetAllAntiCollisionPolicyRevision",
+        "parameters": [
+          {
+            "name": "policyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/AntiCollisionPolicyRevision"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/AntiCollisionPolicyRevision/{id}": {
+      "get": {
+        "tags": [
+          "AntiCollisionPolicyRevision"
+        ],
+        "operationId": "GetAntiCollisionPolicyRevisionById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/AntiCollisionPolicyRevision"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldAntiCollisionPolicyAssignment": {
+      "get": {
+        "tags": [
+          "FieldAntiCollisionPolicyAssignment"
+        ],
+        "operationId": "GetAllFieldAntiCollisionPolicyAssignment",
+        "parameters": [
+          {
+            "name": "fieldId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/FieldAntiCollisionPolicyAssignment"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FieldAntiCollisionPolicyAssignment"
+        ],
+        "operationId": "PostFieldAntiCollisionPolicyAssignment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldAntiCollisionPolicyAssignment"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldAntiCollisionPolicyAssignment/{id}": {
+      "get": {
+        "tags": [
+          "FieldAntiCollisionPolicyAssignment"
+        ],
+        "operationId": "GetFieldAntiCollisionPolicyAssignmentById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldAntiCollisionPolicyAssignment"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "FieldAntiCollisionPolicyAssignment"
+        ],
+        "operationId": "PutFieldAntiCollisionPolicyAssignmentById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldAntiCollisionPolicyAssignment"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "FieldAntiCollisionPolicyAssignment"
+        ],
+        "operationId": "DeleteFutureFieldAntiCollisionPolicyAssignmentById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/FieldAntiCollisionPolicyAssignment/Effective/{fieldId}": {
+      "get": {
+        "tags": [
+          "FieldAntiCollisionPolicyAssignment"
+        ],
+        "operationId": "GetEffectiveFieldAntiCollisionPolicyAssignment",
+        "parameters": [
+          {
+            "name": "fieldId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "atUtc",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/FieldAntiCollisionPolicyAssignment"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetAllTrajectoryExtrapolationCaseId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "PostTrajectoryExtrapolationCase",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryExtrapolationCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryExtrapolationCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryExtrapolationCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryExtrapolationCase"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase/MetaInfo": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetAllTrajectoryExtrapolationCaseMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase/LightData": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetAllTrajectoryExtrapolationCaseLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrajectoryExtrapolationCaseLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase/HeavyData": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetAllTrajectoryExtrapolationCase",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/TrajectoryExtrapolationCase"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase/{id}": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetTrajectoryExtrapolationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeResults",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryExtrapolationCase"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "PutTrajectoryExtrapolationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryExtrapolationCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryExtrapolationCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/TrajectoryExtrapolationCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryExtrapolationCase"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "DeleteTrajectoryExtrapolationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase/{id}/Status": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetTrajectoryExtrapolationCaseStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TrajectoryExtrapolationCaseLight"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase/{id}/SurveyStations/ChunkCount": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetTrajectoryExtrapolationSurveyStationChunkCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase/{id}/SurveyStations/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetTrajectoryExtrapolationSurveyStationChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyStationChunk"
+                }
+              }
+            }
+          }
+        }
+      }
     }
   },
   "components": {
@@ -28940,6 +29713,19 @@
             "type": "number",
             "format": "double"
           },
+          "PolicyEvaluationUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "PolicyAssignmentID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "PolicySnapshot": {
+            "$ref": "#/components/schemas/AntiCollisionPolicyRevision"
+          },
           "ReferenceWellPathID": {
             "type": "string",
             "format": "uuid"
@@ -29054,6 +29840,9 @@
               "$ref": "#/components/schemas/SeparationFactorPoint"
             },
             "nullable": true
+          },
+          "PolicyEvaluation": {
+            "$ref": "#/components/schemas/AntiCollisionPolicyEvaluation"
           }
         }
       },
@@ -29561,6 +30350,14 @@
             "description": "Stable UUID for this measurement, independent of list position.",
             "format": "uuid"
           },
+          "Origin": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyMeasurementOrigin"
+              }
+            ],
+            "description": "Measured for an instrument observation; Extrapolated only for the final caller-supplied bit station in LastStationAlreadyExtrapolated mode."
+          },
           "MD": {
             "type": "number",
             "description": "Measured or along-hole depth in canonical SI metres.",
@@ -29858,6 +30655,14 @@
               "$ref": "#/components/schemas/SurveyStation"
             },
             "nullable": true
+          },
+          "BitExtrapolation": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyRunBitExtrapolation"
+              }
+            ],
+            "description": "Optional terminal extrapolation from the final measurement-tool station to the bit. When present, exactly one terminal calculated or caller-identified extrapolated station is included in the calculated SurveyStationList."
           }
         }
       },
@@ -31397,6 +32202,20 @@
               "$ref": "#/components/schemas/Trajectory"
             },
             "nullable": true
+          },
+          "AntiCollisionPolicyRevisions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AntiCollisionPolicyRevision"
+            },
+            "nullable": true
+          },
+          "FieldAntiCollisionPolicyAssignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/FieldAntiCollisionPolicyAssignment"
+            },
+            "nullable": true
           }
         }
       },
@@ -31484,6 +32303,22 @@
             "type": "integer",
             "format": "int32"
           },
+          "CreatedAntiCollisionPolicyRevisionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ReplacedAntiCollisionPolicyRevisionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CreatedFieldPolicyAssignmentCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ReplacedFieldPolicyAssignmentCount": {
+            "type": "integer",
+            "format": "int32"
+          },
           "CatalogMappings": {
             "type": "array",
             "items": {
@@ -31500,6 +32335,22 @@
             "nullable": true
           },
           "TrajectoryIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "AntiCollisionPolicyRevisionIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "FieldAntiCollisionPolicyAssignmentIDs": {
             "type": "array",
             "items": {
               "type": "string",
@@ -32427,6 +33278,69 @@
             "$ref": "#/components/schemas/History"
           },
           "DeleteTrajectoryByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllTrajectoryExtrapolationCaseIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllTrajectoryExtrapolationCaseMetaInfoPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllTrajectoryExtrapolationCaseLightPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllTrajectoryExtrapolationCasePerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetTrajectoryExtrapolationCaseByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetTrajectoryExtrapolationCaseStatusPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetTrajectoryExtrapolationSurveyStationChunkCountPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetTrajectoryExtrapolationSurveyStationChunkPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "PostTrajectoryExtrapolationCasePerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "PutTrajectoryExtrapolationCaseByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "DeleteTrajectoryExtrapolationCaseByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllAntiCollisionPolicyRevisionIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllAntiCollisionPolicyRevisionPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAntiCollisionPolicyRevisionByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "PostAntiCollisionPolicyRevisionPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetAllFieldAntiCollisionPolicyAssignmentPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetFieldAntiCollisionPolicyAssignmentByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetEffectiveFieldAntiCollisionPolicyAssignmentPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "PostFieldAntiCollisionPolicyAssignmentPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "PutFieldAntiCollisionPolicyAssignmentByIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "DeleteFutureFieldAntiCollisionPolicyAssignmentByIdPerDay": {
             "$ref": "#/components/schemas/History"
           }
         }
@@ -34659,6 +35573,737 @@
           }
         }
       },
+      "AntiCollisionClassification": {
+        "enum": [
+          "Normal",
+          "Alert",
+          "Alarm",
+          "Indeterminate"
+        ],
+        "type": "string"
+      },
+      "AntiCollisionComparisonOperator": {
+        "enum": [
+          "LessThan",
+          "LessThanOrEqual",
+          "GreaterThan",
+          "GreaterThanOrEqual"
+        ],
+        "type": "string"
+      },
+      "AntiCollisionFeatureCondition": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AntiCollisionPolicyCondition"
+          }
+        ],
+        "properties": {
+          "ResourceLevel": {
+            "$ref": "#/components/schemas/AntiCollisionHierarchyLevel"
+          },
+          "FeatureCategoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FeatureOptionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "TemporalOperator": {
+            "$ref": "#/components/schemas/AntiCollisionFeatureTemporalOperator"
+          },
+          "SpecifiedTimeUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SpecifiedFromUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SpecifiedToUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "AntiCollisionFeatureTemporalOperator": {
+        "enum": [
+          "ActiveAtEvaluationTime",
+          "ActiveAtOldestMeasurementTime",
+          "OverlapsMeasurementInterval",
+          "ActiveAtSpecifiedTime",
+          "OverlapsSpecifiedInterval"
+        ],
+        "type": "string"
+      },
+      "AntiCollisionFeatureValueSnapshot": {
+        "type": "object",
+        "properties": {
+          "FeatureCategoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FeatureOptionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FromUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ToUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "AntiCollisionHierarchyLevel": {
+        "enum": [
+          "Cluster",
+          "Slot",
+          "Well",
+          "WellBore",
+          "Trajectory"
+        ],
+        "type": "string"
+      },
+      "AntiCollisionIdentityCondition": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AntiCollisionPolicyCondition"
+          }
+        ],
+        "properties": {
+          "ResourceLevel": {
+            "$ref": "#/components/schemas/AntiCollisionHierarchyLevel"
+          },
+          "IdentityDefinitionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "MatchOperator": {
+            "$ref": "#/components/schemas/AntiCollisionIdentityMatchOperator"
+          },
+          "Pattern": {
+            "type": "string",
+            "nullable": true
+          },
+          "CaseSensitive": {
+            "type": "boolean"
+          }
+        }
+      },
+      "AntiCollisionIdentityMatchOperator": {
+        "enum": [
+          "Exact",
+          "StartsWith",
+          "EndsWith",
+          "Contains",
+          "Glob"
+        ],
+        "type": "string"
+      },
+      "AntiCollisionIdentityValueSnapshot": {
+        "type": "object",
+        "properties": {
+          "IdentityDefinitionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Value": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "AntiCollisionPolicyCondition": {
+        "required": [
+          "ConditionType"
+        ],
+        "type": "object",
+        "properties": {
+          "ConditionType": {
+            "type": "string"
+          },
+          "ConditionID": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "discriminator": {
+          "propertyName": "ConditionType",
+          "mapping": {
+            "TrajectoryAge": "#/components/schemas/AntiCollisionTrajectoryAgeCondition",
+            "Identity": "#/components/schemas/AntiCollisionIdentityCondition",
+            "Feature": "#/components/schemas/AntiCollisionFeatureCondition"
+          }
+        }
+      },
+      "AntiCollisionPolicyEvaluation": {
+        "type": "object",
+        "properties": {
+          "ComparisonTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "State": {
+            "$ref": "#/components/schemas/AntiCollisionPolicyEvaluationState"
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          },
+          "MatchedRuleID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "MatchedRulePriority": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "AlertThreshold": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "AlarmThreshold": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "OldestEvidenceUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "NewestEvidenceUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "TrajectoryAgeSeconds": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "WorstClassification": {
+            "$ref": "#/components/schemas/AntiCollisionClassification"
+          },
+          "Context": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AntiCollisionResourceContextSnapshot"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "AntiCollisionPolicyEvaluationState": {
+        "enum": [
+          "Matched",
+          "NoMatch",
+          "Indeterminate"
+        ],
+        "type": "string"
+      },
+      "AntiCollisionPolicyRevision": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "PolicyID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "RevisionNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ConfidenceFactor": {
+            "type": "number",
+            "format": "double"
+          },
+          "Rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AntiCollisionPolicyRule"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "AntiCollisionPolicyRevisionCreate": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "PolicyID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "ConfidenceFactor": {
+            "type": "number",
+            "format": "double"
+          },
+          "Rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AntiCollisionPolicyRule"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "AntiCollisionPolicyRule": {
+        "type": "object",
+        "properties": {
+          "RuleID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Priority": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "AlertThreshold": {
+            "type": "number",
+            "description": "Dimensionless separation-factor Alert threshold; it must be greater than AlarmThreshold.",
+            "format": "double",
+            "x-osdc-semantic": "SeparationFactor",
+            "x-si-unit": "1"
+          },
+          "AlarmThreshold": {
+            "type": "number",
+            "description": "Dimensionless separation-factor Alarm threshold.",
+            "format": "double",
+            "x-osdc-semantic": "SeparationFactor",
+            "x-si-unit": "1"
+          },
+          "Conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AntiCollisionPolicyCondition"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "AntiCollisionResourceContextSnapshot": {
+        "type": "object",
+        "properties": {
+          "ResourceLevel": {
+            "$ref": "#/components/schemas/AntiCollisionHierarchyLevel"
+          },
+          "ResourceID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsAvailable": {
+            "type": "boolean"
+          },
+          "Identities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AntiCollisionIdentityValueSnapshot"
+            },
+            "nullable": true
+          },
+          "Features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/AntiCollisionFeatureValueSnapshot"
+            },
+            "nullable": true
+          },
+          "IdentityCatalogAvailable": {
+            "type": "boolean"
+          },
+          "UnavailableReason": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "AntiCollisionTrajectoryAgeCondition": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/AntiCollisionPolicyCondition"
+          }
+        ],
+        "properties": {
+          "Operator": {
+            "$ref": "#/components/schemas/AntiCollisionComparisonOperator"
+          },
+          "AgeThresholdSeconds": {
+            "type": "number",
+            "description": "Comparison trajectory age threshold in canonical SI seconds, evaluated from the oldest defined contributing survey-run acquisition start or station measurement time.",
+            "format": "double",
+            "x-osdc-semantic": "Duration",
+            "x-si-unit": "s"
+          }
+        }
+      },
+      "FieldAntiCollisionPolicyAssignment": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "FieldID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "PolicyRevisionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ValidFromUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ValidToUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "FieldAntiCollisionPolicyAssignmentMutation": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "FieldID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "PolicyRevisionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ValidFromUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ValidToUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        }
+      },
+      "CircularArcWellPathSectionSpecification": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WellPathSectionSpecification"
+          }
+        ],
+        "properties": {
+          "Curvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StartToolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        }
+      },
+      "ConstantBuildAndTurnWellPathSectionSpecification": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WellPathSectionSpecification"
+          }
+        ],
+        "properties": {
+          "BuildRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TurnRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        }
+      },
+      "ConstantCurvatureAndToolfaceWellPathSectionSpecification": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/WellPathSectionSpecification"
+          }
+        ],
+        "properties": {
+          "Curvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Toolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        }
+      },
+      "DepartureGeosteeringExtentConstraint": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/GeosteeringExtentConstraint"
+          }
+        ],
+        "properties": {
+          "DepartureDistance": {
+            "minimum": 0.0,
+            "type": "number",
+            "description": "Overall horizontal departure from the final source-trajectory station in canonical SI metres.",
+            "format": "double",
+            "x-osdc-semantic": "HorizontalDistance",
+            "x-si-unit": "m"
+          },
+          "DepartureBearing": {
+            "type": "number",
+            "description": "Bearing of the overall departure, clockwise and positive east of WGS84 true north, in SI radians.",
+            "format": "double",
+            "x-osdc-semantic": "TrueNorthAzimuth",
+            "x-si-unit": "rad"
+          }
+        }
+      },
+      "DrilledLengthGeosteeringExtentConstraint": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/GeosteeringExtentConstraint"
+          }
+        ],
+        "properties": {
+          "OverallDrilledLength": {
+            "minimum": 0.0,
+            "type": "number",
+            "description": "Total along-hole length from the final source-trajectory station through the lead-in and both steering sections, in canonical SI metres.",
+            "format": "double",
+            "x-osdc-semantic": "DrilledLength",
+            "x-si-unit": "m"
+          },
+          "SteeringLengthRatio": {
+            "minimum": 0.0,
+            "type": "number",
+            "description": "Dimensionless positive ratio of upstream to downstream steering-section length.",
+            "format": "double",
+            "x-osdc-semantic": "LengthRatio",
+            "x-si-unit": "1"
+          }
+        }
+      },
+      "ExtrapolationCurveType": {
+        "enum": [
+          "CircularArc",
+          "ConstantBuildAndTurn",
+          "ConstantCurvatureAndToolface"
+        ],
+        "type": "string"
+      },
+      "FixedLengthExtrapolationSpecification": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TrajectoryExtrapolationSpecification"
+          }
+        ],
+        "properties": {
+          "Length": {
+            "type": "number",
+            "format": "double"
+          },
+          "ExtensionType": {
+            "$ref": "#/components/schemas/FixedLengthExtrapolationType"
+          }
+        }
+      },
+      "FixedLengthExtrapolationType": {
+        "enum": [
+          "Straight",
+          "ContinueCircularArc",
+          "ContinueConstantBuildAndTurn",
+          "ContinueConstantCurvatureAndToolface"
+        ],
+        "type": "string"
+      },
+      "GeosteeringExtentConstraint": {
+        "required": [
+          "ExtentType"
+        ],
+        "type": "object",
+        "properties": {
+          "ExtentType": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "ExtentType",
+          "mapping": {
+            "Departure": "#/components/schemas/DepartureGeosteeringExtentConstraint",
+            "DrilledLength": "#/components/schemas/DrilledLengthGeosteeringExtentConstraint"
+          }
+        }
+      },
+      "GeosteeringTrajectoryExtrapolationSpecification": {
+        "required": [
+          "Extent"
+        ],
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TrajectoryExtrapolationSpecification"
+          }
+        ],
+        "properties": {
+          "LeadInLength": {
+            "minimum": 0.0,
+            "type": "number",
+            "description": "Initial continuation of the source trajectory's final calculated curve before steering starts, in canonical SI metres.",
+            "format": "double",
+            "x-osdc-semantic": "DrilledLength",
+            "x-si-unit": "m"
+          },
+          "TargetVerticalDepth": {
+            "type": "number",
+            "description": "Absolute WGS84 vertical depth target, positive downward in canonical SI metres.",
+            "format": "double",
+            "x-osdc-semantic": "Wgs84Depth",
+            "x-si-unit": "m"
+          },
+          "EndInclination": {
+            "maximum": 3.14159265358979,
+            "minimum": 0.0,
+            "type": "number",
+            "description": "Target inclination from the local WGS84 geodetic-down axis in SI radians.",
+            "format": "double",
+            "x-osdc-semantic": "GeodeticInclination",
+            "x-si-unit": "rad"
+          },
+          "EndAzimuth": {
+            "type": "number",
+            "description": "Target clockwise azimuth from WGS84 geodetic true north in SI radians.",
+            "format": "double",
+            "x-osdc-semantic": "TrueNorthAzimuth",
+            "x-si-unit": "rad"
+          },
+          "CurveType": {
+            "$ref": "#/components/schemas/ExtrapolationCurveType"
+          },
+          "AzimuthBranch": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Extent": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/GeosteeringExtentConstraint"
+              }
+            ],
+            "description": "Exactly one overall constraint measured from the final source-trajectory station: Departure or DrilledLength.",
+            "nullable": true
+          }
+        }
+      },
+      "ReconnectTrajectoryExtrapolationSpecification": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TrajectoryExtrapolationSpecification"
+          }
+        ],
+        "properties": {
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ReferenceMDAdvance": {
+            "type": "number",
+            "format": "double"
+          },
+          "CurveType": {
+            "$ref": "#/components/schemas/ExtrapolationCurveType"
+          },
+          "AzimuthBranch": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "JunctionCurvatureRatio": {
+            "type": "number",
+            "format": "double"
+          },
+          "LeadInLength": {
+            "minimum": 0.0,
+            "type": "number",
+            "description": "Initial continuation of the source trajectory's final calculated curve before the closest reference point is found and steering starts, in canonical SI metres.",
+            "format": "double",
+            "x-osdc-semantic": "DrilledLength",
+            "x-si-unit": "m"
+          }
+        }
+      },
       "SurveyAzimuthReference": {
         "enum": [
           "TrueNorth",
@@ -34839,6 +36484,356 @@
             "type": "string",
             "description": "Opaque version of the reference-correction algorithm.",
             "nullable": true
+          }
+        }
+      },
+      "SurveyMeasurementOrigin": {
+        "enum": [
+          "Measured",
+          "Extrapolated"
+        ],
+        "type": "string"
+      },
+      "SurveyRunBitExtrapolation": {
+        "required": [
+          "Mode"
+        ],
+        "type": "object",
+        "properties": {
+          "Mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyRunBitExtrapolationMode"
+              }
+            ],
+            "description": "CalculateFromLastMeasurement derives a terminal station on the server; LastStationAlreadyExtrapolated requires exactly the final submitted row to have Origin Extrapolated."
+          },
+          "MeasurementToolToBitDistance": {
+            "minimum": 0.0,
+            "type": "number",
+            "description": "Distance-to-bit elevation of the measurement tool relative to the bit front face, positive upward in canonical SI metres; used as the positive along-hole MD increment to the bit.",
+            "format": "double",
+            "x-osdc-semantic": "DistanceToBit",
+            "x-si-unit": "m"
+          }
+        }
+      },
+      "SurveyRunBitExtrapolationMode": {
+        "enum": [
+          "CalculateFromLastMeasurement",
+          "LastStationAlreadyExtrapolated"
+        ],
+        "type": "string"
+      },
+      "TrajectoryExtrapolationCase": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SourceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Mode": {
+            "$ref": "#/components/schemas/TrajectoryExtrapolationMode"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "InterpolationInterval": {
+            "type": "number",
+            "format": "double"
+          },
+          "Specification": {
+            "$ref": "#/components/schemas/TrajectoryExtrapolationSpecification"
+          },
+          "StartStation": {
+            "$ref": "#/components/schemas/SurveyStation"
+          },
+          "TargetStation": {
+            "$ref": "#/components/schemas/SurveyStation"
+          },
+          "ClosestReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TargetReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "SourceTrajectoryRevision": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ReferenceTrajectoryRevision": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SolvedSectionList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/TrajectoryExtrapolationSolvedSection"
+            },
+            "nullable": true
+          },
+          "SurveyStationList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyStation"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryExtrapolationCaseLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SourceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Mode": {
+            "$ref": "#/components/schemas/TrajectoryExtrapolationMode"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryExtrapolationMode": {
+        "enum": [
+          "FixedLength",
+          "ReconnectToTrajectory",
+          "WellPath",
+          "Geosteering"
+        ],
+        "type": "string"
+      },
+      "TrajectoryExtrapolationSectionRole": {
+        "enum": [
+          "Unspecified",
+          "FixedLengthExtension",
+          "LeadInContinuation",
+          "UpstreamSteeringSection",
+          "DownstreamSteeringSection",
+          "WellPathSection"
+        ],
+        "type": "string"
+      },
+      "TrajectoryExtrapolationSolvedSection": {
+        "type": "object",
+        "properties": {
+          "SectionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "SectionIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Role": {
+            "$ref": "#/components/schemas/TrajectoryExtrapolationSectionRole"
+          },
+          "CurveType": {
+            "$ref": "#/components/schemas/ExtrapolationCurveType"
+          },
+          "StartMD": {
+            "type": "number",
+            "format": "double"
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double"
+          },
+          "Length": {
+            "type": "number",
+            "format": "double"
+          },
+          "Start": {
+            "$ref": "#/components/schemas/SurveyStation"
+          },
+          "End": {
+            "$ref": "#/components/schemas/SurveyStation"
+          },
+          "CircularArcCurvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "CircularArcStartToolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ConstantBuildRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ConstantTurnRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ConstantCurvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ConstantToolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        }
+      },
+      "TrajectoryExtrapolationSpecification": {
+        "required": [
+          "Mode"
+        ],
+        "type": "object",
+        "properties": {
+          "Mode": {
+            "type": "string"
+          }
+        },
+        "discriminator": {
+          "propertyName": "Mode",
+          "mapping": {
+            "FixedLength": "#/components/schemas/FixedLengthExtrapolationSpecification",
+            "ReconnectToTrajectory": "#/components/schemas/ReconnectTrajectoryExtrapolationSpecification",
+            "WellPath": "#/components/schemas/WellPathExtrapolationSpecification",
+            "Geosteering": "#/components/schemas/GeosteeringTrajectoryExtrapolationSpecification"
+          }
+        }
+      },
+      "WellPathExtrapolationSpecification": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/TrajectoryExtrapolationSpecification"
+          }
+        ],
+        "properties": {
+          "SectionList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/WellPathSectionSpecification"
+            },
+            "nullable": true
+          }
+        }
+      },
+      "WellPathSectionSpecification": {
+        "required": [
+          "CurveType"
+        ],
+        "type": "object",
+        "properties": {
+          "CurveType": {
+            "type": "string"
+          },
+          "SectionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Length": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndInclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndAzimuth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndVerticalDepth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "discriminator": {
+          "propertyName": "CurveType",
+          "mapping": {
+            "CircularArc": "#/components/schemas/CircularArcWellPathSectionSpecification",
+            "ConstantBuildAndTurn": "#/components/schemas/ConstantBuildAndTurnWellPathSectionSpecification",
+            "ConstantCurvatureAndToolface": "#/components/schemas/ConstantCurvatureAndToolfaceWellPathSectionSpecification"
           }
         }
       },

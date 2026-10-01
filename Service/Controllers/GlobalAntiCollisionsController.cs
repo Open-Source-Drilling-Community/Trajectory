@@ -63,6 +63,8 @@ public class GlobalAntiCollisionsController : ControllerBase
             logger_.LogWarning("Post value or its ID is missing");
             return BadRequest(new { error = "invalid_global_anti_collision" });
         }
+        if (HasCallerSuppliedPolicyResult(value))
+            return BadRequest(new { error = "server_owned_policy_result" });
         if (value.ReferenceTrajectoryID == Guid.Empty && value.ReferenceWellPathID == Guid.Empty)
         {
             return BadRequest(new { error = "reference_trajectory_or_well_path_required" });
@@ -108,6 +110,8 @@ public class GlobalAntiCollisionsController : ControllerBase
             logger_.LogWarning("Put route ID and body ID are missing or inconsistent");
             return BadRequest(new { error = "route_body_id_mismatch" });
         }
+        if (HasCallerSuppliedPolicyResult(value))
+            return BadRequest(new { error = "server_owned_policy_result" });
         if (value.ReferenceTrajectoryID == Guid.Empty && value.ReferenceWellPathID == Guid.Empty)
         {
             return BadRequest(new { error = "reference_trajectory_or_well_path_required" });
@@ -170,6 +174,9 @@ public class GlobalAntiCollisionsController : ControllerBase
     private static void MarkQueued(GlobalAntiCollision.GlobalAntiCollision value)
     {
         value.SeparationFactorResults = [];
+        value.PolicyEvaluationUtc = null;
+        value.PolicyAssignmentID = null;
+        value.PolicySnapshot = null;
         value.CalculationState = GlobalAntiCollisionCalculationState.Queued;
         value.CalculationProgress = 0.0;
         value.CalculationMessage = "Calculation queued";
@@ -177,4 +184,8 @@ public class GlobalAntiCollisionsController : ControllerBase
 
     internal static bool IsValidConfidenceFactor(double confidenceFactor) =>
         GlobalAntiCollision.GlobalAntiCollision.IsConfidenceFactorSupported(confidenceFactor);
+
+    private static bool HasCallerSuppliedPolicyResult(GlobalAntiCollision.GlobalAntiCollision value) =>
+        value.PolicyEvaluationUtc != null || value.PolicyAssignmentID != null || value.PolicySnapshot != null ||
+        (value.SeparationFactorResults?.Any(result => result?.PolicyEvaluation != null) ?? false);
 }

@@ -39,6 +39,15 @@ namespace OSDC.Drilling.GlobalAntiCollision
         /// </summary>
         public double ConfidenceFactor { get; set; }
 
+        /// <summary>Server-owned instant at which the Field policy assignment was resolved.</summary>
+        public DateTimeOffset? PolicyEvaluationUtc { get; set; }
+
+        /// <summary>Server-owned UUID of the effective Field-policy assignment, when one applied.</summary>
+        public Guid? PolicyAssignmentID { get; set; }
+
+        /// <summary>Frozen immutable policy revision used for this calculation.</summary>
+        public AntiCollisionPolicyRevision? PolicySnapshot { get; set; }
+
         /// <summary>
         /// This is the ID for the reference well path (which we obtain interpolated from the WellPath Service). 
         /// </summary>
@@ -108,14 +117,17 @@ namespace OSDC.Drilling.GlobalAntiCollision
                 dest.ID = ID;
                 dest.ReferenceWellPathID = ReferenceWellPathID;
                 dest.ReferenceTrajectoryID = ReferenceTrajectoryID;
-                dest.ComparisonTrajectoryIDs = [.. ComparisonTrajectoryIDs];
+                dest.ComparisonTrajectoryIDs = ComparisonTrajectoryIDs == null ? [] : [.. ComparisonTrajectoryIDs];
                 dest.ConfidenceFactor = ConfidenceFactor;
+                dest.PolicyEvaluationUtc = PolicyEvaluationUtc;
+                dest.PolicyAssignmentID = PolicyAssignmentID;
+                dest.PolicySnapshot = PolicySnapshot;
                 dest.CalculationState = CalculationState;
                 dest.CalculationProgress = CalculationProgress;
                 dest.CalculationMessage = CalculationMessage;
                 dest.SeparationFactorResults ??= [];
                 dest.SeparationFactorResults.Clear();
-                foreach (SeparationFactorResult sf in SeparationFactorResults)
+                foreach (SeparationFactorResult sf in SeparationFactorResults ?? [])
                 {
                     dest.SeparationFactorResults.Add(new SeparationFactorResult(sf));
                 }

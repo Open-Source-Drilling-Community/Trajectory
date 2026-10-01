@@ -14,6 +14,7 @@ It currently provides routed pages for:
 - `TrajectoryRealizationMain`
 - `TrajectoryRealizationEdit`
 - trajectory aggregation
+- trajectory extrapolation, including fixed continuation, reference-trajectory reconnection, and constrained well-path solving
 - survey-run and trajectory minimum-distance calculations
 - `AntiCollisionScan`, for filtered octree candidate discovery and separation-factor tables and profiles
 - supporting UI components used by those pages
@@ -34,9 +35,15 @@ The current Rig and rotary-table depth reference come from the latest chronologi
 
 The SurveyRun editor displays and edits the observed angles, per-station reference overrides, UTC measurement time, applied corrections, canonical geodetic/true-north angles, and correction status. Inclination reference, azimuth reference, and measurement time can also be applied to every station in one operation; individual rows remain editable afterward, and an empty bulk time clears every station time. Run defaults select geodetic versus gravity vertical, true versus magnetic north, geomagnetic model policy, and an optional UTC acquisition interval. Changing a run default, geomagnetic model, acquisition interval, or bulk station setting invalidates affected computed corrections and clears the stale calculated trajectory until it is recalculated. Manual corrections are retained as explicit overrides.
 
+The editor also offers an optional terminal bit extrapolation. Users select server calculation from the last measured curve or declare that the final imported row is already extrapolated, then enter the unit-aware measurement-tool-to-bit distance. Measurement and calculated-station tables show explicit origin chips. Bulk reference and time operations skip extrapolated rows, and an automatically generated bit row is displayed only in the calculated survey result.
+
 Direct and batch imports can read an optional UTC timestamp column (or fixed-width field), declare gravity-vertical and/or magnetic-north source data, and supply a per-run acquisition interval when individual times are unavailable. Batch configurations and exported association descriptions retain these settings. Survey-measurement TSV export includes raw readings, corrected values, timestamps, correction state, evaluation context, and dependency-model hashes so it is suitable for audit rather than only trajectory reconstruction.
 
 After a Trajectory is saved, the editor polls its background calculation state and then reloads the calculated station chunks. The calculated table and plots therefore refresh when calculation completes even when their expansion panel was already open when Save was selected.
+
+## Trajectory extrapolation UI
+
+The `TrajectoryExtrapolation` page selects a calculated source trajectory and a display-unit-aware interpolation interval. It supports all four service modes and polls the lightweight status until completion. Reconnect and geosteering editors expose the optional current-curve lead-in. Geosteering uses a closed choice between overall departure/bearing and overall drilled length/upstream-to-downstream steering-length ratio, with both overall quantities measured from the final source station. The well-path editor presents Length, inclination, azimuth, vertical depth, North, East, circular-arc curvature/start toolface, build/turn rate, and constant-curvature/toolface columns; only the parameter pair belonging to the selected curve type is editable. A live counter shows the required `3 × n` constraint total. Solved section roles and parameters and the count of chunked sampled stations are shown after calculation.
 
 ## Trajectory Realization UI
 
@@ -59,6 +66,8 @@ Exported columns per realization are `MD`, `Incl`, `Az`, `TVD`, `North`, `East`,
 `AntiCollisionScan` selects a reference trajectory through the standard Field, Cluster, Well, WellBore, and Trajectory hierarchy. Each selector supports case-insensitive matching on any part of the displayed name. Pseudo-clusters belonging to single wells are omitted from the Cluster selector while those wells remain selectable at Well level. The scan can include planned trajectories, actual trajectories, or both, and can restrict candidates to definitive trajectories.
 
 Candidate discovery uses the service's persistent conservative uncertainty-volume octree and requires the reference index to be current. Its one-cell-padded swept-AABB cover is deliberately broad: a candidate may be a false positive, while the subsequent separation-factor calculation establishes the relevant measured-depth ranges and actual safety factors. The scan is queued server-side; the page polls a lightweight status endpoint and displays real bucket-loading and exact-intersection progress, then retrieves the candidate UUIDs only after completion. Users can select all or some candidates and choose the separation-factor confidence before calculating. The editor uses the shared Unit Reference system's `ProportionStandard` quantity, defaults to 95%, and prevents values above the octree encoding confidence of 99.9%. The canonical API value remains a dimensionless proportion. That calculation is also queued server-side, so either phase may last several minutes without depending on one long HTTP response. The page polls its progress and retrieves the full result only once calculation completes. Results are shown as either every reference survey depth (with empty cells where no comparison was needed) or only depths with at least one result, and as color-coded interactive curves with positive depth downward. The graph can fit its depth axis to the union of all separation intervals or extend it across the complete reference trajectory. Disjoint intervals share a legend group, so one legend click toggles every interval for a trajectory.
+
+When the reference trajectory's Field has an effective policy assignment, the service overrides the interactive confidence for the final calculation and freezes the exact assignment/revision. The results page shows each comparison trajectory's matched rule, Alert/Alarm thresholds, worst classification, and any indeterminate reason. `AntiCollisionPolicies` maintains the immutable revision library and future/historical Field assignment timeline. Rule age values use the shared duration unit selector while canonical storage remains SI seconds.
 
 ## Dependencies
 
@@ -120,7 +129,7 @@ The package, assembly, and static-web-asset base identity are all `OSDC.Drilling
 
 ## Backup and restore
 
-`TrajectoryBackupRestore` lets users select survey runs and trajectories or back up everything. A selected trajectory automatically brings along all survey runs used by its sections, while parent survey runs and relevant catalog definitions are also included. Restore previews both record counts and offers explicit record-conflict and catalog-resolution policies before sending the complete document to the service. Catalog UUIDs are matched exactly by default; mapping compatible definitions with different UUIDs by normalized name requires a separate warning-bearing opt-in.
+`TrajectoryBackupRestore` lets users select survey runs and trajectories or back up everything. A selected trajectory automatically brings along all survey runs used by its sections, while parent survey runs and relevant catalog definitions are also included. Backup schema version 2 always includes the complete anti-collision policy library and Field assignment audit history. Restore previews record counts and offers explicit record-conflict and catalog-resolution policies before sending the complete document to the service. Catalog UUIDs are matched exactly by default; mapping compatible definitions with different UUIDs by normalized name requires a separate warning-bearing opt-in.
 
 ## Usage statistics
 

@@ -10,6 +10,8 @@ using System;
 using ModelContextProtocol.Protocol;
 using OSDC.Drilling.Trajectory.Service.Mcp;
 using OSDC.Drilling.Trajectory.Service.Mcp.Tools;
+using OSDC.Drilling.Trajectory.Model;
+using OSDC.Drilling.GlobalAntiCollision;
 
 var builder = WebApplication.CreateBuilder(args);
 
@@ -20,6 +22,8 @@ builder.Services.AddSingleton<TrajectoryIdentityManager>();
 builder.Services.AddSingleton<TrajectoryFeatureCategoryManager>();
 builder.Services.AddSingleton<TrajectoryAssignmentValidator>();
 builder.Services.AddSingleton<TrajectoryBatchService>();
+builder.Services.AddSingleton<AntiCollisionPolicyManager>();
+builder.Services.AddSingleton<AntiCollisionPolicyContextResolver>();
 builder.Services.AddHttpClient(nameof(TrajectoryExternalReferenceValidator), client =>
     client.Timeout = TimeSpan.FromSeconds(10));
 builder.Services.AddSingleton<ITrajectoryExternalReferenceValidator, TrajectoryExternalReferenceValidator>();
@@ -31,6 +35,7 @@ builder.Services.AddSingleton<OctreeSearchJobWorker>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<OctreeSearchJobWorker>());
 builder.Services.AddSingleton<GlobalAntiCollisionCalculationWorker>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<GlobalAntiCollisionCalculationWorker>());
+builder.Services.AddHostedService<TrajectoryExtrapolationRecoveryService>();
 
 // serialization settings (using System.Json)
 builder.Services.AddControllers()
@@ -43,6 +48,34 @@ builder.Services.AddControllers()
 builder.Services.AddSwaggerGen(config =>
 {
     config.CustomSchemaIds(type => type.FullName);
+    config.UseOneOfForPolymorphism();
+    config.SelectSubTypesUsing(baseType => baseType == typeof(TrajectoryExtrapolationSpecification)
+        ? [typeof(FixedLengthExtrapolationSpecification), typeof(ReconnectTrajectoryExtrapolationSpecification), typeof(WellPathExtrapolationSpecification), typeof(GeosteeringTrajectoryExtrapolationSpecification)]
+        : baseType == typeof(WellPathSectionSpecification)
+            ? [typeof(CircularArcWellPathSectionSpecification), typeof(ConstantBuildAndTurnWellPathSectionSpecification), typeof(ConstantCurvatureAndToolfaceWellPathSectionSpecification)]
+            : baseType == typeof(GeosteeringExtentConstraint)
+                ? [typeof(DepartureGeosteeringExtentConstraint), typeof(DrilledLengthGeosteeringExtentConstraint)]
+            : baseType == typeof(AntiCollisionPolicyCondition)
+                ? [typeof(AntiCollisionTrajectoryAgeCondition), typeof(AntiCollisionIdentityCondition), typeof(AntiCollisionFeatureCondition)]
+            : []);
+    config.SelectDiscriminatorNameUsing(baseType => baseType == typeof(TrajectoryExtrapolationSpecification)
+        ? "Mode"
+        : baseType == typeof(WellPathSectionSpecification) ? "CurveType"
+        : baseType == typeof(GeosteeringExtentConstraint) ? "ExtentType"
+        : baseType == typeof(AntiCollisionPolicyCondition) ? "ConditionType" : null);
+    config.SelectDiscriminatorValueUsing(subType => subType == typeof(FixedLengthExtrapolationSpecification) ? "FixedLength"
+        : subType == typeof(ReconnectTrajectoryExtrapolationSpecification) ? "ReconnectToTrajectory"
+        : subType == typeof(WellPathExtrapolationSpecification) ? "WellPath"
+        : subType == typeof(GeosteeringTrajectoryExtrapolationSpecification) ? "Geosteering"
+        : subType == typeof(DepartureGeosteeringExtentConstraint) ? "Departure"
+        : subType == typeof(DrilledLengthGeosteeringExtentConstraint) ? "DrilledLength"
+        : subType == typeof(CircularArcWellPathSectionSpecification) ? "CircularArc"
+        : subType == typeof(ConstantBuildAndTurnWellPathSectionSpecification) ? "ConstantBuildAndTurn"
+        : subType == typeof(ConstantCurvatureAndToolfaceWellPathSectionSpecification) ? "ConstantCurvatureAndToolface"
+        : subType == typeof(AntiCollisionTrajectoryAgeCondition) ? "TrajectoryAge"
+        : subType == typeof(AntiCollisionIdentityCondition) ? "Identity"
+        : subType == typeof(AntiCollisionFeatureCondition) ? "Feature"
+        : null);
     config.SchemaFilter<TrajectorySemanticSchemaFilter>();
 });
 

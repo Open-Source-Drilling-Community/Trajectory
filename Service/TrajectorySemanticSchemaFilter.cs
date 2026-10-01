@@ -1,6 +1,7 @@
 using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using OSDC.Drilling.Trajectory.Model;
+using OSDC.Drilling.GlobalAntiCollision;
 using Swashbuckle.AspNetCore.SwaggerGen;
 
 namespace OSDC.Drilling.Trajectory.Service;
@@ -20,6 +21,90 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
 
     public void Apply(OpenApiSchema schema, SchemaFilterContext context)
     {
+        if (context.Type == typeof(TrajectoryExtrapolationCase) &&
+            schema.Properties.TryGetValue("Specification", out OpenApiSchema? specification))
+        {
+            specification.OneOf.Clear();
+            specification.Reference = new OpenApiReference
+            {
+                Id = typeof(TrajectoryExtrapolationSpecification).FullName,
+                Type = ReferenceType.Schema
+            };
+        }
+
+        if (context.Type == typeof(WellPathExtrapolationSpecification) &&
+            schema.Properties.TryGetValue("SectionList", out OpenApiSchema? sectionList))
+        {
+            // Swashbuckle otherwise emits an item-level oneOf which NSwag narrows to the
+            // first concrete section. Reference the discriminated base so generated clients
+            // retain a heterogeneous section collection.
+            sectionList.Items = new OpenApiSchema
+            {
+                Reference = new OpenApiReference
+                {
+                    Id = typeof(WellPathSectionSpecification).FullName,
+                    Type = ReferenceType.Schema
+                }
+            };
+        }
+
+        if (context.Type == typeof(GeosteeringTrajectoryExtrapolationSpecification) &&
+            schema.Properties.TryGetValue("Extent", out OpenApiSchema? extent))
+        {
+            extent.OneOf.Clear();
+            extent.Reference = new OpenApiReference
+            {
+                Id = typeof(GeosteeringExtentConstraint).FullName,
+                Type = ReferenceType.Schema
+            };
+            Describe(schema, "LeadInLength", "Initial continuation of the source trajectory's final calculated curve before steering starts, in canonical SI metres.", "DrilledLength", "m");
+            Describe(schema, "TargetVerticalDepth", "Absolute WGS84 vertical depth target, positive downward in canonical SI metres.", "Wgs84Depth", "m");
+            Describe(schema, "EndInclination", "Target inclination from the local WGS84 geodetic-down axis in SI radians.", "GeodeticInclination", "rad");
+            Describe(schema, "EndAzimuth", "Target clockwise azimuth from WGS84 geodetic true north in SI radians.", "TrueNorthAzimuth", "rad");
+            Describe(schema, "Extent", "Exactly one overall constraint measured from the final source-trajectory station: Departure or DrilledLength.");
+            SetMinimum(schema, "LeadInLength", 0.0m);
+            SetRange(schema, "EndInclination", 0.0m, (decimal)Math.PI);
+        }
+        if (context.Type == typeof(ReconnectTrajectoryExtrapolationSpecification))
+        {
+            Describe(schema, "LeadInLength", "Initial continuation of the source trajectory's final calculated curve before the closest reference point is found and steering starts, in canonical SI metres.", "DrilledLength", "m");
+            SetMinimum(schema, "LeadInLength", 0.0m);
+        }
+        if (context.Type == typeof(DepartureGeosteeringExtentConstraint))
+        {
+            Describe(schema, "DepartureDistance", "Overall horizontal departure from the final source-trajectory station in canonical SI metres.", "HorizontalDistance", "m");
+            Describe(schema, "DepartureBearing", "Bearing of the overall departure, clockwise and positive east of WGS84 true north, in SI radians.", "TrueNorthAzimuth", "rad");
+            SetExclusiveMinimum(schema, "DepartureDistance", 0.0m);
+        }
+        if (context.Type == typeof(DrilledLengthGeosteeringExtentConstraint))
+        {
+            Describe(schema, "OverallDrilledLength", "Total along-hole length from the final source-trajectory station through the lead-in and both steering sections, in canonical SI metres.", "DrilledLength", "m");
+            Describe(schema, "SteeringLengthRatio", "Dimensionless positive ratio of upstream to downstream steering-section length.", "LengthRatio", "1");
+            SetExclusiveMinimum(schema, "OverallDrilledLength", 0.0m);
+            SetExclusiveMinimum(schema, "SteeringLengthRatio", 0.0m);
+        }
+
+        if (context.Type == typeof(AntiCollisionPolicyRule) &&
+            schema.Properties.TryGetValue("Conditions", out OpenApiSchema? conditions))
+        {
+            conditions.Items = new OpenApiSchema
+            {
+                Reference = new OpenApiReference
+                {
+                    Id = typeof(AntiCollisionPolicyCondition).FullName,
+                    Type = ReferenceType.Schema
+                }
+            };
+        }
+
+        if (context.Type == typeof(AntiCollisionTrajectoryAgeCondition))
+            Describe(schema, "AgeThresholdSeconds", "Comparison trajectory age threshold in canonical SI seconds, evaluated from the oldest defined contributing survey-run acquisition start or station measurement time.", "Duration", "s");
+        if (context.Type == typeof(AntiCollisionPolicyRule))
+        {
+            Describe(schema, "AlertThreshold", "Dimensionless separation-factor Alert threshold; it must be greater than AlarmThreshold.", "SeparationFactor", "1");
+            Describe(schema, "AlarmThreshold", "Dimensionless separation-factor Alarm threshold.", "SeparationFactor", "1");
+        }
+
         if (context.Type == typeof(SurveyInclinationReference))
         {
             schema.Description = InclinationReferenceDescription;
@@ -44,6 +129,20 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
             RestrictRunDefault(schema, "DefaultAzimuthReference", AzimuthReferenceDescription);
             Describe(schema, "GeomagneticModel", "Geomagnetic model selection used by measurements whose effective azimuth reference is MagneticNorth.");
         }
+        if (context.Type == typeof(SurveyRun))
+        {
+            Describe(schema, "BitExtrapolation", "Optional terminal extrapolation from the final measurement-tool station to the bit. When present, exactly one terminal calculated or caller-identified extrapolated station is included in the calculated SurveyStationList.");
+        }
+        if (context.Type == typeof(SurveyRunBitExtrapolation))
+        {
+            Describe(schema, "Mode", "CalculateFromLastMeasurement derives a terminal station on the server; LastStationAlreadyExtrapolated requires exactly the final submitted row to have Origin Extrapolated.");
+            Describe(schema, "MeasurementToolToBitDistance", "Distance-to-bit elevation of the measurement tool relative to the bit front face, positive upward in canonical SI metres; used as the positive along-hole MD increment to the bit.", "DistanceToBit", "m");
+            if (schema.Properties.TryGetValue("MeasurementToolToBitDistance", out OpenApiSchema? distance))
+            {
+                distance.Minimum = 0.0m;
+                distance.ExclusiveMinimum = true;
+            }
+        }
         if (context.Type == typeof(SurveyImportSettings))
         {
             RestrictRunDefault(schema, "DefaultInclinationReference", InclinationReferenceDescription);
@@ -53,6 +152,7 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
         if (context.Type == typeof(SurveyMeasurement))
         {
             Describe(schema, "MeasurementID", "Stable UUID for this measurement, independent of list position.");
+            Describe(schema, "Origin", "Measured for an instrument observation; Extrapolated only for the final caller-supplied bit station in LastStationAlreadyExtrapolated mode.");
             Describe(schema, "MD", "Measured or along-hole depth in canonical SI metres.", "MeasuredDepth", "m");
             Describe(schema, "Inclination", "Canonical inclination from the local WGS84 geodetic-down axis in SI radians, after reference correction.", "GeodeticInclination", "rad");
             Describe(schema, "Azimuth", "Canonical clockwise azimuth from WGS84 geodetic true north in SI radians, after reference correction.", "TrueNorthAzimuth", "rad");
@@ -87,6 +187,26 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
         property.Description = description + " InheritRun is forbidden for a run-level default.";
         property.Not = new OpenApiSchema { Enum = [new OpenApiString("InheritRun")] };
         property.Extensions["x-osdc-semantic"] = new OpenApiString("RunLevelReferenceDefault");
+    }
+
+    private static void SetMinimum(OpenApiSchema schema, string propertyName, decimal minimum)
+    {
+        if (schema.Properties.TryGetValue(propertyName, out OpenApiSchema? property))
+            property.Minimum = minimum;
+    }
+
+    private static void SetExclusiveMinimum(OpenApiSchema schema, string propertyName, decimal minimum)
+    {
+        if (!schema.Properties.TryGetValue(propertyName, out OpenApiSchema? property)) return;
+        property.Minimum = minimum;
+        property.ExclusiveMinimum = true;
+    }
+
+    private static void SetRange(OpenApiSchema schema, string propertyName, decimal minimum, decimal maximum)
+    {
+        if (!schema.Properties.TryGetValue(propertyName, out OpenApiSchema? property)) return;
+        property.Minimum = minimum;
+        property.Maximum = maximum;
     }
 
     private static void Describe(OpenApiSchema schema, string propertyName, string description,

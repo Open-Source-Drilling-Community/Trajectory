@@ -126,6 +126,7 @@
 
             <MudText Typo="Typo.caption" Color="@(IsConfidenceFactorValid ? Color.Secondary : Color.Error)" Class="mb-2">
                 The confidence factor must be greater than 0 and no greater than 99.9%, the confidence used by the octree scan.
+                When the reference trajectory's Field has an effective anti-collision policy, its confidence factor overrides this value for the final separation calculation.
             </MudText>
 
             @if (isCalculating_)
@@ -172,6 +173,32 @@
 
     @if (calculationResult_ != null)
     {
+        @if (calculationResult_.PolicySnapshot != null)
+        {
+            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-4">
+                Applied policy <b>@calculationResult_.PolicySnapshot.Name</b>, revision @calculationResult_.PolicySnapshot.RevisionNumber,
+                confidence @calculationResult_.PolicySnapshot.ConfidenceFactor.ToString("P1"), evaluated at @calculationResult_.PolicyEvaluationUtc?.ToString("u").
+                The stored result contains the exact policy snapshot and Field assignment UUID.
+            </MudAlert>
+            <MudTable Items="@PolicyEvaluations" T="SeparationFactorResult" Dense="true" Hover="true" Bordered="true" Striped="true" Class="mb-4">
+                <HeaderContent><MudTh>Comparison trajectory</MudTh><MudTh>Evaluation</MudTh><MudTh>Classification</MudTh><MudTh>Alert SF</MudTh><MudTh>Alarm SF</MudTh><MudTh>Rule priority</MudTh><MudTh>Reason</MudTh></HeaderContent>
+                <RowTemplate>
+                    <MudTd>@GetTrajectoryName(context.ComparisonTrajectoryID)</MudTd>
+                    <MudTd>@context.PolicyEvaluation?.State</MudTd>
+                    <MudTd>@context.PolicyEvaluation?.WorstClassification</MudTd>
+                    <MudTd>@context.PolicyEvaluation?.AlertThreshold?.ToString("0.###")</MudTd>
+                    <MudTd>@context.PolicyEvaluation?.AlarmThreshold?.ToString("0.###")</MudTd>
+                    <MudTd>@context.PolicyEvaluation?.MatchedRulePriority</MudTd>
+                    <MudTd>@context.PolicyEvaluation?.Message</MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+        else
+        {
+            <MudAlert Severity="Severity.Warning" Variant="Variant.Outlined" Class="mb-4">
+                No anti-collision policy was effective for the reference trajectory's Field at calculation time. Separation factors are shown without Alert/Alarm classification.
+            </MudAlert>
+        }
         <MudPaper Outlined="true" Class="pa-4 mb-4">
             <MudToolBar Dense="true" Class="px-0">
                 <MudText Typo="Typo.h6">Separation factors</MudText>
@@ -261,6 +288,7 @@
     private List<SafetyFactorPlotSeries> plotSeries_ = [];
     private Trajectory? referenceTrajectory_;
     private GlobalAntiCollision? calculationResult_;
+    private IEnumerable<SeparationFactorResult> PolicyEvaluations => calculationResult_?.SeparationFactorResults ?? [];
     private Guid? selectedFieldId_;
     private Guid? selectedClusterId_;
     private Guid? selectedWellId_;

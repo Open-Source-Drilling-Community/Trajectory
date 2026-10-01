@@ -26,7 +26,10 @@ internal static class TrajectoryMcpToolMetadata
         ["SurveyStationEllipseCalculation"] = "a survey-station uncertainty-ellipse calculation",
         ["TrajectoryRealizationCase"] = "a stochastic trajectory-realization case",
         ["TrajectoryAggregationCase"] = "a case that aggregates multiple trajectories against a common reference",
+        ["TrajectoryExtrapolationCase"] = "an asynchronous extrapolation from a calculated trajectory endpoint",
         ["GlobalAntiCollisions"] = "an asynchronous global anti-collision calculation job",
+        ["AntiCollisionPolicyRevision"] = "an immutable anti-collision policy revision containing ordered comparison-trajectory conditions and Alert/Alarm thresholds",
+        ["FieldAntiCollisionPolicyAssignment"] = "an effective-dated assignment from a Field to one exact immutable anti-collision policy revision",
         ["Octrees"] = "a cached spatial octree generated for a trajectory"
     };
 
@@ -63,6 +66,11 @@ internal static class TrajectoryMcpToolMetadata
             detail = "Commit all previously uploaded survey-measurement chunks for the survey-run id. Call this only after every zero-based chunk has been uploaded; committing assembles the measurements and triggers the survey-station calculation.";
         else if (controller == "SurveyRun" && action == "DeleteSurveyMeasurementChunks")
             detail = "Delete the staged survey-measurement chunks for the survey-run id, for example to abandon or restart an incomplete chunked upload. This does not delete the survey run itself and does not use the persisted survey run's concurrency token.";
+        else if (controller == "SurveyRun" && action is "PostSurveyRun" or "PutSurveyRunById")
+            detail = "Create or replace a survey run preserving observed references and canonical WGS84-geodetic/true-north angles, then queue calculation. BitExtrapolation is optional. CalculateFromLastMeasurement requires only Measured rows and derives the terminal bit station using the run CalculationType; LastStationAlreadyExtrapolated requires exactly the final row to have Origin Extrapolated and its MD increment to equal the positive SI-metre tool-to-bit distance. Extrapolated rows are not corrected or treated as new instrument observations." +
+                (action == "PutSurveyRunById" ? " Supply expectedModifiedUtc exactly as returned by the latest read; a stale token returns conflict." : string.Empty);
+        else if (controller == "TrajectoryExtrapolationCase" && action == "GetStatus")
+            detail = "Return lightweight state, progress and message for a queued trajectory extrapolation. Poll while Queued or Running; after Completed retrieve solved metadata by UUID and sampled survey stations through the chunk-count and zero-based chunk tools.";
         else if (action.Contains("ChunkCount", StringComparison.Ordinal))
             detail = $"Return the number of available result chunks for {resource}. Call this before requesting chunks, then retrieve zero-based chunkIndex values from 0 through count - 1. A count of zero means no chunks are currently available.";
         else if (action.Contains("Chunk", StringComparison.Ordinal) && action.StartsWith("Get", StringComparison.Ordinal))
@@ -93,6 +101,18 @@ internal static class TrajectoryMcpToolMetadata
             detail = "Delete the durable separation-factor job and its completed results. Do this after retrieving a terminal result; deleting a running job removes its polling record but does not cancel work already executing.";
         else if (controller == "GlobalAntiCollisions" && action == "GetStatus")
             detail = "Return only ID, CalculationState, CalculationProgress, and CalculationMessage as a lightweight status for a durable separation-factor job. Poll while state is Queued or Running instead of repeatedly retrieving the potentially large result. Interrupted work is persisted as Queued and resumes after a normal service restart. Retrieve profiles only after Completed; Failed is terminal until the request is replaced and requeued.";
+        else if (controller == "AntiCollisionPolicyRevision" && action == "Post")
+            detail = "Create an immutable revision in an anti-collision policy family. PolicyID identifies the family; the service assigns the next RevisionNumber and creation timestamp atomically. Rules use unique explicit priorities and first-match semantics, conditions within a rule are ANDed, and the final lowest-precedence rule must be unconditional. Every rule requires dimensionless AlertThreshold greater than AlarmThreshold greater than zero. ConditionType is a closed discriminator: TrajectoryAge uses SI seconds; Identity matches one catalog definition at a comparison hierarchy level; Feature matches one category/option with explicit temporal semantics.";
+        else if (controller == "AntiCollisionPolicyRevision" && action == "GetAll")
+            detail = "List immutable anti-collision policy revisions, optionally restricted to one PolicyID family. Use the revision UUID, not merely the family UUID or revision number, for a Field assignment.";
+        else if (controller == "FieldAntiCollisionPolicyAssignment" && action == "GetEffective")
+            detail = "Resolve the one exact policy-revision assignment effective for a Field at the supplied UTC instant. Assignment intervals are non-overlapping half-open UTC intervals; not-found means no policy governs that Field at that instant.";
+        else if (controller == "FieldAntiCollisionPolicyAssignment" && action == "Post")
+            detail = "Assign one exact immutable policy revision to a Field for a non-overlapping UTC validity interval. The referenced revision must exist. The service derives creation and optimistic-concurrency timestamps; submit only the mutation shape.";
+        else if (controller == "FieldAntiCollisionPolicyAssignment" && action == "Put")
+            detail = "Replace a Field policy assignment while preserving its UUID. Copy expectedModifiedUtc exactly from the latest read; stale writes conflict. The exact policy revision must exist and the replacement validity interval must not overlap another assignment for the Field.";
+        else if (controller == "FieldAntiCollisionPolicyAssignment" && action == "Delete")
+            detail = "Delete only a future Field policy assignment. Active and historical assignments are immutable audit records. Copy expectedModifiedUtc exactly from the latest read; stale deletes conflict.";
         else if (action.StartsWith("Post", StringComparison.Ordinal))
             detail = DescribeCreate(controller, resource);
         else if ((controller is "TrajectoryIdentity" or "TrajectoryFeatureCategory") && action.StartsWith("Put", StringComparison.Ordinal))
@@ -198,6 +218,32 @@ internal static class TrajectoryMcpToolMetadata
 
     private static void ApplyInputOperationConstraints(string controller, string action, JsonObject definitions)
     {
+        if (controller == "SurveyRun" && action is "PostSurveyRun" or "PutSurveyRunById" &&
+            definitions[nameof(SurveyRun)] is JsonObject surveyRun &&
+            surveyRun["properties"] is JsonObject surveyRunProperties)
+        {
+            string[] serverDerived =
+            [
+                nameof(SurveyRun.CreationDate),
+                nameof(SurveyRun.LastModificationDate),
+                nameof(SurveyRun.CalculationState),
+                nameof(SurveyRun.CalculationProgress),
+                nameof(SurveyRun.CalculationMessage),
+                nameof(SurveyRun.TieInPoint),
+                nameof(SurveyRun.SurveyStationList)
+            ];
+            foreach (string propertyName in serverDerived) surveyRunProperties.Remove(propertyName);
+            if (surveyRun["required"] is JsonArray required)
+            {
+                foreach (string propertyName in serverDerived)
+                {
+                    JsonNode? node = required.FirstOrDefault(value => value?.GetValue<string>() == propertyName);
+                    if (node != null) required.Remove(node);
+                }
+            }
+            surveyRun["description"] = "Closed SurveyRun mutation. The server owns timestamps, tie-in resolution, calculation state and calculated stations; BitExtrapolation contains only the caller-selected mode and frozen positive SI tool-to-bit distance.";
+        }
+
         if (controller == "Octrees" && action == "QueueSearch" &&
             definitions[nameof(OctreeSearchJobRequest)] is JsonObject searchRequest)
         {
@@ -213,6 +259,36 @@ internal static class TrajectoryMcpToolMetadata
             };
         }
 
+        if (controller == "TrajectoryExtrapolationCase" && action is "Post" or "Put" &&
+            definitions[nameof(TrajectoryExtrapolationCase)] is JsonObject extrapolation &&
+            extrapolation["properties"] is JsonObject extrapolationProperties)
+        {
+            string[] serverDerived =
+            [
+                nameof(TrajectoryExtrapolationCase.CreationDate),
+                nameof(TrajectoryExtrapolationCase.LastModificationDate),
+                nameof(TrajectoryExtrapolationCase.CalculationState),
+                nameof(TrajectoryExtrapolationCase.CalculationProgress),
+                nameof(TrajectoryExtrapolationCase.CalculationMessage),
+                nameof(TrajectoryExtrapolationCase.StartStation),
+                nameof(TrajectoryExtrapolationCase.TargetStation),
+                nameof(TrajectoryExtrapolationCase.ClosestReferenceMD),
+                nameof(TrajectoryExtrapolationCase.TargetReferenceMD),
+                nameof(TrajectoryExtrapolationCase.SourceTrajectoryRevision),
+                nameof(TrajectoryExtrapolationCase.ReferenceTrajectoryRevision),
+                nameof(TrajectoryExtrapolationCase.SolvedSectionList),
+                nameof(TrajectoryExtrapolationCase.SurveyStationList)
+            ];
+            foreach (string propertyName in serverDerived) extrapolationProperties.Remove(propertyName);
+            extrapolation["required"] = new JsonArray(
+                nameof(TrajectoryExtrapolationCase.MetaInfo),
+                nameof(TrajectoryExtrapolationCase.SourceTrajectoryID),
+                nameof(TrajectoryExtrapolationCase.Mode),
+                nameof(TrajectoryExtrapolationCase.InterpolationInterval),
+                nameof(TrajectoryExtrapolationCase.Specification));
+            extrapolation["description"] = "Closed submission for an asynchronous trajectory extrapolation. The server derives timestamps, source/target snapshots, solved sections, calculation state and sampled stations.";
+        }
+
         if (controller != "GlobalAntiCollisions" || action is not ("Post" or "Put") ||
             definitions[nameof(GlobalAntiCollision.GlobalAntiCollision)] is not JsonObject calculation ||
             calculation["properties"] is not JsonObject properties)
@@ -226,6 +302,9 @@ internal static class TrajectoryMcpToolMetadata
         properties.Remove(nameof(GlobalAntiCollision.GlobalAntiCollision.CalculationProgress));
         properties.Remove(nameof(GlobalAntiCollision.GlobalAntiCollision.CalculationMessage));
         properties.Remove(nameof(GlobalAntiCollision.GlobalAntiCollision.SeparationFactorResults));
+        properties.Remove(nameof(GlobalAntiCollision.GlobalAntiCollision.PolicyEvaluationUtc));
+        properties.Remove(nameof(GlobalAntiCollision.GlobalAntiCollision.PolicyAssignmentID));
+        properties.Remove(nameof(GlobalAntiCollision.GlobalAntiCollision.PolicySnapshot));
         definitions.Remove(nameof(SeparationFactorResult));
         definitions.Remove(nameof(SeparationFactorPoint));
         definitions.Remove(nameof(MeasuredDepthRange));
@@ -355,6 +434,8 @@ internal static class TrajectoryMcpToolMetadata
 
     private static string DescribeCreate(string controller, string resource)
     {
+        if (controller == "TrajectoryExtrapolationCase")
+            return "Create a trajectory extrapolation case and queue its calculation. Select exactly one discriminated specification matching Mode. FixedLength extends straight or continues the fitted last section; ReconnectToTrajectory optionally continues a lead-in, advances from the closest point on a reference trajectory, and solves two steering sections; Geosteering optionally continues a lead-in then reaches a target depth and attitude using either overall departure/bearing or overall drilled length/steering-length ratio; WellPath requires exactly 3 × section-count constraints. The server derives timestamps, endpoint snapshots, solved sections and sampled stations. Poll status, then retrieve station chunks. SI units are metres, radians, and radians per metre.";
         if (controller is "TrajectoryMinimumDistanceCalculation" or "SurveyRunMinimumDistanceCalculation" or "SurveyStationEllipseCalculation" or "TrajectoryRealizationCase" or "TrajectoryAggregationCase" or "InterpolatedTrajectory")
             return $"Create {resource} and start its calculation. data.MetaInfo.ID must be a caller-assigned, non-empty UUID that is not already stored. Poll the corresponding by-id or light-list tool for CalculationState/CalculationProgress; retrieve large outputs through the result chunk tools where available. All lengths and distances are metres and angles are radians.";
         if (controller is "Trajectory" or "SurveyRun")
@@ -405,6 +486,7 @@ internal static class TrajectoryMcpToolMetadata
             "request" when action == "AuditExternalReferences" => "Audit scope (All or Selected), optional selected resource UUIDs, and deterministic offset/limit page. Selected UUIDs must be non-empty and unique; limit is 1 through 100.",
             "data" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation. Follow the nested schema and SI-unit annotations.",
             "value" when controller == "GlobalAntiCollisions" => "Separation-factor job configuration. Supply ID, ConfidenceFactor, exactly one reference identifier, and unique selected comparison trajectory UUIDs. Server-derived calculation and result fields are not accepted by MCP.",
+            "value" when controller == "TrajectoryExtrapolationCase" => "Trajectory extrapolation configuration using the Mode discriminator and its matching specification. Timestamps, calculation state, frozen endpoints, solved sections and station results are server-derived and forbidden in MCP submissions.",
             "value" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation.",
             _ => $"Value for {SplitWords(action).ToLowerInvariant()}."
         };
@@ -454,6 +536,21 @@ internal static class TrajectoryMcpToolMetadata
 
     private static JsonObject BuildObjectDefinition(Type type, JsonObject definitions, HashSet<Type> building)
     {
+        JsonDerivedTypeAttribute[] derivedTypes = type.GetCustomAttributes<JsonDerivedTypeAttribute>().ToArray();
+        if (derivedTypes.Length > 0)
+        {
+            var alternatives = new JsonArray();
+            foreach (JsonDerivedTypeAttribute derived in derivedTypes)
+            {
+                alternatives.Add(SchemaFor(derived.DerivedType, definitions, building));
+            }
+            return new JsonObject
+            {
+                ["description"] = $"Discriminated {SplitWords(type.Name)} variant.",
+                ["oneOf"] = alternatives
+            };
+        }
+
         var properties = new JsonObject();
         var required = new JsonArray();
         foreach (PropertyInfo property in type.GetProperties(BindingFlags.Instance | BindingFlags.Public)
@@ -470,6 +567,22 @@ internal static class TrajectoryMcpToolMetadata
             schema["description"] = DescribeProperty(type, property.Name);
             properties[property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name] = schema;
         }
+
+        Type? polymorphicBase = type.BaseType;
+        JsonPolymorphicAttribute? polymorphic = polymorphicBase?.GetCustomAttribute<JsonPolymorphicAttribute>();
+        JsonDerivedTypeAttribute? derivedMapping = polymorphicBase?.GetCustomAttributes<JsonDerivedTypeAttribute>()
+            .FirstOrDefault(attribute => attribute.DerivedType == type);
+        if (polymorphic != null && derivedMapping?.TypeDiscriminator is string discriminatorValue)
+        {
+            string discriminatorName = polymorphic.TypeDiscriminatorPropertyName ?? "$type";
+            properties[discriminatorName] = new JsonObject
+            {
+                ["type"] = "string",
+                ["const"] = discriminatorValue,
+                ["description"] = $"Selects the {discriminatorValue} variant."
+            };
+            required.Add(discriminatorName);
+        }
         var definition = new JsonObject
         {
             ["type"] = "object",
@@ -478,8 +591,36 @@ internal static class TrajectoryMcpToolMetadata
             ["additionalProperties"] = false
         };
         if (required.Count > 0) definition["required"] = required;
+        if (type == typeof(AntiCollisionFeatureCondition))
+        {
+            definition["allOf"] = new JsonArray(
+                TemporalVariantRule(nameof(AntiCollisionFeatureTemporalOperator.ActiveAtSpecifiedTime),
+                    [nameof(AntiCollisionFeatureCondition.SpecifiedTimeUtc)],
+                    [nameof(AntiCollisionFeatureCondition.SpecifiedFromUtc), nameof(AntiCollisionFeatureCondition.SpecifiedToUtc)]),
+                TemporalVariantRule(nameof(AntiCollisionFeatureTemporalOperator.OverlapsSpecifiedInterval),
+                    [nameof(AntiCollisionFeatureCondition.SpecifiedFromUtc), nameof(AntiCollisionFeatureCondition.SpecifiedToUtc)],
+                    [nameof(AntiCollisionFeatureCondition.SpecifiedTimeUtc)]));
+        }
         return definition;
     }
+
+    private static JsonObject TemporalVariantRule(string discriminator, string[] requiredWhenSelected, string[] forbiddenWhenSelected) => new()
+    {
+        ["if"] = new JsonObject
+        {
+            ["properties"] = new JsonObject { [nameof(AntiCollisionFeatureCondition.TemporalOperator)] = new JsonObject { ["const"] = discriminator } },
+            ["required"] = new JsonArray(nameof(AntiCollisionFeatureCondition.TemporalOperator))
+        },
+        ["then"] = new JsonObject
+        {
+            ["required"] = new JsonArray(requiredWhenSelected.Select(value => (JsonNode?)JsonValue.Create(value)).ToArray()),
+            ["not"] = new JsonObject { ["anyOf"] = new JsonArray(forbiddenWhenSelected.Select(value => (JsonNode?)new JsonObject { ["required"] = new JsonArray(value) }).ToArray()) }
+        },
+        ["else"] = new JsonObject
+        {
+            ["not"] = new JsonObject { ["anyOf"] = new JsonArray(requiredWhenSelected.Select(value => (JsonNode?)new JsonObject { ["required"] = new JsonArray(value) }).ToArray()) }
+        }
+    };
 
     private static void ApplyDomainConstraints(Type declaringType, PropertyInfo property, JsonObject schema, JsonArray required)
     {
@@ -578,6 +719,79 @@ internal static class TrajectoryMcpToolMetadata
         {
             required.Add(property.Name);
         }
+        else if (declaringType == typeof(AntiCollisionPolicyRevisionCreate))
+        {
+            if (property.Name is nameof(AntiCollisionPolicyRevisionCreate.MetaInfo) or
+                nameof(AntiCollisionPolicyRevisionCreate.PolicyID) or
+                nameof(AntiCollisionPolicyRevisionCreate.Name) or
+                nameof(AntiCollisionPolicyRevisionCreate.ConfidenceFactor) or
+                nameof(AntiCollisionPolicyRevisionCreate.Rules)) required.Add(property.Name);
+            if (property.Name == nameof(AntiCollisionPolicyRevisionCreate.Rules)) schema["minItems"] = 1;
+        }
+        else if (declaringType == typeof(AntiCollisionPolicyRule))
+        {
+            required.Add(property.Name);
+            if (property.Name is nameof(AntiCollisionPolicyRule.AlertThreshold) or nameof(AntiCollisionPolicyRule.AlarmThreshold))
+                schema["exclusiveMinimum"] = 0.0;
+        }
+        else if (declaringType == typeof(AntiCollisionTrajectoryAgeCondition))
+        {
+            required.Add(property.Name);
+            if (property.Name == nameof(AntiCollisionTrajectoryAgeCondition.AgeThresholdSeconds)) schema["minimum"] = 0.0;
+        }
+        else if (declaringType == typeof(AntiCollisionIdentityCondition))
+        {
+            required.Add(property.Name);
+            if (property.Name == nameof(AntiCollisionIdentityCondition.Pattern)) schema["minLength"] = 1;
+        }
+        else if (declaringType == typeof(AntiCollisionFeatureCondition))
+        {
+            if (property.Name is nameof(AntiCollisionFeatureCondition.ConditionID) or
+                nameof(AntiCollisionFeatureCondition.ResourceLevel) or
+                nameof(AntiCollisionFeatureCondition.FeatureCategoryID) or
+                nameof(AntiCollisionFeatureCondition.FeatureOptionID) or
+                nameof(AntiCollisionFeatureCondition.TemporalOperator)) required.Add(property.Name);
+        }
+        else if (declaringType == typeof(FieldAntiCollisionPolicyAssignmentMutation))
+        {
+            if (property.Name is not nameof(FieldAntiCollisionPolicyAssignmentMutation.ValidToUtc)) required.Add(property.Name);
+        }
+        else if (declaringType == typeof(SurveyRunBitExtrapolation))
+        {
+            required.Add(property.Name);
+            if (property.Name == nameof(SurveyRunBitExtrapolation.MeasurementToolToBitDistance))
+                schema["exclusiveMinimum"] = 0.0;
+        }
+        else if (declaringType == typeof(GeosteeringTrajectoryExtrapolationSpecification))
+        {
+            required.Add(property.Name);
+            if (property.Name == nameof(GeosteeringTrajectoryExtrapolationSpecification.LeadInLength))
+                schema["minimum"] = 0.0;
+            else if (property.Name == nameof(GeosteeringTrajectoryExtrapolationSpecification.EndInclination))
+            {
+                schema["minimum"] = 0.0;
+                schema["maximum"] = Math.PI;
+            }
+        }
+        else if (declaringType == typeof(ReconnectTrajectoryExtrapolationSpecification) &&
+                 property.Name == nameof(ReconnectTrajectoryExtrapolationSpecification.LeadInLength))
+        {
+            required.Add(property.Name);
+            schema["minimum"] = 0.0;
+        }
+        else if (declaringType == typeof(DepartureGeosteeringExtentConstraint))
+        {
+            required.Add(property.Name);
+            if (property.Name == nameof(DepartureGeosteeringExtentConstraint.DepartureDistance))
+                schema["exclusiveMinimum"] = 0.0;
+        }
+        else if (declaringType == typeof(DrilledLengthGeosteeringExtentConstraint))
+        {
+            required.Add(property.Name);
+            if (property.Name is nameof(DrilledLengthGeosteeringExtentConstraint.OverallDrilledLength) or
+                nameof(DrilledLengthGeosteeringExtentConstraint.SteeringLengthRatio))
+                schema["exclusiveMinimum"] = 0.0;
+        }
         else if (declaringType.FullName == "OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision" &&
                   property.Name == "ID")
         {
@@ -651,6 +865,7 @@ internal static class TrajectoryMcpToolMetadata
             return name switch
             {
                 nameof(SurveyMeasurement.MeasurementID) => "Stable measurement UUID independent of list position.",
+                nameof(SurveyMeasurement.Origin) => "Measured for an instrument observation; Extrapolated only for the final supplied bit station in LastStationAlreadyExtrapolated mode.",
                 nameof(SurveyMeasurement.MD) => "Measured or along-hole depth in canonical SI metres.",
                 nameof(SurveyMeasurement.Inclination) => "Canonical inclination from the local WGS84 geodetic-down axis in SI radians, after reference correction.",
                 nameof(SurveyMeasurement.Azimuth) => "Canonical clockwise azimuth from WGS84 geodetic true north in SI radians, after reference correction.",
@@ -660,6 +875,15 @@ internal static class TrajectoryMcpToolMetadata
                 nameof(SurveyMeasurement.InclinationReference) => "Vertical reference of ObservedInclination. InheritRun selects the survey-run default.",
                 nameof(SurveyMeasurement.AzimuthReference) => "North reference of ObservedAzimuth. InheritRun selects the survey-run default.",
                 nameof(SurveyMeasurement.Correction) => "Frozen correction result and Earth-model provenance used to derive canonical angles.",
+                _ => SplitWords(name) + "."
+            };
+        }
+        if (declaringType == typeof(SurveyRunBitExtrapolation))
+        {
+            return name switch
+            {
+                nameof(SurveyRunBitExtrapolation.Mode) => "CalculateFromLastMeasurement derives the terminal station server-side; LastStationAlreadyExtrapolated identifies the final supplied row as the bit station.",
+                nameof(SurveyRunBitExtrapolation.MeasurementToolToBitDistance) => "Distance-to-bit elevation of the measurement tool relative to the bit front face, positive upward in canonical SI metres; used as the positive along-hole MD increment to the bit.",
                 _ => SplitWords(name) + "."
             };
         }
@@ -759,6 +983,82 @@ internal static class TrajectoryMcpToolMetadata
                 nameof(SeparationFactorPoint.ReferenceMD) => "Reference-trajectory measured depth in SI metres.",
                 nameof(SeparationFactorPoint.ComparisonMD) => "Corresponding comparison-trajectory measured depth in SI metres; legacy no-correspondence points may use -1.",
                 nameof(SeparationFactorPoint.SeparationFactor) => "Dimensionless separation factor at the reference/comparison depth pair.",
+                _ => SplitWords(name) + "."
+            };
+        }
+        if (declaringType == typeof(AntiCollisionPolicyRevisionCreate) || declaringType == typeof(AntiCollisionPolicyRevision))
+        {
+            return name switch
+            {
+                "MetaInfo" => "Non-empty immutable revision UUID and REST ownership metadata.",
+                "PolicyID" => "Stable non-empty UUID shared by every immutable revision in this policy family.",
+                "RevisionNumber" => "Server-derived positive monotonic revision number within PolicyID.",
+                "Name" => "Human-readable non-empty policy name.",
+                "CreationDate" => "Server-derived UTC creation instant for this immutable revision.",
+                "ConfidenceFactor" => "Dimensionless uncertainty confidence proportion greater than zero and at most 0.999; this overrides the submitted calculation confidence.",
+                "Rules" => "Non-empty rules with unique explicit priorities. Lower priority numbers are evaluated first; exactly one unconditional rule must be last.",
+                _ => SplitWords(name) + "."
+            };
+        }
+        if (declaringType == typeof(AntiCollisionPolicyRule))
+        {
+            return name switch
+            {
+                nameof(AntiCollisionPolicyRule.RuleID) => "Stable non-empty UUID of this rule within the immutable revision.",
+                nameof(AntiCollisionPolicyRule.Priority) => "Unique explicit order within the revision; lower values are evaluated first.",
+                nameof(AntiCollisionPolicyRule.AlertThreshold) => "Dimensionless separation-factor Alert threshold, strictly greater than AlarmThreshold.",
+                nameof(AntiCollisionPolicyRule.AlarmThreshold) => "Positive dimensionless separation-factor Alarm threshold, strictly lower than AlertThreshold.",
+                nameof(AntiCollisionPolicyRule.Conditions) => "Conditions combined with AND. Empty only for the one required final default rule.",
+                _ => SplitWords(name) + "."
+            };
+        }
+        if (declaringType == typeof(GeosteeringTrajectoryExtrapolationSpecification))
+        {
+            return name switch
+            {
+                nameof(GeosteeringTrajectoryExtrapolationSpecification.LeadInLength) => "Non-negative initial continuation of the source trajectory's final calculated curve before steering starts, in SI metres.",
+                nameof(GeosteeringTrajectoryExtrapolationSpecification.TargetVerticalDepth) => "Absolute target WGS84 vertical depth, positive downward in SI metres.",
+                nameof(GeosteeringTrajectoryExtrapolationSpecification.EndInclination) => "Target inclination from the local WGS84 geodetic-down axis, from 0 through pi radians.",
+                nameof(GeosteeringTrajectoryExtrapolationSpecification.EndAzimuth) => "Target clockwise azimuth from WGS84 geodetic true north in SI radians.",
+                nameof(GeosteeringTrajectoryExtrapolationSpecification.Extent) => "Exactly one overall extent measured from the final source station: Departure or DrilledLength.",
+                _ => SplitWords(name) + "."
+            };
+        }
+        if (declaringType == typeof(DepartureGeosteeringExtentConstraint))
+            return name == nameof(DepartureGeosteeringExtentConstraint.DepartureDistance)
+                ? "Positive overall horizontal departure from the final source station in SI metres."
+                : "Overall departure bearing clockwise and positive east of WGS84 true north in SI radians.";
+        if (declaringType == typeof(DrilledLengthGeosteeringExtentConstraint))
+            return name == nameof(DrilledLengthGeosteeringExtentConstraint.OverallDrilledLength)
+                ? "Positive total drilled length from the final source station through lead-in and both steering sections, in SI metres; it must exceed LeadInLength."
+                : "Positive dimensionless upstream-to-downstream steering-section length ratio.";
+        if (declaringType == typeof(AntiCollisionTrajectoryAgeCondition))
+            return name == nameof(AntiCollisionTrajectoryAgeCondition.AgeThresholdSeconds)
+                ? "Non-negative trajectory-age threshold in canonical SI seconds. Age uses the oldest defined contributing acquisition start or station measurement time."
+                : SplitWords(name) + ".";
+        if (declaringType == typeof(AntiCollisionIdentityCondition))
+            return name == nameof(AntiCollisionIdentityCondition.IdentityDefinitionID)
+                ? "Identity-definition UUID owned by the selected comparison-side hierarchy service."
+                : name == nameof(AntiCollisionIdentityCondition.Pattern)
+                    ? "Non-empty identity value pattern interpreted by MatchOperator; Glob supports '*' and '?' without regular expressions."
+                    : SplitWords(name) + ".";
+        if (declaringType == typeof(AntiCollisionFeatureCondition))
+            return name switch
+            {
+                nameof(AntiCollisionFeatureCondition.FeatureCategoryID) => "Feature-category UUID owned by the selected comparison-side hierarchy service.",
+                nameof(AntiCollisionFeatureCondition.FeatureOptionID) => "Feature-option UUID belonging to FeatureCategoryID.",
+                nameof(AntiCollisionFeatureCondition.TemporalOperator) => "Temporal relation used against the frozen assignment validity and measurement/evaluation interval.",
+                _ => SplitWords(name) + "."
+            };
+        if (declaringType == typeof(FieldAntiCollisionPolicyAssignmentMutation) || declaringType == typeof(FieldAntiCollisionPolicyAssignment))
+        {
+            return name switch
+            {
+                "FieldID" => "Non-empty UUID of the Field governed by this assignment.",
+                "PolicyRevisionID" => "Non-empty UUID of one exact existing immutable policy revision.",
+                "ValidFromUtc" => "Inclusive UTC start of the non-overlapping Field assignment interval.",
+                "ValidToUtc" => "Exclusive UTC end of the assignment interval; null means open-ended.",
+                "LastModificationDate" => "Opaque server concurrency token copied exactly into expectedModifiedUtc.",
                 _ => SplitWords(name) + "."
             };
         }

@@ -3,10 +3,21 @@ using System;
 
 namespace OSDC.Drilling.Trajectory.Model
 {
+    public enum SurveyMeasurementOrigin
+    {
+        Measured,
+        Extrapolated
+    }
+
     public class SurveyMeasurement
     {
         /// <summary>Stable identity used to address this measurement independently of its list position.</summary>
         public Guid MeasurementID { get; set; } = Guid.NewGuid();
+        /// <summary>
+        /// Identifies whether this row is an instrument measurement or an already supplied terminal
+        /// extrapolation. Legacy rows default to Measured. Only the final row may be Extrapolated.
+        /// </summary>
+        public SurveyMeasurementOrigin Origin { get; set; } = SurveyMeasurementOrigin.Measured;
         public double? MD { get; set; }
         /// <summary>Canonical inclination from the local WGS84 geodetic-down axis, in SI radians.</summary>
         public double? Inclination { get; set; }

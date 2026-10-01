@@ -4599,6 +4599,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 			{
 				ID = "Default ID",
 				ConfidenceFactor = 0.0,
+				PolicyEvaluationUtc = DateTimeOffset.UtcNow,
+				PolicyAssignmentID = null,
+				PolicySnapshot = ConstructAntiCollisionPolicyRevision(),
 				ReferenceWellPathID = new Guid(),
 				ReferenceTrajectoryID = new Guid(),
 				ComparisonTrajectoryIDs = new List<Guid>
@@ -4652,6 +4655,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					{
 						ConstructSeparationFactorPoint(),
 					},
+				PolicyEvaluation = ConstructAntiCollisionPolicyEvaluation(),
 			};
 		}
 		public static AnnotatedAbscissa ConstructAnnotatedAbscissa()
@@ -4815,6 +4819,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 			return new SurveyMeasurement
 			{
 				MeasurementID = new Guid(),
+				Origin = (SurveyMeasurementOrigin)0,
 				MD = null,
 				Inclination = null,
 				Azimuth = null,
@@ -4894,6 +4899,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					{
 						ConstructSurveyStation(),
 					},
+				BitExtrapolation = ConstructSurveyRunBitExtrapolation(),
 			};
 		}
 		public static SurveyRunBatchImport ConstructSurveyRunBatchImport()
@@ -5365,6 +5371,14 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					{
 						ConstructTrajectory(),
 					},
+				AntiCollisionPolicyRevisions = new List<AntiCollisionPolicyRevision>
+					{
+						ConstructAntiCollisionPolicyRevision(),
+					},
+				FieldAntiCollisionPolicyAssignments = new List<FieldAntiCollisionPolicyAssignment>
+					{
+						ConstructFieldAntiCollisionPolicyAssignment(),
+					},
 			};
 		}
 		public static TrajectoryBatchExportRequest ConstructTrajectoryBatchExportRequest()
@@ -5402,6 +5416,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CreatedTrajectoryCount = 0,
 				ReplacedTrajectoryCount = 0,
 				CreatedCatalogDefinitionCount = 0,
+				CreatedAntiCollisionPolicyRevisionCount = 0,
+				ReplacedAntiCollisionPolicyRevisionCount = 0,
+				CreatedFieldPolicyAssignmentCount = 0,
+				ReplacedFieldPolicyAssignmentCount = 0,
 				CatalogMappings = new List<TrajectoryBatchCatalogMapping>
 					{
 						ConstructTrajectoryBatchCatalogMapping(),
@@ -5411,6 +5429,14 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 						new Guid(),
 					},
 				TrajectoryIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				AntiCollisionPolicyRevisionIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				FieldAntiCollisionPolicyAssignmentIDs = new List<Guid>
 					{
 						new Guid(),
 					},
@@ -5698,6 +5724,27 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				PostTrajectoryPerDay = ConstructHistory(),
 				PutTrajectoryByIdPerDay = ConstructHistory(),
 				DeleteTrajectoryByIdPerDay = ConstructHistory(),
+				GetAllTrajectoryExtrapolationCaseIdPerDay = ConstructHistory(),
+				GetAllTrajectoryExtrapolationCaseMetaInfoPerDay = ConstructHistory(),
+				GetAllTrajectoryExtrapolationCaseLightPerDay = ConstructHistory(),
+				GetAllTrajectoryExtrapolationCasePerDay = ConstructHistory(),
+				GetTrajectoryExtrapolationCaseByIdPerDay = ConstructHistory(),
+				GetTrajectoryExtrapolationCaseStatusPerDay = ConstructHistory(),
+				GetTrajectoryExtrapolationSurveyStationChunkCountPerDay = ConstructHistory(),
+				GetTrajectoryExtrapolationSurveyStationChunkPerDay = ConstructHistory(),
+				PostTrajectoryExtrapolationCasePerDay = ConstructHistory(),
+				PutTrajectoryExtrapolationCaseByIdPerDay = ConstructHistory(),
+				DeleteTrajectoryExtrapolationCaseByIdPerDay = ConstructHistory(),
+				GetAllAntiCollisionPolicyRevisionIdPerDay = ConstructHistory(),
+				GetAllAntiCollisionPolicyRevisionPerDay = ConstructHistory(),
+				GetAntiCollisionPolicyRevisionByIdPerDay = ConstructHistory(),
+				PostAntiCollisionPolicyRevisionPerDay = ConstructHistory(),
+				GetAllFieldAntiCollisionPolicyAssignmentPerDay = ConstructHistory(),
+				GetFieldAntiCollisionPolicyAssignmentByIdPerDay = ConstructHistory(),
+				GetEffectiveFieldAntiCollisionPolicyAssignmentPerDay = ConstructHistory(),
+				PostFieldAntiCollisionPolicyAssignmentPerDay = ConstructHistory(),
+				PutFieldAntiCollisionPolicyAssignmentByIdPerDay = ConstructHistory(),
+				DeleteFutureFieldAntiCollisionPolicyAssignmentByIdPerDay = ConstructHistory(),
 			};
 		}
 		public static SurveyInstrumentBatchCatalogDependencies ConstructSurveyInstrumentBatchCatalogDependencies()
@@ -6516,6 +6563,278 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CatalogWrites = 0,
 			};
 		}
+		public static AntiCollisionFeatureCondition ConstructAntiCollisionFeatureCondition()
+		{
+			return new AntiCollisionFeatureCondition
+			{
+				ResourceLevel = (AntiCollisionHierarchyLevel)0,
+				FeatureCategoryID = new Guid(),
+				FeatureOptionID = new Guid(),
+				TemporalOperator = (AntiCollisionFeatureTemporalOperator)0,
+				SpecifiedTimeUtc = DateTimeOffset.UtcNow,
+				SpecifiedFromUtc = DateTimeOffset.UtcNow,
+				SpecifiedToUtc = DateTimeOffset.UtcNow,
+				ConditionID = new Guid(),
+			};
+		}
+		public static AntiCollisionFeatureValueSnapshot ConstructAntiCollisionFeatureValueSnapshot()
+		{
+			return new AntiCollisionFeatureValueSnapshot
+			{
+				FeatureCategoryID = new Guid(),
+				FeatureOptionID = new Guid(),
+				FromUtc = DateTimeOffset.UtcNow,
+				ToUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static AntiCollisionIdentityCondition ConstructAntiCollisionIdentityCondition()
+		{
+			return new AntiCollisionIdentityCondition
+			{
+				ResourceLevel = (AntiCollisionHierarchyLevel)0,
+				IdentityDefinitionID = new Guid(),
+				MatchOperator = (AntiCollisionIdentityMatchOperator)0,
+				Pattern = "Default Pattern",
+				CaseSensitive = false,
+				ConditionID = new Guid(),
+			};
+		}
+		public static AntiCollisionIdentityValueSnapshot ConstructAntiCollisionIdentityValueSnapshot()
+		{
+			return new AntiCollisionIdentityValueSnapshot
+			{
+				IdentityDefinitionID = new Guid(),
+				Value = "Default Value",
+			};
+		}
+		public static AntiCollisionPolicyCondition ConstructAntiCollisionPolicyCondition()
+		{
+			return new AntiCollisionPolicyCondition
+			{
+				ConditionID = new Guid(),
+			};
+		}
+		public static AntiCollisionPolicyEvaluation ConstructAntiCollisionPolicyEvaluation()
+		{
+			return new AntiCollisionPolicyEvaluation
+			{
+				ComparisonTrajectoryID = new Guid(),
+				State = (AntiCollisionPolicyEvaluationState)0,
+				Message = "Default Message",
+				MatchedRuleID = null,
+				MatchedRulePriority = null,
+				AlertThreshold = null,
+				AlarmThreshold = null,
+				OldestEvidenceUtc = DateTimeOffset.UtcNow,
+				NewestEvidenceUtc = DateTimeOffset.UtcNow,
+				TrajectoryAgeSeconds = null,
+				WorstClassification = (AntiCollisionClassification)0,
+				Context = new List<AntiCollisionResourceContextSnapshot>
+					{
+						ConstructAntiCollisionResourceContextSnapshot(),
+					},
+			};
+		}
+		public static AntiCollisionPolicyRevision ConstructAntiCollisionPolicyRevision()
+		{
+			return new AntiCollisionPolicyRevision
+			{
+				MetaInfo = ConstructMetaInfo(),
+				PolicyID = new Guid(),
+				RevisionNumber = 0,
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				ConfidenceFactor = 0.0,
+				Rules = new List<AntiCollisionPolicyRule>
+					{
+						ConstructAntiCollisionPolicyRule(),
+					},
+			};
+		}
+		public static AntiCollisionPolicyRevisionCreate ConstructAntiCollisionPolicyRevisionCreate()
+		{
+			return new AntiCollisionPolicyRevisionCreate
+			{
+				MetaInfo = ConstructMetaInfo(),
+				PolicyID = new Guid(),
+				Name = "Default Name",
+				Description = "Default Description",
+				ConfidenceFactor = 0.0,
+				Rules = new List<AntiCollisionPolicyRule>
+					{
+						ConstructAntiCollisionPolicyRule(),
+					},
+			};
+		}
+		public static AntiCollisionPolicyRule ConstructAntiCollisionPolicyRule()
+		{
+			return new AntiCollisionPolicyRule
+			{
+				RuleID = new Guid(),
+				Name = "Default Name",
+				Priority = 0,
+				AlertThreshold = 0.0,
+				AlarmThreshold = 0.0,
+				Conditions = new List<AntiCollisionPolicyCondition>
+					{
+						ConstructAntiCollisionPolicyCondition(),
+					},
+			};
+		}
+		public static AntiCollisionResourceContextSnapshot ConstructAntiCollisionResourceContextSnapshot()
+		{
+			return new AntiCollisionResourceContextSnapshot
+			{
+				ResourceLevel = (AntiCollisionHierarchyLevel)0,
+				ResourceID = new Guid(),
+				Name = "Default Name",
+				IsAvailable = false,
+				Identities = new List<AntiCollisionIdentityValueSnapshot>
+					{
+						ConstructAntiCollisionIdentityValueSnapshot(),
+					},
+				Features = new List<AntiCollisionFeatureValueSnapshot>
+					{
+						ConstructAntiCollisionFeatureValueSnapshot(),
+					},
+				IdentityCatalogAvailable = false,
+				UnavailableReason = "Default UnavailableReason",
+			};
+		}
+		public static AntiCollisionTrajectoryAgeCondition ConstructAntiCollisionTrajectoryAgeCondition()
+		{
+			return new AntiCollisionTrajectoryAgeCondition
+			{
+				Operator = (AntiCollisionComparisonOperator)0,
+				AgeThresholdSeconds = 0.0,
+				ConditionID = new Guid(),
+			};
+		}
+		public static FieldAntiCollisionPolicyAssignment ConstructFieldAntiCollisionPolicyAssignment()
+		{
+			return new FieldAntiCollisionPolicyAssignment
+			{
+				MetaInfo = ConstructMetaInfo(),
+				FieldID = new Guid(),
+				PolicyRevisionID = new Guid(),
+				ValidFromUtc = DateTimeOffset.UtcNow,
+				ValidToUtc = DateTimeOffset.UtcNow,
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldAntiCollisionPolicyAssignmentMutation ConstructFieldAntiCollisionPolicyAssignmentMutation()
+		{
+			return new FieldAntiCollisionPolicyAssignmentMutation
+			{
+				MetaInfo = ConstructMetaInfo(),
+				FieldID = new Guid(),
+				PolicyRevisionID = new Guid(),
+				ValidFromUtc = DateTimeOffset.UtcNow,
+				ValidToUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static CircularArcWellPathSectionSpecification ConstructCircularArcWellPathSectionSpecification()
+		{
+			return new CircularArcWellPathSectionSpecification
+			{
+				Curvature = null,
+				StartToolface = null,
+				SectionID = new Guid(),
+				Length = null,
+				EndInclination = null,
+				EndAzimuth = null,
+				EndVerticalDepth = null,
+				EndNorth = null,
+				EndEast = null,
+			};
+		}
+		public static ConstantBuildAndTurnWellPathSectionSpecification ConstructConstantBuildAndTurnWellPathSectionSpecification()
+		{
+			return new ConstantBuildAndTurnWellPathSectionSpecification
+			{
+				BuildRate = null,
+				TurnRate = null,
+				SectionID = new Guid(),
+				Length = null,
+				EndInclination = null,
+				EndAzimuth = null,
+				EndVerticalDepth = null,
+				EndNorth = null,
+				EndEast = null,
+			};
+		}
+		public static ConstantCurvatureAndToolfaceWellPathSectionSpecification ConstructConstantCurvatureAndToolfaceWellPathSectionSpecification()
+		{
+			return new ConstantCurvatureAndToolfaceWellPathSectionSpecification
+			{
+				Curvature = null,
+				Toolface = null,
+				SectionID = new Guid(),
+				Length = null,
+				EndInclination = null,
+				EndAzimuth = null,
+				EndVerticalDepth = null,
+				EndNorth = null,
+				EndEast = null,
+			};
+		}
+		public static DepartureGeosteeringExtentConstraint ConstructDepartureGeosteeringExtentConstraint()
+		{
+			return new DepartureGeosteeringExtentConstraint
+			{
+				DepartureDistance = 0.0,
+				DepartureBearing = 0.0,
+			};
+		}
+		public static DrilledLengthGeosteeringExtentConstraint ConstructDrilledLengthGeosteeringExtentConstraint()
+		{
+			return new DrilledLengthGeosteeringExtentConstraint
+			{
+				OverallDrilledLength = 0.0,
+				SteeringLengthRatio = 0.0,
+			};
+		}
+		public static FixedLengthExtrapolationSpecification ConstructFixedLengthExtrapolationSpecification()
+		{
+			return new FixedLengthExtrapolationSpecification
+			{
+				Length = 0.0,
+				ExtensionType = (FixedLengthExtrapolationType)0,
+			};
+		}
+		public static GeosteeringExtentConstraint ConstructGeosteeringExtentConstraint()
+		{
+			return new GeosteeringExtentConstraint
+			{
+			};
+		}
+		public static GeosteeringTrajectoryExtrapolationSpecification ConstructGeosteeringTrajectoryExtrapolationSpecification()
+		{
+			return new GeosteeringTrajectoryExtrapolationSpecification
+			{
+				LeadInLength = 0.0,
+				TargetVerticalDepth = 0.0,
+				EndInclination = 0.0,
+				EndAzimuth = 0.0,
+				CurveType = (ExtrapolationCurveType)0,
+				AzimuthBranch = 0,
+				Extent = ConstructGeosteeringExtentConstraint(),
+			};
+		}
+		public static ReconnectTrajectoryExtrapolationSpecification ConstructReconnectTrajectoryExtrapolationSpecification()
+		{
+			return new ReconnectTrajectoryExtrapolationSpecification
+			{
+				ReferenceTrajectoryID = new Guid(),
+				ReferenceMDAdvance = 0.0,
+				CurveType = (ExtrapolationCurveType)0,
+				AzimuthBranch = 0,
+				JunctionCurvatureRatio = 0.0,
+				LeadInLength = 0.0,
+			};
+		}
 		public static SurveyMeasurementCorrection ConstructSurveyMeasurementCorrection()
 		{
 			return new SurveyMeasurementCorrection
@@ -6541,6 +6860,93 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				GeomagneticMetadataSHA256 = "Default GeomagneticMetadataSHA256",
 				GeomagneticCoefficientSHA256 = "Default GeomagneticCoefficientSHA256",
 				AlgorithmVersion = "Default AlgorithmVersion",
+			};
+		}
+		public static SurveyRunBitExtrapolation ConstructSurveyRunBitExtrapolation()
+		{
+			return new SurveyRunBitExtrapolation
+			{
+				Mode = (SurveyRunBitExtrapolationMode)0,
+				MeasurementToolToBitDistance = 0.0,
+			};
+		}
+		public static TrajectoryExtrapolationCase ConstructTrajectoryExtrapolationCase()
+		{
+			return new TrajectoryExtrapolationCase
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				SourceTrajectoryID = new Guid(),
+				Mode = (TrajectoryExtrapolationMode)0,
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				InterpolationInterval = 0.0,
+				Specification = ConstructTrajectoryExtrapolationSpecification(),
+				StartStation = ConstructSurveyStation(),
+				TargetStation = ConstructSurveyStation(),
+				ClosestReferenceMD = null,
+				TargetReferenceMD = null,
+				SourceTrajectoryRevision = DateTimeOffset.UtcNow,
+				ReferenceTrajectoryRevision = DateTimeOffset.UtcNow,
+				SolvedSectionList = new List<TrajectoryExtrapolationSolvedSection>
+					{
+						ConstructTrajectoryExtrapolationSolvedSection(),
+					},
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+			};
+		}
+		public static TrajectoryExtrapolationSolvedSection ConstructTrajectoryExtrapolationSolvedSection()
+		{
+			return new TrajectoryExtrapolationSolvedSection
+			{
+				SectionID = new Guid(),
+				SectionIndex = 0,
+				Role = (TrajectoryExtrapolationSectionRole)0,
+				CurveType = (ExtrapolationCurveType)0,
+				StartMD = 0.0,
+				EndMD = 0.0,
+				Length = 0.0,
+				Start = ConstructSurveyStation(),
+				End = ConstructSurveyStation(),
+				CircularArcCurvature = null,
+				CircularArcStartToolface = null,
+				ConstantBuildRate = null,
+				ConstantTurnRate = null,
+				ConstantCurvature = null,
+				ConstantToolface = null,
+			};
+		}
+		public static TrajectoryExtrapolationSpecification ConstructTrajectoryExtrapolationSpecification()
+		{
+			return new TrajectoryExtrapolationSpecification
+			{
+			};
+		}
+		public static WellPathExtrapolationSpecification ConstructWellPathExtrapolationSpecification()
+		{
+			return new WellPathExtrapolationSpecification
+			{
+				SectionList = new List<WellPathSectionSpecification>(),
+			};
+		}
+		public static WellPathSectionSpecification ConstructWellPathSectionSpecification()
+		{
+			return new WellPathSectionSpecification
+			{
+				SectionID = new Guid(),
+				Length = null,
+				EndInclination = null,
+				EndAzimuth = null,
+				EndVerticalDepth = null,
+				EndNorth = null,
+				EndEast = null,
 			};
 		}
 		public static RigJob ConstructRigJob()

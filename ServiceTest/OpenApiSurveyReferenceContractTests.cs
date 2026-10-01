@@ -15,6 +15,7 @@ public sealed class OpenApiSurveyReferenceContractTests
         JsonObject run = schemas["OSDC.Drilling.Trajectory.Model.SurveyRun"]!.AsObject();
         JsonObject measurement = schemas["OSDC.Drilling.Trajectory.Model.SurveyMeasurement"]!.AsObject();
         JsonObject correction = schemas["OSDC.Drilling.Trajectory.Model.SurveyMeasurementCorrection"]!.AsObject();
+        JsonObject bitExtrapolation = schemas["OSDC.Drilling.Trajectory.Model.SurveyRunBitExtrapolation"]!.AsObject();
 
         Assert.Multiple(() =>
         {
@@ -29,6 +30,12 @@ public sealed class OpenApiSurveyReferenceContractTests
             Assert.That(correction["properties"]!["GravityNorth"]!["x-si-unit"]!.GetValue<string>(), Is.EqualTo("m/s2"));
             Assert.That(correction["properties"]!["EvaluatedDepthWgs84"]!["description"]!.GetValue<string>(),
                 Does.Contain("positive downward"));
+            Assert.That(measurement["properties"]!["Origin"]!["description"]!.GetValue<string>(),
+                Does.Contain("final caller-supplied bit station"));
+            Assert.That(bitExtrapolation["properties"]!["MeasurementToolToBitDistance"]!["x-si-unit"]!.GetValue<string>(),
+                Is.EqualTo("m"));
+            Assert.That(bitExtrapolation["properties"]!["MeasurementToolToBitDistance"]!["exclusiveMinimum"]!.GetValue<bool>(),
+                Is.True);
         });
     }
 }

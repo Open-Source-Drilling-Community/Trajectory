@@ -5,6 +5,7 @@ using OSDC.DotnetLibraries.General.DataManagement;
 using OSDC.Drilling.Trajectory.Model;
 using OSDC.Drilling.Trajectory.Service;
 using OSDC.Drilling.Trajectory.Service.Managers;
+using OSDC.Drilling.GlobalAntiCollision;
 
 namespace ServiceTest;
 
@@ -20,6 +21,11 @@ public sealed class TrajectoryBatchServiceTests
         DateTimeOffset timestamp = DateTimeOffset.UtcNow;
         var parent = SurveyRun(parentId, null, "Parent", timestamp);
         parent.SurveyMeasurementList = [new() { MD = 0, Inclination = 0.1, Azimuth = 0.2, Annotation = "measurement" }];
+        parent.BitExtrapolation = new SurveyRunBitExtrapolation
+        {
+            Mode = SurveyRunBitExtrapolationMode.CalculateFromLastMeasurement,
+            MeasurementToolToBitDistance = 12.5
+        };
         parent.SurveyRunIdentityAssignments =
         [
             new() { ID = Guid.NewGuid(), IdentityID = identity.MetaInfo!.ID, Value = "Plan A" }
@@ -81,6 +87,8 @@ public sealed class TrajectoryBatchServiceTests
         Assert.Multiple(() =>
         {
             Assert.That(roundTrip.Document!.SurveyRuns.Single(value => value.MetaInfo!.ID == parentId).SurveyMeasurementList![0].Annotation, Is.EqualTo("measurement"));
+            Assert.That(roundTrip.Document.SurveyRuns.Single(value => value.MetaInfo!.ID == parentId).BitExtrapolation?.MeasurementToolToBitDistance,
+                Is.EqualTo(12.5));
             Assert.That(roundTrip.Document.SurveyRuns.Single(value => value.MetaInfo!.ID == childId).SurveyStationList, Has.Count.EqualTo(1));
             Assert.That(roundTrip.Document.Trajectories.Single().SurveyStationList, Has.Count.EqualTo(1));
         });
@@ -173,6 +181,49 @@ public sealed class TrajectoryBatchServiceTests
         Assert.That(after.Document!.SurveyRuns.Single().Name, Is.EqualTo("Original"));
     }
 
+    [Test]
+    public void Policy_library_and_field_assignment_round_trip_with_backup()
+    {
+        using var source = new TestEnvironment();
+        DateTimeOffset timestamp = DateTimeOffset.UtcNow;
+        Assert.That(source.Service.Restore(new()
+        {
+            Document = Document(timestamp, [SurveyRun(Guid.NewGuid(), null, "Policy backup anchor", timestamp)], [], []),
+            ConflictPolicy = TrajectoryBatchRestoreConflictPolicy.FailIfExists,
+            CatalogPolicy = TrajectoryBatchCatalogRestorePolicy.MapExisting
+        }).IsSuccess, Is.True);
+        var revision = new AntiCollisionPolicyRevision
+        {
+            MetaInfo = new MetaInfo { ID = Guid.NewGuid() }, PolicyID = Guid.NewGuid(), Name = "Field policy", ConfidenceFactor = .95,
+            Rules = [new AntiCollisionPolicyRule { RuleID = Guid.NewGuid(), Name = "Default", Priority = 100, AlertThreshold = 1.5, AlarmThreshold = 1.0 }]
+        };
+        Assert.That(source.Policies.AddRevision(revision), Is.True);
+        var assignment = new FieldAntiCollisionPolicyAssignment
+        {
+            MetaInfo = new MetaInfo { ID = Guid.NewGuid() }, FieldID = Guid.NewGuid(), PolicyRevisionID = revision.MetaInfo.ID,
+            ValidFromUtc = DateTimeOffset.Parse("2026-01-01T00:00:00Z")
+        };
+        Assert.That(source.Policies.AddAssignment(assignment), Is.True);
+        TrajectoryBatchExportDocument backup = source.Service.Export(new() { Scope = TrajectoryBatchExportScope.All }).Document!;
+
+        using var target = new TestEnvironment();
+        TrajectoryBatchRestoreOutcome restored = target.Service.Restore(new()
+        {
+            Document = backup,
+            ConflictPolicy = TrajectoryBatchRestoreConflictPolicy.FailIfExists,
+            CatalogPolicy = TrajectoryBatchCatalogRestorePolicy.MapExisting
+        });
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(restored.IsSuccess, Is.True, ErrorText(restored.Error));
+            Assert.That(target.Policies.GetRevision(revision.MetaInfo.ID)?.RevisionNumber, Is.EqualTo(1));
+            Assert.That(target.Policies.GetAssignment(assignment.MetaInfo.ID)?.PolicyRevisionID, Is.EqualTo(revision.MetaInfo.ID));
+            Assert.That(restored.Response!.CreatedAntiCollisionPolicyRevisionCount, Is.EqualTo(1));
+            Assert.That(restored.Response.CreatedFieldPolicyAssignmentCount, Is.EqualTo(1));
+        });
+    }
+
     private static SurveyRun SurveyRun(Guid id, Guid? parentId, string name, DateTimeOffset timestamp) => new()
     {
         MetaInfo = new MetaInfo { ID = id }, Name = name, Description = "Backup test",
@@ -197,6 +248,7 @@ public sealed class TrajectoryBatchServiceTests
     {
         private readonly string directory;
         public TrajectoryIdentityManager Identities { get; }
+        public AntiCollisionPolicyManager Policies { get; }
         public TrajectoryBatchService Service { get; }
 
         public TestEnvironment()
@@ -207,6 +259,7 @@ public sealed class TrajectoryBatchServiceTests
             var octreeConnection = new SqlConnectionManagerOctree(Path.Combine(directory, "GlobalAntiCollision.db"), NullLogger<SqlConnectionManagerOctree>.Instance);
             var octree = new OctreeManager(NullLogger<OctreeManager>.Instance, octreeConnection);
             Identities = new(main);
+            Policies = new(NullLogger<AntiCollisionPolicyManager>.Instance, main);
             var categories = new TrajectoryFeatureCategoryManager(main);
             Service = new(main, Identities, categories, octree, NullLogger<TrajectoryBatchService>.Instance);
         }

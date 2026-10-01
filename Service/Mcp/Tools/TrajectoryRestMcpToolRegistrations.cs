@@ -160,6 +160,24 @@ public static class TrajectoryRestMcpToolRegistrations
     private static bool ValidateOperationArguments(MethodInfo method, JsonObject? arguments, out JsonNode? error)
     {
         error = null;
+        if (method.DeclaringType == typeof(TrajectoryExtrapolationCaseController) &&
+            method.Name is "Post" or "Put" && arguments?["value"] is JsonObject extrapolation)
+        {
+            string[] serverDerived =
+            [
+                "CreationDate", "LastModificationDate", "CalculationState", "CalculationProgress",
+                "CalculationMessage", "StartStation", "TargetStation", "ClosestReferenceMD",
+                "TargetReferenceMD", "SourceTrajectoryRevision", "ReferenceTrajectoryRevision",
+                "SolvedSectionList", "SurveyStationList"
+            ];
+            string? suppliedDerived = serverDerived.FirstOrDefault(extrapolation.ContainsKey);
+            if (suppliedDerived != null)
+            {
+                error = McpToolResponses.Validation($"'{suppliedDerived}' is server-derived and must not be submitted.");
+                return false;
+            }
+        }
+
         if (method.DeclaringType == typeof(OctreesController) && method.Name == "QueueSearch" &&
             arguments?["request"] is JsonObject searchRequest)
         {
@@ -190,7 +208,11 @@ public static class TrajectoryRestMcpToolRegistrations
             return true;
         }
 
-        string[] derivedFields = ["CalculationState", "CalculationProgress", "CalculationMessage", "SeparationFactorResults"];
+        string[] derivedFields =
+        [
+            "CalculationState", "CalculationProgress", "CalculationMessage", "SeparationFactorResults",
+            "PolicyEvaluationUtc", "PolicyAssignmentID", "PolicySnapshot"
+        ];
         string? suppliedDerivedField = derivedFields.FirstOrDefault(calculation.ContainsKey);
         if (suppliedDerivedField is not null)
         {

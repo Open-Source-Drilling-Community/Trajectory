@@ -1,0 +1,276 @@
+@page "/AntiCollisionPolicies"
+@inject ILogger<AntiCollisionPolicies> Logger
+@inject ISnackbar Snackbar
+@inject ITrajectoryAPIUtils Api
+
+<MudText Typo="Typo.h5" Class="mt-4">Anti-collision policies</MudText>
+<MudText Typo="Typo.body2" Class="mb-4">
+    Policies are immutable, versioned decision records. Field assignments select the exact revision used for a calculation at a UTC instant.
+</MudText>
+<MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-4">
+    Conditions inspect only the comparison trajectory hierarchy. The current Cluster contract exposes Slot features and names but no Slot identity catalog; a Slot identity condition is therefore retained but evaluates as indeterminate until that upstream contract exists.
+</MudAlert>
+
+<MudTabs Elevation="0" Outlined="true" Rounded="true" @bind-ActivePanelIndex="activeTab_">
+    <MudTabPanel Text="Policy library">
+        <MudGrid Class="pa-3">
+            <MudItem xs="12" md="4">
+                <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Add" OnClick="NewPolicy">New policy</MudButton>
+                <MudButton Class="ms-2" Variant="Variant.Outlined" Color="Color.Primary" OnClick="LoadAsync">Refresh</MudButton>
+                <MudList T="AntiCollisionPolicyRevision" Dense="true" Class="mt-3">
+                    @foreach (AntiCollisionPolicyRevision revision in revisions_)
+                    {
+                        <MudListItem T="AntiCollisionPolicyRevision" Value="revision" OnClick="@(() => SelectRevision(revision))">
+                            <MudText Typo="Typo.subtitle2">@revision.Name · revision @revision.RevisionNumber</MudText>
+                            <MudText Typo="Typo.caption">@revision.PolicyID</MudText>
+                        </MudListItem>
+                    }
+                </MudList>
+            </MudItem>
+            <MudItem xs="12" md="8">
+                @if (draft_ != null)
+                {
+                    <MudPaper Outlined="true" Class="pa-4">
+                        <MudText Typo="Typo.h6">@draftHeading_</MudText>
+                        <MudGrid>
+                            <MudItem xs="12" md="6"><MudTextField @bind-Value="draft_.Name" Label="Name" Required="true" /></MudItem>
+                            <MudItem xs="12" md="6">
+                                <MudInputWithUnitAdornment QuantityName="ProportionStandard" QuantityLabel="Confidence factor"
+                                                           SIValue="@draft_.ConfidenceFactor" SIValueChanged="@(value => draft_.ConfidenceFactor = value)" Immediate="true" />
+                            </MudItem>
+                            <MudItem xs="12"><MudTextField @bind-Value="draft_.Description" Label="Description" Lines="2" /></MudItem>
+                        </MudGrid>
+
+                        @foreach (AntiCollisionPolicyRule rule in draft_.Rules ?? [])
+                        {
+                            <MudPaper @key="rule.RuleID" Outlined="true" Class="pa-3 mt-3">
+                                <MudGrid>
+                                    <MudItem xs="12" md="4"><MudTextField @bind-Value="rule.Name" Label="Rule name" Required="true" /></MudItem>
+                                    <MudItem xs="4" md="2"><MudNumericField T="int" @bind-Value="rule.Priority" Label="Priority" /></MudItem>
+                                    <MudItem xs="4" md="2"><MudNumericField T="double" @bind-Value="rule.AlertThreshold" Label="Alert SF" Min="0" /></MudItem>
+                                    <MudItem xs="4" md="2"><MudNumericField T="double" @bind-Value="rule.AlarmThreshold" Label="Alarm SF" Min="0" /></MudItem>
+                                    <MudItem xs="12" md="2" Class="d-flex align-center justify-end">
+                                        <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => RemoveRule(rule))" />
+                                    </MudItem>
+                                </MudGrid>
+
+                                @foreach (AntiCollisionPolicyCondition condition in rule.Conditions ?? [])
+                                {
+                                    <MudGrid @key="condition.ConditionID" Class="mt-1">
+                                        <MudItem xs="12" md="2">
+                                            <MudSelect T="string" Value="@ConditionKind(condition)" ValueChanged="@(kind => ReplaceCondition(rule, condition, kind))" Label="Condition">
+                                                <MudSelectItem Value="@("Age")">Age</MudSelectItem>
+                                                <MudSelectItem Value="@("Identity")">Identity</MudSelectItem>
+                                                <MudSelectItem Value="@("Feature")">Feature</MudSelectItem>
+                                            </MudSelect>
+                                        </MudItem>
+                                        @if (condition is AntiCollisionTrajectoryAgeCondition age)
+                                        {
+                                            <MudItem xs="12" md="3"><MudSelect T="AntiCollisionComparisonOperator" @bind-Value="age.Operator" Label="Comparison">@foreach (AntiCollisionComparisonOperator value in Enum.GetValues<AntiCollisionComparisonOperator>()) { <MudSelectItem Value="value">@value</MudSelectItem> }</MudSelect></MudItem>
+                                            <MudItem xs="12" md="5"><MudInputWithUnit QuantityName="DurationDrilling" QuantityLabel="Trajectory age" SIValueNullable="@age.AgeThresholdSeconds" SIValueNullableChanged="@(value => age.AgeThresholdSeconds = value ?? 0)" /></MudItem>
+                                        }
+                                        else if (condition is AntiCollisionIdentityCondition identity)
+                                        {
+                                            <MudItem xs="6" md="2"><MudSelect T="AntiCollisionHierarchyLevel" @bind-Value="identity.ResourceLevel" Label="Resource">@foreach (AntiCollisionHierarchyLevel value in Enum.GetValues<AntiCollisionHierarchyLevel>()) { <MudSelectItem Value="value">@value</MudSelectItem> }</MudSelect></MudItem>
+                                            <MudItem xs="6" md="3"><MudTextField T="Guid" @bind-Value="identity.IdentityDefinitionID" Label="Identity definition UUID" /></MudItem>
+                                            <MudItem xs="6" md="2"><MudSelect T="AntiCollisionIdentityMatchOperator" @bind-Value="identity.MatchOperator" Label="Match">@foreach (AntiCollisionIdentityMatchOperator value in Enum.GetValues<AntiCollisionIdentityMatchOperator>()) { <MudSelectItem Value="value">@value</MudSelectItem> }</MudSelect></MudItem>
+                                            <MudItem xs="6" md="2"><MudTextField @bind-Value="identity.Pattern" Label="Value pattern" /></MudItem>
+                                            <MudItem xs="6" md="1"><MudCheckBox T="bool" @bind-Value="identity.CaseSensitive" Label="Case" /></MudItem>
+                                        }
+                                        else if (condition is AntiCollisionFeatureCondition feature)
+                                        {
+                                            <MudItem xs="6" md="2"><MudSelect T="AntiCollisionHierarchyLevel" @bind-Value="feature.ResourceLevel" Label="Resource">@foreach (AntiCollisionHierarchyLevel value in Enum.GetValues<AntiCollisionHierarchyLevel>()) { <MudSelectItem Value="value">@value</MudSelectItem> }</MudSelect></MudItem>
+                                            <MudItem xs="6" md="2"><MudTextField T="Guid" @bind-Value="feature.FeatureCategoryID" Label="Category UUID" /></MudItem>
+                                            <MudItem xs="6" md="2"><MudTextField T="Guid" @bind-Value="feature.FeatureOptionID" Label="Option UUID" /></MudItem>
+                                            <MudItem xs="6" md="4"><MudSelect T="AntiCollisionFeatureTemporalOperator" @bind-Value="feature.TemporalOperator" Label="Temporal predicate">@foreach (AntiCollisionFeatureTemporalOperator value in Enum.GetValues<AntiCollisionFeatureTemporalOperator>()) { <MudSelectItem Value="value">@value</MudSelectItem> }</MudSelect></MudItem>
+                                            @if (feature.TemporalOperator == AntiCollisionFeatureTemporalOperator.ActiveAtSpecifiedTime)
+                                            {
+                                                <MudItem xs="12" md="3"><MudDatePicker Date="@ToDate(feature.SpecifiedTimeUtc)" DateChanged="@(value => feature.SpecifiedTimeUtc = ToUtc(value))" Label="Specified date (UTC)" /></MudItem>
+                                            }
+                                            else if (feature.TemporalOperator == AntiCollisionFeatureTemporalOperator.OverlapsSpecifiedInterval)
+                                            {
+                                                <MudItem xs="6" md="2"><MudDatePicker Date="@ToDate(feature.SpecifiedFromUtc)" DateChanged="@(value => feature.SpecifiedFromUtc = ToUtc(value))" Label="From (UTC)" /></MudItem>
+                                                <MudItem xs="6" md="2"><MudDatePicker Date="@ToDate(feature.SpecifiedToUtc)" DateChanged="@(value => feature.SpecifiedToUtc = ToUtc(value))" Label="To (UTC)" /></MudItem>
+                                            }
+                                        }
+                                        <MudItem xs="12" md="1" Class="d-flex align-center justify-end"><MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@(() => RemoveCondition(rule, condition))" /></MudItem>
+                                    </MudGrid>
+                                }
+                                <MudButton Size="Size.Small" Variant="Variant.Text" StartIcon="@Icons.Material.Filled.Add" OnClick="@(() => AddCondition(rule))">Condition</MudButton>
+                                @if ((rule.Conditions?.Count ?? 0) == 0)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Info">Unconditional default</MudChip>
+                                }
+                            </MudPaper>
+                        }
+                        <MudButton Class="mt-3" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add" OnClick="AddRule">Rule</MudButton>
+                        <MudButton Class="mt-3 ms-2" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveRevisionAsync">Create immutable revision</MudButton>
+                    </MudPaper>
+                }
+            </MudItem>
+        </MudGrid>
+    </MudTabPanel>
+
+    <MudTabPanel Text="Field assignments">
+        <MudGrid Class="pa-3">
+            <MudItem xs="12" md="3">
+                <MudSelect T="Guid" @bind-Value="assignment_.FieldID" Label="Field" Required="true">
+                    @foreach (Field field in fields_) { <MudSelectItem Value="field.MetaInfo.ID">@field.Name</MudSelectItem> }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="4">
+                <MudSelect T="Guid" @bind-Value="assignment_.PolicyRevisionID" Label="Exact policy revision" Required="true">
+                    @foreach (AntiCollisionPolicyRevision revision in revisions_) { <MudSelectItem Value="revision.MetaInfo.ID">@revision.Name · revision @revision.RevisionNumber</MudSelectItem> }
+                </MudSelect>
+            </MudItem>
+            <MudItem xs="12" md="2"><MudDatePicker @bind-Date="assignmentFrom_" Label="Valid from (UTC)" Required="true" /></MudItem>
+            <MudItem xs="12" md="2"><MudDatePicker @bind-Date="assignmentTo_" Label="Valid to (UTC, optional)" Clearable="true" /></MudItem>
+            <MudItem xs="12" md="1" Class="d-flex align-center"><MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="CreateAssignmentAsync">Assign</MudButton></MudItem>
+        </MudGrid>
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mx-3 mb-3">Dates are saved at 00:00 UTC. Validity intervals for one Field may not overlap.</MudAlert>
+        <MudTable Items="assignments_" T="FieldAntiCollisionPolicyAssignment" Dense="true" Hover="true" Bordered="true" Striped="true" Class="ma-3">
+            <HeaderContent><MudTh>Field</MudTh><MudTh>Policy revision</MudTh><MudTh>Valid from UTC</MudTh><MudTh>Valid to UTC</MudTh><MudTh></MudTh></HeaderContent>
+            <RowTemplate>
+                <MudTd>@FieldName(context.FieldID)</MudTd>
+                <MudTd>@RevisionName(context.PolicyRevisionID)</MudTd>
+                <MudTd>@context.ValidFromUtc.ToString("u")</MudTd>
+                <MudTd>@(context.ValidToUtc?.ToString("u") ?? "open")</MudTd>
+                <MudTd><MudIconButton Icon="@Icons.Material.Filled.Delete" Disabled="@(context.ValidFromUtc <= DateTimeOffset.UtcNow)" OnClick="@(() => DeleteAssignmentAsync(context))" /></MudTd>
+            </RowTemplate>
+        </MudTable>
+    </MudTabPanel>
+</MudTabs>
+
+@code {
+    private int activeTab_;
+    private List<AntiCollisionPolicyRevision> revisions_ = [];
+    private List<FieldAntiCollisionPolicyAssignment> assignments_ = [];
+    private List<Field> fields_ = [];
+    private AntiCollisionPolicyRevisionCreate? draft_;
+    private string draftHeading_ = "New policy";
+    private FieldAntiCollisionPolicyAssignmentMutation assignment_ = NewAssignment();
+    private DateTime? assignmentFrom_ = DateTime.UtcNow.Date.AddDays(1);
+    private DateTime? assignmentTo_;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        try
+        {
+            revisions_ = (await Api.ClientTrajectory.GetAllAntiCollisionPolicyRevisionAsync()).OrderBy(x => x.Name).ThenByDescending(x => x.RevisionNumber).ToList();
+            assignments_ = (await Api.ClientTrajectory.GetAllFieldAntiCollisionPolicyAssignmentAsync()).OrderByDescending(x => x.ValidFromUtc).ToList();
+            fields_ = (await Api.ClientField.GetAllFieldAsync()).OrderBy(x => x.Name).ToList();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Could not load anti-collision policies");
+            Snackbar.Add("Could not load anti-collision policies or Fields", Severity.Error);
+        }
+    }
+
+    private void NewPolicy()
+    {
+        draftHeading_ = "New policy";
+        draft_ = NewDraft(Guid.NewGuid(), "New anti-collision policy");
+    }
+
+    private void SelectRevision(AntiCollisionPolicyRevision source)
+    {
+        draftHeading_ = $"New revision after {source.RevisionNumber}";
+        draft_ = new AntiCollisionPolicyRevisionCreate
+        {
+            MetaInfo = NewMeta("AntiCollisionPolicyRevision/"), PolicyID = source.PolicyID, Name = source.Name,
+            Description = source.Description, ConfidenceFactor = source.ConfidenceFactor,
+            Rules = source.Rules.Select(CloneRule).ToList()
+        };
+    }
+
+    private void AddRule()
+    {
+        if (draft_ == null) return;
+        draft_.Rules ??= [];
+        draft_.Rules.Add(new AntiCollisionPolicyRule { RuleID = Guid.NewGuid(), Name = "Default", Priority = draft_.Rules.Count + 1, AlertThreshold = 1.5, AlarmThreshold = 1.0, Conditions = [] });
+    }
+
+    private void RemoveRule(AntiCollisionPolicyRule rule) => draft_?.Rules?.Remove(rule);
+    private void AddCondition(AntiCollisionPolicyRule rule) { rule.Conditions ??= []; rule.Conditions.Add(new AntiCollisionTrajectoryAgeCondition { ConditionID = Guid.NewGuid(), Operator = AntiCollisionComparisonOperator.GreaterThan, AgeThresholdSeconds = 365.25 * 86400 }); }
+    private void RemoveCondition(AntiCollisionPolicyRule rule, AntiCollisionPolicyCondition condition) => rule.Conditions?.Remove(condition);
+    private static string ConditionKind(AntiCollisionPolicyCondition value) => value switch { AntiCollisionTrajectoryAgeCondition => "Age", AntiCollisionIdentityCondition => "Identity", _ => "Feature" };
+    private static void ReplaceCondition(AntiCollisionPolicyRule rule, AntiCollisionPolicyCondition old, string kind)
+    {
+        int index = rule.Conditions.IndexOf(old);
+        Guid id = old.ConditionID == Guid.Empty ? Guid.NewGuid() : old.ConditionID;
+        rule.Conditions[index] = kind switch
+        {
+            "Identity" => new AntiCollisionIdentityCondition { ConditionID = id, Pattern = "*", MatchOperator = AntiCollisionIdentityMatchOperator.Glob },
+            "Feature" => new AntiCollisionFeatureCondition { ConditionID = id, TemporalOperator = AntiCollisionFeatureTemporalOperator.ActiveAtEvaluationTime },
+            _ => new AntiCollisionTrajectoryAgeCondition { ConditionID = id, Operator = AntiCollisionComparisonOperator.GreaterThan, AgeThresholdSeconds = 365.25 * 86400 }
+        };
+    }
+
+    private async Task SaveRevisionAsync()
+    {
+        if (draft_ == null) return;
+        NormalizeFeatureConditionFields(draft_);
+        try
+        {
+            await Api.ClientTrajectory.PostAntiCollisionPolicyRevisionAsync(draft_);
+            Snackbar.Add("Created immutable policy revision", Severity.Success);
+            draft_ = null;
+            await LoadAsync();
+        }
+        catch (Exception ex) { Logger.LogError(ex, "Could not create policy revision"); Snackbar.Add("Policy revision was rejected. Check thresholds, priorities, UUIDs, and the final default rule.", Severity.Error); }
+    }
+
+    private async Task CreateAssignmentAsync()
+    {
+        if (assignmentFrom_ == null) { Snackbar.Add("A valid-from date is required", Severity.Warning); return; }
+        assignment_.ValidFromUtc = new DateTimeOffset(DateTime.SpecifyKind(assignmentFrom_.Value.Date, DateTimeKind.Utc));
+        assignment_.ValidToUtc = assignmentTo_ == null ? null : new DateTimeOffset(DateTime.SpecifyKind(assignmentTo_.Value.Date, DateTimeKind.Utc));
+        assignment_.MetaInfo ??= NewMeta("FieldAntiCollisionPolicyAssignment/");
+        try
+        {
+            await Api.ClientTrajectory.PostFieldAntiCollisionPolicyAssignmentAsync(assignment_);
+            Snackbar.Add("Created Field policy assignment", Severity.Success);
+            assignment_ = NewAssignment(); assignmentFrom_ = DateTime.UtcNow.Date.AddDays(1); assignmentTo_ = null;
+            await LoadAsync();
+        }
+        catch (Exception ex) { Logger.LogError(ex, "Could not create Field policy assignment"); Snackbar.Add("Assignment was rejected. Check the Field, exact revision, and validity overlap.", Severity.Error); }
+    }
+
+    private async Task DeleteAssignmentAsync(FieldAntiCollisionPolicyAssignment value)
+    {
+        if (value.LastModificationDate == null) return;
+        try { await Api.ClientTrajectory.DeleteFutureFieldAntiCollisionPolicyAssignmentByIdAsync(value.MetaInfo.ID, value.LastModificationDate.Value); await LoadAsync(); }
+        catch (Exception ex) { Logger.LogError(ex, "Could not delete future assignment"); Snackbar.Add("Only unchanged future assignments can be deleted", Severity.Error); }
+    }
+
+    private string FieldName(Guid id) => fields_.FirstOrDefault(x => x.MetaInfo?.ID == id)?.Name ?? id.ToString();
+    private static DateTime? ToDate(DateTimeOffset? value) => value?.UtcDateTime;
+    private static DateTimeOffset? ToUtc(DateTime? value) => value == null ? null : new DateTimeOffset(DateTime.SpecifyKind(value.Value.Date, DateTimeKind.Utc));
+    private static void NormalizeFeatureConditionFields(AntiCollisionPolicyRevisionCreate draft)
+    {
+        foreach (AntiCollisionFeatureCondition feature in (draft.Rules ?? []).SelectMany(rule => rule.Conditions ?? []).OfType<AntiCollisionFeatureCondition>())
+        {
+            if (feature.TemporalOperator != AntiCollisionFeatureTemporalOperator.ActiveAtSpecifiedTime) feature.SpecifiedTimeUtc = null;
+            if (feature.TemporalOperator != AntiCollisionFeatureTemporalOperator.OverlapsSpecifiedInterval)
+            {
+                feature.SpecifiedFromUtc = null;
+                feature.SpecifiedToUtc = null;
+            }
+        }
+    }
+    private string RevisionName(Guid id) { AntiCollisionPolicyRevision? x = revisions_.FirstOrDefault(x => x.MetaInfo?.ID == id); return x == null ? id.ToString() : $"{x.Name} · revision {x.RevisionNumber}"; }
+    private MetaInfo NewMeta(string endpoint) => new() { ID = Guid.NewGuid(), HttpHostName = Api.HostNameTrajectory, HttpHostBasePath = Api.HostBasePathTrajectory, HttpEndPoint = endpoint };
+    private static FieldAntiCollisionPolicyAssignmentMutation NewAssignment() => new() { MetaInfo = new MetaInfo { ID = Guid.NewGuid(), HttpEndPoint = "FieldAntiCollisionPolicyAssignment/" } };
+    private AntiCollisionPolicyRevisionCreate NewDraft(Guid policyId, string name) => new() { MetaInfo = NewMeta("AntiCollisionPolicyRevision/"), PolicyID = policyId, Name = name, ConfidenceFactor = .95, Rules = [new AntiCollisionPolicyRule { RuleID = Guid.NewGuid(), Name = "Default", Priority = 1, AlertThreshold = 1.5, AlarmThreshold = 1, Conditions = [] }] };
+    private static AntiCollisionPolicyRule CloneRule(AntiCollisionPolicyRule x) => new() { RuleID = x.RuleID, Name = x.Name, Priority = x.Priority, AlertThreshold = x.AlertThreshold, AlarmThreshold = x.AlarmThreshold, Conditions = (x.Conditions ?? []).Select(CloneCondition).ToList() };
+    private static AntiCollisionPolicyCondition CloneCondition(AntiCollisionPolicyCondition x) => x switch
+    {
+        AntiCollisionTrajectoryAgeCondition a => new AntiCollisionTrajectoryAgeCondition { ConditionID = a.ConditionID, Operator = a.Operator, AgeThresholdSeconds = a.AgeThresholdSeconds },
+        AntiCollisionIdentityCondition i => new AntiCollisionIdentityCondition { ConditionID = i.ConditionID, ResourceLevel = i.ResourceLevel, IdentityDefinitionID = i.IdentityDefinitionID, MatchOperator = i.MatchOperator, Pattern = i.Pattern, CaseSensitive = i.CaseSensitive },
+        AntiCollisionFeatureCondition f => new AntiCollisionFeatureCondition { ConditionID = f.ConditionID, ResourceLevel = f.ResourceLevel, FeatureCategoryID = f.FeatureCategoryID, FeatureOptionID = f.FeatureOptionID, TemporalOperator = f.TemporalOperator, SpecifiedTimeUtc = f.SpecifiedTimeUtc, SpecifiedFromUtc = f.SpecifiedFromUtc, SpecifiedToUtc = f.SpecifiedToUtc },
+        _ => throw new InvalidOperationException("Unknown condition variant")
+    };
+}

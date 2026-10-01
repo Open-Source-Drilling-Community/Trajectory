@@ -699,13 +699,20 @@ internal static class Program
         OctreeManager octreeManager = OctreeManager.GetInstance(NullLogger<OctreeManager>.Instance, octreeConnectionManager);
         TrajectoryManager trajectoryManager = TrajectoryManager.GetInstance(NullLogger<TrajectoryManager>.Instance, trajectoryConnectionManager, octreeManager);
         GlobalAntiCollisionManager globalAntiCollisionManager = GlobalAntiCollisionManager.GetInstance(NullLogger<GlobalAntiCollisionManager>.Instance, separationConnectionManager);
+        AntiCollisionPolicyManager policyManager = new(NullLogger<AntiCollisionPolicyManager>.Instance, trajectoryConnectionManager);
+        AntiCollisionPolicyContextResolver policyContextResolver = new(
+            NullLogger<AntiCollisionPolicyContextResolver>.Instance,
+            NullLogger<SurveyRunManager>.Instance,
+            trajectoryConnectionManager);
         GlobalAntiCollisionCalculationWorker globalAntiCollisionWorker = new(
             NullLogger<GlobalAntiCollisionCalculationWorker>.Instance,
             NullLogger<GlobalAntiCollisionManager>.Instance,
             NullLogger<TrajectoryManager>.Instance,
             trajectoryConnectionManager,
             separationConnectionManager,
-            octreeManager);
+            octreeManager,
+            policyManager,
+            policyContextResolver);
         OctreeSearchJobWorker octreeSearchJobWorker = new(
             NullLogger<OctreeSearchJobWorker>.Instance,
             NullLogger<TrajectoryManager>.Instance,

@@ -29,6 +29,11 @@ namespace OSDC.Drilling.Trajectory.Model
         /// The calculated survey stations for this survey run.
         /// </summary>
         public List<SurveyStation>? SurveyStationList { get; set; }
+        /// <summary>
+        /// Optional terminal bit extrapolation. When calculated, the last SurveyStationList item is
+        /// extrapolated and is not an additional instrument measurement.
+        /// </summary>
+        public SurveyRunBitExtrapolation? BitExtrapolation { get; set; }
 
         public SurveyRun() : base()
         {
@@ -39,8 +44,13 @@ namespace OSDC.Drilling.Trajectory.Model
         /// </summary>
         public bool Calculate()
         {
+            if (SurveyRunBitExtrapolationValidation.Validate(this).Count > 0)
+            {
+                return false;
+            }
+
             List<SurveyStation> calculatedList = BuildCalculationInput();
-            if (calculatedList.Count < 2)
+            if (calculatedList.Count == 0)
             {
                 return false;
             }
@@ -72,7 +82,20 @@ namespace OSDC.Drilling.Trajectory.Model
             }
 
             SurveyStationList = calculatedList;
-            return SurveyPoint.CompleteSurvey(SurveyStationList, CalculationType);
+            if (!SurveyPoint.CompleteSurvey(SurveyStationList, CalculationType))
+            {
+                return false;
+            }
+
+            if (BitExtrapolation?.Mode == SurveyRunBitExtrapolationMode.CalculateFromLastMeasurement)
+            {
+                return SurveyRunBitExtrapolationCalculator.TryAppendCalculatedStation(
+                    SurveyStationList,
+                    CalculationType,
+                    BitExtrapolation.MeasurementToolToBitDistance);
+            }
+
+            return SurveyStationList.Count >= 2;
         }
 
         private List<SurveyStation> BuildCalculationInput()
@@ -85,7 +108,15 @@ namespace OSDC.Drilling.Trajectory.Model
                     .ToList();
             }
 
-            return SurveyStationList?
+            IEnumerable<SurveyStation> stations = SurveyStationList ?? [];
+            if (BitExtrapolation?.Mode == SurveyRunBitExtrapolationMode.CalculateFromLastMeasurement &&
+                SurveyStationList is { Count: > 0 } existingStations &&
+                existingStations[^1].Annotation == SurveyRunBitExtrapolationCalculator.TerminalAnnotation)
+            {
+                stations = existingStations.Take(existingStations.Count - 1);
+            }
+
+            return stations
                 .Where(station => station != null)
                 .Select(station => new SurveyStation
                 {

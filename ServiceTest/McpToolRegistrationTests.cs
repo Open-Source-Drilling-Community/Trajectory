@@ -15,7 +15,7 @@ public sealed class McpToolRegistrationTests
     {
         var endpoints = TrajectoryRestMcpToolRegistrations.Endpoints;
 
-        Assert.That(endpoints, Has.Count.EqualTo(130));
+        Assert.That(endpoints, Has.Count.EqualTo(151));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Is.Unique);
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("."));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("usage_statistics"));
@@ -53,7 +53,7 @@ public sealed class McpToolRegistrationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(tools, Has.Length.EqualTo(130));
+            Assert.That(tools, Has.Length.EqualTo(151));
             Assert.That(tools.All(tool => !string.IsNullOrWhiteSpace(tool.ProtocolTool.Title)), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema.HasValue), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.Annotations is not null), Is.True);
@@ -123,6 +123,7 @@ public sealed class McpToolRegistrationTests
         JsonObject runProperties = definitions["SurveyRun"]!["properties"]!.AsObject();
         JsonObject measurementProperties = definitions["SurveyMeasurement"]!["properties"]!.AsObject();
         JsonObject correctionProperties = definitions["SurveyMeasurementCorrection"]!["properties"]!.AsObject();
+        JsonObject bitExtrapolationProperties = definitions["SurveyRunBitExtrapolation"]!["properties"]!.AsObject();
 
         Assert.Multiple(() =>
         {
@@ -145,6 +146,15 @@ public sealed class McpToolRegistrationTests
                 Does.Contain("metres per second squared"));
             Assert.That(correctionProperties["EvaluatedDepthWgs84"]!["description"]!.GetValue<string>(),
                 Does.Contain("WGS84 reference ellipsoid"));
+            Assert.That(measurementProperties["Origin"]!["description"]!.GetValue<string>(),
+                Does.Contain("final supplied bit station"));
+            Assert.That(bitExtrapolationProperties["MeasurementToolToBitDistance"]!["exclusiveMinimum"]!.GetValue<double>(),
+                Is.EqualTo(0.0));
+            Assert.That(bitExtrapolationProperties["MeasurementToolToBitDistance"]!["description"]!.GetValue<string>(),
+                Does.Contain("canonical SI metres"));
+            Assert.That(runProperties.ContainsKey("SurveyStationList"), Is.False);
+            Assert.That(runProperties.ContainsKey("TieInPoint"), Is.False);
+            Assert.That(runProperties.ContainsKey("CalculationState"), Is.False);
         });
     }
 
@@ -240,7 +250,7 @@ public sealed class McpToolRegistrationTests
             Assert.That(surveyRunSearch.InputSchema!["properties"]!["offset"]!["default"]!.GetValue<int>(), Is.Zero);
             Assert.That(endpoints.Any(value => value.Name == "trajectory_get_all_trajectory"), Is.False);
             Assert.That(endpoints.Any(value => value.Name == "survey_run_get_all_survey_run"), Is.False);
-            Assert.That(endpoints, Has.Count.EqualTo(130));
+            Assert.That(endpoints, Has.Count.EqualTo(151));
         });
     }
 
@@ -395,6 +405,9 @@ public sealed class McpToolRegistrationTests
             Assert.That(properties.ContainsKey("CalculationProgress"), Is.False);
             Assert.That(properties.ContainsKey("CalculationMessage"), Is.False);
             Assert.That(properties.ContainsKey("SeparationFactorResults"), Is.False);
+            Assert.That(properties.ContainsKey("PolicyEvaluationUtc"), Is.False);
+            Assert.That(properties.ContainsKey("PolicyAssignmentID"), Is.False);
+            Assert.That(properties.ContainsKey("PolicySnapshot"), Is.False);
             Assert.That(create.InputSchema["$defs"]!.AsObject().ContainsKey("SeparationFactorResult"), Is.False);
             Assert.That(create.OutputSchema.ToJsonString(), Does.Contain("GlobalAntiCollision"));
             Assert.That(update.OutputSchema.ToJsonString(), Does.Contain("GlobalAntiCollision"));
@@ -414,6 +427,72 @@ public sealed class McpToolRegistrationTests
             Assert.That(get.Description, Does.Contain("SI metres"));
             Assert.That(get.Description, Does.Contain("dimensionless SeparationFactor"));
             Assert.That(status.Behavior.ReadOnlyHint, Is.True);
+        });
+    }
+
+    [Test]
+    public void Policy_tools_publish_closed_discriminated_conditions_and_audited_assignments()
+    {
+        TrajectoryMcpEndpoint createRevision = Endpoint("anti_collision_policy_revision_post");
+        TrajectoryMcpEndpoint createAssignment = Endpoint("field_anti_collision_policy_assignment_post");
+        TrajectoryMcpEndpoint updateAssignment = Endpoint("field_anti_collision_policy_assignment_put");
+        TrajectoryMcpEndpoint deleteAssignment = Endpoint("field_anti_collision_policy_assignment_delete");
+        JsonObject definitions = createRevision.InputSchema["$defs"]!.AsObject();
+        JsonObject condition = definitions["AntiCollisionPolicyCondition"]!.AsObject();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(condition["oneOf"]!.AsArray(), Has.Count.EqualTo(3));
+            Assert.That(definitions["AntiCollisionTrajectoryAgeCondition"]!["properties"]!["ConditionType"]!["const"]!.GetValue<string>(), Is.EqualTo("TrajectoryAge"));
+            Assert.That(definitions["AntiCollisionIdentityCondition"]!["properties"]!["ConditionType"]!["const"]!.GetValue<string>(), Is.EqualTo("Identity"));
+            Assert.That(definitions["AntiCollisionFeatureCondition"]!["properties"]!["ConditionType"]!["const"]!.GetValue<string>(), Is.EqualTo("Feature"));
+            Assert.That(createRevision.Description, Does.Contain("AlertThreshold greater than AlarmThreshold"));
+            Assert.That(createAssignment.Description, Does.Contain("exact immutable policy revision"));
+            Assert.That(updateAssignment.Description, Does.Contain("expectedModifiedUtc"));
+            Assert.That(deleteAssignment.Description, Does.Contain("historical assignments are immutable"));
+            Assert.That(deleteAssignment.Behavior.DestructiveHint, Is.True);
+        });
+    }
+
+    [Test]
+    public void Trajectory_extrapolation_tools_publish_closed_discriminated_submissions_and_chunk_workflow()
+    {
+        TrajectoryMcpEndpoint create = Endpoint("trajectory_extrapolation_case_post");
+        TrajectoryMcpEndpoint status = Endpoint("trajectory_extrapolation_case_get_status");
+        TrajectoryMcpEndpoint chunk = Endpoint("trajectory_extrapolation_case_get_survey_station_chunk");
+        JsonObject definitions = create.InputSchema["$defs"]!.AsObject();
+        JsonObject caseDefinition = definitions["TrajectoryExtrapolationCase"]!.AsObject();
+        JsonObject properties = caseDefinition["properties"]!.AsObject();
+        JsonObject specification = definitions["TrajectoryExtrapolationSpecification"]!.AsObject();
+        JsonObject section = definitions["WellPathSectionSpecification"]!.AsObject();
+        JsonObject geosteering = definitions["GeosteeringTrajectoryExtrapolationSpecification"]!.AsObject();
+        JsonObject departure = definitions["DepartureGeosteeringExtentConstraint"]!.AsObject();
+        JsonObject drilledLength = definitions["DrilledLengthGeosteeringExtentConstraint"]!.AsObject();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(specification["oneOf"]!.AsArray(), Has.Count.EqualTo(4));
+            Assert.That(section["oneOf"]!.AsArray(), Has.Count.EqualTo(3));
+            Assert.That(definitions["GeosteeringExtentConstraint"]!["oneOf"]!.AsArray(), Has.Count.EqualTo(2));
+            Assert.That(definitions["FixedLengthExtrapolationSpecification"]!["properties"]!["Mode"]!["const"]!.GetValue<string>(), Is.EqualTo("FixedLength"));
+            Assert.That(definitions["GeosteeringTrajectoryExtrapolationSpecification"]!["properties"]!["Mode"]!["const"]!.GetValue<string>(), Is.EqualTo("Geosteering"));
+            Assert.That(definitions["DepartureGeosteeringExtentConstraint"]!["properties"]!["ExtentType"]!["const"]!.GetValue<string>(), Is.EqualTo("Departure"));
+            Assert.That(definitions["CircularArcWellPathSectionSpecification"]!["properties"]!["CurveType"]!["const"]!.GetValue<string>(), Is.EqualTo("CircularArc"));
+            Assert.That(geosteering["required"]!.AsArray().Select(node => node!.GetValue<string>()), Does.Contain("Extent"));
+            Assert.That(geosteering["properties"]!["LeadInLength"]!["minimum"]!.GetValue<double>(), Is.Zero);
+            Assert.That(geosteering["properties"]!["EndInclination"]!["maximum"]!.GetValue<double>(), Is.EqualTo(Math.PI).Within(1e-12));
+            Assert.That(departure["properties"]!["DepartureDistance"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
+            Assert.That(drilledLength["properties"]!["OverallDrilledLength"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
+            Assert.That(drilledLength["properties"]!["SteeringLengthRatio"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
+            Assert.That(drilledLength["properties"]!["OverallDrilledLength"]!["description"]!.GetValue<string>(), Does.Contain("must exceed LeadInLength"));
+            Assert.That(properties.ContainsKey("CalculationState"), Is.False);
+            Assert.That(properties.ContainsKey("SolvedSectionList"), Is.False);
+            Assert.That(properties.ContainsKey("SurveyStationList"), Is.False);
+            Assert.That(caseDefinition["required"]!.AsArray().Select(node => node!.GetValue<string>()), Does.Contain("Specification"));
+            Assert.That(create.Description, Does.Contain("3 × section-count"));
+            Assert.That(status.Description, Does.Contain("poll").IgnoreCase);
+            Assert.That(chunk.Description, Does.Contain("zero-based"));
+            Assert.That(chunk.InputSchema["properties"]!["chunkIndex"]!["minimum"]!.GetValue<int>(), Is.Zero);
         });
     }
 

@@ -222,6 +222,8 @@ namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
                         q.Name != "ApiException" &&
                         q.Name != "ApiException`1" &&
                         q.Name != "MetaInfo" &&
+                        !q.IsGenericType &&
+                        !q.ContainsGenericParameters &&
                         q.GetConstructor(Type.EmptyTypes) != null &&
                         !q.Name.Contains("Light"))
                     {
@@ -287,7 +289,8 @@ namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
                                 {
                                     if (p.Name.EndsWith("IdentityAssignments", StringComparison.Ordinal) ||
                                         p.Name.EndsWith("FeatureAssignments", StringComparison.Ordinal) ||
-                                        propBaseName.Contains("Light", StringComparison.Ordinal))
+                                        propBaseName.Contains("Light", StringComparison.Ordinal) ||
+                                        propBaseName == "WellPathSectionSpecification")
                                     {
                                         // Assignment entries must reference an existing catalog definition, and
                                         // lightweight projection types intentionally have no pseudo-constructor.

@@ -5,6 +5,359 @@
     "version": "1.0"
   },
   "paths": {
+    "/AntiCollisionPolicyRevision": {
+      "get": {
+        "tags": [
+          "AntiCollisionPolicyRevision"
+        ],
+        "operationId": "GetAllAntiCollisionPolicyRevisionId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "AntiCollisionPolicyRevision"
+        ],
+        "operationId": "PostAntiCollisionPolicyRevision",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRevisionCreate"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRevisionCreate"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRevisionCreate"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRevision"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/AntiCollisionPolicyRevision/HeavyData": {
+      "get": {
+        "tags": [
+          "AntiCollisionPolicyRevision"
+        ],
+        "operationId": "GetAllAntiCollisionPolicyRevision",
+        "parameters": [
+          {
+            "name": "policyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRevision"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/AntiCollisionPolicyRevision/{id}": {
+      "get": {
+        "tags": [
+          "AntiCollisionPolicyRevision"
+        ],
+        "operationId": "GetAntiCollisionPolicyRevisionById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRevision"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldAntiCollisionPolicyAssignment": {
+      "get": {
+        "tags": [
+          "FieldAntiCollisionPolicyAssignment"
+        ],
+        "operationId": "GetAllFieldAntiCollisionPolicyAssignment",
+        "parameters": [
+          {
+            "name": "fieldId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignment"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "FieldAntiCollisionPolicyAssignment"
+        ],
+        "operationId": "PostFieldAntiCollisionPolicyAssignment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignment"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldAntiCollisionPolicyAssignment/{id}": {
+      "get": {
+        "tags": [
+          "FieldAntiCollisionPolicyAssignment"
+        ],
+        "operationId": "GetFieldAntiCollisionPolicyAssignmentById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignment"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "FieldAntiCollisionPolicyAssignment"
+        ],
+        "operationId": "PutFieldAntiCollisionPolicyAssignmentById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignment"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "FieldAntiCollisionPolicyAssignment"
+        ],
+        "operationId": "DeleteFutureFieldAntiCollisionPolicyAssignmentById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
+    "/FieldAntiCollisionPolicyAssignment/Effective/{fieldId}": {
+      "get": {
+        "tags": [
+          "FieldAntiCollisionPolicyAssignment"
+        ],
+        "operationId": "GetEffectiveFieldAntiCollisionPolicyAssignment",
+        "parameters": [
+          {
+            "name": "fieldId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "atUtc",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignment"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/GlobalAntiCollisions": {
       "get": {
         "tags": [
@@ -3642,6 +3995,426 @@
         }
       }
     },
+    "/TrajectoryExtrapolationCase": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetAllTrajectoryExtrapolationCaseId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "PostTrajectoryExtrapolationCase",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCase"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase/MetaInfo": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetAllTrajectoryExtrapolationCaseMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase/LightData": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetAllTrajectoryExtrapolationCaseLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCaseLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase/HeavyData": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetAllTrajectoryExtrapolationCase",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCase"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase/{id}": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetTrajectoryExtrapolationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "includeResults",
+            "in": "query",
+            "schema": {
+              "type": "boolean",
+              "default": false
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCase"
+                }
+              }
+            }
+          },
+          "400": {
+            "description": "Bad Request",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          },
+          "404": {
+            "description": "Not Found",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "PutTrajectoryExtrapolationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCase"
+                }
+              }
+            }
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "DeleteTrajectoryExtrapolationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          },
+          "409": {
+            "description": "Conflict",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase/{id}/Status": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetTrajectoryExtrapolationCaseStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCaseLight"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase/{id}/SurveyStations/ChunkCount": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetTrajectoryExtrapolationSurveyStationChunkCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TrajectoryExtrapolationCase/{id}/SurveyStations/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "TrajectoryExtrapolationCase"
+        ],
+        "operationId": "GetTrajectoryExtrapolationSurveyStationChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyStationChunk"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/TrajectoryFeatureCategory": {
       "get": {
         "tags": [
@@ -5367,6 +6140,490 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionClassification": {
+        "enum": [
+          "Normal",
+          "Alert",
+          "Alarm",
+          "Indeterminate"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionComparisonOperator": {
+        "enum": [
+          "LessThan",
+          "LessThanOrEqual",
+          "GreaterThan",
+          "GreaterThanOrEqual"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionFeatureCondition": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyCondition"
+          }
+        ],
+        "properties": {
+          "ResourceLevel": {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionHierarchyLevel"
+          },
+          "FeatureCategoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FeatureOptionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "TemporalOperator": {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionFeatureTemporalOperator"
+          },
+          "SpecifiedTimeUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SpecifiedFromUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SpecifiedToUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionFeatureTemporalOperator": {
+        "enum": [
+          "ActiveAtEvaluationTime",
+          "ActiveAtOldestMeasurementTime",
+          "OverlapsMeasurementInterval",
+          "ActiveAtSpecifiedTime",
+          "OverlapsSpecifiedInterval"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionFeatureValueSnapshot": {
+        "type": "object",
+        "properties": {
+          "FeatureCategoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FeatureOptionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "FromUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ToUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionHierarchyLevel": {
+        "enum": [
+          "Cluster",
+          "Slot",
+          "Well",
+          "WellBore",
+          "Trajectory"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionIdentityCondition": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyCondition"
+          }
+        ],
+        "properties": {
+          "ResourceLevel": {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionHierarchyLevel"
+          },
+          "IdentityDefinitionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "MatchOperator": {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionIdentityMatchOperator"
+          },
+          "Pattern": {
+            "type": "string",
+            "nullable": true
+          },
+          "CaseSensitive": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionIdentityMatchOperator": {
+        "enum": [
+          "Exact",
+          "StartsWith",
+          "EndsWith",
+          "Contains",
+          "Glob"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionIdentityValueSnapshot": {
+        "type": "object",
+        "properties": {
+          "IdentityDefinitionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Value": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyCondition": {
+        "required": [
+          "ConditionType"
+        ],
+        "type": "object",
+        "properties": {
+          "ConditionType": {
+            "type": "string"
+          },
+          "ConditionID": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false,
+        "discriminator": {
+          "propertyName": "ConditionType",
+          "mapping": {
+            "TrajectoryAge": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionTrajectoryAgeCondition",
+            "Identity": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionIdentityCondition",
+            "Feature": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionFeatureCondition"
+          }
+        }
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyEvaluation": {
+        "type": "object",
+        "properties": {
+          "ComparisonTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "State": {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyEvaluationState"
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          },
+          "MatchedRuleID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "MatchedRulePriority": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "AlertThreshold": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "AlarmThreshold": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "OldestEvidenceUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "NewestEvidenceUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "TrajectoryAgeSeconds": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "WorstClassification": {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionClassification"
+          },
+          "Context": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionResourceContextSnapshot"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyEvaluationState": {
+        "enum": [
+          "Matched",
+          "NoMatch",
+          "Indeterminate"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRevision": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "PolicyID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "RevisionNumber": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ConfidenceFactor": {
+            "type": "number",
+            "format": "double"
+          },
+          "Rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRule"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRevisionCreate": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "PolicyID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "ConfidenceFactor": {
+            "type": "number",
+            "format": "double"
+          },
+          "Rules": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRule"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRule": {
+        "type": "object",
+        "properties": {
+          "RuleID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Priority": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "AlertThreshold": {
+            "type": "number",
+            "description": "Dimensionless separation-factor Alert threshold; it must be greater than AlarmThreshold.",
+            "format": "double",
+            "x-osdc-semantic": "SeparationFactor",
+            "x-si-unit": "1"
+          },
+          "AlarmThreshold": {
+            "type": "number",
+            "description": "Dimensionless separation-factor Alarm threshold.",
+            "format": "double",
+            "x-osdc-semantic": "SeparationFactor",
+            "x-si-unit": "1"
+          },
+          "Conditions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyCondition"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionResourceContextSnapshot": {
+        "type": "object",
+        "properties": {
+          "ResourceLevel": {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionHierarchyLevel"
+          },
+          "ResourceID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsAvailable": {
+            "type": "boolean"
+          },
+          "Identities": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionIdentityValueSnapshot"
+            },
+            "nullable": true
+          },
+          "Features": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionFeatureValueSnapshot"
+            },
+            "nullable": true
+          },
+          "IdentityCatalogAvailable": {
+            "type": "boolean"
+          },
+          "UnavailableReason": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.GlobalAntiCollision.AntiCollisionTrajectoryAgeCondition": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyCondition"
+          }
+        ],
+        "properties": {
+          "Operator": {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionComparisonOperator"
+          },
+          "AgeThresholdSeconds": {
+            "type": "number",
+            "description": "Comparison trajectory age threshold in canonical SI seconds, evaluated from the oldest defined contributing survey-run acquisition start or station measurement time.",
+            "format": "double",
+            "x-osdc-semantic": "Duration",
+            "x-si-unit": "s"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignment": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "FieldID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "PolicyRevisionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ValidFromUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ValidToUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignmentMutation": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "FieldID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "PolicyRevisionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ValidFromUtc": {
+            "type": "string",
+            "format": "date-time"
+          },
+          "ValidToUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision": {
         "type": "object",
         "properties": {
@@ -5377,6 +6634,19 @@
           "ConfidenceFactor": {
             "type": "number",
             "format": "double"
+          },
+          "PolicyEvaluationUtc": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "PolicyAssignmentID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true
+          },
+          "PolicySnapshot": {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRevision"
           },
           "ReferenceWellPathID": {
             "type": "string",
@@ -5496,6 +6766,9 @@
               "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.SeparationFactorPoint"
             },
             "nullable": true
+          },
+          "PolicyEvaluation": {
+            "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyEvaluation"
           }
         },
         "additionalProperties": false
@@ -5524,6 +6797,69 @@
         ],
         "type": "string"
       },
+      "OSDC.Drilling.Trajectory.Model.CircularArcWellPathSectionSpecification": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.WellPathSectionSpecification"
+          }
+        ],
+        "properties": {
+          "Curvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "StartToolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.ConstantBuildAndTurnWellPathSectionSpecification": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.WellPathSectionSpecification"
+          }
+        ],
+        "properties": {
+          "BuildRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TurnRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.ConstantCurvatureAndToolfaceWellPathSectionSpecification": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.WellPathSectionSpecification"
+          }
+        ],
+        "properties": {
+          "Curvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Toolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.CountPerDay": {
         "type": "object",
         "properties": {
@@ -5534,6 +6870,62 @@
           "Count": {
             "type": "integer",
             "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.DepartureGeosteeringExtentConstraint": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.GeosteeringExtentConstraint"
+          }
+        ],
+        "properties": {
+          "DepartureDistance": {
+            "minimum": 0.0,
+            "exclusiveMinimum": true,
+            "type": "number",
+            "description": "Overall horizontal departure from the final source-trajectory station in canonical SI metres.",
+            "format": "double",
+            "x-osdc-semantic": "HorizontalDistance",
+            "x-si-unit": "m"
+          },
+          "DepartureBearing": {
+            "type": "number",
+            "description": "Bearing of the overall departure, clockwise and positive east of WGS84 true north, in SI radians.",
+            "format": "double",
+            "x-osdc-semantic": "TrueNorthAzimuth",
+            "x-si-unit": "rad"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.DrilledLengthGeosteeringExtentConstraint": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.GeosteeringExtentConstraint"
+          }
+        ],
+        "properties": {
+          "OverallDrilledLength": {
+            "minimum": 0.0,
+            "exclusiveMinimum": true,
+            "type": "number",
+            "description": "Total along-hole length from the final source-trajectory station through the lead-in and both steering sections, in canonical SI metres.",
+            "format": "double",
+            "x-osdc-semantic": "DrilledLength",
+            "x-si-unit": "m"
+          },
+          "SteeringLengthRatio": {
+            "minimum": 0.0,
+            "exclusiveMinimum": true,
+            "type": "number",
+            "description": "Dimensionless positive ratio of upstream to downstream steering-section length.",
+            "format": "double",
+            "x-osdc-semantic": "LengthRatio",
+            "x-si-unit": "1"
           }
         },
         "additionalProperties": false
@@ -5570,6 +6962,121 @@
           "Unavailable"
         ],
         "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.ExtrapolationCurveType": {
+        "enum": [
+          "CircularArc",
+          "ConstantBuildAndTurn",
+          "ConstantCurvatureAndToolface"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.FixedLengthExtrapolationSpecification": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSpecification"
+          }
+        ],
+        "properties": {
+          "Length": {
+            "type": "number",
+            "format": "double"
+          },
+          "ExtensionType": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.FixedLengthExtrapolationType"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.FixedLengthExtrapolationType": {
+        "enum": [
+          "Straight",
+          "ContinueCircularArc",
+          "ContinueConstantBuildAndTurn",
+          "ContinueConstantCurvatureAndToolface"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.GeosteeringExtentConstraint": {
+        "required": [
+          "ExtentType"
+        ],
+        "type": "object",
+        "properties": {
+          "ExtentType": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "discriminator": {
+          "propertyName": "ExtentType",
+          "mapping": {
+            "Departure": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DepartureGeosteeringExtentConstraint",
+            "DrilledLength": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DrilledLengthGeosteeringExtentConstraint"
+          }
+        }
+      },
+      "OSDC.Drilling.Trajectory.Model.GeosteeringTrajectoryExtrapolationSpecification": {
+        "required": [
+          "Extent"
+        ],
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSpecification"
+          }
+        ],
+        "properties": {
+          "LeadInLength": {
+            "minimum": 0.0,
+            "type": "number",
+            "description": "Initial continuation of the source trajectory's final calculated curve before steering starts, in canonical SI metres.",
+            "format": "double",
+            "x-osdc-semantic": "DrilledLength",
+            "x-si-unit": "m"
+          },
+          "TargetVerticalDepth": {
+            "type": "number",
+            "description": "Absolute WGS84 vertical depth target, positive downward in canonical SI metres.",
+            "format": "double",
+            "x-osdc-semantic": "Wgs84Depth",
+            "x-si-unit": "m"
+          },
+          "EndInclination": {
+            "maximum": 3.14159265358979,
+            "minimum": 0.0,
+            "type": "number",
+            "description": "Target inclination from the local WGS84 geodetic-down axis in SI radians.",
+            "format": "double",
+            "x-osdc-semantic": "GeodeticInclination",
+            "x-si-unit": "rad"
+          },
+          "EndAzimuth": {
+            "type": "number",
+            "description": "Target clockwise azimuth from WGS84 geodetic true north in SI radians.",
+            "format": "double",
+            "x-osdc-semantic": "TrueNorthAzimuth",
+            "x-si-unit": "rad"
+          },
+          "CurveType": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExtrapolationCurveType"
+          },
+          "AzimuthBranch": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Extent": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.GeosteeringExtentConstraint"
+              }
+            ],
+            "description": "Exactly one overall constraint measured from the final source-trajectory station: Departure or DrilledLength.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "OSDC.Drilling.Trajectory.Model.History": {
         "type": "object",
@@ -5920,6 +7427,44 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.Trajectory.Model.ReconnectTrajectoryExtrapolationSpecification": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSpecification"
+          }
+        ],
+        "properties": {
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ReferenceMDAdvance": {
+            "type": "number",
+            "format": "double"
+          },
+          "CurveType": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExtrapolationCurveType"
+          },
+          "AzimuthBranch": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "JunctionCurvatureRatio": {
+            "type": "number",
+            "format": "double"
+          },
+          "LeadInLength": {
+            "minimum": 0.0,
+            "type": "number",
+            "description": "Initial continuation of the source trajectory's final calculated curve before the closest reference point is found and steering starts, in canonical SI metres.",
+            "format": "double",
+            "x-osdc-semantic": "DrilledLength",
+            "x-si-unit": "m"
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.SurveyAzimuthReference": {
         "enum": [
           "TrueNorth",
@@ -6094,6 +7639,14 @@
             "type": "string",
             "description": "Stable UUID for this measurement, independent of list position.",
             "format": "uuid"
+          },
+          "Origin": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyMeasurementOrigin"
+              }
+            ],
+            "description": "Measured for an instrument observation; Extrapolated only for the final caller-supplied bit station in LastStationAlreadyExtrapolated mode."
           },
           "MD": {
             "type": "number",
@@ -6340,6 +7893,13 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.Trajectory.Model.SurveyMeasurementOrigin": {
+        "enum": [
+          "Measured",
+          "Extrapolated"
+        ],
+        "type": "string"
+      },
       "OSDC.Drilling.Trajectory.Model.SurveyPointChunk": {
         "type": "object",
         "properties": {
@@ -6526,6 +8086,14 @@
               "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
             },
             "nullable": true
+          },
+          "BitExtrapolation": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunBitExtrapolation"
+              }
+            ],
+            "description": "Optional terminal extrapolation from the final measurement-tool station to the bit. When present, exactly one terminal calculated or caller-identified extrapolated station is included in the calculated SurveyStationList."
           }
         },
         "additionalProperties": false
@@ -6665,6 +8233,39 @@
           }
         },
         "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.SurveyRunBitExtrapolation": {
+        "required": [
+          "Mode"
+        ],
+        "type": "object",
+        "properties": {
+          "Mode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunBitExtrapolationMode"
+              }
+            ],
+            "description": "CalculateFromLastMeasurement derives a terminal station on the server; LastStationAlreadyExtrapolated requires exactly the final submitted row to have Origin Extrapolated."
+          },
+          "MeasurementToolToBitDistance": {
+            "minimum": 0.0,
+            "exclusiveMinimum": true,
+            "type": "number",
+            "description": "Distance-to-bit elevation of the measurement tool relative to the bit front face, positive upward in canonical SI metres; used as the positive along-hole MD increment to the bit.",
+            "format": "double",
+            "x-osdc-semantic": "DistanceToBit",
+            "x-si-unit": "m"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.SurveyRunBitExtrapolationMode": {
+        "enum": [
+          "CalculateFromLastMeasurement",
+          "LastStationAlreadyExtrapolated"
+        ],
+        "type": "string"
       },
       "OSDC.Drilling.Trajectory.Model.SurveyRunExternalReferenceAuditRequest": {
         "required": [
@@ -8094,6 +9695,20 @@
               "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.Trajectory"
             },
             "nullable": true
+          },
+          "AntiCollisionPolicyRevisions": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRevision"
+            },
+            "nullable": true
+          },
+          "FieldAntiCollisionPolicyAssignments": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignment"
+            },
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -8184,6 +9799,22 @@
             "type": "integer",
             "format": "int32"
           },
+          "CreatedAntiCollisionPolicyRevisionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ReplacedAntiCollisionPolicyRevisionCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "CreatedFieldPolicyAssignmentCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ReplacedFieldPolicyAssignmentCount": {
+            "type": "integer",
+            "format": "int32"
+          },
           "CatalogMappings": {
             "type": "array",
             "items": {
@@ -8200,6 +9831,22 @@
             "nullable": true
           },
           "TrajectoryIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "AntiCollisionPolicyRevisionIDs": {
+            "type": "array",
+            "items": {
+              "type": "string",
+              "format": "uuid"
+            },
+            "nullable": true
+          },
+          "FieldAntiCollisionPolicyAssignmentIDs": {
             "type": "array",
             "items": {
               "type": "string",
@@ -8337,6 +9984,252 @@
           }
         },
         "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCase": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SourceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Mode": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationMode"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "InterpolationInterval": {
+            "type": "number",
+            "format": "double"
+          },
+          "Specification": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSpecification"
+          },
+          "StartStation": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+          },
+          "TargetStation": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+          },
+          "ClosestReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TargetReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "SourceTrajectoryRevision": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ReferenceTrajectoryRevision": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SolvedSectionList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSolvedSection"
+            },
+            "nullable": true
+          },
+          "SurveyStationList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCaseLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SourceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Mode": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationMode"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationMode": {
+        "enum": [
+          "FixedLength",
+          "ReconnectToTrajectory",
+          "WellPath",
+          "Geosteering"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSectionRole": {
+        "enum": [
+          "Unspecified",
+          "FixedLengthExtension",
+          "LeadInContinuation",
+          "UpstreamSteeringSection",
+          "DownstreamSteeringSection",
+          "WellPathSection"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSolvedSection": {
+        "type": "object",
+        "properties": {
+          "SectionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "SectionIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Role": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSectionRole"
+          },
+          "CurveType": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExtrapolationCurveType"
+          },
+          "StartMD": {
+            "type": "number",
+            "format": "double"
+          },
+          "EndMD": {
+            "type": "number",
+            "format": "double"
+          },
+          "Length": {
+            "type": "number",
+            "format": "double"
+          },
+          "Start": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+          },
+          "End": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+          },
+          "CircularArcCurvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "CircularArcStartToolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ConstantBuildRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ConstantTurnRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ConstantCurvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ConstantToolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSpecification": {
+        "required": [
+          "Mode"
+        ],
+        "type": "object",
+        "properties": {
+          "Mode": {
+            "type": "string"
+          }
+        },
+        "additionalProperties": false,
+        "discriminator": {
+          "propertyName": "Mode",
+          "mapping": {
+            "FixedLength": "#/components/schemas/OSDC.Drilling.Trajectory.Model.FixedLengthExtrapolationSpecification",
+            "ReconnectToTrajectory": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ReconnectTrajectoryExtrapolationSpecification",
+            "WellPath": "#/components/schemas/OSDC.Drilling.Trajectory.Model.WellPathExtrapolationSpecification",
+            "Geosteering": "#/components/schemas/OSDC.Drilling.Trajectory.Model.GeosteeringTrajectoryExtrapolationSpecification"
+          }
+        }
       },
       "OSDC.Drilling.Trajectory.Model.TrajectoryFeatureAssignment": {
         "type": "object",
@@ -9148,9 +11041,144 @@
           },
           "DeleteTrajectoryByIdPerDay": {
             "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetAllTrajectoryExtrapolationCaseIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetAllTrajectoryExtrapolationCaseMetaInfoPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetAllTrajectoryExtrapolationCaseLightPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetAllTrajectoryExtrapolationCasePerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetTrajectoryExtrapolationCaseByIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetTrajectoryExtrapolationCaseStatusPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetTrajectoryExtrapolationSurveyStationChunkCountPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetTrajectoryExtrapolationSurveyStationChunkPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "PostTrajectoryExtrapolationCasePerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "PutTrajectoryExtrapolationCaseByIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "DeleteTrajectoryExtrapolationCaseByIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetAllAntiCollisionPolicyRevisionIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetAllAntiCollisionPolicyRevisionPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetAntiCollisionPolicyRevisionByIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "PostAntiCollisionPolicyRevisionPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetAllFieldAntiCollisionPolicyAssignmentPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetFieldAntiCollisionPolicyAssignmentByIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetEffectiveFieldAntiCollisionPolicyAssignmentPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "PostFieldAntiCollisionPolicyAssignmentPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "PutFieldAntiCollisionPolicyAssignmentByIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "DeleteFutureFieldAntiCollisionPolicyAssignmentByIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
           }
         },
         "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.WellPathExtrapolationSpecification": {
+        "type": "object",
+        "allOf": [
+          {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSpecification"
+          }
+        ],
+        "properties": {
+          "SectionList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.WellPathSectionSpecification"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.WellPathSectionSpecification": {
+        "required": [
+          "CurveType"
+        ],
+        "type": "object",
+        "properties": {
+          "CurveType": {
+            "type": "string"
+          },
+          "SectionID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "Length": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndInclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndAzimuth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndVerticalDepth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "discriminator": {
+          "propertyName": "CurveType",
+          "mapping": {
+            "CircularArc": "#/components/schemas/OSDC.Drilling.Trajectory.Model.CircularArcWellPathSectionSpecification",
+            "ConstantBuildAndTurn": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ConstantBuildAndTurnWellPathSectionSpecification",
+            "ConstantCurvatureAndToolface": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ConstantCurvatureAndToolfaceWellPathSectionSpecification"
+          }
+        }
       }
     }
   }

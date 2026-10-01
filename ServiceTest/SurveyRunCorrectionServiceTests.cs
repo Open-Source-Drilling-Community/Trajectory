@@ -30,6 +30,31 @@ public sealed class SurveyRunCorrectionServiceTests
     }
 
     [Test]
+    public async Task Extrapolated_terminal_row_is_not_processed_as_a_measurement()
+    {
+        SurveyRun run = CreateRun(SurveyInclinationReference.GeodeticVertical, SurveyAzimuthReference.TrueNorth);
+        SurveyMeasurement extrapolated = new()
+        {
+            MeasurementID = Guid.NewGuid(), MD = 110.0, Inclination = 0.4, Azimuth = 0.3,
+            Origin = SurveyMeasurementOrigin.Extrapolated
+        };
+        run.SurveyMeasurementList!.Add(extrapolated);
+        run.SurveyStationList!.Add(new SurveyStation { MD = 110.0, Latitude = 0.9, Longitude = 0.1, TVD = 1210.0 });
+
+        (bool success, _) = await SurveyRunCorrectionService.ApplyAsync(
+            run, NullLogger.Instance, referenceModelClient: new StubReferenceModelClient());
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(success, Is.True);
+            Assert.That(run.SurveyMeasurementList[0].Correction?.Status, Is.EqualTo(SurveyCorrectionStatus.NotRequired));
+            Assert.That(extrapolated.Correction, Is.Null);
+            Assert.That(extrapolated.ObservedInclination, Is.Null);
+            Assert.That(extrapolated.ObservedAzimuth, Is.Null);
+        });
+    }
+
+    [Test]
     public async Task Gravity_and_magnetic_references_are_evaluated_and_provenance_is_frozen()
     {
         SurveyRun run = CreateRun(SurveyInclinationReference.GravityVertical, SurveyAzimuthReference.MagneticNorth);

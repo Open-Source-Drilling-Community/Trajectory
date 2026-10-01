@@ -11,7 +11,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 {
     /// <summary>
     /// A manager for the sql database connection, registered as a singleton through dependency injection (see Program.cs)
-    /// Existing version-1 databases are migrated additively to version 2 by adding the shared catalog tables.
+    /// Existing version-1 through version-3 databases are migrated additively to version 4 by adding
+    /// the shared catalogs, trajectory extrapolation cases, and anti-collision policy tables as needed.
     /// If a validated TrajectoryCatalog.db exists beside the main database, its rows are copied and the source file is retained.
     /// </summary>
     /// <remarks>
@@ -29,7 +30,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
     public class SqlConnectionManagerTrajectory : SqlConnectionManager
     {
         private const string DatabaseName = "Trajectory.db";
-        public const int TrajectorySchemaVersion = 2;
+        public const int TrajectorySchemaVersion = 4;
 
         // dictionary describing tables format
         // Light weight data fields are enumerated explicitly in the data table implementing the light weight data concept
@@ -103,6 +104,18 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     "CalculationProgress real",
                     "CalculationMessage text",
                     "InterpolatedTrajectory text" }
+                },
+                { "TrajectoryExtrapolationCaseTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "SourceTrajectoryID text",
+                    "Mode text",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
+                    "TrajectoryExtrapolationCase text" }
                 },
                 { "TrajectoryRealizationCaseTable", new string[] {
                     "ID text primary key",
@@ -240,6 +253,24 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     "CreationDate text",
                     "LastModificationDate text",
                     "TrajectoryFeatureCategory text" }
+                },
+                { "AntiCollisionPolicyRevisionTable", new string[] {
+                    "ID text primary key",
+                    "PolicyID text",
+                    "RevisionNumber integer",
+                    "Name text",
+                    "CreationDate text",
+                    "AntiCollisionPolicyRevision text" }
+                },
+                { "FieldAntiCollisionPolicyAssignmentTable", new string[] {
+                    "ID text primary key",
+                    "FieldID text",
+                    "PolicyRevisionID text",
+                    "ValidFromUtc text",
+                    "ValidToUtc text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "FieldAntiCollisionPolicyAssignment text" }
                 }
             };
 
@@ -267,14 +298,24 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             if (version >= TrajectorySchemaVersion) return databasePath;
 
             string[] catalogTables = ["TrajectoryIdentityTable", "TrajectoryFeatureCategoryTable"];
-            string[] legacyTables = TableStructureDictTrajectory.Keys.Except(catalogTables, StringComparer.Ordinal).ToArray();
-            bool legacyShape = tables.Order().SequenceEqual(legacyTables.Order(), StringComparer.Ordinal);
+            string[] extrapolationTables = ["TrajectoryExtrapolationCaseTable"];
+            string[] policyTables = ["AntiCollisionPolicyRevisionTable", "FieldAntiCollisionPolicyAssignmentTable"];
+            string[] expectedBeforeMigration = version switch
+            {
+                1 => TableStructureDictTrajectory.Keys.Except(catalogTables, StringComparer.Ordinal)
+                    .Except(extrapolationTables, StringComparer.Ordinal).Except(policyTables, StringComparer.Ordinal).ToArray(),
+                2 => TableStructureDictTrajectory.Keys.Except(extrapolationTables, StringComparer.Ordinal)
+                    .Except(policyTables, StringComparer.Ordinal).ToArray(),
+                3 => TableStructureDictTrajectory.Keys.Except(policyTables, StringComparer.Ordinal).ToArray(),
+                _ => []
+            };
+            bool expectedShape = tables.Order().SequenceEqual(expectedBeforeMigration.Order(), StringComparer.Ordinal);
             bool currentShape = tables.Order().SequenceEqual(TableStructureDictTrajectory.Keys.Order(), StringComparer.Ordinal);
-            if ((!legacyShape && !currentShape) || !tables.All(table => HasExpectedColumns(connection, table)))
+            if ((!expectedShape && !currentShape) || !tables.All(table => HasExpectedColumns(connection, table)))
                 return databasePath; // The base validator rejects the database without changing it.
 
             string legacyCatalogPath = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(databasePath))!, "TrajectoryCatalog.db");
-            bool importLegacyCatalog = ValidateLegacyCatalog(legacyCatalogPath);
+            bool importLegacyCatalog = version == 1 && ValidateLegacyCatalog(legacyCatalogPath);
             if (importLegacyCatalog)
             {
                 using SqliteCommand attach = connection.CreateCommand();
@@ -286,7 +327,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             using SqliteTransaction transaction = connection.BeginTransaction();
             try
             {
-                foreach (string table in catalogTables.Where(table => !tables.Contains(table, StringComparer.Ordinal)))
+                string[] additiveTables = catalogTables.Concat(extrapolationTables).Concat(policyTables).ToArray();
+                foreach (string table in additiveTables.Where(table => !tables.Contains(table, StringComparer.Ordinal)))
                 {
                     using SqliteCommand create = connection.CreateCommand();
                     create.Transaction = transaction;
@@ -311,8 +353,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 setVersion.CommandText = $"PRAGMA user_version={TrajectorySchemaVersion}";
                 setVersion.ExecuteNonQuery();
                 transaction.Commit();
-                logger.LogInformation("Migrated Trajectory.db to schema version {SchemaVersion}; the legacy catalog file was retained.",
-                    TrajectorySchemaVersion);
+                logger.LogInformation("Migrated Trajectory.db to schema version {SchemaVersion}. Legacy catalog import performed: {ImportedLegacyCatalog}; the source catalog file, when present, was retained.",
+                    TrajectorySchemaVersion, importLegacyCatalog);
             }
             catch
             {

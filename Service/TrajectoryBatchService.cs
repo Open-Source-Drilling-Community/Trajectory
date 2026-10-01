@@ -4,6 +4,7 @@ using OSDC.Drilling.Trajectory.Model;
 using OSDC.Drilling.Trajectory.Service.Managers;
 using System.Text.Json;
 using System.Text;
+using OSDC.Drilling.GlobalAntiCollision;
 
 namespace OSDC.Drilling.Trajectory.Service;
 
@@ -62,6 +63,10 @@ public sealed class TrajectoryBatchService
             using SqliteTransaction transaction = connection.BeginTransaction();
             Dictionary<Guid, SurveyRun> surveyRuns = ReadSurveyRuns(connection, transaction);
             Dictionary<Guid, Model.Trajectory> trajectories = ReadTrajectories(connection, transaction);
+            List<AntiCollisionPolicyRevision> policyRevisions = ReadDocuments<AntiCollisionPolicyRevision>(connection, transaction,
+                "AntiCollisionPolicyRevisionTable", "AntiCollisionPolicyRevision");
+            List<FieldAntiCollisionPolicyAssignment> policyAssignments = ReadDocuments<FieldAntiCollisionPolicyAssignment>(connection, transaction,
+                "FieldAntiCollisionPolicyAssignmentTable", "FieldAntiCollisionPolicyAssignment");
 
             List<Model.Trajectory> selectedTrajectories;
             List<SurveyRun> selectedSurveyRuns;
@@ -101,7 +106,9 @@ public sealed class TrajectoryBatchService
                     ExportedAtUtc = DateTimeOffset.UtcNow,
                     CatalogDependencies = dependencies,
                     SurveyRuns = selectedSurveyRuns,
-                    Trajectories = selectedTrajectories
+                    Trajectories = selectedTrajectories,
+                    AntiCollisionPolicyRevisions = policyRevisions.OrderBy(value => value.PolicyID).ThenBy(value => value.RevisionNumber).ToList(),
+                    FieldAntiCollisionPolicyAssignments = policyAssignments.OrderBy(value => value.FieldID).ThenBy(value => value.ValidFromUtc).ToList()
                 }
             };
         }
@@ -138,7 +145,14 @@ public sealed class TrajectoryBatchService
             using SqliteTransaction transaction = connection.BeginTransaction();
             HashSet<Guid> existingSurveyRuns = ReadIds(connection, transaction, "SurveyRunTable");
             HashSet<Guid> existingTrajectories = ReadIds(connection, transaction, "TrajectoryTable");
-            CheckRecordConflicts(document, request.ConflictPolicy, existingSurveyRuns, existingTrajectories, errors);
+            HashSet<Guid> existingPolicyRevisions = ReadIds(connection, transaction, "AntiCollisionPolicyRevisionTable");
+            HashSet<Guid> existingPolicyAssignments = ReadIds(connection, transaction, "FieldAntiCollisionPolicyAssignmentTable");
+            CheckRecordConflicts(document, request.ConflictPolicy, existingSurveyRuns, existingTrajectories,
+                existingPolicyRevisions, existingPolicyAssignments, errors);
+            CheckPolicyMergeConflicts(document,
+                ReadDocuments<AntiCollisionPolicyRevision>(connection, transaction, "AntiCollisionPolicyRevisionTable", "AntiCollisionPolicyRevision"),
+                ReadDocuments<FieldAntiCollisionPolicyAssignment>(connection, transaction, "FieldAntiCollisionPolicyAssignmentTable", "FieldAntiCollisionPolicyAssignment"),
+                errors);
             if (errors.Count != 0) return RestoreFailure(TrajectoryBatchFailureKind.Conflict,
                 "batch_restore_conflict", "One or more record UUIDs already exist. No changes were made.", errors);
 
@@ -152,6 +166,7 @@ public sealed class TrajectoryBatchService
             }
 
             int createdRuns = 0, replacedRuns = 0, createdTrajectories = 0, replacedTrajectories = 0;
+            int createdPolicies = 0, replacedPolicies = 0, createdAssignments = 0, replacedAssignments = 0;
             foreach (SurveyRun surveyRun in document.SurveyRuns)
             {
                 bool exists = existingSurveyRuns.Contains(surveyRun.MetaInfo!.ID);
@@ -163,6 +178,18 @@ public sealed class TrajectoryBatchService
                 bool exists = existingTrajectories.Contains(trajectory.MetaInfo!.ID);
                 WriteTrajectory(connection, transaction, trajectory, exists);
                 if (exists) replacedTrajectories++; else createdTrajectories++;
+            }
+            foreach (AntiCollisionPolicyRevision policy in document.AntiCollisionPolicyRevisions ?? [])
+            {
+                bool exists = existingPolicyRevisions.Contains(policy.MetaInfo!.ID);
+                WriteAntiCollisionPolicyRevision(connection, transaction, policy, exists);
+                if (exists) replacedPolicies++; else createdPolicies++;
+            }
+            foreach (FieldAntiCollisionPolicyAssignment assignment in document.FieldAntiCollisionPolicyAssignments ?? [])
+            {
+                bool exists = existingPolicyAssignments.Contains(assignment.MetaInfo!.ID);
+                WriteFieldPolicyAssignment(connection, transaction, assignment, exists);
+                if (exists) replacedAssignments++; else createdAssignments++;
             }
             transaction.Commit();
 
@@ -185,9 +212,15 @@ public sealed class TrajectoryBatchService
                     CreatedTrajectoryCount = createdTrajectories,
                     ReplacedTrajectoryCount = replacedTrajectories,
                     CreatedCatalogDefinitionCount = catalogs.IdentitiesToCreate.Count + catalogs.CategoriesToCreate.Count,
+                    CreatedAntiCollisionPolicyRevisionCount = createdPolicies,
+                    ReplacedAntiCollisionPolicyRevisionCount = replacedPolicies,
+                    CreatedFieldPolicyAssignmentCount = createdAssignments,
+                    ReplacedFieldPolicyAssignmentCount = replacedAssignments,
                     CatalogMappings = catalogs.Mappings,
                     SurveyRunIDs = document.SurveyRuns.Select(value => value.MetaInfo!.ID).ToList(),
-                    TrajectoryIDs = document.Trajectories.Select(value => value.MetaInfo!.ID).ToList()
+                    TrajectoryIDs = document.Trajectories.Select(value => value.MetaInfo!.ID).ToList(),
+                    AntiCollisionPolicyRevisionIDs = (document.AntiCollisionPolicyRevisions ?? []).Select(value => value.MetaInfo!.ID).ToList(),
+                    FieldAntiCollisionPolicyAssignmentIDs = (document.FieldAntiCollisionPolicyAssignments ?? []).Select(value => value.MetaInfo!.ID).ToList()
                 }
             };
         }
@@ -299,8 +332,8 @@ public sealed class TrajectoryBatchService
         if (document == null) return [.. errors, Error(null, "Document", "required", "Document is required.")];
         if (document.FormatIdentifier != TrajectoryBatchExportDocument.CurrentFormatIdentifier)
             errors.Add(Error(null, "Document.FormatIdentifier", "unsupported_format", $"FormatIdentifier must be '{TrajectoryBatchExportDocument.CurrentFormatIdentifier}'."));
-        if (document.SchemaVersion != TrajectoryBatchExportDocument.CurrentSchemaVersion)
-            errors.Add(Error(null, "Document.SchemaVersion", "unsupported_schema_version", $"SchemaVersion must be {TrajectoryBatchExportDocument.CurrentSchemaVersion}."));
+        if (document.SchemaVersion is not 1 && document.SchemaVersion != TrajectoryBatchExportDocument.CurrentSchemaVersion)
+            errors.Add(Error(null, "Document.SchemaVersion", "unsupported_schema_version", $"SchemaVersion must be 1 or {TrajectoryBatchExportDocument.CurrentSchemaVersion}."));
         if (document.ExportedAtUtc == default || document.ExportedAtUtc.Offset != TimeSpan.Zero)
             errors.Add(Error(null, "Document.ExportedAtUtc", "utc_required", "ExportedAtUtc must use UTC offset +00:00."));
         if (document.CatalogDependencies == null) errors.Add(Error(null, "Document.CatalogDependencies", "required", "CatalogDependencies is required."));
@@ -308,6 +341,7 @@ public sealed class TrajectoryBatchService
             errors.Add(Error(null, "Document", "records_required", "At least one survey run or trajectory is required."));
         ValidateRecords(document.SurveyRuns, "Document.SurveyRuns", errors);
         ValidateRecords(document.Trajectories, "Document.Trajectories", errors);
+        ValidatePolicyRecords(document, errors);
         ValidateCatalogDocument(document.CatalogDependencies, errors);
         return errors;
     }
@@ -321,6 +355,47 @@ public sealed class TrajectoryBatchService
             Guid? id = values[index] switch { SurveyRun run => run.MetaInfo?.ID, Model.Trajectory trajectory => trajectory.MetaInfo?.ID, _ => null };
             if (id is not Guid value || value == Guid.Empty) errors.Add(Error(index, property + ".MetaInfo.ID", "empty_uuid", "Every record requires a non-empty UUID."));
             else if (!ids.Add(value)) errors.Add(Error(index, property + ".MetaInfo.ID", "duplicate_uuid", $"UUID '{value}' occurs more than once."));
+        }
+    }
+
+    private static void ValidatePolicyRecords(TrajectoryBatchExportDocument document, List<TrajectoryBatchError> errors)
+    {
+        List<AntiCollisionPolicyRevision> policies = document.AntiCollisionPolicyRevisions ?? [];
+        List<FieldAntiCollisionPolicyAssignment> assignments = document.FieldAntiCollisionPolicyAssignments ?? [];
+        var policyIds = new HashSet<Guid>();
+        var familyRevisions = new HashSet<(Guid PolicyID, int RevisionNumber)>();
+        for (int index = 0; index < policies.Count; index++)
+        {
+            AntiCollisionPolicyRevision value = policies[index];
+            foreach (string validation in AntiCollisionPolicyValidation.Validate(value))
+                errors.Add(Error(index, "Document.AntiCollisionPolicyRevisions", validation, "The policy revision is invalid."));
+            if (value.MetaInfo?.ID is Guid id && id != Guid.Empty && !policyIds.Add(id))
+                errors.Add(Error(index, "Document.AntiCollisionPolicyRevisions.MetaInfo.ID", "duplicate_uuid", $"Policy revision UUID '{id}' occurs more than once."));
+            if (value.RevisionNumber <= 0 || !familyRevisions.Add((value.PolicyID, value.RevisionNumber)))
+                errors.Add(Error(index, "Document.AntiCollisionPolicyRevisions.RevisionNumber", "invalid_revision", "Revision numbers must be positive and unique within a policy family."));
+            if (value.CreationDate is not { Offset: { Ticks: 0 } })
+                errors.Add(Error(index, "Document.AntiCollisionPolicyRevisions.CreationDate", "utc_required", "Policy revision creation time must be defined in UTC."));
+        }
+
+        var assignmentIds = new HashSet<Guid>();
+        for (int index = 0; index < assignments.Count; index++)
+        {
+            FieldAntiCollisionPolicyAssignment value = assignments[index];
+            foreach (string validation in AntiCollisionPolicyValidation.Validate(value))
+                errors.Add(Error(index, "Document.FieldAntiCollisionPolicyAssignments", validation, "The Field policy assignment is invalid."));
+            if (value.MetaInfo?.ID is Guid id && id != Guid.Empty && !assignmentIds.Add(id))
+                errors.Add(Error(index, "Document.FieldAntiCollisionPolicyAssignments.MetaInfo.ID", "duplicate_uuid", $"Assignment UUID '{id}' occurs more than once."));
+            if (!policyIds.Contains(value.PolicyRevisionID))
+                errors.Add(Error(index, "Document.FieldAntiCollisionPolicyAssignments.PolicyRevisionID", "dependency_missing", "The exact policy revision is absent from the backup."));
+            if (value.CreationDate is not { Offset: { Ticks: 0 } } || value.LastModificationDate is not { Offset: { Ticks: 0 } })
+                errors.Add(Error(index, "Document.FieldAntiCollisionPolicyAssignments", "utc_required", "Assignment audit timestamps must be defined in UTC."));
+        }
+        foreach (IGrouping<Guid, FieldAntiCollisionPolicyAssignment> group in assignments.GroupBy(value => value.FieldID))
+        {
+            List<FieldAntiCollisionPolicyAssignment> ordered = group.OrderBy(value => value.ValidFromUtc).ToList();
+            for (int index = 1; index < ordered.Count; index++)
+                if (!ordered[index - 1].ValidToUtc.HasValue || ordered[index].ValidFromUtc < ordered[index - 1].ValidToUtc)
+                    errors.Add(Error(null, "Document.FieldAntiCollisionPolicyAssignments", "overlapping_validity", $"Field '{group.Key}' has overlapping policy assignments."));
         }
     }
 
@@ -478,6 +553,8 @@ public sealed class TrajectoryBatchService
             SurveyRun run = document.SurveyRuns[index];
             if (run.WellBoreID == Guid.Empty || run.SurveyInstrumentID == Guid.Empty)
                 errors.Add(Error(index, "Document.SurveyRuns", "required_reference_missing", "WellBoreID and SurveyInstrumentID must be non-empty."));
+            foreach (string validation in SurveyRunBitExtrapolationValidation.Validate(run))
+                errors.Add(Error(index, "Document.SurveyRuns.BitExtrapolation", "invalid_bit_extrapolation", validation));
             ValidateAssignments(run.SurveyRunIdentityAssignments, run.SurveyRunFeatureAssignments, identityIds, categoryIndex, index, "Document.SurveyRuns", errors);
         }
         for (int index = 0; index < document.Trajectories.Count; index++)
@@ -519,13 +596,46 @@ public sealed class TrajectoryBatchService
     }
 
     private static void CheckRecordConflicts(TrajectoryBatchExportDocument document, TrajectoryBatchRestoreConflictPolicy policy,
-        HashSet<Guid> existingRuns, HashSet<Guid> existingTrajectories, List<TrajectoryBatchError> errors)
+        HashSet<Guid> existingRuns, HashSet<Guid> existingTrajectories, HashSet<Guid> existingPolicyRevisions,
+        HashSet<Guid> existingPolicyAssignments, List<TrajectoryBatchError> errors)
     {
         if (policy != TrajectoryBatchRestoreConflictPolicy.FailIfExists) return;
         for (int index = 0; index < document.SurveyRuns.Count; index++)
             if (existingRuns.Contains(document.SurveyRuns[index].MetaInfo!.ID)) errors.Add(Error(index, "Document.SurveyRuns.MetaInfo.ID", "record_exists", $"Survey run '{document.SurveyRuns[index].MetaInfo!.ID}' already exists."));
         for (int index = 0; index < document.Trajectories.Count; index++)
             if (existingTrajectories.Contains(document.Trajectories[index].MetaInfo!.ID)) errors.Add(Error(index, "Document.Trajectories.MetaInfo.ID", "record_exists", $"Trajectory '{document.Trajectories[index].MetaInfo!.ID}' already exists."));
+        List<AntiCollisionPolicyRevision> policyRevisions = document.AntiCollisionPolicyRevisions ?? [];
+        for (int index = 0; index < policyRevisions.Count; index++)
+            if (existingPolicyRevisions.Contains(policyRevisions[index].MetaInfo!.ID)) errors.Add(Error(index, "Document.AntiCollisionPolicyRevisions.MetaInfo.ID", "record_exists", $"Policy revision '{policyRevisions[index].MetaInfo!.ID}' already exists."));
+        List<FieldAntiCollisionPolicyAssignment> policyAssignments = document.FieldAntiCollisionPolicyAssignments ?? [];
+        for (int index = 0; index < policyAssignments.Count; index++)
+            if (existingPolicyAssignments.Contains(policyAssignments[index].MetaInfo!.ID)) errors.Add(Error(index, "Document.FieldAntiCollisionPolicyAssignments.MetaInfo.ID", "record_exists", $"Field policy assignment '{policyAssignments[index].MetaInfo!.ID}' already exists."));
+    }
+
+    private static void CheckPolicyMergeConflicts(TrajectoryBatchExportDocument document,
+        List<AntiCollisionPolicyRevision> existingPolicies,
+        List<FieldAntiCollisionPolicyAssignment> existingAssignments,
+        List<TrajectoryBatchError> errors)
+    {
+        HashSet<Guid> incomingPolicyIds = (document.AntiCollisionPolicyRevisions ?? []).Select(value => value.MetaInfo!.ID).ToHashSet();
+        List<AntiCollisionPolicyRevision> mergedPolicies = existingPolicies.Where(value => !incomingPolicyIds.Contains(value.MetaInfo!.ID))
+            .Concat(document.AntiCollisionPolicyRevisions ?? []).ToList();
+        if (mergedPolicies.GroupBy(value => (value.PolicyID, value.RevisionNumber)).Any(group => group.Count() > 1))
+            errors.Add(Error(null, "Document.AntiCollisionPolicyRevisions", "revision_conflict", "A policy family/revision number conflicts with a different stored revision UUID."));
+
+        HashSet<Guid> incomingAssignmentIds = (document.FieldAntiCollisionPolicyAssignments ?? []).Select(value => value.MetaInfo!.ID).ToHashSet();
+        List<FieldAntiCollisionPolicyAssignment> mergedAssignments = existingAssignments.Where(value => !incomingAssignmentIds.Contains(value.MetaInfo!.ID))
+            .Concat(document.FieldAntiCollisionPolicyAssignments ?? []).ToList();
+        foreach (IGrouping<Guid, FieldAntiCollisionPolicyAssignment> group in mergedAssignments.GroupBy(value => value.FieldID))
+        {
+            List<FieldAntiCollisionPolicyAssignment> ordered = group.OrderBy(value => value.ValidFromUtc).ToList();
+            for (int index = 1; index < ordered.Count; index++)
+                if (!ordered[index - 1].ValidToUtc.HasValue || ordered[index].ValidFromUtc < ordered[index - 1].ValidToUtc)
+                {
+                    errors.Add(Error(null, "Document.FieldAntiCollisionPolicyAssignments", "overlapping_validity", $"Restoring the document would overlap another assignment for Field '{group.Key}'."));
+                    break;
+                }
+        }
     }
 
     private static Dictionary<Guid, SurveyRun> ReadSurveyRuns(SqliteConnection connection, SqliteTransaction transaction)
@@ -652,6 +762,42 @@ public sealed class TrajectoryBatchService
         if (!SurveyStationChunkStore.ReplaceChunks(connection, transaction, trajectoryId, TrajectoryStationOwner, stations))
             throw new InvalidOperationException($"Could not write trajectory stations for '{trajectoryId}'.");
         trajectory.SurveyStationList = stations;
+    }
+
+    private static void WriteAntiCollisionPolicyRevision(SqliteConnection connection, SqliteTransaction transaction,
+        AntiCollisionPolicyRevision value, bool exists)
+    {
+        using SqliteCommand command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = exists
+            ? "UPDATE AntiCollisionPolicyRevisionTable SET PolicyID=$policy,RevisionNumber=$revision,Name=$name,CreationDate=$created,AntiCollisionPolicyRevision=$document WHERE ID=$id"
+            : "INSERT INTO AntiCollisionPolicyRevisionTable(ID,PolicyID,RevisionNumber,Name,CreationDate,AntiCollisionPolicyRevision) VALUES($id,$policy,$revision,$name,$created,$document)";
+        command.Parameters.AddWithValue("$id", value.MetaInfo!.ID.ToString());
+        command.Parameters.AddWithValue("$policy", value.PolicyID.ToString());
+        command.Parameters.AddWithValue("$revision", value.RevisionNumber);
+        command.Parameters.AddWithValue("$name", (object?)value.Name ?? DBNull.Value);
+        command.Parameters.AddWithValue("$created", value.CreationDate!.Value.ToString(SqlConnectionManager.DATE_TIME_FORMAT));
+        command.Parameters.AddWithValue("$document", JsonSerializer.Serialize(value, JsonSettings.Options));
+        if (command.ExecuteNonQuery() != 1) throw new InvalidOperationException($"Could not write policy revision '{value.MetaInfo.ID}'.");
+    }
+
+    private static void WriteFieldPolicyAssignment(SqliteConnection connection, SqliteTransaction transaction,
+        FieldAntiCollisionPolicyAssignment value, bool exists)
+    {
+        using SqliteCommand command = connection.CreateCommand();
+        command.Transaction = transaction;
+        command.CommandText = exists
+            ? "UPDATE FieldAntiCollisionPolicyAssignmentTable SET FieldID=$field,PolicyRevisionID=$policy,ValidFromUtc=$from,ValidToUtc=$to,CreationDate=$created,LastModificationDate=$modified,FieldAntiCollisionPolicyAssignment=$document WHERE ID=$id"
+            : "INSERT INTO FieldAntiCollisionPolicyAssignmentTable(ID,FieldID,PolicyRevisionID,ValidFromUtc,ValidToUtc,CreationDate,LastModificationDate,FieldAntiCollisionPolicyAssignment) VALUES($id,$field,$policy,$from,$to,$created,$modified,$document)";
+        command.Parameters.AddWithValue("$id", value.MetaInfo!.ID.ToString());
+        command.Parameters.AddWithValue("$field", value.FieldID.ToString());
+        command.Parameters.AddWithValue("$policy", value.PolicyRevisionID.ToString());
+        command.Parameters.AddWithValue("$from", value.ValidFromUtc.ToString(SqlConnectionManager.DATE_TIME_FORMAT));
+        command.Parameters.AddWithValue("$to", (object?)value.ValidToUtc?.ToString(SqlConnectionManager.DATE_TIME_FORMAT) ?? DBNull.Value);
+        command.Parameters.AddWithValue("$created", value.CreationDate!.Value.ToString(SqlConnectionManager.DATE_TIME_FORMAT));
+        command.Parameters.AddWithValue("$modified", value.LastModificationDate!.Value.ToString(SqlConnectionManager.DATE_TIME_FORMAT));
+        command.Parameters.AddWithValue("$document", JsonSerializer.Serialize(value, JsonSettings.Options));
+        if (command.ExecuteNonQuery() != 1) throw new InvalidOperationException($"Could not write Field policy assignment '{value.MetaInfo.ID}'.");
     }
 
     private static void AddCommon(SqliteCommand command, OSDC.DotnetLibraries.General.DataManagement.MetaInfo meta,

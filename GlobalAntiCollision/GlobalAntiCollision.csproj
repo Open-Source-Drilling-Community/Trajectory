@@ -10,6 +10,7 @@
 	<ItemGroup>
 	  <PackageReference Include="Microsoft.Data.Sqlite" Version="8.0.6" />
 	  <PackageReference Include="OSDC.DotnetLibraries.Drilling.Surveying" Version="1.2.21" />
+	  <PackageReference Include="OSDC.DotnetLibraries.General.DataManagement" Version="2.2.0" />
 	  <PackageReference Include="OSDC.DotnetLibraries.General.Octree" Version="1.1.2" />
 	</ItemGroup>
 

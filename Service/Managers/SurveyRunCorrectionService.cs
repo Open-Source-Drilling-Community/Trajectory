@@ -23,7 +23,7 @@ internal static class SurveyRunCorrectionService
 
         List<Candidate> candidates = [];
         bool failed = false;
-        foreach (SurveyMeasurement measurement in measurements)
+        foreach (SurveyMeasurement measurement in measurements.Where(value => value.Origin == SurveyMeasurementOrigin.Measured))
         {
             measurement.MeasurementID = measurement.MeasurementID == Guid.Empty ? Guid.NewGuid() : measurement.MeasurementID;
             double? observedInclination = measurement.ObservedInclination ?? measurement.Inclination;

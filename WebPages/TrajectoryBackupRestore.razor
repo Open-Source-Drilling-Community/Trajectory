@@ -101,6 +101,8 @@
                 <MudItem xs="6" md="2"><MudText Typo="Typo.subtitle2">Schema version</MudText><MudText Typo="Typo.body2">@_document.SchemaVersion</MudText></MudItem>
                 <MudItem xs="6" md="2"><MudText Typo="Typo.subtitle2">Survey runs</MudText><MudText Typo="Typo.body2">@(_document.SurveyRuns?.Count ?? 0)</MudText></MudItem>
                 <MudItem xs="6" md="2"><MudText Typo="Typo.subtitle2">Trajectories</MudText><MudText Typo="Typo.body2">@(_document.Trajectories?.Count ?? 0)</MudText></MudItem>
+                <MudItem xs="6" md="2"><MudText Typo="Typo.subtitle2">Policy revisions</MudText><MudText Typo="Typo.body2">@(_document.AntiCollisionPolicyRevisions?.Count ?? 0)</MudText></MudItem>
+                <MudItem xs="6" md="2"><MudText Typo="Typo.subtitle2">Field assignments</MudText><MudText Typo="Typo.body2">@(_document.FieldAntiCollisionPolicyAssignments?.Count ?? 0)</MudText></MudItem>
                 <MudItem xs="12" md="2"><MudText Typo="Typo.subtitle2">Exported UTC</MudText><MudText Typo="Typo.body2">@_document.ExportedAtUtc.ToString("u")</MudText></MudItem>
             </MudGrid>
             @if (_document.CatalogDependencies != null)
@@ -161,7 +163,7 @@
 @code {
     private const long MaximumFileBytes = 512L * 1024L * 1024L;
     private const string ExpectedFormat = "OSDC.Drilling.Trajectory.BatchExport";
-    private const int ExpectedSchemaVersion = 1;
+    private const int ExpectedSchemaVersion = 2;
     private List<SurveyRunLight>? _surveyRuns;
     private List<TrajectoryLight>? _trajectories;
     private HashSet<SurveyRunLight> _selectedSurveyRuns = [];
@@ -176,8 +178,10 @@
     private IJSObjectReference? _downloadModule;
     private int TotalRecordCount => (_surveyRuns?.Count ?? 0) + (_trajectories?.Count ?? 0);
     private int SelectedRecordCount => _selectedSurveyRuns.Count + _selectedTrajectories.Count;
-    private int DocumentRecordCount => (_document?.SurveyRuns?.Count ?? 0) + (_document?.Trajectories?.Count ?? 0);
-    private bool CanRestore => _document != null && DocumentRecordCount > 0 && _validationErrors.Count == 0;
+    private int DomainRecordCount => (_document?.SurveyRuns?.Count ?? 0) + (_document?.Trajectories?.Count ?? 0);
+    private int DocumentRecordCount => (_document?.SurveyRuns?.Count ?? 0) + (_document?.Trajectories?.Count ?? 0) +
+        (_document?.AntiCollisionPolicyRevisions?.Count ?? 0) + (_document?.FieldAntiCollisionPolicyAssignments?.Count ?? 0);
+    private bool CanRestore => _document != null && DomainRecordCount > 0 && _validationErrors.Count == 0;
 
     protected override Task OnInitializedAsync() => LoadRecordsAsync();
 
@@ -223,7 +227,7 @@
             _downloadModule ??= await JSRuntime.InvokeAsync<IJSObjectReference>("import",
                 "./_content/OSDC.Drilling.Trajectory.WebPages/trajectoryBatchBackup.js?v=20260903");
             await _downloadModule.InvokeVoidAsync("downloadJson", $"trajectory-backup-{DateTime.UtcNow:yyyyMMddTHHmmssZ}.json", json);
-            Snackbar.Add($"Backed up {document.SurveyRuns?.Count ?? 0} survey run(s) and {document.Trajectories?.Count ?? 0} trajectory(ies).", Severity.Success);
+            Snackbar.Add($"Backed up {document.SurveyRuns?.Count ?? 0} survey run(s), {document.Trajectories?.Count ?? 0} trajectory(ies), {document.AntiCollisionPolicyRevisions?.Count ?? 0} policy revision(s), and {document.FieldAntiCollisionPolicyAssignments?.Count ?? 0} Field assignment(s).", Severity.Success);
         }
         catch (ApiException<TrajectoryBatchErrorEnvelope> ex) { ShowErrors(ex.Result, "Backup was rejected.", _backupErrors); }
         catch (Exception ex)
@@ -261,14 +265,16 @@
         _validationErrors.Clear();
         if (_document == null) { _validationErrors.Add("The document is empty."); return; }
         if (_document.FormatIdentifier != ExpectedFormat) _validationErrors.Add($"FormatIdentifier must be '{ExpectedFormat}'.");
-        if (_document.SchemaVersion != ExpectedSchemaVersion) _validationErrors.Add($"SchemaVersion must be {ExpectedSchemaVersion}.");
+        if (_document.SchemaVersion is not 1 && _document.SchemaVersion != ExpectedSchemaVersion) _validationErrors.Add($"SchemaVersion must be 1 or {ExpectedSchemaVersion}.");
         if (_document.ExportedAtUtc == default || _document.ExportedAtUtc.Offset != TimeSpan.Zero) _validationErrors.Add("ExportedAtUtc must be UTC.");
         if (_document.CatalogDependencies == null) _validationErrors.Add("CatalogDependencies is required.");
         if (_document.SurveyRuns == null) _validationErrors.Add("SurveyRuns is required.");
         if (_document.Trajectories == null) _validationErrors.Add("Trajectories is required.");
-        if (DocumentRecordCount == 0) _validationErrors.Add("At least one survey run or trajectory is required.");
+        if (DomainRecordCount == 0) _validationErrors.Add("At least one survey run or trajectory is required.");
         ValidateIds(_document.SurveyRuns?.Select(value => value?.MetaInfo?.ID), "Survey run");
         ValidateIds(_document.Trajectories?.Select(value => value?.MetaInfo?.ID), "Trajectory");
+        ValidateIds(_document.AntiCollisionPolicyRevisions?.Select(value => value?.MetaInfo?.ID), "Policy revision");
+        ValidateIds(_document.FieldAntiCollisionPolicyAssignments?.Select(value => value?.MetaInfo?.ID), "Field policy assignment");
     }
 
     private void ValidateIds(IEnumerable<Guid?>? values, string kind)
@@ -306,8 +312,8 @@
                 AllowNormalizedNameMapping = _allowNormalizedNameMapping,
                 Document = _document
             });
-            Snackbar.Add($"Restore completed: {response.CreatedSurveyRunCount + response.CreatedTrajectoryCount} created, " +
-                         $"{response.ReplacedSurveyRunCount + response.ReplacedTrajectoryCount} replaced, " +
+            Snackbar.Add($"Restore completed: {response.CreatedSurveyRunCount + response.CreatedTrajectoryCount + response.CreatedAntiCollisionPolicyRevisionCount + response.CreatedFieldPolicyAssignmentCount} created, " +
+                         $"{response.ReplacedSurveyRunCount + response.ReplacedTrajectoryCount + response.ReplacedAntiCollisionPolicyRevisionCount + response.ReplacedFieldPolicyAssignmentCount} replaced, " +
                          $"{response.CreatedCatalogDefinitionCount} catalog definition(s) created.", Severity.Success);
             await LoadRecordsAsync();
         }

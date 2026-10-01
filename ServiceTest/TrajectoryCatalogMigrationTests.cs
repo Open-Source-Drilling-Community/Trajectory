@@ -23,6 +23,9 @@ public sealed class TrajectoryCatalogMigrationTests
             Execute(mainPath, """
                 DROP TABLE TrajectoryIdentityTable;
                 DROP TABLE TrajectoryFeatureCategoryTable;
+                DROP TABLE TrajectoryExtrapolationCaseTable;
+                DROP TABLE AntiCollisionPolicyRevisionTable;
+                DROP TABLE FieldAntiCollisionPolicyAssignmentTable;
                 INSERT INTO TrajectoryTable(ID,Trajectory) VALUES('preserved-record','{}');
                 PRAGMA user_version=1;
                 """);
@@ -70,6 +73,9 @@ public sealed class TrajectoryCatalogMigrationTests
             Execute(mainPath, """
                 DROP TABLE TrajectoryIdentityTable;
                 DROP TABLE TrajectoryFeatureCategoryTable;
+                DROP TABLE TrajectoryExtrapolationCaseTable;
+                DROP TABLE AntiCollisionPolicyRevisionTable;
+                DROP TABLE FieldAntiCollisionPolicyAssignmentTable;
                 INSERT INTO TrajectoryTable(ID,Trajectory) VALUES('preserved-record','{}');
                 PRAGMA user_version=1;
                 """);
@@ -87,6 +93,74 @@ public sealed class TrajectoryCatalogMigrationTests
                 Assert.That(Scalar<long>(main, "SELECT COUNT(*) FROM TrajectoryTable WHERE ID='preserved-record'"), Is.EqualTo(1));
                 Assert.That(Scalar<long>(main, "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='TrajectoryIdentityTable'"), Is.Zero);
                 Assert.That(Scalar<string>(legacy, "SELECT ID FROM UnexpectedCatalogTable"), Is.EqualTo("keep-me"));
+            });
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
+    }
+
+    [Test]
+    public void Version_two_database_adds_extrapolation_table_without_changing_existing_data()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "trajectory-extrapolation-migration", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        string mainPath = Path.Combine(directory, "Trajectory.db");
+        try
+        {
+            _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+            Execute(mainPath, """
+                DROP TABLE TrajectoryExtrapolationCaseTable;
+                DROP TABLE AntiCollisionPolicyRevisionTable;
+                DROP TABLE FieldAntiCollisionPolicyAssignmentTable;
+                INSERT INTO TrajectoryTable(ID,Trajectory) VALUES('preserved-record','{}');
+                PRAGMA user_version=2;
+                """);
+
+            _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+
+            using SqliteConnection main = Open(mainPath);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Scalar<long>(main, "PRAGMA user_version"), Is.EqualTo(SqlConnectionManagerTrajectory.TrajectorySchemaVersion));
+                Assert.That(Scalar<long>(main, "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='TrajectoryExtrapolationCaseTable'"), Is.EqualTo(1));
+                Assert.That(Scalar<long>(main, "SELECT COUNT(*) FROM TrajectoryTable WHERE ID='preserved-record'"), Is.EqualTo(1));
+            });
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
+    }
+
+    [Test]
+    public void Version_three_database_adds_policy_tables_without_changing_existing_data()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "trajectory-policy-migration", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        string mainPath = Path.Combine(directory, "Trajectory.db");
+        try
+        {
+            _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+            Execute(mainPath, """
+                DROP TABLE AntiCollisionPolicyRevisionTable;
+                DROP TABLE FieldAntiCollisionPolicyAssignmentTable;
+                INSERT INTO TrajectoryTable(ID,Trajectory) VALUES('preserved-record','{}');
+                PRAGMA user_version=3;
+                """);
+
+            _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+
+            using SqliteConnection main = Open(mainPath);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Scalar<long>(main, "PRAGMA user_version"), Is.EqualTo(SqlConnectionManagerTrajectory.TrajectorySchemaVersion));
+                Assert.That(Scalar<long>(main, "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='AntiCollisionPolicyRevisionTable'"), Is.EqualTo(1));
+                Assert.That(Scalar<long>(main, "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='FieldAntiCollisionPolicyAssignmentTable'"), Is.EqualTo(1));
+                Assert.That(Scalar<long>(main, "SELECT COUNT(*) FROM TrajectoryTable WHERE ID='preserved-record'"), Is.EqualTo(1));
             });
         }
         finally

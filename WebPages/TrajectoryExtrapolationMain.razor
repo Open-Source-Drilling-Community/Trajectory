@@ -1,0 +1,136 @@
+@page "/TrajectoryExtrapolation"
+@inject ILogger<TrajectoryExtrapolationMain> logger
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject ITrajectoryAPIUtils Api
+
+<MudUnitAndReferenceChoiceTag HttpHost="@Api.HostNameUnitConversion"
+                              HttpBasePath="@Api.HostBasePathUnitConversion"
+                              HttpController="UnitSystem/"
+                              UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
+                              UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName"
+                              DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
+                              DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
+                              PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
+                              PositionReferenceNameChanged="@DataUtils.UpdatePositionReferenceName"
+                              AzimuthReferenceName="@DataUtils.UnitAndReferenceParameters.AzimuthReferenceName"
+                              AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName">
+    @if (editing)
+    {
+        <TrajectoryExtrapolationEdit CaseId="@caseId" ValueChanged="LoadAsync" />
+    }
+    else
+    {
+        <MudDataGrid T="TrajectoryExtrapolationCaseLight" Items="@cases" Hover="true" RowClick="OpenRow"
+                     ReadOnly="true" SortMode="SortMode.Multiple" QuickFilter="Filter" Elevation="0">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Trajectory Extrapolation</MudText>
+                <MudButton Color="Color.Success" OnClick="Add">Add</MudButton>
+                <MudSpacer />
+                <MudTextField @bind-Value="search" Placeholder="Search" Immediate="true"
+                              Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.Name" Title="Case" />
+                <PropertyColumn Property="x => x.Description" Title="Description" />
+                <PropertyColumn Property="x => SourceName(x.SourceTrajectoryID)" Title="Source trajectory" />
+                <PropertyColumn Property="x => x.Mode" Title="Mode" />
+                <TemplateColumn Title="Calculation">
+                    <CellTemplate>@Status(context.Item)</CellTemplate>
+                </TemplateColumn>
+                <TemplateColumn>
+                    <CellTemplate>
+                        <MudIconButton Icon="@Icons.Material.Outlined.Delete" Size="Size.Small"
+                                       OnClick="@(() => DeleteAsync(context.Item))" />
+                    </CellTemplate>
+                </TemplateColumn>
+            </Columns>
+            <PagerContent><MudDataGridPager T="TrajectoryExtrapolationCaseLight" /></PagerContent>
+        </MudDataGrid>
+    }
+</MudUnitAndReferenceChoiceTag>
+
+@code {
+    private List<TrajectoryExtrapolationCaseLight> cases = [];
+    private List<TrajectoryLight> trajectories = [];
+    private Guid? caseId;
+    private bool editing;
+    private string? search;
+    private CancellationTokenSource? polling;
+
+    protected override async Task OnInitializedAsync() => await LoadAsync();
+
+    private async Task LoadAsync()
+    {
+        editing = false;
+        caseId = null;
+        polling?.Cancel();
+        try
+        {
+            Task<List<TrajectoryExtrapolationCaseLight>> caseTask = Api.ClientTrajectory.GetAllTrajectoryExtrapolationCaseLightAsync();
+            Task<List<TrajectoryLight>> trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
+            await Task.WhenAll(caseTask, trajectoryTask);
+            cases = (await caseTask).OrderBy(x => x.Name).ToList();
+            trajectories = (await trajectoryTask).OrderBy(x => x.Name).ToList();
+            StartPolling();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unable to load trajectory extrapolation cases");
+            Snackbar.Add("Unable to load trajectory extrapolation cases.", Severity.Error);
+        }
+    }
+
+    private void Add() { caseId = null; editing = true; }
+    private Task OpenRow(DataGridRowClickEventArgs<TrajectoryExtrapolationCaseLight> args) { caseId = args.Item.MetaInfo.ID; editing = true; return Task.CompletedTask; }
+    private string SourceName(Guid id) => trajectories.FirstOrDefault(x => x.MetaInfo?.ID == id)?.Name ?? id.ToString();
+    private Func<TrajectoryExtrapolationCaseLight, bool> Filter => value => string.IsNullOrWhiteSpace(search) ||
+        $"{value.Name} {value.Description} {SourceName(value.SourceTrajectoryID)} {value.Mode}".Contains(search, StringComparison.OrdinalIgnoreCase);
+
+    private RenderFragment Status(TrajectoryExtrapolationCaseLight value) => @<div style="min-width:150px">
+        <MudText Typo="Typo.caption" Color="@(value.CalculationState == CalculationState.Failed ? Color.Error : Color.Default)">
+            @value.CalculationState @value.CalculationMessage
+        </MudText>
+        @if (Active(value)) { <MudProgressLinear Value="@(100 * value.CalculationProgress)" Size="Size.Small" /> }
+    </div>;
+
+    private static bool Active(TrajectoryExtrapolationCaseLight value) =>
+        value.CalculationState is CalculationState.Queued or CalculationState.Running;
+
+    private void StartPolling()
+    {
+        if (!cases.Any(Active)) return;
+        polling = new CancellationTokenSource();
+        _ = PollAsync(polling.Token);
+    }
+
+    private async Task PollAsync(CancellationToken token)
+    {
+        try
+        {
+            while (!token.IsCancellationRequested && cases.Any(Active))
+            {
+                await Task.Delay(TimeSpan.FromSeconds(2), token);
+                cases = (await Api.ClientTrajectory.GetAllTrajectoryExtrapolationCaseLightAsync(token)).OrderBy(x => x.Name).ToList();
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        catch (TaskCanceledException) { }
+    }
+
+    private async Task DeleteAsync(TrajectoryExtrapolationCaseLight value)
+    {
+        bool? confirmed = await DialogService.ShowMessageBoxAsync("Delete extrapolation", $"Delete '{value.Name}'?", yesText: "Delete", cancelText: "Cancel");
+        if (confirmed != true) return;
+        try
+        {
+            await Api.ClientTrajectory.DeleteTrajectoryExtrapolationCaseByIdAsync(value.MetaInfo.ID, ConcurrencyToken.Require(value.LastModificationDate));
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unable to delete trajectory extrapolation case");
+            Snackbar.Add("Unable to delete the extrapolation case.", Severity.Error);
+        }
+    }
+}

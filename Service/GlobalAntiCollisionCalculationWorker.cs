@@ -30,6 +30,8 @@ public sealed class GlobalAntiCollisionCalculationWorker : BackgroundService
     private readonly GlobalAntiCollisionManager globalManager_;
     private readonly TrajectoryManager trajectoryManager_;
     private readonly OctreeManager octreeManager_;
+    private readonly AntiCollisionPolicyManager policyManager_;
+    private readonly AntiCollisionPolicyContextResolver policyContextResolver_;
 
     public GlobalAntiCollisionCalculationWorker(
         ILogger<GlobalAntiCollisionCalculationWorker> logger,
@@ -37,7 +39,9 @@ public sealed class GlobalAntiCollisionCalculationWorker : BackgroundService
         ILogger<TrajectoryManager> trajectoryLogger,
         SqlConnectionManager connectionManagerTrajectory,
         SqlConnectionManagerSeparationFactorResults connectionManagerGlobalAC,
-        OctreeManager octreeManager)
+        OctreeManager octreeManager,
+        AntiCollisionPolicyManager policyManager,
+        AntiCollisionPolicyContextResolver policyContextResolver)
     {
         logger_ = logger;
         globalLogger_ = globalLogger;
@@ -45,6 +49,8 @@ public sealed class GlobalAntiCollisionCalculationWorker : BackgroundService
         globalManager_ = GlobalAntiCollisionManager.GetInstance(globalLogger_, connectionManagerGlobalAC);
         trajectoryManager_ = TrajectoryManager.GetInstance(trajectoryLogger_, connectionManagerTrajectory, octreeManager);
         octreeManager_ = octreeManager;
+        policyManager_ = policyManager;
+        policyContextResolver_ = policyContextResolver;
     }
 
     public bool Queue(string id)
@@ -128,6 +134,9 @@ public sealed class GlobalAntiCollisionCalculationWorker : BackgroundService
                 return;
             }
 
+            DateTimeOffset policyEvaluationUtc = DateTimeOffset.UtcNow;
+            ApplyEffectivePolicy(value, referenceTrajectory, policyEvaluationUtc);
+
             List<Model.Trajectory> comparisonTrajectories = GetComparisonTrajectories(value.ComparisonTrajectoryIDs);
             if (comparisonTrajectories.Count == 0)
             {
@@ -179,6 +188,36 @@ public sealed class GlobalAntiCollisionCalculationWorker : BackgroundService
                     0.2 + 0.78 * completed / total,
                     $"Calculated {completed:N0}/{total:N0} comparison trajectories"));
 
+            if (value.PolicySnapshot != null)
+            {
+                UpdateState(value, GlobalAntiCollisionCalculationState.Running, 0.98, "Evaluating anti-collision policy");
+                Dictionary<Guid, Model.Trajectory> comparisonsById = comparisonTrajectories
+                    .Where(item => item.MetaInfo != null).ToDictionary(item => item.MetaInfo!.ID);
+                foreach (SeparationFactorResult result in value.SeparationFactorResults)
+                {
+                    cancellationToken.ThrowIfCancellationRequested();
+                    if (!comparisonsById.TryGetValue(result.ComparisonTrajectoryID, out Model.Trajectory? comparison))
+                    {
+                        result.PolicyEvaluation = new AntiCollisionPolicyEvaluation
+                        {
+                            ComparisonTrajectoryID = result.ComparisonTrajectoryID,
+                            State = AntiCollisionPolicyEvaluationState.Indeterminate,
+                            Message = "The comparison trajectory was unavailable while evaluating the policy."
+                        };
+                        continue;
+                    }
+                    AntiCollisionComparisonContext context = await policyContextResolver_.ResolveAsync(comparison);
+                    result.PolicyEvaluation = AntiCollisionPolicyEvaluator.Evaluate(
+                        value.PolicySnapshot,
+                        result.ComparisonTrajectoryID,
+                        value.PolicyEvaluationUtc ?? policyEvaluationUtc,
+                        context.OldestEvidenceUtc,
+                        context.NewestEvidenceUtc,
+                        context.Resources,
+                        result.SeparationFactorProfile.Select(point => point.SeparationFactor));
+                }
+            }
+
             UpdateState(value, GlobalAntiCollisionCalculationState.Completed, 1.0, null, true);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
@@ -193,6 +232,23 @@ public sealed class GlobalAntiCollisionCalculationWorker : BackgroundService
             UpdateState(value, GlobalAntiCollisionCalculationState.Failed, value.CalculationProgress,
                 "The separation-factor calculation failed", true);
         }
+    }
+
+    private void ApplyEffectivePolicy(GlobalAntiCollision.GlobalAntiCollision value,
+        Model.Trajectory? referenceTrajectory, DateTimeOffset evaluationUtc)
+    {
+        value.PolicyEvaluationUtc = evaluationUtc;
+        value.PolicyAssignmentID = null;
+        value.PolicySnapshot = null;
+        if (referenceTrajectory?.FieldID is not Guid fieldId || fieldId == Guid.Empty) return;
+        FieldAntiCollisionPolicyAssignment? assignment = policyManager_.GetEffectiveAssignment(fieldId, evaluationUtc);
+        if (assignment?.MetaInfo == null) return;
+        AntiCollisionPolicyRevision? policy = policyManager_.GetRevision(assignment.PolicyRevisionID);
+        if (policy == null || AntiCollisionPolicyValidation.Validate(policy).Count > 0)
+            throw new InvalidOperationException("The effective anti-collision policy revision is missing or invalid.");
+        value.PolicyAssignmentID = assignment.MetaInfo.ID;
+        value.PolicySnapshot = policy;
+        value.ConfidenceFactor = policy.ConfidenceFactor;
     }
 
     private void UpdateState(GlobalAntiCollision.GlobalAntiCollision value,

@@ -253,6 +253,9 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             {
                 return BadRequest(new { error = "invalid_identity_or_feature_assignment" });
             }
+            List<string> extrapolationErrors = SurveyRunBitExtrapolationValidation.Validate(data);
+            if (data.SurveyMeasurementList is { Count: > 0 } && extrapolationErrors.Count > 0)
+                return BadRequest(new { error = "invalid_bit_extrapolation", details = extrapolationErrors });
             if (data?.MetaInfo?.ID is Guid id && id != Guid.Empty)
             {
                 if (_manager.GetSurveyRunById(id) == null)
@@ -276,6 +279,9 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             {
                 return BadRequest(new { error = "invalid_identity_or_feature_assignment" });
             }
+            List<string> extrapolationErrors = SurveyRunBitExtrapolationValidation.Validate(data);
+            if (data.SurveyMeasurementList is { Count: > 0 } && extrapolationErrors.Count > 0)
+                return BadRequest(new { error = "invalid_bit_extrapolation", details = extrapolationErrors });
             if (data?.MetaInfo?.ID == id)
             {
                 SurveyRun? current = _manager.GetSurveyRunById(id);

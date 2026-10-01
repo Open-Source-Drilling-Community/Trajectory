@@ -160,6 +160,37 @@
                 </MudItem>
             </MudGrid>
 
+            <MudPaper Class="pa-3 mt-3" Outlined="true">
+                <MudGrid>
+                    <MudItem xs="12" md="3">
+                        <MudSwitch T="bool" Value="@HasBitExtrapolation" ValueChanged="OnBitExtrapolationEnabledChanged"
+                                   Color="Color.Primary" Label="Add terminal bit extrapolation" />
+                    </MudItem>
+                    @if (surveyRun.BitExtrapolation is { } bitExtrapolation)
+                    {
+                        <MudItem xs="12" md="4">
+                            <MudSelect T="SurveyRunBitExtrapolationMode" Label="Bit-station source"
+                                       Value="@bitExtrapolation.Mode" ValueChanged="OnBitExtrapolationModeChanged" ShrinkLabel>
+                                <MudSelectItem T="SurveyRunBitExtrapolationMode" Value="SurveyRunBitExtrapolationMode.CalculateFromLastMeasurement">Calculate from last measurement</MudSelectItem>
+                                <MudSelectItem T="SurveyRunBitExtrapolationMode" Value="SurveyRunBitExtrapolationMode.LastStationAlreadyExtrapolated">Last row is already extrapolated</MudSelectItem>
+                            </MudSelect>
+                        </MudItem>
+                        <MudItem xs="12" md="3">
+                            <MudInputWithUnit QuantityName="DepthDrilling"
+                                              SIValueNullable="@((double?)bitExtrapolation.MeasurementToolToBitDistance)"
+                                              SIValueNullableChanged="OnMeasurementToolToBitDistanceChanged"
+                                              Label="Measurement tool to bit distance" />
+                        </MudItem>
+                        <MudItem xs="12">
+                            <MudText Typo="Typo.caption">
+                                The distance is stored in SI metres. The run calculation method continues the last measured curve;
+                                a run with one measured station uses a straight extension. The extrapolated bit station is not a new instrument measurement.
+                            </MudText>
+                        </MudItem>
+                    }
+                </MudGrid>
+            </MudPaper>
+
             <IdentityFeatureAssignments IdentityAssignments="surveyRun.SurveyRunIdentityAssignments"
                                         FeatureAssignments="surveyRun.SurveyRunFeatureAssignments" />
 
@@ -322,6 +353,7 @@
                       Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" HorizontalScrollbar="true">
                 <HeaderContent>
                     <MudTh></MudTh>
+                    <MudTh>Origin</MudTh>
                     <MudTh>MD [@DepthUnitLabel]</MudTh>
                     <MudTh>Observed inclination [@AngleUnitLabel]</MudTh>
                     <MudTh>Inclination reference</MudTh>
@@ -336,6 +368,12 @@
                     <MudTh></MudTh>
                 </HeaderContent>
                 <RowTemplate>
+                    <MudTd DataLabel="Origin">
+                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined"
+                                 Color="@(context.Origin == SurveyMeasurementOrigin.Extrapolated ? Color.Warning : Color.Default)">
+                            @context.Origin
+                        </MudChip>
+                    </MudTd>
                     <MudTd DataLabel="Measured Depth">
                         <MudInputWithUnit QuantityName="DepthDrilling" @key="MeasurementReferenceRenderKey"
                                           DrillingSignalReference="@DrillingSignalReferenceType.Depth"
@@ -348,7 +386,7 @@
                                           SIValueNullableChanged="@(val => OnObservedInclinationChanged(context, val))" />
                     </MudTd>
                     <MudTd DataLabel="Inclination reference">
-                        <MudSelect T="SurveyInclinationReference?" Value="@context.InclinationReference" ValueChanged="@(val => OnInclinationReferenceChanged(context, val))" Clearable="true" Dense="true">
+                        <MudSelect T="SurveyInclinationReference?" Value="@context.InclinationReference" ValueChanged="@(val => OnInclinationReferenceChanged(context, val))" Clearable="true" Dense="true" Disabled="@IsExtrapolated(context)">
                             @foreach (SurveyInclinationReference value in Enum.GetValues<SurveyInclinationReference>().Where(value => value != SurveyInclinationReference.InheritRun))
                             {
                                 <MudSelectItem T="SurveyInclinationReference?" Value="@((SurveyInclinationReference?)value)">@GetInclinationReferenceLabel(value)</MudSelectItem>
@@ -357,7 +395,7 @@
                     </MudTd>
                     <MudTd DataLabel="Inclination correction">
                         <MudInputWithUnit QuantityName="PlaneAngleDrilling" SIValueNullable="@context.Correction?.AppliedInclinationCorrection"
-                                          SIValueNullableChanged="@(val => OnInclinationCorrectionChanged(context, val))" />
+                                          SIValueNullableChanged="@(val => OnInclinationCorrectionChanged(context, val))" Disabled="@IsExtrapolated(context)" />
                     </MudTd>
                     <MudTd DataLabel="Geodetic inclination">@FormatAngleValue(context.Inclination)</MudTd>
                     <MudTd DataLabel="Observed azimuth">
@@ -365,7 +403,7 @@
                                           SIValueNullableChanged="@(val => OnObservedAzimuthChanged(context, val))" />
                     </MudTd>
                     <MudTd DataLabel="Azimuth reference">
-                        <MudSelect T="SurveyAzimuthReference?" Value="@context.AzimuthReference" ValueChanged="@(val => OnAzimuthReferenceChanged(context, val))" Clearable="true" Dense="true">
+                        <MudSelect T="SurveyAzimuthReference?" Value="@context.AzimuthReference" ValueChanged="@(val => OnAzimuthReferenceChanged(context, val))" Clearable="true" Dense="true" Disabled="@IsExtrapolated(context)">
                             @foreach (SurveyAzimuthReference value in Enum.GetValues<SurveyAzimuthReference>().Where(value => value != SurveyAzimuthReference.InheritRun))
                             {
                                 <MudSelectItem T="SurveyAzimuthReference?" Value="@((SurveyAzimuthReference?)value)">@GetAzimuthReferenceLabel(value)</MudSelectItem>
@@ -374,13 +412,13 @@
                     </MudTd>
                     <MudTd DataLabel="Azimuth correction">
                         <MudInputWithUnit QuantityName="PlaneAngleDrilling" SIValueNullable="@context.Correction?.AppliedAzimuthCorrection"
-                                          SIValueNullableChanged="@(val => OnAzimuthCorrectionChanged(context, val))" />
+                                          SIValueNullableChanged="@(val => OnAzimuthCorrectionChanged(context, val))" Disabled="@IsExtrapolated(context)" />
                     </MudTd>
                     <MudTd DataLabel="True-north azimuth">@FormatAngleValue(context.Azimuth)</MudTd>
                     <MudTd DataLabel="Measurement time UTC">
-                        <MudTextField T="string" Value="@FormatUtcInput(context.MeasurementTimeUtc)" ValueChanged="value => SetMeasurementTime(context, value)" Placeholder="yyyy-MM-ddTHH:mm:ssZ" />
+                        <MudTextField T="string" Value="@FormatUtcInput(context.MeasurementTimeUtc)" ValueChanged="value => SetMeasurementTime(context, value)" Placeholder="yyyy-MM-ddTHH:mm:ssZ" Disabled="@IsExtrapolated(context)" />
                     </MudTd>
-                    <MudTd DataLabel="Correction status">@(context.Correction?.Status.ToString() ?? "Pending")</MudTd>
+                    <MudTd DataLabel="Correction status">@(IsExtrapolated(context) ? "Not a measurement" : context.Correction?.Status.ToString() ?? "Pending")</MudTd>
                     <MudTd><MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteSurveyStation(context))" /></MudTd>
                 </RowTemplate>
             </MudTable>
@@ -433,6 +471,7 @@
                                   Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" ReadOnly="true">
                             <HeaderContent>
                                 <MudTHeadRow>
+                                    <MudTh>Origin</MudTh>
                                     <MudTh>Measured Depth [@DepthUnitLabel]</MudTh>
                                     <MudTh>Inclination [@AngleUnitLabel]</MudTh>
                                     <MudTh>Azimuth [@AzimuthUnitLabel]</MudTh>
@@ -446,6 +485,16 @@
                                 </MudTHeadRow>
                             </HeaderContent>
                             <RowTemplate>
+                                <MudTd DataLabel="Origin">
+                                    @if (IsCalculatedBitStation(context))
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined" Color="Color.Warning">Extrapolated</MudChip>
+                                    }
+                                    else
+                                    {
+                                        <MudChip T="string" Size="Size.Small" Variant="Variant.Outlined">Measured</MudChip>
+                                    }
+                                </MudTd>
                                 <MudTd DataLabel="Measured Depth">
                                     <MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.MD" />
                                 </MudTd>
@@ -762,6 +811,9 @@
     };
 
     private IEnumerable<SurveyMeasurement> SurveyMeasurements => currentSurveyRun_?.SurveyMeasurementList ?? [];
+    private IEnumerable<SurveyMeasurement> MeasuredSurveyMeasurements =>
+        SurveyMeasurements.Where(measurement => measurement.Origin == SurveyMeasurementOrigin.Measured);
+    private bool HasBitExtrapolation => currentSurveyRun_?.BitExtrapolation != null;
 
     private string MeasurementReferenceRenderKey =>
         $"{DataUtils.UnitAndReferenceParameters.UnitSystemName}|{DataUtils.UnitAndReferenceParameters.DepthReferenceName}|{DataUtils.UnitAndReferenceParameters.AzimuthReferenceName}|{measurementReferenceRenderVersion_}";
@@ -1052,6 +1104,10 @@
             currentSurveyRun_.SurveyRunIdentityAssignments ??= new List<TrajectoryIdentityAssignment>();
             currentSurveyRun_.SurveyRunFeatureAssignments ??= new List<TrajectoryFeatureAssignment>();
             await LoadSurveyMeasurementsAsync(currentSurveyRun_);
+            if (currentSurveyRun_.BitExtrapolation?.Mode == SurveyRunBitExtrapolationMode.LastStationAlreadyExtrapolated)
+            {
+                MarkLastRowAsExtrapolated();
+            }
             surveyRunIdBeingEdited_ = surveyRunId;
             selectedFieldId_ = currentSurveyRun_.FieldID;
             selectedClusterId_ = currentSurveyRun_.ClusterID;
@@ -1208,6 +1264,7 @@
             DefaultAzimuthReference = source.DefaultAzimuthReference,
             GeomagneticModel = source.GeomagneticModel,
             ParentSurveyRunID = source.ParentSurveyRunID,
+            BitExtrapolation = source.BitExtrapolation,
             SurveyRunIdentityAssignments = source.SurveyRunIdentityAssignments,
             SurveyRunFeatureAssignments = source.SurveyRunFeatureAssignments,
             TieInPoint = source.TieInPoint,
@@ -1240,6 +1297,10 @@
         if (currentSurveyRun_.SurveyMeasurementList is not { Count: > 0 })
         {
             Snackbar.Add("Add at least one survey measurement", Severity.Warning);
+            return;
+        }
+        if (!ValidateBitExtrapolationForSave(currentSurveyRun_))
+        {
             return;
         }
         if (IsParentSurveyRunRequired && selectedParentSurveyRunId_ is not Guid)
@@ -1718,6 +1779,142 @@
         return InvokeAsync(StateHasChanged);
     }
 
+    private Task OnBitExtrapolationEnabledChanged(bool enabled)
+    {
+        if (currentSurveyRun_ == null) return Task.CompletedTask;
+        if (enabled)
+        {
+            currentSurveyRun_.BitExtrapolation ??= new SurveyRunBitExtrapolation
+            {
+                Mode = SurveyRunBitExtrapolationMode.CalculateFromLastMeasurement,
+                MeasurementToolToBitDistance = 0.0
+            };
+            SetAllMeasurementOrigins(SurveyMeasurementOrigin.Measured);
+        }
+        else
+        {
+            currentSurveyRun_.BitExtrapolation = null;
+            SetAllMeasurementOrigins(SurveyMeasurementOrigin.Measured);
+        }
+        ClearCalculatedSurveyRunData();
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnBitExtrapolationModeChanged(SurveyRunBitExtrapolationMode mode)
+    {
+        if (currentSurveyRun_?.BitExtrapolation == null) return Task.CompletedTask;
+        currentSurveyRun_.BitExtrapolation.Mode = mode;
+        if (mode == SurveyRunBitExtrapolationMode.LastStationAlreadyExtrapolated)
+        {
+            MarkLastRowAsExtrapolated();
+            SetDistanceFromLastIntervalIfUnset();
+        }
+        else
+        {
+            SetAllMeasurementOrigins(SurveyMeasurementOrigin.Measured);
+        }
+        ClearCalculatedSurveyRunData();
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private void OnMeasurementToolToBitDistanceChanged(double? value)
+    {
+        if (currentSurveyRun_?.BitExtrapolation == null) return;
+        currentSurveyRun_.BitExtrapolation.MeasurementToolToBitDistance = value ?? 0.0;
+        ClearCalculatedSurveyRunData();
+    }
+
+    private void SetAllMeasurementOrigins(SurveyMeasurementOrigin origin)
+    {
+        if (currentSurveyRun_?.SurveyMeasurementList == null) return;
+        foreach (SurveyMeasurement measurement in currentSurveyRun_.SurveyMeasurementList)
+            measurement.Origin = origin;
+    }
+
+    private void MarkLastRowAsExtrapolated()
+    {
+        if (currentSurveyRun_?.SurveyMeasurementList is not { Count: > 0 } measurements) return;
+        foreach (SurveyMeasurement measurement in measurements)
+            measurement.Origin = SurveyMeasurementOrigin.Measured;
+        SurveyMeasurement extrapolated = measurements.OrderBy(measurement => measurement.MD ?? double.MaxValue).Last();
+        extrapolated.Origin = SurveyMeasurementOrigin.Extrapolated;
+        ClearExtrapolatedMeasurementMetadata(extrapolated);
+    }
+
+    private void SetDistanceFromLastIntervalIfUnset()
+    {
+        if (currentSurveyRun_?.BitExtrapolation is not { MeasurementToolToBitDistance: <= 0.0 } configuration ||
+            currentSurveyRun_.SurveyMeasurementList is not { Count: >= 2 } measurements) return;
+        List<SurveyMeasurement> ordered = measurements.OrderBy(measurement => measurement.MD ?? double.MaxValue).ToList();
+        if (ordered[^2].MD is double measuredMd && ordered[^1].MD is double extrapolatedMd && extrapolatedMd > measuredMd)
+            configuration.MeasurementToolToBitDistance = extrapolatedMd - measuredMd;
+    }
+
+    private static void ClearExtrapolatedMeasurementMetadata(SurveyMeasurement measurement)
+    {
+        measurement.ObservedInclination = null;
+        measurement.ObservedAzimuth = null;
+        measurement.MeasurementTimeUtc = null;
+        measurement.InclinationReference = SurveyInclinationReference.InheritRun;
+        measurement.AzimuthReference = SurveyAzimuthReference.InheritRun;
+        measurement.Correction = null;
+    }
+
+    private bool ValidateBitExtrapolationForSave(SurveyRun surveyRun)
+    {
+        if (surveyRun.BitExtrapolation == null)
+        {
+            SetAllMeasurementOrigins(SurveyMeasurementOrigin.Measured);
+            return true;
+        }
+        if (!double.IsFinite(surveyRun.BitExtrapolation.MeasurementToolToBitDistance) ||
+            surveyRun.BitExtrapolation.MeasurementToolToBitDistance <= 0.0)
+        {
+            Snackbar.Add("Enter a positive measurement-tool-to-bit distance.", Severity.Warning);
+            return false;
+        }
+
+        List<SurveyMeasurement> ordered = surveyRun.SurveyMeasurementList!
+            .OrderBy(measurement => measurement.MD ?? double.MaxValue).ToList();
+        if (surveyRun.BitExtrapolation.Mode == SurveyRunBitExtrapolationMode.CalculateFromLastMeasurement)
+        {
+            if (ordered.Any(measurement => measurement.Origin == SurveyMeasurementOrigin.Extrapolated))
+            {
+                Snackbar.Add("Calculated bit extrapolation accepts measured rows only.", Severity.Warning);
+                return false;
+            }
+            return true;
+        }
+
+        if (ordered.Count < 2 || ordered.Count(measurement => measurement.Origin == SurveyMeasurementOrigin.Extrapolated) != 1 ||
+            ordered[^1].Origin != SurveyMeasurementOrigin.Extrapolated)
+        {
+            Snackbar.Add("Exactly the final row must be marked as the extrapolated bit station.", Severity.Warning);
+            return false;
+        }
+        if (ordered[^2].MD is not double measuredMd || ordered[^1].MD is not double extrapolatedMd)
+        {
+            Snackbar.Add("The last measured and extrapolated rows require measured depths.", Severity.Warning);
+            return false;
+        }
+        double distance = surveyRun.BitExtrapolation.MeasurementToolToBitDistance;
+        double tolerance = Math.Max(1e-6, distance * 1e-8);
+        if (Math.Abs((extrapolatedMd - measuredMd) - distance) > tolerance)
+        {
+            Snackbar.Add("The final MD increment must equal the measurement-tool-to-bit distance.", Severity.Warning);
+            return false;
+        }
+        ClearExtrapolatedMeasurementMetadata(ordered[^1]);
+        return true;
+    }
+
+    private static bool IsExtrapolated(SurveyMeasurement measurement) =>
+        measurement.Origin == SurveyMeasurementOrigin.Extrapolated;
+
+    private bool IsCalculatedBitStation(SurveyStation station) =>
+        currentSurveyRun_?.BitExtrapolation != null &&
+        ReferenceEquals(currentSurveyRun_.SurveyStationList?.LastOrDefault(), station);
+
     private void OnDefaultInclinationReferenceChanged(SurveyInclinationReference value)
     {
         if (currentSurveyRun_ == null || currentSurveyRun_.DefaultInclinationReference == value) return;
@@ -2076,6 +2273,11 @@
             .DefaultIfEmpty(0)
             .Max();
         currentSurveyRun_.SurveyMeasurementList.Add(new SurveyMeasurement { MeasurementID = Guid.NewGuid(), MD = lastMD + 10.0, Inclination = 0, Azimuth = 0, ObservedInclination = 0, ObservedAzimuth = 0, InclinationReference = SurveyInclinationReference.InheritRun, AzimuthReference = SurveyAzimuthReference.InheritRun });
+        if (currentSurveyRun_.BitExtrapolation?.Mode == SurveyRunBitExtrapolationMode.LastStationAlreadyExtrapolated)
+        {
+            MarkLastRowAsExtrapolated();
+            SetDistanceFromLastIntervalIfUnset();
+        }
         ClearInvalidParentSurveyRunSelection();
         ClearCalculatedSurveyRunData();
         UpdatePlots();
@@ -2148,7 +2350,7 @@
 
     private void ApplyInclinationReferenceToAll()
     {
-        List<SurveyMeasurement> measurements = SurveyMeasurements.ToList();
+        List<SurveyMeasurement> measurements = MeasuredSurveyMeasurements.ToList();
         foreach (SurveyMeasurement measurement in measurements)
         {
             measurement.InclinationReference = bulkInclinationReference_;
@@ -2159,7 +2361,7 @@
 
     private void ApplyAzimuthReferenceToAll()
     {
-        List<SurveyMeasurement> measurements = SurveyMeasurements.ToList();
+        List<SurveyMeasurement> measurements = MeasuredSurveyMeasurements.ToList();
         foreach (SurveyMeasurement measurement in measurements)
         {
             measurement.AzimuthReference = bulkAzimuthReference_;
@@ -2176,7 +2378,7 @@
             return;
         }
 
-        List<SurveyMeasurement> measurements = SurveyMeasurements.ToList();
+        List<SurveyMeasurement> measurements = MeasuredSurveyMeasurements.ToList();
         foreach (SurveyMeasurement measurement in measurements)
         {
             measurement.MeasurementTimeUtc = parsed;
@@ -2280,6 +2482,10 @@
     private void DeleteSurveyStation(SurveyMeasurement measurement)
     {
         currentSurveyRun_?.SurveyMeasurementList?.Remove(measurement);
+        if (currentSurveyRun_?.BitExtrapolation?.Mode == SurveyRunBitExtrapolationMode.LastStationAlreadyExtrapolated)
+        {
+            MarkLastRowAsExtrapolated();
+        }
         ClearInvalidParentSurveyRunSelection();
         ClearCalculatedSurveyRunData();
         UpdatePlots();
@@ -2377,6 +2583,11 @@
             }
 
             currentSurveyRun_.SurveyMeasurementList = importedMeasurements;
+            if (currentSurveyRun_.BitExtrapolation?.Mode == SurveyRunBitExtrapolationMode.LastStationAlreadyExtrapolated)
+            {
+                MarkLastRowAsExtrapolated();
+                SetDistanceFromLastIntervalIfUnset();
+            }
             ClearInvalidParentSurveyRunSelection();
             ClearCalculatedSurveyRunData();
             UpdatePlots();
@@ -2710,7 +2921,7 @@
 
         string[] headers =
         [
-            "Measurement ID", "Measured Depth [m]", "Observed Inclination [rad]", "Inclination Reference",
+            "Measurement ID", "Origin", "Measured Depth [m]", "Observed Inclination [rad]", "Inclination Reference",
             "Applied Inclination Correction [rad]", "Geodetic Inclination [rad]", "Observed Azimuth [rad]",
             "Azimuth Reference", "Applied Azimuth Correction [rad]", "True Azimuth [rad]", "Measurement Time UTC",
             "Correction Source", "Correction Status", "Correction Message", "Magnetic Declination [rad]",
@@ -2720,7 +2931,7 @@
         ];
         string content = BuildTabSeparatedContent(headers, surveyMeasurements.Select(measurement => new[]
         {
-            measurement.MeasurementID.ToString(), FormatExportNumber(measurement.MD),
+            measurement.MeasurementID.ToString(), measurement.Origin.ToString(), FormatExportNumber(measurement.MD),
             FormatExportNumber(measurement.ObservedInclination ?? measurement.Inclination), measurement.InclinationReference.ToString(),
             FormatExportNumber(measurement.Correction?.AppliedInclinationCorrection), FormatExportNumber(measurement.Inclination),
             FormatExportNumber(measurement.ObservedAzimuth ?? measurement.Azimuth), measurement.AzimuthReference.ToString(),
@@ -2760,6 +2971,7 @@
 
         string[] headers =
         [
+            "Origin",
             $"Measured Depth [{DepthUnitLabel}]",
             $"Inclination [{AngleUnitLabel}]",
             $"Azimuth [{AzimuthUnitLabel}]",
@@ -2776,6 +2988,7 @@
             headers,
             calculatedStations.Select(station => new[]
             {
+                IsCalculatedBitStation(station) ? "Extrapolated" : "Measured",
                 ConvertDepthForExport(station.MD),
                 ConvertQuantityForExport(station.Inclination, "PlaneAngleDrilling"),
                 ConvertAzimuthForExport(station.Azimuth),

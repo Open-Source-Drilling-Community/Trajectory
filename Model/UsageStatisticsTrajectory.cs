@@ -63,6 +63,27 @@ namespace OSDC.Drilling.Trajectory.Model
         public History PostTrajectoryPerDay { get; set; } = new History();
         public History PutTrajectoryByIdPerDay { get; set; } = new History();
         public History DeleteTrajectoryByIdPerDay { get; set; } = new History();
+        public History GetAllTrajectoryExtrapolationCaseIdPerDay { get; set; } = new History();
+        public History GetAllTrajectoryExtrapolationCaseMetaInfoPerDay { get; set; } = new History();
+        public History GetAllTrajectoryExtrapolationCaseLightPerDay { get; set; } = new History();
+        public History GetAllTrajectoryExtrapolationCasePerDay { get; set; } = new History();
+        public History GetTrajectoryExtrapolationCaseByIdPerDay { get; set; } = new History();
+        public History GetTrajectoryExtrapolationCaseStatusPerDay { get; set; } = new History();
+        public History GetTrajectoryExtrapolationSurveyStationChunkCountPerDay { get; set; } = new History();
+        public History GetTrajectoryExtrapolationSurveyStationChunkPerDay { get; set; } = new History();
+        public History PostTrajectoryExtrapolationCasePerDay { get; set; } = new History();
+        public History PutTrajectoryExtrapolationCaseByIdPerDay { get; set; } = new History();
+        public History DeleteTrajectoryExtrapolationCaseByIdPerDay { get; set; } = new History();
+        public History GetAllAntiCollisionPolicyRevisionIdPerDay { get; set; } = new History();
+        public History GetAllAntiCollisionPolicyRevisionPerDay { get; set; } = new History();
+        public History GetAntiCollisionPolicyRevisionByIdPerDay { get; set; } = new History();
+        public History PostAntiCollisionPolicyRevisionPerDay { get; set; } = new History();
+        public History GetAllFieldAntiCollisionPolicyAssignmentPerDay { get; set; } = new History();
+        public History GetFieldAntiCollisionPolicyAssignmentByIdPerDay { get; set; } = new History();
+        public History GetEffectiveFieldAntiCollisionPolicyAssignmentPerDay { get; set; } = new History();
+        public History PostFieldAntiCollisionPolicyAssignmentPerDay { get; set; } = new History();
+        public History PutFieldAntiCollisionPolicyAssignmentByIdPerDay { get; set; } = new History();
+        public History DeleteFutureFieldAntiCollisionPolicyAssignmentByIdPerDay { get; set; } = new History();
 
         private static readonly object lock_ = new object();
         private static UsageStatisticsTrajectory? instance_ = null;
@@ -182,6 +203,25 @@ namespace OSDC.Drilling.Trajectory.Model
             {
                 DeleteTrajectoryByIdPerDay ??= new History();
                 DeleteTrajectoryByIdPerDay.Increment();
+                ManageBackup();
+            }
+        }
+
+        public void IncrementTrajectoryExtrapolationOperation(string operation)
+        {
+            IncrementOperation(operation);
+        }
+
+        public void IncrementOperation(string operation)
+        {
+            lock (lock_)
+            {
+                System.Reflection.PropertyInfo? property = GetType().GetProperty(operation + "PerDay");
+                if (property?.PropertyType != typeof(History))
+                    throw new ArgumentException($"Unknown Trajectory usage operation '{operation}'.", nameof(operation));
+                History history = (History?)property.GetValue(this) ?? new History();
+                property.SetValue(this, history);
+                history.Increment();
                 ManageBackup();
             }
         }
