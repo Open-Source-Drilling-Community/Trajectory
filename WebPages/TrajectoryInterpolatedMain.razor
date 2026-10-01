@@ -3,6 +3,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject ITrajectoryAPIUtils Api
+@inject ITrajectoryReferenceDataCache ReferenceData
 
 <MudUnitAndReferenceChoiceTag HttpHost=@Api.HostNameUnitConversion
                               HttpBasePath=@Api.HostBasePathUnitConversion
@@ -111,21 +112,18 @@
 
             var interpolatedTask = Api.ClientTrajectory.GetAllInterpolatedTrajectoryLightAsync();
             var trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
-            var wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
-            var wellTask = Api.ClientWell.GetAllWellAsync();
-            var clusterTask = Api.ClientCluster.GetAllClusterAsync();
-            var fieldTask = Api.ClientField.GetAllFieldAsync();
-            var rigTask = Api.GetAllRigReferencesAsync();
+            Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
 
-            await Task.WhenAll(interpolatedTask, trajectoryTask, wellBoreTask, wellTask, clusterTask, fieldTask, rigTask);
+            await Task.WhenAll(interpolatedTask, trajectoryTask, referenceDataTask);
 
             interpolatedTrajectoryList = ((ICollection<InterpolatedTrajectoryLight>)await interpolatedTask).OrderBy(x => x.Name).ToList();
             trajectoryList = ((ICollection<TrajectoryLight>)await trajectoryTask).OrderBy(x => x.Name).ToList();
-            wellBoreList = ((ICollection<WellBore>)await wellBoreTask).OrderBy(x => x.Name).ToList();
-            wellList = ((ICollection<Well>)await wellTask).OrderBy(x => x.Name).ToList();
-            clusterList = ((ICollection<Cluster>)await clusterTask).OrderBy(x => x.Name).ToList();
-            fieldList = ((ICollection<Field>)await fieldTask).OrderBy(x => x.Name).ToList();
-            rigList = ((ICollection<Rig>)await rigTask).OrderBy(x => x.Name).ToList();
+            TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
+            wellBoreList = referenceData.WellBores.ToList();
+            wellList = referenceData.Wells.ToList();
+            clusterList = referenceData.Clusters.ToList();
+            fieldList = referenceData.Fields.ToList();
+            rigList = referenceData.Rigs.ToList();
             StartCalculationPollingIfNeeded();
         }
         catch (Exception ex)

@@ -4,6 +4,7 @@
 @inject IDialogService DialogService
 @inject IJSRuntime JSRuntime
 @inject ITrajectoryAPIUtils Api
+@inject ITrajectoryReferenceDataCache ReferenceData
 @using System.Globalization
 @using System.Text.Json
 @using System.Text.RegularExpressions
@@ -356,6 +357,7 @@
             <MudTable Items="@SurveyMeasurements" MultiSelection="true" T="SurveyMeasurement"
                       @key="MeasurementReferenceRenderKey"
                       @bind-SelectedItems="selectedSurveyStations_"
+                      Height="400px" FixedHeader="true"
                       Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" HorizontalScrollbar="true">
                 <HeaderContent>
                     <MudTh></MudTh>
@@ -635,38 +637,41 @@
     }
     else
     {
+        @if (isReferenceDataLoading_)
+        {
+            <MudProgressLinear Indeterminate="true" Color="Color.Info" Class="mb-1" />
+            <MudText Typo="Typo.caption" Class="mb-2">
+                Loading fields, clusters, wells, wellbores, rigs, and survey instruments…
+                @if (pendingSurveyRunId_ != null)
+                {
+                    <span> The selected Survey Run will open when loading finishes.</span>
+                }
+            </MudText>
+        }
         <MudGrid Class="mb-4">
             <MudItem xs="12" md="3">
-                <MudSelect Label="Field" T="Guid?" Value="@listSelectedFieldId_" ValueChanged="OnListFieldChanged" ShrinkLabel Clearable="true">
-                    @foreach (Field field in AvailableFields)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
-                    }
-                </MudSelect>
+                <MudAutocomplete Label="Field" T="Guid?" Value="@listSelectedFieldId_" ValueChanged="OnListFieldChanged"
+                                 SearchFunc="SearchListFieldsAsync" ToStringFunc="GetListFieldDisplayName"
+                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                                 Disabled="@(!referenceDataAvailable_)" />
             </MudItem>
             <MudItem xs="12" md="3">
-                <MudSelect Label="Cluster" T="Guid?" Value="@listSelectedClusterId_" ValueChanged="OnListClusterChanged" ShrinkLabel Clearable="true">
-                    @foreach (Cluster cluster in AvailableListClusters)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
-                    }
-                </MudSelect>
+                <MudAutocomplete Label="Cluster" T="Guid?" Value="@listSelectedClusterId_" ValueChanged="OnListClusterChanged"
+                                 SearchFunc="SearchListClustersAsync" ToStringFunc="GetListClusterDisplayName"
+                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                                 Disabled="@(!referenceDataAvailable_)" />
             </MudItem>
             <MudItem xs="12" md="3">
-                <MudSelect Label="Well" T="Guid?" Value="@listSelectedWellId_" ValueChanged="OnListWellChanged" ShrinkLabel Clearable="true">
-                    @foreach (Well well in AvailableListWells)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
-                    }
-                </MudSelect>
+                <MudAutocomplete Label="Well" T="Guid?" Value="@listSelectedWellId_" ValueChanged="OnListWellChanged"
+                                 SearchFunc="SearchListWellsAsync" ToStringFunc="GetListWellDisplayName"
+                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                                 Disabled="@(!referenceDataAvailable_)" />
             </MudItem>
             <MudItem xs="12" md="3">
-                <MudSelect Label="WellBore" T="Guid?" Value="@listSelectedWellBoreId_" ValueChanged="OnListWellBoreChanged" ShrinkLabel Clearable="true">
-                    @foreach (WellBore wellBore in AvailableListWellBores)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)wellBore.MetaInfo.ID)">@wellBore.Name</MudSelectItem>
-                    }
-                </MudSelect>
+                <MudAutocomplete Label="WellBore" T="Guid?" Value="@listSelectedWellBoreId_" ValueChanged="OnListWellBoreChanged"
+                                 SearchFunc="SearchListWellBoresAsync" ToStringFunc="GetListWellBoreDisplayName"
+                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                                 Disabled="@(!referenceDataAvailable_)" />
             </MudItem>
         </MudGrid>
 
@@ -677,7 +682,7 @@
                      ReadOnly="true" ColumnResizeMode="ResizeMode.Column" Elevation="0">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Survey Run</MudText>
-                <MudButton OnClick="@AddSurveyRun" Color="@Color.Success" Class="add-item-btn">Add</MudButton>
+                <MudButton OnClick="@AddSurveyRun" Color="@Color.Success" Class="add-item-btn" Disabled="@(!referenceDataAvailable_)">Add</MudButton>
                 <MudButton OnClick="@DeleteSelectedSurveyRunsAsync" Color="@Color.Error" Class="add-item-btn"
                            Disabled="@(selectedSurveyRunList_.Count == 0)">Delete</MudButton>
                 <MudSpacer />
@@ -730,6 +735,9 @@
     private List<SurveyInstrumentLight>? surveyInstrumentList_;
 
     private bool isEditing_;
+    private bool isReferenceDataLoading_ = true;
+    private bool referenceDataAvailable_;
+    private Guid? pendingSurveyRunId_;
     private bool isNavigationConfirmationOpen_;
     private bool hasRenderedUnitReference_;
     private string? cleanSurveyRunSnapshot_;
@@ -913,6 +921,62 @@
             .OrderBy(wellBore => wellBore.Name)
             .ToList() ?? [];
 
+    private Task<IEnumerable<Guid?>> SearchListFieldsAsync(string? searchText, CancellationToken cancellationToken) =>
+        Task.FromResult(FilterReferenceIdsByName(AvailableFields, searchText, field => field.Name, field => field.MetaInfo.ID));
+
+    private Task<IEnumerable<Guid?>> SearchListClustersAsync(string? searchText, CancellationToken cancellationToken) =>
+        Task.FromResult(FilterReferenceIdsByName(AvailableListClusters, searchText, cluster => cluster.Name, cluster => cluster.MetaInfo.ID));
+
+    private Task<IEnumerable<Guid?>> SearchListWellsAsync(string? searchText, CancellationToken cancellationToken) =>
+        Task.FromResult(FilterReferenceIdsByName(AvailableListWells, searchText, well => well.Name, well => well.MetaInfo.ID));
+
+    private Task<IEnumerable<Guid?>> SearchListWellBoresAsync(string? searchText, CancellationToken cancellationToken) =>
+        Task.FromResult(FilterReferenceIdsByName(AvailableListWellBores, searchText, wellBore => wellBore.Name, wellBore => wellBore.MetaInfo.ID));
+
+    private string GetListFieldDisplayName(Guid? id) =>
+        GetReferenceDisplayName(id, fieldList_ ?? [], field => field.Name, field => field.MetaInfo?.ID, "field");
+
+    private string GetListClusterDisplayName(Guid? id) =>
+        GetReferenceDisplayName(id, clusterList_ ?? [], cluster => cluster.Name, cluster => cluster.MetaInfo?.ID, "cluster");
+
+    private string GetListWellDisplayName(Guid? id) =>
+        GetReferenceDisplayName(id, wellList_ ?? [], well => well.Name, well => well.MetaInfo?.ID, "well");
+
+    private string GetListWellBoreDisplayName(Guid? id) =>
+        GetReferenceDisplayName(id, wellBoreList_ ?? [], wellBore => wellBore.Name, wellBore => wellBore.MetaInfo?.ID, "wellbore");
+
+    private static IEnumerable<Guid?> FilterReferenceIdsByName<T>(
+        IEnumerable<T> items,
+        string? searchText,
+        Func<T, string?> getName,
+        Func<T, Guid> getId)
+    {
+        string? term = searchText?.Trim();
+        return items
+            .Where(item => string.IsNullOrEmpty(term) ||
+                (getName(item)?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
+            .Select(item => (Guid?)getId(item));
+    }
+
+    private string GetReferenceDisplayName<T>(
+        Guid? id,
+        IEnumerable<T> items,
+        Func<T, string?> getName,
+        Func<T, Guid?> getId,
+        string resourceName)
+    {
+        if (id is not Guid value)
+        {
+            return string.Empty;
+        }
+
+        T? item = items.FirstOrDefault(candidate => getId(candidate) == value);
+        string? name = item is null ? null : getName(item);
+        return !string.IsNullOrWhiteSpace(name)
+            ? name
+            : isReferenceDataLoading_ ? "Loading…" : $"Unknown {resourceName}";
+    }
+
     private List<SurveyInstrumentLight> AvailableSurveyInstruments =>
         surveyInstrumentList_?
             .Where(instrument => instrument?.MetaInfo != null)
@@ -959,31 +1023,49 @@
             cleanSurveyRunSnapshot_ = null;
             surveyRunIdBeingEdited_ = null;
             selectedSurveyRunList_ = [];
+            surveyRunList_ = [];
+            isReferenceDataLoading_ = true;
+            referenceDataAvailable_ = false;
+            pendingSurveyRunId_ = null;
 
-            var fieldTask = Api.ClientField.GetAllFieldAsync();
-            var clusterTask = Api.ClientCluster.GetAllClusterAsync();
-            var wellTask = Api.ClientWell.GetAllWellAsync();
-            var wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
-            var rigTask = Api.GetAllRigReferencesAsync();
-            var surveyInstrumentTask = Api.ClientSurveyInstrument.GetAllSurveyInstrumentLightAsync();
+            Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
             var surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
 
-            await Task.WhenAll(fieldTask, clusterTask, wellTask, wellBoreTask, rigTask, surveyInstrumentTask, surveyRunTask);
-
-            fieldList_ = fieldTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
-            clusterList_ = clusterTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
-            wellList_ = wellTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
-            wellBoreList_ = wellBoreTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
-            rigList_ = rigTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
-            surveyInstrumentList_ = surveyInstrumentTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
-            allSurveyRunList_ = surveyRunTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
+            // Do not hold the page behind reference catalogs. The Survey Run list is independently
+            // useful and normally much faster, so render it as soon as its lightweight call finishes.
+            allSurveyRunList_ = ((IEnumerable<SurveyRunLight>)await surveyRunTask)
+                .Where(item => item != null)
+                .OrderBy(item => item.Name)
+                .ToList();
             allSurveyRunHeavyList_ = [];
             surveyRunList_ = ApplySurveyRunFilters();
             gridKey_++;
             StartCalculationPollingIfNeeded();
+            await InvokeAsync(StateHasChanged);
+
+            TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
+            fieldList_ = referenceData.Fields.ToList();
+            clusterList_ = referenceData.Clusters.ToList();
+            wellList_ = referenceData.Wells.ToList();
+            wellBoreList_ = referenceData.WellBores.ToList();
+            rigList_ = referenceData.Rigs.ToList();
+            surveyInstrumentList_ = referenceData.SurveyInstruments.ToList();
+            surveyRunList_ = ApplySurveyRunFilters();
+            isReferenceDataLoading_ = false;
+            referenceDataAvailable_ = true;
+            if (pendingSurveyRunId_ is Guid pendingSurveyRunId)
+            {
+                pendingSurveyRunId_ = null;
+                await EditSurveyRunAsync(pendingSurveyRunId);
+            }
+            else
+            {
+                await InvokeAsync(StateHasChanged);
+            }
         }
         catch (Exception ex)
         {
+            isReferenceDataLoading_ = false;
             logger.LogError(ex, "Problem while loading Survey Run data");
             Snackbar.Add("Problem while loading Survey Run data: " + ex.Message, Severity.Error);
         }
@@ -1687,9 +1769,7 @@
             return surveyRun.Name;
         }
 
-        return surveyRun?.MetaInfo?.ID is Guid id && id != Guid.Empty
-            ? id.ToString()
-            : "Unnamed Survey Run";
+        return "Unnamed Survey Run";
     }
 
     private void SelectedItemsChanged(HashSet<SurveyRunLight> items)
@@ -1699,10 +1779,22 @@
 
     private async Task RowClicked(DataGridRowClickEventArgs<SurveyRunLight> args)
     {
-        if (args.Item?.MetaInfo != null)
+        if (args.Item?.MetaInfo?.ID is not Guid surveyRunId)
         {
-            await EditSurveyRunAsync(args.Item.MetaInfo.ID);
+            return;
         }
+
+        if (!referenceDataAvailable_)
+        {
+            if (isReferenceDataLoading_)
+            {
+                pendingSurveyRunId_ = surveyRunId;
+                await InvokeAsync(StateHasChanged);
+            }
+            return;
+        }
+
+        await EditSurveyRunAsync(surveyRunId);
     }
 
     private bool SurveyRunFilter(SurveyRunLight surveyRun)
@@ -1826,10 +1918,12 @@
     }
 
     private string GetWellBoreNameFromID(Guid id) =>
-        wellBoreList_?.FirstOrDefault(wellBore => wellBore?.MetaInfo?.ID == id)?.Name ?? id.ToString();
+        wellBoreList_?.FirstOrDefault(wellBore => wellBore?.MetaInfo?.ID == id)?.Name ??
+        (isReferenceDataLoading_ ? "Loading…" : "Unknown wellbore");
 
     private string GetSurveyInstrumentNameFromID(Guid id) =>
-        surveyInstrumentList_?.FirstOrDefault(instrument => instrument?.MetaInfo?.ID == id)?.Name ?? id.ToString();
+        surveyInstrumentList_?.FirstOrDefault(instrument => instrument?.MetaInfo?.ID == id)?.Name ??
+        (isReferenceDataLoading_ ? "Loading…" : "Unknown survey instrument");
 
     private Task OnCalculationTypeChanged(TrajectoryCalculationType calculationType)
     {

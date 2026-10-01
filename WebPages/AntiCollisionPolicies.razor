@@ -2,6 +2,7 @@
 @inject ILogger<AntiCollisionPolicies> Logger
 @inject ISnackbar Snackbar
 @inject ITrajectoryAPIUtils Api
+@inject ITrajectoryReferenceDataCache ReferenceData
 
 <MudText Typo="Typo.h5" Class="mt-4">Anti-collision policies</MudText>
 <MudText Typo="Typo.body2" Class="mb-4">
@@ -160,7 +161,7 @@
         {
             revisions_ = (await Api.ClientTrajectory.GetAllAntiCollisionPolicyRevisionAsync()).OrderBy(x => x.Name).ThenByDescending(x => x.RevisionNumber).ToList();
             assignments_ = (await Api.ClientTrajectory.GetAllFieldAntiCollisionPolicyAssignmentAsync()).OrderByDescending(x => x.ValidFromUtc).ToList();
-            fields_ = (await Api.ClientField.GetAllFieldAsync()).OrderBy(x => x.Name).ToList();
+            fields_ = (await ReferenceData.GetSnapshotAsync()).Fields.ToList();
         }
         catch (Exception ex)
         {

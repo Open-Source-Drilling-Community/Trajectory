@@ -6,6 +6,8 @@ It provides the application shell, host-owned `/Home` route, startup configurati
 
 The anti-collision scan provides case-insensitive partial-name search in its Field, Cluster, Well, WellBore, and Trajectory selectors. It submits both octree candidate discovery and selected separation-factor comparisons as background service jobs. Each phase polls a lightweight status endpoint and shows measured progress, allowing multi-minute work to continue without an HTTP request timeout; candidate UUIDs and complete calculation results are downloaded only after their respective jobs complete. Its separation-factor graph can show either the union of calculated depth intervals or the whole reference trajectory. The Anti-collision Policies page creates immutable revisions and effective-dated Field assignments; completed results display the frozen policy and per-comparison Alert/Alarm classification.
 
+The host maintains one application-wide reference-data snapshot for Fields, Clusters, Wells, WellBores, Rigs, Survey Instruments, and lightweight WellBore Architectures. Trajectory pages reuse this snapshot instead of downloading the same catalogs whenever the user navigates between pages. A background worker refreshes all catalogs concurrently every minute. Refresh publication is atomic, and a failed refresh leaves the last successful snapshot available, so a temporary dependency outage does not erase working reference data. Full catalog responses are used because UUID-only polling cannot detect renames or hierarchy changes with the currently published dependency contracts.
+
 ## Container
 
 The host application is packaged as the Docker image:
@@ -64,7 +66,7 @@ The renamed Helm chart is `charts/osdcdrillingtrajectorywebappclient`. All produ
 
 ## Hosting requirements and local execution
 
-The host registers server-side Blazor, MudBlazor, `AddHttpClient()`, `ITrajectoryWebPagesConfiguration`, `ITrajectoryAPIUtils`, and the imported OSDC WebPages services. Route discovery includes the required reusable assemblies without giving those packages a generic `/Home` route; `/Home` remains owned by this WebApp.
+The host registers server-side Blazor, MudBlazor, `AddHttpClient()`, `ITrajectoryWebPagesConfiguration`, `ITrajectoryAPIUtils`, the singleton `ITrajectoryReferenceDataCache` and its background refresh worker, and the imported OSDC WebPages services. Route discovery includes the required reusable assemblies without giving those packages a generic `/Home` route; `/Home` remains owned by this WebApp.
 
 Configuration must supply the Trajectory, Field, Cluster, Rig, Well, WellBore, WellBore Architecture, Survey Instrument, Unit Conversion, Cartographic Projection, Earth Geodesy, Earth Gravity, Earth Magnetic Field, and Earth Vertical Datum URLs. Development settings use public DigiWells URLs and production/Helm settings use in-cluster service names.
 

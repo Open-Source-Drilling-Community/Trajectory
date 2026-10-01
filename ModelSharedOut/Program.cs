@@ -245,7 +245,7 @@ class Program
                         ParameterDateTimeFormat = "O"
                     };
                     var generator = new CSharpClientGenerator(nswDocument, settings);
-                    var code = generator.GenerateFile();
+                    var code = ApplyGeneratedClientFixes(generator.GenerateFile());
                     using (StreamWriter writer = new StreamWriter(modelSharedDir + Path.DirectorySeparatorChar + CSHARP_MODEL))
                     {
                         writer.WriteLine(code);
@@ -285,6 +285,37 @@ class Program
         }
 
         return success;
+    }
+
+    private static string ApplyGeneratedClientFixes(string code)
+    {
+        // NJsonSchema's System.Text.Json inheritance converter retains the discriminator
+        // in JsonExtensionData while reading a derived DTO. Without this guard, a
+        // read-modify-write round trip emits the discriminator twice: once first as
+        // metadata and once after the regular properties from extension data. ASP.NET
+        // then rejects the trailing copy as out-of-order polymorphic metadata.
+        const string generatedWrite = "                    property.WriteTo(writer);";
+        string correctedWrite = string.Join(Environment.NewLine,
+            "                    if (property.NameEquals(_discriminatorName))",
+            "                    {",
+            "                        continue;",
+            "                    }",
+            string.Empty,
+            generatedWrite);
+
+        if (code.Split(generatedWrite, StringSplitOptions.None).Length != 2)
+        {
+            throw new InvalidOperationException("The generated inheritance-converter template changed; discriminator de-duplication was not applied.");
+        }
+
+        return code
+            .Replace(generatedWrite, correctedWrite, StringComparison.Ordinal)
+            // Keep the generated artifact stable across regeneration; NSwag emits
+            // these three trailing spaces even though they carry no semantics.
+            .Replace("public partial class Client ", "public partial class Client", StringComparison.Ordinal)
+            .Replace("GetCustomAttribute(field, typeof(System.Runtime.Serialization.EnumMemberAttribute)) ",
+                "GetCustomAttribute(field, typeof(System.Runtime.Serialization.EnumMemberAttribute))", StringComparison.Ordinal)
+            .Replace("else if (value is bool) ", "else if (value is bool)", StringComparison.Ordinal);
     }
 
     static void DynamicCreationOfPseudoConstructors(DirectoryInfo directory)

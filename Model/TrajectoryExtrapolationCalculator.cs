@@ -27,7 +27,7 @@ namespace OSDC.Drilling.Trajectory.Model
                 return Fail(calculation, "The source trajectory has no complete calculated station list.");
             }
 
-            SurveyStation start = new(sourceStations[^1]);
+            SurveyStation start = PrepareStartStation(sourceStations, source.CalculationType);
             calculation.StartStation = new SurveyStation(start);
             calculation.SourceTrajectoryRevision = source.LastModificationDate;
             calculation.TargetStation = null;
@@ -514,8 +514,53 @@ namespace OSDC.Drilling.Trajectory.Model
                     Numeric.IsDefined(point.Y) && Numeric.IsDefined(point.Z))
                 {
                     SurveyStation station = FromPoint(point);
-                    if (output.Count == 0 || !Numeric.EQ(output[^1].MD, station.MD)) output.Add(station);
+                    if (output.Count == 0 || !Numeric.EQ(output[^1].MD, station.MD))
+                    {
+                        if (output.Count > 0)
+                        {
+                            // Use the same curve-specific completion routines as ordinary trajectory
+                            // calculations. This fills DLS, BUR, TR, toolface, and vertical section.
+                            CompleteDerivedValues(output[^1], station, CalculationType(section));
+                        }
+                        output.Add(station);
+                    }
                 }
+            }
+        }
+
+        private static OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType CalculationType(ArcSection section) =>
+            section switch
+            {
+                BuildAndTurnArcSection or DoubleBuildAndTurnArcs =>
+                    OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType.ConstantBuildAndTurnMethod,
+                ConstantCurvatureAndToolfaceArcSection or DoubleConstantCurvatureAndToolfaceArcs =>
+                    OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType.ConstantCurvatureAndToolfaceMethod,
+                _ => OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType.MinimumCurvatureMethod
+            };
+
+        private static void CompleteDerivedValues(
+            SurveyStation previous,
+            SurveyStation station,
+            OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType calculationType)
+        {
+            double? north = station.RiemannianNorth;
+            double? east = station.RiemannianEast;
+            double? tvd = station.TVD;
+            previous.CompleteFromSIA(station, calculationType);
+
+            // Sampling has already established the authoritative section geometry. Completion is
+            // used for the curve diagnostics only, so retain those sampled coordinates exactly.
+            station.RiemannianNorth = north;
+            station.RiemannianEast = east;
+            station.TVD = tvd;
+            if (previous.VerticalSection is double previousVerticalSection &&
+                previous.RiemannianNorth is double previousNorth &&
+                previous.RiemannianEast is double previousEast &&
+                north is double currentNorth && east is double currentEast)
+            {
+                station.VerticalSection = previousVerticalSection + System.Math.Sqrt(
+                    (currentNorth - previousNorth) * (currentNorth - previousNorth) +
+                    (currentEast - previousEast) * (currentEast - previousEast));
             }
         }
 
@@ -607,6 +652,56 @@ namespace OSDC.Drilling.Trajectory.Model
             return stations.Count > 0;
         }
 
+        private static SurveyStation PrepareStartStation(
+            List<SurveyStation> sourceStations,
+            OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType calculationType)
+        {
+            SurveyStation start = WithoutUncertainty(sourceStations[^1]);
+            if (sourceStations.Count > 1 &&
+                (start.VerticalSection == null || start.Curvature == null || start.BUR == null || start.TUR == null))
+            {
+                SurveyStation previous = WithoutUncertainty(sourceStations[^2]);
+                previous.VerticalSection ??= VerticalSectionAt(sourceStations, sourceStations.Count - 2);
+                SurveyStation completed = WithoutUncertainty(start);
+                if (previous.CompleteFromSIA(completed, calculationType))
+                {
+                    start.VerticalSection ??= completed.VerticalSection;
+                    start.Curvature ??= completed.Curvature;
+                    start.Toolface ??= completed.Toolface;
+                    start.BUR ??= completed.BUR;
+                    start.TUR ??= completed.TUR;
+                }
+            }
+
+            start.VerticalSection ??= VerticalSectionAt(sourceStations, sourceStations.Count - 1);
+            if (sourceStations.Count == 1)
+            {
+                start.Curvature ??= 0.0;
+                start.Toolface ??= 0.0;
+                start.BUR ??= 0.0;
+                start.TUR ??= 0.0;
+            }
+            return start;
+        }
+
+        private static double VerticalSectionAt(List<SurveyStation> stations, int endIndex)
+        {
+            double verticalSection = stations[0].VerticalSection ?? 0.0;
+            for (int index = 1; index <= endIndex; index++)
+            {
+                if (stations[index - 1].RiemannianNorth is double previousNorth &&
+                    stations[index - 1].RiemannianEast is double previousEast &&
+                    stations[index].RiemannianNorth is double north &&
+                    stations[index].RiemannianEast is double east)
+                {
+                    verticalSection += System.Math.Sqrt(
+                        (north - previousNorth) * (north - previousNorth) +
+                        (east - previousEast) * (east - previousEast));
+                }
+            }
+            return verticalSection;
+        }
+
         private static bool Complete(SurveyStation value) =>
             value != null && Numeric.IsDefined(value.MD) && Numeric.IsDefined(value.Inclination) &&
             Numeric.IsDefined(value.Azimuth) && Numeric.IsDefined(value.RiemannianNorth) &&
@@ -619,7 +714,12 @@ namespace OSDC.Drilling.Trajectory.Model
             Azimuth = value.Azimuth,
             X = value.RiemannianNorth,
             Y = value.RiemannianEast,
-            Z = value.TVD
+            Z = value.TVD,
+            VerticalSection = value.VerticalSection,
+            Curvature = value.Curvature,
+            Toolface = value.Toolface,
+            BUR = value.BUR,
+            TUR = value.TUR
         };
 
         private static TrajectoryPoint3D EndpointAttitude(SurveyStation value) => new()
@@ -629,17 +729,24 @@ namespace OSDC.Drilling.Trajectory.Model
             Azimuth = value.Azimuth
         };
 
-        private static SurveyStation FromPoint(CurvilinearPoint3D value) => new()
+        private static SurveyStation FromPoint(CurvilinearPoint3D value)
         {
-            MD = value.Abscissa,
-            Inclination = value.Inclination,
-            Azimuth = value.Azimuth,
-            RiemannianNorth = value.X,
-            RiemannianEast = value.Y,
-            TVD = value.Z,
-            Curvature = null,
-            Toolface = null
-        };
+            TrajectoryPoint3D? trajectoryPoint = value as TrajectoryPoint3D;
+            return new SurveyStation
+            {
+                MD = value.Abscissa,
+                Inclination = value.Inclination,
+                Azimuth = value.Azimuth,
+                RiemannianNorth = value.X,
+                RiemannianEast = value.Y,
+                TVD = value.Z,
+                VerticalSection = trajectoryPoint?.VerticalSection,
+                Curvature = trajectoryPoint?.Curvature,
+                Toolface = trajectoryPoint?.Toolface,
+                BUR = trajectoryPoint?.BUR,
+                TUR = trajectoryPoint?.TUR
+            };
+        }
 
         private static SurveyStation WithoutUncertainty(SurveyStation value) => new()
         {

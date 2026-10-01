@@ -1,6 +1,7 @@
 @inject ILogger<TrajectoryExtrapolationEdit> logger
 @inject ISnackbar Snackbar
 @inject ITrajectoryAPIUtils Api
+@inject ITrajectoryReferenceDataCache ReferenceData
 
 <MudText Typo="Typo.h6" Class="mt-4 mb-3">Trajectory Extrapolation</MudText>
 <MudStack Row="true" Class="mb-4">
@@ -11,19 +12,50 @@
 <MudGrid>
     <MudItem xs="12" md="3"><MudTextField @bind-Value="value.Name" Label="Name" Required="true" /></MudItem>
     <MudItem xs="12" md="3"><MudTextField @bind-Value="value.Description" Label="Description" /></MudItem>
+</MudGrid>
+
+<MudText Typo="Typo.subtitle1" Class="mt-4 mb-2">Trajectory to extrapolate</MudText>
+<MudGrid>
+    <MudItem xs="12" md="2">
+        <MudAutocomplete Label="Field" T="Guid?" Value="@sourceFieldId" ValueChanged="OnSourceFieldChanged"
+                         SearchFunc="SearchSourceFieldsAsync" ToStringFunc="GetSourceFieldName"
+                         Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel />
+    </MudItem>
+    <MudItem xs="12" md="2">
+        <MudAutocomplete Label="Cluster" T="Guid?" Value="@sourceClusterId" ValueChanged="OnSourceClusterChanged"
+                         SearchFunc="SearchSourceClustersAsync" ToStringFunc="GetSourceClusterName"
+                         Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                         Disabled="@(sourceFieldId == null)" />
+    </MudItem>
+    <MudItem xs="12" md="2">
+        <MudAutocomplete Label="Well" T="Guid?" Value="@sourceWellId" ValueChanged="OnSourceWellChanged"
+                         SearchFunc="SearchSourceWellsAsync" ToStringFunc="GetSourceWellName"
+                         Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                         Disabled="@(sourceFieldId == null)" />
+    </MudItem>
+    <MudItem xs="12" md="2">
+        <MudAutocomplete Label="WellBore" T="Guid?" Value="@sourceWellBoreId" ValueChanged="OnSourceWellBoreChanged"
+                         SearchFunc="SearchSourceWellBoresAsync" ToStringFunc="GetSourceWellBoreName"
+                         Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                         Disabled="@(sourceWellId == null)" />
+    </MudItem>
+    <MudItem xs="12" md="4">
+        <MudAutocomplete Label="Trajectory" T="Guid?" Value="@SelectedSourceTrajectoryId" ValueChanged="OnSourceTrajectoryChanged"
+                         SearchFunc="SearchSourceTrajectoriesAsync" ToStringFunc="GetSourceTrajectoryName"
+                         Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel Required="true"
+                         Disabled="@(sourceWellBoreId == null)" />
+    </MudItem>
+</MudGrid>
+
+<MudGrid Class="mt-2">
     <MudItem xs="12" md="3">
-        <MudSelect T="Guid" @bind-Value="value.SourceTrajectoryID" Label="Source trajectory" Required="true">
-            @foreach (TrajectoryLight item in trajectories) { <MudSelectItem T="Guid" Value="@item.MetaInfo.ID">@item.Name</MudSelectItem> }
+        <MudSelect T="TrajectoryExtrapolationMode" Value="@value.Mode" ValueChanged="ModeChanged" Label="Extrapolation mode">
+            @foreach (TrajectoryExtrapolationMode mode in Enum.GetValues<TrajectoryExtrapolationMode>()) { <MudSelectItem Value="@mode">@mode</MudSelectItem> }
         </MudSelect>
     </MudItem>
     <MudItem xs="12" md="3">
         <MudInputWithUnit QuantityLabel="Interpolation interval" QuantityName="DepthDrilling"
                           SIValueNullable="@value.InterpolationInterval" SIValueNullableChanged="SetInterval" />
-    </MudItem>
-    <MudItem xs="12" md="3">
-        <MudSelect T="TrajectoryExtrapolationMode" Value="@value.Mode" ValueChanged="ModeChanged" Label="Extrapolation mode">
-            @foreach (TrajectoryExtrapolationMode mode in Enum.GetValues<TrajectoryExtrapolationMode>()) { <MudSelectItem Value="@mode">@mode</MudSelectItem> }
-        </MudSelect>
     </MudItem>
 </MudGrid>
 
@@ -84,7 +116,22 @@
             <MudText Typo="Typo.caption">Specify exactly 3 × sections constraints; each section needs at least one, and no prefix may have more than 3 × its section count.</MudText>
         </MudStack>
         <MudTable T="WellPathSectionSpecification" Items="@wellPath.SectionList" Dense="true" Bordered="true" Hover="true" Style="overflow-x:auto">
-            <HeaderContent><MudTh>Curve</MudTh><MudTh>Length</MudTh><MudTh>Incl</MudTh><MudTh>Az</MudTh><MudTh>Vertical depth</MudTh><MudTh>North</MudTh><MudTh>East</MudTh><MudTh>CA curvature</MudTh><MudTh>CA start toolface</MudTh><MudTh>Build rate</MudTh><MudTh>Turn rate</MudTh><MudTh>Curvature</MudTh><MudTh>Toolface</MudTh><MudTh></MudTh></HeaderContent>
+            <HeaderContent>
+                <MudTh>Curve</MudTh>
+                <MudTh>@LengthHeader("Length")</MudTh>
+                <MudTh>@InclinationHeader("Incl")</MudTh>
+                <MudTh>@AzimuthHeader("Az")</MudTh>
+                <MudTh>@DepthHeader("Vertical depth")</MudTh>
+                <MudTh>@PositionHeader(NorthCoordinateLabel)</MudTh>
+                <MudTh>@PositionHeader(EastCoordinateLabel)</MudTh>
+                <MudTh>@CurvatureHeader("CA curvature")</MudTh>
+                <MudTh>@PlaneAngleHeader("CA start toolface")</MudTh>
+                <MudTh>@CurvatureHeader("Build rate")</MudTh>
+                <MudTh>@CurvatureHeader("Turn rate")</MudTh>
+                <MudTh>@CurvatureHeader("Curvature")</MudTh>
+                <MudTh>@PlaneAngleHeader("Toolface")</MudTh>
+                <MudTh></MudTh>
+            </HeaderContent>
             <RowTemplate>
                 <MudTd><MudSelect T="ExtrapolationCurveType" Value="@CurveType(context)" ValueChanged="x => ChangeCurve(context, x)" Dense="true">@foreach (ExtrapolationCurveType type in Enum.GetValues<ExtrapolationCurveType>()) { <MudSelectItem Value="@type">@type</MudSelectItem> }</MudSelect></MudTd>
                 <MudTd><MudInputWithUnit QuantityLabel="Length" QuantityName="DepthDrilling" SIValueNullable="@context.Length" SIValueNullableChanged="x => context.Length = x" /></MudTd>
@@ -112,34 +159,295 @@
     @if (value.SolvedSectionList is { Count: > 0 })
     {
         <MudTable Items="@value.SolvedSectionList" T="TrajectoryExtrapolationSolvedSection" Dense="true" Bordered="true">
-            <HeaderContent><MudTh>#</MudTh><MudTh>Role</MudTh><MudTh>Type</MudTh><MudTh>Length</MudTh><MudTh>End MD</MudTh><MudTh>CA curvature</MudTh><MudTh>CA toolface</MudTh><MudTh>Build</MudTh><MudTh>Turn</MudTh><MudTh>Curvature</MudTh><MudTh>Toolface</MudTh></HeaderContent>
-            <RowTemplate><MudTd>@context.SectionIndex</MudTd><MudTd>@context.Role</MudTd><MudTd>@context.CurveType</MudTd><MudTd><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.Length" /></MudTd><MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.EndMD" /></MudTd><MudTd>@context.CircularArcCurvature</MudTd><MudTd>@context.CircularArcStartToolface</MudTd><MudTd>@context.ConstantBuildRate</MudTd><MudTd>@context.ConstantTurnRate</MudTd><MudTd>@context.ConstantCurvature</MudTd><MudTd>@context.ConstantToolface</MudTd></RowTemplate>
+            <HeaderContent>
+                <MudTh>#</MudTh>
+                <MudTh>Role</MudTh>
+                <MudTh>Type</MudTh>
+                <MudTh>@LengthHeader("Length")</MudTh>
+                <MudTh>@DepthHeader("End MD")</MudTh>
+                <MudTh>@CurvatureHeader("CA curvature")</MudTh>
+                <MudTh>@PlaneAngleHeader("CA toolface")</MudTh>
+                <MudTh>@CurvatureHeader("Build")</MudTh>
+                <MudTh>@CurvatureHeader("Turn")</MudTh>
+                <MudTh>@CurvatureHeader("Curvature")</MudTh>
+                <MudTh>@PlaneAngleHeader("Toolface")</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@context.SectionIndex</MudTd>
+                <MudTd>@context.Role</MudTd>
+                <MudTd>@context.CurveType</MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.Length" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.EndMD" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.CircularArcCurvature" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.CircularArcStartToolface" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.ConstantBuildRate" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.ConstantTurnRate" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.ConstantCurvature" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.ConstantToolface" /></MudTd>
+            </RowTemplate>
         </MudTable>
         <MudText Typo="Typo.caption">@stationCount sampled stations available in chunked results.</MudText>
+    }
+
+    @if (value.CalculationState == CalculationState.Completed)
+    {
+        <MudText Typo="Typo.subtitle1" Class="mt-4 mb-2">Interpolated extrapolated trajectory</MudText>
+        @if (isLoadingSurveyStations)
+        {
+            <MudPaper Class="pa-4" Outlined="true">
+                <MudText Typo="Typo.body2">@SurveyStationLoadingText</MudText>
+                <MudProgressLinear Value="@SurveyStationLoadingProgressPercent" Color="Color.Info" Class="mt-2" />
+            </MudPaper>
+        }
+        else if (interpolatedExtrapolationStations.Count > 0)
+        {
+            <MudTable Items="@interpolatedExtrapolationStations" T="SurveyStation" Height="400px" FixedHeader="true"
+                      Virtualize="true" OverscanCount="3" ItemSize="38"
+                      Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" ReadOnly="true">
+                <HeaderContent>
+                    <MudTHeadRow>
+                        <MudTh>@DepthHeader("MD")</MudTh>
+                        <MudTh>@InclinationHeader("Incl")</MudTh>
+                        <MudTh>@AzimuthHeader("Az")</MudTh>
+                        <MudTh>@DepthHeader("TVD")</MudTh>
+                        <MudTh>@PositionHeader(NorthCoordinateLabel)</MudTh>
+                        <MudTh>@PositionHeader(EastCoordinateLabel)</MudTh>
+                        <MudTh>@CurvatureHeader("DLS")</MudTh>
+                        <MudTh>@CurvatureHeader("BUR")</MudTh>
+                        <MudTh>@CurvatureHeader("TR")</MudTh>
+                        <MudTh>@LengthHeader("Vertical section")</MudTh>
+                    </MudTHeadRow>
+                </HeaderContent>
+                <RowTemplate>
+                    <MudTd DataLabel="MD"><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.MD" /></MudTd>
+                    <MudTd DataLabel="Incl"><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Inclination" /></MudTd>
+                    <MudTd DataLabel="Az"><MudSpanWithUnit QuantityName="PlaneAngleDrilling" DrillingSignalReference="DrillingSignalReferenceType.Azimuth" SIValue="@context.Azimuth" /></MudTd>
+                    <MudTd DataLabel="TVD"><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.TVD" /></MudTd>
+                    <MudTd DataLabel="@NorthCoordinateLabel"><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.North" SIValue="@context.RiemannianNorth" /></MudTd>
+                    <MudTd DataLabel="@EastCoordinateLabel"><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.East" SIValue="@context.RiemannianEast" /></MudTd>
+                    <MudTd DataLabel="DLS"><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.Curvature" /></MudTd>
+                    <MudTd DataLabel="BUR"><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.BUR" /></MudTd>
+                    <MudTd DataLabel="TR"><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.TUR" /></MudTd>
+                    <MudTd DataLabel="Vertical section"><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.VerticalSection" /></MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+        else
+        {
+            <MudText>No interpolated extrapolated trajectory is available.</MudText>
+        }
     }
 </MudPaper>
 
 @code {
+    [CascadingParameter] private MudUnitAndReferenceChoiceTag? Parent { get; set; }
     [Parameter] public Guid? CaseId { get; set; }
     [Parameter] public EventCallback ValueChanged { get; set; }
     private TrajectoryExtrapolationCase value = NewCase();
+    private List<Field> fields = [];
+    private List<Cluster> clusters = [];
+    private List<Well> wells = [];
+    private List<WellBore> wellBores = [];
+    private List<Rig> rigs = [];
     private List<TrajectoryLight> trajectories = [];
+    private Guid? sourceFieldId;
+    private Guid? sourceClusterId;
+    private Guid? sourceWellId;
+    private Guid? sourceWellBoreId;
     private int stationCount;
+    private readonly List<SurveyStation> interpolatedExtrapolationStations = [];
+    private bool isLoadingSurveyStations;
+    private int loadedSurveyStationChunkCount;
+    private int totalSurveyStationChunkCount;
     private enum GeosteeringExtentChoice { Departure, DrilledLength }
+
+    private double SurveyStationLoadingProgressPercent => totalSurveyStationChunkCount == 0
+        ? 0
+        : 100.0 * loadedSurveyStationChunkCount / totalSurveyStationChunkCount;
+    private string SurveyStationLoadingText => totalSurveyStationChunkCount == 0
+        ? "Loading interpolated extrapolated trajectory…"
+        : $"Loading interpolated extrapolated trajectory chunk {loadedSurveyStationChunkCount} of {totalSurveyStationChunkCount}…";
 
     protected override async Task OnInitializedAsync()
     {
         try
         {
-            trajectories = (await Api.ClientTrajectory.GetAllTrajectoryLightAsync()).OrderBy(x => x.Name).ToList();
-            if (CaseId is Guid id) value = await Api.ClientTrajectory.GetTrajectoryExtrapolationCaseByIdAsync(id, false);
-            if (value.CalculationState is CalculationState.Queued or CalculationState.Running) _ = PollAsync();
-            else await LoadResultCountAsync();
+            Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
+            Task<List<TrajectoryLight>> trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
+            await Task.WhenAll(referenceDataTask, trajectoryTask);
+
+            TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
+            fields = referenceData.Fields.ToList();
+            clusters = referenceData.Clusters.ToList();
+            wells = referenceData.Wells.ToList();
+            wellBores = referenceData.WellBores.ToList();
+            rigs = referenceData.Rigs.ToList();
+            trajectories = (await trajectoryTask).OrderBy(x => x.Name).ToList();
+            if (CaseId is Guid id)
+            {
+                value = await Api.ClientTrajectory.GetTrajectoryExtrapolationCaseByIdAsync(id, false);
+                InitializeSourceHierarchy();
+                await UpdateSourceReferenceValuesAsync();
+                if (value.CalculationState is CalculationState.Queued or CalculationState.Running) _ = PollAsync();
+                else await LoadSurveyStationsAsync();
+            }
         }
         catch (Exception ex) { logger.LogError(ex, "Unable to load trajectory extrapolation editor"); Snackbar.Add("Unable to load the extrapolation.", Severity.Error); }
     }
 
-    private static TrajectoryExtrapolationCase NewCase() => new() { MetaInfo = PseudoConstructors.ConstructMetaInfo(), Name = "New extrapolation", InterpolationInterval = 30, Mode = TrajectoryExtrapolationMode.FixedLength, Specification = new FixedLengthExtrapolationSpecification { Length = 30, ExtensionType = FixedLengthExtrapolationType.Straight }, SolvedSectionList = [], SurveyStationList = [] };
+    private static TrajectoryExtrapolationCase NewCase() => new() { MetaInfo = PseudoConstructors.ConstructMetaInfo(), Name = "New extrapolation", InterpolationInterval = 30, Mode = TrajectoryExtrapolationMode.FixedLength, CalculationState = CalculationState.NotCalculated, Specification = new FixedLengthExtrapolationSpecification { Length = 30, ExtensionType = FixedLengthExtrapolationType.Straight }, SolvedSectionList = [], SurveyStationList = [] };
+    private Guid? SelectedSourceTrajectoryId => value.SourceTrajectoryID == Guid.Empty ? null : value.SourceTrajectoryID;
+
+    private List<Field> AvailableSourceFields => fields.OrderBy(item => item.Name).ToList();
+    private List<Cluster> AvailableSourceClusters => clusters
+        .Where(item => item.MetaInfo != null && !item.IsSingleWell && sourceFieldId != null && item.FieldID == sourceFieldId)
+        .OrderBy(item => item.Name)
+        .ToList();
+    private List<Well> AvailableSourceWells => wells
+        .Where(item => item.MetaInfo != null &&
+            sourceFieldId != null && FindFieldId(item) == sourceFieldId &&
+            (sourceClusterId == null || item.IsSingleWell || item.ClusterID == sourceClusterId))
+        .OrderBy(item => item.Name)
+        .ToList();
+    private List<WellBore> AvailableSourceWellBores => wellBores
+        .Where(item => item.MetaInfo != null && sourceWellId != null && item.WellID == sourceWellId)
+        .OrderBy(item => item.Name)
+        .ToList();
+    private List<TrajectoryLight> AvailableSourceTrajectories => trajectories
+        .Where(item => item.MetaInfo != null && sourceWellBoreId != null && item.WellBoreID == sourceWellBoreId)
+        .OrderBy(item => item.Name)
+        .ToList();
+
+    private Task<IEnumerable<Guid?>> SearchSourceFieldsAsync(string? text, CancellationToken cancellationToken) =>
+        Task.FromResult(FilterByName(AvailableSourceFields, text, item => item.Name, item => item.MetaInfo.ID));
+    private Task<IEnumerable<Guid?>> SearchSourceClustersAsync(string? text, CancellationToken cancellationToken) =>
+        Task.FromResult(FilterByName(AvailableSourceClusters, text, item => item.Name, item => item.MetaInfo.ID));
+    private Task<IEnumerable<Guid?>> SearchSourceWellsAsync(string? text, CancellationToken cancellationToken) =>
+        Task.FromResult(FilterByName(AvailableSourceWells, text, item => item.Name, item => item.MetaInfo.ID));
+    private Task<IEnumerable<Guid?>> SearchSourceWellBoresAsync(string? text, CancellationToken cancellationToken) =>
+        Task.FromResult(FilterByName(AvailableSourceWellBores, text, item => item.Name, item => item.MetaInfo.ID));
+    private Task<IEnumerable<Guid?>> SearchSourceTrajectoriesAsync(string? text, CancellationToken cancellationToken) =>
+        Task.FromResult(FilterByName(AvailableSourceTrajectories, text, item => item.Name, item => item.MetaInfo.ID));
+
+    private string GetSourceFieldName(Guid? id) => GetName(id, fields, item => item.Name, item => item.MetaInfo?.ID, "field");
+    private string GetSourceClusterName(Guid? id) => GetName(id, clusters, item => item.Name, item => item.MetaInfo?.ID, "cluster");
+    private string GetSourceWellName(Guid? id) => GetName(id, wells, item => item.Name, item => item.MetaInfo?.ID, "well");
+    private string GetSourceWellBoreName(Guid? id) => GetName(id, wellBores, item => item.Name, item => item.MetaInfo?.ID, "wellbore");
+    private string GetSourceTrajectoryName(Guid? id) => GetName(id, trajectories, item => item.Name, item => item.MetaInfo?.ID, "trajectory");
+
+    private static IEnumerable<Guid?> FilterByName<T>(IEnumerable<T> items, string? searchText,
+        Func<T, string?> getName, Func<T, Guid> getId)
+    {
+        string? term = searchText?.Trim();
+        return items
+            .Where(item => string.IsNullOrEmpty(term) ||
+                (getName(item)?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
+            .Select(item => (Guid?)getId(item));
+    }
+
+    private static string GetName<T>(Guid? id, IEnumerable<T> items, Func<T, string?> getName,
+        Func<T, Guid?> getId, string resourceName)
+    {
+        if (id is not Guid value) return string.Empty;
+        T? item = items.FirstOrDefault(candidate => getId(candidate) == value);
+        string? name = item is null ? null : getName(item);
+        return string.IsNullOrWhiteSpace(name) ? $"Unknown {resourceName}" : name;
+    }
+
+    private void InitializeSourceHierarchy()
+    {
+        TrajectoryLight? source = trajectories.FirstOrDefault(item => item.MetaInfo?.ID == value.SourceTrajectoryID);
+        sourceFieldId = source?.FieldID;
+        Cluster? sourceCluster = source?.ClusterID is Guid clusterId
+            ? clusters.FirstOrDefault(item => item.MetaInfo?.ID == clusterId)
+            : null;
+        sourceClusterId = sourceCluster?.IsSingleWell == false ? sourceCluster.MetaInfo.ID : null;
+        sourceWellId = source?.WellID;
+        sourceWellBoreId = source?.WellBoreID == Guid.Empty ? null : source?.WellBoreID;
+    }
+
+    private async Task OnSourceFieldChanged(Guid? id)
+    {
+        sourceFieldId = id;
+        sourceClusterId = null;
+        sourceWellId = null;
+        sourceWellBoreId = null;
+        value.SourceTrajectoryID = Guid.Empty;
+        await UpdateSourceReferenceValuesAsync();
+    }
+
+    private async Task OnSourceClusterChanged(Guid? id)
+    {
+        sourceClusterId = id;
+        sourceWellId = null;
+        sourceWellBoreId = null;
+        value.SourceTrajectoryID = Guid.Empty;
+        await UpdateSourceReferenceValuesAsync();
+    }
+
+    private async Task OnSourceWellChanged(Guid? id)
+    {
+        sourceWellId = id;
+        sourceWellBoreId = null;
+        value.SourceTrajectoryID = Guid.Empty;
+        await UpdateSourceReferenceValuesAsync();
+    }
+
+    private async Task OnSourceWellBoreChanged(Guid? id)
+    {
+        sourceWellBoreId = id;
+        value.SourceTrajectoryID = Guid.Empty;
+        await UpdateSourceReferenceValuesAsync();
+    }
+
+    private async Task OnSourceTrajectoryChanged(Guid? id)
+    {
+        value.SourceTrajectoryID = id ?? Guid.Empty;
+        await UpdateSourceReferenceValuesAsync();
+    }
+
+    private Guid? FindFieldId(Well well) =>
+        well.ClusterID is Guid clusterId
+            ? clusters.FirstOrDefault(item => item.MetaInfo?.ID == clusterId)?.FieldID
+            : null;
+
+    private async Task UpdateSourceReferenceValuesAsync()
+    {
+        Guid? trajectoryId = SelectedSourceTrajectoryId;
+        DataUtils.ApplyTrajectoryReferenceValues(trajectoryId, trajectories, wellBores, wells, clusters, rigs, fields);
+        await CartographicPositionReferenceUtils.ApplyForTrajectoryAsync(Api, trajectoryId, trajectories, clusters, fields, logger);
+        try
+        {
+            TrajectoryReferenceDatumUtils.Apply(
+                await TrajectoryReferenceDatumUtils.ResolveForTrajectoryAsync(Api, trajectoryId, trajectories, wellBores, wells, clusters));
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Unable to resolve optional depth and azimuth references for source trajectory {TrajectoryId}", trajectoryId);
+            TrajectoryReferenceDatumUtils.Apply(new TrajectoryReferenceDatumValues(null, null, null));
+        }
+    }
+
+    private string NorthCoordinateLabel => GetCoordinateLabel(PositionDirectionType.North);
+    private string EastCoordinateLabel => GetCoordinateLabel(PositionDirectionType.East);
+    private string GetCoordinateLabel(PositionDirectionType direction)
+    {
+        string? reference = Parent?.PositionReferenceName ?? DataUtils.UnitAndReferenceParameters.PositionReferenceName;
+        if (string.Equals(reference, "WGS84", StringComparison.OrdinalIgnoreCase))
+            return direction == PositionDirectionType.North ? "Riemann North" : "Riemann East";
+        if (string.Equals(reference, "Cartographic", StringComparison.OrdinalIgnoreCase))
+            return direction == PositionDirectionType.North ? "Northing" : "Easting";
+        return direction == PositionDirectionType.North ? "North" : "East";
+    }
+
+    private string LengthHeader(string name) => $"{name} [{Parent?.GetUnitLabel("DepthDrilling")}]";
+    private string DepthHeader(string name) => $"{name} [{Parent?.GetDepthUnitLabel("DepthDrilling")}]";
+    private string InclinationHeader(string name) => $"{name} [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]";
+    private string AzimuthHeader(string name) => $"{name} [{Parent?.GetAzimuthUnitLabel("PlaneAngleDrilling")}]";
+    private string PositionHeader(string name) => $"{name} [{Parent?.GetPositionUnitLabel("PositionDrilling")}]";
+    private string CurvatureHeader(string name) => $"{name} [{Parent?.GetUnitLabel("CurvatureDrilling")}]";
+    private string PlaneAngleHeader(string name) => $"{name} [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]";
+
     private IEnumerable<TrajectoryLight> ReferenceTrajectories => trajectories.Where(x => x.MetaInfo.ID != value.SourceTrajectoryID);
     private void SetInterval(double? interval) => value.InterpolationInterval = interval ?? 0;
     private void ModeChanged(TrajectoryExtrapolationMode mode)
@@ -187,23 +495,45 @@
 
     private async Task PollAsync()
     {
-        if (value.MetaInfo.ID == Guid.Empty) return;
+        if (CaseId is not Guid persistedCaseId) return;
         for (int i = 0; i < 120; i++)
         {
             await Task.Delay(TimeSpan.FromSeconds(2));
-            value = await Api.ClientTrajectory.GetTrajectoryExtrapolationCaseByIdAsync(value.MetaInfo.ID, false);
+            value = await Api.ClientTrajectory.GetTrajectoryExtrapolationCaseByIdAsync(persistedCaseId, false);
             await InvokeAsync(StateHasChanged);
-            if (value.CalculationState is not (CalculationState.Queued or CalculationState.Running)) { await LoadResultCountAsync(); return; }
+            if (value.CalculationState is not (CalculationState.Queued or CalculationState.Running)) { await LoadSurveyStationsAsync(); return; }
         }
     }
 
-    private async Task LoadResultCountAsync()
+    private async Task LoadSurveyStationsAsync()
     {
         stationCount = 0;
-        if (value.MetaInfo.ID == Guid.Empty || value.CalculationState != CalculationState.Completed) return;
-        int chunks = await Api.ClientTrajectory.GetTrajectoryExtrapolationSurveyStationChunkCountAsync(value.MetaInfo.ID);
-        for (int i = 0; i < chunks; i++) stationCount += (await Api.ClientTrajectory.GetTrajectoryExtrapolationSurveyStationChunkAsync(value.MetaInfo.ID, i)).StationCount;
+        interpolatedExtrapolationStations.Clear();
+        loadedSurveyStationChunkCount = 0;
+        totalSurveyStationChunkCount = 0;
+        if (CaseId is not Guid persistedCaseId || value.CalculationState != CalculationState.Completed) return;
+        isLoadingSurveyStations = true;
         await InvokeAsync(StateHasChanged);
+        try
+        {
+            totalSurveyStationChunkCount = await Api.ClientTrajectory.GetTrajectoryExtrapolationSurveyStationChunkCountAsync(persistedCaseId);
+            for (int i = 0; i < totalSurveyStationChunkCount; i++)
+            {
+                SurveyStationChunk chunk = await Api.ClientTrajectory.GetTrajectoryExtrapolationSurveyStationChunkAsync(persistedCaseId, i);
+                if (chunk.SurveyStationList is { Count: > 0 })
+                {
+                    interpolatedExtrapolationStations.AddRange(chunk.SurveyStationList);
+                }
+                stationCount += chunk.StationCount;
+                loadedSurveyStationChunkCount = i + 1;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+        finally
+        {
+            isLoadingSurveyStations = false;
+            await InvokeAsync(StateHasChanged);
+        }
     }
 
     private void AddSection() { if (value.Specification is WellPathExtrapolationSpecification p) p.SectionList.Add(new CircularArcWellPathSectionSpecification { SectionID = Guid.NewGuid(), Length = 30, Curvature = 0, StartToolface = 0 }); }

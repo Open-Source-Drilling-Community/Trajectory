@@ -11,10 +11,20 @@
                               UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName"
                               DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
                               DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
+                              GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                              MeanSeaLevelDepthReferenceSource="@DataUtils.MeanSeaLevelDepthReferenceSource"
+                              SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
+                              RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
                               PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
                               PositionReferenceNameChanged="@DataUtils.UpdatePositionReferenceName"
+                              WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
+                              CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
+                              FieldPositionReferenceSource="@DataUtils.FieldPositionReferenceSource"
+                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource"
                               AzimuthReferenceName="@DataUtils.UnitAndReferenceParameters.AzimuthReferenceName"
-                              AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName">
+                              AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName"
+                              GridConvergenceSource="@DataUtils.GridConvergenceSource"
+                              MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource">
     @if (editing)
     {
         <TrajectoryExtrapolationEdit CaseId="@caseId" ValueChanged="LoadAsync" />
@@ -83,7 +93,7 @@
 
     private void Add() { caseId = null; editing = true; }
     private Task OpenRow(DataGridRowClickEventArgs<TrajectoryExtrapolationCaseLight> args) { caseId = args.Item.MetaInfo.ID; editing = true; return Task.CompletedTask; }
-    private string SourceName(Guid id) => trajectories.FirstOrDefault(x => x.MetaInfo?.ID == id)?.Name ?? id.ToString();
+    private string SourceName(Guid id) => trajectories.FirstOrDefault(x => x.MetaInfo?.ID == id)?.Name ?? "Unknown trajectory";
     private Func<TrajectoryExtrapolationCaseLight, bool> Filter => value => string.IsNullOrWhiteSpace(search) ||
         $"{value.Name} {value.Description} {SourceName(value.SourceTrajectoryID)} {value.Mode}".Contains(search, StringComparison.OrdinalIgnoreCase);
 

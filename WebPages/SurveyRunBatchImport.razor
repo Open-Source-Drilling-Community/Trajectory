@@ -3,6 +3,7 @@
 @inject ISnackbar Snackbar
 @inject IJSRuntime JSRuntime
 @inject ITrajectoryAPIUtils Api
+@inject ITrajectoryReferenceDataCache ReferenceData
 @using System.Globalization
 @using System.Text
 @using System.Text.Json
@@ -483,23 +484,19 @@ else
             selectedBatchImportList_ = [];
             currentBatchImport_ = CreateEmptyBatchImport();
 
-            var fieldTask = Api.ClientField.GetAllFieldAsync();
-            var clusterTask = Api.ClientCluster.GetAllClusterAsync();
-            var wellTask = Api.ClientWell.GetAllWellAsync();
-            var wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
-            var rigTask = Api.GetAllRigReferencesAsync();
-            var surveyInstrumentTask = Api.ClientSurveyInstrument.GetAllSurveyInstrumentLightAsync();
+            Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
             var surveyRunHeavyTask = Api.ClientTrajectory.GetAllSurveyRunAsync();
             Task<List<SharedSurveyRunBatchImportLight>?> batchImportTask = GetStoredBatchImportsLightAsync();
 
-            await Task.WhenAll(fieldTask, clusterTask, wellTask, wellBoreTask, rigTask, surveyInstrumentTask, surveyRunHeavyTask, batchImportTask);
+            await Task.WhenAll(referenceDataTask, surveyRunHeavyTask, batchImportTask);
 
-            fieldList_ = fieldTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
-            clusterList_ = clusterTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
-            wellList_ = wellTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
-            wellBoreList_ = wellBoreTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
-            rigList_ = rigTask.Result.Where(item => item != null).ToList();
-            surveyInstrumentList_ = surveyInstrumentTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
+            TrajectoryReferenceDataSnapshot referenceData = referenceDataTask.Result;
+            fieldList_ = referenceData.Fields.ToList();
+            clusterList_ = referenceData.Clusters.ToList();
+            wellList_ = referenceData.Wells.ToList();
+            wellBoreList_ = referenceData.WellBores.ToList();
+            rigList_ = referenceData.Rigs.ToList();
+            surveyInstrumentList_ = referenceData.SurveyInstruments.ToList();
             allSurveyRunHeavyList_ = surveyRunHeavyTask.Result.Where(item => item != null).OrderBy(item => item.Name).ToList();
 
             allBatchImportList_ = batchImportTask.Result?.OrderBy(item => item.Name).ToList() ?? [];

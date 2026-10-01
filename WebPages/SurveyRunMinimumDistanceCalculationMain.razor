@@ -3,6 +3,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject ITrajectoryAPIUtils Api
+@inject ITrajectoryReferenceDataCache ReferenceData
 @using System.Text.Json
 
 <MudUnitAndReferenceChoiceTag @ref="unitReferenceTag_"
@@ -670,21 +671,18 @@
         {
             var calculationTask = Api.ClientTrajectory.GetAllSurveyRunMinimumDistanceCalculationLightAsync();
             var surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
-            var fieldTask = Api.ClientField.GetAllFieldAsync();
-            var wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
-            var wellTask = Api.ClientWell.GetAllWellAsync();
-            var clusterTask = Api.ClientCluster.GetAllClusterAsync();
-            var rigTask = Api.GetAllRigReferencesAsync();
+            Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
 
-            await Task.WhenAll(calculationTask, surveyRunTask, fieldTask, wellBoreTask, wellTask, clusterTask, rigTask);
+            await Task.WhenAll(calculationTask, surveyRunTask, referenceDataTask);
 
             calculationLightList_ = ((ICollection<SurveyRunMinimumDistanceCalculationLight>)await calculationTask).OrderBy(x => x.Name).ToList();
             SurveyRunLightList_ = ((ICollection<SurveyRunLight>)await surveyRunTask).OrderBy(x => x.Name).ToList();
-            fieldList_ = ((ICollection<Field>)await fieldTask).OrderBy(x => x.Name).ToList();
-            wellBoreList_ = ((ICollection<WellBore>)await wellBoreTask).OrderBy(x => x.Name).ToList();
-            wellList_ = ((ICollection<Well>)await wellTask).OrderBy(x => x.Name).ToList();
-            clusterList_ = ((ICollection<Cluster>)await clusterTask).OrderBy(x => x.Name).ToList();
-            rigList_ = ((ICollection<Rig>)await rigTask).OrderBy(x => x.Name).ToList();
+            TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
+            fieldList_ = referenceData.Fields.ToList();
+            wellBoreList_ = referenceData.WellBores.ToList();
+            wellList_ = referenceData.Wells.ToList();
+            clusterList_ = referenceData.Clusters.ToList();
+            rigList_ = referenceData.Rigs.ToList();
             StartCalculationPollingIfNeeded();
         }
         catch (Exception ex)

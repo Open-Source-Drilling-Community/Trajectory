@@ -43,7 +43,7 @@ After a Trajectory is saved, the editor polls its background calculation state a
 
 ## Trajectory extrapolation UI
 
-The `TrajectoryExtrapolation` page selects a calculated source trajectory and a display-unit-aware interpolation interval. It supports all four service modes and polls the lightweight status until completion. Reconnect and geosteering editors expose the optional current-curve lead-in. Geosteering uses a closed choice between overall departure/bearing and overall drilled length/upstream-to-downstream steering-length ratio, with both overall quantities measured from the final source station. The well-path editor presents Length, inclination, azimuth, vertical depth, North, East, circular-arc curvature/start toolface, build/turn rate, and constant-curvature/toolface columns; only the parameter pair belonging to the selected curve type is editable. A live counter shows the required `3 × n` constraint total. Solved section roles and parameters and the count of chunked sampled stations are shown after calculation.
+The `TrajectoryExtrapolation` page selects a calculated source trajectory through searchable Field, Cluster, Well, WellBore, and Trajectory controls, each supporting case-insensitive partial-name matching, and accepts a display-unit-aware interpolation interval. It supports all four service modes and polls the lightweight status until completion. Reconnect and geosteering editors expose the optional current-curve lead-in. Geosteering uses a closed choice between overall departure/bearing and overall drilled length/upstream-to-downstream steering-length ratio, with both overall quantities measured from the final source station. The well-path editor presents Length, inclination, azimuth, vertical depth, North, East, circular-arc curvature/start toolface, build/turn rate, and constant-curvature/toolface columns; only the parameter pair belonging to the selected curve type is editable. A live counter shows the required `3 × n` constraint total. After calculation, the editor shows solved section roles and parameters and loads the chunked interpolated extrapolation into the standard fixed-height survey-station table: MD, inclination, azimuth, TVD, North/East, DLS, BUR, TR, and vertical section. Values and headings follow the application unit system and active depth, position, and azimuth references.
 
 ## Trajectory Realization UI
 
@@ -89,12 +89,13 @@ The consuming application is expected to:
 - register `AddHttpClient()` because the pages use `IHttpClientFactory`
 - load the Plotly.Blazor static assets
 - register an `ITrajectoryAPIUtils` implementation in dependency injection
+- register a singleton `ITrajectoryReferenceDataCache` implementation; the standalone WebApp also runs its one-minute background refresh worker
 - register an `ITrajectoryWebPagesConfiguration` implementation
 - ensure the generated Trajectory client and OSDC unit-conversion components are available
 
 ## Configuration
 
-The pages depend on an injected `ITrajectoryAPIUtils` service.
+The pages depend on injected `ITrajectoryAPIUtils` and `ITrajectoryReferenceDataCache` services. The reference-data cache supplies a shared snapshot of Fields, Clusters, Wells, WellBores, Rigs, Survey Instruments, and lightweight WellBore Architectures so navigation does not re-download those catalogs. A host should refresh the snapshot periodically and retain the last successful snapshot on transient failures.
 
 The streamlined design is to register:
 

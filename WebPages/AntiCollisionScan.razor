@@ -2,6 +2,7 @@
 @inject ILogger<AntiCollisionScan> Logger
 @inject ISnackbar Snackbar
 @inject ITrajectoryAPIUtils Api
+@inject ITrajectoryReferenceDataCache ReferenceData
 
 <MudUnitAndReferenceChoiceTag @ref="unitReferenceTag_"
                               HttpHost="@Api.HostNameUnitConversion"
@@ -410,20 +411,17 @@
         errorMessage_ = null;
         try
         {
-            Task<List<Field>> fieldTask = Api.ClientField.GetAllFieldAsync();
-            Task<List<Cluster>> clusterTask = Api.ClientCluster.GetAllClusterAsync();
-            Task<List<Well>> wellTask = Api.ClientWell.GetAllWellAsync();
-            Task<List<WellBore>> wellBoreTask = Api.ClientWellBore.GetAllWellBoreAsync();
             Task<List<TrajectoryLight>> trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
-            Task<ICollection<Rig>> rigTask = Api.GetAllRigReferencesAsync();
-            await Task.WhenAll(fieldTask, clusterTask, wellTask, wellBoreTask, trajectoryTask, rigTask);
+            Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
+            await Task.WhenAll(trajectoryTask, referenceDataTask);
 
-            fields_ = (await fieldTask).OrderBy(item => item.Name).ToList();
-            clusters_ = (await clusterTask).OrderBy(item => item.Name).ToList();
-            wells_ = (await wellTask).OrderBy(item => item.Name).ToList();
-            wellBores_ = (await wellBoreTask).OrderBy(item => item.Name).ToList();
+            TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
+            fields_ = referenceData.Fields.ToList();
+            clusters_ = referenceData.Clusters.ToList();
+            wells_ = referenceData.Wells.ToList();
+            wellBores_ = referenceData.WellBores.ToList();
             trajectories_ = (await trajectoryTask).OrderBy(item => item.Name).ToList();
-            rigs_ = (await rigTask).OrderBy(item => item.Name).ToList();
+            rigs_ = referenceData.Rigs.ToList();
         }
         catch (Exception ex)
         {

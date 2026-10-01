@@ -30,6 +30,11 @@ builder.Services.AddServerSideBlazor();
 builder.Services.AddHttpClient();
 builder.Services.AddSingleton<ITrajectoryWebPagesConfiguration>(webPagesConfiguration);
 builder.Services.AddSingleton<ITrajectoryAPIUtils, TrajectoryAPIUtils>();
+builder.Services.AddSingleton<TrajectoryReferenceDataCache>();
+builder.Services.AddSingleton<ITrajectoryReferenceDataCache>(provider =>
+    provider.GetRequiredService<TrajectoryReferenceDataCache>());
+builder.Services.AddHostedService(provider =>
+    provider.GetRequiredService<TrajectoryReferenceDataCache>());
 builder.Services.AddExternalWebPages(webPagesConfiguration);
 builder.Services.AddMudServices(config =>
 {

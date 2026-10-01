@@ -54179,6 +54179,11 @@ namespace OSDC.Drilling.Trajectory.ModelShared
                 var document = System.Text.Json.JsonDocument.Parse(bytes);
                 foreach (var property in document.RootElement.EnumerateObject())
                 {
+                    if (property.NameEquals(_discriminatorName))
+                    {
+                        continue;
+                    }
+
                     property.WriteTo(writer);
                 }
 

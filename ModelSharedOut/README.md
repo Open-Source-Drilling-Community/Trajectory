@@ -39,6 +39,7 @@ For anti-collision clients, the generated REST sequence is `QueueOctreeSearchAsy
 - `TrajectoryMergedModel.cs`, `PseudoConstructors.cs`, and the merged JSON/OpenAPI artifacts carry the OSDC namespace and should be regenerated together after service-contract changes.
 - Lightweight projection classes intentionally do not receive pseudo-constructors; generated aggregate constructors initialize collections of light projections as empty lists.
 - The schema merger rewrites discriminator mapping references together with shortened schema names. Polymorphic collections remain typed to their discriminated base so generated clients preserve mixed well-path curve variants.
+- The generator post-processes NJsonSchema's System.Text.Json inheritance converter so a read-modify-write round trip emits each polymorphic discriminator exactly once and first. This applies to extrapolation `Mode`, well-path `CurveType`, geosteering `ExtentType`, and other generated discriminated contracts.
 - `expectedModifiedUtc` is generated with the round-trip (`O`) date-time format. Callers must still treat it as an opaque value copied from the latest `LastModificationDate`.
 
 ## Regeneration

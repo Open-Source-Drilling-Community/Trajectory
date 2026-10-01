@@ -44,7 +44,7 @@ The repository supports the following main trajectory workflows:
 - trajectory creation, editing, storage, and retrieval
 - survey-run import, raw-observation/reference correction, editing, calculation, and chunked station transfer; retained measurements above a resolved tie-in use the tie-in WGS84 position for local Earth-reference evaluation while the calculated survey begins at the tie-in. A run may optionally end at an explicitly marked bit extrapolation: the service either continues the final measured curve by the frozen SI tool-to-bit distance or accepts a final pre-extrapolated row.
 - trajectory interpolation cases
-- trajectory extrapolation from the last calculated station by fixed continuation, lead-in-aware reference-trajectory reconnection, two-command geosteering to a target depth and attitude, or a constrained multi-section well path
+- trajectory extrapolation from the last calculated station by fixed continuation, lead-in-aware reference-trajectory reconnection, two-command geosteering to a target depth and attitude, or a constrained multi-section well path; sampled results include DLS, BUR, TR, and cumulative vertical section
 - stochastic trajectory realization cases based on survey station wellbore position uncertainty
 - trajectory aggregation, station-ellipse, and survey-run/trajectory minimum-distance calculations
 - Trajectory editor save operations poll the background calculation and reload the calculated station chunks, so an already-open calculated table is refreshed when the calculation completes

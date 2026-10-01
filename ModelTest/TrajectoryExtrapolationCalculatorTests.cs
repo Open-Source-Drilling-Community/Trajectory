@@ -33,6 +33,11 @@ public class TrajectoryExtrapolationCalculatorTests
         Assert.That(calculation.SurveyStationList[^1].MD, Is.EqualTo(165.0).Within(1e-9));
         Assert.That(calculation.SurveyStationList[^1].TVD, Is.EqualTo(1165.0).Within(1e-9));
         Assert.That(calculation.SurveyStationList[^1].Covariance, Is.Null);
+        AssertDerivedSurveyValues(calculation.SurveyStationList);
+        Assert.That(calculation.SurveyStationList.All(station => station.Curvature == 0.0), Is.True);
+        Assert.That(calculation.SurveyStationList.All(station => station.BUR == 0.0), Is.True);
+        Assert.That(calculation.SurveyStationList.All(station => station.TUR == 0.0), Is.True);
+        Assert.That(calculation.SurveyStationList.All(station => station.VerticalSection == 0.0), Is.True);
     }
 
     [Test]
@@ -62,6 +67,11 @@ public class TrajectoryExtrapolationCalculatorTests
         Assert.That(calculation.SurveyStationList![^1].MD, Is.EqualTo(130.0).Within(1e-8));
         Assert.That(calculation.SurveyStationList[^1].Inclination, Is.EqualTo(1.3 * tenDegrees).Within(1e-8));
         Assert.That(calculation.SolvedSectionList![0].ConstantBuildRate, Is.EqualTo(tenDegrees / 100.0).Within(1e-10));
+        AssertDerivedSurveyValues(calculation.SurveyStationList);
+        Assert.That(calculation.SurveyStationList[^1].BUR, Is.EqualTo(tenDegrees / 100.0).Within(1e-10));
+        Assert.That(calculation.SurveyStationList[^1].TUR, Is.Zero.Within(1e-12));
+        Assert.That(calculation.SurveyStationList[^1].Curvature, Is.EqualTo(tenDegrees / 100.0).Within(1e-10));
+        Assert.That(calculation.SurveyStationList[^1].VerticalSection, Is.GreaterThan(0.0));
     }
 
     [Test]
@@ -114,6 +124,9 @@ public class TrajectoryExtrapolationCalculatorTests
         Assert.That(calculation.SolvedSectionList, Has.Count.EqualTo(1));
         Assert.That(calculation.SolvedSectionList![0].SectionID, Is.EqualTo(sectionId));
         Assert.That(calculation.SolvedSectionList[0].ConstantCurvature, Is.EqualTo(0.005).Within(1e-12));
+        AssertDerivedSurveyValues(calculation.SurveyStationList);
+        Assert.That(calculation.SurveyStationList![^1].Curvature, Is.EqualTo(0.005).Within(1e-10));
+        Assert.That(calculation.SurveyStationList[^1].VerticalSection, Is.GreaterThan(0.0));
     }
 
     [Test]
@@ -145,6 +158,7 @@ public class TrajectoryExtrapolationCalculatorTests
         Assert.That(calculation.SurveyStationList![^1].RiemannianNorth, Is.EqualTo(0).Within(1e-6));
         Assert.That(calculation.SurveyStationList[^1].TVD, Is.EqualTo(1200).Within(1e-6));
         Assert.That(calculation.SurveyStationList[^1].Inclination, Is.EqualTo(0).Within(1e-6));
+        AssertDerivedSurveyValues(calculation.SurveyStationList);
     }
 
     [Test]
@@ -354,4 +368,16 @@ public class TrajectoryExtrapolationCalculatorTests
         RiemannianNorth = north,
         RiemannianEast = east
     };
+
+    private static void AssertDerivedSurveyValues(IReadOnlyCollection<SurveyStation>? stations)
+    {
+        Assert.That(stations, Is.Not.Null.And.Not.Empty);
+        Assert.Multiple(() =>
+        {
+            Assert.That(stations!.All(station => station.Curvature.HasValue), Is.True, "DLS must be calculated.");
+            Assert.That(stations.All(station => station.BUR.HasValue), Is.True, "BUR must be calculated.");
+            Assert.That(stations.All(station => station.TUR.HasValue), Is.True, "TR must be calculated.");
+            Assert.That(stations.All(station => station.VerticalSection.HasValue), Is.True, "Vertical section must be calculated.");
+        });
+    }
 }
