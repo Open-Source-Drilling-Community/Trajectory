@@ -629,9 +629,24 @@ public sealed class WebPageComponentContractTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(source, Does.Contain("MudSelect T=\"Guid?\" @bind-Value=\"assignmentFieldId_\""));
-            Assert.That(source, Does.Contain("MudSelect T=\"Guid?\" @bind-Value=\"assignmentPolicyRevisionId_\""));
+            Assert.That(source, Does.Contain("MudAutocomplete T=\"Guid?\" Value=\"@assignmentFieldId_\""));
+            Assert.That(source, Does.Contain("SearchFunc=\"SearchAssignmentFieldsAsync\""));
+            Assert.That(source, Does.Contain("ToStringFunc=\"GetAssignmentFieldName\""));
+            Assert.That(source, Does.Contain("Contains(term, StringComparison.OrdinalIgnoreCase)"));
+            Assert.That(source, Does.Contain("MudAutocomplete T=\"Guid?\" Value=\"@assignmentPolicyId_\""));
+            Assert.That(source, Does.Contain("SearchFunc=\"SearchAssignmentPoliciesAsync\""));
+            Assert.That(source, Does.Contain("ToStringFunc=\"GetAssignmentPolicyName\""));
+            Assert.That(source, Does.Contain("MudAutocomplete T=\"Guid?\" Value=\"@assignmentPolicyRevisionId_\""));
+            Assert.That(source, Does.Contain("SearchFunc=\"SearchAssignmentRevisionsAsync\""));
+            Assert.That(source, Does.Contain("ToStringFunc=\"GetAssignmentRevisionName\""));
+            Assert.That(source, Does.Not.Contain("ToStringFunc=\"GetAssignmentFieldName\" Required=\"true\""));
+            Assert.That(source, Does.Not.Contain("ToStringFunc=\"GetAssignmentPolicyName\" Required=\"true\""));
+            Assert.That(source, Does.Not.Contain("ToStringFunc=\"GetAssignmentRevisionName\" Required=\"true\""));
+            Assert.That(source, Does.Contain("Disabled=\"@(assignmentPolicyId_ == null)\""));
+            Assert.That(source, Does.Contain("revision.PolicyID == assignmentPolicyId_"));
+            Assert.That(source, Does.Contain("assignmentPolicyRevisionId_ = null;"));
             Assert.That(source, Does.Contain("Placeholder=\"Select a Field\""));
+            Assert.That(source, Does.Contain("Placeholder=\"Select a policy\""));
             Assert.That(source, Does.Contain("Placeholder=\"Select a policy revision\""));
             Assert.That(source, Does.Contain("assignment_.FieldID = fieldId;"));
             Assert.That(source, Does.Contain("assignment_.PolicyRevisionID = policyRevisionId;"));
@@ -654,6 +669,9 @@ public sealed class WebPageComponentContractTests
             Assert.That(source, Does.Not.Contain("MudNumericField T=\"double\" @bind-Value=\"rule.AlertThreshold\""));
             Assert.That(source, Does.Not.Contain("MudNumericField T=\"double\" @bind-Value=\"rule.AlarmThreshold\""));
             Assert.That(source, Does.Not.Contain("@revision.PolicyID"));
+            Assert.That(source, Does.Contain("ex.StatusCode == 404"));
+            Assert.That(source, Does.Contain("ex.StatusCode == 409"));
+            Assert.That(source, Does.Contain("Deleted Field policy assignment"));
         });
     }
 

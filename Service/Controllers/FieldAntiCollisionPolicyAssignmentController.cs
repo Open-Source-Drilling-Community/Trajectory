@@ -72,6 +72,8 @@ public sealed class FieldAntiCollisionPolicyAssignmentController(AntiCollisionPo
     }
 
     [HttpDelete("{id}", Name = "DeleteFutureFieldAntiCollisionPolicyAssignmentById")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public ActionResult Delete(Guid id,
         [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] DateTimeOffset expectedModifiedUtc)
     {

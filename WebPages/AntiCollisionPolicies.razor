@@ -228,19 +228,28 @@
 
     <MudTabPanel Text="Field assignments">
         <MudGrid Class="pa-3">
-            <MudItem xs="12" md="3">
-                <MudSelect T="Guid?" @bind-Value="assignmentFieldId_" Label="Field" Placeholder="Select a Field" Required="true" Clearable="true">
-                    @foreach (Field field in fields_) { <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem> }
-                </MudSelect>
+            <MudItem xs="12" md="4">
+                <MudAutocomplete T="Guid?" Value="@assignmentFieldId_" ValueChanged="OnAssignmentFieldChanged"
+                                 Label="Field" Placeholder="Select a Field" SearchFunc="SearchAssignmentFieldsAsync"
+                                 ToStringFunc="GetAssignmentFieldName" Clearable="true"
+                                 ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel />
             </MudItem>
             <MudItem xs="12" md="4">
-                <MudSelect T="Guid?" @bind-Value="assignmentPolicyRevisionId_" Label="Exact policy revision" Placeholder="Select a policy revision" Required="true" Clearable="true">
-                    @foreach (AntiCollisionPolicyRevision revision in revisions_) { <MudSelectItem T="Guid?" Value="@((Guid?)revision.MetaInfo.ID)">@revision.Name · revision @revision.RevisionNumber</MudSelectItem> }
-                </MudSelect>
+                <MudAutocomplete T="Guid?" Value="@assignmentPolicyId_" ValueChanged="OnAssignmentPolicyChanged"
+                                 Label="Policy" Placeholder="Select a policy" SearchFunc="SearchAssignmentPoliciesAsync"
+                                 ToStringFunc="GetAssignmentPolicyName" Clearable="true"
+                                 ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel />
             </MudItem>
-            <MudItem xs="12" md="2"><MudDatePicker @bind-Date="assignmentFrom_" Label="Valid from (UTC)" Required="true" /></MudItem>
-            <MudItem xs="12" md="2"><MudDatePicker @bind-Date="assignmentTo_" Label="Valid to (UTC, optional)" Clearable="true" /></MudItem>
-            <MudItem xs="12" md="1" Class="d-flex align-center"><MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="CreateAssignmentAsync">Assign</MudButton></MudItem>
+            <MudItem xs="12" md="4">
+                <MudAutocomplete T="Guid?" Value="@assignmentPolicyRevisionId_" ValueChanged="OnAssignmentRevisionChanged"
+                                 Label="Policy revision" Placeholder="Select a policy revision" SearchFunc="SearchAssignmentRevisionsAsync"
+                                 ToStringFunc="GetAssignmentRevisionName" Clearable="true"
+                                 ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                                 Disabled="@(assignmentPolicyId_ == null)" />
+            </MudItem>
+            <MudItem xs="12" md="3"><MudDatePicker @bind-Date="assignmentFrom_" Label="Valid from (UTC)" Required="true" /></MudItem>
+            <MudItem xs="12" md="3"><MudDatePicker @bind-Date="assignmentTo_" Label="Valid to (UTC, optional)" Clearable="true" /></MudItem>
+            <MudItem xs="12" md="2" Class="d-flex align-center"><MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="CreateAssignmentAsync">Assign</MudButton></MudItem>
         </MudGrid>
         <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mx-3 mb-3">Dates are saved at 00:00 UTC. Validity intervals for one Field may not overlap.</MudAlert>
         <MudTable Items="assignments_" T="FieldAntiCollisionPolicyAssignment" Dense="true" Hover="true" Bordered="true" Striped="true" Class="ma-3">
@@ -268,6 +277,7 @@
     private string draftHeading_ = "New policy";
     private FieldAntiCollisionPolicyAssignmentMutation assignment_ = NewAssignment();
     private Guid? assignmentFieldId_;
+    private Guid? assignmentPolicyId_;
     private Guid? assignmentPolicyRevisionId_;
     private DateTime? assignmentFrom_ = DateTime.UtcNow.Date.AddDays(1);
     private DateTime? assignmentTo_;
@@ -428,9 +438,15 @@
             Snackbar.Add("A Field is required", Severity.Warning);
             return;
         }
-        if (assignmentPolicyRevisionId_ is not Guid policyRevisionId || policyRevisionId == Guid.Empty)
+        if (assignmentPolicyId_ is not Guid policyId || policyId == Guid.Empty)
         {
-            Snackbar.Add("An exact policy revision is required", Severity.Warning);
+            Snackbar.Add("A policy is required", Severity.Warning);
+            return;
+        }
+        if (assignmentPolicyRevisionId_ is not Guid policyRevisionId || policyRevisionId == Guid.Empty ||
+            revisions_.FirstOrDefault(revision => revision.MetaInfo?.ID == policyRevisionId)?.PolicyID != policyId)
+        {
+            Snackbar.Add("A revision belonging to the selected policy is required", Severity.Warning);
             return;
         }
         if (assignmentFrom_ == null) { Snackbar.Add("A valid-from date is required", Severity.Warning); return; }
@@ -443,18 +459,100 @@
         {
             await Api.ClientTrajectory.PostFieldAntiCollisionPolicyAssignmentAsync(assignment_);
             Snackbar.Add("Created Field policy assignment", Severity.Success);
-            assignment_ = NewAssignment(); assignmentFieldId_ = null; assignmentPolicyRevisionId_ = null;
+            assignment_ = NewAssignment(); assignmentFieldId_ = null; assignmentPolicyId_ = null; assignmentPolicyRevisionId_ = null;
             assignmentFrom_ = DateTime.UtcNow.Date.AddDays(1); assignmentTo_ = null;
             await LoadAsync();
         }
         catch (Exception ex) { Logger.LogError(ex, "Could not create Field policy assignment"); Snackbar.Add("Assignment was rejected. Check the Field, exact revision, and validity overlap.", Severity.Error); }
     }
 
+    private Task<IEnumerable<Guid?>> SearchAssignmentFieldsAsync(string? text, CancellationToken _)
+    {
+        string? term = text?.Trim();
+        return Task.FromResult(fields_
+            .Where(field => field?.MetaInfo != null &&
+                (string.IsNullOrEmpty(term) || (field.Name?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false)))
+            .OrderBy(field => field.Name)
+            .Select(field => (Guid?)field.MetaInfo!.ID));
+    }
+
+    private string GetAssignmentFieldName(Guid? id)
+    {
+        if (id is not Guid fieldId) return string.Empty;
+        return fields_.FirstOrDefault(field => field.MetaInfo?.ID == fieldId)?.Name ?? "Unknown Field";
+    }
+
+    private void OnAssignmentFieldChanged(Guid? id) => assignmentFieldId_ = id;
+
+    private Task<IEnumerable<Guid?>> SearchAssignmentPoliciesAsync(string? text, CancellationToken _)
+    {
+        string? term = text?.Trim();
+        return Task.FromResult(PolicyGroups
+            .Where(policy => string.IsNullOrEmpty(term) || policy.Name.Contains(term, StringComparison.OrdinalIgnoreCase))
+            .Select(policy => (Guid?)policy.PolicyID));
+    }
+
+    private string GetAssignmentPolicyName(Guid? id)
+    {
+        if (id is not Guid policyId) return string.Empty;
+        return PolicyGroups.FirstOrDefault(policy => policy.PolicyID == policyId)?.Name ?? "Unknown policy";
+    }
+
+    private void OnAssignmentPolicyChanged(Guid? id)
+    {
+        assignmentPolicyId_ = id;
+        if (revisions_.FirstOrDefault(revision => revision.MetaInfo?.ID == assignmentPolicyRevisionId_)?.PolicyID != id)
+            assignmentPolicyRevisionId_ = null;
+    }
+
+    private Task<IEnumerable<Guid?>> SearchAssignmentRevisionsAsync(string? text, CancellationToken _)
+    {
+        string? term = text?.Trim();
+        return Task.FromResult(revisions_
+            .Where(revision => revision.MetaInfo != null && revision.PolicyID == assignmentPolicyId_ &&
+                (string.IsNullOrEmpty(term) || RevisionSearchText(revision).Contains(term, StringComparison.OrdinalIgnoreCase)))
+            .OrderByDescending(revision => revision.RevisionNumber)
+            .Select(revision => (Guid?)revision.MetaInfo!.ID));
+    }
+
+    private string GetAssignmentRevisionName(Guid? id)
+    {
+        if (id is not Guid revisionId) return string.Empty;
+        AntiCollisionPolicyRevision? revision = revisions_.FirstOrDefault(candidate => candidate.MetaInfo?.ID == revisionId);
+        return revision == null ? "Unknown revision" : $"Revision {revision.RevisionNumber} · {revision.Description ?? "No description"}";
+    }
+
+    private static string RevisionSearchText(AntiCollisionPolicyRevision revision) =>
+        $"{revision.RevisionNumber} {revision.Name} {revision.Description}";
+
+    private void OnAssignmentRevisionChanged(Guid? id) => assignmentPolicyRevisionId_ = id;
+
     private async Task DeleteAssignmentAsync(FieldAntiCollisionPolicyAssignment value)
     {
         if (value.LastModificationDate == null) return;
-        try { await Api.ClientTrajectory.DeleteFutureFieldAntiCollisionPolicyAssignmentByIdAsync(value.MetaInfo.ID, value.LastModificationDate.Value); await LoadAsync(); }
-        catch (Exception ex) { Logger.LogError(ex, "Could not delete future assignment"); Snackbar.Add("Only unchanged future assignments can be deleted", Severity.Error); }
+        try
+        {
+            await Api.ClientTrajectory.DeleteFutureFieldAntiCollisionPolicyAssignmentByIdAsync(value.MetaInfo.ID, value.LastModificationDate.Value);
+            Snackbar.Add("Deleted Field policy assignment", Severity.Success);
+            await LoadAsync();
+        }
+        catch (ApiException ex) when (ex.StatusCode == 404)
+        {
+            Logger.LogInformation(ex, "Field policy assignment {AssignmentId} was already deleted", value.MetaInfo.ID);
+            Snackbar.Add("The assignment was already deleted.", Severity.Info);
+            await LoadAsync();
+        }
+        catch (ApiException ex) when (ex.StatusCode == 409)
+        {
+            Logger.LogWarning(ex, "Field policy assignment {AssignmentId} is historical or changed", value.MetaInfo.ID);
+            Snackbar.Add("Only an unchanged assignment whose validity has not started can be deleted.", Severity.Warning);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Could not delete future assignment");
+            Snackbar.Add("Could not delete the Field policy assignment.", Severity.Error);
+        }
     }
 
     private string FieldName(Guid id) => fields_.FirstOrDefault(x => x.MetaInfo?.ID == id)?.Name ?? id.ToString();
