@@ -36,6 +36,6 @@ dotnet test ModelTest/ModelTest.csproj
 
 `TrajectoryUncertaintyCompositionTests.cs` verifies that trajectory materialization preserves the parent tie-in covariance and the already-continued station covariance supplied by its SurveyRun sections.
 
-`TrajectoryAggregationCalculatorTests.cs` verifies that overlapping constant-period boundaries map to exactly one trajectory interval and that the production-shaped U3 trajectory aggregates without mirroring its vertical departure or overall displacement.
+`TrajectoryAggregationCalculatorTests.cs` verifies that overlapping constant-period boundaries map to exactly one trajectory interval, that the production-shaped U3 trajectory aggregates without mirroring its vertical departure or overall displacement, and that sampled aggregate stations respect the interpolation step and expose derived DLS, BUR, and TR values.
 
 `SurveyStationEllipseCalculationTests.cs` verifies the confidence interval and ensures that a partial Wolff-de Wardt station list without its propagation history is rejected instead of being restarted from covariance alone.

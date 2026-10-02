@@ -14,6 +14,8 @@ It exposes the Trajectory API and depends on the `Model` project for the domain 
 - persist resource, catalog, calculation, anti-collision, and usage-history state
 - run long calculations asynchronously so requests can poll state and progress instead of blocking
 
+Aggregation results sample the fitted section chain at the case's interpolation interval and include the standard derived survey values (DLS, BUR, TR, and vertical section) used by the Web UI and exports.
+
 ## Container
 
 The service is packaged as the Docker image:

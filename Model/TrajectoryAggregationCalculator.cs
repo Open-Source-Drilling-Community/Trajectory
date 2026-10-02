@@ -65,6 +65,7 @@ namespace OSDC.Drilling.Trajectory.Model
 
             progress?.Invoke(0.45, "Interpolating aggregation sections");
             aggregation.AggregatedSurveyPointList = InterpolateSectionChain(sectionChain, interpolationInterval);
+            PopulateDerivedSurveyValues(aggregation.AggregatedSurveyPointList, sourcePoints);
             aggregation.AggregatedSurveyPointCount = aggregation.AggregatedSurveyPointList.Count;
             if (aggregation.AggregatedSurveyPointList.Count < 2)
             {
@@ -116,7 +117,11 @@ namespace OSDC.Drilling.Trajectory.Model
                     X = north,
                     Y = east,
                     Z = tvd,
-                    VerticalSection = station.VerticalSection
+                    VerticalSection = station.VerticalSection,
+                    Curvature = station.Curvature,
+                    Toolface = station.Toolface,
+                    BUR = station.BUR,
+                    TUR = station.TUR
                 });
             }
 
@@ -474,6 +479,103 @@ namespace OSDC.Drilling.Trajectory.Model
                 Y = point.Y,
                 Z = point.Z
             };
+        }
+
+        private static void PopulateDerivedSurveyValues(List<SurveyPoint> points, List<SurveyPoint> sourcePoints)
+        {
+            if (points.Count == 0)
+            {
+                return;
+            }
+
+            points[0].Curvature = sourcePoints[0].Curvature;
+            points[0].Toolface = sourcePoints[0].Toolface;
+            points[0].BUR = sourcePoints[0].BUR;
+            points[0].TUR = sourcePoints[0].TUR;
+            List<SurveyPoint> verticalSectionSource = sourcePoints
+                .Where(point => (point.MD ?? point.Abscissa).HasValue && point.VerticalSection.HasValue)
+                .OrderBy(point => point.MD ?? point.Abscissa)
+                .ToList();
+            for (int index = 0; index < points.Count; index++)
+            {
+                SurveyPoint point = points[index];
+                point.VerticalSection = InterpolateVerticalSection(verticalSectionSource, point.MD ?? point.Abscissa);
+                if (index == 0)
+                {
+                    continue;
+                }
+
+                SurveyPoint previous = points[index - 1];
+                if ((point.MD ?? point.Abscissa) is not double md ||
+                    (previous.MD ?? previous.Abscissa) is not double previousMd ||
+                    point.Inclination is not double inclination || previous.Inclination is not double previousInclination ||
+                    point.Azimuth is not double azimuth || previous.Azimuth is not double previousAzimuth ||
+                    md <= previousMd)
+                {
+                    continue;
+                }
+
+                double interval = md - previousMd;
+                double azimuthChange = NormalizeSignedAngle(azimuth - previousAzimuth);
+                double doglegCosine =
+                    Math.Cos(previousInclination) * Math.Cos(inclination) +
+                    Math.Sin(previousInclination) * Math.Sin(inclination) * Math.Cos(azimuthChange);
+                double dogleg = Math.Acos(Math.Clamp(doglegCosine, -1.0, 1.0));
+                double buildRate = (inclination - previousInclination) / interval;
+                double turnRate = azimuthChange / interval;
+
+                point.Curvature = dogleg / interval;
+                point.BUR = buildRate;
+                point.TUR = turnRate;
+                point.Toolface = dogleg <= 1e-12
+                    ? 0.0
+                    : Math.Atan2(Math.Sin(0.5 * (inclination + previousInclination)) * turnRate, buildRate);
+            }
+        }
+
+        private static double? InterpolateVerticalSection(List<SurveyPoint> defined, double? md)
+        {
+            if (md is not double targetMd)
+            {
+                return null;
+            }
+
+            if (defined.Count == 0)
+            {
+                return null;
+            }
+            if (targetMd <= (defined[0].MD ?? defined[0].Abscissa))
+            {
+                return defined[0].VerticalSection;
+            }
+            if (targetMd >= (defined[^1].MD ?? defined[^1].Abscissa))
+            {
+                return defined[^1].VerticalSection;
+            }
+
+            for (int index = 1; index < defined.Count; index++)
+            {
+                double upperMd = (defined[index].MD ?? defined[index].Abscissa)!.Value;
+                if (targetMd > upperMd)
+                {
+                    continue;
+                }
+
+                double lowerMd = (defined[index - 1].MD ?? defined[index - 1].Abscissa)!.Value;
+                double fraction = (targetMd - lowerMd) / (upperMd - lowerMd);
+                return defined[index - 1].VerticalSection!.Value +
+                    fraction * (defined[index].VerticalSection!.Value - defined[index - 1].VerticalSection!.Value);
+            }
+
+            return defined[^1].VerticalSection;
+        }
+
+        private static double NormalizeSignedAngle(double value)
+        {
+            double result = value % (2.0 * Math.PI);
+            if (result > Math.PI) result -= 2.0 * Math.PI;
+            if (result < -Math.PI) result += 2.0 * Math.PI;
+            return result;
         }
 
         private static SurveyPoint CloneSurveyPoint(SurveyPoint point) => new()

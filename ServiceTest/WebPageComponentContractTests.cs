@@ -484,6 +484,33 @@ public sealed class WebPageComponentContractTests
     }
 
     [Test]
+    public void Trajectory_aggregation_exposes_interpolated_stations_and_shared_exports()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", ".."));
+        string editor = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryAggregationEdit.razor"));
+        string calculator = File.ReadAllText(Path.Combine(repositoryRoot, "Model", "TrajectoryAggregationCalculator.cs"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(editor, Does.Contain("QuantityLabel=\"Interpolation Step\""));
+            Assert.That(editor, Does.Contain("Text=\"Interpolated aggregated trajectory\""));
+            Assert.That(editor, Does.Contain("Items=\"@interpolatedAggregationStations\""));
+            Assert.That(editor, Does.Contain("@CurvatureHeader(\"DLS\")"));
+            Assert.That(editor, Does.Contain("OnClick=\"SaveAsSurveyRunAsync\">Save as survey run"));
+            Assert.That(editor, Does.Contain("OnClick=\"ExportInterpolatedAggregationAsync\">Export ASCII"));
+            Assert.That(editor, Does.Contain("SurveyStationAsciiExport.BuildTabSeparated"));
+            Assert.That(editor, Does.Contain("SurveyRunType = SurveyRunType.Planned"));
+            Assert.That(editor, Does.Contain("WellBoreID = source.WellBoreID"));
+            Assert.That(editor, Does.Contain("GroupBy(item => item.SurveyInstrumentID)"));
+            Assert.That(editor, Does.Contain("group.Sum(item => item.CoveredLength)"));
+            Assert.That(editor, Does.Contain("ParentSurveyRunID = selection.ParentSurveyRunID"));
+            Assert.That(editor, Does.Contain("await Api.ClientTrajectory.PostSurveyRunAsync(surveyRun)"));
+            Assert.That(calculator, Does.Contain("PopulateDerivedSurveyValues(aggregation.AggregatedSurveyPointList, sourcePoints)"));
+        });
+    }
+
+    [Test]
     public void Trajectory_host_loads_the_generated_scoped_style_bundle()
     {
         string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,

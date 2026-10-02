@@ -2,6 +2,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject ITrajectoryAPIUtils Api
+@inject IJSRuntime JSRuntime
 @using System.Text.Json
 
 <MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Trajectory Aggregation</MudText>
@@ -37,7 +38,7 @@
     <MudPaper Class="pa-4 mt-4 mb-4" Outlined="true">
         <MudGrid>
             <MudItem xs="12" md="3">
-                <MudInputWithUnit QuantityLabel="Interpolation Interval" QuantityName="DepthDrilling"
+                <MudInputWithUnit QuantityLabel="Interpolation Step" QuantityName="DepthDrilling"
                                   @key="DepthReferenceRenderKey"
                                   SIValueNullable="@aggregationCase.InterpolationInterval"
                                   SIValueNullableChanged="@(value => aggregationCase.InterpolationInterval = value)" />
@@ -116,6 +117,64 @@
                 else
                 {
                     <MudText>No sections</MudText>
+                }
+            </MudExpansionPanel>
+            <MudExpansionPanel Text="Interpolated aggregated trajectory" ExpandedChanged="@OnResultsPanelExpandedChanged">
+                <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
+                    <MudButton Color="Color.Success" Variant="Variant.Outlined" Size="Size.Small"
+                               Disabled="@(interpolatedAggregationStations.Count < 2 || isSavingSurveyRun_ || HasUnsavedAggregationCaseChanges())"
+                               OnClick="SaveAsSurveyRunAsync">Save as survey run</MudButton>
+                    <MudButton Color="Color.Primary" Variant="Variant.Outlined" Size="Size.Small"
+                               Disabled="@(interpolatedAggregationStations.Count == 0 || isExportingSurveyStations_ || HasUnsavedAggregationCaseChanges())"
+                               OnClick="ExportInterpolatedAggregationAsync">Export ASCII</MudButton>
+                    @if (isSavingSurveyRun_ || isExportingSurveyStations_)
+                    {
+                        <MudProgressCircular Indeterminate="true" Size="Size.Small" />
+                    }
+                </MudStack>
+                @if (isLoadingResults_)
+                {
+                    <MudPaper Class="pa-4" Outlined="true">
+                        <MudText Typo="Typo.body2">@ResultLoadingText</MudText>
+                        <MudProgressLinear Value="@ResultLoadingProgressPercent" Color="Color.Info" Class="mt-2" />
+                    </MudPaper>
+                }
+                else if (interpolatedAggregationStations.Count > 0)
+                {
+                    <MudTable Items="@interpolatedAggregationStations" T="SurveyStation" Height="400px" FixedHeader="true"
+                              Virtualize="true" OverscanCount="3" ItemSize="38"
+                              Elevation="1" CustomHeader="true" Hover="true" Dense="true" Bordered="true" ReadOnly="true">
+                        <HeaderContent>
+                            <MudTHeadRow>
+                                <MudTh>@DepthHeader("MD")</MudTh>
+                                <MudTh>@InclinationHeader("Incl")</MudTh>
+                                <MudTh>@AzimuthHeader("Az")</MudTh>
+                                <MudTh>@DepthHeader("TVD")</MudTh>
+                                <MudTh>@PositionHeader(NorthCoordinateLabel)</MudTh>
+                                <MudTh>@PositionHeader(EastCoordinateLabel)</MudTh>
+                                <MudTh>@CurvatureHeader("DLS")</MudTh>
+                                <MudTh>@CurvatureHeader("BUR")</MudTh>
+                                <MudTh>@CurvatureHeader("TR")</MudTh>
+                                <MudTh>@LengthHeader("Vertical section")</MudTh>
+                            </MudTHeadRow>
+                        </HeaderContent>
+                        <RowTemplate>
+                            <MudTd DataLabel="MD"><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.MD" /></MudTd>
+                            <MudTd DataLabel="Incl"><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.Inclination" /></MudTd>
+                            <MudTd DataLabel="Az"><MudSpanWithUnit QuantityName="PlaneAngleDrilling" DrillingSignalReference="DrillingSignalReferenceType.Azimuth" SIValue="@context.Azimuth" /></MudTd>
+                            <MudTd DataLabel="TVD"><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.TVD" /></MudTd>
+                            <MudTd DataLabel="@NorthCoordinateLabel"><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.North" SIValue="@context.RiemannianNorth" /></MudTd>
+                            <MudTd DataLabel="@EastCoordinateLabel"><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.East" SIValue="@context.RiemannianEast" /></MudTd>
+                            <MudTd DataLabel="DLS"><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.Curvature" /></MudTd>
+                            <MudTd DataLabel="BUR"><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.BUR" /></MudTd>
+                            <MudTd DataLabel="TR"><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.TUR" /></MudTd>
+                            <MudTd DataLabel="Vertical section"><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.VerticalSection" /></MudTd>
+                        </RowTemplate>
+                    </MudTable>
+                }
+                else
+                {
+                    <MudText>Save and calculate the aggregation to create its interpolated trajectory.</MudText>
                 }
             </MudExpansionPanel>
             <MudExpansionPanel Text="Distance to section list" ExpandedChanged="@OnResultsPanelExpandedChanged">
@@ -244,6 +303,8 @@
     private bool isLoadingResults_;
     private bool resultLoadComplete_;
     private bool isPollingCalculation_;
+    private bool isSavingSurveyRun_;
+    private bool isExportingSurveyStations_;
     private int resultChunkCount_;
     private int resultChunksLoaded_;
     private int resultItemCount_;
@@ -255,6 +316,7 @@
     private readonly List<List<object>> plotEastValuesList = [];
     private readonly List<List<object>> plotTvdValuesList = [];
     private readonly List<List<object>> plotVerticalSectionValuesList = [];
+    private List<SurveyStation> interpolatedAggregationStations = [];
     private static readonly JsonSerializerOptions DirtySnapshotJsonOptions = new() { WriteIndented = false };
 
     private TrajectoryAggregation? SelectedAggregation => currentAggregationCase.TrajectoryAggregationList?.FirstOrDefault();
@@ -409,6 +471,7 @@
         resultChunkCount_ = 0;
         resultChunksLoaded_ = 0;
         resultItemCount_ = 0;
+        interpolatedAggregationStations = [];
         UpdatePlots();
     }
 
@@ -516,6 +579,7 @@
             }
 
             aggregation.DistanceResultList = distances;
+            interpolatedAggregationStations = CreateSurveyStations(aggregation.AggregatedSurveyPointList);
             resultLoadComplete_ = true;
             UpdatePlots();
         }
@@ -638,6 +702,244 @@
     private Task OnRigJobIdChanged(Guid? id) { selectedRigJobId = id; return Task.CompletedTask; }
     private async Task OnRigJobChanged(RigJob? _) { await UpdateReferenceSourcesAsync(); await InvokeAsync(StateHasChanged); }
 
+    private async Task SaveAsSurveyRunAsync()
+    {
+        if (interpolatedAggregationStations.Count < 2 || selectedTrajectoryId is not Guid trajectoryId || trajectoryId == Guid.Empty)
+        {
+            Snackbar.Add("A completed aggregation with at least two interpolated stations is required", Severity.Warning);
+            return;
+        }
+
+        string? name = await PromptAsync(
+            "Save aggregation as survey run",
+            "Survey run name",
+            string.IsNullOrWhiteSpace(currentAggregationCase.Name) ? "Planned aggregated trajectory" : currentAggregationCase.Name + " survey run",
+            "Save");
+        if (name == null) return;
+
+        isSavingSurveyRun_ = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            Trajectory source = await Api.ClientTrajectory.GetTrajectoryByIdAsync(trajectoryId, false);
+            double startMd = interpolatedAggregationStations.Min(station => station.MD ?? station.Abscissa ?? double.PositiveInfinity);
+            double endMd = interpolatedAggregationStations.Max(station => station.MD ?? station.Abscissa ?? double.NegativeInfinity);
+            DominantSurveyRunSelection? selection = await ResolveDominantSurveyRunAsync(source, startMd, endMd);
+            if (selection == null)
+            {
+                Snackbar.Add("No source survey run with a survey instrument covers the aggregated trajectory", Severity.Error);
+                return;
+            }
+
+            List<SurveyMeasurement> measurements = interpolatedAggregationStations
+                .Where(station => (station.MD ?? station.Abscissa).HasValue && station.Inclination.HasValue && station.Azimuth.HasValue)
+                .OrderBy(station => station.MD ?? station.Abscissa)
+                .GroupBy(station => station.MD ?? station.Abscissa)
+                .Select(group => CreatePlannedAggregationMeasurement(group.Last()))
+                .ToList();
+            if (measurements.Count < 2)
+            {
+                Snackbar.Add("The aggregation does not contain two complete, distinct stations", Severity.Error);
+                return;
+            }
+
+            SurveyRun surveyRun = new()
+            {
+                MetaInfo = new MetaInfo { ID = Guid.NewGuid() },
+                Name = name,
+                Description = $"Planned survey run created from trajectory aggregation '{currentAggregationCase.Name}'.",
+                FieldID = source.FieldID,
+                ClusterID = source.ClusterID,
+                WellID = source.WellID,
+                WellBoreID = source.WellBoreID,
+                SurveyInstrumentID = selection.SurveyInstrumentID,
+                SurveyRunType = SurveyRunType.Planned,
+                CalculationType = source.CalculationType,
+                DefaultInclinationReference = SurveyInclinationReference.GeodeticVertical,
+                DefaultAzimuthReference = SurveyAzimuthReference.TrueNorth,
+                GeomagneticModel = SurveyGeomagneticModel.Automatic,
+                ParentSurveyRunID = selection.ParentSurveyRunID,
+                SurveyRunIdentityAssignments = [],
+                SurveyRunFeatureAssignments = [],
+                SurveyMeasurementList = measurements,
+                SurveyStationList = null
+            };
+
+            await Api.ClientTrajectory.PostSurveyRunAsync(surveyRun);
+            Snackbar.Add($"Planned survey run '{name}' was created", Severity.Success);
+        }
+        catch (ApiException ex)
+        {
+            logger.LogError(ex, "Unable to save an aggregation as a planned survey run");
+            Snackbar.Add(ex.Response ?? ex.Message, Severity.Error);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unable to save an aggregation as a planned survey run");
+            Snackbar.Add("Unable to save the planned survey run: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            isSavingSurveyRun_ = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task<DominantSurveyRunSelection?> ResolveDominantSurveyRunAsync(Trajectory source, double startMd, double endMd)
+    {
+        List<TrajectorySurveyRunSection> sections = source.SurveyRunSectionList?
+            .Where(section => section != null && section.SurveyRunID != Guid.Empty)
+            .OrderBy(section => section.StartAbscissa)
+            .ToList() ?? [];
+        if (sections.Count == 0 || !double.IsFinite(startMd) || !double.IsFinite(endMd) || endMd <= startMd)
+        {
+            return null;
+        }
+
+        Dictionary<Guid, Guid> surveyInstrumentByRunId = surveyRuns
+            .Where(run => run?.MetaInfo?.ID is Guid id && id != Guid.Empty)
+            .GroupBy(run => run.MetaInfo.ID)
+            .ToDictionary(group => group.Key, group => group.First().SurveyInstrumentID);
+        List<SurveyRunCoverage> coverage = [];
+        for (int index = 0; index < sections.Count; index++)
+        {
+            TrajectorySurveyRunSection section = sections[index];
+            double sectionStart = Math.Max(startMd, section.StartAbscissa);
+            double nextStart = index + 1 < sections.Count ? sections[index + 1].StartAbscissa : endMd;
+            double sectionEnd = Math.Min(endMd, nextStart);
+            double coveredLength = Math.Max(0.0, sectionEnd - sectionStart);
+            if (coveredLength <= 0.0)
+            {
+                continue;
+            }
+
+            if (!surveyInstrumentByRunId.TryGetValue(section.SurveyRunID, out Guid surveyInstrumentId))
+            {
+                try
+                {
+                    SurveyRun run = await Api.ClientTrajectory.GetSurveyRunByIdAsync(section.SurveyRunID, false, false);
+                    surveyInstrumentId = run.SurveyInstrumentID;
+                    surveyInstrumentByRunId[section.SurveyRunID] = surveyInstrumentId;
+                }
+                catch (ApiException ex) when (ex.StatusCode == 404)
+                {
+                    logger.LogWarning("Source trajectory references missing survey run {SurveyRunId}", section.SurveyRunID);
+                    continue;
+                }
+            }
+
+            if (surveyInstrumentId != Guid.Empty)
+            {
+                coverage.Add(new SurveyRunCoverage(section.SurveyRunID, surveyInstrumentId, coveredLength, index));
+            }
+        }
+
+        IGrouping<Guid, SurveyRunCoverage>? dominantInstrument = coverage
+            .GroupBy(item => item.SurveyInstrumentID)
+            .OrderByDescending(group => group.Sum(item => item.CoveredLength))
+            .ThenBy(group => group.Min(item => item.SectionIndex))
+            .FirstOrDefault();
+        if (dominantInstrument == null)
+        {
+            return null;
+        }
+
+        IGrouping<Guid, SurveyRunCoverage> parent = dominantInstrument
+            .GroupBy(item => item.SurveyRunID)
+            .OrderByDescending(group => group.Sum(item => item.CoveredLength))
+            .ThenBy(group => group.Min(item => item.SectionIndex))
+            .First();
+        return new DominantSurveyRunSelection(parent.Key, dominantInstrument.Key);
+    }
+
+    private static SurveyMeasurement CreatePlannedAggregationMeasurement(SurveyStation station) => new()
+    {
+        MeasurementID = Guid.NewGuid(),
+        Origin = SurveyMeasurementOrigin.Measured,
+        MD = station.MD ?? station.Abscissa,
+        Inclination = station.Inclination,
+        Azimuth = station.Azimuth,
+        ObservedInclination = station.Inclination,
+        ObservedAzimuth = station.Azimuth,
+        InclinationReference = SurveyInclinationReference.InheritRun,
+        AzimuthReference = SurveyAzimuthReference.InheritRun,
+        Correction = SurveyMeasurement.CreatePendingCorrection(),
+        Annotation = "Planned trajectory aggregation"
+    };
+
+    private async Task ExportInterpolatedAggregationAsync()
+    {
+        if (Parent == null || interpolatedAggregationStations.Count == 0) return;
+        string defaultName = string.IsNullOrWhiteSpace(currentAggregationCase.Name)
+            ? "trajectory-aggregation.tsv"
+            : currentAggregationCase.Name + ".tsv";
+
+        isExportingSurveyStations_ = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            string content = SurveyStationAsciiExport.BuildTabSeparated(Parent, interpolatedAggregationStations);
+            string fileName = SurveyStationAsciiExport.EnsureTsvFileName(defaultName, "trajectory-aggregation.tsv");
+            string base64Content = Convert.ToBase64String(Encoding.ASCII.GetBytes(content));
+            bool saved = await JSRuntime.InvokeAsync<bool>(
+                "trajectoryDownloads.saveTextFileFromBase64",
+                fileName,
+                base64Content,
+                "text/tab-separated-values;charset=us-ascii");
+            if (saved) Snackbar.Add($"Exported '{fileName}'", Severity.Success);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unable to export interpolated trajectory aggregation");
+            Snackbar.Add("Unable to export the aggregation: " + ex.Message, Severity.Error);
+        }
+        finally
+        {
+            isExportingSurveyStations_ = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+
+    private async Task<string?> PromptAsync(string title, string label, string initialValue, string confirmText)
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(TextPromptDialog.Label), label },
+            { nameof(TextPromptDialog.InitialValue), initialValue },
+            { nameof(TextPromptDialog.ConfirmText), confirmText }
+        };
+        IDialogReference dialog = await DialogService.ShowAsync<TextPromptDialog>(
+            title, parameters, TrajectoryDialogOptions.Compact);
+        DialogResult? result = await dialog.Result;
+        return result is { Canceled: false, Data: string text } && !string.IsNullOrWhiteSpace(text)
+            ? text.Trim()
+            : null;
+    }
+
+    private static List<SurveyStation> CreateSurveyStations(IEnumerable<SurveyPoint>? points) => points?
+        .Where(point => point != null)
+        .OrderBy(point => point.MD ?? point.Abscissa)
+        .Select(point => new SurveyStation
+        {
+            MD = point.MD ?? point.Abscissa,
+            Abscissa = point.MD ?? point.Abscissa,
+            Inclination = point.Inclination,
+            Azimuth = point.Azimuth,
+            TVD = point.TVD ?? point.Z,
+            Z = point.TVD ?? point.Z,
+            RiemannianNorth = point.RiemannianNorth ?? point.X,
+            X = point.RiemannianNorth ?? point.X,
+            RiemannianEast = point.RiemannianEast ?? point.Y,
+            Y = point.RiemannianEast ?? point.Y,
+            Curvature = point.Curvature,
+            Toolface = point.Toolface,
+            BUR = point.BUR,
+            TUR = point.TUR,
+            VerticalSection = point.VerticalSection,
+            Annotation = point.Annotation
+        })
+        .ToList() ?? [];
+
     private void UpdatePlots()
     {
         plotNameList.Clear();
@@ -686,4 +988,14 @@
 
         return direction == PositionDirectionType.North ? "North" : "East";
     }
+
+    private string LengthHeader(string name) => $"{name} [{Parent?.GetUnitLabel("DepthDrilling")}]";
+    private string DepthHeader(string name) => $"{name} [{Parent?.GetDepthUnitLabel("DepthDrilling")}]";
+    private string InclinationHeader(string name) => $"{name} [{Parent?.GetUnitLabel("PlaneAngleDrilling")}]";
+    private string AzimuthHeader(string name) => $"{name} [{Parent?.GetAzimuthUnitLabel("PlaneAngleDrilling")}]";
+    private string PositionHeader(string name) => $"{name} [{Parent?.GetPositionUnitLabel("PositionDrilling")}]";
+    private string CurvatureHeader(string name) => $"{name} [{Parent?.GetUnitLabel("CurvatureDrilling")}]";
+
+    private sealed record SurveyRunCoverage(Guid SurveyRunID, Guid SurveyInstrumentID, double CoveredLength, int SectionIndex);
+    private sealed record DominantSurveyRunSelection(Guid ParentSurveyRunID, Guid SurveyInstrumentID);
 }

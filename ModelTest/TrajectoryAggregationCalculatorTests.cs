@@ -37,6 +37,12 @@ public class TrajectoryAggregationCalculatorTests
             Math.Pow(aggregateEnd.RiemannianNorth.Value - sourceEnd.RiemannianNorth.Value, 2.0) +
             Math.Pow(aggregateEnd.RiemannianEast.Value - sourceEnd.RiemannianEast.Value, 2.0) +
             Math.Pow(aggregateEnd.TVD!.Value - sourceEnd.TVD!.Value, 2.0));
+        List<SurveyPoint> aggregatedPoints = aggregation.AggregatedSurveyPointList!;
+        List<SurveyPoint> derivedPoints = aggregatedPoints.Skip(1).ToList();
+        double maximumInterpolationStep = aggregatedPoints
+            .Zip(aggregatedPoints.Skip(1), (first, second) =>
+                (second.MD ?? second.Abscissa)!.Value - (first.MD ?? first.Abscissa)!.Value)
+            .Max();
 
         Assert.Multiple(() =>
         {
@@ -52,6 +58,10 @@ public class TrajectoryAggregationCalculatorTests
             Assert.That(horizontalDirectionDotProduct, Is.GreaterThan(0.0), "The aggregate path must not mirror the source displacement.");
             Assert.That(endpointDistance, Is.LessThan(35.0));
             Assert.That(aggregation.DistanceResultList!.Max(result => result.CenterToCenterDistance), Is.LessThan(35.0));
+            Assert.That(maximumInterpolationStep, Is.LessThanOrEqualTo(TrajectoryAggregationCase.DefaultInterpolationInterval + 1e-8));
+            Assert.That(derivedPoints, Has.All.Property(nameof(SurveyPoint.Curvature)).Not.Null);
+            Assert.That(derivedPoints, Has.All.Property(nameof(SurveyPoint.BUR)).Not.Null);
+            Assert.That(derivedPoints, Has.All.Property(nameof(SurveyPoint.TUR)).Not.Null);
         });
     }
 
