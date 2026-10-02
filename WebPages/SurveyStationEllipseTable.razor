@@ -41,7 +41,7 @@
                 <MudTHeadRow>
                     <MudTh>Semi-long [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
                     <MudTh>Semi-short [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
-                    <MudTh>Angle [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
+                    <MudTh>Azimuth [@Parent?.GetAzimuthUnitLabel("PlaneAngleDrilling")]</MudTh>
                     <MudTh>Semi-long [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
                     <MudTh>Semi-short [@Parent?.GetUnitLabel("PositionDrilling")]</MudTh>
                     <MudTh>Angle [@Parent?.GetUnitLabel("PlaneAngleDrilling")]</MudTh>
@@ -54,7 +54,7 @@
                 <MudTd DataLabel="Measured Depth">
                     <MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="@DrillingSignalReferenceType.Depth" SIValue="@context.MD" />
                 </MudTd>
-                @EllipseCells(context.HorizontalEllipse)
+                @EllipseCells(context.HorizontalEllipse, isHorizontal: true)
                 @EllipseCells(context.VerticalEllipse)
                 @EllipseCells(context.PerpendicularEllipse)
             </RowTemplate>
@@ -77,6 +77,7 @@
 @code {
     [CascadingParameter] private MudUnitAndReferenceChoiceTag? Parent { get; set; }
     [Parameter] public ICollection<SurveyStation>? SurveyStationList { get; set; }
+    [Parameter] public ICollection<SurveyStation>? UncertaintyPropagationHistory { get; set; }
     [Parameter] public Guid? SurveyInstrumentID { get; set; }
     [Parameter] public string? CalculationName { get; set; }
     [Parameter] public EventCallback<ICollection<SurveyStationEllipseResult>> EllipseResultsChanged { get; set; }
@@ -114,6 +115,13 @@
         try
         {
             isCalculating_ = true;
+            List<SurveyStation> requestedStations = BuildRequestedStations();
+            double? firstDisplayedMd = SurveyStationList
+                .Select(station => station.MD ?? station.Abscissa)
+                .Where(md => md.HasValue)
+                .Select(md => md!.Value)
+                .DefaultIfEmpty(double.NegativeInfinity)
+                .Min();
             SurveyStationEllipseCalculation order = new()
             {
                 MetaInfo = PseudoConstructors.ConstructMetaInfo(),
@@ -123,13 +131,15 @@
                 LastModificationDate = DateTimeOffset.UtcNow,
                 ConfidenceFactor = confidenceFactor_,
                 SurveyInstrumentID = SurveyInstrumentID,
-                SurveyStationList = SurveyStationList.ToList()
+                SurveyStationList = requestedStations
             };
 
             SurveyStationEllipseCalculation result = await Api.ClientTrajectory.PostSurveyStationEllipseCalculationAsync(order);
-            ellipseResults_ = result.SurveyStationEllipseResultList?.ToList() ?? [];
-            highestTvdPath_ = result.HighestTvdSurveyPointList?.ToList() ?? [];
-            lowestTvdPath_ = result.LowestTvdSurveyPointList?.ToList() ?? [];
+            ellipseResults_ = result.SurveyStationEllipseResultList?
+                .Where(item => !firstDisplayedMd.HasValue || !item.MD.HasValue || item.MD.Value >= firstDisplayedMd.Value)
+                .ToList() ?? [];
+            highestTvdPath_ = FilterDisplayedPath(result.HighestTvdSurveyPointList, firstDisplayedMd);
+            lowestTvdPath_ = FilterDisplayedPath(result.LowestTvdSurveyPointList, firstDisplayedMd);
             await EllipseResultsChanged.InvokeAsync(ellipseResults_);
             await CalculationChanged.InvokeAsync(result);
             if (ellipseResults_.Count == 0)
@@ -148,7 +158,58 @@
         }
     }
 
-    private RenderFragment EllipseCells(SurveyStationEllipse? ellipse) => @<text>
+    private List<SurveyStation> BuildRequestedStations()
+    {
+        List<SurveyStation> displayed = SurveyStationList?.ToList() ?? [];
+        if (UncertaintyPropagationHistory is not { Count: > 0 } history || displayed.Count == 0)
+        {
+            return displayed;
+        }
+
+        double firstDisplayedMd = displayed
+            .Select(station => station.MD ?? station.Abscissa ?? double.MaxValue)
+            .Min();
+        return history
+            .Where(station => (station.MD ?? station.Abscissa) is double md && md < firstDisplayedMd)
+            .Concat(displayed)
+            .OrderBy(station => station.MD ?? station.Abscissa ?? double.MaxValue)
+            .Select(CloneForUncertaintyReplay)
+            .ToList();
+    }
+
+    // Wolff-de Wardt covariance must be replayed from the source history so its
+    // non-persisted transfer matrix is continued instead of trusting stale results.
+    private static SurveyStation CloneForUncertaintyReplay(SurveyStation station) => new()
+    {
+        Z = station.Z,
+        Abscissa = station.Abscissa,
+        Inclination = station.Inclination,
+        Azimuth = station.Azimuth,
+        MD = station.MD,
+        X = station.X,
+        Y = station.Y,
+        TVD = station.TVD,
+        RiemannianNorth = station.RiemannianNorth,
+        RiemannianEast = station.RiemannianEast,
+        Latitude = station.Latitude,
+        Longitude = station.Longitude,
+        Curvature = station.Curvature,
+        Toolface = station.Toolface,
+        BUR = station.BUR,
+        TUR = station.TUR,
+        VerticalSection = station.VerticalSection,
+        Annotation = station.Annotation,
+        SurveyTool = station.SurveyTool,
+        BoreholeRadius = station.BoreholeRadius
+    };
+
+    private static List<SurveyPoint> FilterDisplayedPath(
+        ICollection<SurveyPoint>? path,
+        double? firstDisplayedMd) => path?
+            .Where(point => !firstDisplayedMd.HasValue || !point.Abscissa.HasValue || point.Abscissa.Value >= firstDisplayedMd.Value)
+            .ToList() ?? [];
+
+    private RenderFragment EllipseCells(SurveyStationEllipse? ellipse, bool isHorizontal = false) => @<text>
         <MudTd>
             @if (ellipse?.SemiMajorAxis is double semiMajorAxis)
             {
@@ -164,7 +225,14 @@
         <MudTd>
             @if (ellipse?.OrientationAngle is double orientationAngle)
             {
-                <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@orientationAngle" />
+                @if (isHorizontal)
+                {
+                    <MudSpanWithUnit QuantityName="PlaneAngleDrilling" DrillingSignalReference="DrillingSignalReferenceType.Azimuth" SIValue="@orientationAngle" />
+                }
+                else
+                {
+                    <MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@orientationAngle" />
+                }
             }
         </MudTd>
     </text>;

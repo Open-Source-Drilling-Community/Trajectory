@@ -86,6 +86,31 @@ namespace OSDC.Drilling.Trajectory.Model
                 return true;
             }
 
+            SurveyInstrument? lastDefinedTool = null;
+            foreach (SurveyStation station in surveyStations)
+            {
+                lastDefinedTool = station.SurveyTool ?? lastDefinedTool;
+                station.SurveyTool ??= lastDefinedTool;
+            }
+            if ((lastDefinedTool?.ModelType is
+                    SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt) &&
+                surveyStations.All(station => station.SurveyTool != null))
+            {
+                try
+                {
+                    if (CovarianceCalculatorWolffDeWardt.Calculate(surveyStations))
+                    {
+                        CalculationMessage = null;
+                        return true;
+                    }
+                }
+                catch (Exception ex)
+                {
+                    CalculationMessage = $"Wolff-de Wardt covariance continuation failed: {ex.Message}";
+                    return false;
+                }
+            }
+
             SurveyInstrument? surveyTool = surveyStations
                 .Select(station => station.SurveyTool)
                 .FirstOrDefault(tool => tool != null);

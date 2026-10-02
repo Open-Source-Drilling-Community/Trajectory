@@ -478,12 +478,15 @@ public sealed class WebPageComponentContractTests
         Assert.Multiple(() =>
         {
             Assert.That(ellipse, Does.Contain("QuantityName=\"ProportionStandard\" QuantityLabel=\"Confidence factor\""));
+            Assert.That(ellipse, Does.Contain("Azimuth [@Parent?.GetAzimuthUnitLabel(\"PlaneAngleDrilling\")]"));
+            Assert.That(ellipse, Does.Contain("DrillingSignalReference=\"DrillingSignalReferenceType.Azimuth\" SIValue=\"@orientationAngle\""));
             Assert.That(policies, Does.Contain("QuantityName=\"ProportionStandard\" QuantityLabel=\"Confidence factor\""));
             Assert.That(scan, Does.Contain("QuantityName=\"ProportionStandard\" QuantityLabel=\"Confidence factor\""));
             Assert.That(ellipse, Does.Contain("confidenceFactor_ > 0.0 && confidenceFactor_ <= MaximumConfidenceFactor"));
             Assert.That(policies, Does.Contain("draft_.ConfidenceFactor > 0.0"));
             Assert.That(scan, Does.Contain("confidenceFactor_ > 0.0 && confidenceFactor_ <= MaximumConfidenceFactor"));
             Assert.That(extrapolation, Does.Contain("<SurveyStationEllipseTable SurveyStationList=\"@interpolatedExtrapolationStations\""));
+            Assert.That(extrapolation, Does.Contain("UncertaintyPropagationHistory=\"@WolffDeWardtSourceHistory\""));
             Assert.That(extrapolation, Does.Contain("sourceLastDefinedSurveyTool"));
             Assert.That(extrapolation, Does.Contain("station.SurveyTool ??= sourceLastDefinedSurveyTool"));
             Assert.That(extrapolation, Does.Contain("first.Covariance = sourceLastSurveyStation.Covariance"));

@@ -71,7 +71,7 @@ namespace OSDC.Drilling.Trajectory.Model
                 return false;
             }
 
-            ContinueSourceUncertainty(calculation.SurveyStationList!, start);
+            ContinueSourceUncertainty(calculation.SurveyStationList!, start, sourceStations);
 
             calculation.CalculationState = CalculationState.Completed;
             calculation.CalculationProgress = 1.0;
@@ -709,7 +709,10 @@ namespace OSDC.Drilling.Trajectory.Model
         /// is not a new observation, so its local error-model covariance is treated as an increment
         /// to the source endpoint covariance rather than restarting the well at zero uncertainty.
         /// </summary>
-        internal static void ContinueSourceUncertainty(List<SurveyStation> stations, SurveyStation sourceEndpoint)
+        internal static void ContinueSourceUncertainty(
+            List<SurveyStation> stations,
+            SurveyStation sourceEndpoint,
+            IReadOnlyList<SurveyStation>? sourceHistory = null)
         {
             if (stations.Count == 0)
             {
@@ -720,6 +723,14 @@ namespace OSDC.Drilling.Trajectory.Model
             foreach (SurveyStation station in stations)
             {
                 station.SurveyTool = surveyTool;
+            }
+
+            if (surveyTool?.ModelType is SurveyInstrumentModelType.MWD_WolffDeWardt or
+                SurveyInstrumentModelType.Gyro_WolffDeWardt &&
+                sourceHistory is { Count: > 1 } &&
+                ContinueWolffDeWardtUncertainty(stations, sourceHistory, surveyTool))
+            {
+                return;
             }
 
             if (sourceEndpoint.Covariance == null)
@@ -780,6 +791,87 @@ namespace OSDC.Drilling.Trajectory.Model
                     sourceBias, incrementalStations[index].Bias, incrementalBiasBaseline);
                 stations[index].CalculateEigenProperties();
             }
+        }
+
+        /// <summary>
+        /// Replays the Wolff-de Wardt transfer matrix through the source trajectory before
+        /// extending it. Its 6x3 A matrix is the propagation state; the terminal covariance
+        /// alone cannot be inverted to recover that state.
+        /// </summary>
+        private static bool ContinueWolffDeWardtUncertainty(
+            List<SurveyStation> extrapolationStations,
+            IReadOnlyList<SurveyStation> sourceHistory,
+            SurveyInstrument extrapolationTool)
+        {
+            List<SurveyStation> replay = sourceHistory
+                .Select(station => new SurveyStation(station)
+                {
+                    Covariance = null,
+                    Bias = null,
+                    EigenValues = null,
+                    EigenVectors = null
+                })
+                .ToList();
+            if (replay.Count == 0)
+            {
+                return false;
+            }
+
+            SurveyInstrument? lastDefinedTool = null;
+            foreach (SurveyStation station in replay)
+            {
+                lastDefinedTool = station.SurveyTool ?? lastDefinedTool;
+                station.SurveyTool = lastDefinedTool;
+            }
+            if (replay.Any(station => station.SurveyTool == null))
+            {
+                return false;
+            }
+
+            for (int index = 1; index < extrapolationStations.Count; index++)
+            {
+                replay.Add(new SurveyStation(extrapolationStations[index])
+                {
+                    SurveyTool = extrapolationTool,
+                    Covariance = null,
+                    Bias = null,
+                    EigenValues = null,
+                    EigenVectors = null
+                });
+            }
+
+            try
+            {
+                if (!CovarianceCalculatorWolffDeWardt.Calculate(replay))
+                {
+                    return false;
+                }
+            }
+            catch
+            {
+                // A legacy or incomplete source history may not be replayable. The caller retains
+                // the frozen endpoint covariance and falls back to the older incremental path.
+                return false;
+            }
+
+            int sourceEndIndex = sourceHistory.Count - 1;
+            CopyUncertainty(replay[sourceEndIndex], extrapolationStations[0], extrapolationTool);
+            for (int index = 1; index < extrapolationStations.Count; index++)
+            {
+                CopyUncertainty(replay[sourceEndIndex + index], extrapolationStations[index], extrapolationTool);
+            }
+            return true;
+        }
+
+        private static void CopyUncertainty(
+            SurveyStation source,
+            SurveyStation target,
+            SurveyInstrument surveyTool)
+        {
+            target.SurveyTool = surveyTool;
+            target.Covariance = source.Covariance == null ? null : CopyCovariance(source.Covariance);
+            target.Bias = CopyVector(source.Bias);
+            target.CalculateEigenProperties();
         }
 
         private static bool CalculateUncertainty(List<SurveyStation> stations, SurveyInstrument? surveyTool)

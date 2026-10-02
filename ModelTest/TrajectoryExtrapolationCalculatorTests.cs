@@ -91,7 +91,10 @@ public class TrajectoryExtrapolationCalculatorTests
         {
             ModelType = SurveyInstrumentModelType.MWD_WolffDeWardt,
             Misalignment = 0.01,
-            RelDepthError = 0.001
+            RelDepthError = 0.001,
+            TrueInclination = 0.005,
+            ReferenceError = 0.01,
+            DrillStringMag = 0.002
         };
         SurveyStation sourceEndpoint = Station(100.0, 0.5, 0.3, 90.0, 40.0, 12.0);
         sourceEndpoint.Covariance = sourceCovariance;
@@ -139,7 +142,10 @@ public class TrajectoryExtrapolationCalculatorTests
         {
             ModelType = SurveyInstrumentModelType.MWD_WolffDeWardt,
             Misalignment = 0.01,
-            RelDepthError = 0.001
+            RelDepthError = 0.001,
+            TrueInclination = 0.005,
+            ReferenceError = 0.01,
+            DrillStringMag = 0.002
         };
         SurveyStation previous = Station(70.0, 0.4, 0.2, 65.0, 12.0, 3.0);
         previous.SurveyTool = instrument;
@@ -163,6 +169,57 @@ public class TrajectoryExtrapolationCalculatorTests
         Assert.That(calculation.StartStation?.SurveyTool, Is.SameAs(instrument));
         Assert.That(calculation.SurveyStationList, Is.Not.Null.And.Not.Empty);
         Assert.That(calculation.SurveyStationList!.All(station => ReferenceEquals(station.SurveyTool, instrument)), Is.True);
+    }
+
+    [Test]
+    public void Wolff_de_wardt_extrapolation_replays_the_source_transfer_matrix_without_resetting_the_ellipse()
+    {
+        SurveyInstrument instrument = new()
+        {
+            ModelType = SurveyInstrumentModelType.MWD_WolffDeWardt,
+            Misalignment = 0.01,
+            RelDepthError = 0.001,
+            TrueInclination = 0.005,
+            ReferenceError = 0.01,
+            DrillStringMag = 0.002
+        };
+        List<SurveyStation> sourceStations =
+        [
+            Station(0.0, 0.20, 0.30, 0.0, 0.0, 0.0),
+            Station(30.0, 0.25, 0.32, 29.0, 5.0, 2.0),
+            Station(60.0, 0.30, 0.34, 57.0, 12.0, 4.0)
+        ];
+        sourceStations.ForEach(station => station.SurveyTool = instrument);
+        Assert.That(CovarianceCalculatorWolffDeWardt.Calculate(sourceStations), Is.True);
+        double sourceTrace = CovarianceTrace(sourceStations[^1].Covariance!);
+        Assert.That(sourceTrace, Is.GreaterThan(0.0));
+        TrajectoryExtrapolationCase calculation = Case(
+            TrajectoryExtrapolationMode.FixedLength,
+            new FixedLengthExtrapolationSpecification
+            {
+                Length = 60.0,
+                ExtensionType = FixedLengthExtrapolationType.Straight
+            });
+
+        Assert.That(TrajectoryExtrapolationCalculator.Calculate(
+            calculation, SourceTrajectory(sourceStations.ToArray()), _ => null), Is.True, calculation.CalculationMessage);
+
+        Assert.That(calculation.SurveyStationList, Has.Count.EqualTo(3));
+        Assert.Multiple(() =>
+        {
+            Assert.That(CovarianceTrace(calculation.SurveyStationList![0].Covariance!),
+                Is.EqualTo(sourceTrace).Within(1e-12),
+                "The first extrapolated station must retain the source endpoint uncertainty.");
+            Assert.That(CovarianceTrace(calculation.SurveyStationList[^1].Covariance!), Is.GreaterThan(sourceTrace));
+        });
+        SurveyStationEllipseCalculation ellipses = new()
+        {
+            ConfidenceFactor = 0.95,
+            SurveyStationList = calculation.SurveyStationList
+        };
+        Assert.That(ellipses.Calculate(), Is.True, ellipses.CalculationMessage);
+        Assert.That(ellipses.SurveyStationEllipseResultList![0].HorizontalEllipse?.SemiMajorAxis,
+            Is.GreaterThan(0.0));
     }
 
     [Test]

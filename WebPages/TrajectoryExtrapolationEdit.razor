@@ -333,6 +333,7 @@
                 </RowTemplate>
             </MudTable>
             <SurveyStationEllipseTable SurveyStationList="@interpolatedExtrapolationStations"
+                                       UncertaintyPropagationHistory="@WolffDeWardtSourceHistory"
                                        CalculationName="@($"{value.Name} extrapolated trajectory uncertainty ellipses")" />
         }
         else
@@ -362,6 +363,7 @@
     private DateTimeOffset? sourceReferenceDate;
     private SurveyStation? sourceLastSurveyStation;
     private SurveyInstrument? sourceLastDefinedSurveyTool;
+    private readonly List<SurveyStation> sourceUncertaintyHistory = [];
     private bool isLoadingSourceLastSurveyStation;
     private string? sourceLastSurveyStationError;
     private int sourceLastSurveyStationLoadVersion;
@@ -395,6 +397,11 @@
     private string SurveyStationLoadingText => totalSurveyStationChunkCount == 0
         ? "Loading interpolated extrapolated trajectory…"
         : $"Loading interpolated extrapolated trajectory chunk {loadedSurveyStationChunkCount} of {totalSurveyStationChunkCount}…";
+    private ICollection<SurveyStation>? WolffDeWardtSourceHistory =>
+        sourceLastDefinedSurveyTool?.ModelType is SurveyInstrumentModelType.MWD_WolffDeWardt or
+            SurveyInstrumentModelType.Gyro_WolffDeWardt
+            ? sourceUncertaintyHistory
+            : null;
 
     protected override async Task OnInitializedAsync()
     {
@@ -504,6 +511,7 @@
         sourceLastSurveyStationLoadVersion++;
         sourceLastSurveyStation = null;
         sourceLastDefinedSurveyTool = null;
+        sourceUncertaintyHistory.Clear();
         sourceLastSurveyStationError = null;
         isLoadingSourceLastSurveyStation = false;
     }
@@ -526,6 +534,7 @@
             int chunkCount = await Api.ClientTrajectory.GetTrajectorySurveyStationChunkCountAsync(sourceTrajectoryId);
             SurveyStation? finalStation = null;
             SurveyInstrument? finalDefinedSurveyTool = null;
+            List<SurveyStation> uncertaintyHistory = [];
             for (int chunkIndex = chunkCount - 1; chunkIndex >= 0; chunkIndex--)
             {
                 SurveyStationChunk chunk = await Api.ClientTrajectory.GetTrajectorySurveyStationChunkAsync(sourceTrajectoryId, chunkIndex);
@@ -533,20 +542,20 @@
                     .Where(station => station != null)
                     .OrderByDescending(station => station.MD ?? station.Abscissa)
                     .ToList() ?? [];
+                uncertaintyHistory.AddRange(reverseOrderedStations);
                 finalStation ??= reverseOrderedStations.FirstOrDefault();
                 finalDefinedSurveyTool ??= reverseOrderedStations
                     .Select(station => station.SurveyTool)
                     .FirstOrDefault(tool => tool != null);
-                if (finalStation != null && finalDefinedSurveyTool != null)
-                {
-                    break;
-                }
             }
 
             if (loadVersion == sourceLastSurveyStationLoadVersion)
             {
                 sourceLastSurveyStation = finalStation;
                 sourceLastDefinedSurveyTool = finalDefinedSurveyTool;
+                sourceUncertaintyHistory.Clear();
+                sourceUncertaintyHistory.AddRange(uncertaintyHistory
+                    .OrderBy(station => station.MD ?? station.Abscissa ?? double.MaxValue));
                 if (finalStation == null)
                 {
                     sourceLastSurveyStationError = "The selected trajectory has no calculated survey stations.";
