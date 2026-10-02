@@ -15,7 +15,7 @@ public sealed class McpToolRegistrationTests
     {
         var endpoints = TrajectoryRestMcpToolRegistrations.Endpoints;
 
-        Assert.That(endpoints, Has.Count.EqualTo(151));
+        Assert.That(endpoints, Has.Count.EqualTo(153));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Is.Unique);
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("."));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("usage_statistics"));
@@ -53,7 +53,7 @@ public sealed class McpToolRegistrationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(tools, Has.Length.EqualTo(151));
+            Assert.That(tools, Has.Length.EqualTo(153));
             Assert.That(tools.All(tool => !string.IsNullOrWhiteSpace(tool.ProtocolTool.Title)), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema.HasValue), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.Annotations is not null), Is.True);
@@ -250,7 +250,7 @@ public sealed class McpToolRegistrationTests
             Assert.That(surveyRunSearch.InputSchema!["properties"]!["offset"]!["default"]!.GetValue<int>(), Is.Zero);
             Assert.That(endpoints.Any(value => value.Name == "trajectory_get_all_trajectory"), Is.False);
             Assert.That(endpoints.Any(value => value.Name == "survey_run_get_all_survey_run"), Is.False);
-            Assert.That(endpoints, Has.Count.EqualTo(151));
+            Assert.That(endpoints, Has.Count.EqualTo(153));
         });
     }
 
@@ -512,6 +512,25 @@ public sealed class McpToolRegistrationTests
             Assert.That(confidence["maximum"]!.GetValue<double>(), Is.EqualTo(0.999));
             Assert.That(confidence.ContainsKey("exclusiveMaximum"), Is.False);
             Assert.That(confidence["description"]!.GetValue<string>(), Does.Contain("ProportionStandard"));
+        });
+    }
+
+    [Test]
+    public void Resource_specific_ellipse_tools_document_authoritative_lineage_replay()
+    {
+        TrajectoryMcpEndpoint surveyRun = TrajectoryRestMcpToolRegistrations.Endpoints.Single(value =>
+            value.ControllerType.Name == "SurveyStationEllipseCalculationController" &&
+            value.Method.Name == "PostSurveyRunSurveyStationEllipseCalculation");
+        TrajectoryMcpEndpoint trajectory = TrajectoryRestMcpToolRegistrations.Endpoints.Single(value =>
+            value.ControllerType.Name == "SurveyStationEllipseCalculationController" &&
+            value.Method.Name == "PostTrajectorySurveyStationEllipseCalculation");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(surveyRun.Description, Does.Contain("complete parent SurveyRun chain"));
+            Assert.That(surveyRun.Description, Does.Contain("stale or partial submitted covariance"));
+            Assert.That(trajectory.Description, Does.Contain("rematerializes its SurveyRun sections"));
+            Assert.That(trajectory.Description, Does.Contain("complete parent SurveyRun chains"));
         });
     }
 

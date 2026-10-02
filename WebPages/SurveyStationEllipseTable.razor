@@ -79,6 +79,8 @@
     [Parameter] public ICollection<SurveyStation>? SurveyStationList { get; set; }
     [Parameter] public ICollection<SurveyStation>? UncertaintyPropagationHistory { get; set; }
     [Parameter] public Guid? SurveyInstrumentID { get; set; }
+    [Parameter] public Guid? SourceSurveyRunID { get; set; }
+    [Parameter] public Guid? SourceTrajectoryID { get; set; }
     [Parameter] public string? CalculationName { get; set; }
     [Parameter] public EventCallback<ICollection<SurveyStationEllipseResult>> EllipseResultsChanged { get; set; }
     [Parameter] public EventCallback<SurveyStationEllipseCalculation?> CalculationChanged { get; set; }
@@ -134,7 +136,11 @@
                 SurveyStationList = requestedStations
             };
 
-            SurveyStationEllipseCalculation result = await Api.ClientTrajectory.PostSurveyStationEllipseCalculationAsync(order);
+            SurveyStationEllipseCalculation result = SourceSurveyRunID is Guid surveyRunId && surveyRunId != Guid.Empty
+                ? await Api.ClientTrajectory.PostSurveyRunSurveyStationEllipseCalculationAsync(surveyRunId, order)
+                : SourceTrajectoryID is Guid trajectoryId && trajectoryId != Guid.Empty
+                    ? await Api.ClientTrajectory.PostTrajectorySurveyStationEllipseCalculationAsync(trajectoryId, order)
+                    : await Api.ClientTrajectory.PostSurveyStationEllipseCalculationAsync(order);
             ellipseResults_ = result.SurveyStationEllipseResultList?
                 .Where(item => !firstDisplayedMd.HasValue || !item.MD.HasValue || item.MD.Value >= firstDisplayedMd.Value)
                 .ToList() ?? [];

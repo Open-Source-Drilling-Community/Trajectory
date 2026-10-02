@@ -312,17 +312,16 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     return;
                 }
 
-                if (HasMissingCovariance(trajectory) &&
-                    await _trajectoryManager.CalculateTrajectoryAsync(trajectory) is { } recalculatedTrajectory)
+                if (await _trajectoryManager.CalculateTrajectoryAsync(
+                        trajectory,
+                        recalculateSurveyRunUncertainty: true) is not { } recalculatedTrajectory)
                 {
-                    trajectory = recalculatedTrajectory;
+                    UpdateCalculationState(id, CalculationState.Failed, 0.0,
+                        "Reference trajectory uncertainty lineage could not be reconstructed");
+                    DeleteChunks(id);
+                    return;
                 }
-
-                bool slotCovarianceApplied = await TryApplySlotCovarianceToFirstStationAsync(trajectory);
-                if (!EnsureTrajectoryCovariance(trajectory, preserveFirstStationCovariance: slotCovarianceApplied))
-                {
-                    _logger.LogWarning("Could not calculate covariance matrices for the reference trajectory before trajectory realization generation");
-                }
+                trajectory = recalculatedTrajectory;
 
                 bool success = await Task.Run(() => value.Calculate(trajectory, (progress, message) =>
                 {
@@ -415,119 +414,6 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 _logger.LogError(ex, "Impossible to save TrajectoryRealizationCase");
                 return false;
             }
-        }
-
-        private async Task<bool> TryApplySlotCovarianceToFirstStationAsync(Model.Trajectory trajectory)
-        {
-            if (trajectory.SurveyStationList is not { Count: > 1 } stations ||
-                HasUsableCovariance(stations[0]))
-            {
-                return false;
-            }
-
-            try
-            {
-                (OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation? referencePoint, _, string message) =
-                    await APIUtils.GetReferencePointAsync(trajectory);
-                if (referencePoint?.Covariance == null)
-                {
-                    _logger.LogInformation("Slot covariance could not be applied to the first trajectory realization station: {Message}", message);
-                    return false;
-                }
-
-                stations[0].Covariance = referencePoint.Covariance;
-                stations[0].EigenVectors = null;
-                stations[0].EigenValues = null;
-                return true;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogInformation(ex, "Slot covariance could not be applied to the first trajectory realization station");
-                return false;
-            }
-        }
-
-        private bool EnsureTrajectoryCovariance(Model.Trajectory trajectory, bool preserveFirstStationCovariance)
-        {
-            if (trajectory.SurveyStationList is not { Count: > 1 } stations ||
-                stations.All(HasUsableCovariance))
-            {
-                return true;
-            }
-
-            OSDC.DotnetLibraries.General.Math.SymmetricMatrix3x3? firstCovariance = preserveFirstStationCovariance
-                ? stations[0].Covariance
-                : null;
-
-            try
-            {
-                OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument? surveyTool = stations
-                    .Select(station => station.SurveyTool)
-                    .FirstOrDefault(tool => tool != null);
-                if (surveyTool == null)
-                {
-                    return false;
-                }
-
-                foreach (OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation station in stations)
-                {
-                    station.SurveyTool ??= surveyTool;
-                }
-
-                bool success = surveyTool.ModelType switch
-                {
-                    OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrumentModelType.MWD_WolffDeWardt or
-                    OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrumentModelType.Gyro_WolffDeWardt =>
-                        OSDC.DotnetLibraries.Drilling.Surveying.CovarianceCalculatorWolffDeWardt.Calculate(stations),
-
-                    OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrumentModelType.MWD_ISCWSA or
-                    OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrumentModelType.Gyro_ISCWSA =>
-                        OSDC.DotnetLibraries.Drilling.Surveying.CovarianceCalculatorISCWSA.Calculate(stations),
-
-                    _ => false
-                };
-
-                if (success && firstCovariance != null)
-                {
-                    stations[0].Covariance = firstCovariance;
-                    stations[0].EigenVectors = null;
-                    stations[0].EigenValues = null;
-                }
-
-                return success;
-            }
-            catch (Exception ex)
-            {
-                _logger.LogWarning(ex, "Unable to calculate reference trajectory covariance matrices");
-                return false;
-            }
-        }
-
-        private static bool HasMissingCovariance(Model.Trajectory trajectory) =>
-            trajectory.SurveyStationList is not { Count: > 1 } stations ||
-            stations.Any(station => !HasUsableCovariance(station));
-
-        private static bool HasUsableCovariance(OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation station)
-        {
-            if (station.Covariance == null)
-            {
-                return false;
-            }
-
-            for (int row = 0; row < 3; row++)
-            {
-                for (int col = 0; col < 3; col++)
-                {
-                    if (station.Covariance[row, col] is double value &&
-                        !double.IsNaN(value) &&
-                        !double.IsInfinity(value))
-                    {
-                        return true;
-                    }
-                }
-            }
-
-            return false;
         }
 
         private static bool IsValidForSave(TrajectoryRealizationCase? value) =>

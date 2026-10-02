@@ -168,6 +168,7 @@
             else if (traj.SurveyStationList is { Count: > 0 } surveyStations)
             {
                 <SurveyStationEllipseTable SurveyStationList="@surveyStations"
+                                           SourceTrajectoryID="@(traj.TrajectoryID == Guid.Empty ? (Guid?)null : traj.TrajectoryID)"
                                            CalculationName="@($"{traj.Name} uncertainty ellipses")"
                                            EllipseResultsChanged="OnEllipseResultsChanged"
                                            CalculationChanged="OnEllipseCalculationChanged" />

@@ -54,12 +54,49 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         public async Task<ActionResult<SurveyStationEllipseCalculation>> PostSurveyStationEllipseCalculation([FromBody] SurveyStationEllipseCalculation? data)
         {
             SurveyStationEllipseCalculation? calculation = await _manager.AddSurveyStationEllipseCalculationAsync(data);
+            return ToActionResult(calculation, data);
+        }
+
+        [HttpPost("SurveyRun/{surveyRunId}", Name = "PostSurveyRunSurveyStationEllipseCalculation")]
+        public async Task<ActionResult<SurveyStationEllipseCalculation>> PostSurveyRunSurveyStationEllipseCalculation(
+            Guid surveyRunId,
+            [FromBody] SurveyStationEllipseCalculation? data)
+        {
+            if (surveyRunId == Guid.Empty)
+            {
+                return BadRequest(new { error = "invalid_source", message = "A source SurveyRun UUID is required." });
+            }
+
+            SurveyStationEllipseCalculation? calculation =
+                await _manager.AddSurveyStationEllipseCalculationAsync(data, surveyRunId, null);
+            return ToActionResult(calculation, data);
+        }
+
+        [HttpPost("Trajectory/{trajectoryId}", Name = "PostTrajectorySurveyStationEllipseCalculation")]
+        public async Task<ActionResult<SurveyStationEllipseCalculation>> PostTrajectorySurveyStationEllipseCalculation(
+            Guid trajectoryId,
+            [FromBody] SurveyStationEllipseCalculation? data)
+        {
+            if (trajectoryId == Guid.Empty)
+            {
+                return BadRequest(new { error = "invalid_source", message = "A source Trajectory UUID is required." });
+            }
+
+            SurveyStationEllipseCalculation? calculation =
+                await _manager.AddSurveyStationEllipseCalculationAsync(data, null, trajectoryId);
+            return ToActionResult(calculation, data);
+        }
+
+        private ActionResult<SurveyStationEllipseCalculation> ToActionResult(
+            SurveyStationEllipseCalculation? calculation,
+            SurveyStationEllipseCalculation? request)
+        {
             return calculation != null
                 ? Ok(calculation)
                 : BadRequest(new
                 {
                     error = "ellipse_calculation_failed",
-                    message = data?.CalculationMessage ?? "The uncertainty ellipse calculation could not be completed."
+                    message = request?.CalculationMessage ?? "The uncertainty ellipse calculation could not be completed."
                 });
         }
 

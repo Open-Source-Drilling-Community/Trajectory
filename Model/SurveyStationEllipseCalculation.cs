@@ -26,6 +26,8 @@ namespace OSDC.Drilling.Trajectory.Model
         public List<SurveyPoint>? LowestTvdSurveyPointList { get; set; }
         public string? CalculationMessage { get; private set; }
 
+        public void SetCalculationMessage(string message) => CalculationMessage = message;
+
         public bool Calculate()
         {
             if (!Numeric.IsDefined(ConfidenceFactor) || !Numeric.GT(ConfidenceFactor, 0.0) || !Numeric.LE(ConfidenceFactor, MaximumConfidenceFactor) ||
@@ -92,6 +94,16 @@ namespace OSDC.Drilling.Trajectory.Model
                 lastDefinedTool = station.SurveyTool ?? lastDefinedTool;
                 station.SurveyTool ??= lastDefinedTool;
             }
+            SurveyInstrument? surveyTool = surveyStations
+                .Select(station => station.SurveyTool)
+                .FirstOrDefault(tool => tool != null);
+            SurveyStation? baseline = surveyStations.FirstOrDefault(HasUsableCovariance);
+            if (baseline != null && surveyTool?.ModelType is
+                (SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt))
+            {
+                CalculationMessage = "A partial Wolff-de Wardt result cannot be continued from covariance alone; provide the complete propagation history or use a resource-specific ellipse endpoint.";
+                return false;
+            }
             if ((lastDefinedTool?.ModelType is
                     SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt) &&
                 surveyStations.All(station => station.SurveyTool != null))
@@ -111,10 +123,6 @@ namespace OSDC.Drilling.Trajectory.Model
                 }
             }
 
-            SurveyInstrument? surveyTool = surveyStations
-                .Select(station => station.SurveyTool)
-                .FirstOrDefault(tool => tool != null);
-            SurveyStation? baseline = surveyStations.FirstOrDefault(HasUsableCovariance);
             if (baseline != null && surveyTool != null && ReferenceEquals(baseline, surveyStations[0]))
             {
                 baseline.SurveyTool ??= surveyTool;

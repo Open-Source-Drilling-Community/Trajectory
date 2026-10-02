@@ -6,6 +6,20 @@ namespace OSDC.Drilling.Trajectory.ServiceTest;
 public sealed class OpenApiConfidenceFactorContractTests
 {
     [Test]
+    public void Resource_specific_ellipse_routes_are_published()
+    {
+        string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", "..", "ModelSharedOut", "json-schemas", "TrajectoryFullName.json"));
+        JsonObject paths = JsonNode.Parse(File.ReadAllText(path))!["paths"]!.AsObject();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(paths.ContainsKey("/SurveyStationEllipseCalculation/SurveyRun/{surveyRunId}"), Is.True);
+            Assert.That(paths.ContainsKey("/SurveyStationEllipseCalculation/Trajectory/{trajectoryId}"), Is.True);
+        });
+    }
+
+    [Test]
     public void Confidence_factors_publish_proportion_semantics_and_si_bounds()
     {
         string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,

@@ -570,7 +570,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 {
                     OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.MWD_WolffDeWardt or
                     OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.Gyro_WolffDeWardt =>
-                        CovarianceCalculatorWolffDeWardt.Calculate(uncertaintyStations),
+                        surveyRun.ParentSurveyRunID is Guid parentId && parentId != Guid.Empty
+                            ? await CalculateWolffDeWardtWithParentHistoryAsync(surveyRun, uncertaintyStations, surveyTool)
+                            : CovarianceCalculatorWolffDeWardt.Calculate(uncertaintyStations),
 
                     OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.MWD_ISCWSA or
                     OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.Gyro_ISCWSA =>
@@ -589,6 +591,29 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 _logger.LogError(ex, "Impossible to calculate covariance for SurveyRun {SurveyRunId}", surveyRun.MetaInfo?.ID);
                 return false;
             }
+        }
+
+        /// <summary>
+        /// Loads a stored SurveyRun and recalculates its uncertainty without persisting any
+        /// changes. This is used by derived calculations that must not trust legacy or partial
+        /// covariance matrices. Wolff-de Wardt parent chains are replayed by
+        /// <see cref="CalculateSurveyRunUncertaintyAsync"/>.
+        /// </summary>
+        internal async Task<SurveyRun?> GetSurveyRunWithRecalculatedUncertaintyAsync(Guid surveyRunId)
+        {
+            if (surveyRunId == Guid.Empty)
+            {
+                return null;
+            }
+
+            SurveyRun? surveyRun = GetSurveyRunById(surveyRunId);
+            if (surveyRun?.SurveyStationList is not { Count: > 0 } ||
+                !await CalculateSurveyRunUncertaintyAsync(surveyRun))
+            {
+                return null;
+            }
+
+            return surveyRun;
         }
 
         private static OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument ConvertSurveyInstrument(OSDC.Drilling.Trajectory.ModelShared.SurveyInstrument surveyInstrument)
@@ -655,6 +680,249 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             target.Bias = source.Bias;
             target.EigenValues = source.EigenValues;
             target.EigenVectors = source.EigenVectors;
+        }
+
+        private async Task<bool> CalculateWolffDeWardtWithParentHistoryAsync(
+            SurveyRun surveyRun,
+            List<SurveyStation> childStations,
+            OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument childTool)
+        {
+            HashSet<Guid> visited = surveyRun.MetaInfo?.ID is Guid surveyRunId && surveyRunId != Guid.Empty
+                ? [surveyRunId]
+                : [];
+            List<SurveyStation>? parentHistory = await BuildWolffDeWardtParentHistoryAsync(surveyRun, visited);
+            if (parentHistory is not { Count: > 0 })
+            {
+                _logger.LogWarning(
+                    "The Wolff-de Wardt parent propagation history for SurveyRun {SurveyRunId} could not be reconstructed",
+                    surveyRun.MetaInfo?.ID);
+                return false;
+            }
+
+            return ContinueWolffDeWardtFromParentHistory(parentHistory, childStations, childTool);
+        }
+
+        internal static bool ContinueWolffDeWardtFromParentHistory(
+            List<SurveyStation> parentHistory,
+            List<SurveyStation> childStations,
+            OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument childTool)
+        {
+            List<SurveyStation> orderedChild = childStations
+                .Where(station => (station.MD ?? station.Abscissa) is double md && Numeric.IsDefined(md))
+                .OrderBy(station => station.MD ?? station.Abscissa)
+                .ToList();
+            if (orderedChild.Count == 0 ||
+                (orderedChild[0].MD ?? orderedChild[0].Abscissa) is not double childStartMd ||
+                (parentHistory[^1].MD ?? parentHistory[^1].Abscissa) is not double parentEndMd)
+            {
+                return false;
+            }
+
+            List<SurveyStation> replay = parentHistory;
+            int parentEndIndex = replay.Count - 1;
+            for (int index = 1; index < orderedChild.Count; index++)
+            {
+                double childMd = (orderedChild[index].MD ?? orderedChild[index].Abscissa)!.Value;
+                SurveyStation copy = CloneSurveyStation(orderedChild[index]);
+                copy.MD = parentEndMd + childMd - childStartMd;
+                copy.Abscissa = copy.MD;
+                copy.SurveyTool = childTool;
+                ClearUncertainty(copy);
+                replay.Add(copy);
+            }
+
+            if (!CovarianceCalculatorWolffDeWardt.Calculate(replay))
+            {
+                return false;
+            }
+
+            CopyUncertainty(replay[parentEndIndex], orderedChild[0]);
+            for (int index = 1; index < orderedChild.Count; index++)
+            {
+                CopyUncertainty(replay[parentEndIndex + index], orderedChild[index]);
+            }
+            return true;
+        }
+
+        private async Task<List<SurveyStation>?> BuildWolffDeWardtParentHistoryAsync(
+            SurveyRun childSurveyRun,
+            HashSet<Guid> visited)
+        {
+            if (childSurveyRun.ParentSurveyRunID is not Guid parentId || parentId == Guid.Empty || !visited.Add(parentId))
+            {
+                return null;
+            }
+
+            SurveyRun? parentSurveyRun = GetSurveyRunById(parentId);
+            if (parentSurveyRun?.SurveyStationList is not { Count: > 1 })
+            {
+                return null;
+            }
+
+            double? parentTieInMd = await ResolveParentTieInMdForUncertaintyAsync(childSurveyRun, parentSurveyRun);
+            return parentTieInMd is double tieInMd
+                ? await BuildWolffDeWardtHistoryAsync(parentSurveyRun, tieInMd, visited)
+                : null;
+        }
+
+        private async Task<List<SurveyStation>?> BuildWolffDeWardtHistoryAsync(
+            SurveyRun surveyRun,
+            double cutoffMd,
+            HashSet<Guid> visited)
+        {
+            List<SurveyStation>? ancestorHistory = null;
+            if (surveyRun.ParentSurveyRunID is Guid parentId && parentId != Guid.Empty)
+            {
+                ancestorHistory = await BuildWolffDeWardtParentHistoryAsync(surveyRun, visited);
+                if (ancestorHistory is not { Count: > 0 })
+                {
+                    return null;
+                }
+            }
+
+            List<SurveyStation> available = surveyRun.SurveyStationList!
+                .Where(station => (station.MD ?? station.Abscissa) is double md && Numeric.IsDefined(md))
+                .OrderBy(station => station.MD ?? station.Abscissa)
+                .ToList();
+            if (surveyRun.BitExtrapolation != null && available.Count > 1)
+            {
+                available.RemoveAt(available.Count - 1);
+            }
+            if (available.Count < 2 ||
+                (available[0].MD ?? available[0].Abscissa) is not double firstMd ||
+                Numeric.LT(cutoffMd, firstMd))
+            {
+                return null;
+            }
+
+            List<SurveyStation> segment = available
+                .Where(station => Numeric.LE((station.MD ?? station.Abscissa)!.Value, cutoffMd))
+                .Select(CloneSurveyStation)
+                .ToList();
+            double lastAvailableMd = (available[^1].MD ?? available[^1].Abscissa)!.Value;
+            if (Numeric.GT(cutoffMd, lastAvailableMd))
+            {
+                const double maxTieInGap = 10.0;
+                if (Numeric.GT(cutoffMd - lastAvailableMd, maxTieInGap))
+                {
+                    return null;
+                }
+                SurveyStation extendedTieIn = CloneSurveyStation(available[^1]);
+                extendedTieIn.MD = cutoffMd;
+                extendedTieIn.Abscissa = cutoffMd;
+                segment.Add(extendedTieIn);
+            }
+            else if (Numeric.LT(cutoffMd, lastAvailableMd) &&
+                (segment.Count == 0 || !Numeric.EQ((segment[^1].MD ?? segment[^1].Abscissa)!.Value, cutoffMd)))
+            {
+                if (!SurveyStation.InterpolateAtAbscissa(available, cutoffMd, out SurveyStation? tieIn, surveyRun.CalculationType) ||
+                    tieIn == null)
+                {
+                    return null;
+                }
+                tieIn.MD = cutoffMd;
+                tieIn.Abscissa = cutoffMd;
+                segment.Add(tieIn);
+            }
+            if (segment.Count == 0)
+            {
+                return null;
+            }
+
+            OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument? runTool = segment
+                .Select(station => station.SurveyTool)
+                .LastOrDefault(tool => tool != null);
+            if (runTool == null)
+            {
+                OSDC.Drilling.Trajectory.ModelShared.SurveyInstrument? instrument;
+                try
+                {
+                    instrument = await APIUtils.ClientSurveyInstrument.GetSurveyInstrumentByIdAsync(surveyRun.SurveyInstrumentID);
+                }
+                catch (Exception ex)
+                {
+                    _logger.LogError(ex, "Impossible to retrieve the SurveyInstrument for parent SurveyRun {SurveyRunId}", surveyRun.MetaInfo?.ID);
+                    return null;
+                }
+                runTool = instrument == null ? null : ConvertSurveyInstrument(instrument);
+            }
+            if (runTool?.ModelType is not (SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt))
+            {
+                _logger.LogWarning("Parent SurveyRun {SurveyRunId} does not use a Wolff-de Wardt survey instrument", surveyRun.MetaInfo?.ID);
+                return null;
+            }
+            foreach (SurveyStation station in segment)
+            {
+                station.SurveyTool ??= runTool;
+                ClearUncertainty(station);
+            }
+            if (segment.Any(station => station.SurveyTool?.ModelType is not
+                    (SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt)))
+            {
+                _logger.LogWarning("Parent SurveyRun {SurveyRunId} contains an incompatible survey-instrument family", surveyRun.MetaInfo?.ID);
+                return null;
+            }
+
+            if (ancestorHistory is not { Count: > 0 })
+            {
+                return segment;
+            }
+
+            double ancestorEndMd = (ancestorHistory[^1].MD ?? ancestorHistory[^1].Abscissa)!.Value;
+            double segmentStartMd = (segment[0].MD ?? segment[0].Abscissa)!.Value;
+            foreach (SurveyStation station in segment.Skip(1))
+            {
+                double localMd = (station.MD ?? station.Abscissa)!.Value;
+                station.MD = ancestorEndMd + localMd - segmentStartMd;
+                station.Abscissa = station.MD;
+                ancestorHistory.Add(station);
+            }
+            return ancestorHistory;
+        }
+
+        private async Task<double?> ResolveParentTieInMdForUncertaintyAsync(SurveyRun child, SurveyRun parent)
+        {
+            if (child.WellBoreID == parent.WellBoreID)
+            {
+                return child.SurveyStationList?
+                    .Select(station => station.MD ?? station.Abscissa)
+                    .Where(md => md.HasValue && Numeric.IsDefined(md.Value))
+                    .Select(md => md!.Value)
+                    .DefaultIfEmpty(double.NaN)
+                    .Min() is double md && Numeric.IsDefined(md) ? md : null;
+            }
+
+            (_, OSDC.Drilling.Trajectory.ModelShared.WellBore? wellBore, string message) =
+                await APIUtils.GetReferencePointAsync(child.WellBoreID);
+            double? tieInMd = wellBore?.TieInPointAlongHoleDepth?.GaussianValue?.Mean;
+            if (tieInMd is not double value || !Numeric.IsDefined(value))
+            {
+                _logger.LogWarning("Unable to resolve parent tie-in MD for Wolff-de Wardt continuation: {Message}", message);
+                return null;
+            }
+            return value;
+        }
+
+        private static void ClearUncertainty(SurveyStation station)
+        {
+            station.Covariance = null;
+            station.Bias = null;
+            station.EigenValues = null;
+            station.EigenVectors = null;
+        }
+
+        private static void CopyUncertainty(SurveyStation source, SurveyStation target)
+        {
+            target.Covariance = source.Covariance;
+            target.Bias = source.Bias;
+            target.EigenValues = source.EigenValues;
+            target.EigenVectors = source.EigenVectors;
+        }
+
+        private static SurveyStation CloneSurveyStation(SurveyStation station)
+        {
+            string data = JsonSerializer.Serialize(station, JsonSettings.Options);
+            return JsonSerializer.Deserialize<SurveyStation>(data, JsonSettings.Options) ?? new SurveyStation();
         }
 
         private static List<SurveyMeasurement>? GetSurveyMeasurementList(SurveyRun surveyRun)

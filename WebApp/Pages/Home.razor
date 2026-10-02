@@ -27,7 +27,8 @@
                 <code>FieldID</code> chain, or from an upstream sidetrack point. Calculating a survey run turns the
                 observations into WGS84-geodetic/true-north <code>SurveyStation</code> records—position, inclination, and azimuth—calling Earth Gravity and Earth Magnetic Field when required. Once an
                 instrument error model is attached, calculation also produces an uncertainty covariance matrix using the minimum
-                curvature method.
+                curvature method. A tied Wolff-de Wardt run replays its complete parent-run chain through the tie-in,
+                including across a sidetrack that restarts measured depth, so its uncertainty ellipsoids remain continuous.
             </MudText>
             <MudText Typo="Typo.body1">
                 Every survey run can carry its own identity and feature assignments, drawn from the shared Trajectory
@@ -51,7 +52,8 @@
                 between its start abscissa and the next section's start (or the end of the well path for the last
                 section). Calculating a trajectory materializes the combined <code>SurveyStationList</code> across
                 all sections, so a single trajectory can represent a planned path spliced from several actual runs,
-                a re-run replacing part of an earlier survey, or a sidetrack continuing from its parent.
+                a re-run replacing part of an earlier survey, or a sidetrack continuing from its parent. The materialized
+                stations preserve the continued uncertainty calculated by their source survey runs.
             </MudText>
             <MudText Typo="Typo.body1">
                 Like survey runs, trajectories belong to a <code>WellBoreID</code> and its Well/Cluster/Field chain,
@@ -73,14 +75,17 @@
         Wolff–de Wardt model). From that covariance, a <MudLink Href="/Trajectory/webapp/TrajectoryInterpolated">
         station-ellipse calculation</MudLink> derives horizontal, vertical, and perpendicular uncertainty ellipses at
         a caller-chosen <b>confidence factor</b> (95% by default), together with the highest- and lowest-TVD paths
-        the true wellbore position could plausibly follow.
+        the true wellbore position could plausibly follow. Resource-owned ellipse views identify their SurveyRun or
+        Trajectory so the service can replay complete parent ancestry and replace legacy or partial covariance before
+        display; a partial Wolff–de Wardt list is never continued from covariance alone.
     </MudText>
     <MudText Typo="Typo.body1">
         The same covariance field underlies <b>trajectory realization</b>: a realization case draws a requested
         number of alternative wellbore paths from the uncertainty distribution around a reference trajectory
         (optionally coarsened first for performance), completes each with minimum curvature, and stores the results
         as chunked lists of realized survey points — useful for Monte-Carlo style visualization of where the actual
-        wellbore could plausibly be.
+        wellbore could plausibly be. Realization generation uses the same lineage-aware rematerialization and fails
+        closed when the reference trajectory's uncertainty ancestry cannot be reconstructed.
     </MudText>
 </MudPaper>
 

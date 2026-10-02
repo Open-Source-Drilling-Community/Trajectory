@@ -32,6 +32,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         private static TrajectoryManager? _instance = null;
         private readonly ILogger<TrajectoryManager> _logger;
         private readonly SqlConnectionManager _connectionManager;
+        private readonly SurveyRunManager _surveyRunManager;
         private OctreeManager? _octreeManager;
         private const string SurveyStationOwnerType = "Trajectory";
         private const string SurveyRunStationOwnerType = "SurveyRun";
@@ -40,6 +41,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         {
             _logger = logger;
             _connectionManager = connectionManager;
+            _surveyRunManager = SurveyRunManager.GetInstance(
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<SurveyRunManager>.Instance,
+                connectionManager);
         }
 
         public static TrajectoryManager GetInstance(ILogger<TrajectoryManager> logger, SqlConnectionManager connectionManager,
@@ -925,7 +929,18 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         /// <summary>
         /// Performs trajectory calculation without persisting the result.
         /// </summary>
-        public async Task<Model.Trajectory?> CalculateTrajectoryAsync(Model.Trajectory? trajectory)
+        public async Task<Model.Trajectory?> CalculateTrajectoryAsync(
+            Model.Trajectory? trajectory,
+            bool recalculateSurveyRunUncertainty = false) =>
+            await CalculateTrajectoryAsync(
+                trajectory,
+                recalculateSurveyRunUncertainty,
+                []);
+
+        private async Task<Model.Trajectory?> CalculateTrajectoryAsync(
+            Model.Trajectory? trajectory,
+            bool recalculateSurveyRunUncertainty,
+            HashSet<Guid> visitedTrajectoryIds)
         {
             try
             {
@@ -934,7 +949,12 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     _logger.LogWarning("The Trajectory or its WellBoreID is null or empty");
                     return null;
                 }
-                if (!await MaterializeSurveyRunSectionsAsync(trajectory))
+                if (trajectory.MetaInfo.ID != Guid.Empty && !visitedTrajectoryIds.Add(trajectory.MetaInfo.ID))
+                {
+                    _logger.LogWarning("A cycle was detected while reconstructing the Trajectory uncertainty lineage");
+                    return null;
+                }
+                if (!await MaterializeSurveyRunSectionsAsync(trajectory, recalculateSurveyRunUncertainty))
                 {
                     _logger.LogWarning("Impossible to materialize survey run sections for the given Trajectory");
                     return null;
@@ -949,7 +969,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
                 _logger.LogInformation(msg);
                 // manage the possible case of a sidetrack
-                if (await GetTieInPointCoordinatesAsync(referencePoint, wellBore) is not { } tieInPoint)
+                if (await GetTieInPointCoordinatesAsync(
+                        referencePoint,
+                        wellBore,
+                        recalculateSurveyRunUncertainty,
+                        visitedTrajectoryIds) is not { } tieInPoint)
                 {
                     _logger.LogError("The tie-in point coordinates can not be evaluated");
                     return null;
@@ -1090,7 +1114,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         /// <param name="referencePoint">the Gaussian geodetic coordinates of the slot hosting the trajectory</param>
         /// <param name="wellBore">the hosting wellBore needed to compute the geodetic coordinates of the tie-in point (no need to test for nullity)</param>
         /// <returns>the uncertainty-aware geodetic coordinates of the tie-in point of the given trajectory</returns>
-        private async Task<SurveyStation?> GetTieInPointCoordinatesAsync(SurveyStation? referencePoint, WellBore wellBore)
+        private async Task<SurveyStation?> GetTieInPointCoordinatesAsync(
+            SurveyStation? referencePoint,
+            WellBore wellBore,
+            bool recalculateSurveyRunUncertainty,
+            HashSet<Guid> visitedTrajectoryIds)
         {
             await Task.Delay(1);
             try
@@ -1101,6 +1129,13 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                         wellBore.ParentWellBoreID is Guid parentWellBoreId && parentWellBoreId != Guid.Empty)
                     {
                         Model.Trajectory? parentTraj = GetTrajectoryByWellBoreId(parentWellBoreId);
+                        if (recalculateSurveyRunUncertainty)
+                        {
+                            parentTraj = await CalculateTrajectoryAsync(
+                                parentTraj,
+                                recalculateSurveyRunUncertainty: true,
+                                visitedTrajectoryIds);
+                        }
                         if (parentTraj?.SurveyStationList is { } stList)
                         {
                             if (SurveyStation.InterpolateAtAbscissa(stList, tieInMD, out SurveyStation? surveyPoint, parentTraj.CalculationType) &&
@@ -1139,7 +1174,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
         }
 
-        private async Task<bool> MaterializeSurveyRunSectionsAsync(Model.Trajectory trajectory)
+        private async Task<bool> MaterializeSurveyRunSectionsAsync(
+            Model.Trajectory trajectory,
+            bool recalculateSurveyRunUncertainty = false)
         {
             if (trajectory.SurveyRunSectionList is not { Count: > 0 } sections)
             {
@@ -1165,7 +1202,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 TrajectorySurveyRunSection section = sections[i];
                 double start = section.StartAbscissa;
                 double? end = i + 1 < sections.Count ? sections[i + 1].StartAbscissa : null;
-                Model.SurveyRun? surveyRun = GetSurveyRunById(section.SurveyRunID);
+                Model.SurveyRun? surveyRun = recalculateSurveyRunUncertainty
+                    ? await _surveyRunManager.GetSurveyRunWithRecalculatedUncertaintyAsync(section.SurveyRunID)
+                    : GetSurveyRunById(section.SurveyRunID);
 
                 if (surveyRun?.SurveyStationList is not { Count: > 0 } stations ||
                     surveyRun.WellBoreID != trajectory.WellBoreID ||

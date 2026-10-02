@@ -2682,6 +2682,106 @@
         }
       }
     },
+    "/SurveyStationEllipseCalculation/SurveyRun/{surveyRunId}": {
+      "post": {
+        "tags": [
+          "SurveyStationEllipseCalculation"
+        ],
+        "operationId": "PostSurveyRunSurveyStationEllipseCalculation",
+        "parameters": [
+          {
+            "name": "surveyRunId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyStationEllipseCalculation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyStationEllipseCalculation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyStationEllipseCalculation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyStationEllipseCalculation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyStationEllipseCalculation/Trajectory/{trajectoryId}": {
+      "post": {
+        "tags": [
+          "SurveyStationEllipseCalculation"
+        ],
+        "operationId": "PostTrajectorySurveyStationEllipseCalculation",
+        "parameters": [
+          {
+            "name": "trajectoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyStationEllipseCalculation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyStationEllipseCalculation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyStationEllipseCalculation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyStationEllipseCalculation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Trajectory/BatchExport": {
       "post": {
         "tags": [

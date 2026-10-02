@@ -8,7 +8,7 @@ This project is intended to validate the trajectory domain model and computation
 
 It is the unit-test project for model-level behavior.
 
-Model-level test coverage should include trajectory interpolation and trajectory realization behavior, especially coarsening, covariance-based realization generation, mirror-candidate selection, retry behavior, and minimum-curvature completion.
+Model-level test coverage includes trajectory interpolation, extrapolation, uncertainty continuity, composition, and trajectory realization behavior, especially coarsening, covariance-based realization generation, mirror-candidate selection, retry behavior, and minimum-curvature completion.
 
 ## Dependencies
 
@@ -34,4 +34,6 @@ dotnet test ModelTest/ModelTest.csproj
 
 ## Notes
 
-The project currently contains no discoverable test cases; `dotnet test` therefore reports that no tests are available. Model behavior is also exercised indirectly by service and anti-collision verification, but new model-level regression tests should be added here rather than relying only on integration coverage.
+`TrajectoryUncertaintyCompositionTests.cs` verifies that trajectory materialization preserves the parent tie-in covariance and the already-continued station covariance supplied by its SurveyRun sections.
+
+`SurveyStationEllipseCalculationTests.cs` verifies the confidence interval and ensures that a partial Wolff-de Wardt station list without its propagation history is rejected instead of being restarted from covariance alone.

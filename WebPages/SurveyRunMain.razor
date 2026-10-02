@@ -543,6 +543,7 @@
                     {
                         <SurveyStationEllipseTable SurveyStationList="@calculatedList"
                                                    SurveyInstrumentID="@surveyRun.SurveyInstrumentID"
+                                                   SourceSurveyRunID="@surveyRun.MetaInfo?.ID"
                                                    CalculationName="@($"{surveyRun.Name} uncertainty ellipses")"
                                                    EllipseResultsChanged="OnEllipseResultsChanged"
                                                    CalculationChanged="OnEllipseCalculationChanged" />

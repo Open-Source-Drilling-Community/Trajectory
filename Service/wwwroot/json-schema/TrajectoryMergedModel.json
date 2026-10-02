@@ -15856,6 +15856,106 @@
         }
       }
     },
+    "/SurveyStationEllipseCalculation/SurveyRun/{surveyRunId}": {
+      "post": {
+        "tags": [
+          "SurveyStationEllipseCalculation"
+        ],
+        "operationId": "PostSurveyRunSurveyStationEllipseCalculation",
+        "parameters": [
+          {
+            "name": "surveyRunId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyStationEllipseCalculation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyStationEllipseCalculation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyStationEllipseCalculation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyStationEllipseCalculation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyStationEllipseCalculation/Trajectory/{trajectoryId}": {
+      "post": {
+        "tags": [
+          "SurveyStationEllipseCalculation"
+        ],
+        "operationId": "PostTrajectorySurveyStationEllipseCalculation",
+        "parameters": [
+          {
+            "name": "trajectoryId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyStationEllipseCalculation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyStationEllipseCalculation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/SurveyStationEllipseCalculation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyStationEllipseCalculation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/TrajectoryExtrapolationCase": {
       "get": {
         "tags": [
@@ -29710,8 +29810,13 @@
             "nullable": true
           },
           "ConfidenceFactor": {
+            "maximum": 0.999,
+            "minimum": 0.0,
             "type": "number",
-            "format": "double"
+            "description": "Dimensionless confidence proportion greater than 0 and no greater than 0.999.",
+            "format": "double",
+            "x-osdc-semantic": "ProportionStandard",
+            "x-si-unit": "1"
           },
           "PolicyEvaluationUtc": {
             "type": "string",
@@ -31523,8 +31628,13 @@
             "nullable": true
           },
           "ConfidenceFactor": {
+            "maximum": 0.999,
+            "minimum": 0.0,
             "type": "number",
-            "format": "double"
+            "description": "Dimensionless confidence proportion greater than 0 and no greater than 0.999.",
+            "format": "double",
+            "x-osdc-semantic": "ProportionStandard",
+            "x-si-unit": "1"
           },
           "SurveyInstrumentID": {
             "type": "string",
@@ -35843,8 +35953,13 @@
             "nullable": true
           },
           "ConfidenceFactor": {
+            "maximum": 0.999,
+            "minimum": 0.0,
             "type": "number",
-            "format": "double"
+            "description": "Dimensionless confidence proportion greater than 0 and no greater than 0.999.",
+            "format": "double",
+            "x-osdc-semantic": "ProportionStandard",
+            "x-si-unit": "1"
           },
           "Rules": {
             "type": "array",
@@ -35874,8 +35989,13 @@
             "nullable": true
           },
           "ConfidenceFactor": {
+            "maximum": 0.999,
+            "minimum": 0.0,
             "type": "number",
-            "format": "double"
+            "description": "Dimensionless confidence proportion greater than 0 and no greater than 0.999.",
+            "format": "double",
+            "x-osdc-semantic": "ProportionStandard",
+            "x-si-unit": "1"
           },
           "Rules": {
             "type": "array",

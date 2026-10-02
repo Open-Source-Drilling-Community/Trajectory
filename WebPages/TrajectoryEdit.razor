@@ -232,6 +232,7 @@
             else if (traj.SurveyStationList is { Count: > 0 } calculatedList)
             {
                 <SurveyStationEllipseTable SurveyStationList="@calculatedList"
+                                           SourceTrajectoryID="@traj.MetaInfo?.ID"
                                            CalculationName="@($"{traj.Name} uncertainty ellipses")"
                                            EllipseResultsChanged="OnEllipseResultsChanged"
                                            CalculationChanged="OnEllipseCalculationChanged" />

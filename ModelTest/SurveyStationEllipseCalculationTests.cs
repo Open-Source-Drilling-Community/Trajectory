@@ -67,7 +67,7 @@ public sealed class SurveyStationEllipseCalculationTests
     }
 
     [Test]
-    public void Missing_extrapolated_covariances_continue_from_the_first_station_with_its_instrument()
+    public void Partial_wolff_de_wardt_covariance_without_history_is_rejected()
     {
         SymmetricMatrix3x3 covariance = new();
         covariance[0, 0] = 4.0;
@@ -106,12 +106,12 @@ public sealed class SurveyStationEllipseCalculationTests
             SurveyStationList = [start, end]
         };
 
-        Assert.That(calculation.Calculate(), Is.True, calculation.CalculationMessage);
+        Assert.That(calculation.Calculate(), Is.False);
         Assert.Multiple(() =>
         {
             Assert.That(end.SurveyTool, Is.SameAs(instrument));
-            Assert.That(end.Covariance, Is.Not.Null);
-            Assert.That(calculation.SurveyStationEllipseResultList, Has.Count.EqualTo(2));
+            Assert.That(end.Covariance, Is.Null);
+            Assert.That(calculation.CalculationMessage, Does.Contain("cannot be continued from covariance alone"));
         });
     }
 }

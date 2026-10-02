@@ -22,6 +22,8 @@ It is the main implementation project behind the Trajectory service. It does not
 
 Persisted and wire-level engineering quantities use SI units. Depths and vertical coordinates are metres relative to WGS84; alternative depth references are UI presentation transformations and must be converted back before persistence.
 
+`SurveyStationEllipseCalculation` accepts a complete standalone station history or stations whose covariance is already complete. A partial Wolff-de Wardt station list is rejected because its terminal covariance does not contain the non-persisted transfer matrix needed for continuation. Resource-owned calculations use the service's SurveyRun- or Trajectory-specific endpoints, which reconstruct the complete lineage before invoking this model.
+
 Field, Cluster, Well, WellBore, WellBore Architecture, Rig, and Survey Instrument identifiers are identifiers owned by other microservices. The model carries those UUIDs without embedding the external resources. Trajectory and SurveyRun validation/audit result types report confirmed missing references separately from an unavailable dependency.
 
 `OctreeSearchJobRequest`, `OctreeSearchJobStatus`, and `OctreeSearchJobResult` support the non-blocking anti-collision candidate scan. A request identifies one reference trajectory and its planned/actual/definitive filters. Status carries a server-generated job UUID, state, measured progress, stage message, and terminal candidate count; the terminal result contains unique overlapping trajectory UUIDs. This state is transient and derived—the service owns queueing, retention, and validation.
@@ -49,7 +51,7 @@ A SurveyRun may define a complete UTC acquisition interval for historical files.
 
 Trajectory realization generation is implemented by `TrajectoryRealizationCase`.
 
-A realization case references a trajectory, selects a number of realizations, and uses the wellbore position uncertainty covariance matrices on the survey stations to generate possible trajectory geometries. The reference trajectory can be coarsened before realization generation using `CoarseningMaximumDistance`, which defaults to `0.1` m.
+A realization case references a trajectory, selects a number of realizations, and uses the wellbore position uncertainty covariance matrices on the survey stations to generate possible trajectory geometries. Before model calculation, the service rematerializes the trajectory from SurveyRuns whose complete uncertainty ancestry has been replayed; it fails closed if that lineage cannot be reconstructed. The reference trajectory can be coarsened before realization generation using `CoarseningMaximumDistance`, which defaults to `0.1` m.
 
 Each realization is generated from one normalized Gaussian draw. The draw is applied in the local covariance frame of each survey station. The resulting points are completed into `MD`, inclination, and azimuth using the minimum curvature method, then the full trajectory is recalculated from `MD`, inclination, and azimuth so derived values such as vertical section, DLS, BUR, and TUR are populated.
 

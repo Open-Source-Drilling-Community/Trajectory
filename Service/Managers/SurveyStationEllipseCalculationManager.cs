@@ -16,11 +16,19 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         private static SurveyStationEllipseCalculationManager? _instance;
         private readonly ILogger<SurveyStationEllipseCalculationManager> _logger;
         private readonly SqlConnectionManager _connectionManager;
+        private readonly SurveyRunManager _surveyRunManager;
+        private readonly TrajectoryManager _trajectoryManager;
 
         private SurveyStationEllipseCalculationManager(ILogger<SurveyStationEllipseCalculationManager> logger, SqlConnectionManager connectionManager)
         {
             _logger = logger;
             _connectionManager = connectionManager;
+            _surveyRunManager = SurveyRunManager.GetInstance(
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<SurveyRunManager>.Instance,
+                connectionManager);
+            _trajectoryManager = TrajectoryManager.GetInstance(
+                Microsoft.Extensions.Logging.Abstractions.NullLogger<TrajectoryManager>.Instance,
+                connectionManager);
         }
 
         public static SurveyStationEllipseCalculationManager GetInstance(ILogger<SurveyStationEllipseCalculationManager> logger, SqlConnectionManager connectionManager)
@@ -124,13 +132,35 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
         }
 
-        public async Task<SurveyStationEllipseCalculation?> AddSurveyStationEllipseCalculationAsync(SurveyStationEllipseCalculation? calculation)
+        public Task<SurveyStationEllipseCalculation?> AddSurveyStationEllipseCalculationAsync(
+            SurveyStationEllipseCalculation? calculation) =>
+            AddSurveyStationEllipseCalculationAsync(calculation, null, null);
+
+        public async Task<SurveyStationEllipseCalculation?> AddSurveyStationEllipseCalculationAsync(
+            SurveyStationEllipseCalculation? calculation,
+            Guid? sourceSurveyRunId,
+            Guid? sourceTrajectoryId)
         {
             try
             {
                 if (calculation == null)
                 {
                     _logger.LogWarning("The SurveyStationEllipseCalculation is null");
+                    return null;
+                }
+
+                if (sourceSurveyRunId is Guid surveyRunId && surveyRunId != Guid.Empty &&
+                    sourceTrajectoryId is Guid trajectoryId && trajectoryId != Guid.Empty)
+                {
+                    calculation.SetCalculationMessage("Specify either a source SurveyRun or a source Trajectory, not both.");
+                    return null;
+                }
+
+                if (!await ApplyAuthoritativeSourceUncertaintyAsync(
+                        calculation,
+                        sourceSurveyRunId,
+                        sourceTrajectoryId))
+                {
                     return null;
                 }
 
@@ -207,6 +237,104 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 _logger.LogError(ex, "Unexpected error during SurveyStationEllipseCalculation");
                 return null;
             }
+        }
+
+        private async Task<bool> ApplyAuthoritativeSourceUncertaintyAsync(
+            SurveyStationEllipseCalculation calculation,
+            Guid? sourceSurveyRunId,
+            Guid? sourceTrajectoryId)
+        {
+            if (sourceSurveyRunId is Guid surveyRunId && surveyRunId != Guid.Empty)
+            {
+                SurveyRun? source = await _surveyRunManager.GetSurveyRunWithRecalculatedUncertaintyAsync(surveyRunId);
+                if (source?.SurveyStationList is not { Count: > 0 } stations)
+                {
+                    calculation.SetCalculationMessage("The source SurveyRun uncertainty lineage could not be reconstructed.");
+                    return false;
+                }
+
+                return ApplyAuthoritativeUncertainty(
+                    calculation,
+                    stations,
+                    source.CalculationType,
+                    "SurveyRun");
+            }
+
+            if (sourceTrajectoryId is Guid trajectoryId && trajectoryId != Guid.Empty)
+            {
+                Model.Trajectory? source = _trajectoryManager.GetTrajectoryById(trajectoryId);
+                source = await _trajectoryManager.CalculateTrajectoryAsync(
+                    source,
+                    recalculateSurveyRunUncertainty: true);
+                if (source?.SurveyStationList is not { Count: > 0 } stations)
+                {
+                    calculation.SetCalculationMessage("The source Trajectory uncertainty lineage could not be reconstructed.");
+                    return false;
+                }
+
+                return ApplyAuthoritativeUncertainty(
+                    calculation,
+                    stations,
+                    source.CalculationType,
+                    "Trajectory");
+            }
+
+            return true;
+        }
+
+        internal static bool ApplyAuthoritativeUncertainty(
+            SurveyStationEllipseCalculation calculation,
+            IReadOnlyCollection<SurveyStation> authoritativeStations,
+            TrajectoryCalculationType calculationType,
+            string sourceName)
+        {
+            List<SurveyStation> source = authoritativeStations
+                .Where(station => (station.MD ?? station.Abscissa) is double md &&
+                    OSDC.DotnetLibraries.General.Common.Numeric.IsDefined(md))
+                .OrderBy(station => station.MD ?? station.Abscissa)
+                .ToList();
+            if (source.Count == 0)
+            {
+                calculation.SetCalculationMessage($"The source {sourceName} has no usable survey stations.");
+                return false;
+            }
+
+            if (calculation.SurveyStationList is not { Count: > 0 } requestedStations)
+            {
+                calculation.SurveyStationList = source.Select(station => new SurveyStation(station)).ToList();
+                return true;
+            }
+
+            foreach (SurveyStation requested in requestedStations)
+            {
+                if ((requested.MD ?? requested.Abscissa) is not double requestedMd ||
+                    !OSDC.DotnetLibraries.General.Common.Numeric.IsDefined(requestedMd))
+                {
+                    calculation.SetCalculationMessage("Every requested survey station must define a finite measured depth.");
+                    return false;
+                }
+
+                SurveyStation? authoritative = source.FirstOrDefault(station =>
+                    OSDC.DotnetLibraries.General.Common.Numeric.EQ(
+                        (station.MD ?? station.Abscissa)!.Value,
+                        requestedMd));
+                if (authoritative == null &&
+                    (!SurveyStation.InterpolateAtAbscissa(source, requestedMd, out authoritative, calculationType) ||
+                     authoritative == null))
+                {
+                    calculation.SetCalculationMessage(
+                        $"Requested measured depth {requestedMd} is outside the source {sourceName}.");
+                    return false;
+                }
+
+                requested.SurveyTool = authoritative.SurveyTool;
+                requested.Covariance = authoritative.Covariance;
+                requested.Bias = authoritative.Bias;
+                requested.EigenValues = authoritative.EigenValues;
+                requested.EigenVectors = authoritative.EigenVectors;
+            }
+
+            return true;
         }
 
         private async Task<bool> AttachSurveyInstrumentIfNeededAsync(SurveyStationEllipseCalculation calculation)

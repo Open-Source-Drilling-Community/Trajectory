@@ -32769,6 +32769,164 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<SurveyStationEllipseCalculation> PostSurveyRunSurveyStationEllipseCalculationAsync(System.Guid surveyRunId, SurveyStationEllipseCalculation body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        {
+            if (surveyRunId == null)
+                throw new System.ArgumentNullException("surveyRunId");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.ByteArrayContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "SurveyStationEllipseCalculation/SurveyRun/{surveyRunId}"
+                    urlBuilder_.Append("SurveyStationEllipseCalculation/SurveyRun/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(surveyRunId, System.Globalization.CultureInfo.InvariantCulture)));
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<SurveyStationEllipseCalculation>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<SurveyStationEllipseCalculation> PostTrajectorySurveyStationEllipseCalculationAsync(System.Guid trajectoryId, SurveyStationEllipseCalculation body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        {
+            if (trajectoryId == null)
+                throw new System.ArgumentNullException("trajectoryId");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.ByteArrayContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "SurveyStationEllipseCalculation/Trajectory/{trajectoryId}"
+                    urlBuilder_.Append("SurveyStationEllipseCalculation/Trajectory/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(trajectoryId, System.Globalization.CultureInfo.InvariantCulture)));
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<SurveyStationEllipseCalculation>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<System.Collections.Generic.List<System.Guid>> GetAllTrajectoryExtrapolationCaseIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
         {
             var client_ = _httpClient;
@@ -47034,7 +47192,11 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public string ID { get; set; }
 
+        /// <summary>
+        /// Dimensionless confidence proportion greater than 0 and no greater than 0.999.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ConfidenceFactor")]
+        [System.ComponentModel.DataAnnotations.Range(0.0D, 0.999D)]
         public double ConfidenceFactor { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("PolicyEvaluationUtc")]
@@ -48765,7 +48927,11 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
+        /// <summary>
+        /// Dimensionless confidence proportion greater than 0 and no greater than 0.999.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ConfidenceFactor")]
+        [System.ComponentModel.DataAnnotations.Range(0.0D, 0.999D)]
         public double ConfidenceFactor { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyInstrumentID")]
@@ -53063,7 +53229,11 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// Dimensionless confidence proportion greater than 0 and no greater than 0.999.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ConfidenceFactor")]
+        [System.ComponentModel.DataAnnotations.Range(0.0D, 0.999D)]
         public double ConfidenceFactor { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Rules")]
@@ -53096,7 +53266,11 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Description")]
         public string Description { get; set; }
 
+        /// <summary>
+        /// Dimensionless confidence proportion greater than 0 and no greater than 0.999.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ConfidenceFactor")]
+        [System.ComponentModel.DataAnnotations.Range(0.0D, 0.999D)]
         public double ConfidenceFactor { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Rules")]
