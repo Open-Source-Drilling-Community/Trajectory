@@ -29871,6 +29871,12 @@
             "x-osdc-semantic": "ProportionStandard",
             "x-si-unit": "1"
           },
+          "RequestedPolicyAssignmentID": {
+            "type": "string",
+            "description": "Optional caller-selected Field anti-collision policy assignment UUID. Omit it to calculate separation factors without policy classification. The service validates that it belongs to the reference trajectory's Field and derives the applied assignment, immutable policy snapshot, confidence factor and classifications.",
+            "format": "uuid",
+            "nullable": true
+          },
           "PolicyEvaluationUtc": {
             "type": "string",
             "format": "date-time",

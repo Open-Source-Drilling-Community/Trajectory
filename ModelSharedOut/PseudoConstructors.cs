@@ -4599,6 +4599,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 			{
 				ID = "Default ID",
 				ConfidenceFactor = 0.0,
+				RequestedPolicyAssignmentID = null,
 				PolicyEvaluationUtc = DateTimeOffset.UtcNow,
 				PolicyAssignmentID = null,
 				PolicySnapshot = ConstructAntiCollisionPolicyRevision(),

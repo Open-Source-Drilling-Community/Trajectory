@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging.Abstractions;
 using OSDC.Drilling.GlobalAntiCollision;
+using OSDC.Drilling.Trajectory.Service;
 using OSDC.Drilling.Trajectory.Service.Managers;
 using OSDC.DotnetLibraries.General.DataManagement;
 
@@ -162,6 +163,57 @@ public sealed class AntiCollisionPolicyTests
                     Is.EqualTo(AntiCollisionPolicyDeleteResult.InUse));
                 Assert.That(manager.GetEffectiveAssignment(fieldId, DateTimeOffset.Parse("2026-03-01T00:00:00Z"))?.MetaInfo?.ID,
                     Is.EqualTo(assignment.MetaInfo!.ID));
+            });
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
+    }
+
+    [Test]
+    public void Requested_assignment_is_optional_and_must_belong_to_the_reference_field()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "trajectory-policy-selection", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        try
+        {
+            SqlConnectionManagerTrajectory database = new(Path.Combine(directory, "Trajectory.db"),
+                NullLogger<SqlConnectionManagerTrajectory>.Instance);
+            AntiCollisionPolicyManager manager = new(NullLogger<AntiCollisionPolicyManager>.Instance, database);
+            AntiCollisionPolicyRevision policy = Policy();
+            Guid fieldId = Guid.NewGuid();
+            FieldAntiCollisionPolicyAssignment assignment = Assignment(fieldId, policy.MetaInfo!.ID,
+                DateTimeOffset.Parse("2020-01-01T00:00:00Z"), null);
+            Assert.That(manager.AddRevision(policy), Is.True);
+            Assert.That(manager.AddAssignment(assignment), Is.True);
+
+            var noPolicy = new OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision { ConfidenceFactor = 0.8 };
+            var selected = new OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision
+            {
+                ConfidenceFactor = 0.8,
+                RequestedPolicyAssignmentID = assignment.MetaInfo!.ID
+            };
+            DateTimeOffset evaluated = DateTimeOffset.Parse("2026-10-02T10:00:00Z");
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(GlobalAntiCollisionCalculationWorker.TryApplyRequestedPolicy(manager, noPolicy,
+                    new OSDC.Drilling.Trajectory.Model.Trajectory { FieldID = fieldId }, evaluated, out string? noPolicyError), Is.True);
+                Assert.That(noPolicyError, Is.Null);
+                Assert.That(noPolicy.PolicySnapshot, Is.Null);
+
+                Assert.That(GlobalAntiCollisionCalculationWorker.TryApplyRequestedPolicy(manager, selected,
+                    new OSDC.Drilling.Trajectory.Model.Trajectory { FieldID = fieldId }, evaluated, out string? selectedError), Is.True);
+                Assert.That(selectedError, Is.Null);
+                Assert.That(selected.PolicyAssignmentID, Is.EqualTo(assignment.MetaInfo.ID));
+                Assert.That(selected.PolicySnapshot?.MetaInfo?.ID, Is.EqualTo(policy.MetaInfo.ID));
+                Assert.That(selected.ConfidenceFactor, Is.EqualTo(policy.ConfidenceFactor));
+
+                Assert.That(GlobalAntiCollisionCalculationWorker.TryApplyRequestedPolicy(manager, selected,
+                    new OSDC.Drilling.Trajectory.Model.Trajectory { FieldID = Guid.NewGuid() }, evaluated, out string? wrongFieldError), Is.False);
+                Assert.That(wrongFieldError, Does.Contain("does not belong"));
             });
         }
         finally

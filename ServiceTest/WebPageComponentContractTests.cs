@@ -606,6 +606,13 @@ public sealed class WebPageComponentContractTests
             Assert.That(policies.IndexOf("</MudUnitAndReferenceChoiceTag>", StringComparison.Ordinal),
                 Is.GreaterThan(policies.LastIndexOf("<MudInputWithUnit", StringComparison.Ordinal)));
             Assert.That(scan, Does.Contain("QuantityName=\"ProportionStandard\" QuantityLabel=\"Confidence factor\""));
+            Assert.That(scan, Does.Contain("Label=\"Field anti-collision policy assignment\""));
+            Assert.That(scan, Does.Contain("SearchFunc=\"SearchPolicyAssignmentsAsync\""));
+            Assert.That(scan, Does.Contain("ReadOnly=\"@(selectedPolicyAssignmentId_ != null)\""));
+            Assert.That(scan, Does.Contain("RequestedPolicyAssignmentID = selectedPolicyAssignmentId_"));
+            Assert.That(scan, Does.Contain("color:#ed6c02").And.Contain("color:#d32f2f"));
+            Assert.That(scan, Does.Contain("LineDashList=\"@PlotLineDashes\"").And.Contain("LineWidthList=\"@PlotLineWidths\""));
+            Assert.That(scan, Does.Contain("ProfileClassification.Alarm ? 5m : 2m"));
             Assert.That(ellipse, Does.Contain("confidenceFactor_ > 0.0 && confidenceFactor_ <= MaximumConfidenceFactor"));
             Assert.That(ellipse, Does.Contain("public bool ReadOnlyCalculation").And.Contain("public SurveyStationEllipseCalculation? ExternalCalculation"));
             Assert.That(ellipse, Does.Contain("confidenceFactor_ = ExternalCalculation.ConfidenceFactor"));

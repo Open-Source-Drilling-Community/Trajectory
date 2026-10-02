@@ -135,7 +135,11 @@ public sealed class GlobalAntiCollisionCalculationWorker : BackgroundService
             }
 
             DateTimeOffset policyEvaluationUtc = DateTimeOffset.UtcNow;
-            ApplyEffectivePolicy(value, referenceTrajectory, policyEvaluationUtc);
+            if (!TryApplyRequestedPolicy(policyManager_, value, referenceTrajectory, policyEvaluationUtc, out string? policyError))
+            {
+                UpdateState(value, GlobalAntiCollisionCalculationState.Failed, 0.0, policyError, true);
+                return;
+            }
 
             List<Model.Trajectory> comparisonTrajectories = GetComparisonTrajectories(value.ComparisonTrajectoryIDs);
             if (comparisonTrajectories.Count == 0)
@@ -234,21 +238,43 @@ public sealed class GlobalAntiCollisionCalculationWorker : BackgroundService
         }
     }
 
-    private void ApplyEffectivePolicy(GlobalAntiCollision.GlobalAntiCollision value,
-        Model.Trajectory? referenceTrajectory, DateTimeOffset evaluationUtc)
+    internal static bool TryApplyRequestedPolicy(AntiCollisionPolicyManager policyManager,
+        GlobalAntiCollision.GlobalAntiCollision value,
+        Model.Trajectory? referenceTrajectory, DateTimeOffset evaluationUtc, out string? error)
     {
-        value.PolicyEvaluationUtc = evaluationUtc;
+        error = null;
+        value.PolicyEvaluationUtc = null;
         value.PolicyAssignmentID = null;
         value.PolicySnapshot = null;
-        if (referenceTrajectory?.FieldID is not Guid fieldId || fieldId == Guid.Empty) return;
-        FieldAntiCollisionPolicyAssignment? assignment = policyManager_.GetEffectiveAssignment(fieldId, evaluationUtc);
-        if (assignment?.MetaInfo == null) return;
-        AntiCollisionPolicyRevision? policy = policyManager_.GetRevision(assignment.PolicyRevisionID);
+        if (value.RequestedPolicyAssignmentID is not Guid requestedAssignmentId)
+            return true;
+        if (referenceTrajectory?.FieldID is not Guid fieldId || fieldId == Guid.Empty)
+        {
+            error = "The reference trajectory has no Field for the selected anti-collision policy assignment.";
+            return false;
+        }
+        FieldAntiCollisionPolicyAssignment? assignment = policyManager.GetAssignment(requestedAssignmentId);
+        if (assignment?.MetaInfo == null)
+        {
+            error = "The selected anti-collision policy assignment does not exist.";
+            return false;
+        }
+        if (assignment.FieldID != fieldId)
+        {
+            error = "The selected anti-collision policy assignment does not belong to the reference trajectory's Field.";
+            return false;
+        }
+        AntiCollisionPolicyRevision? policy = policyManager.GetRevision(assignment.PolicyRevisionID);
         if (policy == null || AntiCollisionPolicyValidation.Validate(policy).Count > 0)
-            throw new InvalidOperationException("The effective anti-collision policy revision is missing or invalid.");
+        {
+            error = "The selected anti-collision policy revision is missing or invalid.";
+            return false;
+        }
+        value.PolicyEvaluationUtc = evaluationUtc;
         value.PolicyAssignmentID = assignment.MetaInfo.ID;
         value.PolicySnapshot = policy;
         value.ConfidenceFactor = policy.ConfidenceFactor;
+        return true;
     }
 
     private void UpdateState(GlobalAntiCollision.GlobalAntiCollision value,

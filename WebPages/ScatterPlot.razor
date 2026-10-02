@@ -24,6 +24,10 @@
     [Parameter]
     public List<string>? ColorList { get; set; }
     [Parameter]
+    public List<string>? LineDashList { get; set; }
+    [Parameter]
+    public List<decimal?>? LineWidthList { get; set; }
+    [Parameter]
     public List<int?>? MarkerSizeList { get; set; }
     [Parameter]
     public List<bool>? ShowLegendList { get; set; }
@@ -287,6 +291,14 @@
             Line line = ColorList != null && i < ColorList.Count
                 ? new Line { Color = ColorList[i] }
                 : new Line();
+            if (LineDashList != null && i < LineDashList.Count)
+            {
+                line.Dash = LineDashList[i];
+            }
+            if (LineWidthList != null && i < LineWidthList.Count && LineWidthList[i].HasValue)
+            {
+                line.Width = LineWidthList[i];
+            }
 
             data.Add(new Scatter
             {
@@ -513,6 +525,8 @@
         AppendListSignature(builder, NameList);
         AppendListSignature(builder, ModeFlagList);
         AppendListSignature(builder, ColorList);
+        AppendListSignature(builder, LineDashList);
+        AppendListSignature(builder, LineWidthList);
         AppendListSignature(builder, MarkerSizeList);
         AppendListSignature(builder, ShowLegendList);
         AppendListSignature(builder, LegendGroupList);

@@ -39,6 +39,12 @@ namespace OSDC.Drilling.GlobalAntiCollision
         /// </summary>
         public double ConfidenceFactor { get; set; }
 
+        /// <summary>
+        /// Optional caller-selected Field anti-collision policy assignment. When omitted,
+        /// separation factors are calculated without policy classification.
+        /// </summary>
+        public Guid? RequestedPolicyAssignmentID { get; set; }
+
         /// <summary>Server-owned instant at which the Field policy assignment was resolved.</summary>
         public DateTimeOffset? PolicyEvaluationUtc { get; set; }
 
@@ -119,6 +125,7 @@ namespace OSDC.Drilling.GlobalAntiCollision
                 dest.ReferenceTrajectoryID = ReferenceTrajectoryID;
                 dest.ComparisonTrajectoryIDs = ComparisonTrajectoryIDs == null ? [] : [.. ComparisonTrajectoryIDs];
                 dest.ConfidenceFactor = ConfidenceFactor;
+                dest.RequestedPolicyAssignmentID = RequestedPolicyAssignmentID;
                 dest.PolicyEvaluationUtc = PolicyEvaluationUtc;
                 dest.PolicyAssignmentID = PolicyAssignmentID;
                 dest.PolicySnapshot = PolicySnapshot;

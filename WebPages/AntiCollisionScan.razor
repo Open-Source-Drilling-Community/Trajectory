@@ -56,6 +56,13 @@
                                 ReferenceDate="@referenceTrajectoryDate_" SelectedRigJobId="@selectedRigJobId_"
                                 SelectedRigJobIdChanged="OnRigJobIdChanged" SelectionChanged="OnRigJobChanged" />
             </MudItem>
+            <MudItem xs="12" md="8">
+                <MudAutocomplete T="Guid?" Value="@selectedPolicyAssignmentId_" ValueChanged="OnPolicyAssignmentChanged"
+                                 Label="Field anti-collision policy assignment" Placeholder="No anti-collision policy"
+                                 SearchFunc="SearchPolicyAssignmentsAsync" ToStringFunc="GetPolicyAssignmentName"
+                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0"
+                                 Disabled="@(selectedFieldId_ == null)" ShrinkLabel />
+            </MudItem>
         </MudGrid>
 
         <MudDivider Class="my-4" />
@@ -100,7 +107,7 @@
                 <div style="width: 190px; margin-left: 12px; margin-right: 12px;">
                     <MudInputWithUnitAdornment QuantityName="ProportionStandard" QuantityLabel="Confidence factor"
                                                SIValue="@confidenceFactor_" SIValueChanged="@OnConfidenceFactorChanged"
-                                               Immediate="true" />
+                                               ReadOnly="@(selectedPolicyAssignmentId_ != null)" Immediate="true" />
                 </div>
                 <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Calculate"
                            OnClick="@CalculateAsync" Disabled="@(!CanCalculate)">
@@ -109,8 +116,14 @@
             </MudToolBar>
 
             <MudText Typo="Typo.caption" Color="@(IsConfidenceFactorValid ? Color.Secondary : Color.Error)" Class="mb-2">
-                The confidence factor must be greater than 0 and no greater than 99.9%, the confidence used by the octree scan.
-                When the reference trajectory's Field has an effective anti-collision policy, its confidence factor overrides this value for the final separation calculation.
+                @if (selectedPolicyAssignmentId_ == null)
+                {
+                    <span>The confidence factor must be greater than 0 and no greater than 99.9%, the confidence used by the octree scan.</span>
+                }
+                else
+                {
+                    <span>The confidence factor is defined by the selected anti-collision policy revision and is read-only.</span>
+                }
             </MudText>
 
             @if (isCalculating_)
@@ -195,6 +208,13 @@
                     ? "All reference survey depths are shown; a dash means no separation calculation was needed for that trajectory at that depth."
                     : "Only reference depths having at least one calculated comparison are shown.")
             </MudText>
+            @if (calculationResult_.PolicySnapshot != null)
+            {
+                <MudText Typo="Typo.caption" Class="mb-3">
+                    Color convention: <span style="color:#ed6c02;font-weight:700">orange</span> values exceed the Alert level;
+                    <span style="color:#d32f2f;font-weight:700">red</span> values exceed the Alarm level.
+                </MudText>
+            }
 
             @if (resultTrajectoryIds_.Count == 0)
             {
@@ -215,7 +235,9 @@
                         <MudTd DataLabel="Reference MD">@FormatMeasuredDepth(context.ReferenceMD)</MudTd>
                         @foreach (Guid trajectoryId in resultTrajectoryIds_)
                         {
-                            <MudTd DataLabel="@GetTrajectoryName(trajectoryId)">@FormatSafetyFactor(context, trajectoryId)</MudTd>
+                            <MudTd DataLabel="@GetTrajectoryName(trajectoryId)">
+                                <span style="@GetSafetyFactorStyle(context, trajectoryId)">@FormatSafetyFactor(context, trajectoryId)</span>
+                            </MudTd>
                         }
                     </RowTemplate>
                 </MudTable>
@@ -237,7 +259,17 @@
                         : "The depth axis covers the union of all calculated separation intervals.")
                     Reference measured depth increases downward. Click a legend entry to show or hide every calculated interval for that trajectory.
                 </MudText>
+                @if (calculationResult_.PolicySnapshot != null)
+                {
+                    <MudText Typo="Typo.caption" Class="mb-3">
+                        Profile convention:
+                        <span style="display:inline-block;width:32px;border-top:2px dashed currentColor;vertical-align:middle"></span> no level exceeded;
+                        <span style="display:inline-block;width:32px;border-top:2px solid currentColor;vertical-align:middle"></span> Alert level exceeded;
+                        <span style="display:inline-block;width:32px;border-top:5px solid currentColor;vertical-align:middle"></span> Alarm level exceeded.
+                    </MudText>
+                }
                 <ScatterPlot NameList="@PlotNames" ModeFlagList="@PlotModes" ColorList="@PlotColors"
+                             LineDashList="@PlotLineDashes" LineWidthList="@PlotLineWidths"
                              ShowLegendList="@PlotShowLegend" LegendGroupList="@PlotLegendGroups" ToggleLegendGroups="true"
                              XValuesList="@PlotSafetyFactors" YValuesList="@PlotReferenceDepths"
                              PlotHeight="700"
@@ -265,12 +297,15 @@
     private List<Rig> rigs_ = [];
     private List<TrajectoryLight> trajectories_ = [];
     private List<SurveyRunLight> surveyRuns_ = [];
+    private List<AntiCollisionPolicyRevision> policyRevisions_ = [];
+    private List<FieldAntiCollisionPolicyAssignment> policyAssignments_ = [];
     private List<TrajectoryLight> candidateTrajectories_ = [];
     private readonly HashSet<Guid> selectedCandidateIds_ = [];
     private List<Guid> resultTrajectoryIds_ = [];
     private List<SafetyFactorTableRow> allTableRows_ = [];
     private List<SafetyFactorTableRow> condensedTableRows_ = [];
     private List<SafetyFactorPlotSeries> plotSeries_ = [];
+    private Dictionary<Guid, AntiCollisionPolicyEvaluation?> policyEvaluationsByTrajectory_ = [];
     private Trajectory? referenceTrajectory_;
     private GlobalAntiCollision? calculationResult_;
     private IEnumerable<SeparationFactorResult> PolicyEvaluations => calculationResult_?.SeparationFactorResults ?? [];
@@ -280,6 +315,7 @@
     private Guid? selectedWellBoreId_;
     private Guid? selectedReferenceTrajectoryId_;
     private Guid? selectedRigJobId_;
+    private Guid? selectedPolicyAssignmentId_;
     private DateTimeOffset? referenceTrajectoryDate_;
     private bool includePlanned_ = true;
     private bool includeActual_ = true;
@@ -287,6 +323,7 @@
     private bool showAllReferenceDepths_;
     private bool showWholeTrajectoryOnGraph_;
     private double confidenceFactor_ = DefaultConfidenceFactor;
+    private double manualConfidenceFactor_ = DefaultConfidenceFactor;
     private bool isLoading_;
     private bool isScanning_;
     private bool isCalculating_;
@@ -306,6 +343,8 @@
     private List<string> PlotNames => plotSeries_.Select(series => series.Name).ToList();
     private List<int> PlotModes => plotSeries_.Select(_ => 1).ToList();
     private List<string> PlotColors => plotSeries_.Select(series => series.Color).ToList();
+    private List<string> PlotLineDashes => plotSeries_.Select(series => series.LineDash).ToList();
+    private List<decimal?> PlotLineWidths => plotSeries_.Select(series => (decimal?)series.LineWidth).ToList();
     private List<bool> PlotShowLegend => plotSeries_.Select(series => series.ShowLegend).ToList();
     private List<string> PlotLegendGroups => plotSeries_.Select(series => series.TrajectoryID.ToString()).ToList();
     private List<List<object>> PlotSafetyFactors => plotSeries_.Select(series => series.Points.Select(point => (object)point.SafetyFactor).ToList()).ToList();
@@ -338,7 +377,9 @@
             Task<List<TrajectoryLight>> trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
             Task<List<SurveyRunLight>> surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
-            await Task.WhenAll(trajectoryTask, referenceDataTask, surveyRunTask);
+            Task<List<AntiCollisionPolicyRevision>> policyRevisionTask = Api.ClientTrajectory.GetAllAntiCollisionPolicyRevisionAsync();
+            Task<List<FieldAntiCollisionPolicyAssignment>> policyAssignmentTask = Api.ClientTrajectory.GetAllFieldAntiCollisionPolicyAssignmentAsync();
+            await Task.WhenAll(trajectoryTask, referenceDataTask, surveyRunTask, policyRevisionTask, policyAssignmentTask);
 
             TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
             fields_ = referenceData.Fields.ToList();
@@ -347,6 +388,8 @@
             wellBores_ = referenceData.WellBores.ToList();
             trajectories_ = (await trajectoryTask).OrderBy(item => item.Name).ToList();
             surveyRuns_ = (await surveyRunTask).OrderBy(item => item.Name).ToList();
+            policyRevisions_ = await policyRevisionTask;
+            policyAssignments_ = await policyAssignmentTask;
             rigs_ = referenceData.Rigs.ToList();
         }
         catch (Exception ex)
@@ -369,6 +412,7 @@
         selectedReferenceTrajectoryId_ = null;
         selectedRigJobId_ = null;
         referenceTrajectoryDate_ = null;
+        SelectDefaultPolicyAssignment();
         ResetScan();
         return Task.CompletedTask;
     }
@@ -397,6 +441,7 @@
             selectedClusterId_ = well.IsSingleWell ? null : well.ClusterID;
             selectedFieldId_ ??= FindFieldId(well);
         }
+        SelectDefaultPolicyAssignment();
         ResetScan();
         return Task.CompletedTask;
     }
@@ -446,6 +491,62 @@
 
     private Task<DateTimeOffset?> ResolveTrajectoryDateAsync(Guid? trajectoryId) =>
         TrajectoryRigJobDateResolver.ResolveAsync(Api, trajectoryId, trajectories_, surveyRuns_, Logger);
+
+    private IEnumerable<FieldAntiCollisionPolicyAssignment> AssignmentsForSelectedField => selectedFieldId_ is Guid fieldId
+        ? policyAssignments_.Where(assignment => assignment.FieldID == fieldId).OrderByDescending(assignment => assignment.ValidFromUtc)
+        : [];
+
+    private Task<IEnumerable<Guid?>> SearchPolicyAssignmentsAsync(string? text, CancellationToken _)
+    {
+        string? term = text?.Trim();
+        return Task.FromResult(AssignmentsForSelectedField
+            .Where(assignment => assignment.MetaInfo != null &&
+                (string.IsNullOrEmpty(term) || GetPolicyAssignmentName(assignment.MetaInfo.ID).Contains(term, StringComparison.OrdinalIgnoreCase)))
+            .Select(assignment => (Guid?)assignment.MetaInfo!.ID));
+    }
+
+    private string GetPolicyAssignmentName(Guid? id)
+    {
+        if (id is not Guid assignmentId) return string.Empty;
+        FieldAntiCollisionPolicyAssignment? assignment = policyAssignments_.FirstOrDefault(item => item.MetaInfo?.ID == assignmentId);
+        AntiCollisionPolicyRevision? revision = assignment == null
+            ? null
+            : policyRevisions_.FirstOrDefault(item => item.MetaInfo?.ID == assignment.PolicyRevisionID);
+        if (assignment == null || revision == null) return "Unavailable policy assignment";
+        string validTo = assignment.ValidToUtc?.ToString("yyyy-MM-dd") ?? "open";
+        return $"{revision.Name} · revision {revision.RevisionNumber} · {assignment.ValidFromUtc:yyyy-MM-dd} to {validTo}";
+    }
+
+    private void SelectDefaultPolicyAssignment()
+    {
+        DateTimeOffset now = DateTimeOffset.UtcNow;
+        selectedPolicyAssignmentId_ = AssignmentsForSelectedField.FirstOrDefault(assignment =>
+            assignment.ValidFromUtc <= now && (!assignment.ValidToUtc.HasValue || now < assignment.ValidToUtc.Value))?.MetaInfo?.ID;
+        ApplySelectedPolicyConfidence();
+    }
+
+    private void OnPolicyAssignmentChanged(Guid? id)
+    {
+        selectedPolicyAssignmentId_ = id;
+        ApplySelectedPolicyConfidence();
+        ResetResults();
+    }
+
+    private void ApplySelectedPolicyConfidence()
+    {
+        FieldAntiCollisionPolicyAssignment? assignment = selectedPolicyAssignmentId_ is Guid assignmentId
+            ? policyAssignments_.FirstOrDefault(item => item.MetaInfo?.ID == assignmentId && item.FieldID == selectedFieldId_)
+            : null;
+        AntiCollisionPolicyRevision? revision = assignment == null
+            ? null
+            : policyRevisions_.FirstOrDefault(item => item.MetaInfo?.ID == assignment.PolicyRevisionID);
+        if (revision != null) confidenceFactor_ = revision.ConfidenceFactor;
+        else
+        {
+            selectedPolicyAssignmentId_ = null;
+            confidenceFactor_ = manualConfidenceFactor_;
+        }
+    }
 
     private void OnIncludePlannedChanged(bool value)
     {
@@ -593,6 +694,7 @@
             {
                 ID = calculationId,
                 ConfidenceFactor = confidenceFactor_,
+                RequestedPolicyAssignmentID = selectedPolicyAssignmentId_,
                 ReferenceTrajectoryID = referenceId,
                 ReferenceWellPathID = Guid.Empty,
                 ComparisonTrajectoryIDs = selectedCandidateIds_.OrderBy(id => id).ToList(),
@@ -734,7 +836,10 @@
         List<double> calculatedDepths = factors.Values.SelectMany(values => values.Keys).Distinct().OrderBy(value => value).ToList();
         allTableRows_ = CreateTableRows(allDepths, factors);
         condensedTableRows_ = CreateTableRows(calculatedDepths, factors);
-        plotSeries_ = CreatePlotSeries(factors);
+        policyEvaluationsByTrajectory_ = results
+            .GroupBy(result => result.ComparisonTrajectoryID)
+            .ToDictionary(group => group.Key, group => (AntiCollisionPolicyEvaluation?)group.First().PolicyEvaluation);
+        plotSeries_ = CreatePlotSeries(factors, policyEvaluationsByTrajectory_);
     }
 
     private List<SafetyFactorTableRow> CreateTableRows(IEnumerable<double> depths,
@@ -752,7 +857,8 @@
     }
 
     private List<SafetyFactorPlotSeries> CreatePlotSeries(
-        IReadOnlyDictionary<Guid, Dictionary<double, double>> factors)
+        IReadOnlyDictionary<Guid, Dictionary<double, double>> factors,
+        IReadOnlyDictionary<Guid, AntiCollisionPolicyEvaluation?> evaluations)
     {
         var series = new List<SafetyFactorPlotSeries>();
         for (int trajectoryIndex = 0; trajectoryIndex < resultTrajectoryIds_.Count; trajectoryIndex++)
@@ -767,24 +873,31 @@
             List<SafetyFactorPlotPoint> current = [];
             bool firstSegment = true;
             double? previousDepth = null;
+            ProfileClassification? currentClassification = null;
+            evaluations.TryGetValue(trajectoryId, out AntiCollisionPolicyEvaluation? evaluation);
             foreach ((double depth, double safetyFactor) in values.OrderBy(entry => entry.Key))
             {
-                if (previousDepth.HasValue && depth - previousDepth.Value > splitThreshold && current.Count > 0)
+                ProfileClassification classification = Classify(safetyFactor, evaluation);
+                bool gap = previousDepth.HasValue && depth - previousDepth.Value > splitThreshold;
+                if ((gap || currentClassification != classification) && current.Count > 0)
                 {
-                    AddPlotSeries(series, trajectoryId, trajectoryIndex, current, firstSegment);
-                    current = [];
+                    SafetyFactorPlotPoint? transition = gap ? null : current[^1];
+                    AddPlotSeries(series, trajectoryId, trajectoryIndex, current, currentClassification!.Value, firstSegment);
+                    current = transition == null ? [] : [transition];
                     firstSegment = false;
                 }
                 current.Add(new SafetyFactorPlotPoint(depth, safetyFactor));
+                currentClassification = classification;
                 previousDepth = depth;
             }
-            AddPlotSeries(series, trajectoryId, trajectoryIndex, current, firstSegment);
+            if (currentClassification.HasValue)
+                AddPlotSeries(series, trajectoryId, trajectoryIndex, current, currentClassification.Value, firstSegment);
         }
         return series;
     }
 
     private void AddPlotSeries(List<SafetyFactorPlotSeries> target, Guid trajectoryId, int trajectoryIndex,
-        List<SafetyFactorPlotPoint> points, bool showLegend)
+        List<SafetyFactorPlotPoint> points, ProfileClassification classification, bool showLegend)
     {
         if (points.Count == 0)
         {
@@ -795,7 +908,19 @@
             GetTrajectoryName(trajectoryId),
             PlotPalette[trajectoryIndex % PlotPalette.Length],
             showLegend,
+            classification == ProfileClassification.Normal ? "dash" : "solid",
+            classification == ProfileClassification.Alarm ? 5m : 2m,
             points));
+    }
+
+    private static ProfileClassification Classify(double value, AntiCollisionPolicyEvaluation? evaluation)
+    {
+        if (evaluation?.State != AntiCollisionPolicyEvaluationState.Matched ||
+            evaluation.AlertThreshold is not double alert || evaluation.AlarmThreshold is not double alarm)
+            return ProfileClassification.Unclassified;
+        if (value < alarm) return ProfileClassification.Alarm;
+        if (value < alert) return ProfileClassification.Alert;
+        return ProfileClassification.Normal;
     }
 
     private static double CalculateSplitThreshold(IReadOnlyList<double> referenceDepths)
@@ -825,6 +950,7 @@
         allTableRows_ = [];
         condensedTableRows_ = [];
         plotSeries_ = [];
+        policyEvaluationsByTrajectory_ = [];
     }
 
     private void SelectAllCandidates()
@@ -841,6 +967,7 @@
     private void OnConfidenceFactorChanged(double value)
     {
         confidenceFactor_ = value;
+        if (selectedPolicyAssignmentId_ == null) manualConfidenceFactor_ = value;
         ResetResults();
     }
 
@@ -884,6 +1011,17 @@
         row.Values.TryGetValue(trajectoryId, out double? value) && value.HasValue
             ? unitReferenceTag_?.FromSI(value.Value, "DimensionLessStandard", false) ?? value.Value.ToString()
             : "-";
+    private string? GetSafetyFactorStyle(SafetyFactorTableRow row, Guid trajectoryId)
+    {
+        if (!row.Values.TryGetValue(trajectoryId, out double? value) || !value.HasValue) return null;
+        policyEvaluationsByTrajectory_.TryGetValue(trajectoryId, out AntiCollisionPolicyEvaluation? evaluation);
+        return Classify(value.Value, evaluation) switch
+        {
+            ProfileClassification.Alert => "color:#ed6c02;font-weight:700",
+            ProfileClassification.Alarm => "color:#d32f2f;font-weight:700",
+            _ => null
+        };
+    }
 
     private sealed class SafetyFactorTableRow
     {
@@ -892,6 +1030,8 @@
     }
 
     private sealed record SafetyFactorPlotPoint(double ReferenceMD, double SafetyFactor);
+    private enum ProfileClassification { Unclassified, Normal, Alert, Alarm }
     private sealed record SafetyFactorPlotSeries(Guid TrajectoryID, string Name, string Color, bool ShowLegend,
+        string LineDash, decimal LineWidth,
         List<SafetyFactorPlotPoint> Points);
 }

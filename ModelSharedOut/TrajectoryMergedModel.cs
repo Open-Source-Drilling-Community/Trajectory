@@ -47294,6 +47294,12 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.ComponentModel.DataAnnotations.Range(0.0D, 0.999D)]
         public double ConfidenceFactor { get; set; }
 
+        /// <summary>
+        /// Optional caller-selected Field anti-collision policy assignment UUID. Omit it to calculate separation factors without policy classification. The service validates that it belongs to the reference trajectory's Field and derives the applied assignment, immutable policy snapshot, confidence factor and classifications.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("RequestedPolicyAssignmentID")]
+        public System.Guid? RequestedPolicyAssignmentID { get; set; }
+
         [System.Text.Json.Serialization.JsonPropertyName("PolicyEvaluationUtc")]
         public System.DateTimeOffset? PolicyEvaluationUtc { get; set; }
 

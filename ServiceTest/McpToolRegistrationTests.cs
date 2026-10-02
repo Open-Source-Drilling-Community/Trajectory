@@ -408,6 +408,9 @@ public sealed class McpToolRegistrationTests
             Assert.That(properties.ContainsKey("PolicyEvaluationUtc"), Is.False);
             Assert.That(properties.ContainsKey("PolicyAssignmentID"), Is.False);
             Assert.That(properties.ContainsKey("PolicySnapshot"), Is.False);
+            Assert.That(properties.ContainsKey("RequestedPolicyAssignmentID"), Is.True);
+            Assert.That(properties["RequestedPolicyAssignmentID"]!["description"]!.GetValue<string>(),
+                Does.Contain("Omit it").And.Contain("reference trajectory's Field"));
             Assert.That(create.InputSchema["$defs"]!.AsObject().ContainsKey("SeparationFactorResult"), Is.False);
             Assert.That(create.OutputSchema.ToJsonString(), Does.Contain("GlobalAntiCollision"));
             Assert.That(update.OutputSchema.ToJsonString(), Does.Contain("GlobalAntiCollision"));
@@ -422,6 +425,7 @@ public sealed class McpToolRegistrationTests
                 Does.Contain("non-contiguous"));
             Assert.That(create.Description, Does.Contain("returns immediately"));
             Assert.That(create.Description, Does.Contain("relevant measured-depth intervals"));
+            Assert.That(create.Description, Does.Contain("RequestedPolicyAssignmentID").And.Contain("no policy classification"));
             Assert.That(update.Description, Does.Contain("route id and body ID must match"));
             Assert.That(status.Description, Does.Contain("lightweight"));
             Assert.That(get.Description, Does.Contain("SI metres"));

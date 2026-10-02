@@ -97,6 +97,8 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
             DescribeConfidenceFactor(schema,
                 (decimal)OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision.MaximumConfidenceFactor);
         }
+        if (context.Type == typeof(OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision))
+            Describe(schema, "RequestedPolicyAssignmentID", "Optional caller-selected Field anti-collision policy assignment UUID. Omit it to calculate separation factors without policy classification. The service validates that it belongs to the reference trajectory's Field and derives the applied assignment, immutable policy snapshot, confidence factor and classifications.");
 
         if (context.Type == typeof(AntiCollisionPolicyRule) &&
             schema.Properties.TryGetValue("Conditions", out OpenApiSchema? conditions))
