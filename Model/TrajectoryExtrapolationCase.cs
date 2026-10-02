@@ -56,7 +56,7 @@ namespace OSDC.Drilling.Trajectory.Model
 
     public class TrajectoryExtrapolationCase : TrajectoryExtrapolationCaseLight
     {
-        public const double DefaultInterpolationInterval = 30.0;
+        public const double DefaultInterpolationInterval = 10.0;
 
         /// <summary>Sampling interval in canonical SI metres along hole.</summary>
         public double InterpolationInterval { get; set; } = DefaultInterpolationInterval;

@@ -398,7 +398,7 @@ public static class DataUtils
             //generate only one curve for the current trajectory
             for (int k = 0; k < trajectoryList.Count; ++k)
             {
-                if (trajectoryList[k].SurveyStationList is { Count: > 2 } traj)
+                if (trajectoryList[k].SurveyStationList is { Count: > 1 } traj)
                 {
                     //////////////////////////////////////
                     /// Interpolated trajectory (lines) //
@@ -482,15 +482,19 @@ public static class DataUtils
 
     public static void AddExtremeTvdPathPlots(
         SurveyStationEllipseCalculation? calculation,
-        EllipsePlotData ellipsePlotData)
+        EllipsePlotData ellipsePlotData,
+        double? minimumAbscissa = null,
+        double? maximumAbscissa = null)
     {
         if (calculation == null)
         {
             return;
         }
 
-        AddExtremeTvdPathTrace(calculation.HighestTvdSurveyPointList, "Highest TVD path", "green", ellipsePlotData);
-        AddExtremeTvdPathTrace(calculation.LowestTvdSurveyPointList, "Lowest TVD path", "red", ellipsePlotData);
+        AddExtremeTvdPathTrace(calculation.HighestTvdSurveyPointList, "Highest TVD path", "green", ellipsePlotData,
+            minimumAbscissa, maximumAbscissa);
+        AddExtremeTvdPathTrace(calculation.LowestTvdSurveyPointList, "Lowest TVD path", "red", ellipsePlotData,
+            minimumAbscissa, maximumAbscissa);
     }
 
     private static IReadOnlyList<(SurveyStation Station, SurveyStationEllipseResult Result)> SelectEvenlySpacedEllipses(
@@ -659,7 +663,9 @@ public static class DataUtils
         ICollection<SurveyPoint>? path,
         string name,
         string color,
-        EllipsePlotData plotData)
+        EllipsePlotData plotData,
+        double? minimumAbscissa,
+        double? maximumAbscissa)
     {
         if (path is not { Count: > 1 })
         {
@@ -672,8 +678,25 @@ public static class DataUtils
         List<object> verticalSectionValues = [];
         foreach (SurveyPoint point in path)
         {
-            if (point == null ||
-                (point.X ?? point.RiemannianNorth) is not double north ||
+            if (point == null)
+            {
+                continue;
+            }
+            double? pathAbscissa = point.Abscissa;
+            if ((minimumAbscissa.HasValue || maximumAbscissa.HasValue) && !pathAbscissa.HasValue)
+            {
+                continue;
+            }
+            double abscissaTolerance = 1e-8 * System.Math.Max(1.0, System.Math.Abs(pathAbscissa ?? 0.0));
+            if (minimumAbscissa.HasValue && pathAbscissa!.Value < minimumAbscissa.Value - abscissaTolerance)
+            {
+                continue;
+            }
+            if (maximumAbscissa.HasValue && pathAbscissa!.Value > maximumAbscissa.Value + abscissaTolerance)
+            {
+                continue;
+            }
+            if ((point.X ?? point.RiemannianNorth) is not double north ||
                 (point.Y ?? point.RiemannianEast) is not double east ||
                 (point.Z ?? point.TVD) is not double tvd ||
                 (point.VerticalSection ?? point.Abscissa) is not double verticalSection)

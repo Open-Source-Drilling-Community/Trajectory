@@ -12,6 +12,14 @@ namespace OSDC.Drilling.Trajectory.ModelTest;
 public class TrajectoryExtrapolationCalculatorTests
 {
     [Test]
+    public void NewExtrapolationCaseUsesTenMetreInterpolationInterval()
+    {
+        TrajectoryExtrapolationCase calculation = new();
+
+        Assert.That(calculation.InterpolationInterval, Is.EqualTo(10.0));
+    }
+
+    [Test]
     public void FixedStraightExtensionStartsAtLastStationAndIncludesExactEnd()
     {
         TrajectoryModel source = SourceTrajectory(

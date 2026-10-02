@@ -5,15 +5,29 @@
 
 <MudPaper Class="pa-4 mt-4" Outlined="true">
     <MudToolBar>
-        <MudText Typo="Typo.h6">Uncertainty ellipses</MudText>
+        <MudText Typo="Typo.h6">@Title</MudText>
         <MudSpacer />
-        <div style="width: 190px;">
-            <MudInputWithUnitAdornment QuantityName="ProportionStandard" QuantityLabel="Confidence factor"
-                                       SIValue="@confidenceFactor_" SIValueChanged="OnConfidenceFactorChanged"
-                                       Immediate="true" />
-        </div>
-        <MudButton Class="ms-2" Color="Color.Primary" Variant="Variant.Outlined" OnClick="CalculateEllipsesAsync"
-                   Disabled="@(!CanCalculate || isCalculating_)">Calculate</MudButton>
+        @if (ReadOnlyCalculation)
+        {
+            @if (ExternalCalculation != null)
+            {
+                <MudText Typo="Typo.body2">Confidence factor: <MudSpanWithUnit QuantityName="ProportionStandard" SIValue="@confidenceFactor_" /></MudText>
+            }
+            else
+            {
+                <MudText Typo="Typo.caption">Calculated automatically with the extrapolated trajectory.</MudText>
+            }
+        }
+        else
+        {
+            <div style="width: 190px;">
+                <MudInputWithUnitAdornment QuantityName="ProportionStandard" QuantityLabel="Confidence factor"
+                                           SIValue="@confidenceFactor_" SIValueChanged="OnConfidenceFactorChanged"
+                                           Immediate="true" />
+            </div>
+            <MudButton Class="ms-2" Color="Color.Primary" Variant="Variant.Outlined" OnClick="CalculateEllipsesAsync"
+                       Disabled="@(!CanCalculate || isCalculating_)">Calculate</MudButton>
+        }
     </MudToolBar>
     @if (isCalculating_)
     {
@@ -82,6 +96,9 @@
     [Parameter] public Guid? SourceSurveyRunID { get; set; }
     [Parameter] public Guid? SourceTrajectoryID { get; set; }
     [Parameter] public string? CalculationName { get; set; }
+    [Parameter] public string Title { get; set; } = "Uncertainty ellipses";
+    [Parameter] public bool ReadOnlyCalculation { get; set; }
+    [Parameter] public SurveyStationEllipseCalculation? ExternalCalculation { get; set; }
     [Parameter] public EventCallback<ICollection<SurveyStationEllipseResult>> EllipseResultsChanged { get; set; }
     [Parameter] public EventCallback<SurveyStationEllipseCalculation?> CalculationChanged { get; set; }
 
@@ -91,10 +108,33 @@
     private List<SurveyPoint> highestTvdPath_ = [];
     private List<SurveyPoint> lowestTvdPath_ = [];
     private bool isCalculating_;
+    private SurveyStationEllipseCalculation? appliedExternalCalculation_;
 
     private bool IsConfidenceFactorValid => double.IsFinite(confidenceFactor_) &&
         confidenceFactor_ > 0.0 && confidenceFactor_ <= MaximumConfidenceFactor;
     private bool CanCalculate => SurveyStationList is { Count: > 0 } && IsConfidenceFactorValid;
+
+    protected override void OnParametersSet()
+    {
+        if (!ReadOnlyCalculation || ReferenceEquals(appliedExternalCalculation_, ExternalCalculation))
+        {
+            return;
+        }
+
+        appliedExternalCalculation_ = ExternalCalculation;
+        if (ExternalCalculation == null)
+        {
+            ellipseResults_ = [];
+            highestTvdPath_ = [];
+            lowestTvdPath_ = [];
+            return;
+        }
+
+        confidenceFactor_ = ExternalCalculation.ConfidenceFactor;
+        ellipseResults_ = ExternalCalculation.SurveyStationEllipseResultList?.ToList() ?? [];
+        highestTvdPath_ = ExternalCalculation.HighestTvdSurveyPointList?.ToList() ?? [];
+        lowestTvdPath_ = ExternalCalculation.LowestTvdSurveyPointList?.ToList() ?? [];
+    }
 
     private async Task OnConfidenceFactorChanged(double value)
     {

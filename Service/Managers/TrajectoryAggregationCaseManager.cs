@@ -359,7 +359,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error during trajectory aggregation case calculation");
-                UpdateCalculationState(id, CalculationState.Failed, 0.0, "Trajectory aggregation failed");
+                MarkCalculationFailed(id, "Trajectory aggregation failed unexpectedly");
             }
         }
 
@@ -498,6 +498,31 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             value.CalculationState = state;
             value.CalculationProgress = Math.Clamp(progress, 0.0, 1.0);
             value.CalculationMessage = message;
+            return InsertOrUpdateTrajectoryAggregationCase(value, true, replaceChunks: false);
+        }
+
+        private bool MarkCalculationFailed(Guid id, string message)
+        {
+            TrajectoryAggregationCase? value = GetTrajectoryAggregationCaseById(id, includeResults: false);
+            if (value == null)
+            {
+                return false;
+            }
+
+            value.CalculationState = CalculationState.Failed;
+            value.CalculationProgress = 0.0;
+            value.CalculationMessage = message;
+            value.LastModificationDate = DateTimeOffset.UtcNow;
+            foreach (TrajectoryAggregation child in value.TrajectoryAggregationList ?? [])
+            {
+                if (child.CalculationState != CalculationState.Completed)
+                {
+                    child.CalculationState = CalculationState.Failed;
+                    child.CalculationProgress = 0.0;
+                    child.CalculationMessage = message;
+                }
+            }
+
             return InsertOrUpdateTrajectoryAggregationCase(value, true, replaceChunks: false);
         }
 

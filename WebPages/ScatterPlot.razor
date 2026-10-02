@@ -68,6 +68,12 @@
     public bool YAxisReversed { get; set; }
 
     [Parameter]
+    public double? XAxisMinimum { get; set; }
+
+    [Parameter]
+    public double? XAxisMaximum { get; set; }
+
+    [Parameter]
     public double? YAxisMinimum { get; set; }
 
     [Parameter]
@@ -332,13 +338,25 @@
         for (int i = 0; i < layout.XAxis.Count; ++i)
         {
             layout.XAxis.ElementAt(i).Title.Text = ShowAxisTitles ? XAxisTitle + xUnitLabel : string.Empty;
-            layout.XAxis.ElementAt(i).AutoRange = XAxisReversed
-                ? Plotly.Blazor.LayoutLib.XAxisLib.AutoRangeEnum.Reversed
-                : Plotly.Blazor.LayoutLib.XAxisLib.AutoRangeEnum.True;
+            double? xMinimum = ConvertXAxisBound(XAxisMinimum);
+            double? xMaximum = ConvertXAxisBound(XAxisMaximum);
+            if (xMinimum.HasValue && xMaximum.HasValue && xMinimum.Value < xMaximum.Value)
+            {
+                layout.XAxis.ElementAt(i).AutoRange = Plotly.Blazor.LayoutLib.XAxisLib.AutoRangeEnum.False;
+                layout.XAxis.ElementAt(i).Range = XAxisReversed
+                    ? [xMaximum.Value, xMinimum.Value]
+                    : [xMinimum.Value, xMaximum.Value];
+            }
+            else
+            {
+                layout.XAxis.ElementAt(i).AutoRange = XAxisReversed
+                    ? Plotly.Blazor.LayoutLib.XAxisLib.AutoRangeEnum.Reversed
+                    : Plotly.Blazor.LayoutLib.XAxisLib.AutoRangeEnum.True;
+                layout.XAxis.ElementAt(i).Range = null;
+            }
             layout.XAxis.ElementAt(i).RangeMode = XAxisStartsAtZero
                 ? Plotly.Blazor.LayoutLib.XAxisLib.RangeModeEnum.ToZero
                 : Plotly.Blazor.LayoutLib.XAxisLib.RangeModeEnum.Normal;
-            layout.XAxis.ElementAt(i).Range = null;
             layout.XAxis.ElementAt(i).ShowGrid = ShowCartesianGrid;
         }
 
@@ -453,6 +471,20 @@
                 : Parent?.FromSI(value.Value, YUnit);
     }
 
+    private double? ConvertXAxisBound(double? value)
+    {
+        if (!value.HasValue || XUnit == null)
+        {
+            return null;
+        }
+
+        return XAxisUsesDepthReference
+            ? ConvertDepthForPlot(value.Value, XUnit)
+            : XAxisUsesPositionReference
+                ? ConvertPositionForPlot(value.Value, XUnit, XAxisPositionDirection)
+                : Parent?.FromSI(value.Value, XUnit);
+    }
+
     private string BuildPlotSignature()
     {
         StringBuilder builder = new();
@@ -464,6 +496,8 @@
             .Append(ShowAxisTitles).Append('|')
             .Append(XAxisReversed).Append('|')
             .Append(YAxisReversed).Append('|')
+            .Append(XAxisMinimum).Append('|')
+            .Append(XAxisMaximum).Append('|')
             .Append(YAxisMinimum).Append('|')
             .Append(YAxisMaximum).Append('|')
             .Append(XAxisStartsAtZero).Append('|')

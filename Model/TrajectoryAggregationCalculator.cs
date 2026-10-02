@@ -904,32 +904,28 @@ namespace OSDC.Drilling.Trajectory.Model
 
             private static List<int> EstimateEquivalents(List<(int Start, int End, double Mean)> periods, List<double> values)
             {
-                List<int> result = [];
-                int valueIndex = 0;
-                int idx = 0;
+                int[] result = Enumerable.Repeat(-1, values.Count).ToArray();
+                int equivalentIndex = 0;
                 foreach ((int start, int end, _) in periods)
                 {
-                    while (idx < start)
+                    for (int index = Math.Max(0, start); index <= Math.Min(values.Count - 1, end); index++)
                     {
-                        result.Add(valueIndex++);
-                        idx++;
+                        // Consecutive fitted periods may share their boundary sample. Keep the
+                        // later period, matching FillArray, without duplicating that sample.
+                        result[index] = equivalentIndex;
                     }
-
-                    for (int j = start; j <= end; j++)
-                    {
-                        result.Add(valueIndex);
-                        idx++;
-                    }
-                    valueIndex++;
+                    equivalentIndex++;
                 }
 
-                while (idx < values.Count)
+                for (int index = 0; index < result.Length; index++)
                 {
-                    result.Add(valueIndex++);
-                    idx++;
+                    if (result[index] < 0)
+                    {
+                        result[index] = equivalentIndex++;
+                    }
                 }
 
-                return result;
+                return result.ToList();
             }
 
             private static double?[] FillArray(int length, List<(int Start, int End, double Mean)> periods)

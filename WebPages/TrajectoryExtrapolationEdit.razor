@@ -99,7 +99,7 @@
     else if (value.Specification is ReconnectTrajectoryExtrapolationSpecification reconnect)
     {
         <MudGrid>
-            <MudItem xs="12" md="4"><MudSelect T="Guid" @bind-Value="reconnect.ReferenceTrajectoryID" Label="Reference trajectory">@foreach (TrajectoryLight item in ReferenceTrajectories) { <MudSelectItem Value="@item.MetaInfo.ID">@item.Name</MudSelectItem> }</MudSelect></MudItem>
+            <MudItem xs="12" md="4"><MudSelect T="Guid" Value="@reconnect.ReferenceTrajectoryID" ValueChanged="OnReconnectReferenceTrajectoryChanged" Label="Reference trajectory">@foreach (TrajectoryLight item in ReferenceTrajectories) { <MudSelectItem Value="@item.MetaInfo.ID">@item.Name</MudSelectItem> }</MudSelect></MudItem>
             <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Advance from closest reference point" QuantityName="DepthDrilling" SIValueNullable="@reconnect.ReferenceMDAdvance" SIValueNullableChanged="x => reconnect.ReferenceMDAdvance = x ?? 0" /></MudItem>
             <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Lead-in continuation" QuantityName="DepthDrilling" SIValueNullable="@reconnect.LeadInLength" SIValueNullableChanged="x => reconnect.LeadInLength = x ?? 0" /></MudItem>
             <MudItem xs="12" md="3"><MudSelect T="ExtrapolationCurveType" @bind-Value="reconnect.CurveType" Label="Double-section curve">@foreach (ExtrapolationCurveType type in Enum.GetValues<ExtrapolationCurveType>()) { <MudSelectItem Value="@type">@type</MudSelectItem> }</MudSelect></MudItem>
@@ -332,9 +332,97 @@
                     <MudTd DataLabel="Vertical section"><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.VerticalSection" /></MudTd>
                 </RowTemplate>
             </MudTable>
-            <SurveyStationEllipseTable SurveyStationList="@interpolatedExtrapolationStations"
-                                       UncertaintyPropagationHistory="@WolffDeWardtSourceHistory"
-                                       CalculationName="@($"{value.Name} extrapolated trajectory uncertainty ellipses")" />
+            <MudText Typo="Typo.body2" Class="mt-4 mb-1">
+                Calculating the extrapolated trajectory uncertainty also calculates the source and reconnect-target uncertainties at the same confidence factor.
+            </MudText>
+            <MudTabs Elevation="1" Rounded="true" ApplyEffectsToContainer="true" KeepPanelsAlive="true">
+                <MudTabPanel Text="Extrapolated trajectory">
+                    <SurveyStationEllipseTable Title="Extrapolated trajectory uncertainty ellipses"
+                                               SurveyStationList="@interpolatedExtrapolationStations"
+                                               UncertaintyPropagationHistory="@WolffDeWardtSourceHistory"
+                                               CalculationName="@($"{value.Name} extrapolated trajectory uncertainty ellipses")"
+                                               EllipseResultsChanged="OnExtrapolationEllipseResultsChanged"
+                                               CalculationChanged="OnExtrapolationEllipseCalculationChanged" />
+                </MudTabPanel>
+                <MudTabPanel Text="Source trajectory">
+                    <SurveyStationEllipseTable Title="Source trajectory uncertainty ellipses"
+                                               SurveyStationList="@sourceUncertaintyHistory"
+                                               SourceTrajectoryID="@SelectedSourceTrajectoryId"
+                                               CalculationName="@($"{SourceTrajectoryName} uncertainty ellipses")"
+                                               ReadOnlyCalculation="true"
+                                               ExternalCalculation="@sourceEllipseCalculation" />
+                </MudTabPanel>
+                @if (value.Specification is ReconnectTrajectoryExtrapolationSpecification reconnectEllipses &&
+                    reconnectEllipses.ReferenceTrajectoryID != Guid.Empty)
+                {
+                    <MudTabPanel Text="Reconnect trajectory">
+                        <SurveyStationEllipseTable Title="Reconnect trajectory uncertainty ellipses"
+                                                   SurveyStationList="@reconnectReferenceStations"
+                                                   SourceTrajectoryID="@reconnectEllipses.ReferenceTrajectoryID"
+                                                   CalculationName="@($"{ReconnectTrajectoryName} uncertainty ellipses")"
+                                                   ReadOnlyCalculation="true"
+                                                   ExternalCalculation="@reconnectEllipseCalculation" />
+                    </MudTabPanel>
+                }
+            </MudTabs>
+            <MudExpansionPanels Class="mt-4">
+                <MudExpansionPanel Text="Plot extrapolated trajectory" Style="overflow: visible;"
+                                   ExpandedChanged="OnPlotExpandedChanged">
+                    <MudToolBar>
+                        <MudText Typo="Typo.h6">Plot</MudText>
+                        <MudSpacer />
+                        <MudSwitch T="bool" Value="@focusPlotsOnExtrapolation"
+                                   ValueChanged="OnFocusPlotsOnExtrapolationChanged"
+                                   Label="Focus on extrapolation" Color="Color.Primary" />
+                        <MudNumericField T="int" Value="@maxDisplayedUncertaintiesInPlots"
+                                         ValueChanged="OnMaxDisplayedUncertaintiesInPlotsChanged"
+                                         Label="Max number of ellipses"
+                                         Min="1" Max="100000" Step="50" ShrinkLabel
+                                         Style="width: 180px;" />
+                    </MudToolBar>
+                    <MudGrid Justify="Justify.Center">
+                        <MudItem xs="12">
+                            <Scatter3DPlot @key="@($"extrapolation-3d-{focusPlotsOnExtrapolation}")"
+                                           NameList="@ThreeDNameList" ModeFlagList="@ThreeDModeFlagList" ColorList="@ThreeDColorList"
+                                           MarkerSizeList="@ThreeDMarkerSizeList" ShowLegendList="@ThreeDShowLegendList"
+                                           XValuesList="@ThreeDNorthValuesList" YValuesList="@ThreeDEastValuesList" ZValuesList="@ThreeDTvdValuesList"
+                                           YAxisReversed="@true" ZAxisReversed="@true"
+                                           PlotTitle="" XAxisTitle="@NorthCoordinateLabel" YAxisTitle="@EastCoordinateLabel" ZAxisTitle="TVD"
+                                           XUnit="PositionDrilling" YUnit="PositionDrilling" ZUnit="DepthDrilling"
+                                           XAxisUsesPositionReference="@true" YAxisUsesPositionReference="@true" ZAxisUsesDepthReference="@true"
+                                           XAxisMinimum="@(focusPlotsOnExtrapolation ? northPlotBounds.Minimum : null)" XAxisMaximum="@(focusPlotsOnExtrapolation ? northPlotBounds.Maximum : null)"
+                                           YAxisMinimum="@(focusPlotsOnExtrapolation ? eastPlotBounds.Minimum : null)" YAxisMaximum="@(focusPlotsOnExtrapolation ? eastPlotBounds.Maximum : null)"
+                                           ZAxisMinimum="@(focusPlotsOnExtrapolation ? tvdPlotBounds.Minimum : null)" ZAxisMaximum="@(focusPlotsOnExtrapolation ? tvdPlotBounds.Maximum : null)"
+                                           XAxisPositionDirection="@PositionDirectionType.North" YAxisPositionDirection="@PositionDirectionType.East" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <ScatterPlot @key="@($"extrapolation-horizontal-{focusPlotsOnExtrapolation}")"
+                                         NameList="@HorizontalNameList" ModeFlagList="@HorizontalModeFlagList" ColorList="@HorizontalColorList"
+                                         MarkerSizeList="@HorizontalMarkerSizeList" ShowLegendList="@HorizontalShowLegendList"
+                                         XValuesList="@HorizontalEastValuesList" YValuesList="@HorizontalNorthValuesList"
+                                         PlotTitle="" XAxisTitle="@EastCoordinateLabel" YAxisTitle="@NorthCoordinateLabel"
+                                         XUnit="PositionDrilling" YUnit="PositionDrilling"
+                                         XAxisUsesPositionReference="@true" YAxisUsesPositionReference="@true"
+                                         XAxisMinimum="@(focusPlotsOnExtrapolation ? eastPlotBounds.Minimum : null)" XAxisMaximum="@(focusPlotsOnExtrapolation ? eastPlotBounds.Maximum : null)"
+                                         YAxisMinimum="@(focusPlotsOnExtrapolation ? northPlotBounds.Minimum : null)" YAxisMaximum="@(focusPlotsOnExtrapolation ? northPlotBounds.Maximum : null)"
+                                         XAxisPositionDirection="@PositionDirectionType.East" YAxisPositionDirection="@PositionDirectionType.North"
+                                         AspectRatio="1" />
+                        </MudItem>
+                        <MudItem xs="12" md="6">
+                            <ScatterPlot @key="@($"extrapolation-vertical-{focusPlotsOnExtrapolation}")"
+                                         NameList="@VerticalNameList" ModeFlagList="@VerticalModeFlagList" ColorList="@VerticalColorList"
+                                         MarkerSizeList="@VerticalMarkerSizeList" ShowLegendList="@VerticalShowLegendList"
+                                         XValuesList="@VerticalSectionValuesList" YValuesList="@VerticalTvdValuesList"
+                                         PlotTitle="" XAxisTitle="Vertical Section" YAxisTitle="TVD"
+                                         XUnit="DepthDrilling" YUnit="DepthDrilling"
+                                         XAxisMinimum="@(focusPlotsOnExtrapolation ? verticalSectionPlotBounds.Minimum : null)" XAxisMaximum="@(focusPlotsOnExtrapolation ? verticalSectionPlotBounds.Maximum : null)"
+                                         YAxisMinimum="@(focusPlotsOnExtrapolation ? tvdPlotBounds.Minimum : null)" YAxisMaximum="@(focusPlotsOnExtrapolation ? tvdPlotBounds.Maximum : null)"
+                                         YAxisReversed="@true" YAxisUsesDepthReference="@true"
+                                         AspectRatio="1" />
+                        </MudItem>
+                    </MudGrid>
+                </MudExpansionPanel>
+            </MudExpansionPanels>
         }
         else
         {
@@ -364,6 +452,7 @@
     private SurveyStation? sourceLastSurveyStation;
     private SurveyInstrument? sourceLastDefinedSurveyTool;
     private readonly List<SurveyStation> sourceUncertaintyHistory = [];
+    private readonly List<SurveyStation> reconnectReferenceStations = [];
     private bool isLoadingSourceLastSurveyStation;
     private string? sourceLastSurveyStationError;
     private int sourceLastSurveyStationLoadVersion;
@@ -374,6 +463,29 @@
     private bool isExportingSurveyStations;
     private int loadedSurveyStationChunkCount;
     private int totalSurveyStationChunkCount;
+    private readonly List<string> plotNameList = [];
+    private readonly List<int> plotModeFlagList = [];
+    private readonly List<string> plotColorList = [];
+    private readonly List<List<object>> plotNorthValuesList = [];
+    private readonly List<List<object>> plotEastValuesList = [];
+    private readonly List<List<object>> plotTvdValuesList = [];
+    private readonly List<List<object>> plotVerticalSectionValuesList = [];
+    private readonly EllipsePlotData extrapolationEllipsePlotData = new();
+    private readonly EllipsePlotData sourceEllipsePlotData = new();
+    private readonly EllipsePlotData reconnectEllipsePlotData = new();
+    private List<SurveyStationEllipseResult> extrapolationEllipseResults = [];
+    private List<SurveyStationEllipseResult> sourceEllipseResults = [];
+    private List<SurveyStationEllipseResult> reconnectEllipseResults = [];
+    private SurveyStationEllipseCalculation? extrapolationEllipseCalculation;
+    private SurveyStationEllipseCalculation? sourceEllipseCalculation;
+    private SurveyStationEllipseCalculation? reconnectEllipseCalculation;
+    private int relatedEllipseCalculationVersion;
+    private int maxDisplayedUncertaintiesInPlots = 200;
+    private bool focusPlotsOnExtrapolation;
+    private PlotAxisBounds northPlotBounds = PlotAxisBounds.Empty;
+    private PlotAxisBounds eastPlotBounds = PlotAxisBounds.Empty;
+    private PlotAxisBounds tvdPlotBounds = PlotAxisBounds.Empty;
+    private PlotAxisBounds verticalSectionPlotBounds = PlotAxisBounds.Empty;
     private enum GeosteeringExtentChoice { Departure, SteeringLength }
     private enum WellPathResultValue
     {
@@ -403,6 +515,36 @@
             ? sourceUncertaintyHistory
             : null;
 
+    private IEnumerable<EllipsePlotData> EllipsePlotDataSets =>
+        [sourceEllipsePlotData, extrapolationEllipsePlotData, reconnectEllipsePlotData];
+
+    private List<string> HorizontalNameList => CombineMany([plotNameList, .. EllipsePlotDataSets.Select(data => data.HorizontalNameList)]);
+    private List<int> HorizontalModeFlagList => CombineMany([plotModeFlagList, .. EllipsePlotDataSets.Select(data => data.HorizontalModeFlagList)]);
+    private List<string> HorizontalColorList => CombineMany([plotColorList, .. EllipsePlotDataSets.Select(data => data.HorizontalColorList)]);
+    private List<int?> HorizontalMarkerSizeList => CombineMany([Enumerable.Repeat<int?>(null, plotNameList.Count), .. EllipsePlotDataSets.Select(data => data.HorizontalMarkerSizeList)]);
+    private List<bool> HorizontalShowLegendList => CombineMany([Enumerable.Repeat(true, plotNameList.Count), .. EllipsePlotDataSets.Select(data => data.HorizontalShowLegendList)]);
+    private List<List<object>> HorizontalEastValuesList => CombineMany([plotEastValuesList, .. EllipsePlotDataSets.Select(data => data.HorizontalEastValuesList)]);
+    private List<List<object>> HorizontalNorthValuesList => CombineMany([plotNorthValuesList, .. EllipsePlotDataSets.Select(data => data.HorizontalNorthValuesList)]);
+
+    private List<string> VerticalNameList => CombineMany([plotNameList, .. EllipsePlotDataSets.Select(data => data.VerticalNameList)]);
+    private List<int> VerticalModeFlagList => CombineMany([plotModeFlagList, .. EllipsePlotDataSets.Select(data => data.VerticalModeFlagList)]);
+    private List<string> VerticalColorList => CombineMany([plotColorList, .. EllipsePlotDataSets.Select(data => data.VerticalColorList)]);
+    private List<int?> VerticalMarkerSizeList => CombineMany([Enumerable.Repeat<int?>(null, plotNameList.Count), .. EllipsePlotDataSets.Select(data => data.VerticalMarkerSizeList)]);
+    private List<bool> VerticalShowLegendList => CombineMany([Enumerable.Repeat(true, plotNameList.Count), .. EllipsePlotDataSets.Select(data => data.VerticalShowLegendList)]);
+    private List<List<object>> VerticalSectionValuesList => CombineMany([plotVerticalSectionValuesList, .. EllipsePlotDataSets.Select(data => data.VerticalSectionValuesList)]);
+    private List<List<object>> VerticalTvdValuesList => CombineMany([plotTvdValuesList, .. EllipsePlotDataSets.Select(data => data.VerticalTvdValuesList)]);
+
+    private List<string> ThreeDNameList => CombineMany([plotNameList, .. EllipsePlotDataSets.Select(data => data.PerpendicularNameList)]);
+    private List<int> ThreeDModeFlagList => CombineMany([plotModeFlagList, .. EllipsePlotDataSets.Select(data => data.PerpendicularModeFlagList)]);
+    private List<string> ThreeDColorList => CombineMany([plotColorList, .. EllipsePlotDataSets.Select(data => data.PerpendicularColorList)]);
+    private List<int?> ThreeDMarkerSizeList => CombineMany([Enumerable.Repeat<int?>(null, plotNameList.Count), .. EllipsePlotDataSets.Select(data => data.PerpendicularMarkerSizeList)]);
+    private List<bool> ThreeDShowLegendList => CombineMany([Enumerable.Repeat(true, plotNameList.Count), .. EllipsePlotDataSets.Select(data => data.PerpendicularShowLegendList)]);
+    private List<List<object>> ThreeDNorthValuesList => CombineMany([plotNorthValuesList, .. EllipsePlotDataSets.Select(data => data.PerpendicularNorthValuesList)]);
+    private List<List<object>> ThreeDEastValuesList => CombineMany([plotEastValuesList, .. EllipsePlotDataSets.Select(data => data.PerpendicularEastValuesList)]);
+    private List<List<object>> ThreeDTvdValuesList => CombineMany([plotTvdValuesList, .. EllipsePlotDataSets.Select(data => data.PerpendicularTvdValuesList)]);
+
+    private static List<T> CombineMany<T>(IEnumerable<IEnumerable<T>> sequences) => sequences.SelectMany(sequence => sequence).ToList();
+
     protected override async Task OnInitializedAsync()
     {
         try
@@ -427,6 +569,10 @@
                 sourceReferenceDate = await ResolveSourceTrajectoryDateAsync(SelectedSourceTrajectoryId);
                 await UpdateSourceReferenceValuesAsync();
                 await LoadSourceLastSurveyStationAsync(SelectedSourceTrajectoryId);
+                if (value.Specification is ReconnectTrajectoryExtrapolationSpecification reconnect)
+                {
+                    await LoadReconnectReferenceTrajectoryAsync(reconnect.ReferenceTrajectoryID);
+                }
                 if (value.CalculationState is CalculationState.Queued or CalculationState.Running) _ = PollAsync();
                 else await LoadSurveyStationsAsync();
             }
@@ -434,8 +580,12 @@
         catch (Exception ex) { logger.LogError(ex, "Unable to load trajectory extrapolation editor"); Snackbar.Add("Unable to load the extrapolation.", Severity.Error); }
     }
 
-    private static TrajectoryExtrapolationCase NewCase() => new() { MetaInfo = PseudoConstructors.ConstructMetaInfo(), Name = "New extrapolation", InterpolationInterval = 30, Mode = TrajectoryExtrapolationMode.FixedLength, CalculationState = CalculationState.NotCalculated, Specification = new FixedLengthExtrapolationSpecification { Length = 30, ExtensionType = FixedLengthExtrapolationType.Straight }, SolvedSectionList = [], SurveyStationList = [] };
+    private static TrajectoryExtrapolationCase NewCase() => new() { MetaInfo = PseudoConstructors.ConstructMetaInfo(), Name = "New extrapolation", InterpolationInterval = 10.0, Mode = TrajectoryExtrapolationMode.FixedLength, CalculationState = CalculationState.NotCalculated, Specification = new FixedLengthExtrapolationSpecification { Length = 30, ExtensionType = FixedLengthExtrapolationType.Straight }, SolvedSectionList = [], SurveyStationList = [] };
     private Guid? SelectedSourceTrajectoryId => value.SourceTrajectoryID == Guid.Empty ? null : value.SourceTrajectoryID;
+    private string SourceTrajectoryName => trajectories.FirstOrDefault(item => item.MetaInfo.ID == value.SourceTrajectoryID)?.Name ?? "Source trajectory";
+    private string ReconnectTrajectoryName => value.Specification is ReconnectTrajectoryExtrapolationSpecification reconnect
+        ? trajectories.FirstOrDefault(item => item.MetaInfo.ID == reconnect.ReferenceTrajectoryID)?.Name ?? "Reconnect trajectory"
+        : "Reconnect trajectory";
 
     private void InitializeSourceHierarchy()
     {
@@ -514,6 +664,11 @@
         sourceUncertaintyHistory.Clear();
         sourceLastSurveyStationError = null;
         isLoadingSourceLastSurveyStation = false;
+        sourceEllipseResults = [];
+        sourceEllipseCalculation = null;
+        sourceEllipsePlotData.Clear();
+        relatedEllipseCalculationVersion++;
+        UpdatePlots();
     }
 
     private async Task LoadSourceLastSurveyStationAsync(Guid? trajectoryId)
@@ -578,7 +733,54 @@
                 await InvokeAsync(StateHasChanged);
             }
             ApplySourceUncertaintyContextToLegacyResult();
+            UpdatePlots();
         }
+    }
+
+    private async Task OnReconnectReferenceTrajectoryChanged(Guid id)
+    {
+        if (value.Specification is not ReconnectTrajectoryExtrapolationSpecification reconnect)
+        {
+            return;
+        }
+
+        reconnect.ReferenceTrajectoryID = id;
+        await LoadReconnectReferenceTrajectoryAsync(id);
+    }
+
+    private async Task LoadReconnectReferenceTrajectoryAsync(Guid trajectoryId)
+    {
+        reconnectReferenceStations.Clear();
+        reconnectEllipseResults = [];
+        reconnectEllipseCalculation = null;
+        reconnectEllipsePlotData.Clear();
+        relatedEllipseCalculationVersion++;
+        UpdatePlots();
+        if (trajectoryId == Guid.Empty)
+        {
+            return;
+        }
+
+        try
+        {
+            int chunkCount = await Api.ClientTrajectory.GetTrajectorySurveyStationChunkCountAsync(trajectoryId);
+            for (int chunkIndex = 0; chunkIndex < chunkCount; chunkIndex++)
+            {
+                SurveyStationChunk chunk = await Api.ClientTrajectory.GetTrajectorySurveyStationChunkAsync(trajectoryId, chunkIndex);
+                if (chunk.SurveyStationList is { Count: > 0 })
+                {
+                    reconnectReferenceStations.AddRange(chunk.SurveyStationList);
+                }
+            }
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Unable to load reconnect trajectory {TrajectoryId} for plotting", trajectoryId);
+            Snackbar.Add("The reconnect trajectory could not be loaded for plotting.", Severity.Warning);
+        }
+
+        UpdatePlots();
+        await InvokeAsync(StateHasChanged);
     }
 
     private async Task UpdateSourceReferenceValuesAsync()
@@ -723,6 +925,11 @@
     private void ModeChanged(TrajectoryExtrapolationMode mode)
     {
         value.Mode = mode;
+        reconnectReferenceStations.Clear();
+        reconnectEllipseResults = [];
+        reconnectEllipseCalculation = null;
+        reconnectEllipsePlotData.Clear();
+        relatedEllipseCalculationVersion++;
         value.Specification = mode switch
         {
             TrajectoryExtrapolationMode.FixedLength => new FixedLengthExtrapolationSpecification { Length = 30 },
@@ -734,6 +941,7 @@
             },
             _ => new WellPathExtrapolationSpecification { SectionList = [] }
         };
+        UpdatePlots();
     }
 
     private static GeosteeringExtentChoice ExtentChoice(GeosteeringTrajectoryExtrapolationSpecification specification) =>
@@ -949,6 +1157,17 @@
     {
         stationCount = 0;
         interpolatedExtrapolationStations.Clear();
+        extrapolationEllipseResults = [];
+        extrapolationEllipseCalculation = null;
+        extrapolationEllipsePlotData.Clear();
+        sourceEllipseResults = [];
+        sourceEllipseCalculation = null;
+        sourceEllipsePlotData.Clear();
+        reconnectEllipseResults = [];
+        reconnectEllipseCalculation = null;
+        reconnectEllipsePlotData.Clear();
+        relatedEllipseCalculationVersion++;
+        UpdatePlots();
         loadedSurveyStationChunkCount = 0;
         totalSurveyStationChunkCount = 0;
         if (CaseId is not Guid persistedCaseId || value.CalculationState != CalculationState.Completed) return;
@@ -969,12 +1188,269 @@
                 await InvokeAsync(StateHasChanged);
             }
             ApplySourceUncertaintyContextToLegacyResult();
+            UpdatePlots();
         }
         finally
         {
             isLoadingSurveyStations = false;
             await InvokeAsync(StateHasChanged);
         }
+    }
+
+    private void UpdatePlots()
+    {
+        List<Trajectory> plottedTrajectories = [];
+        if (sourceUncertaintyHistory.Count > 1)
+        {
+            plottedTrajectories.Add(new Trajectory
+            {
+                Name = $"{SourceTrajectoryName} (source)",
+                SurveyStationList = sourceUncertaintyHistory.ToList()
+            });
+        }
+        if (interpolatedExtrapolationStations.Count > 1)
+        {
+            plottedTrajectories.Add(new Trajectory
+            {
+                Name = $"{value.Name} (extrapolated)",
+                SurveyStationList = interpolatedExtrapolationStations.ToList()
+            });
+        }
+        if (value.Specification is ReconnectTrajectoryExtrapolationSpecification && reconnectReferenceStations.Count > 1)
+        {
+            plottedTrajectories.Add(new Trajectory
+            {
+                Name = $"{ReconnectTrajectoryName} (reconnect target)",
+                SurveyStationList = reconnectReferenceStations.ToList()
+            });
+        }
+
+        DataUtils.UpdatePlots(
+            plotNameList,
+            plotModeFlagList,
+            plotColorList,
+            plotNorthValuesList,
+            plotEastValuesList,
+            plotTvdValuesList,
+            plotVerticalSectionValuesList,
+            plottedTrajectories);
+        for (int index = 0; index < plotNameList.Count; index++)
+        {
+            plotColorList[index] = plotNameList[index].EndsWith("(source)", StringComparison.Ordinal)
+                ? "blue"
+                : plotNameList[index].EndsWith("(extrapolated)", StringComparison.Ordinal)
+                    ? "red"
+                    : "green";
+        }
+
+        UpdatePlotBounds();
+        UpdateAllUncertaintyPlotData();
+    }
+
+    private async Task OnExtrapolationEllipseResultsChanged(ICollection<SurveyStationEllipseResult> results)
+    {
+        extrapolationEllipseResults = results?.ToList() ?? [];
+        extrapolationEllipseCalculation = null;
+        UpdateAllUncertaintyPlotData();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnExtrapolationEllipseCalculationChanged(SurveyStationEllipseCalculation? calculation)
+    {
+        extrapolationEllipseCalculation = calculation;
+        if (calculation == null)
+        {
+            relatedEllipseCalculationVersion++;
+            sourceEllipseResults = [];
+            sourceEllipseCalculation = null;
+            reconnectEllipseResults = [];
+            reconnectEllipseCalculation = null;
+        }
+        else
+        {
+            await CalculateRelatedTrajectoryEllipsesAsync(calculation.ConfidenceFactor);
+        }
+        UpdateAllUncertaintyPlotData();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task CalculateRelatedTrajectoryEllipsesAsync(double confidenceFactor)
+    {
+        int calculationVersion = ++relatedEllipseCalculationVersion;
+        Task<SurveyStationEllipseCalculation?> sourceTask = RequestTrajectoryEllipseCalculationAsync(
+            value.SourceTrajectoryID,
+            sourceUncertaintyHistory,
+            confidenceFactor,
+            $"{SourceTrajectoryName} uncertainty ellipses",
+            "source");
+
+        Guid reconnectTrajectoryId = value.Specification is ReconnectTrajectoryExtrapolationSpecification reconnect
+            ? reconnect.ReferenceTrajectoryID
+            : Guid.Empty;
+        Task<SurveyStationEllipseCalculation?> reconnectTask = RequestTrajectoryEllipseCalculationAsync(
+            reconnectTrajectoryId,
+            reconnectReferenceStations,
+            confidenceFactor,
+            $"{ReconnectTrajectoryName} uncertainty ellipses",
+            "reconnect-target");
+
+        await Task.WhenAll(sourceTask, reconnectTask);
+        if (calculationVersion != relatedEllipseCalculationVersion)
+        {
+            return;
+        }
+
+        sourceEllipseCalculation = await sourceTask;
+        sourceEllipseResults = sourceEllipseCalculation?.SurveyStationEllipseResultList?.ToList() ?? [];
+        reconnectEllipseCalculation = await reconnectTask;
+        reconnectEllipseResults = reconnectEllipseCalculation?.SurveyStationEllipseResultList?.ToList() ?? [];
+    }
+
+    private async Task<SurveyStationEllipseCalculation?> RequestTrajectoryEllipseCalculationAsync(
+        Guid trajectoryId,
+        ICollection<SurveyStation> stations,
+        double confidenceFactor,
+        string calculationName,
+        string trajectoryRole)
+    {
+        if (trajectoryId == Guid.Empty || stations.Count == 0)
+        {
+            return null;
+        }
+
+        try
+        {
+            SurveyStationEllipseCalculation request = new()
+            {
+                MetaInfo = PseudoConstructors.ConstructMetaInfo(),
+                Name = calculationName,
+                Description = string.Empty,
+                CreationDate = DateTimeOffset.UtcNow,
+                LastModificationDate = DateTimeOffset.UtcNow,
+                ConfidenceFactor = confidenceFactor,
+                SurveyStationList = stations.ToList()
+            };
+            return await Api.ClientTrajectory.PostTrajectorySurveyStationEllipseCalculationAsync(trajectoryId, request);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unable to calculate {TrajectoryRole} uncertainty ellipses for trajectory {TrajectoryId}",
+                trajectoryRole, trajectoryId);
+            Snackbar.Add($"Unable to calculate the {trajectoryRole} uncertainty ellipses.", Severity.Warning);
+            return null;
+        }
+    }
+
+    private void UpdateAllUncertaintyPlotData()
+    {
+        UpdateUncertaintyPlotData(sourceUncertaintyHistory, sourceEllipseResults, sourceEllipseCalculation,
+            sourceEllipsePlotData, "Source", "blue");
+        UpdateUncertaintyPlotData(interpolatedExtrapolationStations, extrapolationEllipseResults,
+            extrapolationEllipseCalculation, extrapolationEllipsePlotData, "Extrapolated", "red",
+            restrictExtremePathsToStationInterval: true);
+        UpdateUncertaintyPlotData(reconnectReferenceStations, reconnectEllipseResults, reconnectEllipseCalculation,
+            reconnectEllipsePlotData, "Reconnect target", "green");
+    }
+
+    private void UpdateUncertaintyPlotData(
+        ICollection<SurveyStation> stations,
+        ICollection<SurveyStationEllipseResult> results,
+        SurveyStationEllipseCalculation? calculation,
+        EllipsePlotData plotData,
+        string label,
+        string color,
+        bool restrictExtremePathsToStationInterval = false)
+    {
+        DataUtils.UpdateEllipsePlots(stations.ToList(), results.ToList(), plotData, maxDisplayedUncertaintiesInPlots);
+        double? minimumAbscissa = restrictExtremePathsToStationInterval
+            ? stations.Select(station => station.MD ?? station.Abscissa).Where(value => value.HasValue).Min()
+            : null;
+        double? maximumAbscissa = restrictExtremePathsToStationInterval
+            ? stations.Select(station => station.MD ?? station.Abscissa).Where(value => value.HasValue).Max()
+            : null;
+        DataUtils.AddExtremeTvdPathPlots(calculation, plotData, minimumAbscissa, maximumAbscissa);
+        StyleEllipsePlotData(plotData, label, color);
+    }
+
+    private static void StyleEllipsePlotData(EllipsePlotData plotData, string label, string color)
+    {
+        Style(plotData.HorizontalNameList, plotData.HorizontalColorList, label, color);
+        Style(plotData.VerticalNameList, plotData.VerticalColorList, label, color);
+        Style(plotData.PerpendicularNameList, plotData.PerpendicularColorList, label, color);
+
+        static void Style(List<string> names, List<string> colors, string traceLabel, string traceColor)
+        {
+            for (int index = 0; index < names.Count; index++)
+            {
+                names[index] = names[index] switch
+                {
+                    "Highest TVD path" => $"{traceLabel} highest TVD path",
+                    "Lowest TVD path" => $"{traceLabel} lowest TVD path",
+                    _ => $"{traceLabel} uncertainty"
+                };
+                colors[index] = traceColor;
+            }
+        }
+    }
+
+    private void UpdatePlotBounds()
+    {
+        List<SurveyStation> stations = interpolatedExtrapolationStations.ToList();
+        double fallbackSpan = Math.Max(1.0, new[]
+        {
+            CoordinateSpan(stations, station => station.X ?? station.RiemannianNorth),
+            CoordinateSpan(stations, station => station.Y ?? station.RiemannianEast),
+            CoordinateSpan(stations, station => station.Z ?? station.TVD),
+            CoordinateSpan(stations, station => station.VerticalSection ?? station.Abscissa ?? station.MD)
+        }.Max());
+        northPlotBounds = CalculatePlotBounds(stations, station => station.X ?? station.RiemannianNorth, fallbackSpan);
+        eastPlotBounds = CalculatePlotBounds(stations, station => station.Y ?? station.RiemannianEast, fallbackSpan);
+        tvdPlotBounds = CalculatePlotBounds(stations, station => station.Z ?? station.TVD, fallbackSpan);
+        verticalSectionPlotBounds = CalculatePlotBounds(stations,
+            station => station.VerticalSection ?? station.Abscissa ?? station.MD, fallbackSpan);
+    }
+
+    private static double CoordinateSpan(IEnumerable<SurveyStation> stations, Func<SurveyStation, double?> selector)
+    {
+        List<double> values = stations.Select(selector).Where(value => value.HasValue).Select(value => value!.Value).ToList();
+        return values.Count == 0 ? 0.0 : values.Max() - values.Min();
+    }
+
+    private static PlotAxisBounds CalculatePlotBounds(
+        IEnumerable<SurveyStation> stations,
+        Func<SurveyStation, double?> selector,
+        double fallbackSpan)
+    {
+        List<double> values = stations.Select(selector).Where(value => value.HasValue).Select(value => value!.Value).ToList();
+        if (values.Count == 0)
+        {
+            return PlotAxisBounds.Empty;
+        }
+
+        double minimum = values.Min();
+        double maximum = values.Max();
+        double padding = maximum > minimum ? 0.05 * (maximum - minimum) : 0.05 * fallbackSpan;
+        return new PlotAxisBounds(minimum - padding, maximum + padding);
+    }
+
+    private Task OnMaxDisplayedUncertaintiesInPlotsChanged(int value)
+    {
+        maxDisplayedUncertaintiesInPlots = Math.Max(1, value);
+        UpdateAllUncertaintyPlotData();
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private Task OnFocusPlotsOnExtrapolationChanged(bool value)
+    {
+        focusPlotsOnExtrapolation = value;
+        return InvokeAsync(StateHasChanged);
+    }
+
+    private async Task OnPlotExpandedChanged(bool expanded)
+    {
+        if (!expanded) return;
+        await Task.Delay(50);
+        await InvokeAsync(StateHasChanged);
     }
 
     private void AddSection() { if (value.Specification is WellPathExtrapolationSpecification p) p.SectionList.Add(new CircularArcWellPathSectionSpecification { SectionID = Guid.NewGuid(), Length = 30, Curvature = 0, StartToolface = 0 }); }
@@ -989,4 +1465,8 @@
     }
     private int ConstraintCount => value.Specification is not WellPathExtrapolationSpecification p ? 0 : p.SectionList.Sum(Count);
     private static int Count(WellPathSectionSpecification s) => new double?[] { s.Length, s.EndInclination, s.EndAzimuth, s.EndVerticalDepth, s.EndNorth, s.EndEast }.Count(x => x.HasValue) + s switch { CircularArcWellPathSectionSpecification x => (x.Curvature.HasValue ? 1 : 0) + (x.StartToolface.HasValue ? 1 : 0), ConstantBuildAndTurnWellPathSectionSpecification x => (x.BuildRate.HasValue ? 1 : 0) + (x.TurnRate.HasValue ? 1 : 0), ConstantCurvatureAndToolfaceWellPathSectionSpecification x => (x.Curvature.HasValue ? 1 : 0) + (x.Toolface.HasValue ? 1 : 0), _ => 0 };
+    private readonly record struct PlotAxisBounds(double? Minimum, double? Maximum)
+    {
+        public static PlotAxisBounds Empty => new(null, null);
+    }
 }

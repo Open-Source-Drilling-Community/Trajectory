@@ -36,6 +36,12 @@
     [Parameter] public string ZAxisTitle { get; set; }
     [Parameter] public bool ZAxisReversed { get; set; }
     [Parameter] public bool YAxisReversed { get; set; }
+    [Parameter] public double? XAxisMinimum { get; set; }
+    [Parameter] public double? XAxisMaximum { get; set; }
+    [Parameter] public double? YAxisMinimum { get; set; }
+    [Parameter] public double? YAxisMaximum { get; set; }
+    [Parameter] public double? ZAxisMinimum { get; set; }
+    [Parameter] public double? ZAxisMaximum { get; set; }
     [Parameter] public bool XAxisUsesPositionReference { get; set; }
     [Parameter] public bool YAxisUsesPositionReference { get; set; }
     [Parameter] public bool ZAxisUsesDepthReference { get; set; }
@@ -396,21 +402,60 @@
             scene.AspectMode = Plotly.Blazor.LayoutLib.SceneLib.AspectModeEnum.Data;
 
             scene.XAxis.Title.Text = (XAxisTitle ?? "") + xUnitLabel;
-            scene.XAxis.AutoRange = Plotly.Blazor.LayoutLib.SceneLib.XAxisLib.AutoRangeEnum.True;
+            ApplyXAxisRange(scene, ConvertXAxisBound(XAxisMinimum), ConvertXAxisBound(XAxisMaximum));
             scene.XAxis.RangeMode = Plotly.Blazor.LayoutLib.SceneLib.XAxisLib.RangeModeEnum.Normal;
 
             scene.YAxis.Title.Text = (YAxisTitle ?? "") + yUnitLabel;
             scene.YAxis.RangeMode = Plotly.Blazor.LayoutLib.SceneLib.YAxisLib.RangeModeEnum.Normal;
-            scene.YAxis.AutoRange = YAxisReversed
-                ? Plotly.Blazor.LayoutLib.SceneLib.YAxisLib.AutoRangeEnum.Reversed
-                : Plotly.Blazor.LayoutLib.SceneLib.YAxisLib.AutoRangeEnum.True;
+            ApplyYAxisRange(scene, ConvertYAxisBound(YAxisMinimum), ConvertYAxisBound(YAxisMaximum));
 
             scene.ZAxis.Title.Text = (ZAxisTitle ?? "") + zUnitLabel;
             scene.ZAxis.RangeMode = Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.RangeModeEnum.Normal;
-            scene.ZAxis.AutoRange = ZAxisReversed
-                ? Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.AutoRangeEnum.Reversed
-                : Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.AutoRangeEnum.True;
+            ApplyZAxisRange(scene, ConvertZAxisBound(ZAxisMinimum), ConvertZAxisBound(ZAxisMaximum));
         }
+    }
+
+    private void ApplyXAxisRange(Scene scene, double? minimum, double? maximum)
+    {
+        if (minimum.HasValue && maximum.HasValue && minimum.Value < maximum.Value)
+        {
+            scene.XAxis.AutoRange = Plotly.Blazor.LayoutLib.SceneLib.XAxisLib.AutoRangeEnum.False;
+            scene.XAxis.Range = [minimum.Value, maximum.Value];
+            return;
+        }
+
+        scene.XAxis.AutoRange = Plotly.Blazor.LayoutLib.SceneLib.XAxisLib.AutoRangeEnum.True;
+        scene.XAxis.Range = null;
+    }
+
+    private void ApplyYAxisRange(Scene scene, double? minimum, double? maximum)
+    {
+        if (minimum.HasValue && maximum.HasValue && minimum.Value < maximum.Value)
+        {
+            scene.YAxis.AutoRange = Plotly.Blazor.LayoutLib.SceneLib.YAxisLib.AutoRangeEnum.False;
+            scene.YAxis.Range = YAxisReversed ? [maximum.Value, minimum.Value] : [minimum.Value, maximum.Value];
+            return;
+        }
+
+        scene.YAxis.AutoRange = YAxisReversed
+            ? Plotly.Blazor.LayoutLib.SceneLib.YAxisLib.AutoRangeEnum.Reversed
+            : Plotly.Blazor.LayoutLib.SceneLib.YAxisLib.AutoRangeEnum.True;
+        scene.YAxis.Range = null;
+    }
+
+    private void ApplyZAxisRange(Scene scene, double? minimum, double? maximum)
+    {
+        if (minimum.HasValue && maximum.HasValue && minimum.Value < maximum.Value)
+        {
+            scene.ZAxis.AutoRange = Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.AutoRangeEnum.False;
+            scene.ZAxis.Range = ZAxisReversed ? [maximum.Value, minimum.Value] : [minimum.Value, maximum.Value];
+            return;
+        }
+
+        scene.ZAxis.AutoRange = ZAxisReversed
+            ? Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.AutoRangeEnum.Reversed
+            : Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.AutoRangeEnum.True;
+        scene.ZAxis.Range = null;
     }
 
     private string BuildPlotSignature()
@@ -425,6 +470,12 @@
             .Append(PlotTitle).Append('|')
             .Append(YAxisReversed).Append('|')
             .Append(ZAxisReversed).Append('|')
+            .Append(XAxisMinimum).Append('|')
+            .Append(XAxisMaximum).Append('|')
+            .Append(YAxisMinimum).Append('|')
+            .Append(YAxisMaximum).Append('|')
+            .Append(ZAxisMinimum).Append('|')
+            .Append(ZAxisMaximum).Append('|')
             .Append(XAxisUsesPositionReference).Append('|')
             .Append(YAxisUsesPositionReference).Append('|')
             .Append(ZAxisUsesDepthReference).Append('|')
@@ -511,4 +562,22 @@
         double converted = Parent.FromWGS84PositionSI(value, quantityName, direction);
         return double.IsNaN(converted) ? null : converted;
     }
+
+    private double? ConvertXAxisBound(double? value) => !value.HasValue
+        ? null
+        : XAxisUsesPositionReference
+            ? ConvertPositionForPlot(value.Value, XUnit, XAxisPositionDirection)
+            : Parent.FromSI(value.Value, XUnit);
+
+    private double? ConvertYAxisBound(double? value) => !value.HasValue
+        ? null
+        : YAxisUsesPositionReference
+            ? ConvertPositionForPlot(value.Value, YUnit, YAxisPositionDirection)
+            : Parent.FromSI(value.Value, YUnit);
+
+    private double? ConvertZAxisBound(double? value) => !value.HasValue
+        ? null
+        : ZAxisUsesDepthReference
+            ? ConvertDepthForPlot(value.Value, ZUnit)
+            : Parent.FromSI(value.Value, ZUnit);
 }
