@@ -38,6 +38,10 @@
                             <MudItem xs="12" md="6">
                                 <MudInputWithUnitAdornment QuantityName="ProportionStandard" QuantityLabel="Confidence factor"
                                                            SIValue="@draft_.ConfidenceFactor" SIValueChanged="@(value => draft_.ConfidenceFactor = value)" Immediate="true" />
+                                @if (!IsDraftConfidenceFactorValid)
+                                {
+                                    <MudText Typo="Typo.caption" Color="Color.Error">Enter a value greater than 0 and no greater than 99.9%.</MudText>
+                                }
                             </MudItem>
                             <MudItem xs="12"><MudTextField @bind-Value="draft_.Description" Label="Description" Lines="2" /></MudItem>
                         </MudGrid>
@@ -105,7 +109,8 @@
                             </MudPaper>
                         }
                         <MudButton Class="mt-3" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add" OnClick="AddRule">Rule</MudButton>
-                        <MudButton Class="mt-3 ms-2" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveRevisionAsync">Create immutable revision</MudButton>
+                        <MudButton Class="mt-3 ms-2" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveRevisionAsync"
+                                   Disabled="@(!IsDraftConfidenceFactorValid)">Create immutable revision</MudButton>
                     </MudPaper>
                 }
             </MudItem>
@@ -148,10 +153,14 @@
     private List<FieldAntiCollisionPolicyAssignment> assignments_ = [];
     private List<Field> fields_ = [];
     private AntiCollisionPolicyRevisionCreate? draft_;
+    private const double MaximumConfidenceFactor = 0.999;
     private string draftHeading_ = "New policy";
     private FieldAntiCollisionPolicyAssignmentMutation assignment_ = NewAssignment();
     private DateTime? assignmentFrom_ = DateTime.UtcNow.Date.AddDays(1);
     private DateTime? assignmentTo_;
+    private bool IsDraftConfidenceFactorValid => draft_ != null &&
+        double.IsFinite(draft_.ConfidenceFactor) && draft_.ConfidenceFactor > 0.0 &&
+        draft_.ConfidenceFactor <= MaximumConfidenceFactor;
 
     protected override async Task OnInitializedAsync() => await LoadAsync();
 

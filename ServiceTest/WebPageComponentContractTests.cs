@@ -466,6 +466,28 @@ public sealed class WebPageComponentContractTests
     }
 
     [Test]
+    public void Confidence_factor_editors_use_proportion_units_and_extrapolation_reuses_the_ellipse_component()
+    {
+        string webPages = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", "..", "WebPages"));
+        string ellipse = File.ReadAllText(Path.Combine(webPages, "SurveyStationEllipseTable.razor"));
+        string policies = File.ReadAllText(Path.Combine(webPages, "AntiCollisionPolicies.razor"));
+        string scan = File.ReadAllText(Path.Combine(webPages, "AntiCollisionScan.razor"));
+        string extrapolation = File.ReadAllText(Path.Combine(webPages, "TrajectoryExtrapolationEdit.razor"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(ellipse, Does.Contain("QuantityName=\"ProportionStandard\" QuantityLabel=\"Confidence factor\""));
+            Assert.That(policies, Does.Contain("QuantityName=\"ProportionStandard\" QuantityLabel=\"Confidence factor\""));
+            Assert.That(scan, Does.Contain("QuantityName=\"ProportionStandard\" QuantityLabel=\"Confidence factor\""));
+            Assert.That(ellipse, Does.Contain("confidenceFactor_ > 0.0 && confidenceFactor_ <= MaximumConfidenceFactor"));
+            Assert.That(policies, Does.Contain("draft_.ConfidenceFactor > 0.0"));
+            Assert.That(scan, Does.Contain("confidenceFactor_ > 0.0 && confidenceFactor_ <= MaximumConfidenceFactor"));
+            Assert.That(extrapolation, Does.Contain("<SurveyStationEllipseTable SurveyStationList=\"@interpolatedExtrapolationStations\""));
+        });
+    }
+
+    [Test]
     public void Trajectory_reference_datum_lookup_resolves_a_ranked_applicable_grid_transformation()
     {
         string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,

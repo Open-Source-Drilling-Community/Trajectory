@@ -78,6 +78,61 @@ public class TrajectoryExtrapolationCalculatorTests
     }
 
     [Test]
+    public void Extrapolated_uncertainty_starts_from_source_endpoint_and_grows_with_the_source_instrument()
+    {
+        SymmetricMatrix3x3 sourceCovariance = new();
+        sourceCovariance[0, 0] = 4.0;
+        sourceCovariance[1, 1] = 9.0;
+        sourceCovariance[2, 2] = 16.0;
+        sourceCovariance[0, 1] = sourceCovariance[1, 0] = 0.2;
+        sourceCovariance[0, 2] = sourceCovariance[2, 0] = 0.3;
+        sourceCovariance[1, 2] = sourceCovariance[2, 1] = 0.4;
+        SurveyInstrument instrument = new()
+        {
+            ModelType = SurveyInstrumentModelType.MWD_WolffDeWardt,
+            Misalignment = 0.01,
+            RelDepthError = 0.001
+        };
+        SurveyStation sourceEndpoint = Station(100.0, 0.5, 0.3, 90.0, 40.0, 12.0);
+        sourceEndpoint.Covariance = sourceCovariance;
+        sourceEndpoint.SurveyTool = instrument;
+        sourceEndpoint.CalculateEigenProperties();
+        TrajectoryModel source = SourceTrajectory(sourceEndpoint);
+        TrajectoryExtrapolationCase calculation = Case(
+            TrajectoryExtrapolationMode.FixedLength,
+            new FixedLengthExtrapolationSpecification
+            {
+                Length = 60.0,
+                ExtensionType = FixedLengthExtrapolationType.Straight
+            });
+
+        bool success = TrajectoryExtrapolationCalculator.Calculate(calculation, source, _ => null);
+
+        Assert.That(success, Is.True, calculation.CalculationMessage);
+        Assert.That(calculation.SurveyStationList, Has.Count.EqualTo(3));
+        Assert.Multiple(() =>
+        {
+            Assert.That(calculation.SurveyStationList!.All(station => station.Covariance != null), Is.True);
+            Assert.That(calculation.SurveyStationList.All(station => ReferenceEquals(station.SurveyTool, instrument)), Is.True);
+            Assert.That(calculation.SurveyStationList[0].Covariance![0, 0], Is.EqualTo(4.0).Within(1e-12));
+            Assert.That(CovarianceTrace(calculation.SurveyStationList[^1].Covariance!), Is.GreaterThan(29.0));
+            Assert.That(sourceEndpoint.Covariance![0, 0], Is.EqualTo(4.0).Within(1e-12),
+                "The source trajectory covariance must not be mutated.");
+        });
+
+        SurveyStationEllipseCalculation ellipses = new()
+        {
+            ConfidenceFactor = 0.95,
+            SurveyStationList = calculation.SurveyStationList
+        };
+        Assert.That(ellipses.Calculate(), Is.True, ellipses.CalculationMessage);
+        Assert.That(ellipses.SurveyStationEllipseResultList, Has.Count.EqualTo(3));
+        Assert.That(ellipses.SurveyStationEllipseResultList!.All(result =>
+            result.HorizontalEllipse != null && result.VerticalEllipse != null &&
+            result.PerpendicularEllipse != null), Is.True);
+    }
+
+    [Test]
     public void ContinueBuildAndTurnReconstructsTheLastInterval()
     {
         double tenDegrees = System.Math.PI / 18.0;
@@ -532,4 +587,7 @@ public class TrajectoryExtrapolationCalculatorTests
             Assert.That(stations.All(station => station.VerticalSection.HasValue), Is.True, "Vertical section must be calculated.");
         });
     }
+
+    private static double CovarianceTrace(SymmetricMatrix3x3 covariance) =>
+        (covariance[0, 0] ?? 0.0) + (covariance[1, 1] ?? 0.0) + (covariance[2, 2] ?? 0.0);
 }

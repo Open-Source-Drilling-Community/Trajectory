@@ -332,6 +332,8 @@
                     <MudTd DataLabel="Vertical section"><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.VerticalSection" /></MudTd>
                 </RowTemplate>
             </MudTable>
+            <SurveyStationEllipseTable SurveyStationList="@interpolatedExtrapolationStations"
+                                       CalculationName="@($"{value.Name} extrapolated trajectory uncertainty ellipses")" />
         }
         else
         {

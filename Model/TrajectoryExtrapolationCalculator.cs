@@ -35,7 +35,7 @@ namespace OSDC.Drilling.Trajectory.Model
             calculation.TargetReferenceMD = null;
             calculation.ReferenceTrajectoryRevision = null;
             calculation.SolvedSectionList = [];
-            calculation.SurveyStationList = [WithoutUncertainty(start)];
+            calculation.SurveyStationList = [new SurveyStation(start)];
             calculation.CalculationState = CalculationState.Running;
             calculation.CalculationProgress = 0.1;
             calculation.CalculationMessage = "Preparing extrapolation";
@@ -62,6 +62,8 @@ namespace OSDC.Drilling.Trajectory.Model
                 calculation.SolvedSectionList = [];
                 return false;
             }
+
+            ContinueSourceUncertainty(calculation.SurveyStationList!, start);
 
             calculation.CalculationState = CalculationState.Completed;
             calculation.CalculationProgress = 1.0;
@@ -666,7 +668,7 @@ namespace OSDC.Drilling.Trajectory.Model
             List<SurveyStation> sourceStations,
             OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType calculationType)
         {
-            SurveyStation start = WithoutUncertainty(sourceStations[^1]);
+            SurveyStation start = new(sourceStations[^1]);
             if (sourceStations.Count > 1 &&
                 (start.VerticalSection == null || start.Curvature == null || start.BUR == null || start.TUR == null))
             {
@@ -692,6 +694,138 @@ namespace OSDC.Drilling.Trajectory.Model
                 start.TUR ??= 0.0;
             }
             return start;
+        }
+
+        /// <summary>
+        /// Continues position uncertainty from the frozen final source station. The extrapolation
+        /// is not a new observation, so its local error-model covariance is treated as an increment
+        /// to the source endpoint covariance rather than restarting the well at zero uncertainty.
+        /// </summary>
+        private static void ContinueSourceUncertainty(List<SurveyStation> stations, SurveyStation sourceEndpoint)
+        {
+            if (stations.Count == 0 || sourceEndpoint.Covariance == null)
+            {
+                return;
+            }
+
+            SymmetricMatrix3x3 sourceCovariance = CopyCovariance(sourceEndpoint.Covariance);
+            Vector3D? sourceBias = CopyVector(sourceEndpoint.Bias);
+            SurveyInstrument? surveyTool = sourceEndpoint.SurveyTool;
+
+            // Carry the source endpoint uncertainty even when its instrument definition is not
+            // available. In that case no defensible incremental growth can be calculated.
+            foreach (SurveyStation station in stations)
+            {
+                station.SurveyTool = surveyTool;
+                station.Covariance = CopyCovariance(sourceCovariance);
+                station.Bias = CopyVector(sourceBias);
+                station.CalculateEigenProperties();
+            }
+
+            if (surveyTool == null || stations.Count < 2)
+            {
+                return;
+            }
+
+            List<SurveyStation> incrementalStations = stations.Select(station =>
+            {
+                SurveyStation incremental = new(station)
+                {
+                    SurveyTool = surveyTool,
+                    Covariance = null,
+                    Bias = null,
+                    EigenValues = null,
+                    EigenVectors = null
+                };
+                return incremental;
+            }).ToList();
+
+            bool calculated;
+            try
+            {
+                calculated = surveyTool.ModelType switch
+                {
+                    SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt =>
+                        CovarianceCalculatorWolffDeWardt.Calculate(incrementalStations),
+                    SurveyInstrumentModelType.MWD_ISCWSA or SurveyInstrumentModelType.Gyro_ISCWSA =>
+                        CovarianceCalculatorISCWSA.Calculate(incrementalStations),
+                    _ => false
+                };
+            }
+            catch
+            {
+                calculated = false;
+            }
+
+            if (!calculated)
+            {
+                return;
+            }
+
+            SymmetricMatrix3x3? incrementalBaseline = incrementalStations[0].Covariance;
+            Vector3D? incrementalBiasBaseline = incrementalStations[0].Bias;
+            for (int index = 0; index < stations.Count; index++)
+            {
+                if (incrementalStations[index].Covariance is not { } incrementalCovariance)
+                {
+                    continue;
+                }
+
+                stations[index].Covariance = AddCovariance(
+                    sourceCovariance, incrementalCovariance, incrementalBaseline);
+                stations[index].Bias = AddVectors(
+                    sourceBias, incrementalStations[index].Bias, incrementalBiasBaseline);
+                stations[index].CalculateEigenProperties();
+            }
+        }
+
+        private static SymmetricMatrix3x3 CopyCovariance(SymmetricMatrix3x3 source)
+        {
+            SymmetricMatrix3x3 result = new();
+            for (int row = 0; row < 3; row++)
+            {
+                for (int column = 0; column < 3; column++)
+                {
+                    result[row, column] = source[row, column];
+                }
+            }
+            return result;
+        }
+
+        private static SymmetricMatrix3x3 AddCovariance(
+            SymmetricMatrix3x3 source,
+            SymmetricMatrix3x3 increment,
+            SymmetricMatrix3x3? incrementBaseline)
+        {
+            SymmetricMatrix3x3 result = new();
+            for (int row = 0; row < 3; row++)
+            {
+                for (int column = 0; column < 3; column++)
+                {
+                    result[row, column] = (source[row, column] ?? 0.0) +
+                        (increment[row, column] ?? 0.0) -
+                        (incrementBaseline?[row, column] ?? 0.0);
+                }
+            }
+            return result;
+        }
+
+        private static Vector3D? CopyVector(Vector3D? source) => source == null
+            ? null
+            : new Vector3D { X = source.X, Y = source.Y, Z = source.Z };
+
+        private static Vector3D? AddVectors(Vector3D? source, Vector3D? increment, Vector3D? incrementBaseline)
+        {
+            if (source == null && increment == null)
+            {
+                return null;
+            }
+            return new Vector3D
+            {
+                X = (source?.X ?? 0.0) + (increment?.X ?? 0.0) - (incrementBaseline?.X ?? 0.0),
+                Y = (source?.Y ?? 0.0) + (increment?.Y ?? 0.0) - (incrementBaseline?.Y ?? 0.0),
+                Z = (source?.Z ?? 0.0) + (increment?.Z ?? 0.0) - (incrementBaseline?.Z ?? 0.0)
+            };
         }
 
         private static double VerticalSectionAt(List<SurveyStation> stations, int endIndex)

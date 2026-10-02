@@ -6416,8 +6416,15 @@
             "nullable": true
           },
           "ConfidenceFactor": {
+            "maximum": 0.999,
+            "exclusiveMaximum": false,
+            "minimum": 0.0,
+            "exclusiveMinimum": true,
             "type": "number",
-            "format": "double"
+            "description": "Dimensionless confidence proportion greater than 0 and no greater than 0.999.",
+            "format": "double",
+            "x-osdc-semantic": "ProportionStandard",
+            "x-si-unit": "1"
           },
           "Rules": {
             "type": "array",
@@ -6448,8 +6455,15 @@
             "nullable": true
           },
           "ConfidenceFactor": {
+            "maximum": 0.999,
+            "exclusiveMaximum": false,
+            "minimum": 0.0,
+            "exclusiveMinimum": true,
             "type": "number",
-            "format": "double"
+            "description": "Dimensionless confidence proportion greater than 0 and no greater than 0.999.",
+            "format": "double",
+            "x-osdc-semantic": "ProportionStandard",
+            "x-si-unit": "1"
           },
           "Rules": {
             "type": "array",
@@ -6632,8 +6646,15 @@
             "nullable": true
           },
           "ConfidenceFactor": {
+            "maximum": 0.999,
+            "exclusiveMaximum": false,
+            "minimum": 0.0,
+            "exclusiveMinimum": true,
             "type": "number",
-            "format": "double"
+            "description": "Dimensionless confidence proportion greater than 0 and no greater than 0.999.",
+            "format": "double",
+            "x-osdc-semantic": "ProportionStandard",
+            "x-si-unit": "1"
           },
           "PolicyEvaluationUtc": {
             "type": "string",
@@ -9003,8 +9024,15 @@
             "nullable": true
           },
           "ConfidenceFactor": {
+            "maximum": 0.999,
+            "exclusiveMaximum": false,
+            "minimum": 0.0,
+            "exclusiveMinimum": true,
             "type": "number",
-            "format": "double"
+            "description": "Dimensionless confidence proportion greater than 0 and no greater than 0.999.",
+            "format": "double",
+            "x-osdc-semantic": "ProportionStandard",
+            "x-si-unit": "1"
           },
           "SurveyInstrumentID": {
             "type": "string",

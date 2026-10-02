@@ -4,12 +4,15 @@ using OSDC.DotnetLibraries.General.DataManagement;
 using OSDC.DotnetLibraries.General.Math;
 using System;
 using System.Collections.Generic;
+using System.Globalization;
 using System.Linq;
 
 namespace OSDC.Drilling.Trajectory.Model
 {
     public class SurveyStationEllipseCalculation
     {
+        public const double MaximumConfidenceFactor = 0.999;
+
         public MetaInfo? MetaInfo { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }
@@ -25,10 +28,10 @@ namespace OSDC.Drilling.Trajectory.Model
 
         public bool Calculate()
         {
-            if (!Numeric.IsDefined(ConfidenceFactor) || !Numeric.GT(ConfidenceFactor, 0.0) || !Numeric.LT(ConfidenceFactor, 1.0) ||
+            if (!Numeric.IsDefined(ConfidenceFactor) || !Numeric.GT(ConfidenceFactor, 0.0) || !Numeric.LE(ConfidenceFactor, MaximumConfidenceFactor) ||
                 SurveyStationList is not { Count: > 0 } surveyStations)
             {
-                CalculationMessage = "Confidence factor must be between 0 and 1 and at least one survey station is required.";
+                CalculationMessage = $"Confidence factor must be greater than 0 and no greater than {MaximumConfidenceFactor.ToString(CultureInfo.InvariantCulture)} and at least one survey station is required.";
                 SurveyStationEllipseResultList = null;
                 HighestTvdSurveyPointList = null;
                 LowestTvdSurveyPointList = null;

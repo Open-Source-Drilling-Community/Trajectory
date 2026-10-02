@@ -7,14 +7,23 @@
     <MudToolBar>
         <MudText Typo="Typo.h6">Uncertainty ellipses</MudText>
         <MudSpacer />
-        <MudNumericField T="double" Label="Confidence factor" Value="@confidenceFactor_" ValueChanged="OnConfidenceFactorChanged"
-                         Min="0.0001" Max="0.9999" Step="0.01" Immediate="true" Style="max-width: 180px;" />
+        <div style="width: 190px;">
+            <MudInputWithUnitAdornment QuantityName="ProportionStandard" QuantityLabel="Confidence factor"
+                                       SIValue="@confidenceFactor_" SIValueChanged="OnConfidenceFactorChanged"
+                                       Immediate="true" />
+        </div>
         <MudButton Class="ms-2" Color="Color.Primary" Variant="Variant.Outlined" OnClick="CalculateEllipsesAsync"
                    Disabled="@(!CanCalculate || isCalculating_)">Calculate</MudButton>
     </MudToolBar>
     @if (isCalculating_)
     {
         <MudProgressLinear Indeterminate="true" Color="Color.Info" Class="mb-2" />
+    }
+    @if (!IsConfidenceFactorValid)
+    {
+        <MudText Typo="Typo.caption" Color="Color.Error" Class="mb-2">
+            The confidence factor must be greater than 0 and no greater than @MaximumConfidenceFactor.
+        </MudText>
     }
 
     @if (ellipseResults_ is { Count: > 0 })
@@ -74,15 +83,15 @@
     [Parameter] public EventCallback<SurveyStationEllipseCalculation?> CalculationChanged { get; set; }
 
     private double confidenceFactor_ = 0.95;
+    private const double MaximumConfidenceFactor = 0.999;
     private List<SurveyStationEllipseResult> ellipseResults_ = [];
     private List<SurveyPoint> highestTvdPath_ = [];
     private List<SurveyPoint> lowestTvdPath_ = [];
     private bool isCalculating_;
 
-    private bool CanCalculate =>
-        SurveyStationList is { Count: > 0 } &&
-        confidenceFactor_ > 0.0 &&
-        confidenceFactor_ < 1.0;
+    private bool IsConfidenceFactorValid => double.IsFinite(confidenceFactor_) &&
+        confidenceFactor_ > 0.0 && confidenceFactor_ <= MaximumConfidenceFactor;
+    private bool CanCalculate => SurveyStationList is { Count: > 0 } && IsConfidenceFactorValid;
 
     private async Task OnConfidenceFactorChanged(double value)
     {

@@ -815,7 +815,10 @@ internal static class TrajectoryMcpToolMetadata
         else if (property.Name == "ConfidenceFactor")
         {
             schema["exclusiveMinimum"] = 0.0;
-            schema["maximum"] = GlobalAntiCollision.GlobalAntiCollision.MaximumConfidenceFactor;
+            schema.Remove("exclusiveMaximum");
+            schema["maximum"] = declaringType == typeof(SurveyStationEllipseCalculation)
+                ? SurveyStationEllipseCalculation.MaximumConfidenceFactor
+                : GlobalAntiCollision.GlobalAntiCollision.MaximumConfidenceFactor;
         }
         else if (property.Name.EndsWith("Count", StringComparison.Ordinal))
         {
@@ -953,6 +956,11 @@ internal static class TrajectoryMcpToolMetadata
                 nameof(GlobalAntiCollision.GlobalAntiCollision.CalculationMessage) => "Server-derived sanitized stage or failure message; may be null after successful completion.",
                 _ => SplitWords(name) + "."
             };
+        }
+        if (declaringType == typeof(SurveyStationEllipseCalculation) &&
+            name == nameof(SurveyStationEllipseCalculation.ConfidenceFactor))
+        {
+            return "Dimensionless ProportionStandard confidence factor greater than 0 and at most 0.999.";
         }
         if (declaringType == typeof(GlobalAntiCollisionCalculationStatus))
         {

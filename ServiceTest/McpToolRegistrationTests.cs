@@ -497,6 +497,24 @@ public sealed class McpToolRegistrationTests
         });
     }
 
+    [Test]
+    public void Survey_station_ellipse_confidence_uses_the_supported_proportion_interval_in_mcp()
+    {
+        TrajectoryMcpEndpoint endpoint = TrajectoryRestMcpToolRegistrations.Endpoints.Single(value =>
+            value.ControllerType.Name == "SurveyStationEllipseCalculationController" &&
+            value.Method.Name == "PostSurveyStationEllipseCalculation");
+        JsonObject definition = endpoint.InputSchema["$defs"]!["SurveyStationEllipseCalculation"]!.AsObject();
+        JsonObject confidence = definition["properties"]!["ConfidenceFactor"]!.AsObject();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(confidence["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
+            Assert.That(confidence["maximum"]!.GetValue<double>(), Is.EqualTo(0.999));
+            Assert.That(confidence.ContainsKey("exclusiveMaximum"), Is.False);
+            Assert.That(confidence["description"]!.GetValue<string>(), Does.Contain("ProportionStandard"));
+        });
+    }
+
     private static TrajectoryMcpEndpoint Endpoint(string name) =>
         TrajectoryRestMcpToolRegistrations.Endpoints.Single(endpoint => endpoint.Name == name);
 }

@@ -3,6 +3,7 @@ using Microsoft.OpenApi.Models;
 using OSDC.Drilling.Trajectory.Model;
 using OSDC.Drilling.GlobalAntiCollision;
 using Swashbuckle.AspNetCore.SwaggerGen;
+using System.Globalization;
 
 namespace OSDC.Drilling.Trajectory.Service;
 
@@ -82,6 +83,19 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
             Describe(schema, "SteeringLengthRatio", "Dimensionless positive ratio of upstream to downstream steering-section length.", "LengthRatio", "1");
             SetExclusiveMinimum(schema, "SteeringLength", 0.0m);
             SetExclusiveMinimum(schema, "SteeringLengthRatio", 0.0m);
+        }
+
+        if (context.Type == typeof(SurveyStationEllipseCalculation))
+        {
+            DescribeConfidenceFactor(schema,
+                (decimal)SurveyStationEllipseCalculation.MaximumConfidenceFactor);
+        }
+        if (context.Type == typeof(AntiCollisionPolicyRevision) ||
+            context.Type == typeof(AntiCollisionPolicyRevisionCreate) ||
+            context.Type == typeof(OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision))
+        {
+            DescribeConfidenceFactor(schema,
+                (decimal)OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision.MaximumConfidenceFactor);
         }
 
         if (context.Type == typeof(AntiCollisionPolicyRule) &&
@@ -207,6 +221,18 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
         if (!schema.Properties.TryGetValue(propertyName, out OpenApiSchema? property)) return;
         property.Minimum = minimum;
         property.Maximum = maximum;
+    }
+
+    private static void DescribeConfidenceFactor(OpenApiSchema schema, decimal maximum)
+    {
+        Describe(schema, "ConfidenceFactor",
+            $"Dimensionless confidence proportion greater than 0 and no greater than {maximum.ToString(CultureInfo.InvariantCulture)}.",
+            "ProportionStandard", "1");
+        if (!schema.Properties.TryGetValue("ConfidenceFactor", out OpenApiSchema? property)) return;
+        property.Minimum = 0.0m;
+        property.ExclusiveMinimum = true;
+        property.Maximum = maximum;
+        property.ExclusiveMaximum = false;
     }
 
     private static void Describe(OpenApiSchema schema, string propertyName, string description,
