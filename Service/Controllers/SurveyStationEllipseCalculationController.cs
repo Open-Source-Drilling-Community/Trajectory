@@ -54,7 +54,13 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         public async Task<ActionResult<SurveyStationEllipseCalculation>> PostSurveyStationEllipseCalculation([FromBody] SurveyStationEllipseCalculation? data)
         {
             SurveyStationEllipseCalculation? calculation = await _manager.AddSurveyStationEllipseCalculationAsync(data);
-            return calculation != null ? Ok(calculation) : BadRequest();
+            return calculation != null
+                ? Ok(calculation)
+                : BadRequest(new
+                {
+                    error = "ellipse_calculation_failed",
+                    message = data?.CalculationMessage ?? "The uncertainty ellipse calculation could not be completed."
+                });
         }
 
         [HttpDelete("{id}", Name = "DeleteSurveyStationEllipseCalculationById")]

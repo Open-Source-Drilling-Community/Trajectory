@@ -484,6 +484,9 @@ public sealed class WebPageComponentContractTests
             Assert.That(policies, Does.Contain("draft_.ConfidenceFactor > 0.0"));
             Assert.That(scan, Does.Contain("confidenceFactor_ > 0.0 && confidenceFactor_ <= MaximumConfidenceFactor"));
             Assert.That(extrapolation, Does.Contain("<SurveyStationEllipseTable SurveyStationList=\"@interpolatedExtrapolationStations\""));
+            Assert.That(extrapolation, Does.Contain("sourceLastDefinedSurveyTool"));
+            Assert.That(extrapolation, Does.Contain("station.SurveyTool ??= sourceLastDefinedSurveyTool"));
+            Assert.That(extrapolation, Does.Contain("first.Covariance = sourceLastSurveyStation.Covariance"));
         });
     }
 

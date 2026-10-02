@@ -65,4 +65,53 @@ public sealed class SurveyStationEllipseCalculationTests
             Is.EqualTo("No uncertainty result could be calculated from the survey station covariance matrices."),
             "The boundary value must pass confidence validation even when the minimal fixture cannot form an ellipse.");
     }
+
+    [Test]
+    public void Missing_extrapolated_covariances_continue_from_the_first_station_with_its_instrument()
+    {
+        SymmetricMatrix3x3 covariance = new();
+        covariance[0, 0] = 4.0;
+        covariance[1, 1] = 9.0;
+        covariance[2, 2] = 16.0;
+        SurveyInstrument instrument = new()
+        {
+            ModelType = SurveyInstrumentModelType.MWD_WolffDeWardt,
+            Misalignment = 0.01,
+            RelDepthError = 0.001
+        };
+        SurveyStation start = new()
+        {
+            MD = 100.0,
+            Inclination = 0.5,
+            Azimuth = 0.3,
+            RiemannianNorth = 40.0,
+            RiemannianEast = 12.0,
+            TVD = 90.0,
+            Covariance = covariance,
+            SurveyTool = instrument
+        };
+        start.CalculateEigenProperties();
+        SurveyStation end = new()
+        {
+            MD = 130.0,
+            Inclination = 0.5,
+            Azimuth = 0.3,
+            RiemannianNorth = 52.0,
+            RiemannianEast = 16.0,
+            TVD = 116.0
+        };
+        SurveyStationEllipseCalculation calculation = new()
+        {
+            ConfidenceFactor = 0.95,
+            SurveyStationList = [start, end]
+        };
+
+        Assert.That(calculation.Calculate(), Is.True, calculation.CalculationMessage);
+        Assert.Multiple(() =>
+        {
+            Assert.That(end.SurveyTool, Is.SameAs(instrument));
+            Assert.That(end.Covariance, Is.Not.Null);
+            Assert.That(calculation.SurveyStationEllipseResultList, Has.Count.EqualTo(2));
+        });
+    }
 }

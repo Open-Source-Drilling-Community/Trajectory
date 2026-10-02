@@ -133,6 +133,39 @@ public class TrajectoryExtrapolationCalculatorTests
     }
 
     [Test]
+    public void Extrapolated_stations_inherit_the_last_defined_source_survey_instrument()
+    {
+        SurveyInstrument instrument = new()
+        {
+            ModelType = SurveyInstrumentModelType.MWD_WolffDeWardt,
+            Misalignment = 0.01,
+            RelDepthError = 0.001
+        };
+        SurveyStation previous = Station(70.0, 0.4, 0.2, 65.0, 12.0, 3.0);
+        previous.SurveyTool = instrument;
+        SurveyStation terminal = Station(100.0, 0.5, 0.3, 90.0, 20.0, 6.0);
+        SymmetricMatrix3x3 covariance = new();
+        covariance[0, 0] = covariance[1, 1] = covariance[2, 2] = 1.0;
+        terminal.Covariance = covariance;
+        terminal.CalculateEigenProperties();
+        TrajectoryExtrapolationCase calculation = Case(
+            TrajectoryExtrapolationMode.FixedLength,
+            new FixedLengthExtrapolationSpecification
+            {
+                Length = 60.0,
+                ExtensionType = FixedLengthExtrapolationType.Straight
+            });
+
+        bool success = TrajectoryExtrapolationCalculator.Calculate(
+            calculation, SourceTrajectory(previous, terminal), _ => null);
+
+        Assert.That(success, Is.True, calculation.CalculationMessage);
+        Assert.That(calculation.StartStation?.SurveyTool, Is.SameAs(instrument));
+        Assert.That(calculation.SurveyStationList, Is.Not.Null.And.Not.Empty);
+        Assert.That(calculation.SurveyStationList!.All(station => ReferenceEquals(station.SurveyTool, instrument)), Is.True);
+    }
+
+    [Test]
     public void ContinueBuildAndTurnReconstructsTheLastInterval()
     {
         double tenDegrees = System.Math.PI / 18.0;

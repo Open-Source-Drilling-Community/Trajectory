@@ -80,7 +80,7 @@ namespace OSDC.Drilling.Trajectory.Model
 
         private bool EnsureCovariance(List<SurveyStation> surveyStations)
         {
-            if (surveyStations.Any(HasUsableCovariance))
+            if (surveyStations.All(HasUsableCovariance))
             {
                 CalculationMessage = null;
                 return true;
@@ -89,6 +89,26 @@ namespace OSDC.Drilling.Trajectory.Model
             SurveyInstrument? surveyTool = surveyStations
                 .Select(station => station.SurveyTool)
                 .FirstOrDefault(tool => tool != null);
+            SurveyStation? baseline = surveyStations.FirstOrDefault(HasUsableCovariance);
+            if (baseline != null && surveyTool != null && ReferenceEquals(baseline, surveyStations[0]))
+            {
+                baseline.SurveyTool ??= surveyTool;
+                TrajectoryExtrapolationCalculator.ContinueSourceUncertainty(surveyStations, baseline);
+                if (surveyStations.All(HasUsableCovariance))
+                {
+                    CalculationMessage = null;
+                    return true;
+                }
+            }
+
+            if (baseline != null)
+            {
+                // Preserve the established behavior for a genuinely partial uncertainty result
+                // when there is no defensible instrument with which to extend it.
+                CalculationMessage = null;
+                return true;
+            }
+
             if (surveyTool == null)
             {
                 CalculationMessage = "No usable covariance matrix or survey instrument was provided with the survey stations.";

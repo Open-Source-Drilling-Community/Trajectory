@@ -28,6 +28,14 @@ namespace OSDC.Drilling.Trajectory.Model
             }
 
             SurveyStation start = PrepareStartStation(sourceStations, source.CalculationType);
+            // Survey tools are attached to source stations by survey-run section. A terminal
+            // interpolated station may not carry one, so inherit the last explicitly defined
+            // instrument rather than treating the extrapolation as instrument-free.
+            start.SurveyTool ??= sourceStations
+                .AsEnumerable()
+                .Reverse()
+                .Select(station => station.SurveyTool)
+                .FirstOrDefault(tool => tool != null);
             calculation.StartStation = new SurveyStation(start);
             calculation.SourceTrajectoryRevision = source.LastModificationDate;
             calculation.TargetStation = null;
@@ -701,22 +709,32 @@ namespace OSDC.Drilling.Trajectory.Model
         /// is not a new observation, so its local error-model covariance is treated as an increment
         /// to the source endpoint covariance rather than restarting the well at zero uncertainty.
         /// </summary>
-        private static void ContinueSourceUncertainty(List<SurveyStation> stations, SurveyStation sourceEndpoint)
+        internal static void ContinueSourceUncertainty(List<SurveyStation> stations, SurveyStation sourceEndpoint)
         {
-            if (stations.Count == 0 || sourceEndpoint.Covariance == null)
+            if (stations.Count == 0)
             {
+                return;
+            }
+
+            SurveyInstrument? surveyTool = sourceEndpoint.SurveyTool;
+            foreach (SurveyStation station in stations)
+            {
+                station.SurveyTool = surveyTool;
+            }
+
+            if (sourceEndpoint.Covariance == null)
+            {
+                CalculateUncertainty(stations, surveyTool);
                 return;
             }
 
             SymmetricMatrix3x3 sourceCovariance = CopyCovariance(sourceEndpoint.Covariance);
             Vector3D? sourceBias = CopyVector(sourceEndpoint.Bias);
-            SurveyInstrument? surveyTool = sourceEndpoint.SurveyTool;
 
             // Carry the source endpoint uncertainty even when its instrument definition is not
             // available. In that case no defensible incremental growth can be calculated.
             foreach (SurveyStation station in stations)
             {
-                station.SurveyTool = surveyTool;
                 station.Covariance = CopyCovariance(sourceCovariance);
                 station.Bias = CopyVector(sourceBias);
                 station.CalculateEigenProperties();
@@ -740,22 +758,7 @@ namespace OSDC.Drilling.Trajectory.Model
                 return incremental;
             }).ToList();
 
-            bool calculated;
-            try
-            {
-                calculated = surveyTool.ModelType switch
-                {
-                    SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt =>
-                        CovarianceCalculatorWolffDeWardt.Calculate(incrementalStations),
-                    SurveyInstrumentModelType.MWD_ISCWSA or SurveyInstrumentModelType.Gyro_ISCWSA =>
-                        CovarianceCalculatorISCWSA.Calculate(incrementalStations),
-                    _ => false
-                };
-            }
-            catch
-            {
-                calculated = false;
-            }
+            bool calculated = CalculateUncertainty(incrementalStations, surveyTool);
 
             if (!calculated)
             {
@@ -776,6 +779,35 @@ namespace OSDC.Drilling.Trajectory.Model
                 stations[index].Bias = AddVectors(
                     sourceBias, incrementalStations[index].Bias, incrementalBiasBaseline);
                 stations[index].CalculateEigenProperties();
+            }
+        }
+
+        private static bool CalculateUncertainty(List<SurveyStation> stations, SurveyInstrument? surveyTool)
+        {
+            if (surveyTool == null)
+            {
+                return false;
+            }
+
+            foreach (SurveyStation station in stations)
+            {
+                station.SurveyTool = surveyTool;
+            }
+
+            try
+            {
+                return surveyTool.ModelType switch
+                {
+                    SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt =>
+                        CovarianceCalculatorWolffDeWardt.Calculate(stations),
+                    SurveyInstrumentModelType.MWD_ISCWSA or SurveyInstrumentModelType.Gyro_ISCWSA =>
+                        CovarianceCalculatorISCWSA.Calculate(stations),
+                    _ => false
+                };
+            }
+            catch
+            {
+                return false;
             }
         }
 

@@ -361,6 +361,7 @@
     private Guid? selectedRigJobId;
     private DateTimeOffset? sourceReferenceDate;
     private SurveyStation? sourceLastSurveyStation;
+    private SurveyInstrument? sourceLastDefinedSurveyTool;
     private bool isLoadingSourceLastSurveyStation;
     private string? sourceLastSurveyStationError;
     private int sourceLastSurveyStationLoadVersion;
@@ -502,6 +503,7 @@
     {
         sourceLastSurveyStationLoadVersion++;
         sourceLastSurveyStation = null;
+        sourceLastDefinedSurveyTool = null;
         sourceLastSurveyStationError = null;
         isLoadingSourceLastSurveyStation = false;
     }
@@ -522,26 +524,33 @@
         try
         {
             int chunkCount = await Api.ClientTrajectory.GetTrajectorySurveyStationChunkCountAsync(sourceTrajectoryId);
+            SurveyStation? finalStation = null;
+            SurveyInstrument? finalDefinedSurveyTool = null;
             for (int chunkIndex = chunkCount - 1; chunkIndex >= 0; chunkIndex--)
             {
                 SurveyStationChunk chunk = await Api.ClientTrajectory.GetTrajectorySurveyStationChunkAsync(sourceTrajectoryId, chunkIndex);
-                SurveyStation? lastStation = chunk.SurveyStationList?
+                List<SurveyStation> reverseOrderedStations = chunk.SurveyStationList?
                     .Where(station => station != null)
-                    .OrderBy(station => station.MD)
-                    .LastOrDefault();
-                if (lastStation != null)
+                    .OrderByDescending(station => station.MD ?? station.Abscissa)
+                    .ToList() ?? [];
+                finalStation ??= reverseOrderedStations.FirstOrDefault();
+                finalDefinedSurveyTool ??= reverseOrderedStations
+                    .Select(station => station.SurveyTool)
+                    .FirstOrDefault(tool => tool != null);
+                if (finalStation != null && finalDefinedSurveyTool != null)
                 {
-                    if (loadVersion == sourceLastSurveyStationLoadVersion && SelectedSourceTrajectoryId == sourceTrajectoryId)
-                    {
-                        sourceLastSurveyStation = lastStation;
-                    }
-                    return;
+                    break;
                 }
             }
 
             if (loadVersion == sourceLastSurveyStationLoadVersion)
             {
-                sourceLastSurveyStationError = "The selected trajectory has no calculated survey stations.";
+                sourceLastSurveyStation = finalStation;
+                sourceLastDefinedSurveyTool = finalDefinedSurveyTool;
+                if (finalStation == null)
+                {
+                    sourceLastSurveyStationError = "The selected trajectory has no calculated survey stations.";
+                }
             }
         }
         catch (Exception ex)
@@ -559,6 +568,7 @@
                 isLoadingSourceLastSurveyStation = false;
                 await InvokeAsync(StateHasChanged);
             }
+            ApplySourceUncertaintyContextToLegacyResult();
         }
     }
 
@@ -577,6 +587,34 @@
         {
             logger.LogWarning(ex, "Unable to resolve optional depth and azimuth references for source trajectory {TrajectoryId}", trajectoryId);
             TrajectoryReferenceDatumUtils.Apply(new TrajectoryReferenceDatumValues(null, null, null));
+        }
+    }
+
+    private void ApplySourceUncertaintyContextToLegacyResult()
+    {
+        if (interpolatedExtrapolationStations.Count == 0)
+        {
+            return;
+        }
+
+        foreach (SurveyStation station in interpolatedExtrapolationStations)
+        {
+            station.SurveyTool ??= sourceLastDefinedSurveyTool;
+        }
+
+        SurveyStation first = interpolatedExtrapolationStations
+            .OrderBy(station => station.MD ?? station.Abscissa ?? double.MaxValue)
+            .First();
+        double? firstMd = first.MD ?? first.Abscissa;
+        double? sourceMd = sourceLastSurveyStation?.MD ?? sourceLastSurveyStation?.Abscissa;
+        if (first.Covariance == null && sourceLastSurveyStation?.Covariance != null &&
+            firstMd.HasValue && sourceMd.HasValue &&
+            Math.Abs(firstMd.Value - sourceMd.Value) <= 1e-8 * Math.Max(1.0, Math.Abs(sourceMd.Value)))
+        {
+            first.Covariance = sourceLastSurveyStation.Covariance;
+            first.Bias = sourceLastSurveyStation.Bias;
+            first.EigenValues = sourceLastSurveyStation.EigenValues;
+            first.EigenVectors = sourceLastSurveyStation.EigenVectors;
         }
     }
 
@@ -921,6 +959,7 @@
                 loadedSurveyStationChunkCount = i + 1;
                 await InvokeAsync(StateHasChanged);
             }
+            ApplySourceUncertaintyContextToLegacyResult();
         }
         finally
         {
