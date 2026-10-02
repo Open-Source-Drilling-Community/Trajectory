@@ -221,7 +221,7 @@
 
     private async Task<bool> ConfirmDeletion()
     {
-        var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+        var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", TrajectoryDialogOptions.Compact);
         var result = await dialog.Result;
         return result != null && !result.Canceled;
     }

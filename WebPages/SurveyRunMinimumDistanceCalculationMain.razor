@@ -79,45 +79,20 @@
             <MudItem xs="12" md="3"><MudTextField @bind-Value="currentCalculation_.Name" Label="Name" Required="true" ShrinkLabel /></MudItem>
             <MudItem xs="12" md="3"><MudTextField @bind-Value="currentCalculation_.Description" Label="Description" ShrinkLabel /></MudItem>
             <MudItem xs="12" />
-            <MudItem xs="12" md="3">
-                <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId_" ValueChanged="OnFieldChanged" ShrinkLabel Clearable="true">
-                    @foreach (Field field in AvailableFields)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
-                    }
-                </MudSelect>
+            <MudItem xs="12">
+                <TrajectoryResourceFilter Fields="@(fieldList_ ?? [])" Clusters="@(clusterList_ ?? [])" Wells="@(wellList_ ?? [])"
+                                          WellBores="@(wellBoreList_ ?? [])" SurveyRuns="@SurveyRunLightList_"
+                                          ResourceKind="TrajectoryResourceFilterKind.SurveyRun" ResourceLabelOverride="Reference Survey Run"
+                                          FieldId="@selectedFieldId_" FieldIdChanged="OnFieldChanged"
+                                          ClusterId="@selectedClusterId_" ClusterIdChanged="OnClusterChanged"
+                                          WellId="@selectedWellId_" WellIdChanged="OnWellChanged"
+                                          WellBoreId="@selectedWellBoreId_" WellBoreIdChanged="OnWellBoreChanged"
+                                          ResourceId="@selectedReferenceSurveyRunId_" ResourceIdChanged="OnReferenceSurveyRunChanged" />
             </MudItem>
-            <MudItem xs="12" md="3">
-                <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId_" ValueChanged="OnClusterChanged" ShrinkLabel Clearable="true">
-                    @foreach (Cluster cluster in AvailableClusters)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudSelect Label="Well" T="Guid?" Value="@selectedWellId_" ValueChanged="OnWellChanged" ShrinkLabel Clearable="true">
-                    @foreach (Well well in AvailableWells)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudSelect Label="WellBore" T="Guid?" Value="@selectedWellBoreId_" ValueChanged="OnWellBoreChanged" ShrinkLabel Clearable="true">
-                    @foreach (WellBore wellBore in AvailableWellBores)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)wellBore.MetaInfo.ID)">@wellBore.Name</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudSelect Label="Reference Survey Run" T="Guid?" Value="@selectedReferenceSurveyRunId_" ValueChanged="OnReferenceSurveyRunChanged" ShrinkLabel Clearable="true">
-                    @foreach (SurveyRunLight surveyRun in AvailableReferenceSurveyRuns)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)surveyRun.MetaInfo.ID)">@surveyRun.Name</MudSelectItem>
-                    }
-                </MudSelect>
+            <MudItem xs="12" md="4">
+                <RigJobSelector WellBores="@(wellBoreList_ ?? [])" Rigs="@(rigList_ ?? [])" WellBoreId="@selectedWellBoreId_"
+                                ReferenceDate="@referenceSurveyRunDate_" SelectedRigJobId="@selectedRigJobId_"
+                                SelectedRigJobIdChanged="OnRigJobIdChanged" SelectionChanged="OnRigJobChanged" />
             </MudItem>
             <MudItem xs="12" />
             <MudItem xs="12" md="3" Class="d-flex align-center">
@@ -180,37 +155,13 @@
             <MudGrid Class="mt-1">
                 <MudItem xs="12" md="5">
                     <MudGrid>
-                        <MudItem xs="12" md="6">
-                            <MudSelect Label="Field" T="Guid?" Value="@comparisonFieldId_" ValueChanged="OnComparisonFieldChanged" ShrinkLabel Clearable="true">
-                                @foreach (Field field in AvailableFields)
-                                {
-                                    <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="12" md="6">
-                            <MudSelect Label="Cluster" T="Guid?" Value="@comparisonClusterId_" ValueChanged="OnComparisonClusterChanged" ShrinkLabel Clearable="true">
-                                @foreach (Cluster cluster in AvailableComparisonClusters)
-                                {
-                                    <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="12" md="6">
-                            <MudSelect Label="Well" T="Guid?" Value="@comparisonWellId_" ValueChanged="OnComparisonWellChanged" ShrinkLabel Clearable="true">
-                                @foreach (Well well in AvailableComparisonWells)
-                                {
-                                    <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="12" md="6">
-                            <MudSelect Label="WellBore" T="Guid?" Value="@comparisonWellBoreId_" ValueChanged="OnComparisonWellBoreChanged" ShrinkLabel Clearable="true">
-                                @foreach (WellBore wellBore in AvailableComparisonWellBores)
-                                {
-                                    <MudSelectItem T="Guid?" Value="@((Guid?)wellBore.MetaInfo.ID)">@wellBore.Name</MudSelectItem>
-                                }
-                            </MudSelect>
+                        <MudItem xs="12">
+                            <TrajectoryResourceFilter Fields="@(fieldList_ ?? [])" Clusters="@(clusterList_ ?? [])" Wells="@(wellList_ ?? [])"
+                                                      WellBores="@(wellBoreList_ ?? [])" ResourceKind="TrajectoryResourceFilterKind.None"
+                                                      FieldId="@comparisonFieldId_" FieldIdChanged="OnComparisonFieldChanged"
+                                                      ClusterId="@comparisonClusterId_" ClusterIdChanged="OnComparisonClusterChanged"
+                                                      WellId="@comparisonWellId_" WellIdChanged="OnComparisonWellChanged"
+                                                      WellBoreId="@comparisonWellBoreId_" WellBoreIdChanged="OnComparisonWellBoreChanged" />
                         </MudItem>
                     </MudGrid>
                     <MudTextField @bind-Value="comparisonSearchString_" Label="Filter available survey runs" ShrinkLabel Immediate="true"
@@ -471,6 +422,8 @@
     private Guid? selectedWellId_;
     private Guid? selectedWellBoreId_;
     private Guid? selectedReferenceSurveyRunId_;
+    private Guid? selectedRigJobId_;
+    private DateTimeOffset? referenceSurveyRunDate_;
     private Guid? comparisonFieldId_;
     private Guid? comparisonClusterId_;
     private Guid? comparisonWellId_;
@@ -769,6 +722,8 @@
         selectedWellId_ = null;
         selectedWellBoreId_ = null;
         selectedReferenceSurveyRunId_ = null;
+        selectedRigJobId_ = null;
+        referenceSurveyRunDate_ = null;
         advancedMode_ = false;
         ResetResultLoadingState();
         MarkCalculationClean();
@@ -784,6 +739,11 @@
         currentCalculation_.ReferenceIntervalList ??= [];
         selectedReferenceSurveyRunId_ = currentCalculation_.ReferenceSurveyRunID == Guid.Empty ? null : currentCalculation_.ReferenceSurveyRunID;
         SyncSelectorsFromSurveyRun(selectedReferenceSurveyRunId_);
+        referenceSurveyRunDate_ = SurveyRunLightList_
+            .FirstOrDefault(run => run.MetaInfo?.ID == selectedReferenceSurveyRunId_) is { } selectedRun
+                ? RigJobSelectionUtils.SurveyRunDate(selectedRun)
+                : null;
+        selectedRigJobId_ = null;
         advancedMode_ = false;
         ResetResultLoadingState();
         await ApplySurveyRunReferenceValuesAsync();
@@ -902,7 +862,8 @@
             "Unsaved changes",
             "Some changes have not been saved. Close without saving?",
             yesText: "Close without saving",
-            cancelText: "Stay");
+            cancelText: "Stay",
+            options: TrajectoryDialogOptions.Compact);
 
         return result == true;
     }
@@ -910,6 +871,10 @@
     private async Task OnReferenceSurveyRunChanged(Guid? id)
     {
         selectedReferenceSurveyRunId_ = id;
+        referenceSurveyRunDate_ = SurveyRunLightList_.FirstOrDefault(run => run.MetaInfo?.ID == id) is { } selectedRun
+            ? RigJobSelectionUtils.SurveyRunDate(selectedRun)
+            : null;
+        selectedRigJobId_ = null;
         if (currentCalculation_ != null)
         {
             currentCalculation_.ReferenceSurveyRunID = id ?? Guid.Empty;
@@ -923,6 +888,8 @@
     private Task OnFieldChanged(Guid? fieldId)
     {
         selectedFieldId_ = fieldId;
+        selectedRigJobId_ = null;
+        referenceSurveyRunDate_ = null;
         NormalizeReferenceSelectionChain();
         return Task.CompletedTask;
     }
@@ -930,6 +897,8 @@
     private Task OnClusterChanged(Guid? clusterId)
     {
         selectedClusterId_ = clusterId;
+        selectedRigJobId_ = null;
+        referenceSurveyRunDate_ = null;
         NormalizeReferenceSelectionChain();
         return Task.CompletedTask;
     }
@@ -937,6 +906,8 @@
     private Task OnWellChanged(Guid? wellId)
     {
         selectedWellId_ = wellId;
+        selectedRigJobId_ = null;
+        referenceSurveyRunDate_ = null;
         if (wellId is Guid selectedId && FindWellById(selectedId) is Well well)
         {
             selectedClusterId_ = well.IsSingleWell ? null : well.ClusterID;
@@ -949,6 +920,8 @@
     private Task OnWellBoreChanged(Guid? wellBoreId)
     {
         selectedWellBoreId_ = wellBoreId;
+        selectedRigJobId_ = null;
+        referenceSurveyRunDate_ = null;
         if (wellBoreId is Guid selectedId && FindWellBoreById(selectedId) is WellBore wellBore)
         {
             selectedWellId_ = wellBore.WellID;
@@ -982,6 +955,8 @@
         if (selectedReferenceSurveyRunId_ != null && !AvailableReferenceSurveyRuns.Any(surveyRun => surveyRun.MetaInfo.ID == selectedReferenceSurveyRunId_))
         {
             selectedReferenceSurveyRunId_ = null;
+            selectedRigJobId_ = null;
+            referenceSurveyRunDate_ = null;
             if (currentCalculation_ != null)
             {
                 currentCalculation_.ReferenceSurveyRunID = Guid.Empty;
@@ -1412,7 +1387,7 @@
 
     private async Task<bool> ConfirmDeletion()
     {
-        var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+        var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", TrajectoryDialogOptions.Compact);
         var result = await dialog.Result;
         return result != null && !result.Canceled;
     }
@@ -1464,10 +1439,24 @@
 
     private async Task ApplySurveyRunReferenceValuesAsync()
     {
-        DataUtils.ApplySurveyRunReferenceValues(selectedReferenceSurveyRunId_, SurveyRunLightList_, wellBoreList_, wellList_, clusterList_, rigList_, fieldList_);
+        DataUtils.ApplySurveyRunReferenceValues(
+            selectedReferenceSurveyRunId_, SurveyRunLightList_, wellBoreList_, wellList_, clusterList_, rigList_, fieldList_,
+            selectedRigJobId_, referenceSurveyRunDate_);
         await CartographicPositionReferenceUtils.ApplyForSurveyRunAsync(Api, selectedReferenceSurveyRunId_, SurveyRunLightList_, clusterList_, fieldList_, logger);
         TrajectoryReferenceDatumUtils.Apply(
             await TrajectoryReferenceDatumUtils.ResolveForSurveyRunAsync(Api, selectedReferenceSurveyRunId_, SurveyRunLightList_, wellBoreList_, wellList_, clusterList_));
+    }
+
+    private Task OnRigJobIdChanged(Guid? rigJobId)
+    {
+        selectedRigJobId_ = rigJobId;
+        return Task.CompletedTask;
+    }
+
+    private async Task OnRigJobChanged(RigJob? _)
+    {
+        await ApplySurveyRunReferenceValuesAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private bool MatchesSelectedField(Well well)

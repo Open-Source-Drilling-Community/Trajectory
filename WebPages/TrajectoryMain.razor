@@ -43,32 +43,13 @@
                     }
                 </MudText>
             }
-            <MudGrid Class="mb-4">
-                <MudItem xs="12" md="3">
-                    <MudAutocomplete Label="Field" T="Guid?" Value="@selectedFieldId" ValueChanged="OnFieldChanged"
-                                     SearchFunc="SearchFieldsAsync" ToStringFunc="GetFieldDisplayName"
-                                     Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
-                                     Disabled="@(!referenceDataAvailable)" />
-                </MudItem>
-                <MudItem xs="12" md="3">
-                    <MudAutocomplete Label="Cluster" T="Guid?" Value="@selectedClusterId" ValueChanged="OnClusterChanged"
-                                     SearchFunc="SearchClustersAsync" ToStringFunc="GetClusterDisplayName"
-                                     Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
-                                     Disabled="@(!referenceDataAvailable || selectedFieldId == null)" />
-                </MudItem>
-                <MudItem xs="12" md="3">
-                    <MudAutocomplete Label="Well" T="Guid?" Value="@selectedWellId" ValueChanged="OnWellChanged"
-                                     SearchFunc="SearchWellsAsync" ToStringFunc="GetWellDisplayName"
-                                     Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
-                                     Disabled="@(!referenceDataAvailable || selectedFieldId == null)" />
-                </MudItem>
-                <MudItem xs="12" md="3">
-                    <MudAutocomplete Label="WellBore" T="Guid?" Value="@selectedWellBoreId" ValueChanged="OnWellBoreChanged"
-                                     SearchFunc="SearchWellBoresAsync" ToStringFunc="GetWellBoreFilterDisplayName"
-                                     Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
-                                     Disabled="@(!referenceDataAvailable || selectedWellId == null)" />
-                </MudItem>
-            </MudGrid>
+            <TrajectoryResourceFilter Class="mb-4" Fields="@(fieldList ?? [])" Clusters="@(clusterList ?? [])"
+                                      Wells="@(wellList ?? [])" WellBores="@(wellBoreList ?? [])"
+                                      FieldId="@selectedFieldId" FieldIdChanged="OnFieldChanged"
+                                      ClusterId="@selectedClusterId" ClusterIdChanged="OnClusterChanged"
+                                      WellId="@selectedWellId" WellIdChanged="OnWellChanged"
+                                      WellBoreId="@selectedWellBoreId" WellBoreIdChanged="OnWellBoreChanged"
+                                      Disabled="@(!referenceDataAvailable)" />
             @* _gridKey forces a full remount of MudDataGrid on each reload,
                clearing all stale selection state from the virtual DOM. *@
             <MudDataGrid T="TrajectoryLight" @key="_gridKey"
@@ -258,62 +239,6 @@
                 wellBore.WellID == selectedWellId)
             .OrderBy(wellBore => wellBore.Name)
             .ToList() ?? [];
-
-    private Task<IEnumerable<Guid?>> SearchFieldsAsync(string? searchText, CancellationToken cancellationToken) =>
-        Task.FromResult(FilterReferenceIdsByName(AvailableFields, searchText, field => field.Name, field => field.MetaInfo.ID));
-
-    private Task<IEnumerable<Guid?>> SearchClustersAsync(string? searchText, CancellationToken cancellationToken) =>
-        Task.FromResult(FilterReferenceIdsByName(AvailableClusters, searchText, cluster => cluster.Name, cluster => cluster.MetaInfo.ID));
-
-    private Task<IEnumerable<Guid?>> SearchWellsAsync(string? searchText, CancellationToken cancellationToken) =>
-        Task.FromResult(FilterReferenceIdsByName(AvailableWells, searchText, well => well.Name, well => well.MetaInfo.ID));
-
-    private Task<IEnumerable<Guid?>> SearchWellBoresAsync(string? searchText, CancellationToken cancellationToken) =>
-        Task.FromResult(FilterReferenceIdsByName(AvailableWellBores, searchText, wellBore => wellBore.Name, wellBore => wellBore.MetaInfo.ID));
-
-    private string GetFieldDisplayName(Guid? id) =>
-        GetReferenceDisplayName(id, fieldList ?? [], field => field.Name, field => field.MetaInfo?.ID, "field");
-
-    private string GetClusterDisplayName(Guid? id) =>
-        GetReferenceDisplayName(id, clusterList ?? [], cluster => cluster.Name, cluster => cluster.MetaInfo?.ID, "cluster");
-
-    private string GetWellDisplayName(Guid? id) =>
-        GetReferenceDisplayName(id, wellList ?? [], well => well.Name, well => well.MetaInfo?.ID, "well");
-
-    private string GetWellBoreFilterDisplayName(Guid? id) =>
-        GetReferenceDisplayName(id, wellBoreList ?? [], wellBore => wellBore.Name, wellBore => wellBore.MetaInfo?.ID, "wellbore");
-
-    private static IEnumerable<Guid?> FilterReferenceIdsByName<T>(
-        IEnumerable<T> items,
-        string? searchText,
-        Func<T, string?> getName,
-        Func<T, Guid> getId)
-    {
-        string? term = searchText?.Trim();
-        return items
-            .Where(item => string.IsNullOrEmpty(term) ||
-                (getName(item)?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
-            .Select(item => (Guid?)getId(item));
-    }
-
-    private string GetReferenceDisplayName<T>(
-        Guid? id,
-        IEnumerable<T> items,
-        Func<T, string?> getName,
-        Func<T, Guid?> getId,
-        string resourceName)
-    {
-        if (id is not Guid value)
-        {
-            return string.Empty;
-        }
-
-        T? item = items.FirstOrDefault(candidate => getId(candidate) == value);
-        string? name = item is null ? null : getName(item);
-        return !string.IsNullOrWhiteSpace(name)
-            ? name
-            : isReferenceDataLoading ? "Loading…" : $"Unknown {resourceName}";
-    }
 
     private Task OnFieldChanged(Guid? fieldId)
     {
@@ -604,7 +529,7 @@
         IDialogReference dialog = await DialogService.ShowAsync<DialogDeleteTemplate>(
             "DELETE",
             parameters,
-            new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+            TrajectoryDialogOptions.Compact);
         DialogResult? result = await dialog.Result;
         return result != null && !result.Canceled;
     }

@@ -60,6 +60,7 @@ namespace OSDC.Drilling.Trajectory.Model
                 Toolface = 0.0,
                 BUR = 0.0,
                 TUR = 0.0,
+                SurveyTool = start.SurveyTool,
                 BoreholeRadius = start.BoreholeRadius
             };
         }
@@ -101,6 +102,7 @@ namespace OSDC.Drilling.Trajectory.Model
                         Math.Pow(end.X.Value - last.RiemannianNorth!.Value, 2) +
                         Math.Pow(end.Y.Value - last.RiemannianEast!.Value, 2))
                     : null,
+                SurveyTool = last.SurveyTool,
                 BoreholeRadius = last.BoreholeRadius
             };
 

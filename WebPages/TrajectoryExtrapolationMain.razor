@@ -130,7 +130,9 @@
 
     private async Task DeleteAsync(TrajectoryExtrapolationCaseLight value)
     {
-        bool? confirmed = await DialogService.ShowMessageBoxAsync("Delete extrapolation", $"Delete '{value.Name}'?", yesText: "Delete", cancelText: "Cancel");
+        bool? confirmed = await DialogService.ShowMessageBoxAsync(
+            "Delete extrapolation", $"Delete '{value.Name}'?", yesText: "Delete", cancelText: "Cancel",
+            options: TrajectoryDialogOptions.Compact);
         if (confirmed != true) return;
         try
         {

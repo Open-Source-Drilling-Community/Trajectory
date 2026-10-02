@@ -8,6 +8,8 @@ The anti-collision scan provides case-insensitive partial-name search in its Fie
 
 The host maintains one application-wide reference-data snapshot for Fields, Clusters, Wells, WellBores, Rigs, Survey Instruments, and lightweight WellBore Architectures. Trajectory pages reuse this snapshot instead of downloading the same catalogs whenever the user navigates between pages. A background worker refreshes all catalogs concurrently every minute. Refresh publication is atomic, and a failed refresh leaves the last successful snapshot available, so a temporary dependency outage does not erase working reference data. Full catalog responses are used because UUID-only polling cannot detect renames or hierarchy changes with the currently published dependency contracts.
 
+Trajectory and Survey Run workflows use one shared searchable ownership selector for Field, Cluster, Well, WellBore, and the optional Trajectory or Survey Run. Each level accepts partial names and constrains the choices below it. Rig job is selected separately on depth-reference-aware pages: the default is the job active at the Survey Run acquisition date or the latest constituent Survey Run date of a Trajectory, and changing it updates the rotary-table depth reference used for display conversions.
+
 ## Container
 
 The host application is packaged as the Docker image:

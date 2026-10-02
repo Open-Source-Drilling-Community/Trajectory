@@ -1,0 +1,139 @@
+<MudGrid Class="@Class">
+    <MudItem xs="12" sm="6" md="@ColumnWidth">
+        <MudAutocomplete Label="Field" T="Guid?" Value="@FieldId" ValueChanged="OnFieldChangedAsync"
+                         SearchFunc="SearchFieldsAsync" ToStringFunc="GetFieldName"
+                         Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                         Disabled="@Disabled" />
+    </MudItem>
+    <MudItem xs="12" sm="6" md="@ColumnWidth">
+        <MudAutocomplete Label="Cluster" T="Guid?" Value="@ClusterId" ValueChanged="OnClusterChangedAsync"
+                         SearchFunc="SearchClustersAsync" ToStringFunc="GetClusterName"
+                         Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                         Disabled="@(Disabled || FieldId == null)" />
+    </MudItem>
+    <MudItem xs="12" sm="6" md="@ColumnWidth">
+        <MudAutocomplete Label="Well" T="Guid?" Value="@WellId" ValueChanged="OnWellChangedAsync"
+                         SearchFunc="SearchWellsAsync" ToStringFunc="GetWellName"
+                         Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                         Disabled="@(Disabled || FieldId == null)" />
+    </MudItem>
+    @if (ShowWellBore)
+    {
+        <MudItem xs="12" sm="6" md="@ColumnWidth">
+            <MudAutocomplete Label="WellBore" T="Guid?" Value="@WellBoreId" ValueChanged="OnWellBoreChangedAsync"
+                             SearchFunc="SearchWellBoresAsync" ToStringFunc="GetWellBoreName"
+                             Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                             Disabled="@(Disabled || WellId == null)" />
+        </MudItem>
+    }
+    @if (ResourceKind != TrajectoryResourceFilterKind.None)
+    {
+        <MudItem xs="12" sm="6" md="@ResourceColumnWidth">
+            <MudAutocomplete Label="@ResourceLabel" T="Guid?" Value="@ResourceId" ValueChanged="OnResourceChangedAsync"
+                             SearchFunc="SearchResourcesAsync" ToStringFunc="GetResourceName"
+                             Clearable="@(!ResourceRequired)" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                             Required="@ResourceRequired" Disabled="@(Disabled || WellBoreId == null)" />
+        </MudItem>
+    }
+</MudGrid>
+
+@code {
+    [Parameter] public IReadOnlyList<Field> Fields { get; set; } = [];
+    [Parameter] public IReadOnlyList<Cluster> Clusters { get; set; } = [];
+    [Parameter] public IReadOnlyList<Well> Wells { get; set; } = [];
+    [Parameter] public IReadOnlyList<WellBore> WellBores { get; set; } = [];
+    [Parameter] public IReadOnlyList<TrajectoryLight> Trajectories { get; set; } = [];
+    [Parameter] public IReadOnlyList<SurveyRunLight> SurveyRuns { get; set; } = [];
+    [Parameter] public TrajectoryResourceFilterKind ResourceKind { get; set; }
+    [Parameter] public string? ResourceLabelOverride { get; set; }
+    [Parameter] public bool ResourceRequired { get; set; }
+    [Parameter] public bool CompletedTrajectoriesOnly { get; set; }
+    [Parameter] public bool ShowWellBore { get; set; } = true;
+    [Parameter] public bool Disabled { get; set; }
+    [Parameter] public string? Class { get; set; }
+
+    [Parameter] public Guid? FieldId { get; set; }
+    [Parameter] public EventCallback<Guid?> FieldIdChanged { get; set; }
+    [Parameter] public Guid? ClusterId { get; set; }
+    [Parameter] public EventCallback<Guid?> ClusterIdChanged { get; set; }
+    [Parameter] public Guid? WellId { get; set; }
+    [Parameter] public EventCallback<Guid?> WellIdChanged { get; set; }
+    [Parameter] public Guid? WellBoreId { get; set; }
+    [Parameter] public EventCallback<Guid?> WellBoreIdChanged { get; set; }
+    [Parameter] public Guid? ResourceId { get; set; }
+    [Parameter] public EventCallback<Guid?> ResourceIdChanged { get; set; }
+
+    private int ColumnWidth => ResourceKind == TrajectoryResourceFilterKind.None ? ShowWellBore ? 3 : 4 : 2;
+    private int ResourceColumnWidth => 4;
+    private string ResourceLabel => ResourceLabelOverride ?? (ResourceKind == TrajectoryResourceFilterKind.SurveyRun ? "Survey Run" : "Trajectory");
+
+    private IEnumerable<Field> AvailableFields => Fields.Where(item => item?.MetaInfo != null).OrderBy(item => item.Name);
+    private IEnumerable<Cluster> AvailableClusters => Clusters
+        .Where(item => item?.MetaInfo != null && !item.IsSingleWell && FieldId != null && item.FieldID == FieldId)
+        .OrderBy(item => item.Name);
+    private IEnumerable<Well> AvailableWells => Wells
+        .Where(item => item?.MetaInfo != null && FieldId != null && FindFieldId(item) == FieldId &&
+                       (ClusterId == null || item.IsSingleWell || item.ClusterID == ClusterId))
+        .OrderBy(item => item.Name);
+    private IEnumerable<WellBore> AvailableWellBores => WellBores
+        .Where(item => item?.MetaInfo != null && WellId != null && item.WellID == WellId)
+        .OrderBy(item => item.Name);
+    private IEnumerable<TrajectoryLight> AvailableTrajectories => Trajectories
+        .Where(item => item?.MetaInfo != null && WellBoreId != null && item.WellBoreID == WellBoreId &&
+                       (!CompletedTrajectoriesOnly || item.CalculationState == CalculationState.Completed))
+        .OrderBy(item => item.Name);
+    private IEnumerable<SurveyRunLight> AvailableSurveyRuns => SurveyRuns
+        .Where(item => item?.MetaInfo != null && WellBoreId != null && item.WellBoreID == WellBoreId)
+        .OrderBy(item => item.Name);
+
+    private Task<IEnumerable<Guid?>> SearchFieldsAsync(string? text, CancellationToken _) =>
+        Task.FromResult(FilterByName(AvailableFields, text, item => item.Name, item => item.MetaInfo.ID));
+    private Task<IEnumerable<Guid?>> SearchClustersAsync(string? text, CancellationToken _) =>
+        Task.FromResult(FilterByName(AvailableClusters, text, item => item.Name, item => item.MetaInfo.ID));
+    private Task<IEnumerable<Guid?>> SearchWellsAsync(string? text, CancellationToken _) =>
+        Task.FromResult(FilterByName(AvailableWells, text, item => item.Name, item => item.MetaInfo.ID));
+    private Task<IEnumerable<Guid?>> SearchWellBoresAsync(string? text, CancellationToken _) =>
+        Task.FromResult(FilterByName(AvailableWellBores, text, item => item.Name, item => item.MetaInfo.ID));
+    private Task<IEnumerable<Guid?>> SearchResourcesAsync(string? text, CancellationToken _) => Task.FromResult(
+        ResourceKind == TrajectoryResourceFilterKind.SurveyRun
+            ? FilterByName(AvailableSurveyRuns, text, item => item.Name, item => item.MetaInfo.ID)
+            : FilterByName(AvailableTrajectories, text, item => item.Name, item => item.MetaInfo.ID));
+
+    private string GetFieldName(Guid? id) => GetName(id, Fields, item => item.Name, item => item.MetaInfo?.ID, "field");
+    private string GetClusterName(Guid? id) => GetName(id, Clusters, item => item.Name, item => item.MetaInfo?.ID, "cluster");
+    private string GetWellName(Guid? id) => GetName(id, Wells, item => item.Name, item => item.MetaInfo?.ID, "well");
+    private string GetWellBoreName(Guid? id) => GetName(id, WellBores, item => item.Name, item => item.MetaInfo?.ID, "wellbore");
+    private string GetResourceName(Guid? id) => ResourceKind == TrajectoryResourceFilterKind.SurveyRun
+        ? GetName(id, SurveyRuns, item => item.Name, item => item.MetaInfo?.ID, "survey run")
+        : GetName(id, Trajectories, item => item.Name, item => item.MetaInfo?.ID, "trajectory");
+
+    private async Task OnFieldChangedAsync(Guid? id) => await FieldIdChanged.InvokeAsync(id);
+    private async Task OnClusterChangedAsync(Guid? id) => await ClusterIdChanged.InvokeAsync(id);
+    private async Task OnWellChangedAsync(Guid? id) => await WellIdChanged.InvokeAsync(id);
+    private async Task OnWellBoreChangedAsync(Guid? id) => await WellBoreIdChanged.InvokeAsync(id);
+    private async Task OnResourceChangedAsync(Guid? id) => await ResourceIdChanged.InvokeAsync(id);
+
+    private Guid? FindFieldId(Well well)
+    {
+        if (well.IsSingleWell) return well.ClusterID;
+        return well.ClusterID is Guid clusterId
+            ? Clusters.FirstOrDefault(item => item?.MetaInfo?.ID == clusterId)?.FieldID
+            : null;
+    }
+
+    private static IEnumerable<Guid?> FilterByName<T>(IEnumerable<T> items, string? text, Func<T, string?> name, Func<T, Guid> id)
+    {
+        string? term = text?.Trim();
+        return items.Where(item => string.IsNullOrEmpty(term) ||
+                (name(item)?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
+            .Select(item => (Guid?)id(item));
+    }
+
+    private static string GetName<T>(Guid? id, IEnumerable<T> items, Func<T, string?> name, Func<T, Guid?> itemId, string kind)
+    {
+        if (id is not Guid value) return string.Empty;
+        T? item = items.FirstOrDefault(candidate => itemId(candidate) == value);
+        string? displayName = item is null ? null : name(item);
+        return string.IsNullOrWhiteSpace(displayName) ? $"Unknown {kind}" : displayName;
+    }
+}

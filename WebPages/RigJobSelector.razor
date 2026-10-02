@@ -1,0 +1,67 @@
+<MudAutocomplete Label="Rig job" T="Guid?" Value="@SelectedRigJobId" ValueChanged="OnSelectedAsync"
+                 SearchFunc="SearchAsync" ToStringFunc="GetDisplayName"
+                 Clearable="false" ResetValueOnEmptyText="false" CoerceText="false" MinCharacters="0" ShrinkLabel
+                 Disabled="@(Disabled || AvailableJobs.Count == 0)" />
+@if (WellBoreId != null && AvailableJobs.Count == 0)
+{
+    <MudText Typo="Typo.caption" Color="Color.Secondary">No rig job is defined for this WellBore.</MudText>
+}
+
+@code {
+    [Parameter] public IReadOnlyList<WellBore> WellBores { get; set; } = [];
+    [Parameter] public IReadOnlyList<Rig> Rigs { get; set; } = [];
+    [Parameter] public Guid? WellBoreId { get; set; }
+    [Parameter] public DateTimeOffset? ReferenceDate { get; set; }
+    [Parameter] public Guid? SelectedRigJobId { get; set; }
+    [Parameter] public EventCallback<Guid?> SelectedRigJobIdChanged { get; set; }
+    [Parameter] public EventCallback<RigJob?> SelectionChanged { get; set; }
+    [Parameter] public bool Disabled { get; set; }
+
+    private Guid? lastWellBoreId;
+    private DateTimeOffset? lastReferenceDate;
+    private List<RigJob> AvailableJobs => SelectedWellBore?.RigJobs?
+        .Where(job => job != null && job.RigJobID != Guid.Empty)
+        .OrderByDescending(job => job.StartDate)
+        .ToList() ?? [];
+    private WellBore? SelectedWellBore => WellBoreId is Guid id
+        ? WellBores.FirstOrDefault(item => item?.MetaInfo?.ID == id)
+        : null;
+
+    protected override async Task OnParametersSetAsync()
+    {
+        bool contextChanged = lastWellBoreId != WellBoreId || lastReferenceDate != ReferenceDate;
+        lastWellBoreId = WellBoreId;
+        lastReferenceDate = ReferenceDate;
+        if (!contextChanged && AvailableJobs.Any(job => job.RigJobID == SelectedRigJobId)) return;
+
+        Guid? resolvedId = RigJobSelectionUtils.SelectDefault(SelectedWellBore, ReferenceDate)?.RigJobID;
+        if (resolvedId != SelectedRigJobId)
+        {
+            await SelectedRigJobIdChanged.InvokeAsync(resolvedId);
+            await SelectionChanged.InvokeAsync(AvailableJobs.FirstOrDefault(job => job.RigJobID == resolvedId));
+        }
+    }
+
+    private Task<IEnumerable<Guid?>> SearchAsync(string? text, CancellationToken _)
+    {
+        string? term = text?.Trim();
+        return Task.FromResult(AvailableJobs
+            .Where(job => string.IsNullOrEmpty(term) || GetDisplayName(job.RigJobID).Contains(term, StringComparison.OrdinalIgnoreCase))
+            .Select(job => (Guid?)job.RigJobID));
+    }
+
+    private string GetDisplayName(Guid? id)
+    {
+        RigJob? job = AvailableJobs.FirstOrDefault(item => item.RigJobID == id);
+        if (job == null) return string.Empty;
+        string rigName = Rigs.FirstOrDefault(rig => rig?.MetaInfo?.ID == job.RigID)?.Name ?? "Unknown rig";
+        string end = job.EndDate?.ToString("yyyy-MM-dd") ?? "present";
+        return $"{rigName} ({job.StartDate:yyyy-MM-dd} – {end})";
+    }
+
+    private async Task OnSelectedAsync(Guid? id)
+    {
+        await SelectedRigJobIdChanged.InvokeAsync(id);
+        await SelectionChanged.InvokeAsync(AvailableJobs.FirstOrDefault(job => job.RigJobID == id));
+    }
+}

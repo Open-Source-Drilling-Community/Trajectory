@@ -299,7 +299,7 @@
                 ? $"Restore {DocumentRecordCount} record(s) and replace matching UUIDs?"
                 : $"Restore {DocumentRecordCount} record(s)? Any existing UUID stops the operation.",
             replacing ? "Restore and replace" : "Restore", null, "Cancel",
-            new DialogOptions { MaxWidth = MaxWidth.ExtraSmall, FullWidth = false, CloseOnEscapeKey = true });
+            TrajectoryDialogOptions.Compact);
         if (confirmed != true) return;
         try
         {

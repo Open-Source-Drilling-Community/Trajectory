@@ -79,45 +79,20 @@
             <MudItem xs="12" md="3"><MudTextField @bind-Value="currentCalculation_.Name" Label="Name" Required="true" ShrinkLabel /></MudItem>
             <MudItem xs="12" md="3"><MudTextField @bind-Value="currentCalculation_.Description" Label="Description" ShrinkLabel /></MudItem>
             <MudItem xs="12" />
-            <MudItem xs="12" md="3">
-                <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId_" ValueChanged="OnFieldChanged" ShrinkLabel Clearable="true">
-                    @foreach (Field field in AvailableFields)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
-                    }
-                </MudSelect>
+            <MudItem xs="12">
+                <TrajectoryResourceFilter Fields="@(fieldList_ ?? [])" Clusters="@(clusterList_ ?? [])" Wells="@(wellList_ ?? [])"
+                                          WellBores="@(wellBoreList_ ?? [])" Trajectories="@(trajectoryLightList_ ?? [])"
+                                          ResourceKind="TrajectoryResourceFilterKind.Trajectory" ResourceLabelOverride="Reference Trajectory"
+                                          FieldId="@selectedFieldId_" FieldIdChanged="OnFieldChanged"
+                                          ClusterId="@selectedClusterId_" ClusterIdChanged="OnClusterChanged"
+                                          WellId="@selectedWellId_" WellIdChanged="OnWellChanged"
+                                          WellBoreId="@selectedWellBoreId_" WellBoreIdChanged="OnWellBoreChanged"
+                                          ResourceId="@selectedReferenceTrajectoryId_" ResourceIdChanged="OnReferenceTrajectoryChanged" />
             </MudItem>
-            <MudItem xs="12" md="3">
-                <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId_" ValueChanged="OnClusterChanged" ShrinkLabel Clearable="true">
-                    @foreach (Cluster cluster in AvailableClusters)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudSelect Label="Well" T="Guid?" Value="@selectedWellId_" ValueChanged="OnWellChanged" ShrinkLabel Clearable="true">
-                    @foreach (Well well in AvailableWells)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudSelect Label="WellBore" T="Guid?" Value="@selectedWellBoreId_" ValueChanged="OnWellBoreChanged" ShrinkLabel Clearable="true">
-                    @foreach (WellBore wellBore in AvailableWellBores)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)wellBore.MetaInfo.ID)">@wellBore.Name</MudSelectItem>
-                    }
-                </MudSelect>
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudSelect Label="Reference Trajectory" T="Guid?" Value="@selectedReferenceTrajectoryId_" ValueChanged="OnReferenceTrajectoryChanged" ShrinkLabel Clearable="true">
-                    @foreach (TrajectoryLight trajectory in AvailableReferenceTrajectories)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)trajectory.MetaInfo.ID)">@trajectory.Name</MudSelectItem>
-                    }
-                </MudSelect>
+            <MudItem xs="12" md="4">
+                <RigJobSelector WellBores="@(wellBoreList_ ?? [])" Rigs="@(rigList_ ?? [])" WellBoreId="@selectedWellBoreId_"
+                                ReferenceDate="@referenceTrajectoryDate_" SelectedRigJobId="@selectedRigJobId_"
+                                SelectedRigJobIdChanged="OnRigJobIdChanged" SelectionChanged="OnRigJobChanged" />
             </MudItem>
             <MudItem xs="12" />
             <MudItem xs="12" md="3" Class="d-flex align-center">
@@ -179,40 +154,12 @@
             <MudText Typo="Typo.subtitle1">Comparison Trajectories</MudText>
             <MudGrid Class="mt-1">
                 <MudItem xs="12" md="5">
-                    <MudGrid>
-                        <MudItem xs="12" md="6">
-                            <MudSelect Label="Field" T="Guid?" Value="@comparisonFieldId_" ValueChanged="OnComparisonFieldChanged" ShrinkLabel Clearable="true">
-                                @foreach (Field field in AvailableFields)
-                                {
-                                    <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="12" md="6">
-                            <MudSelect Label="Cluster" T="Guid?" Value="@comparisonClusterId_" ValueChanged="OnComparisonClusterChanged" ShrinkLabel Clearable="true">
-                                @foreach (Cluster cluster in AvailableComparisonClusters)
-                                {
-                                    <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="12" md="6">
-                            <MudSelect Label="Well" T="Guid?" Value="@comparisonWellId_" ValueChanged="OnComparisonWellChanged" ShrinkLabel Clearable="true">
-                                @foreach (Well well in AvailableComparisonWells)
-                                {
-                                    <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                        <MudItem xs="12" md="6">
-                            <MudSelect Label="WellBore" T="Guid?" Value="@comparisonWellBoreId_" ValueChanged="OnComparisonWellBoreChanged" ShrinkLabel Clearable="true">
-                                @foreach (WellBore wellBore in AvailableComparisonWellBores)
-                                {
-                                    <MudSelectItem T="Guid?" Value="@((Guid?)wellBore.MetaInfo.ID)">@wellBore.Name</MudSelectItem>
-                                }
-                            </MudSelect>
-                        </MudItem>
-                    </MudGrid>
+                    <TrajectoryResourceFilter Fields="@(fieldList_ ?? [])" Clusters="@(clusterList_ ?? [])" Wells="@(wellList_ ?? [])"
+                                              WellBores="@(wellBoreList_ ?? [])"
+                                              FieldId="@comparisonFieldId_" FieldIdChanged="OnComparisonFieldChanged"
+                                              ClusterId="@comparisonClusterId_" ClusterIdChanged="OnComparisonClusterChanged"
+                                              WellId="@comparisonWellId_" WellIdChanged="OnComparisonWellChanged"
+                                              WellBoreId="@comparisonWellBoreId_" WellBoreIdChanged="OnComparisonWellBoreChanged" />
                     <MudTextField @bind-Value="comparisonSearchString_" Label="Filter available trajectories" ShrinkLabel Immediate="true"
                                   Adornment="Adornment.Start" AdornmentIcon="@Icons.Material.Filled.Search" />
                     <MudToolBar Dense="true" Class="px-0">
@@ -458,6 +405,7 @@
     private List<TrajectoryMinimumDistanceCalculationLight> calculationLightList_ = [];
     private List<TrajectoryMinimumDistanceCalculationLight> selectedCalculationLightList_ = [];
     private List<TrajectoryLight> trajectoryLightList_ = [];
+    private List<SurveyRunLight> surveyRunList_ = [];
     private List<Field>? fieldList_;
     private MudUnitAndReferenceChoiceTag? unitReferenceTag_;
     private List<WellBore>? wellBoreList_;
@@ -471,6 +419,8 @@
     private Guid? selectedWellId_;
     private Guid? selectedWellBoreId_;
     private Guid? selectedReferenceTrajectoryId_;
+    private Guid? selectedRigJobId_;
+    private DateTimeOffset? referenceTrajectoryDate_;
     private Guid? comparisonFieldId_;
     private Guid? comparisonClusterId_;
     private Guid? comparisonWellId_;
@@ -671,12 +621,14 @@
         {
             var calculationTask = Api.ClientTrajectory.GetAllTrajectoryMinimumDistanceCalculationLightAsync();
             var trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
+            var surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
 
-            await Task.WhenAll(calculationTask, trajectoryTask, referenceDataTask);
+            await Task.WhenAll(calculationTask, trajectoryTask, surveyRunTask, referenceDataTask);
 
             calculationLightList_ = ((ICollection<TrajectoryMinimumDistanceCalculationLight>)await calculationTask).OrderBy(x => x.Name).ToList();
             trajectoryLightList_ = ((ICollection<TrajectoryLight>)await trajectoryTask).OrderBy(x => x.Name).ToList();
+            surveyRunList_ = ((ICollection<SurveyRunLight>)await surveyRunTask).OrderBy(x => x.Name).ToList();
             TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
             fieldList_ = referenceData.Fields.ToList();
             wellBoreList_ = referenceData.WellBores.ToList();
@@ -769,6 +721,8 @@
         selectedWellId_ = null;
         selectedWellBoreId_ = null;
         selectedReferenceTrajectoryId_ = null;
+        selectedRigJobId_ = null;
+        referenceTrajectoryDate_ = null;
         comparisonFieldId_ = null;
         comparisonClusterId_ = null;
         comparisonWellId_ = null;
@@ -788,6 +742,9 @@
         currentCalculation_.ReferenceIntervalList ??= [];
         selectedReferenceTrajectoryId_ = currentCalculation_.ReferenceTrajectoryID == Guid.Empty ? null : currentCalculation_.ReferenceTrajectoryID;
         SyncSelectorsFromTrajectory(selectedReferenceTrajectoryId_);
+        referenceTrajectoryDate_ = await TrajectoryRigJobDateResolver.ResolveAsync(
+            Api, selectedReferenceTrajectoryId_, trajectoryLightList_, surveyRunList_, logger);
+        selectedRigJobId_ = null;
         comparisonFieldId_ = null;
         comparisonClusterId_ = null;
         comparisonWellId_ = null;
@@ -910,7 +867,8 @@
             "Unsaved changes",
             "Some changes have not been saved. Close without saving?",
             yesText: "Close without saving",
-            cancelText: "Stay");
+            cancelText: "Stay",
+            options: TrajectoryDialogOptions.Compact);
 
         return result == true;
     }
@@ -926,12 +884,17 @@
         }
 
         SyncSelectorsFromTrajectory(id);
+        referenceTrajectoryDate_ = await TrajectoryRigJobDateResolver.ResolveAsync(
+            Api, id, trajectoryLightList_, surveyRunList_, logger);
+        selectedRigJobId_ = null;
         await ApplyTrajectoryReferenceValuesAsync();
     }
 
     private Task OnFieldChanged(Guid? fieldId)
     {
         selectedFieldId_ = fieldId;
+        selectedRigJobId_ = null;
+        referenceTrajectoryDate_ = null;
         NormalizeReferenceSelectionChain();
         return Task.CompletedTask;
     }
@@ -939,6 +902,8 @@
     private Task OnClusterChanged(Guid? clusterId)
     {
         selectedClusterId_ = clusterId;
+        selectedRigJobId_ = null;
+        referenceTrajectoryDate_ = null;
         NormalizeReferenceSelectionChain();
         return Task.CompletedTask;
     }
@@ -946,6 +911,8 @@
     private Task OnWellChanged(Guid? wellId)
     {
         selectedWellId_ = wellId;
+        selectedRigJobId_ = null;
+        referenceTrajectoryDate_ = null;
         if (wellId is Guid selectedId && FindWellById(selectedId) is Well well)
         {
             selectedClusterId_ = well.IsSingleWell ? null : well.ClusterID;
@@ -958,6 +925,8 @@
     private Task OnWellBoreChanged(Guid? wellBoreId)
     {
         selectedWellBoreId_ = wellBoreId;
+        selectedRigJobId_ = null;
+        referenceTrajectoryDate_ = null;
         if (wellBoreId is Guid selectedId && FindWellBoreById(selectedId) is WellBore wellBore)
         {
             selectedWellId_ = wellBore.WellID;
@@ -991,6 +960,8 @@
         if (selectedReferenceTrajectoryId_ != null && !AvailableReferenceTrajectories.Any(trajectory => trajectory.MetaInfo.ID == selectedReferenceTrajectoryId_))
         {
             selectedReferenceTrajectoryId_ = null;
+            selectedRigJobId_ = null;
+            referenceTrajectoryDate_ = null;
             if (currentCalculation_ != null)
             {
                 currentCalculation_.ReferenceTrajectoryID = Guid.Empty;
@@ -1420,7 +1391,7 @@
 
     private async Task<bool> ConfirmDeletion()
     {
-        var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+        var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", TrajectoryDialogOptions.Compact);
         var result = await dialog.Result;
         return result != null && !result.Canceled;
     }
@@ -1472,10 +1443,24 @@
 
     private async Task ApplyTrajectoryReferenceValuesAsync()
     {
-        DataUtils.ApplyTrajectoryReferenceValues(selectedReferenceTrajectoryId_, trajectoryLightList_, wellBoreList_, wellList_, clusterList_, rigList_, fieldList_);
+        DataUtils.ApplyTrajectoryReferenceValues(
+            selectedReferenceTrajectoryId_, trajectoryLightList_, wellBoreList_, wellList_, clusterList_, rigList_, fieldList_,
+            selectedRigJobId_, referenceTrajectoryDate_);
         await CartographicPositionReferenceUtils.ApplyForTrajectoryAsync(Api, selectedReferenceTrajectoryId_, trajectoryLightList_, clusterList_, fieldList_, logger);
         TrajectoryReferenceDatumUtils.Apply(
             await TrajectoryReferenceDatumUtils.ResolveForTrajectoryAsync(Api, selectedReferenceTrajectoryId_, trajectoryLightList_, wellBoreList_, wellList_, clusterList_));
+    }
+
+    private Task OnRigJobIdChanged(Guid? rigJobId)
+    {
+        selectedRigJobId_ = rigJobId;
+        return Task.CompletedTask;
+    }
+
+    private async Task OnRigJobChanged(RigJob? _)
+    {
+        await ApplyTrajectoryReferenceValuesAsync();
+        await InvokeAsync(StateHasChanged);
     }
 
     private bool MatchesSelectedField(Well well)

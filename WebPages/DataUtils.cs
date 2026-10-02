@@ -24,7 +24,8 @@ public static class DataUtils
         public static string? DateReferenceName { get; set; }
     }
 
-    public static void ApplyTrajectoryReferenceValues(Guid? trajectoryID, List<TrajectoryLight>? trajectoryList, List<WellBore>? wellBores, List<Well>? wells, List<Cluster>? clusters, List<Rig>? rigs, List<Field>? fields = null)
+    public static void ApplyTrajectoryReferenceValues(Guid? trajectoryID, List<TrajectoryLight>? trajectoryList, List<WellBore>? wellBores, List<Well>? wells, List<Cluster>? clusters, List<Rig>? rigs, List<Field>? fields = null,
+        Guid? selectedRigJobId = null, DateTimeOffset? referenceDate = null)
     {
         DataUtils.GroundMudLineDepthReferenceSource.GroundMudLineDepthReference = 0;
         DataUtils.MeanSeaLevelDepthReferenceSource.MeanSeaLevelDepthReference = null;
@@ -66,7 +67,7 @@ public static class DataUtils
                 }
             }
             Rig? rig = null;
-            Guid? wellBoreRigId = ResolveCurrentRigId(wellBore, null);
+            Guid? wellBoreRigId = ResolveCurrentRigId(wellBore, null, selectedRigJobId, referenceDate);
             if (rigs != null && wellBoreRigId is Guid initialRigId)
             {
                 foreach (var r in rigs)
@@ -118,7 +119,7 @@ public static class DataUtils
             Field? field = fields?.FirstOrDefault(candidate => candidate?.MetaInfo?.ID == fieldID);
             ApplyFieldPositionReference(field);
             Slot? slot = FindSlot(cluster, slotID);
-            Guid? resolvedRigId = ResolveCurrentRigId(wellBore, cluster);
+            Guid? resolvedRigId = ResolveCurrentRigId(wellBore, cluster, selectedRigJobId, referenceDate);
             if (rig == null && rigs != null && resolvedRigId is Guid fallbackRigId)
             {
                 foreach (var r in rigs)
@@ -138,7 +139,7 @@ public static class DataUtils
             {
                 ApplyTopWaterDepthWGS84(cluster.TopWaterDepth.GaussianValue.Mean);
             }
-            if (ResolveDrillFloorDepthWgs84(wellBore, cluster, rigs) is double drillFloorDepth)
+            if (ResolveDrillFloorDepthWgs84(wellBore, cluster, rigs, selectedRigJobId, referenceDate) is double drillFloorDepth)
             {
                 ApplyRotaryTableDepthnWGS84(drillFloorDepth);
             }
@@ -171,12 +172,13 @@ public static class DataUtils
         }
     }
 
-    public static void ApplySurveyRunReferenceValues(Guid? surveyRunID, List<SurveyRunLight>? surveyRunList, List<WellBore>? wellBores, List<Well>? wells, List<Cluster>? clusters, List<Rig>? rigs, List<Field>? fields = null)
+    public static void ApplySurveyRunReferenceValues(Guid? surveyRunID, List<SurveyRunLight>? surveyRunList, List<WellBore>? wellBores, List<Well>? wells, List<Cluster>? clusters, List<Rig>? rigs, List<Field>? fields = null,
+        Guid? selectedRigJobId = null, DateTimeOffset? referenceDate = null)
     {
         SurveyRunLight? surveyRun = surveyRunList?.FirstOrDefault(item => item?.MetaInfo?.ID == surveyRunID);
         if (surveyRun?.MetaInfo == null)
         {
-            ApplyTrajectoryReferenceValues(null, null, wellBores, wells, clusters, rigs, fields);
+            ApplyTrajectoryReferenceValues(null, null, wellBores, wells, clusters, rigs, fields, selectedRigJobId, referenceDate);
             return;
         }
 
@@ -188,35 +190,43 @@ public static class DataUtils
             WellID = surveyRun.WellID,
             WellBoreID = surveyRun.WellBoreID
         };
-        ApplyTrajectoryReferenceValues(surveyRun.MetaInfo.ID, [proxyTrajectory], wellBores, wells, clusters, rigs, fields);
+        ApplyTrajectoryReferenceValues(surveyRun.MetaInfo.ID, [proxyTrajectory], wellBores, wells, clusters, rigs, fields, selectedRigJobId, referenceDate);
     }
 
     /// <summary>
     /// Resolves the latest historical rig. An authoritative empty RigJobs list
     /// intentionally suppresses legacy Cluster fallback.
     /// </summary>
-    public static Guid? ResolveCurrentRigId(WellBore? wellBore, Cluster? cluster)
+    public static Guid? ResolveCurrentRigId(WellBore? wellBore, Cluster? cluster, Guid? selectedRigJobId = null, DateTimeOffset? referenceDate = null)
     {
         if (wellBore?.RigJobs is not null)
-            return wellBore.RigJobs.OrderBy(job => job.StartDate).LastOrDefault()?.RigID;
+            return ResolveRigJob(wellBore, selectedRigJobId, referenceDate)?.RigID;
 #pragma warning disable CS0612
         return wellBore?.RigID ?? cluster?.RigID;
 #pragma warning restore CS0612
     }
 
-    public static double? ResolveDrillFloorDepthWgs84(WellBore? wellBore, Cluster? cluster, IEnumerable<Rig>? rigs)
+    public static RigJob? ResolveRigJob(WellBore? wellBore, Guid? selectedRigJobId = null, DateTimeOffset? referenceDate = null)
+    {
+        if (wellBore?.RigJobs is not { } jobs) return null;
+        if (selectedRigJobId is Guid id && jobs.FirstOrDefault(job => job.RigJobID == id) is RigJob selected) return selected;
+        return RigJobSelectionUtils.SelectDefault(wellBore, referenceDate);
+    }
+
+    public static double? ResolveDrillFloorDepthWgs84(WellBore? wellBore, Cluster? cluster, IEnumerable<Rig>? rigs,
+        Guid? selectedRigJobId = null, DateTimeOffset? referenceDate = null)
     {
         if (wellBore?.RigJobs is not null)
         {
-            RigJob? latest = wellBore.RigJobs.OrderBy(job => job.StartDate).LastOrDefault();
-            if (latest is null) return null;
-            if (latest.DrillFloorDepthSource == DrillFloorDepthSource.RigJob)
-                return latest.DrillFloorDepth?.GaussianValue?.Mean;
-            return rigs?.FirstOrDefault(rig => rig?.MetaInfo?.ID == latest.RigID)?
+            RigJob? selectedJob = ResolveRigJob(wellBore, selectedRigJobId, referenceDate);
+            if (selectedJob is null) return null;
+            if (selectedJob.DrillFloorDepthSource == DrillFloorDepthSource.RigJob)
+                return selectedJob.DrillFloorDepth?.GaussianValue?.Mean;
+            return rigs?.FirstOrDefault(rig => rig?.MetaInfo?.ID == selectedJob.RigID)?
                 .FixedPlatformProperties?.DrillFloorDepth?.GaussianValue?.Mean;
         }
 
-        Guid? rigId = ResolveCurrentRigId(wellBore, cluster);
+        Guid? rigId = ResolveCurrentRigId(wellBore, cluster, selectedRigJobId, referenceDate);
         return rigId is Guid id
             ? rigs?.FirstOrDefault(rig => rig?.MetaInfo?.ID == id)?.FixedPlatformProperties?.DrillFloorDepth?.GaussianValue?.Mean
             : null;

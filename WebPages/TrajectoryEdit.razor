@@ -36,60 +36,18 @@
         <MudItem xs="3">
             <MudTextField Value="@FormatDate(traj.LastModificationDate)" Label="Last Updated" ReadOnly="true" ShrinkLabel />
         </MudItem>
-        <MudItem xs="2">
-            <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId" ValueChanged="OnFieldChanged" ToStringFunc="@FormatFieldName" ShrinkLabel Clearable="true">
-                @if (AvailableFields.Count > 0)
-                {
-                    @foreach (Field field in AvailableFields)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">
-                            @field.Name
-                        </MudSelectItem>
-                    }
-                }
-            </MudSelect>
+        <MudItem xs="12">
+            <TrajectoryResourceFilter Fields="@(FieldList ?? [])" Clusters="@(ClusterList ?? [])" Wells="@(WellList ?? [])"
+                                      WellBores="@(WellBoreList ?? [])" ResourceKind="TrajectoryResourceFilterKind.None"
+                                      FieldId="@selectedFieldId" FieldIdChanged="OnFieldChanged"
+                                      ClusterId="@selectedClusterId" ClusterIdChanged="OnClusterChanged"
+                                      WellId="@selectedWellId" WellIdChanged="OnWellChanged"
+                                      WellBoreId="@selectedWellBoreId" WellBoreIdChanged="OnWellBoreChanged" />
         </MudItem>
-        <MudItem xs="2">
-            <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId" ValueChanged="OnClusterChanged" ToStringFunc="@FormatClusterName" ShrinkLabel Clearable="true">
-                @if (AvailableClusters.Count > 0)
-                {
-                    @foreach (Cluster cluster in AvailableClusters)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">
-                            @cluster.Name
-                        </MudSelectItem>
-                    }
-                }
-            </MudSelect>
-        </MudItem>
-        <MudItem xs="2">
-            <MudSelect Label="Well" T="Guid?" Value="@selectedWellId" ValueChanged="OnWellChanged" ToStringFunc="@FormatWellName" ShrinkLabel Clearable="true">
-                @if (AvailableWells.Count > 0)
-                {
-                    @foreach (Well well in AvailableWells)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">
-                            @well.Name
-                        </MudSelectItem>
-                    }
-                }
-            </MudSelect>
-        </MudItem>
-        <MudItem xs="3">
-            <MudSelect Label="WellBore" T="Guid?" Value="@selectedWellBoreId" ValueChanged="OnWellBoreChanged" ToStringFunc="@FormatWellBoreName" ShrinkLabel Clearable="true">
-                @if (AvailableWellBores.Count > 0)
-                {
-                    @foreach (WellBore wb in AvailableWellBores)
-                    {
-                        <MudSelectItem T="Guid?" Value="@((Guid?)wb.MetaInfo.ID)">
-                            @wb.Name
-                        </MudSelectItem>
-                    }
-                }
-            </MudSelect>
-        </MudItem>
-        <MudItem xs="3">
-            <MudTextField Value="@AssociatedRigName" Label="Rig" ReadOnly="true" ShrinkLabel />
+        <MudItem xs="12" md="4">
+            <RigJobSelector WellBores="@(WellBoreList ?? [])" Rigs="@(RigList ?? [])" WellBoreId="@selectedWellBoreId"
+                            ReferenceDate="@CurrentTrajectoryReferenceDate" SelectedRigJobId="@selectedRigJobId"
+                            SelectedRigJobIdChanged="OnRigJobIdChanged" SelectionChanged="OnRigJobChanged" />
         </MudItem>
         <MudItem xs="3">
             <MudSelect T="TrajectoryType" Label="Type" Value="@traj.TrajectoryType" ValueChanged="OnTrajectoryTypeChanged" ShrinkLabel>
@@ -380,6 +338,7 @@
     private Guid? selectedClusterId;
     private Guid? selectedWellId;
     private Guid? selectedWellBoreId;
+    private Guid? selectedRigJobId;
     private Guid? trajectoryIdBeingEdited;
     private string? cleanTrajectorySnapshot;
     private static readonly TrajectoryType[] TrajectoryTypes = Enum.GetValues<TrajectoryType>();
@@ -520,6 +479,8 @@
                 .OrderBy(surveyRun => surveyRun.Name)
                 .ToList();
             SyncSelectorsFromWellBore(currentTrajectory.WellBoreID);
+            selectedRigJobId = null;
+            await UpdateReferenceSourcesAsync();
             EnsureSurveyImportUnitsSelected();
         }
         catch (Exception ex)
@@ -590,7 +551,8 @@
             "Unsaved changes",
             "Some changes have not been saved. Close without saving?",
             yesText: "Close without saving",
-            cancelText: "Stay");
+            cancelText: "Stay",
+            options: TrajectoryDialogOptions.Compact);
 
         return result == true;
     }
@@ -838,9 +800,10 @@
             .OrderBy(section => section.StartAbscissa)
             .ToList() ?? [];
 
-    private Task OnFieldChanged(Guid? fieldId)
+    private async Task OnFieldChanged(Guid? fieldId)
     {
         selectedFieldId = fieldId;
+        selectedRigJobId = null;
 
         if (selectedClusterId != null && !AvailableClusters.Any(cluster => cluster.MetaInfo.ID == selectedClusterId))
         {
@@ -862,12 +825,13 @@
         }
 
         ApplySelectedContext();
-        return Task.CompletedTask;
+        await UpdateReferenceSourcesAsync();
     }
 
-    private Task OnClusterChanged(Guid? clusterId)
+    private async Task OnClusterChanged(Guid? clusterId)
     {
         selectedClusterId = clusterId;
+        selectedRigJobId = null;
 
         if (selectedWellId is Guid wellId)
         {
@@ -880,12 +844,13 @@
         }
 
         ApplySelectedContext();
-        return Task.CompletedTask;
+        await UpdateReferenceSourcesAsync();
     }
 
-    private Task OnWellChanged(Guid? wellId)
+    private async Task OnWellChanged(Guid? wellId)
     {
         selectedWellId = wellId;
+        selectedRigJobId = null;
 
         if (selectedWellId is Guid selectedId)
         {
@@ -907,12 +872,13 @@
         }
 
         ApplySelectedContext();
-        return Task.CompletedTask;
+        await UpdateReferenceSourcesAsync();
     }
 
-    private Task OnWellBoreChanged(Guid? wellBoreId)
+    private async Task OnWellBoreChanged(Guid? wellBoreId)
     {
         selectedWellBoreId = wellBoreId;
+        selectedRigJobId = null;
         ApplySelectedContext();
         RemoveSurveyRunSectionsFromOtherWellBores();
         ClearDefinitiveFlagIfAnotherTrajectoryAlreadyUsesIt();
@@ -921,8 +887,7 @@
         {
             SyncSelectorsFromWellBore(selectedId);
         }
-
-        return Task.CompletedTask;
+        await UpdateReferenceSourcesAsync();
     }
 
     private Task OnTrajectoryTypeChanged(TrajectoryType trajectoryType)
@@ -1067,6 +1032,55 @@
 
     private static string FormatDate(DateTimeOffset? value) =>
         value?.ToString("yyyy-MM-dd HH:mm") ?? string.Empty;
+
+    private DateTimeOffset? CurrentTrajectoryReferenceDate
+    {
+        get
+        {
+            HashSet<Guid> surveyRunIds = currentTrajectory.SurveyRunSectionList?
+                .Where(section => section != null && section.SurveyRunID != Guid.Empty)
+                .Select(section => section.SurveyRunID)
+                .ToHashSet() ?? [];
+            return surveyRunList
+                .Where(run => run.MetaInfo != null && surveyRunIds.Contains(run.MetaInfo.ID))
+                .Select(RigJobSelectionUtils.SurveyRunDate)
+                .Where(date => date.HasValue)
+                .Max() ?? currentTrajectory.LastModificationDate ?? currentTrajectory.CreationDate;
+        }
+    }
+
+    private Task OnRigJobIdChanged(Guid? id)
+    {
+        selectedRigJobId = id;
+        return Task.CompletedTask;
+    }
+
+    private async Task OnRigJobChanged(RigJob? _)
+    {
+        await UpdateReferenceSourcesAsync();
+        UpdatePlots();
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task UpdateReferenceSourcesAsync()
+    {
+        TrajectoryLight context = new()
+        {
+            MetaInfo = currentTrajectory.MetaInfo,
+            FieldID = selectedFieldId,
+            ClusterID = selectedClusterId,
+            WellID = selectedWellId,
+            WellBoreID = selectedWellBoreId ?? Guid.Empty
+        };
+        DataUtils.ApplyTrajectoryReferenceValues(
+            context.MetaInfo?.ID, [context], WellBoreList, WellList, ClusterList, RigList, FieldList,
+            selectedRigJobId, CurrentTrajectoryReferenceDate);
+        Field? field = FieldList?.FirstOrDefault(item => item?.MetaInfo?.ID == selectedFieldId);
+        await CartographicPositionReferenceUtils.ApplyAsync(Api, field, logger);
+        TrajectoryReferenceDatumUtils.Apply(
+            await TrajectoryReferenceDatumUtils.ResolveForWellBoreAsync(
+                Api, selectedWellBoreId, WellBoreList, WellList, ClusterList));
+    }
     private string AssociatedWellBoreArchitectureName =>
         currentTrajectory.WellBoreID != Guid.Empty
             ? wellBoreArchitectureHeavyList == null
@@ -1075,20 +1089,6 @@
                     .FirstOrDefault(architecture => architecture?.WellBoreID == currentTrajectory.WellBoreID)?
                     .Name ?? "NA"
             : "NA";
-    private string AssociatedRigName
-    {
-        get
-        {
-            WellBore? wellBore = FindWellBoreById(currentTrajectory.WellBoreID);
-            Well? well = wellBore?.WellID is Guid wellId ? FindWellById(wellId) : null;
-            Cluster? cluster = well?.ClusterID is Guid clusterId ? FindClusterById(clusterId) : null;
-            Guid? rigId = DataUtils.ResolveCurrentRigId(wellBore, cluster);
-
-            return rigId is Guid resolvedRigId
-                ? RigList?.FirstOrDefault(rig => rig?.MetaInfo?.ID == resolvedRigId)?.Name ?? "NA"
-                : "NA";
-        }
-    }
     private SurveyStation? CalculatedTieInPoint =>
         currentTrajectory.SurveyStationList?
             .OrderBy(point => point.MD ?? double.MaxValue)

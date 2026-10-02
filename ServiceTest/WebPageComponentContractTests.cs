@@ -45,18 +45,43 @@ public sealed class WebPageComponentContractTests
     [Test]
     public void Survey_run_editor_guards_navigation_with_a_compact_unsaved_changes_dialog()
     {
-        string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
-            "..", "..", "..", "..", "WebPages", "SurveyRunMain.razor"));
+        string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", ".."));
+        string path = Path.Combine(repositoryRoot, "WebPages", "SurveyRunMain.razor");
         string source = File.ReadAllText(path);
+        string options = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryDialogOptions.cs"));
 
         Assert.Multiple(() =>
         {
             Assert.That(source, Does.Contain("<NavigationLock"));
             Assert.That(source, Does.Contain("OnBeforeInternalNavigation=\"OnBeforeInternalNavigationAsync\""));
-            Assert.That(source, Does.Contain("MaxWidth = MaxWidth.ExtraSmall"));
-            Assert.That(source, Does.Contain("FullWidth = false"));
+            Assert.That(source, Does.Contain("options: TrajectoryDialogOptions.Compact"));
+            Assert.That(options, Does.Contain("MaxWidth = MudBlazor.MaxWidth.ExtraSmall"));
+            Assert.That(options, Does.Contain("FullWidth = false"));
             Assert.That(source, Does.Contain("BitExtrapolation = currentSurveyRun_?.BitExtrapolation"));
         });
+    }
+
+    [Test]
+    public void All_trajectory_webpage_dialogs_use_the_shared_compact_options()
+    {
+        string webPagesDirectory = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", "..", "WebPages"));
+        List<string> violations = [];
+
+        foreach (string path in Directory.EnumerateFiles(webPagesDirectory, "*.razor", SearchOption.AllDirectories))
+        {
+            string source = File.ReadAllText(path);
+            if ((source.Contains("ShowMessageBoxAsync", StringComparison.Ordinal) ||
+                 source.Contains("ShowAsync<", StringComparison.Ordinal)) &&
+                !source.Contains("TrajectoryDialogOptions.Compact", StringComparison.Ordinal))
+            {
+                violations.Add(Path.GetFileName(path));
+            }
+        }
+
+        Assert.That(violations, Is.Empty,
+            "Every WebPages dialog must use the shared compact responsive options.");
     }
 
     [Test]
@@ -160,27 +185,42 @@ public sealed class WebPageComponentContractTests
     [Test]
     public void Trajectory_and_survey_run_hierarchy_filters_support_partial_name_search()
     {
-        string surveyRunPath = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
-            "..", "..", "..", "..", "WebPages", "SurveyRunMain.razor"));
-        string surveyRunSource = File.ReadAllText(surveyRunPath);
-        string trajectoryPath = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
-            "..", "..", "..", "..", "WebPages", "TrajectoryMain.razor"));
-        string trajectorySource = File.ReadAllText(trajectoryPath);
+        string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", ".."));
+        string component = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryResourceFilter.razor"));
+        string surveyRunSource = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "SurveyRunMain.razor"));
+        string trajectorySource = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryMain.razor"));
+        string trajectoryEditSource = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryEdit.razor"));
+        string extrapolationSource = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryExtrapolationEdit.razor"));
+        string antiCollisionSource = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "AntiCollisionScan.razor"));
+        string aggregationSource = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryAggregationEdit.razor"));
+        string interpolationSource = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryInterpolationEdit.razor"));
+        string realizationSource = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryRealizationEdit.razor"));
+        string trajectoryMinimumDistanceSource = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryMinimumDistanceCalculationMain.razor"));
+        string surveyRunMinimumDistanceSource = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "SurveyRunMinimumDistanceCalculationMain.razor"));
+        string batchImportSource = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "SurveyRunBatchImport.razor"));
 
         Assert.Multiple(() =>
         {
-            Assert.That(surveyRunSource, Does.Contain("SearchFunc=\"SearchListFieldsAsync\""));
-            Assert.That(surveyRunSource, Does.Contain("SearchFunc=\"SearchListClustersAsync\""));
-            Assert.That(surveyRunSource, Does.Contain("SearchFunc=\"SearchListWellsAsync\""));
-            Assert.That(surveyRunSource, Does.Contain("SearchFunc=\"SearchListWellBoresAsync\""));
-            Assert.That(trajectorySource, Does.Contain("SearchFunc=\"SearchFieldsAsync\""));
-            Assert.That(trajectorySource, Does.Contain("SearchFunc=\"SearchClustersAsync\""));
-            Assert.That(trajectorySource, Does.Contain("SearchFunc=\"SearchWellsAsync\""));
-            Assert.That(trajectorySource, Does.Contain("SearchFunc=\"SearchWellBoresAsync\""));
-            Assert.That(surveyRunSource, Does.Contain("Contains(term, StringComparison.OrdinalIgnoreCase)"));
-            Assert.That(trajectorySource, Does.Contain("Contains(term, StringComparison.OrdinalIgnoreCase)"));
-            Assert.That(surveyRunSource, Does.Contain("MinCharacters=\"0\""));
-            Assert.That(trajectorySource, Does.Contain("MinCharacters=\"0\""));
+            Assert.That(Regex.Matches(component, "<MudAutocomplete").Count, Is.EqualTo(5));
+            Assert.That(component, Does.Contain("SearchFunc=\"SearchFieldsAsync\""));
+            Assert.That(component, Does.Contain("SearchFunc=\"SearchClustersAsync\""));
+            Assert.That(component, Does.Contain("SearchFunc=\"SearchWellsAsync\""));
+            Assert.That(component, Does.Contain("SearchFunc=\"SearchWellBoresAsync\""));
+            Assert.That(component, Does.Contain("SearchFunc=\"SearchResourcesAsync\""));
+            Assert.That(component, Does.Contain("Contains(term, StringComparison.OrdinalIgnoreCase)"));
+            Assert.That(component, Does.Contain("MinCharacters=\"0\""));
+            Assert.That(surveyRunSource, Does.Contain("<TrajectoryResourceFilter").And.Not.Contain("SearchListFieldsAsync"));
+            Assert.That(trajectorySource, Does.Contain("<TrajectoryResourceFilter").And.Not.Contain("SearchFieldsAsync"));
+            Assert.That(trajectoryEditSource, Does.Contain("<TrajectoryResourceFilter").And.Not.Contain("Label=\"Rig\""));
+            Assert.That(extrapolationSource, Does.Contain("<TrajectoryResourceFilter").And.Not.Contain("SearchSourceFieldsAsync"));
+            Assert.That(antiCollisionSource, Does.Contain("<TrajectoryResourceFilter").And.Not.Contain("SearchReferenceTrajectoriesAsync"));
+            Assert.That(aggregationSource, Does.Contain("<TrajectoryResourceFilter"));
+            Assert.That(interpolationSource, Does.Contain("<TrajectoryResourceFilter"));
+            Assert.That(realizationSource, Does.Contain("<TrajectoryResourceFilter"));
+            Assert.That(trajectoryMinimumDistanceSource, Does.Contain("<TrajectoryResourceFilter"));
+            Assert.That(surveyRunMinimumDistanceSource, Does.Contain("<TrajectoryResourceFilter"));
+            Assert.That(batchImportSource, Does.Contain("<TrajectoryResourceFilter").And.Contain("ShowWellBore=\"false\""));
         });
     }
 
@@ -237,14 +277,55 @@ public sealed class WebPageComponentContractTests
         Assert.Multiple(() =>
         {
             Assert.That(source, Does.Contain(">Trajectory to extrapolate<"));
-            Assert.That(source, Does.Contain("SearchFunc=\"SearchSourceFieldsAsync\""));
-            Assert.That(source, Does.Contain("SearchFunc=\"SearchSourceClustersAsync\""));
-            Assert.That(source, Does.Contain("SearchFunc=\"SearchSourceWellsAsync\""));
-            Assert.That(source, Does.Contain("SearchFunc=\"SearchSourceWellBoresAsync\""));
-            Assert.That(source, Does.Contain("SearchFunc=\"SearchSourceTrajectoriesAsync\""));
-            Assert.That(source, Does.Contain("Contains(term, StringComparison.OrdinalIgnoreCase)"));
+            Assert.That(source, Does.Contain("<TrajectoryResourceFilter"));
+            Assert.That(source, Does.Contain("ResourceKind=\"TrajectoryResourceFilterKind.Trajectory\""));
+            Assert.That(source, Does.Contain("ResourceIdChanged=\"OnSourceTrajectoryChanged\""));
+            Assert.That(source, Does.Contain("<RigJobSelector"));
+            Assert.That(source, Does.Contain("ReferenceDate=\"@sourceReferenceDate\""));
             Assert.That(source, Does.Contain("value.SourceTrajectoryID == Guid.Empty ? null"));
             Assert.That(source, Does.Not.Contain("@bind-Value=\"value.SourceTrajectoryID\""));
+        });
+    }
+
+    [Test]
+    public void Rig_job_selection_is_separate_date_aware_and_controls_rotary_table_depth()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", ".."));
+        string selector = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "RigJobSelector.razor"));
+        string selection = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "RigJobSelectionUtils.cs"));
+        string dataUtils = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "DataUtils.cs"));
+        string surveyRun = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "SurveyRunMain.razor"));
+        string trajectory = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryMain.razor"));
+        string trajectoryEdit = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryEdit.razor"));
+        string extrapolation = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryExtrapolationEdit.razor"));
+        string antiCollision = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "AntiCollisionScan.razor"));
+        string aggregation = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryAggregationEdit.razor"));
+        string interpolation = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryInterpolationEdit.razor"));
+        string realization = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryRealizationEdit.razor"));
+        string trajectoryMinimumDistance = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryMinimumDistanceCalculationMain.razor"));
+        string surveyRunMinimumDistance = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "SurveyRunMinimumDistanceCalculationMain.razor"));
+        string batchImport = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "SurveyRunBatchImport.razor"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(selector, Does.Contain("Label=\"Rig job\""));
+            Assert.That(selector, Does.Contain("GetDisplayName(job.RigJobID).Contains(term, StringComparison.OrdinalIgnoreCase)"));
+            Assert.That(selection, Does.Contain("job.StartDate <= instant && (job.EndDate == null || job.EndDate >= instant)"));
+            Assert.That(selection, Does.Contain("AcquisitionEndUtc ?? surveyRun?.AcquisitionStartUtc"));
+            Assert.That(dataUtils, Does.Contain("Guid? selectedRigJobId = null, DateTimeOffset? referenceDate = null"));
+            Assert.That(dataUtils, Does.Contain("ResolveRigJob(wellBore, selectedRigJobId, referenceDate)"));
+            Assert.That(surveyRun, Does.Contain("<RigJobSelector").And.Contain("CurrentSurveyRunReferenceDate"));
+            Assert.That(trajectoryEdit, Does.Contain("<RigJobSelector").And.Contain("CurrentTrajectoryReferenceDate"));
+            Assert.That(trajectory, Does.Not.Contain("Label=\"Rig\""));
+            Assert.That(extrapolation, Does.Contain("<RigJobSelector").And.Contain("sourceReferenceDate"));
+            Assert.That(antiCollision, Does.Contain("<RigJobSelector").And.Contain("referenceTrajectoryDate_"));
+            Assert.That(aggregation, Does.Contain("<RigJobSelector").And.Contain("trajectoryReferenceDate"));
+            Assert.That(interpolation, Does.Contain("<RigJobSelector").And.Contain("trajectoryReferenceDate"));
+            Assert.That(realization, Does.Contain("<RigJobSelector").And.Contain("trajectoryReferenceDate"));
+            Assert.That(trajectoryMinimumDistance, Does.Contain("<RigJobSelector").And.Contain("referenceTrajectoryDate_"));
+            Assert.That(surveyRunMinimumDistance, Does.Contain("<RigJobSelector").And.Contain("referenceSurveyRunDate_"));
+            Assert.That(batchImport, Does.Contain("<RigJobSelector").And.Contain("row.SelectedRigJobId"));
         });
     }
 
@@ -335,6 +416,7 @@ public sealed class WebPageComponentContractTests
         string surveyRunEditor = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "SurveyRunMain.razor"));
         string trajectoryEditor = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryEdit.razor"));
         string exportUtility = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "SurveyStationAsciiExport.cs"));
+        string promptDialog = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TextPromptDialog.razor"));
 
         Assert.Multiple(() =>
         {
@@ -349,7 +431,8 @@ public sealed class WebPageComponentContractTests
             Assert.That(editor, Does.Contain("await Api.ClientTrajectory.PostSurveyRunAsync(surveyRun)"));
             Assert.That(editor, Does.Not.Contain("CommitSurveyRunSurveyMeasurementChunksAsync(surveyRunId)"),
                 "Creating the planned run should use the service's atomic inline-measurement transaction.");
-            Assert.That(editor, Does.Contain("PromptAsync(\"Export interpolated extrapolation\", \"File name\""));
+            Assert.That(editor, Does.Not.Contain("PromptAsync(\"Export interpolated extrapolation\", \"File name\""));
+            Assert.That(editor, Does.Contain("bool saved = await JSRuntime.InvokeAsync<bool>("));
             Assert.That(editor, Does.Contain("SurveyStationAsciiExport.EnsureTsvFileName"));
             Assert.That(editor, Does.Contain("SurveyStationAsciiExport.BuildTabSeparated"));
             Assert.That(surveyRunEditor, Does.Contain("SurveyStationAsciiExport.BuildTabSeparated"));
@@ -359,6 +442,9 @@ public sealed class WebPageComponentContractTests
             Assert.That(exportUtility, Does.Contain("DLS"));
             Assert.That(exportUtility, Does.Contain("BUR"));
             Assert.That(exportUtility, Does.Contain("TR"));
+            Assert.That(promptDialog, Does.Contain("Immediate=\"@true\" Autofocus=\"@true\""));
+            Assert.That(promptDialog, Does.Not.Contain("Autofocus=\"true\""),
+                "MudBlazor must receive a Boolean Autofocus parameter rather than a string attribute.");
         });
     }
 
@@ -369,7 +455,14 @@ public sealed class WebPageComponentContractTests
             "..", "..", "..", "..", "WebApp", "Pages", "_Layout.cshtml"));
         string source = File.ReadAllText(path);
 
-        Assert.That(source, Does.Contain("<link href=\"WebApp.styles.css\" rel=\"stylesheet\" />"));
+        Assert.Multiple(() =>
+        {
+            Assert.That(source, Does.Contain("<link href=\"WebApp.styles.css\" rel=\"stylesheet\" />"));
+            Assert.That(source, Does.Contain("window.showSaveFilePicker"));
+            Assert.That(source, Does.Contain("id: \"trajectory-export\""));
+            Assert.That(source, Does.Contain("startIn: \"downloads\""));
+            Assert.That(source, Does.Contain("suggestedName: fileName"));
+        });
     }
 
     [Test]

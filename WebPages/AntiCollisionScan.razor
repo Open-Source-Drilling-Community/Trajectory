@@ -43,35 +43,18 @@
 
     <MudPaper Outlined="true" Class="pa-4 mb-4">
         <MudText Typo="Typo.h6" Class="mb-3">Reference trajectory</MudText>
-        <MudGrid>
-            <MudItem xs="12" sm="6" lg="2">
-                <MudAutocomplete Label="Field" T="Guid?" Value="@selectedFieldId_" ValueChanged="@OnFieldChanged"
-                                 SearchFunc="@SearchFieldsAsync" ToStringFunc="@GetFieldDisplayName"
-                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel />
-            </MudItem>
-            <MudItem xs="12" sm="6" lg="2">
-                <MudAutocomplete Label="Cluster" T="Guid?" Value="@selectedClusterId_" ValueChanged="@OnClusterChanged"
-                                 SearchFunc="@SearchClustersAsync" ToStringFunc="@GetClusterDisplayName"
-                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
-                                 Disabled="@(selectedFieldId_ == null)" />
-            </MudItem>
-            <MudItem xs="12" sm="6" lg="2">
-                <MudAutocomplete Label="Well" T="Guid?" Value="@selectedWellId_" ValueChanged="@OnWellChanged"
-                                 SearchFunc="@SearchWellsAsync" ToStringFunc="@GetWellDisplayName"
-                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
-                                 Disabled="@(selectedFieldId_ == null)" />
-            </MudItem>
-            <MudItem xs="12" sm="6" lg="2">
-                <MudAutocomplete Label="WellBore" T="Guid?" Value="@selectedWellBoreId_" ValueChanged="@OnWellBoreChanged"
-                                 SearchFunc="@SearchWellBoresAsync" ToStringFunc="@GetWellBoreDisplayName"
-                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
-                                 Disabled="@(selectedWellId_ == null)" />
-            </MudItem>
-            <MudItem xs="12" sm="6" lg="4">
-                <MudAutocomplete Label="Trajectory" T="Guid?" Value="@selectedReferenceTrajectoryId_" ValueChanged="@OnReferenceTrajectoryChanged"
-                                 SearchFunc="@SearchReferenceTrajectoriesAsync" ToStringFunc="@GetReferenceTrajectoryDisplayName"
-                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
-                                 Disabled="@(selectedWellBoreId_ == null)" />
+        <TrajectoryResourceFilter Fields="@fields_" Clusters="@clusters_" Wells="@wells_" WellBores="@wellBores_" Trajectories="@trajectories_"
+                                  ResourceKind="TrajectoryResourceFilterKind.Trajectory" CompletedTrajectoriesOnly="true"
+                                  FieldId="@selectedFieldId_" FieldIdChanged="OnFieldChanged"
+                                  ClusterId="@selectedClusterId_" ClusterIdChanged="OnClusterChanged"
+                                  WellId="@selectedWellId_" WellIdChanged="OnWellChanged"
+                                  WellBoreId="@selectedWellBoreId_" WellBoreIdChanged="OnWellBoreChanged"
+                                  ResourceId="@selectedReferenceTrajectoryId_" ResourceIdChanged="OnReferenceTrajectoryChanged" />
+        <MudGrid Class="mt-2">
+            <MudItem xs="12" md="4">
+                <RigJobSelector WellBores="@wellBores_" Rigs="@rigs_" WellBoreId="@selectedWellBoreId_"
+                                ReferenceDate="@referenceTrajectoryDate_" SelectedRigJobId="@selectedRigJobId_"
+                                SelectedRigJobIdChanged="OnRigJobIdChanged" SelectionChanged="OnRigJobChanged" />
             </MudItem>
         </MudGrid>
 
@@ -281,6 +264,7 @@
     private List<WellBore> wellBores_ = [];
     private List<Rig> rigs_ = [];
     private List<TrajectoryLight> trajectories_ = [];
+    private List<SurveyRunLight> surveyRuns_ = [];
     private List<TrajectoryLight> candidateTrajectories_ = [];
     private readonly HashSet<Guid> selectedCandidateIds_ = [];
     private List<Guid> resultTrajectoryIds_ = [];
@@ -295,6 +279,8 @@
     private Guid? selectedWellId_;
     private Guid? selectedWellBoreId_;
     private Guid? selectedReferenceTrajectoryId_;
+    private Guid? selectedRigJobId_;
+    private DateTimeOffset? referenceTrajectoryDate_;
     private bool includePlanned_ = true;
     private bool includeActual_ = true;
     private bool definitiveOnly_ = true;
@@ -338,68 +324,6 @@
             : useMinimum ? finiteDepths.Min() : finiteDepths.Max();
     }
 
-    private List<Field> AvailableFields => fields_.Where(item => item.MetaInfo != null).OrderBy(item => item.Name).ToList();
-    private List<Cluster> AvailableClusters => clusters_
-        .Where(item => item.MetaInfo != null && !item.IsSingleWell && selectedFieldId_ != null && item.FieldID == selectedFieldId_)
-        .OrderBy(item => item.Name).ToList();
-    private List<Well> AvailableWells => wells_
-        .Where(item => item.MetaInfo != null && selectedFieldId_ != null && MatchesSelectedField(item) &&
-                       (selectedClusterId_ == null || item.IsSingleWell || item.ClusterID == selectedClusterId_))
-        .OrderBy(item => item.Name).ToList();
-    private List<WellBore> AvailableWellBores => wellBores_
-        .Where(item => item.MetaInfo != null && selectedWellId_ != null && item.WellID == selectedWellId_)
-        .OrderBy(item => item.Name).ToList();
-    private List<TrajectoryLight> AvailableReferenceTrajectories => trajectories_
-        .Where(item => item.MetaInfo != null && item.CalculationState == CalculationState.Completed &&
-                       (selectedFieldId_ == null || MatchesSelectedField(item)) &&
-                       (selectedClusterId_ == null || item.ClusterID == selectedClusterId_) &&
-                       (selectedWellId_ == null || item.WellID == selectedWellId_) &&
-                       (selectedWellBoreId_ == null || item.WellBoreID == selectedWellBoreId_))
-        .OrderBy(item => item.Name).ToList();
-
-    private Task<IEnumerable<Guid?>> SearchFieldsAsync(string? searchText, CancellationToken cancellationToken) =>
-        Task.FromResult(FilterByName(AvailableFields, searchText, item => item.Name, item => item.MetaInfo.ID));
-
-    private Task<IEnumerable<Guid?>> SearchClustersAsync(string? searchText, CancellationToken cancellationToken) =>
-        Task.FromResult(FilterByName(AvailableClusters, searchText, item => item.Name, item => item.MetaInfo.ID));
-
-    private Task<IEnumerable<Guid?>> SearchWellsAsync(string? searchText, CancellationToken cancellationToken) =>
-        Task.FromResult(FilterByName(AvailableWells, searchText, item => item.Name, item => item.MetaInfo.ID));
-
-    private Task<IEnumerable<Guid?>> SearchWellBoresAsync(string? searchText, CancellationToken cancellationToken) =>
-        Task.FromResult(FilterByName(AvailableWellBores, searchText, item => item.Name, item => item.MetaInfo.ID));
-
-    private Task<IEnumerable<Guid?>> SearchReferenceTrajectoriesAsync(string? searchText, CancellationToken cancellationToken) =>
-        Task.FromResult(FilterByName(AvailableReferenceTrajectories, searchText, item => item.Name, item => item.MetaInfo.ID));
-
-    private static IEnumerable<Guid?> FilterByName<T>(IEnumerable<T> items, string? searchText,
-        Func<T, string?> getName, Func<T, Guid> getId)
-    {
-        string? term = searchText?.Trim();
-        return items
-            .Where(item => string.IsNullOrEmpty(term) ||
-                           (getName(item)?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false) ||
-                           getId(item).ToString("D").Contains(term, StringComparison.OrdinalIgnoreCase))
-            .Select(item => (Guid?)getId(item));
-    }
-
-    private string GetFieldDisplayName(Guid? id) => GetDisplayName(id, fields_, item => item.Name, item => item.MetaInfo?.ID);
-    private string GetClusterDisplayName(Guid? id) => GetDisplayName(id, clusters_, item => item.Name, item => item.MetaInfo?.ID);
-    private string GetWellDisplayName(Guid? id) => GetDisplayName(id, wells_, item => item.Name, item => item.MetaInfo?.ID);
-    private string GetWellBoreDisplayName(Guid? id) => GetDisplayName(id, wellBores_, item => item.Name, item => item.MetaInfo?.ID);
-
-    private static string GetDisplayName<T>(Guid? id, IEnumerable<T> items, Func<T, string?> getName, Func<T, Guid?> getId)
-    {
-        if (id is not Guid value)
-        {
-            return string.Empty;
-        }
-
-        T? item = items.FirstOrDefault(candidate => getId(candidate) == value);
-        string? name = item is null ? null : getName(item);
-        return string.IsNullOrWhiteSpace(name) ? value.ToString("D") : name;
-    }
-
     protected override async Task OnInitializedAsync()
     {
         await LoadDataAsync();
@@ -413,7 +337,8 @@
         {
             Task<List<TrajectoryLight>> trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
-            await Task.WhenAll(trajectoryTask, referenceDataTask);
+            Task<List<SurveyRunLight>> surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
+            await Task.WhenAll(trajectoryTask, referenceDataTask, surveyRunTask);
 
             TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
             fields_ = referenceData.Fields.ToList();
@@ -421,6 +346,7 @@
             wells_ = referenceData.Wells.ToList();
             wellBores_ = referenceData.WellBores.ToList();
             trajectories_ = (await trajectoryTask).OrderBy(item => item.Name).ToList();
+            surveyRuns_ = (await surveyRunTask).OrderBy(item => item.Name).ToList();
             rigs_ = referenceData.Rigs.ToList();
         }
         catch (Exception ex)
@@ -441,6 +367,8 @@
         selectedWellId_ = null;
         selectedWellBoreId_ = null;
         selectedReferenceTrajectoryId_ = null;
+        selectedRigJobId_ = null;
+        referenceTrajectoryDate_ = null;
         ResetScan();
         return Task.CompletedTask;
     }
@@ -451,6 +379,8 @@
         selectedWellId_ = null;
         selectedWellBoreId_ = null;
         selectedReferenceTrajectoryId_ = null;
+        selectedRigJobId_ = null;
+        referenceTrajectoryDate_ = null;
         ResetScan();
         return Task.CompletedTask;
     }
@@ -460,6 +390,8 @@
         selectedWellId_ = value;
         selectedWellBoreId_ = null;
         selectedReferenceTrajectoryId_ = null;
+        selectedRigJobId_ = null;
+        referenceTrajectoryDate_ = null;
         if (value is Guid wellId && FindWell(wellId) is Well well)
         {
             selectedClusterId_ = well.IsSingleWell ? null : well.ClusterID;
@@ -473,6 +405,8 @@
     {
         selectedWellBoreId_ = value;
         selectedReferenceTrajectoryId_ = null;
+        selectedRigJobId_ = null;
+        referenceTrajectoryDate_ = null;
         ResetScan();
         return Task.CompletedTask;
     }
@@ -480,8 +414,11 @@
     private async Task OnReferenceTrajectoryChanged(Guid? value)
     {
         selectedReferenceTrajectoryId_ = value;
+        referenceTrajectoryDate_ = await ResolveTrajectoryDateAsync(value);
+        selectedRigJobId_ = null;
         ResetScan();
-        DataUtils.ApplyTrajectoryReferenceValues(value, trajectories_, wellBores_, wells_, clusters_, rigs_, fields_);
+        DataUtils.ApplyTrajectoryReferenceValues(value, trajectories_, wellBores_, wells_, clusters_, rigs_, fields_,
+            selectedRigJobId_, referenceTrajectoryDate_);
         await CartographicPositionReferenceUtils.ApplyForTrajectoryAsync(Api, value, trajectories_, clusters_, fields_, Logger);
         try
         {
@@ -493,6 +430,22 @@
             Logger.LogWarning(ex, "Optional reference-datum lookup failed for anti-collision trajectory {TrajectoryId}", value);
         }
     }
+
+    private Task OnRigJobIdChanged(Guid? id)
+    {
+        selectedRigJobId_ = id;
+        return Task.CompletedTask;
+    }
+
+    private async Task OnRigJobChanged(RigJob? _)
+    {
+        DataUtils.ApplyTrajectoryReferenceValues(selectedReferenceTrajectoryId_, trajectories_, wellBores_, wells_, clusters_, rigs_, fields_,
+            selectedRigJobId_, referenceTrajectoryDate_);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private Task<DateTimeOffset?> ResolveTrajectoryDateAsync(Guid? trajectoryId) =>
+        TrajectoryRigJobDateResolver.ResolveAsync(Api, trajectoryId, trajectories_, surveyRuns_, Logger);
 
     private void OnIncludePlannedChanged(bool value)
     {

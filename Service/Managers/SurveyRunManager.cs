@@ -557,7 +557,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
 
             OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument surveyTool = ConvertSurveyInstrument(surveyInstrument);
-            foreach (SurveyStation station in uncertaintyStations)
+            // The terminal bit station is an extrapolation rather than a new observation, but it
+            // still belongs to the survey run and therefore carries the run's survey instrument.
+            foreach (SurveyStation station in stations)
             {
                 station.SurveyTool = surveyTool;
             }

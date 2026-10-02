@@ -229,7 +229,7 @@ else
             $"Delete trajectory feature category '{category.Name ?? category.MetaInfo?.ID.ToString()}'?",
             yesText: "Delete",
             cancelText: "Cancel",
-            options: new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.ExtraSmall });
+            options: TrajectoryDialogOptions.Compact);
         return result == true;
     }
 

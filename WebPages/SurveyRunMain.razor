@@ -63,38 +63,18 @@
                 </MudItem>
             </MudGrid>
 
+            <TrajectoryResourceFilter Class="mt-2" Fields="@(fieldList_ ?? [])" Clusters="@(clusterList_ ?? [])"
+                                      Wells="@(wellList_ ?? [])" WellBores="@(wellBoreList_ ?? [])"
+                                      FieldId="@selectedFieldId_" FieldIdChanged="OnEditorFieldChanged"
+                                      ClusterId="@selectedClusterId_" ClusterIdChanged="OnEditorClusterChanged"
+                                      WellId="@selectedWellId_" WellIdChanged="OnEditorWellChanged"
+                                      WellBoreId="@selectedWellBoreId_" WellBoreIdChanged="OnEditorWellBoreChanged"
+                                      Disabled="@(!referenceDataAvailable_)" />
             <MudGrid Class="mt-2">
                 <MudItem xs="12" md="3">
-                    <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId_" ValueChanged="OnEditorFieldChanged" ShrinkLabel Clearable="true">
-                        @foreach (Field field in AvailableFields)
-                        {
-                            <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" md="3">
-                    <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId_" ValueChanged="OnEditorClusterChanged" ShrinkLabel Clearable="true">
-                        @foreach (Cluster cluster in AvailableClusters)
-                        {
-                            <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" md="3">
-                    <MudSelect Label="Well" T="Guid?" Value="@selectedWellId_" ValueChanged="OnEditorWellChanged" ShrinkLabel Clearable="true">
-                        @foreach (Well well in AvailableWells)
-                        {
-                            <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" md="3">
-                    <MudSelect Label="WellBore" T="Guid?" Value="@selectedWellBoreId_" ValueChanged="OnEditorWellBoreChanged" ShrinkLabel Required="true">
-                        @foreach (WellBore wellBore in AvailableWellBores)
-                        {
-                            <MudSelectItem T="Guid?" Value="@((Guid?)wellBore.MetaInfo.ID)">@wellBore.Name</MudSelectItem>
-                        }
-                    </MudSelect>
+                    <RigJobSelector WellBores="@(wellBoreList_ ?? [])" Rigs="@(rigList_ ?? [])" WellBoreId="@selectedWellBoreId_"
+                                    ReferenceDate="@CurrentSurveyRunReferenceDate" SelectedRigJobId="@selectedRigJobId_"
+                                    SelectedRigJobIdChanged="OnRigJobIdChanged" SelectionChanged="OnRigJobChanged" />
                 </MudItem>
                 <MudItem xs="12" md="3">
                     <MudSelect Label="Survey instrument" T="Guid?" Value="@selectedSurveyInstrumentId_" ValueChanged="OnEditorSurveyInstrumentChanged" ShrinkLabel Required="true">
@@ -648,32 +628,13 @@
                 }
             </MudText>
         }
-        <MudGrid Class="mb-4">
-            <MudItem xs="12" md="3">
-                <MudAutocomplete Label="Field" T="Guid?" Value="@listSelectedFieldId_" ValueChanged="OnListFieldChanged"
-                                 SearchFunc="SearchListFieldsAsync" ToStringFunc="GetListFieldDisplayName"
-                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
-                                 Disabled="@(!referenceDataAvailable_)" />
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudAutocomplete Label="Cluster" T="Guid?" Value="@listSelectedClusterId_" ValueChanged="OnListClusterChanged"
-                                 SearchFunc="SearchListClustersAsync" ToStringFunc="GetListClusterDisplayName"
-                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
-                                 Disabled="@(!referenceDataAvailable_)" />
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudAutocomplete Label="Well" T="Guid?" Value="@listSelectedWellId_" ValueChanged="OnListWellChanged"
-                                 SearchFunc="SearchListWellsAsync" ToStringFunc="GetListWellDisplayName"
-                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
-                                 Disabled="@(!referenceDataAvailable_)" />
-            </MudItem>
-            <MudItem xs="12" md="3">
-                <MudAutocomplete Label="WellBore" T="Guid?" Value="@listSelectedWellBoreId_" ValueChanged="OnListWellBoreChanged"
-                                 SearchFunc="SearchListWellBoresAsync" ToStringFunc="GetListWellBoreDisplayName"
-                                 Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
-                                 Disabled="@(!referenceDataAvailable_)" />
-            </MudItem>
-        </MudGrid>
+        <TrajectoryResourceFilter Class="mb-4" Fields="@(fieldList_ ?? [])" Clusters="@(clusterList_ ?? [])"
+                                  Wells="@(wellList_ ?? [])" WellBores="@(wellBoreList_ ?? [])"
+                                  FieldId="@listSelectedFieldId_" FieldIdChanged="OnListFieldChanged"
+                                  ClusterId="@listSelectedClusterId_" ClusterIdChanged="OnListClusterChanged"
+                                  WellId="@listSelectedWellId_" WellIdChanged="OnListWellChanged"
+                                  WellBoreId="@listSelectedWellBoreId_" WellBoreIdChanged="OnListWellBoreChanged"
+                                  Disabled="@(!referenceDataAvailable_)" />
 
         <MudDataGrid T="SurveyRunLight" @key="gridKey_"
                      MultiSelection="true" Items="@surveyRunList_" SelectedItemsChanged="@SelectedItemsChanged"
@@ -746,6 +707,7 @@
     private Guid? selectedClusterId_;
     private Guid? selectedWellId_;
     private Guid? selectedWellBoreId_;
+    private Guid? selectedRigJobId_;
     private Guid? selectedSurveyInstrumentId_;
     private Guid? selectedParentSurveyRunId_;
     private Guid? listSelectedFieldId_;
@@ -862,120 +824,6 @@
 
     private List<string> AvailableSurveyImportAngleUnits =>
         GetAvailableSurveyImportUnits(PlaneAngleDrillingQuantity.UnitChoiceDescriptions);
-
-    private List<Field> AvailableFields =>
-        fieldList_?
-            .Where(field => field?.MetaInfo != null)
-            .OrderBy(field => field.Name)
-            .ToList() ?? [];
-
-    private List<Cluster> AvailableClusters =>
-        clusterList_?
-            .Where(cluster =>
-                cluster?.MetaInfo != null &&
-                !cluster.IsSingleWell &&
-                (selectedFieldId_ == null || cluster.FieldID == selectedFieldId_))
-            .OrderBy(cluster => cluster.Name)
-            .ToList() ?? [];
-
-    private List<Well> AvailableWells =>
-        wellList_?
-            .Where(well =>
-                well?.MetaInfo != null &&
-                (selectedFieldId_ == null || MatchesSelectedField(well, selectedFieldId_)) &&
-                (selectedClusterId_ == null || well.IsSingleWell || well.ClusterID == selectedClusterId_))
-            .OrderBy(well => well.Name)
-            .ToList() ?? [];
-
-    private List<WellBore> AvailableWellBores =>
-        wellBoreList_?
-            .Where(wellBore =>
-                wellBore?.MetaInfo != null &&
-                (selectedWellId_ == null || wellBore.WellID == selectedWellId_))
-            .OrderBy(wellBore => wellBore.Name)
-            .ToList() ?? [];
-
-    private List<Cluster> AvailableListClusters =>
-        clusterList_?
-            .Where(cluster =>
-                cluster?.MetaInfo != null &&
-                !cluster.IsSingleWell &&
-                (listSelectedFieldId_ == null || cluster.FieldID == listSelectedFieldId_))
-            .OrderBy(cluster => cluster.Name)
-            .ToList() ?? [];
-
-    private List<Well> AvailableListWells =>
-        wellList_?
-            .Where(well =>
-                well?.MetaInfo != null &&
-                (listSelectedFieldId_ == null || MatchesSelectedField(well, listSelectedFieldId_)) &&
-                (listSelectedClusterId_ == null || well.IsSingleWell || well.ClusterID == listSelectedClusterId_))
-            .OrderBy(well => well.Name)
-            .ToList() ?? [];
-
-    private List<WellBore> AvailableListWellBores =>
-        wellBoreList_?
-            .Where(wellBore =>
-                wellBore?.MetaInfo != null &&
-                (listSelectedWellId_ == null || wellBore.WellID == listSelectedWellId_))
-            .OrderBy(wellBore => wellBore.Name)
-            .ToList() ?? [];
-
-    private Task<IEnumerable<Guid?>> SearchListFieldsAsync(string? searchText, CancellationToken cancellationToken) =>
-        Task.FromResult(FilterReferenceIdsByName(AvailableFields, searchText, field => field.Name, field => field.MetaInfo.ID));
-
-    private Task<IEnumerable<Guid?>> SearchListClustersAsync(string? searchText, CancellationToken cancellationToken) =>
-        Task.FromResult(FilterReferenceIdsByName(AvailableListClusters, searchText, cluster => cluster.Name, cluster => cluster.MetaInfo.ID));
-
-    private Task<IEnumerable<Guid?>> SearchListWellsAsync(string? searchText, CancellationToken cancellationToken) =>
-        Task.FromResult(FilterReferenceIdsByName(AvailableListWells, searchText, well => well.Name, well => well.MetaInfo.ID));
-
-    private Task<IEnumerable<Guid?>> SearchListWellBoresAsync(string? searchText, CancellationToken cancellationToken) =>
-        Task.FromResult(FilterReferenceIdsByName(AvailableListWellBores, searchText, wellBore => wellBore.Name, wellBore => wellBore.MetaInfo.ID));
-
-    private string GetListFieldDisplayName(Guid? id) =>
-        GetReferenceDisplayName(id, fieldList_ ?? [], field => field.Name, field => field.MetaInfo?.ID, "field");
-
-    private string GetListClusterDisplayName(Guid? id) =>
-        GetReferenceDisplayName(id, clusterList_ ?? [], cluster => cluster.Name, cluster => cluster.MetaInfo?.ID, "cluster");
-
-    private string GetListWellDisplayName(Guid? id) =>
-        GetReferenceDisplayName(id, wellList_ ?? [], well => well.Name, well => well.MetaInfo?.ID, "well");
-
-    private string GetListWellBoreDisplayName(Guid? id) =>
-        GetReferenceDisplayName(id, wellBoreList_ ?? [], wellBore => wellBore.Name, wellBore => wellBore.MetaInfo?.ID, "wellbore");
-
-    private static IEnumerable<Guid?> FilterReferenceIdsByName<T>(
-        IEnumerable<T> items,
-        string? searchText,
-        Func<T, string?> getName,
-        Func<T, Guid> getId)
-    {
-        string? term = searchText?.Trim();
-        return items
-            .Where(item => string.IsNullOrEmpty(term) ||
-                (getName(item)?.Contains(term, StringComparison.OrdinalIgnoreCase) ?? false))
-            .Select(item => (Guid?)getId(item));
-    }
-
-    private string GetReferenceDisplayName<T>(
-        Guid? id,
-        IEnumerable<T> items,
-        Func<T, string?> getName,
-        Func<T, Guid?> getId,
-        string resourceName)
-    {
-        if (id is not Guid value)
-        {
-            return string.Empty;
-        }
-
-        T? item = items.FirstOrDefault(candidate => getId(candidate) == value);
-        string? name = item is null ? null : getName(item);
-        return !string.IsNullOrWhiteSpace(name)
-            ? name
-            : isReferenceDataLoading_ ? "Loading…" : $"Unknown {resourceName}";
-    }
 
     private List<SurveyInstrumentLight> AvailableSurveyInstruments =>
         surveyInstrumentList_?
@@ -1186,6 +1034,7 @@
         selectedClusterId_ = currentSurveyRun_.ClusterID;
         selectedWellId_ = currentSurveyRun_.WellID;
         selectedWellBoreId_ = currentSurveyRun_.WellBoreID == Guid.Empty ? null : currentSurveyRun_.WellBoreID;
+        selectedRigJobId_ = null;
         selectedSurveyInstrumentId_ = null;
         selectedParentSurveyRunId_ = null;
         selectedSurveyStations_.Clear();
@@ -1216,6 +1065,7 @@
             selectedClusterId_ = currentSurveyRun_.ClusterID;
             selectedWellId_ = currentSurveyRun_.WellID;
             selectedWellBoreId_ = currentSurveyRun_.WellBoreID == Guid.Empty ? null : currentSurveyRun_.WellBoreID;
+            selectedRigJobId_ = null;
             selectedSurveyInstrumentId_ = currentSurveyRun_.SurveyInstrumentID == Guid.Empty ? null : currentSurveyRun_.SurveyInstrumentID;
             selectedParentSurveyRunId_ = currentSurveyRun_.ParentSurveyRunID;
             selectedSurveyStations_.Clear();
@@ -1710,7 +1560,7 @@
         IDialogReference dialog = await DialogService.ShowAsync<DialogDeleteTemplate>(
             "DELETE",
             parameters,
-            new DialogOptions { CloseOnEscapeKey = true, MaxWidth = MaxWidth.Small, FullWidth = true });
+            TrajectoryDialogOptions.Compact);
         DialogResult? result = await dialog.Result;
         return result != null && !result.Canceled;
     }
@@ -1722,12 +1572,7 @@
             "Some changes have not been saved. Close without saving?",
             yesText: "Close without saving",
             cancelText: "Stay",
-            options: new DialogOptions
-            {
-                MaxWidth = MaxWidth.ExtraSmall,
-                FullWidth = false,
-                CloseOnEscapeKey = true
-            });
+            options: TrajectoryDialogOptions.Compact);
 
         return result == true;
     }
@@ -1850,6 +1695,7 @@
         selectedClusterId_ = null;
         selectedWellId_ = null;
         selectedWellBoreId_ = null;
+        selectedRigJobId_ = null;
     }
 
     private void OnEditorClusterChanged(Guid? clusterId)
@@ -1857,17 +1703,20 @@
         selectedClusterId_ = clusterId;
         selectedWellId_ = null;
         selectedWellBoreId_ = null;
+        selectedRigJobId_ = null;
     }
 
     private void OnEditorWellChanged(Guid? wellId)
     {
         selectedWellId_ = wellId;
         selectedWellBoreId_ = null;
+        selectedRigJobId_ = null;
     }
 
     private async Task OnEditorWellBoreChanged(Guid? wellBoreId)
     {
         selectedWellBoreId_ = wellBoreId;
+        selectedRigJobId_ = null;
         await UpdateSelectedSurveyRunReferenceSourceAsync();
         await LoadParentSurveyRunsAsync();
         ClearInvalidParentSurveyRunSelection();
@@ -2300,7 +2149,8 @@
         {
             DataUtils.ApplyTopWaterDepthWGS84(topWaterDepth);
         }
-        DataUtils.ApplyRotaryTableDepthnWGS84(DataUtils.ResolveDrillFloorDepthWgs84(wellBore, cluster, rigList_));
+        DataUtils.ApplyRotaryTableDepthnWGS84(DataUtils.ResolveDrillFloorDepthWgs84(
+            wellBore, cluster, rigList_, selectedRigJobId_, CurrentSurveyRunReferenceDate));
         TrajectoryReferenceDatumUtils.Apply(
             await TrajectoryReferenceDatumUtils.ResolveForWellBoreAsync(Api, wellBoreId, wellBoreList_, wellList_, clusterList_));
 
@@ -2309,6 +2159,23 @@
         UpdateClusterPositionReference(cluster);
         UpdateWellheadPositionReference(well, cluster);
         measurementReferenceRenderVersion_++;
+    }
+
+    private DateTimeOffset? CurrentSurveyRunReferenceDate =>
+        currentSurveyRun_?.AcquisitionEndUtc ?? currentSurveyRun_?.AcquisitionStartUtc ??
+        currentSurveyRun_?.LastModificationDate ?? currentSurveyRun_?.CreationDate;
+
+    private Task OnRigJobIdChanged(Guid? id)
+    {
+        selectedRigJobId_ = id;
+        return Task.CompletedTask;
+    }
+
+    private async Task OnRigJobChanged(RigJob? _)
+    {
+        await UpdateSelectedSurveyRunReferenceSourceAsync();
+        UpdatePlots();
+        await InvokeAsync(StateHasChanged);
     }
 
     private static void UpdateWellheadPositionReference(Well? well, Cluster? cluster)

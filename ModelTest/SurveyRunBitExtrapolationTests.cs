@@ -9,12 +9,14 @@ public sealed class SurveyRunBitExtrapolationTests
     [Test]
     public void One_measurement_is_extrapolated_straight_to_the_bit()
     {
+        SurveyInstrument surveyInstrument = new();
         SurveyRun run = Run(TrajectoryCalculationType.MinimumCurvatureMethod, 12.0,
             Measurement(100.0, Math.PI / 2.0, 0.0));
         run.TieInPoint = new SurveyStation
         {
             MD = 100.0, Inclination = Math.PI / 2.0, Azimuth = 0.0,
-            RiemannianNorth = 10.0, RiemannianEast = 20.0, TVD = 30.0, VerticalSection = 0.0
+            RiemannianNorth = 10.0, RiemannianEast = 20.0, TVD = 30.0, VerticalSection = 0.0,
+            SurveyTool = surveyInstrument
         };
 
         Assert.That(run.Calculate(), Is.True);
@@ -28,6 +30,7 @@ public sealed class SurveyRunBitExtrapolationTests
             Assert.That(bit.TVD, Is.EqualTo(30.0).Within(1e-10));
             Assert.That(bit.Inclination, Is.EqualTo(Math.PI / 2.0).Within(1e-10));
             Assert.That(bit.Azimuth, Is.EqualTo(0.0).Within(1e-10));
+            Assert.That(bit.SurveyTool, Is.SameAs(surveyInstrument));
         });
     }
 
@@ -57,6 +60,32 @@ public sealed class SurveyRunBitExtrapolationTests
             Assert.That(bit.RiemannianEast, Is.Not.Null);
             Assert.That(bit.TVD, Is.Not.Null);
         });
+    }
+
+    [TestCase(TrajectoryCalculationType.MinimumCurvatureMethod)]
+    [TestCase(TrajectoryCalculationType.ConstantBuildAndTurnMethod)]
+    [TestCase(TrajectoryCalculationType.ConstantCurvatureAndToolfaceMethod)]
+    public void Curved_terminal_extrapolation_inherits_the_last_station_survey_instrument(
+        TrajectoryCalculationType method)
+    {
+        SurveyInstrument surveyInstrument = new();
+        List<SurveyStation> stations =
+        [
+            new()
+            {
+                MD = 0.0, Inclination = 0.20, Azimuth = 0.30,
+                RiemannianNorth = 0.0, RiemannianEast = 0.0, TVD = 0.0
+            },
+            new()
+            {
+                MD = 30.0, Inclination = 0.26, Azimuth = 0.36,
+                RiemannianNorth = 6.0, RiemannianEast = 2.0, TVD = 29.0,
+                SurveyTool = surveyInstrument
+            }
+        ];
+
+        Assert.That(SurveyRunBitExtrapolationCalculator.TryAppendCalculatedStation(stations, method, 10.0), Is.True);
+        Assert.That(stations[^1].SurveyTool, Is.SameAs(surveyInstrument));
     }
 
     [Test]

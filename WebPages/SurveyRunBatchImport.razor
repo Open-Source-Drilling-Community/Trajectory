@@ -232,32 +232,11 @@ else
             </MudToolBar>
 
             <MudText Typo="Typo.subtitle2">Selection filters</MudText>
-            <MudGrid Class="mt-2 mb-4">
-                <MudItem xs="12" md="4">
-                    <MudSelect Label="Field" T="Guid?" Value="@selectedFieldId_" ValueChanged="OnFieldChanged" ShrinkLabel Clearable="true">
-                        @foreach (Field field in AvailableFields)
-                        {
-                            <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" md="4">
-                    <MudSelect Label="Cluster" T="Guid?" Value="@selectedClusterId_" ValueChanged="OnClusterChanged" ShrinkLabel Clearable="true">
-                        @foreach (Cluster cluster in AvailableClusters)
-                        {
-                            <MudSelectItem T="Guid?" Value="@((Guid?)cluster.MetaInfo.ID)">@cluster.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-                <MudItem xs="12" md="4">
-                    <MudSelect Label="Well" T="Guid?" Value="@selectedWellId_" ValueChanged="OnWellChanged" ShrinkLabel Clearable="true">
-                        @foreach (Well well in AvailableWells)
-                        {
-                            <MudSelectItem T="Guid?" Value="@((Guid?)well.MetaInfo.ID)">@well.Name</MudSelectItem>
-                        }
-                    </MudSelect>
-                </MudItem>
-            </MudGrid>
+            <TrajectoryResourceFilter Class="mt-2 mb-4" Fields="@(fieldList_ ?? [])" Clusters="@(clusterList_ ?? [])"
+                                      Wells="@(wellList_ ?? [])" ResourceKind="TrajectoryResourceFilterKind.None" ShowWellBore="false"
+                                      FieldId="@selectedFieldId_" FieldIdChanged="OnFieldChanged"
+                                      ClusterId="@selectedClusterId_" ClusterIdChanged="OnClusterChanged"
+                                      WellId="@selectedWellId_" WellIdChanged="OnWellChanged" />
 
             <MudText Typo="Typo.caption">Import a batch description file to restore the table, filters, per-row depth references, upload mode, format settings, and selected survey run files.</MudText>
             <div class="mt-2">
@@ -267,6 +246,7 @@ else
             <MudTable Class="mt-4" Items="@rows_" T="SurveyRunImportRowState" Hover="true" Dense="true" Bordered="true" Elevation="0">
                 <HeaderContent>
                     <MudTh>Wellbore</MudTh>
+                    <MudTh>Rig job</MudTh>
                     <MudTh>Survey instrument</MudTh>
                     <MudTh>Parent survey run</MudTh>
                     <MudTh>Depth reference</MudTh>
@@ -283,6 +263,12 @@ else
                                 <MudSelectItem T="Guid?" Value="@((Guid?)option.MetaInfo.ID)">@option.Name</MudSelectItem>
                             }
                         </MudSelect>
+                    </MudTd>
+                    <MudTd DataLabel="Rig job">
+                        <RigJobSelector WellBores="@(wellBoreList_ ?? [])" Rigs="@(rigList_ ?? [])" WellBoreId="@context.WellBoreId"
+                                        ReferenceDate="@RowReferenceDate(context)" SelectedRigJobId="@context.SelectedRigJobId"
+                                        SelectedRigJobIdChanged="@(id => context.SelectedRigJobId = id)"
+                                        SelectionChanged="@(_ => OnRowRigJobChanged(context))" />
                     </MudTd>
                     <MudTd DataLabel="Survey instrument">
                         <MudSelect T="Guid?" Value="@context.SurveyInstrumentId" ValueChanged="@(value => OnRowSurveyInstrumentChanged(context, value))" ShrinkLabel Dense="true">
@@ -895,13 +881,7 @@ else
 
     private async Task<bool> ConfirmDeletion()
     {
-        var options = new DialogOptions
-        {
-            CloseOnEscapeKey = true,
-            MaxWidth = MaxWidth.Small,
-            FullWidth = true
-        };
-        var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", options);
+        var dialog = await DialogService.ShowAsync<DialogDeleteTemplate>("DELETE", TrajectoryDialogOptions.Compact);
         var result = await dialog.Result;
         return result != null && !result.Canceled;
     }
@@ -912,7 +892,8 @@ else
             "Unsaved changes",
             "Some changes have not been saved. Close without saving?",
             yesText: "Close without saving",
-            cancelText: "Stay");
+            cancelText: "Stay",
+            options: TrajectoryDialogOptions.Compact);
 
         return result == true;
     }
@@ -1004,9 +985,19 @@ else
     private void OnRowWellBoreChanged(SurveyRunImportRowState row, Guid? wellBoreId)
     {
         row.WellBoreId = wellBoreId;
+        row.SelectedRigJobId = null;
         ClearInvalidParentSurveyRunSelection(row);
         row.Status = "Ready";
     }
+
+    private Task OnRowRigJobChanged(SurveyRunImportRowState row)
+    {
+        row.Status = "Ready";
+        return Task.CompletedTask;
+    }
+
+    private static DateTimeOffset? RowReferenceDate(SurveyRunImportRowState row) =>
+        row.AcquisitionEndUtc ?? row.AcquisitionStartUtc;
 
     private void OnRowSurveyInstrumentChanged(SurveyRunImportRowState row, Guid? surveyInstrumentId)
     {
@@ -1149,7 +1140,8 @@ else
 
                     await SetCurrentRowStatusAsync("Parsing file");
                     string content = Encoding.UTF8.GetString(row.FileContent);
-                    DepthReferenceContext depthReferenceContext = await BuildDepthReferenceContextAsync(row.DepthReferenceName, cluster, wellBore);
+                    DepthReferenceContext depthReferenceContext = await BuildDepthReferenceContextAsync(
+                        row.DepthReferenceName, cluster, wellBore, row.SelectedRigJobId, RowReferenceDate(row));
                     List<SurveyMeasurement> importedMeasurements = ParseSurveyMeasurements(content, depthReferenceContext, out int skippedLines);
                     List<SurveyStation> importedStations = importedMeasurements.Select(measurement => measurement.ToSurveyStation()).ToList();
                     int truncatedSidetrackStations = NormalizeSidetrackSurveyStations(row, importedStations, out importedStations);
@@ -1554,6 +1546,7 @@ else
                 .Select(row => new SurveyRunBatchDescriptionRow
                 {
                     WellBoreId = row.WellBoreId,
+                    SelectedRigJobId = row.SelectedRigJobId,
                     SurveyInstrumentId = row.SurveyInstrumentId,
                     ParentSurveyRunId = row.ParentSurveyRunId,
                     DepthReferenceName = row.DepthReferenceName,
@@ -1631,6 +1624,7 @@ else
                 SurveyRunImportRowState rowState = new()
                 {
                     WellBoreId = row.WellBoreId,
+                    SelectedRigJobId = row.SelectedRigJobId,
                     SurveyInstrumentId = row.SurveyInstrumentId,
                     ParentSurveyRunId = row.ParentSurveyRunId,
                     DepthReferenceName = string.IsNullOrWhiteSpace(row.DepthReferenceName) ? commonDepthReference_ : row.DepthReferenceName,
@@ -1656,7 +1650,8 @@ else
 
     private List<SurveyStation> ParseSurveyStations(string content, SurveyRunImportRowState row, Cluster? cluster, WellBore? wellBore, out int skippedLines)
     {
-        return ParseSurveyStations(content, row, BuildDepthReferenceContext(row.DepthReferenceName, cluster, wellBore), out skippedLines);
+        return ParseSurveyStations(content, row, BuildDepthReferenceContext(
+            row.DepthReferenceName, cluster, wellBore, row.SelectedRigJobId, RowReferenceDate(row)), out skippedLines);
     }
 
     private List<SurveyStation> ParseSurveyStations(string content, SurveyRunImportRowState row, DepthReferenceContext depthReferenceContext, out int skippedLines)
@@ -2134,13 +2129,14 @@ else
         DataUtils.RotaryTableDepthReferenceSource.RotaryTableDepthReference = context.RotaryTableDepthReference;
     }
 
-    private async Task<DepthReferenceContext> BuildDepthReferenceContextAsync(string? depthReferenceName, Cluster? cluster, WellBore? wellBore)
+    private async Task<DepthReferenceContext> BuildDepthReferenceContextAsync(
+        string? depthReferenceName, Cluster? cluster, WellBore? wellBore, Guid? selectedRigJobId, DateTimeOffset? referenceDate)
     {
         string normalizedDepthReference = string.IsNullOrWhiteSpace(depthReferenceName) ? commonDepthReference_ : depthReferenceName;
         double groundMudLineOffset = cluster?.GroundMudLineDepth?.GaussianValue?.Mean is double gml ? -gml : 0.0;
         double meanSeaLevelOffset = await ResolveMeanSeaLevelOffsetAsync(wellBore, cluster) ?? 0.0;
         double seaWaterLevelOffset = cluster?.TopWaterDepth?.GaussianValue?.Mean is double swl ? -swl : 0.0;
-        double rotaryTableOffset = ResolveRotaryTableOffset(wellBore, cluster);
+        double rotaryTableOffset = ResolveRotaryTableOffset(wellBore, cluster, selectedRigJobId, referenceDate);
 
         double offsetToWgs84 = normalizedDepthReference switch
         {
@@ -2161,13 +2157,14 @@ else
         };
     }
 
-    private DepthReferenceContext BuildDepthReferenceContext(string? depthReferenceName, Cluster? cluster, WellBore? wellBore)
+    private DepthReferenceContext BuildDepthReferenceContext(
+        string? depthReferenceName, Cluster? cluster, WellBore? wellBore, Guid? selectedRigJobId, DateTimeOffset? referenceDate)
     {
         string normalizedDepthReference = string.IsNullOrWhiteSpace(depthReferenceName) ? commonDepthReference_ : depthReferenceName;
         double groundMudLineOffset = cluster?.GroundMudLineDepth?.GaussianValue?.Mean is double gml ? -gml : 0.0;
         double meanSeaLevelOffset = DataUtils.MeanSeaLevelDepthReferenceSource.MeanSeaLevelDepthReference ?? 0.0;
         double seaWaterLevelOffset = cluster?.TopWaterDepth?.GaussianValue?.Mean is double swl ? -swl : 0.0;
-        double rotaryTableOffset = ResolveRotaryTableOffset(wellBore, cluster);
+        double rotaryTableOffset = ResolveRotaryTableOffset(wellBore, cluster, selectedRigJobId, referenceDate);
 
         double offsetToWgs84 = normalizedDepthReference switch
         {
@@ -2198,9 +2195,11 @@ else
         return MslDepthReferenceUtils.ResolveMeanSeaLevelDepthReferenceForWellBoreAsync(Api, null, wellBoreList_, wellList_, cluster is null ? clusterList_ : [cluster]);
     }
 
-    private double ResolveRotaryTableOffset(WellBore? wellBore, Cluster? cluster)
+    private double ResolveRotaryTableOffset(
+        WellBore? wellBore, Cluster? cluster, Guid? selectedRigJobId, DateTimeOffset? referenceDate)
     {
-        return DataUtils.ResolveDrillFloorDepthWgs84(wellBore, cluster, rigList_) is double drillFloorDepthWgs84
+        return DataUtils.ResolveDrillFloorDepthWgs84(
+            wellBore, cluster, rigList_, selectedRigJobId, referenceDate) is double drillFloorDepthWgs84
             ? -drillFloorDepthWgs84
             : 0.0;
     }
@@ -2564,6 +2563,7 @@ else
     {
         public Guid RowId { get; set; } = Guid.NewGuid();
         public Guid? WellBoreId { get; set; }
+        public Guid? SelectedRigJobId { get; set; }
         public Guid? SurveyInstrumentId { get; set; }
         public Guid? ParentSurveyRunId { get; set; }
         public string DepthReferenceName { get; set; } = "Rotary table";
@@ -2589,6 +2589,7 @@ else
     private sealed class SurveyRunBatchDescriptionRow
     {
         public Guid? WellBoreId { get; set; }
+        public Guid? SelectedRigJobId { get; set; }
         public Guid? SurveyInstrumentId { get; set; }
         public Guid? ParentSurveyRunId { get; set; }
         public string? DepthReferenceName { get; set; }
