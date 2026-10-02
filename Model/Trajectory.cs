@@ -84,18 +84,12 @@ namespace OSDC.Drilling.Trajectory.Model
                 {
                     if (updatedList[0] is not null && updatedList[0].Abscissa is not null && Numeric.EQ(updatedList[0].Abscissa, TieInPoint.Abscissa))
                     {
-                        SurveyStation tieInStation = new SurveyStation(TieInPoint)
-                        {
-                            VerticalSection = TieInPoint.VerticalSection ?? 0
-                        };
+                        SurveyStation tieInStation = CreateTieInStation(TieInPoint, updatedList[0]);
                         updatedList[0] = tieInStation;
                     }
                     else
                     {
-                        SurveyStation tieInStation = new SurveyStation(TieInPoint)
-                        {
-                            VerticalSection = TieInPoint.VerticalSection ?? 0
-                        };
+                        SurveyStation tieInStation = CreateTieInStation(TieInPoint);
                         updatedList.Insert(0, tieInStation);
                     }
                 }
@@ -113,6 +107,33 @@ namespace OSDC.Drilling.Trajectory.Model
             }
             return true;
         }
+
+        private static SurveyStation CreateTieInStation(SurveyStation tieInPoint, SurveyStation? matchingStation = null)
+        {
+            SurveyStation tieInStation = new(tieInPoint)
+            {
+                VerticalSection = tieInPoint.VerticalSection ?? 0
+            };
+            tieInStation.SurveyTool ??= matchingStation?.SurveyTool;
+
+            // A SurveyRun whose first station is exactly at the trajectory tie-in may already
+            // contain the complete propagated uncertainty lineage. Preserve that result instead
+            // of replacing it with a geometric tie-in whose covariance is empty or incomplete.
+            if (matchingStation?.Covariance is { } covariance && HasPositiveVariance(covariance))
+            {
+                tieInStation.Covariance = matchingStation.Covariance;
+                tieInStation.Bias = matchingStation.Bias;
+                tieInStation.EigenValues = matchingStation.EigenValues;
+                tieInStation.EigenVectors = matchingStation.EigenVectors;
+                tieInStation.SurveyTool = matchingStation.SurveyTool ?? tieInStation.SurveyTool;
+            }
+
+            return tieInStation;
+        }
+
+        private static bool HasPositiveVariance(SymmetricMatrix3x3 covariance) =>
+            Enumerable.Range(0, 3).Any(index =>
+                covariance[index, index] is double variance && Numeric.GT(variance, 0.0));
     }
 
     public class TrajectorySurveyRunSection

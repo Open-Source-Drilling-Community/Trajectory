@@ -35,6 +35,32 @@ public sealed class TrajectoryUncertaintyCompositionTests
         });
     }
 
+    [Test]
+    public void Matching_tie_in_does_not_erase_propagated_survey_run_covariance()
+    {
+        SymmetricMatrix3x3 propagatedCovariance = DiagonalCovariance(7.0);
+        TrajectoryModel trajectory = new()
+        {
+            MDStep = 30.0,
+            TieInPoint = Station(455.78, 0.30, 0.40, 400.0, 100.0, 20.0, DiagonalCovariance(0.0), 0.155575),
+            SurveyStationList =
+            [
+                Station(455.78, 0.30, 0.40, 400.0, 100.0, 20.0, propagatedCovariance),
+                Station(485.78, 0.32, 0.42, 428.0, 108.0, 23.0, DiagonalCovariance(8.0)),
+                Station(515.78, 0.34, 0.44, 456.0, 117.0, 27.0, DiagonalCovariance(9.0))
+            ]
+        };
+
+        Assert.That(trajectory.Calculate(), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(Trace(trajectory.SurveyStationList![0].Covariance!), Is.EqualTo(21.0));
+            Assert.That(trajectory.SurveyStationList[0].BoreholeRadius, Is.EqualTo(0.155575));
+            Assert.That(Trace(trajectory.SurveyStationList[1].Covariance!), Is.EqualTo(24.0));
+            Assert.That(Trace(trajectory.SurveyStationList[2].Covariance!), Is.EqualTo(27.0));
+        });
+    }
+
     private static SurveyStation Station(
         double md,
         double inclination,
@@ -42,7 +68,8 @@ public sealed class TrajectoryUncertaintyCompositionTests
         double tvd,
         double north,
         double east,
-        SymmetricMatrix3x3 covariance) => new()
+        SymmetricMatrix3x3 covariance,
+        double boreholeRadius = 0.0) => new()
         {
             MD = md,
             Abscissa = md,
@@ -51,7 +78,8 @@ public sealed class TrajectoryUncertaintyCompositionTests
             TVD = tvd,
             RiemannianNorth = north,
             RiemannianEast = east,
-            Covariance = covariance
+            Covariance = covariance,
+            BoreholeRadius = boreholeRadius
         };
 
     private static SymmetricMatrix3x3 DiagonalCovariance(double value)
