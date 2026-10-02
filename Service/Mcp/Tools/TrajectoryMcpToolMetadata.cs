@@ -109,6 +109,8 @@ internal static class TrajectoryMcpToolMetadata
             detail = "Create an immutable revision in an anti-collision policy family. PolicyID identifies the family; the service assigns the next RevisionNumber and creation timestamp atomically. Rules use unique explicit priorities and first-match semantics, conditions within a rule are ANDed, and the final lowest-precedence rule must be unconditional. Every rule requires dimensionless AlertThreshold greater than AlarmThreshold greater than zero. ConditionType is a closed discriminator: TrajectoryAge uses SI seconds; Identity matches one catalog definition at a comparison hierarchy level; Feature matches one category/option with explicit temporal semantics.";
         else if (controller == "AntiCollisionPolicyRevision" && action == "GetAll")
             detail = "List immutable anti-collision policy revisions, optionally restricted to one PolicyID family. Use the revision UUID, not merely the family UUID or revision number, for a Field assignment.";
+        else if (controller == "AntiCollisionPolicyRevision" && action == "DeletePolicy")
+            detail = "Delete an entire anti-collision policy family and all of its immutable revisions only when no current or historical Field assignment references any revision. Supply the latest revision UUID from a fresh read as expectedLatestRevisionId; a concurrently added revision causes a stale-write conflict rather than being deleted.";
         else if (controller == "FieldAntiCollisionPolicyAssignment" && action == "GetEffective")
             detail = "Resolve the one exact policy-revision assignment effective for a Field at the supplied UTC instant. Assignment intervals are non-overlapping half-open UTC intervals; not-found means no policy governs that Field at that instant.";
         else if (controller == "FieldAntiCollisionPolicyAssignment" && action == "Post")
@@ -459,6 +461,8 @@ internal static class TrajectoryMcpToolMetadata
             "id" when controller == "GlobalAntiCollisions" => "Unique string identifier of the global anti-collision configuration.",
             "id" when controller == "Octrees" => "Non-empty UUID of the trajectory whose spatial octree is addressed.",
             "id" => $"Non-empty UUID of the {SplitWords(controller).ToLowerInvariant()} resource.",
+            "policyId" => "Stable non-empty UUID of the complete anti-collision policy family.",
+            "expectedLatestRevisionId" => "Optimistic-concurrency token: the UUID of the latest immutable revision returned by a fresh policy read.",
             "jobId" when controller == "Octrees" => "Server-generated non-empty UUID of the transient octree-search job.",
             "caseId" => "Non-empty UUID of the trajectory aggregation case.",
             "trajectoryId" when controller == "TrajectoryAggregationCase" => "Non-empty UUID of the trajectory within the aggregation case.",
@@ -735,6 +739,7 @@ internal static class TrajectoryMcpToolMetadata
         else if (declaringType == typeof(AntiCollisionPolicyRule))
         {
             required.Add(property.Name);
+            if (property.Name == nameof(AntiCollisionPolicyRule.Priority)) schema["minimum"] = 1;
             if (property.Name is nameof(AntiCollisionPolicyRule.AlertThreshold) or nameof(AntiCollisionPolicyRule.AlarmThreshold))
                 schema["exclusiveMinimum"] = 0.0;
         }
@@ -1017,7 +1022,7 @@ internal static class TrajectoryMcpToolMetadata
             return name switch
             {
                 nameof(AntiCollisionPolicyRule.RuleID) => "Stable non-empty UUID of this rule within the immutable revision.",
-                nameof(AntiCollisionPolicyRule.Priority) => "Unique explicit order within the revision; lower values are evaluated first.",
+                nameof(AntiCollisionPolicyRule.Priority) => "Unique explicit order greater than or equal to one within the revision; lower values are evaluated first.",
                 nameof(AntiCollisionPolicyRule.AlertThreshold) => "Dimensionless separation-factor Alert threshold, strictly greater than AlarmThreshold.",
                 nameof(AntiCollisionPolicyRule.AlarmThreshold) => "Positive dimensionless separation-factor Alarm threshold, strictly lower than AlertThreshold.",
                 nameof(AntiCollisionPolicyRule.Conditions) => "Conditions combined with AND. Empty only for the one required final default rule.",

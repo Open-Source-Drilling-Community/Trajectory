@@ -555,6 +555,36 @@ public sealed class WebPageComponentContractTests
     }
 
     [Test]
+    public void Anti_collision_pages_have_their_own_top_level_navigation_group()
+    {
+        string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", "..", "WebApp", "Shared", "NavMenu.razor"));
+        string source = File.ReadAllText(path);
+        int antiCollisionGroup = source.IndexOf("Title=\"Anti-collision Management\"", StringComparison.Ordinal);
+        int surveyManagementGroup = source.IndexOf("Title=\"Survey Management\"", StringComparison.Ordinal);
+        int surveyCalculationsGroup = source.IndexOf("Title=\"Survey Calculations\"", StringComparison.Ordinal);
+        int importExportGroup = source.IndexOf("Title=\"Import/Export\"", StringComparison.Ordinal);
+        string antiCollisionSection = source[antiCollisionGroup..importExportGroup];
+        string surveyCalculationSection = source[surveyCalculationsGroup..antiCollisionGroup];
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(antiCollisionGroup, Is.GreaterThanOrEqualTo(0));
+            Assert.That(surveyManagementGroup, Is.LessThan(surveyCalculationsGroup));
+            Assert.That(surveyCalculationsGroup, Is.LessThan(antiCollisionGroup));
+            Assert.That(antiCollisionGroup, Is.LessThan(importExportGroup));
+            Assert.That(antiCollisionSection, Does.Contain("/Trajectory/webapp/AntiCollisionScan"));
+            Assert.That(antiCollisionSection, Does.Contain("/Trajectory/webapp/AntiCollisionPolicies"));
+            Assert.That(antiCollisionSection.IndexOf("/Trajectory/webapp/AntiCollisionPolicies", StringComparison.Ordinal),
+                Is.LessThan(antiCollisionSection.IndexOf("/Trajectory/webapp/AntiCollisionScan", StringComparison.Ordinal)));
+            Assert.That(antiCollisionSection, Does.Contain("/Trajectory/webapp/SurveyRunMinimumDistanceCalculation"));
+            Assert.That(antiCollisionSection, Does.Contain("/Trajectory/webapp/TrajectoryMinimumDistanceCalculation"));
+            Assert.That(surveyCalculationSection, Does.Not.Contain("AntiCollision"));
+            Assert.That(surveyCalculationSection, Does.Not.Contain("MinimumDistanceCalculation"));
+        });
+    }
+
+    [Test]
     public void Confidence_factor_editors_use_proportion_units_and_extrapolation_reuses_the_ellipse_component()
     {
         string webPages = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
@@ -570,6 +600,11 @@ public sealed class WebPageComponentContractTests
             Assert.That(ellipse, Does.Contain("Azimuth [@Parent?.GetAzimuthUnitLabel(\"PlaneAngleDrilling\")]"));
             Assert.That(ellipse, Does.Contain("DrillingSignalReference=\"DrillingSignalReferenceType.Azimuth\" SIValue=\"@orientationAngle\""));
             Assert.That(policies, Does.Contain("QuantityName=\"ProportionStandard\" QuantityLabel=\"Confidence factor\""));
+            Assert.That(policies, Does.Contain("<MudUnitAndReferenceChoiceTag").And.Contain("</MudUnitAndReferenceChoiceTag>"));
+            Assert.That(policies.IndexOf("<MudUnitAndReferenceChoiceTag", StringComparison.Ordinal),
+                Is.LessThan(policies.IndexOf("<MudInputWithUnitAdornment", StringComparison.Ordinal)));
+            Assert.That(policies.IndexOf("</MudUnitAndReferenceChoiceTag>", StringComparison.Ordinal),
+                Is.GreaterThan(policies.LastIndexOf("<MudInputWithUnit", StringComparison.Ordinal)));
             Assert.That(scan, Does.Contain("QuantityName=\"ProportionStandard\" QuantityLabel=\"Confidence factor\""));
             Assert.That(ellipse, Does.Contain("confidenceFactor_ > 0.0 && confidenceFactor_ <= MaximumConfidenceFactor"));
             Assert.That(ellipse, Does.Contain("public bool ReadOnlyCalculation").And.Contain("public SurveyStationEllipseCalculation? ExternalCalculation"));
@@ -582,6 +617,43 @@ public sealed class WebPageComponentContractTests
             Assert.That(extrapolation, Does.Contain("sourceLastDefinedSurveyTool"));
             Assert.That(extrapolation, Does.Contain("station.SurveyTool ??= sourceLastDefinedSurveyTool"));
             Assert.That(extrapolation, Does.Contain("first.Covariance = sourceLastSurveyStation.Covariance"));
+        });
+    }
+
+    [Test]
+    public void Anti_collision_field_assignment_selectors_use_nullable_empty_values()
+    {
+        string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", "..", "WebPages", "AntiCollisionPolicies.razor"));
+        string source = File.ReadAllText(path);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(source, Does.Contain("MudSelect T=\"Guid?\" @bind-Value=\"assignmentFieldId_\""));
+            Assert.That(source, Does.Contain("MudSelect T=\"Guid?\" @bind-Value=\"assignmentPolicyRevisionId_\""));
+            Assert.That(source, Does.Contain("Placeholder=\"Select a Field\""));
+            Assert.That(source, Does.Contain("Placeholder=\"Select a policy revision\""));
+            Assert.That(source, Does.Contain("assignment_.FieldID = fieldId;"));
+            Assert.That(source, Does.Contain("assignment_.PolicyRevisionID = policyRevisionId;"));
+            Assert.That(source, Does.Not.Contain("@bind-Value=\"assignment_.FieldID\""));
+            Assert.That(source, Does.Not.Contain("@bind-Value=\"assignment_.PolicyRevisionID\""));
+            Assert.That(source, Does.Contain("Policies and revisions"));
+            Assert.That(source, Does.Contain("PolicyGroups").And.Contain("policy.Revisions"));
+            Assert.That(source, Does.Contain("OnRowClick=\"@OnRevisionRowClicked\""));
+            Assert.That(source, Does.Contain("Edit to create new revision"));
+            Assert.That(source, Does.Contain("Historical revisions are read-only"));
+            Assert.That(source, Does.Contain("!IsLatestRevision(selectedRevision_)"));
+            Assert.That(source, Does.Contain("Label=\"Priority\" Min=\"1\""));
+            Assert.That(source, Does.Not.Contain(">New revision</MudButton>"));
+            Assert.That(source, Does.Contain("Fields: @(policy.FieldNames.Count == 0 ? \"None\""));
+            Assert.That(source, Does.Contain("DeletePolicyAsync(policy)"));
+            Assert.That(source, Does.Contain("policy.FieldNames.Count == 0"));
+            Assert.That(source, Does.Not.Contain("policy.Description"));
+            Assert.That(source, Does.Contain("MudTextField T=\"double\" @bind-Value=\"rule.AlertThreshold\""));
+            Assert.That(source, Does.Contain("MudTextField T=\"double\" @bind-Value=\"rule.AlarmThreshold\""));
+            Assert.That(source, Does.Not.Contain("MudNumericField T=\"double\" @bind-Value=\"rule.AlertThreshold\""));
+            Assert.That(source, Does.Not.Contain("MudNumericField T=\"double\" @bind-Value=\"rule.AlarmThreshold\""));
+            Assert.That(source, Does.Not.Contain("@revision.PolicyID"));
         });
     }
 

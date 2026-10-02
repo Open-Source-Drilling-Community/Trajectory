@@ -26,6 +26,17 @@ public sealed class AntiCollisionPolicyTests
         });
     }
 
+    [TestCase(0)]
+    [TestCase(-1)]
+    public void Validation_rejects_rule_priority_below_one(int priority)
+    {
+        AntiCollisionPolicyRevision policy = Policy();
+        policy.Rules[0].Priority = priority;
+
+        Assert.That(AntiCollisionPolicyValidation.Validate(policy),
+            Does.Contain("rule_priorities_must_be_at_least_one"));
+    }
+
     [Test]
     public void Evaluation_uses_first_matching_rule_and_classifies_alarm()
     {
@@ -124,8 +135,12 @@ public sealed class AntiCollisionPolicyTests
             AntiCollisionPolicyManager manager = new(NullLogger<AntiCollisionPolicyManager>.Instance, database);
             AntiCollisionPolicyRevision first = Policy();
             AntiCollisionPolicyRevision second = Policy(first.PolicyID);
+            AntiCollisionPolicyRevision unusedFirst = Policy();
+            AntiCollisionPolicyRevision unusedSecond = Policy(unusedFirst.PolicyID);
             Assert.That(manager.AddRevision(first), Is.True);
             Assert.That(manager.AddRevision(second), Is.True);
+            Assert.That(manager.AddRevision(unusedFirst), Is.True);
+            Assert.That(manager.AddRevision(unusedSecond), Is.True);
             Guid fieldId = Guid.NewGuid();
             FieldAntiCollisionPolicyAssignment assignment = Assignment(fieldId, first.MetaInfo!.ID,
                 DateTimeOffset.Parse("2026-01-01T00:00:00Z"), DateTimeOffset.Parse("2027-01-01T00:00:00Z"));
@@ -136,8 +151,15 @@ public sealed class AntiCollisionPolicyTests
             {
                 Assert.That(first.RevisionNumber, Is.EqualTo(1));
                 Assert.That(second.RevisionNumber, Is.EqualTo(2));
+                Assert.That(manager.DeletePolicy(unusedFirst.PolicyID, unusedFirst.MetaInfo!.ID),
+                    Is.EqualTo(AntiCollisionPolicyDeleteResult.Stale));
+                Assert.That(manager.DeletePolicy(unusedFirst.PolicyID, unusedSecond.MetaInfo!.ID),
+                    Is.EqualTo(AntiCollisionPolicyDeleteResult.Deleted));
+                Assert.That(manager.GetRevisions(unusedFirst.PolicyID), Is.Empty);
                 Assert.That(manager.AddAssignment(assignment), Is.True);
                 Assert.That(manager.AddAssignment(overlap), Is.False);
+                Assert.That(manager.DeletePolicy(first.PolicyID, second.MetaInfo!.ID),
+                    Is.EqualTo(AntiCollisionPolicyDeleteResult.InUse));
                 Assert.That(manager.GetEffectiveAssignment(fieldId, DateTimeOffset.Parse("2026-03-01T00:00:00Z"))?.MetaInfo?.ID,
                     Is.EqualTo(assignment.MetaInfo!.ID));
             });

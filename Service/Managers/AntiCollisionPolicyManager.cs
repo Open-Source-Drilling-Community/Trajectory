@@ -6,6 +6,15 @@ using System.Text.Json;
 
 namespace OSDC.Drilling.Trajectory.Service.Managers;
 
+public enum AntiCollisionPolicyDeleteResult
+{
+    Deleted,
+    NotFound,
+    InUse,
+    Stale,
+    PersistenceFailed
+}
+
 /// <summary>Durable immutable policy revisions and effective-dated Field assignments.</summary>
 public sealed class AntiCollisionPolicyManager(
     ILogger<AntiCollisionPolicyManager> logger,
@@ -82,6 +91,50 @@ public sealed class AntiCollisionPolicyManager(
             transaction.Rollback();
             logger.LogError(ex, "Unable to create anti-collision policy revision {RevisionId}", value.MetaInfo.ID);
             return false;
+        }
+    }
+
+    public AntiCollisionPolicyDeleteResult DeletePolicy(Guid policyId, Guid expectedLatestRevisionId)
+    {
+        if (policyId == Guid.Empty || expectedLatestRevisionId == Guid.Empty) return AntiCollisionPolicyDeleteResult.NotFound;
+        using SqliteConnection? connection = connectionManager.GetConnection();
+        if (connection == null) return AntiCollisionPolicyDeleteResult.PersistenceFailed;
+        using SqliteTransaction transaction = connection.BeginTransaction(deferred: false);
+        try
+        {
+            using SqliteCommand latest = connection.CreateCommand();
+            latest.Transaction = transaction;
+            latest.CommandText = "SELECT ID FROM AntiCollisionPolicyRevisionTable WHERE PolicyID=@policyId ORDER BY RevisionNumber DESC LIMIT 1";
+            latest.Parameters.AddWithValue("@policyId", policyId.ToString());
+            string? latestRevisionId = latest.ExecuteScalar() as string;
+            if (latestRevisionId == null) return AntiCollisionPolicyDeleteResult.NotFound;
+            if (!Guid.TryParse(latestRevisionId, out Guid latestId) || latestId != expectedLatestRevisionId)
+                return AntiCollisionPolicyDeleteResult.Stale;
+
+            using SqliteCommand assignments = connection.CreateCommand();
+            assignments.Transaction = transaction;
+            assignments.CommandText = """
+                SELECT COUNT(*)
+                FROM FieldAntiCollisionPolicyAssignmentTable assignment
+                INNER JOIN AntiCollisionPolicyRevisionTable revision ON revision.ID=assignment.PolicyRevisionID
+                WHERE revision.PolicyID=@policyId
+                """;
+            assignments.Parameters.AddWithValue("@policyId", policyId.ToString());
+            if ((long)(assignments.ExecuteScalar() ?? 0L) != 0) return AntiCollisionPolicyDeleteResult.InUse;
+
+            using SqliteCommand delete = connection.CreateCommand();
+            delete.Transaction = transaction;
+            delete.CommandText = "DELETE FROM AntiCollisionPolicyRevisionTable WHERE PolicyID=@policyId";
+            delete.Parameters.AddWithValue("@policyId", policyId.ToString());
+            if (delete.ExecuteNonQuery() == 0) return AntiCollisionPolicyDeleteResult.NotFound;
+            transaction.Commit();
+            return AntiCollisionPolicyDeleteResult.Deleted;
+        }
+        catch (SqliteException ex)
+        {
+            transaction.Rollback();
+            logger.LogError(ex, "Unable to delete anti-collision policy {PolicyId}", policyId);
+            return AntiCollisionPolicyDeleteResult.PersistenceFailed;
         }
     }
 

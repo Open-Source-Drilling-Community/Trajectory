@@ -56,7 +56,7 @@ public sealed class AntiCollisionPolicyRule
 {
     public Guid RuleID { get; set; } = Guid.NewGuid();
     public string? Name { get; set; }
-    /// <summary>Unique priority; lower values are evaluated first.</summary>
+    /// <summary>Unique priority greater than or equal to one; lower values are evaluated first.</summary>
     public int Priority { get; set; }
     /// <summary>Dimensionless separation-factor Alert threshold.</summary>
     public double AlertThreshold { get; set; }
@@ -185,6 +185,7 @@ public static class AntiCollisionPolicyValidation
         if (value.Rules.Any(rule => rule == null)) { errors.Add("policy_rules_must_not_contain_null"); return errors; }
         if (value.Rules.Select(rule => rule.RuleID).Any(id => id == Guid.Empty) || value.Rules.Select(rule => rule.RuleID).Distinct().Count() != value.Rules.Count)
             errors.Add("rule_ids_must_be_non_empty_and_unique");
+        if (value.Rules.Any(rule => rule.Priority < 1)) errors.Add("rule_priorities_must_be_at_least_one");
         if (value.Rules.Select(rule => rule.Priority).Distinct().Count() != value.Rules.Count) errors.Add("rule_priorities_must_be_unique");
         List<AntiCollisionPolicyRule> ordered = value.Rules.OrderBy(rule => rule.Priority).ToList();
         if (ordered.Any(rule => rule.Conditions == null)) { errors.Add("rule_conditions_required"); return errors; }

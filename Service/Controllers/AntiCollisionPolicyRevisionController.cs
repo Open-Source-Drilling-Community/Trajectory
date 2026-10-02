@@ -57,5 +57,22 @@ public sealed class AntiCollisionPolicyRevisionController(AntiCollisionPolicyMan
         return CreatedAtAction(nameof(GetById), new { id = value.MetaInfo!.ID }, value);
     }
 
+    [HttpDelete("Policy/{policyId}", Name = "DeleteAntiCollisionPolicyByPolicyId")]
+    public ActionResult DeletePolicy(Guid policyId,
+        [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] Guid expectedLatestRevisionId)
+    {
+        UsageStatisticsTrajectory.Instance.IncrementOperation("DeleteAntiCollisionPolicyByPolicyId");
+        if (policyId == Guid.Empty || expectedLatestRevisionId == Guid.Empty)
+            return BadRequest(Error("invalid_id", "Non-empty policy and expected latest-revision UUIDs are required."));
+        return manager.DeletePolicy(policyId, expectedLatestRevisionId) switch
+        {
+            AntiCollisionPolicyDeleteResult.Deleted => NoContent(),
+            AntiCollisionPolicyDeleteResult.NotFound => NotFound(Error("not_found", "The policy does not exist.")),
+            AntiCollisionPolicyDeleteResult.InUse => Conflict(Error("policy_in_use", "The policy is referenced by one or more Field assignments.")),
+            AntiCollisionPolicyDeleteResult.Stale => Conflict(Error("stale_write", "The policy acquired a newer revision. Reload it before deleting.")),
+            _ => StatusCode(500, Error("persistence_failed", "The policy could not be deleted."))
+        };
+    }
+
     private static object Error(string code, string message) => new { error = code, message };
 }

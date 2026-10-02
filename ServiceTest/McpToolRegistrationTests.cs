@@ -15,7 +15,7 @@ public sealed class McpToolRegistrationTests
     {
         var endpoints = TrajectoryRestMcpToolRegistrations.Endpoints;
 
-        Assert.That(endpoints, Has.Count.EqualTo(153));
+        Assert.That(endpoints, Has.Count.EqualTo(154));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Is.Unique);
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("."));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("usage_statistics"));
@@ -53,7 +53,7 @@ public sealed class McpToolRegistrationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(tools, Has.Length.EqualTo(153));
+            Assert.That(tools, Has.Length.EqualTo(154));
             Assert.That(tools.All(tool => !string.IsNullOrWhiteSpace(tool.ProtocolTool.Title)), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema.HasValue), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.Annotations is not null), Is.True);
@@ -250,7 +250,7 @@ public sealed class McpToolRegistrationTests
             Assert.That(surveyRunSearch.InputSchema!["properties"]!["offset"]!["default"]!.GetValue<int>(), Is.Zero);
             Assert.That(endpoints.Any(value => value.Name == "trajectory_get_all_trajectory"), Is.False);
             Assert.That(endpoints.Any(value => value.Name == "survey_run_get_all_survey_run"), Is.False);
-            Assert.That(endpoints, Has.Count.EqualTo(153));
+            Assert.That(endpoints, Has.Count.EqualTo(154));
         });
     }
 
@@ -437,6 +437,7 @@ public sealed class McpToolRegistrationTests
         TrajectoryMcpEndpoint createAssignment = Endpoint("field_anti_collision_policy_assignment_post");
         TrajectoryMcpEndpoint updateAssignment = Endpoint("field_anti_collision_policy_assignment_put");
         TrajectoryMcpEndpoint deleteAssignment = Endpoint("field_anti_collision_policy_assignment_delete");
+        TrajectoryMcpEndpoint deletePolicy = Endpoint("anti_collision_policy_revision_delete_policy");
         JsonObject definitions = createRevision.InputSchema["$defs"]!.AsObject();
         JsonObject condition = definitions["AntiCollisionPolicyCondition"]!.AsObject();
 
@@ -447,6 +448,11 @@ public sealed class McpToolRegistrationTests
             Assert.That(definitions["AntiCollisionIdentityCondition"]!["properties"]!["ConditionType"]!["const"]!.GetValue<string>(), Is.EqualTo("Identity"));
             Assert.That(definitions["AntiCollisionFeatureCondition"]!["properties"]!["ConditionType"]!["const"]!.GetValue<string>(), Is.EqualTo("Feature"));
             Assert.That(createRevision.Description, Does.Contain("AlertThreshold greater than AlarmThreshold"));
+            Assert.That(definitions["AntiCollisionPolicyRule"]!["properties"]!["Priority"]!["minimum"]!.GetValue<int>(), Is.EqualTo(1));
+            Assert.That(deletePolicy.Description, Does.Contain("no current or historical Field assignment"));
+            Assert.That(deletePolicy.InputSchema["required"]!.AsArray().Select(value => value!.GetValue<string>()),
+                Is.EquivalentTo(new[] { "policyId", "expectedLatestRevisionId" }));
+            Assert.That(deletePolicy.Behavior.DestructiveHint, Is.True);
             Assert.That(createAssignment.Description, Does.Contain("exact immutable policy revision"));
             Assert.That(updateAssignment.Description, Does.Contain("expectedModifiedUtc"));
             Assert.That(deleteAssignment.Description, Does.Contain("historical assignments are immutable"));

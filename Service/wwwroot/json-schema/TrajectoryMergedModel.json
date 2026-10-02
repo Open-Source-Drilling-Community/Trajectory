@@ -15628,6 +15628,39 @@
         }
       }
     },
+    "/AntiCollisionPolicyRevision/Policy/{policyId}": {
+      "delete": {
+        "tags": [
+          "AntiCollisionPolicyRevision"
+        ],
+        "operationId": "DeleteAntiCollisionPolicyByPolicyId",
+        "parameters": [
+          {
+            "name": "policyId",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedLatestRevisionId",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        }
+      }
+    },
     "/FieldAntiCollisionPolicyAssignment": {
       "get": {
         "tags": [
@@ -33435,6 +33468,9 @@
           "PostAntiCollisionPolicyRevisionPerDay": {
             "$ref": "#/components/schemas/History"
           },
+          "DeleteAntiCollisionPolicyByPolicyIdPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
           "GetAllFieldAntiCollisionPolicyAssignmentPerDay": {
             "$ref": "#/components/schemas/History"
           },
@@ -36018,6 +36054,7 @@
             "nullable": true
           },
           "Priority": {
+            "minimum": 1,
             "type": "integer",
             "format": "int32"
           },

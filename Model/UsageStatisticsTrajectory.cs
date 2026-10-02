@@ -78,6 +78,7 @@ namespace OSDC.Drilling.Trajectory.Model
         public History GetAllAntiCollisionPolicyRevisionPerDay { get; set; } = new History();
         public History GetAntiCollisionPolicyRevisionByIdPerDay { get; set; } = new History();
         public History PostAntiCollisionPolicyRevisionPerDay { get; set; } = new History();
+        public History DeleteAntiCollisionPolicyByPolicyIdPerDay { get; set; } = new History();
         public History GetAllFieldAntiCollisionPolicyAssignmentPerDay { get; set; } = new History();
         public History GetFieldAntiCollisionPolicyAssignmentByIdPerDay { get; set; } = new History();
         public History GetEffectiveFieldAntiCollisionPolicyAssignmentPerDay { get; set; } = new History();

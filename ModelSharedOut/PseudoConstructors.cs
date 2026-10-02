@@ -5739,6 +5739,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				GetAllAntiCollisionPolicyRevisionPerDay = ConstructHistory(),
 				GetAntiCollisionPolicyRevisionByIdPerDay = ConstructHistory(),
 				PostAntiCollisionPolicyRevisionPerDay = ConstructHistory(),
+				DeleteAntiCollisionPolicyByPolicyIdPerDay = ConstructHistory(),
 				GetAllFieldAntiCollisionPolicyAssignmentPerDay = ConstructHistory(),
 				GetFieldAntiCollisionPolicyAssignmentByIdPerDay = ConstructHistory(),
 				GetEffectiveFieldAntiCollisionPolicyAssignmentPerDay = ConstructHistory(),

@@ -115,6 +115,7 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
             Describe(schema, "AgeThresholdSeconds", "Comparison trajectory age threshold in canonical SI seconds, evaluated from the oldest defined contributing survey-run acquisition start or station measurement time.", "Duration", "s");
         if (context.Type == typeof(AntiCollisionPolicyRule))
         {
+            SetMinimum(schema, "Priority", 1);
             Describe(schema, "AlertThreshold", "Dimensionless separation-factor Alert threshold; it must be greater than AlarmThreshold.", "SeparationFactor", "1");
             Describe(schema, "AlarmThreshold", "Dimensionless separation-factor Alarm threshold.", "SeparationFactor", "1");
         }

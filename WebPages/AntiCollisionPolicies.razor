@@ -1,9 +1,31 @@
 @page "/AntiCollisionPolicies"
 @inject ILogger<AntiCollisionPolicies> Logger
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 @inject ITrajectoryAPIUtils Api
 @inject ITrajectoryReferenceDataCache ReferenceData
 
+<MudUnitAndReferenceChoiceTag HttpHost="@Api.HostNameUnitConversion"
+                              HttpBasePath="@Api.HostBasePathUnitConversion"
+                              HttpController="UnitSystem/"
+                              UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
+                              UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName"
+                              DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
+                              DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
+                              GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                              MeanSeaLevelDepthReferenceSource="@DataUtils.MeanSeaLevelDepthReferenceSource"
+                              SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
+                              RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
+                              PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
+                              PositionReferenceNameChanged="@DataUtils.UpdatePositionReferenceName"
+                              WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
+                              CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
+                              FieldPositionReferenceSource="@DataUtils.FieldPositionReferenceSource"
+                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource"
+                              AzimuthReferenceName="@DataUtils.UnitAndReferenceParameters.AzimuthReferenceName"
+                              AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName"
+                              GridConvergenceSource="@DataUtils.GridConvergenceSource"
+                              MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource">
 <MudText Typo="Typo.h5" Class="mt-4">Anti-collision policies</MudText>
 <MudText Typo="Typo.body2" Class="mb-4">
     Policies are immutable, versioned decision records. Field assignments select the exact revision used for a calculation at a UTC instant.
@@ -15,21 +37,107 @@
 <MudTabs Elevation="0" Outlined="true" Rounded="true" @bind-ActivePanelIndex="activeTab_">
     <MudTabPanel Text="Policy library">
         <MudGrid Class="pa-3">
-            <MudItem xs="12" md="4">
+            <MudItem xs="12" md="5">
                 <MudButton Variant="Variant.Filled" Color="Color.Success" StartIcon="@Icons.Material.Filled.Add" OnClick="NewPolicy">New policy</MudButton>
                 <MudButton Class="ms-2" Variant="Variant.Outlined" Color="Color.Primary" OnClick="LoadAsync">Refresh</MudButton>
-                <MudList T="AntiCollisionPolicyRevision" Dense="true" Class="mt-3">
-                    @foreach (AntiCollisionPolicyRevision revision in revisions_)
-                    {
-                        <MudListItem T="AntiCollisionPolicyRevision" Value="revision" OnClick="@(() => SelectRevision(revision))">
-                            <MudText Typo="Typo.subtitle2">@revision.Name · revision @revision.RevisionNumber</MudText>
-                            <MudText Typo="Typo.caption">@revision.PolicyID</MudText>
-                        </MudListItem>
-                    }
-                </MudList>
+                <MudText Typo="Typo.h6" Class="mt-4 mb-2">Policies and revisions</MudText>
+                @if (PolicyGroups.Count == 0)
+                {
+                    <MudText Typo="Typo.body2" Color="Color.Secondary">No anti-collision policies are defined.</MudText>
+                }
+                @foreach (PolicyRevisionGroup policy in PolicyGroups)
+                {
+                    <MudPaper @key="policy.PolicyID" Outlined="true" Class="pa-3 mb-3">
+                        <div class="d-flex align-center justify-space-between gap-2">
+                            <MudText Typo="Typo.subtitle1"><strong>@policy.Name</strong></MudText>
+                            @if (policy.FieldNames.Count == 0)
+                            {
+                                <MudTooltip Text="Delete this unused policy">
+                                    <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" Size="Size.Small"
+                                                   OnClick="@(() => DeletePolicyAsync(policy))" />
+                                </MudTooltip>
+                            }
+                        </div>
+                        <MudText Typo="Typo.body2" Color="Color.Secondary" Class="mb-2">
+                            Fields: @(policy.FieldNames.Count == 0 ? "None" : string.Join(", ", policy.FieldNames))
+                        </MudText>
+                        <MudTable Items="@policy.Revisions" T="AntiCollisionPolicyRevision" Dense="true" Hover="true" Bordered="true"
+                                  OnRowClick="@OnRevisionRowClicked">
+                            <HeaderContent>
+                                <MudTh>Revision</MudTh>
+                                <MudTh>Description</MudTh>
+                                <MudTh>Created UTC</MudTh>
+                                <MudTh>Rules</MudTh>
+                            </HeaderContent>
+                            <RowTemplate>
+                                <MudTd DataLabel="Revision">@context.RevisionNumber</MudTd>
+                                <MudTd DataLabel="Description">@(string.IsNullOrWhiteSpace(context.Description) ? "—" : context.Description)</MudTd>
+                                <MudTd DataLabel="Created UTC">@(context.CreationDate?.ToUniversalTime().ToString("u") ?? "—")</MudTd>
+                                <MudTd DataLabel="Rules">@(context.Rules?.Count ?? 0)</MudTd>
+                            </RowTemplate>
+                        </MudTable>
+                    </MudPaper>
+                }
             </MudItem>
-            <MudItem xs="12" md="8">
-                @if (draft_ != null)
+            <MudItem xs="12" md="7">
+                @if (selectedRevision_ != null && draft_ == null)
+                {
+                    <MudPaper Outlined="true" Class="pa-4">
+                        <div class="d-flex align-center justify-space-between flex-wrap gap-2">
+                            <div>
+                                <MudText Typo="Typo.h6">@selectedRevision_.Name · revision @selectedRevision_.RevisionNumber</MudText>
+                                <MudText Typo="Typo.body2" Color="Color.Secondary">
+                                    Created @(selectedRevision_.CreationDate?.ToUniversalTime().ToString("u") ?? "—")
+                                </MudText>
+                            </div>
+                            @if (IsLatestRevision(selectedRevision_))
+                            {
+                                <MudButton Variant="Variant.Filled" Color="Color.Primary" StartIcon="@Icons.Material.Filled.Edit"
+                                           OnClick="BeginEditingSelectedRevision">Edit to create new revision</MudButton>
+                            }
+                        </div>
+                        @if (!IsLatestRevision(selectedRevision_))
+                        {
+                            <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Dense="true" Class="mt-3">
+                                Historical revisions are read-only. Select the latest revision to create the next revision.
+                            </MudAlert>
+                        }
+                        <MudGrid Class="mt-2">
+                            <MudItem xs="12" md="7">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Description</MudText>
+                                <MudText Typo="Typo.body1">@(string.IsNullOrWhiteSpace(selectedRevision_.Description) ? "—" : selectedRevision_.Description)</MudText>
+                            </MudItem>
+                            <MudItem xs="12" md="5">
+                                <MudText Typo="Typo.caption" Color="Color.Secondary">Confidence factor</MudText>
+                                <MudSpanWithUnit QuantityName="ProportionStandard" SIValue="@selectedRevision_.ConfidenceFactor" />
+                            </MudItem>
+                        </MudGrid>
+
+                        @foreach (AntiCollisionPolicyRule rule in selectedRevision_.Rules ?? [])
+                        {
+                            <MudPaper @key="rule.RuleID" Outlined="true" Class="pa-3 mt-3">
+                                <MudGrid>
+                                    <MudItem xs="12" md="4"><MudText><strong>@rule.Name</strong></MudText></MudItem>
+                                    <MudItem xs="4" md="2"><MudText>Priority: @rule.Priority</MudText></MudItem>
+                                    <MudItem xs="4" md="3"><MudText>Alert SF: @rule.AlertThreshold</MudText></MudItem>
+                                    <MudItem xs="4" md="3"><MudText>Alarm SF: @rule.AlarmThreshold</MudText></MudItem>
+                                </MudGrid>
+                                @if ((rule.Conditions?.Count ?? 0) == 0)
+                                {
+                                    <MudChip T="string" Size="Size.Small" Color="Color.Info" Class="mt-2">Unconditional default</MudChip>
+                                }
+                                else
+                                {
+                                    @foreach (AntiCollisionPolicyCondition condition in rule.Conditions ?? [])
+                                    {
+                                        <MudText @key="condition.ConditionID" Typo="Typo.body2" Class="mt-2">@DescribeCondition(condition)</MudText>
+                                    }
+                                }
+                            </MudPaper>
+                        }
+                    </MudPaper>
+                }
+                else if (draft_ != null)
                 {
                     <MudPaper Outlined="true" Class="pa-4">
                         <MudText Typo="Typo.h6">@draftHeading_</MudText>
@@ -51,9 +159,9 @@
                             <MudPaper @key="rule.RuleID" Outlined="true" Class="pa-3 mt-3">
                                 <MudGrid>
                                     <MudItem xs="12" md="4"><MudTextField @bind-Value="rule.Name" Label="Rule name" Required="true" /></MudItem>
-                                    <MudItem xs="4" md="2"><MudNumericField T="int" @bind-Value="rule.Priority" Label="Priority" /></MudItem>
-                                    <MudItem xs="4" md="2"><MudNumericField T="double" @bind-Value="rule.AlertThreshold" Label="Alert SF" Min="0" /></MudItem>
-                                    <MudItem xs="4" md="2"><MudNumericField T="double" @bind-Value="rule.AlarmThreshold" Label="Alarm SF" Min="0" /></MudItem>
+                                    <MudItem xs="4" md="2"><MudNumericField T="int" @bind-Value="rule.Priority" Label="Priority" Min="1" /></MudItem>
+                                    <MudItem xs="4" md="2"><MudTextField T="double" @bind-Value="rule.AlertThreshold" Label="Alert SF" Immediate="true" /></MudItem>
+                                    <MudItem xs="4" md="2"><MudTextField T="double" @bind-Value="rule.AlarmThreshold" Label="Alarm SF" Immediate="true" /></MudItem>
                                     <MudItem xs="12" md="2" Class="d-flex align-center justify-end">
                                         <MudIconButton Icon="@Icons.Material.Filled.Delete" Color="Color.Error" OnClick="@(() => RemoveRule(rule))" />
                                     </MudItem>
@@ -111,6 +219,7 @@
                         <MudButton Class="mt-3" Variant="Variant.Outlined" StartIcon="@Icons.Material.Filled.Add" OnClick="AddRule">Rule</MudButton>
                         <MudButton Class="mt-3 ms-2" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveRevisionAsync"
                                    Disabled="@(!IsDraftConfidenceFactorValid)">Create immutable revision</MudButton>
+                        <MudButton Class="mt-3 ms-2" Variant="Variant.Text" OnClick="CancelEditing">Cancel</MudButton>
                     </MudPaper>
                 }
             </MudItem>
@@ -120,13 +229,13 @@
     <MudTabPanel Text="Field assignments">
         <MudGrid Class="pa-3">
             <MudItem xs="12" md="3">
-                <MudSelect T="Guid" @bind-Value="assignment_.FieldID" Label="Field" Required="true">
-                    @foreach (Field field in fields_) { <MudSelectItem Value="field.MetaInfo.ID">@field.Name</MudSelectItem> }
+                <MudSelect T="Guid?" @bind-Value="assignmentFieldId_" Label="Field" Placeholder="Select a Field" Required="true" Clearable="true">
+                    @foreach (Field field in fields_) { <MudSelectItem T="Guid?" Value="@((Guid?)field.MetaInfo.ID)">@field.Name</MudSelectItem> }
                 </MudSelect>
             </MudItem>
             <MudItem xs="12" md="4">
-                <MudSelect T="Guid" @bind-Value="assignment_.PolicyRevisionID" Label="Exact policy revision" Required="true">
-                    @foreach (AntiCollisionPolicyRevision revision in revisions_) { <MudSelectItem Value="revision.MetaInfo.ID">@revision.Name · revision @revision.RevisionNumber</MudSelectItem> }
+                <MudSelect T="Guid?" @bind-Value="assignmentPolicyRevisionId_" Label="Exact policy revision" Placeholder="Select a policy revision" Required="true" Clearable="true">
+                    @foreach (AntiCollisionPolicyRevision revision in revisions_) { <MudSelectItem T="Guid?" Value="@((Guid?)revision.MetaInfo.ID)">@revision.Name · revision @revision.RevisionNumber</MudSelectItem> }
                 </MudSelect>
             </MudItem>
             <MudItem xs="12" md="2"><MudDatePicker @bind-Date="assignmentFrom_" Label="Valid from (UTC)" Required="true" /></MudItem>
@@ -146,18 +255,39 @@
         </MudTable>
     </MudTabPanel>
 </MudTabs>
+</MudUnitAndReferenceChoiceTag>
 
 @code {
     private int activeTab_;
     private List<AntiCollisionPolicyRevision> revisions_ = [];
     private List<FieldAntiCollisionPolicyAssignment> assignments_ = [];
     private List<Field> fields_ = [];
+    private AntiCollisionPolicyRevision? selectedRevision_;
     private AntiCollisionPolicyRevisionCreate? draft_;
     private const double MaximumConfidenceFactor = 0.999;
     private string draftHeading_ = "New policy";
     private FieldAntiCollisionPolicyAssignmentMutation assignment_ = NewAssignment();
+    private Guid? assignmentFieldId_;
+    private Guid? assignmentPolicyRevisionId_;
     private DateTime? assignmentFrom_ = DateTime.UtcNow.Date.AddDays(1);
     private DateTime? assignmentTo_;
+    private List<PolicyRevisionGroup> PolicyGroups => revisions_
+        .GroupBy(revision => revision.PolicyID)
+        .Select(group =>
+        {
+            List<AntiCollisionPolicyRevision> ordered = group.OrderByDescending(revision => revision.RevisionNumber).ToList();
+            AntiCollisionPolicyRevision latest = ordered[0];
+            HashSet<Guid> revisionIds = ordered.Where(revision => revision.MetaInfo != null)
+                .Select(revision => revision.MetaInfo!.ID).ToHashSet();
+            List<string> fieldNames = assignments_.Where(assignment => revisionIds.Contains(assignment.PolicyRevisionID))
+                .Select(assignment => fields_.FirstOrDefault(field => field.MetaInfo?.ID == assignment.FieldID)?.Name ?? "Unavailable Field")
+                .Distinct(StringComparer.CurrentCultureIgnoreCase)
+                .OrderBy(name => name, StringComparer.CurrentCultureIgnoreCase)
+                .ToList();
+            return new PolicyRevisionGroup(group.Key, latest.Name ?? "Unnamed policy", latest.MetaInfo!.ID, fieldNames, ordered);
+        })
+        .OrderBy(policy => policy.Name, StringComparer.CurrentCultureIgnoreCase)
+        .ToList();
     private bool IsDraftConfidenceFactorValid => draft_ != null &&
         double.IsFinite(draft_.ConfidenceFactor) && draft_.ConfidenceFactor > 0.0 &&
         draft_.ConfidenceFactor <= MaximumConfidenceFactor;
@@ -166,9 +296,13 @@
 
     private async Task LoadAsync()
     {
+        Guid? selectedRevisionId = selectedRevision_?.MetaInfo?.ID;
         try
         {
             revisions_ = (await Api.ClientTrajectory.GetAllAntiCollisionPolicyRevisionAsync()).OrderBy(x => x.Name).ThenByDescending(x => x.RevisionNumber).ToList();
+            selectedRevision_ = selectedRevisionId == null
+                ? selectedRevision_
+                : revisions_.FirstOrDefault(revision => revision.MetaInfo?.ID == selectedRevisionId);
             assignments_ = (await Api.ClientTrajectory.GetAllFieldAntiCollisionPolicyAssignmentAsync()).OrderByDescending(x => x.ValidFromUtc).ToList();
             fields_ = (await ReferenceData.GetSnapshotAsync()).Fields.ToList();
         }
@@ -181,12 +315,25 @@
 
     private void NewPolicy()
     {
+        selectedRevision_ = null;
         draftHeading_ = "New policy";
         draft_ = NewDraft(Guid.NewGuid(), "New anti-collision policy");
     }
 
-    private void SelectRevision(AntiCollisionPolicyRevision source)
+    private void OnRevisionRowClicked(TableRowClickEventArgs<AntiCollisionPolicyRevision> args)
     {
+        selectedRevision_ = args.Item;
+        draft_ = null;
+    }
+
+    private bool IsLatestRevision(AntiCollisionPolicyRevision revision) =>
+        revision.RevisionNumber == revisions_.Where(candidate => candidate.PolicyID == revision.PolicyID)
+            .Max(candidate => candidate.RevisionNumber);
+
+    private void BeginEditingSelectedRevision()
+    {
+        if (selectedRevision_ == null || !IsLatestRevision(selectedRevision_)) return;
+        AntiCollisionPolicyRevision source = selectedRevision_;
         draftHeading_ = $"New revision after {source.RevisionNumber}";
         draft_ = new AntiCollisionPolicyRevisionCreate
         {
@@ -196,17 +343,27 @@
         };
     }
 
+    private void CancelEditing() => draft_ = null;
+
     private void AddRule()
     {
         if (draft_ == null) return;
         draft_.Rules ??= [];
-        draft_.Rules.Add(new AntiCollisionPolicyRule { RuleID = Guid.NewGuid(), Name = "Default", Priority = draft_.Rules.Count + 1, AlertThreshold = 1.5, AlarmThreshold = 1.0, Conditions = [] });
+        int nextPriority = draft_.Rules.Count == 0 ? 1 : draft_.Rules.Max(rule => rule.Priority) + 1;
+        draft_.Rules.Add(new AntiCollisionPolicyRule { RuleID = Guid.NewGuid(), Name = "Default", Priority = nextPriority, AlertThreshold = 1.5, AlarmThreshold = 1.0, Conditions = [] });
     }
 
     private void RemoveRule(AntiCollisionPolicyRule rule) => draft_?.Rules?.Remove(rule);
     private void AddCondition(AntiCollisionPolicyRule rule) { rule.Conditions ??= []; rule.Conditions.Add(new AntiCollisionTrajectoryAgeCondition { ConditionID = Guid.NewGuid(), Operator = AntiCollisionComparisonOperator.GreaterThan, AgeThresholdSeconds = 365.25 * 86400 }); }
     private void RemoveCondition(AntiCollisionPolicyRule rule, AntiCollisionPolicyCondition condition) => rule.Conditions?.Remove(condition);
     private static string ConditionKind(AntiCollisionPolicyCondition value) => value switch { AntiCollisionTrajectoryAgeCondition => "Age", AntiCollisionIdentityCondition => "Identity", _ => "Feature" };
+    private static string DescribeCondition(AntiCollisionPolicyCondition value) => value switch
+    {
+        AntiCollisionTrajectoryAgeCondition age => $"Trajectory age {age.Operator}: {age.AgeThresholdSeconds:g} s",
+        AntiCollisionIdentityCondition identity => $"{identity.ResourceLevel} identity {identity.MatchOperator}: {identity.Pattern}",
+        AntiCollisionFeatureCondition feature => $"{feature.ResourceLevel} feature ({feature.TemporalOperator}) · category {feature.FeatureCategoryID} · option {feature.FeatureOptionID}",
+        _ => "Unknown condition"
+    };
     private static void ReplaceCondition(AntiCollisionPolicyRule rule, AntiCollisionPolicyCondition old, string kind)
     {
         int index = rule.Conditions.IndexOf(old);
@@ -222,6 +379,7 @@
     private async Task SaveRevisionAsync()
     {
         if (draft_ == null) return;
+        Guid policyId = draft_.PolicyID;
         NormalizeFeatureConditionFields(draft_);
         try
         {
@@ -229,13 +387,55 @@
             Snackbar.Add("Created immutable policy revision", Severity.Success);
             draft_ = null;
             await LoadAsync();
+            selectedRevision_ = revisions_.Where(revision => revision.PolicyID == policyId)
+                .OrderByDescending(revision => revision.RevisionNumber).FirstOrDefault();
         }
         catch (Exception ex) { Logger.LogError(ex, "Could not create policy revision"); Snackbar.Add("Policy revision was rejected. Check thresholds, priorities, UUIDs, and the final default rule.", Severity.Error); }
     }
 
+    private async Task DeletePolicyAsync(PolicyRevisionGroup policy)
+    {
+        if (policy.FieldNames.Count != 0) return;
+        bool? confirmed = await DialogService.ShowMessageBoxAsync(
+            "Delete anti-collision policy",
+            $"Delete '{policy.Name}' and all {policy.Revisions.Count} immutable revision(s)?",
+            yesText: "Delete", cancelText: "Cancel", options: TrajectoryDialogOptions.Compact);
+        if (confirmed != true) return;
+        try
+        {
+            await Api.ClientTrajectory.DeleteAntiCollisionPolicyByPolicyIdAsync(policy.PolicyID, policy.LatestRevisionID);
+            if (selectedRevision_?.PolicyID == policy.PolicyID) selectedRevision_ = null;
+            Snackbar.Add("Deleted anti-collision policy", Severity.Success);
+            await LoadAsync();
+        }
+        catch (ApiException ex) when (ex.StatusCode == 409)
+        {
+            Logger.LogWarning(ex, "Anti-collision policy {PolicyId} could not be deleted because it is in use or changed", policy.PolicyID);
+            Snackbar.Add("The policy is now in use or has a newer revision. Refresh and try again.", Severity.Warning);
+            await LoadAsync();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Could not delete anti-collision policy {PolicyId}", policy.PolicyID);
+            Snackbar.Add("Could not delete the anti-collision policy.", Severity.Error);
+        }
+    }
+
     private async Task CreateAssignmentAsync()
     {
+        if (assignmentFieldId_ is not Guid fieldId || fieldId == Guid.Empty)
+        {
+            Snackbar.Add("A Field is required", Severity.Warning);
+            return;
+        }
+        if (assignmentPolicyRevisionId_ is not Guid policyRevisionId || policyRevisionId == Guid.Empty)
+        {
+            Snackbar.Add("An exact policy revision is required", Severity.Warning);
+            return;
+        }
         if (assignmentFrom_ == null) { Snackbar.Add("A valid-from date is required", Severity.Warning); return; }
+        assignment_.FieldID = fieldId;
+        assignment_.PolicyRevisionID = policyRevisionId;
         assignment_.ValidFromUtc = new DateTimeOffset(DateTime.SpecifyKind(assignmentFrom_.Value.Date, DateTimeKind.Utc));
         assignment_.ValidToUtc = assignmentTo_ == null ? null : new DateTimeOffset(DateTime.SpecifyKind(assignmentTo_.Value.Date, DateTimeKind.Utc));
         assignment_.MetaInfo ??= NewMeta("FieldAntiCollisionPolicyAssignment/");
@@ -243,7 +443,8 @@
         {
             await Api.ClientTrajectory.PostFieldAntiCollisionPolicyAssignmentAsync(assignment_);
             Snackbar.Add("Created Field policy assignment", Severity.Success);
-            assignment_ = NewAssignment(); assignmentFrom_ = DateTime.UtcNow.Date.AddDays(1); assignmentTo_ = null;
+            assignment_ = NewAssignment(); assignmentFieldId_ = null; assignmentPolicyRevisionId_ = null;
+            assignmentFrom_ = DateTime.UtcNow.Date.AddDays(1); assignmentTo_ = null;
             await LoadAsync();
         }
         catch (Exception ex) { Logger.LogError(ex, "Could not create Field policy assignment"); Snackbar.Add("Assignment was rejected. Check the Field, exact revision, and validity overlap.", Severity.Error); }
@@ -283,4 +484,6 @@
         AntiCollisionFeatureCondition f => new AntiCollisionFeatureCondition { ConditionID = f.ConditionID, ResourceLevel = f.ResourceLevel, FeatureCategoryID = f.FeatureCategoryID, FeatureOptionID = f.FeatureOptionID, TemporalOperator = f.TemporalOperator, SpecifiedTimeUtc = f.SpecifiedTimeUtc, SpecifiedFromUtc = f.SpecifiedFromUtc, SpecifiedToUtc = f.SpecifiedToUtc },
         _ => throw new InvalidOperationException("Unknown condition variant")
     };
+    private sealed record PolicyRevisionGroup(Guid PolicyID, string Name, Guid LatestRevisionID,
+        List<string> FieldNames, List<AntiCollisionPolicyRevision> Revisions);
 }
