@@ -391,7 +391,7 @@ public sealed class WebPageComponentContractTests
             Assert.That(editor, Does.Contain("Items=\"@(new[] { startingStation })\""));
             Assert.That(editor, Does.Contain("GetTrajectorySurveyStationChunkCountAsync(sourceTrajectoryId)"));
             Assert.That(editor, Does.Contain("for (int chunkIndex = chunkCount - 1; chunkIndex >= 0; chunkIndex--)"));
-            Assert.That(editor, Does.Contain("sourceLastSurveyStation = lastStation"));
+            Assert.That(editor, Does.Contain("sourceLastSurveyStation = finalStation"));
             Assert.That(editor, Does.Contain("Items=\"@WellPathSolvedSections\""));
             Assert.That(editor, Does.Contain("section.Role == TrajectoryExtrapolationSectionRole.WellPathSection"));
             Assert.That(editor, Does.Contain("SIValue=\"@context.End?.Inclination\""));
