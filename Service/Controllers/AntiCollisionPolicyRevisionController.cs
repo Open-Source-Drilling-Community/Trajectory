@@ -58,6 +58,8 @@ public sealed class AntiCollisionPolicyRevisionController(AntiCollisionPolicyMan
     }
 
     [HttpDelete("Policy/{policyId}", Name = "DeleteAntiCollisionPolicyByPolicyId")]
+    [ProducesResponseType(StatusCodes.Status204NoContent)]
+    [ProducesResponseType(StatusCodes.Status409Conflict)]
     public ActionResult DeletePolicy(Guid policyId,
         [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] Guid expectedLatestRevisionId)
     {

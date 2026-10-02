@@ -20,6 +20,17 @@ public sealed class OpenApiConfidenceFactorContractTests
     }
 
     [Test]
+    public void Whole_policy_delete_publishes_no_content_as_its_success_response()
+    {
+        string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", "..", "ModelSharedOut", "json-schemas", "TrajectoryFullName.json"));
+        JsonObject responses = JsonNode.Parse(File.ReadAllText(path))!["paths"]!
+            ["/AntiCollisionPolicyRevision/Policy/{policyId}"]!["delete"]!["responses"]!.AsObject();
+
+        Assert.That(responses.ContainsKey("204"), Is.True);
+    }
+
+    [Test]
     public void Confidence_factors_publish_proportion_semantics_and_si_bounds()
     {
         string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
