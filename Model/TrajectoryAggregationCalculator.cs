@@ -728,9 +728,23 @@ namespace OSDC.Drilling.Trajectory.Model
                     return 0.0;
                 }
 
+                int attitudeIndex = Math.Clamp(idx, 0, Inclinations.Count - 1);
+                if (Numeric.EQ(Math.Sin(Inclinations[attitudeIndex]), 0.0) && attitudeIndex + 1 < Azimuths.Count)
+                {
+                    // At a vertical station high side is undefined. The CTC curve construction uses
+                    // toolface as the absolute departure azimuth in that singular case.
+                    return NormalizeAnglePositive(Azimuths[attitudeIndex + 1]);
+                }
+
                 double ratio = Math.Clamp(buildup / curvature, -1.0, 1.0);
                 double toolface = Math.Acos(ratio);
-                if (idx > 0 && idx < Azimuths.Count && Math.Abs(Azimuths[idx] - Azimuths[idx - 1]) < 1e-12 && buildup < 0.0)
+                int nextAttitudeIndex = Math.Min(attitudeIndex + 1, Azimuths.Count - 1);
+                double azimuthChange = NormalizeAngleSigned(Azimuths[nextAttitudeIndex] - Azimuths[attitudeIndex]);
+                if (azimuthChange < 0.0)
+                {
+                    toolface = -toolface;
+                }
+                else if (Math.Abs(azimuthChange) < 1e-12 && buildup < 0.0)
                 {
                     toolface = Math.PI;
                 }

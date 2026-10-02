@@ -23,6 +23,20 @@ public class TrajectoryAggregationCalculatorTests
         };
 
         bool success = calculation.Calculate(id => id == aggregation.TrajectoryID ? source : null);
+        SurveyPoint? aggregateEnd = aggregation.AggregatedSurveyPointList?.LastOrDefault();
+        SurveyPoint? aggregateSecond = aggregation.AggregatedSurveyPointList?.Skip(1).FirstOrDefault();
+        SurveyStation sourceStart = source.SurveyStationList![0];
+        SurveyStation sourceEnd = source.SurveyStationList![^1];
+        double sourceNorthDisplacement = sourceEnd.RiemannianNorth!.Value - sourceStart.RiemannianNorth!.Value;
+        double sourceEastDisplacement = sourceEnd.RiemannianEast!.Value - sourceStart.RiemannianEast!.Value;
+        double aggregateNorthDisplacement = aggregateEnd!.RiemannianNorth!.Value - sourceStart.RiemannianNorth.Value;
+        double aggregateEastDisplacement = aggregateEnd.RiemannianEast!.Value - sourceStart.RiemannianEast.Value;
+        double horizontalDirectionDotProduct =
+            sourceNorthDisplacement * aggregateNorthDisplacement + sourceEastDisplacement * aggregateEastDisplacement;
+        double endpointDistance = Math.Sqrt(
+            Math.Pow(aggregateEnd.RiemannianNorth.Value - sourceEnd.RiemannianNorth.Value, 2.0) +
+            Math.Pow(aggregateEnd.RiemannianEast.Value - sourceEnd.RiemannianEast.Value, 2.0) +
+            Math.Pow(aggregateEnd.TVD!.Value - sourceEnd.TVD!.Value, 2.0));
 
         Assert.Multiple(() =>
         {
@@ -33,6 +47,11 @@ public class TrajectoryAggregationCalculatorTests
             Assert.That(aggregation.SectionList, Is.Not.Empty);
             Assert.That(aggregation.AggregatedSurveyPointList, Is.Not.Empty);
             Assert.That(aggregation.DistanceResultList, Has.Count.EqualTo(aggregation.CoarsenedReferencePointCount));
+            Assert.That(aggregateSecond!.RiemannianNorth, Is.LessThan(sourceStart.RiemannianNorth), "The vertical start must depart towards U3's southerly heading.");
+            Assert.That(aggregateSecond.RiemannianEast, Is.GreaterThan(sourceStart.RiemannianEast), "The vertical start must depart towards U3's easterly component.");
+            Assert.That(horizontalDirectionDotProduct, Is.GreaterThan(0.0), "The aggregate path must not mirror the source displacement.");
+            Assert.That(endpointDistance, Is.LessThan(35.0));
+            Assert.That(aggregation.DistanceResultList!.Max(result => result.CenterToCenterDistance), Is.LessThan(35.0));
         });
     }
 
