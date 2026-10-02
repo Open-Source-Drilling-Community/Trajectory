@@ -1334,10 +1334,34 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             return SurveyStationChunkStore.GetStations(_logger, _connectionManager, trajectoryId, SurveyStationOwnerType);
         }
 
-        private static SurveyStation CloneSurveyStation(SurveyStation station)
+        internal static SurveyStation CloneSurveyStation(SurveyStation station)
         {
-            string data = JsonSerializer.Serialize(station, JsonSettings.Options);
-            return JsonSerializer.Deserialize<SurveyStation>(data, JsonSettings.Options) ?? new SurveyStation();
+            SurveyStation copy = new(station)
+            {
+                Covariance = CloneCovariance(station.Covariance),
+                Bias = station.Bias == null ? null : new Vector3D(station.Bias),
+                EigenValues = station.EigenValues == null ? null : new Vector3D(station.EigenValues),
+                EigenVectors = station.EigenVectors == null ? null : new Matrix3x3(station.EigenVectors)
+            };
+            return copy;
+        }
+
+        private static SymmetricMatrix3x3? CloneCovariance(SymmetricMatrix3x3? source)
+        {
+            if (source == null)
+            {
+                return null;
+            }
+
+            SymmetricMatrix3x3 copy = new();
+            for (int column = 0; column < 3; column++)
+            {
+                for (int row = 0; row < 3; row++)
+                {
+                    copy[column, row] = source[column, row];
+                }
+            }
+            return copy;
         }
 
         private static OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument ConvertSurveyInstrument(OSDC.Drilling.Trajectory.ModelShared.SurveyInstrument surveyInstrument)

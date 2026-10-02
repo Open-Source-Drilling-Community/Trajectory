@@ -110,6 +110,35 @@ public sealed class SurveyRunUncertaintyContinuationTests
         Assert.That(Trace(calculation.SurveyStationList![0].Covariance!), Is.InRange(6.0, 9.0));
     }
 
+    [Test]
+    public void Trajectory_materialization_clone_preserves_uncertainty_components()
+    {
+        SurveyStation source = StationWithCovariance(455.78, 0.30, 0.34, 400.0, 100.0, 20.0, 7.0);
+        source.Covariance![0, 1] = source.Covariance[1, 0] = 1.25;
+        source.Bias = new Vector3D(1.0, 2.0, 3.0);
+        source.EigenValues = new Vector3D(4.0, 5.0, 6.0);
+        source.EigenVectors = new Matrix3x3(1.0, 0.0, 0.0, 0.0, 1.0, 0.0, 0.0, 0.0, 1.0);
+
+        SurveyStation clone = TrajectoryManager.CloneSurveyStation(source);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(clone, Is.Not.SameAs(source));
+            Assert.That(clone.Covariance, Is.Not.SameAs(source.Covariance));
+            Assert.That(Trace(clone.Covariance!), Is.EqualTo(21.0));
+            Assert.That(clone.Covariance![0, 1], Is.EqualTo(1.25));
+            Assert.That(clone.Bias, Is.Not.SameAs(source.Bias));
+            Assert.That(clone.Bias!.Z, Is.EqualTo(3.0));
+            Assert.That(clone.EigenValues, Is.Not.SameAs(source.EigenValues));
+            Assert.That(clone.EigenValues!.Y, Is.EqualTo(5.0));
+            Assert.That(clone.EigenVectors, Is.Not.SameAs(source.EigenVectors));
+            Assert.That(clone.EigenVectors![2, 2], Is.EqualTo(1.0));
+        });
+
+        clone.Covariance![0, 0] = 99.0;
+        Assert.That(source.Covariance![0, 0], Is.EqualTo(7.0));
+    }
+
     private static SurveyStation Station(
         double md,
         double inclination,
