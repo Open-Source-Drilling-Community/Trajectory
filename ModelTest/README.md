@@ -10,6 +10,8 @@ It is the unit-test project for model-level behavior.
 
 Model-level test coverage includes trajectory interpolation, extrapolation, aggregation, uncertainty continuity, composition, and trajectory realization behavior, especially aggregation period-boundary and vertical-departure handling, coarsening, covariance-based realization generation, mirror-candidate selection, retry behavior, and minimum-curvature completion.
 
+Reconnect extrapolation tests also verify that the complete reference measured-depth advance is added after the lead-in has established the effective closest reference point.
+
 ## Dependencies
 
 `ModelTest` depends on:
@@ -38,4 +40,4 @@ dotnet test ModelTest/ModelTest.csproj
 
 `TrajectoryAggregationCalculatorTests.cs` verifies that overlapping constant-period boundaries map to exactly one trajectory interval, that the production-shaped U3 trajectory aggregates without mirroring its vertical departure or overall displacement, and that sampled aggregate stations respect the interpolation step and expose derived DLS, BUR, and TR values.
 
-`SurveyStationEllipseCalculationTests.cs` verifies the confidence interval and ensures that a partial Wolff-de Wardt station list without its propagation history is rejected instead of being restarted from covariance alone.
+`SurveyStationEllipseCalculationTests.cs` verifies the confidence interval, ensures that a partial Wolff-de Wardt station list without its propagation history is rejected instead of being restarted from covariance alone, and confirms that changing near-vertical station azimuths cannot rotate the stable vertical-section ellipse curtain.

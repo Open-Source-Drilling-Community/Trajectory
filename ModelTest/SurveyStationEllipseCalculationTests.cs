@@ -114,4 +114,47 @@ public sealed class SurveyStationEllipseCalculationTests
             Assert.That(calculation.CalculationMessage, Does.Contain("cannot be continued from covariance alone"));
         });
     }
+
+    [Test]
+    public void Vertical_ellipses_use_one_stable_vertical_section_curtain()
+    {
+        SymmetricMatrix3x3 covariance = new();
+        covariance[0, 0] = 36.0;
+        covariance[1, 1] = 4.0;
+        covariance[2, 2] = 9.0;
+        covariance[0, 1] = 0.0;
+        covariance[0, 2] = 0.0;
+        covariance[1, 2] = 0.0;
+        List<SurveyStation> stations =
+        [
+            CreateStation(0.0, 0.0),
+            CreateStation(10.0, Math.PI / 2.0),
+            CreateStation(20.0, Math.PI)
+        ];
+        SurveyStationEllipseCalculation calculation = new()
+        {
+            ConfidenceFactor = 0.95,
+            SurveyStationList = stations
+        };
+
+        Assert.That(calculation.Calculate(), Is.True, calculation.CalculationMessage);
+        Assert.That(calculation.SurveyStationEllipseResultList, Has.Count.EqualTo(3));
+        double[] verticalSemiMajorAxes = calculation.SurveyStationEllipseResultList!
+            .Select(result => result.VerticalEllipse!.SemiMajorAxis!.Value)
+            .ToArray();
+        Assert.That(verticalSemiMajorAxes, Is.All.EqualTo(verticalSemiMajorAxes[0]).Within(1e-10),
+            "Changing station azimuth near vertical must not rotate the vertical projection plane.");
+
+        SurveyStation CreateStation(double north, double azimuth) => new()
+        {
+            MD = north,
+            Inclination = 0.01,
+            Azimuth = azimuth,
+            RiemannianNorth = north,
+            RiemannianEast = 0.0,
+            TVD = north,
+            VerticalSection = north,
+            Covariance = covariance
+        };
+    }
 }

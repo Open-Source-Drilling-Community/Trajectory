@@ -98,14 +98,26 @@
     }
     else if (value.Specification is ReconnectTrajectoryExtrapolationSpecification reconnect)
     {
+        <MudText Typo="Typo.subtitle1" Class="mb-2">Trajectory to reconnect to</MudText>
+        <TrajectoryResourceFilter Fields="@fields" Clusters="@clusters" Wells="@wells" WellBores="@wellBores"
+                                  Trajectories="@ReferenceTrajectories.ToList()"
+                                  ResourceKind="TrajectoryResourceFilterKind.Trajectory"
+                                  ResourceLabelOverride="Reference trajectory" ResourceRequired="true"
+                                  CompletedTrajectoriesOnly="true"
+                                  FieldId="@reconnectFieldId" FieldIdChanged="OnReconnectFieldChanged"
+                                  ClusterId="@reconnectClusterId" ClusterIdChanged="OnReconnectClusterChanged"
+                                  WellId="@reconnectWellId" WellIdChanged="OnReconnectWellChanged"
+                                  WellBoreId="@reconnectWellBoreId" WellBoreIdChanged="OnReconnectWellBoreChanged"
+                                  ResourceId="@SelectedReconnectTrajectoryId" ResourceIdChanged="OnReconnectReferenceTrajectoryChanged" />
         <MudGrid>
-            <MudItem xs="12" md="4"><MudSelect T="Guid" Value="@reconnect.ReferenceTrajectoryID" ValueChanged="OnReconnectReferenceTrajectoryChanged" Label="Reference trajectory">@foreach (TrajectoryLight item in ReferenceTrajectories) { <MudSelectItem Value="@item.MetaInfo.ID">@item.Name</MudSelectItem> }</MudSelect></MudItem>
-            <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Advance from closest reference point" QuantityName="DepthDrilling" SIValueNullable="@reconnect.ReferenceMDAdvance" SIValueNullableChanged="x => reconnect.ReferenceMDAdvance = x ?? 0" /></MudItem>
             <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Lead-in continuation" QuantityName="DepthDrilling" SIValueNullable="@reconnect.LeadInLength" SIValueNullableChanged="x => reconnect.LeadInLength = x ?? 0" /></MudItem>
+            <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Advance from closest reference point" QuantityName="DepthDrilling" SIValueNullable="@reconnect.ReferenceMDAdvance" SIValueNullableChanged="x => reconnect.ReferenceMDAdvance = x ?? 0" /></MudItem>
             <MudItem xs="12" md="3"><MudSelect T="ExtrapolationCurveType" @bind-Value="reconnect.CurveType" Label="Double-section curve">@foreach (ExtrapolationCurveType type in Enum.GetValues<ExtrapolationCurveType>()) { <MudSelectItem Value="@type">@type</MudSelectItem> }</MudSelect></MudItem>
-            <MudItem xs="12" md="1"><MudNumericField T="int" @bind-Value="reconnect.AzimuthBranch" Label="Az branch" /></MudItem>
             @if (reconnect.CurveType == ExtrapolationCurveType.ConstantBuildAndTurn) { <MudItem xs="12" md="2"><MudNumericField T="double" @bind-Value="reconnect.JunctionCurvatureRatio" Label="Curvature ratio" /></MudItem> }
         </MudGrid>
+        <MudText Typo="Typo.caption">
+            The lead-in is completed first. The advance is then added to the measured depth of the closest point on the reference trajectory.
+        </MudText>
     }
     else if (value.Specification is GeosteeringTrajectoryExtrapolationSpecification geosteering)
     {
@@ -447,6 +459,10 @@
     private Guid? sourceClusterId;
     private Guid? sourceWellId;
     private Guid? sourceWellBoreId;
+    private Guid? reconnectFieldId;
+    private Guid? reconnectClusterId;
+    private Guid? reconnectWellId;
+    private Guid? reconnectWellBoreId;
     private Guid? selectedRigJobId;
     private DateTimeOffset? sourceReferenceDate;
     private SurveyStation? sourceLastSurveyStation;
@@ -571,6 +587,7 @@
                 await LoadSourceLastSurveyStationAsync(SelectedSourceTrajectoryId);
                 if (value.Specification is ReconnectTrajectoryExtrapolationSpecification reconnect)
                 {
+                    InitializeReconnectHierarchy();
                     await LoadReconnectReferenceTrajectoryAsync(reconnect.ReferenceTrajectoryID);
                 }
                 if (value.CalculationState is CalculationState.Queued or CalculationState.Running) _ = PollAsync();
@@ -582,6 +599,10 @@
 
     private static TrajectoryExtrapolationCase NewCase() => new() { MetaInfo = PseudoConstructors.ConstructMetaInfo(), Name = "New extrapolation", InterpolationInterval = 10.0, Mode = TrajectoryExtrapolationMode.FixedLength, CalculationState = CalculationState.NotCalculated, Specification = new FixedLengthExtrapolationSpecification { Length = 30, ExtensionType = FixedLengthExtrapolationType.Straight }, SolvedSectionList = [], SurveyStationList = [] };
     private Guid? SelectedSourceTrajectoryId => value.SourceTrajectoryID == Guid.Empty ? null : value.SourceTrajectoryID;
+    private Guid? SelectedReconnectTrajectoryId => value.Specification is ReconnectTrajectoryExtrapolationSpecification reconnect &&
+        reconnect.ReferenceTrajectoryID != Guid.Empty
+            ? reconnect.ReferenceTrajectoryID
+            : null;
     private string SourceTrajectoryName => trajectories.FirstOrDefault(item => item.MetaInfo.ID == value.SourceTrajectoryID)?.Name ?? "Source trajectory";
     private string ReconnectTrajectoryName => value.Specification is ReconnectTrajectoryExtrapolationSpecification reconnect
         ? trajectories.FirstOrDefault(item => item.MetaInfo.ID == reconnect.ReferenceTrajectoryID)?.Name ?? "Reconnect trajectory"
@@ -597,6 +618,18 @@
         sourceClusterId = sourceCluster?.IsSingleWell == false ? sourceCluster.MetaInfo.ID : null;
         sourceWellId = source?.WellID;
         sourceWellBoreId = source?.WellBoreID == Guid.Empty ? null : source?.WellBoreID;
+    }
+
+    private void InitializeReconnectHierarchy()
+    {
+        TrajectoryLight? reference = trajectories.FirstOrDefault(item => item.MetaInfo?.ID == SelectedReconnectTrajectoryId);
+        reconnectFieldId = reference?.FieldID;
+        Cluster? referenceCluster = reference?.ClusterID is Guid clusterId
+            ? clusters.FirstOrDefault(item => item.MetaInfo?.ID == clusterId)
+            : null;
+        reconnectClusterId = referenceCluster?.IsSingleWell == false ? referenceCluster.MetaInfo.ID : null;
+        reconnectWellId = reference?.WellID;
+        reconnectWellBoreId = reference?.WellBoreID == Guid.Empty ? null : reference?.WellBoreID;
     }
 
     private async Task OnSourceFieldChanged(Guid? id)
@@ -649,6 +682,10 @@
     {
         ClearSourceLastSurveyStation();
         value.SourceTrajectoryID = id ?? Guid.Empty;
+        if (SelectedReconnectTrajectoryId == id)
+        {
+            await ClearReconnectSelectionAsync();
+        }
         sourceReferenceDate = await ResolveSourceTrajectoryDateAsync(SelectedSourceTrajectoryId);
         selectedRigJobId = null;
         Task startingStationTask = LoadSourceLastSurveyStationAsync(SelectedSourceTrajectoryId);
@@ -737,15 +774,54 @@
         }
     }
 
-    private async Task OnReconnectReferenceTrajectoryChanged(Guid id)
+    private async Task OnReconnectFieldChanged(Guid? id)
+    {
+        reconnectFieldId = id;
+        reconnectClusterId = null;
+        reconnectWellId = null;
+        reconnectWellBoreId = null;
+        await ClearReconnectSelectionAsync();
+    }
+
+    private async Task OnReconnectClusterChanged(Guid? id)
+    {
+        reconnectClusterId = id;
+        reconnectWellId = null;
+        reconnectWellBoreId = null;
+        await ClearReconnectSelectionAsync();
+    }
+
+    private async Task OnReconnectWellChanged(Guid? id)
+    {
+        reconnectWellId = id;
+        reconnectWellBoreId = null;
+        await ClearReconnectSelectionAsync();
+    }
+
+    private async Task OnReconnectWellBoreChanged(Guid? id)
+    {
+        reconnectWellBoreId = id;
+        await ClearReconnectSelectionAsync();
+    }
+
+    private async Task OnReconnectReferenceTrajectoryChanged(Guid? id)
     {
         if (value.Specification is not ReconnectTrajectoryExtrapolationSpecification reconnect)
         {
             return;
         }
 
-        reconnect.ReferenceTrajectoryID = id;
-        await LoadReconnectReferenceTrajectoryAsync(id);
+        reconnect.ReferenceTrajectoryID = id ?? Guid.Empty;
+        await LoadReconnectReferenceTrajectoryAsync(reconnect.ReferenceTrajectoryID);
+    }
+
+    private async Task ClearReconnectSelectionAsync()
+    {
+        if (value.Specification is ReconnectTrajectoryExtrapolationSpecification reconnect)
+        {
+            reconnect.ReferenceTrajectoryID = Guid.Empty;
+        }
+        await LoadReconnectReferenceTrajectoryAsync(Guid.Empty);
     }
 
     private async Task LoadReconnectReferenceTrajectoryAsync(Guid trajectoryId)
@@ -925,6 +1001,10 @@
     private void ModeChanged(TrajectoryExtrapolationMode mode)
     {
         value.Mode = mode;
+        reconnectFieldId = null;
+        reconnectClusterId = null;
+        reconnectWellId = null;
+        reconnectWellBoreId = null;
         reconnectReferenceStations.Clear();
         reconnectEllipseResults = [];
         reconnectEllipseCalculation = null;
@@ -933,7 +1013,7 @@
         value.Specification = mode switch
         {
             TrajectoryExtrapolationMode.FixedLength => new FixedLengthExtrapolationSpecification { Length = 30 },
-            TrajectoryExtrapolationMode.ReconnectToTrajectory => new ReconnectTrajectoryExtrapolationSpecification { ReferenceMDAdvance = 30, JunctionCurvatureRatio = 1 },
+            TrajectoryExtrapolationMode.ReconnectToTrajectory => new ReconnectTrajectoryExtrapolationSpecification { ReferenceMDAdvance = 30, AzimuthBranch = 0, JunctionCurvatureRatio = 1 },
             TrajectoryExtrapolationMode.Geosteering => new GeosteeringTrajectoryExtrapolationSpecification
             {
                 CurveType = ExtrapolationCurveType.ConstantCurvatureAndToolface,
@@ -1125,12 +1205,24 @@
         try
         {
             if (string.IsNullOrWhiteSpace(value.Name) || value.SourceTrajectoryID == Guid.Empty) { Snackbar.Add("Name and source trajectory are required.", Severity.Warning); return; }
+            if (value.Specification is ReconnectTrajectoryExtrapolationSpecification reconnectSelection &&
+                (reconnectSelection.ReferenceTrajectoryID == Guid.Empty || reconnectSelection.ReferenceTrajectoryID == value.SourceTrajectoryID))
+            {
+                Snackbar.Add("Select a different calculated trajectory to reconnect to.", Severity.Warning);
+                return;
+            }
             if (value.Specification is GeosteeringTrajectoryExtrapolationSpecification geosteering)
             {
                 // The editor intentionally uses the minimum-rotation solution. Retain the serialized
                 // property for compatibility with existing cases and API clients, but never preserve a
                 // previously stored non-zero advanced branch when saving from this simplified editor.
                 geosteering.AzimuthBranch = 0;
+            }
+            if (value.Specification is ReconnectTrajectoryExtrapolationSpecification reconnect)
+            {
+                // The standard editor exposes the minimum-rotation solution. Preserve the property
+                // in the wire contract for existing advanced clients while normalizing UI saves.
+                reconnect.AzimuthBranch = 0;
             }
             DateTimeOffset? expected = value.LastModificationDate;
             if (CaseId is Guid id) value = await Api.ClientTrajectory.PutTrajectoryExtrapolationCaseByIdAsync(id, ConcurrencyToken.Require(expected), value);
@@ -1199,13 +1291,14 @@
 
     private void UpdatePlots()
     {
+        VerticalSectionCurtain? curtain = ResolveVerticalSectionCurtain();
         List<Trajectory> plottedTrajectories = [];
         if (sourceUncertaintyHistory.Count > 1)
         {
             plottedTrajectories.Add(new Trajectory
             {
                 Name = $"{SourceTrajectoryName} (source)",
-                SurveyStationList = sourceUncertaintyHistory.ToList()
+                SurveyStationList = ProjectOntoVerticalSectionCurtain(sourceUncertaintyHistory, curtain)
             });
         }
         if (interpolatedExtrapolationStations.Count > 1)
@@ -1213,7 +1306,7 @@
             plottedTrajectories.Add(new Trajectory
             {
                 Name = $"{value.Name} (extrapolated)",
-                SurveyStationList = interpolatedExtrapolationStations.ToList()
+                SurveyStationList = ProjectOntoVerticalSectionCurtain(interpolatedExtrapolationStations, curtain)
             });
         }
         if (value.Specification is ReconnectTrajectoryExtrapolationSpecification && reconnectReferenceStations.Count > 1)
@@ -1221,7 +1314,7 @@
             plottedTrajectories.Add(new Trajectory
             {
                 Name = $"{ReconnectTrajectoryName} (reconnect target)",
-                SurveyStationList = reconnectReferenceStations.ToList()
+                SurveyStationList = ProjectOntoVerticalSectionCurtain(reconnectReferenceStations, curtain)
             });
         }
 
@@ -1245,6 +1338,87 @@
 
         UpdatePlotBounds();
         UpdateAllUncertaintyPlotData();
+    }
+
+    private VerticalSectionCurtain? ResolveVerticalSectionCurtain()
+    {
+        List<SurveyStation> definingStations = sourceUncertaintyHistory
+            .Concat(interpolatedExtrapolationStations)
+            .Where(station => (station.X ?? station.RiemannianNorth).HasValue &&
+                              (station.Y ?? station.RiemannianEast).HasValue)
+            .ToList();
+        if (definingStations.Count == 0)
+        {
+            return null;
+        }
+
+        SurveyStation origin = definingStations[0];
+        SurveyStation end = definingStations[^1];
+        double originNorth = (origin.X ?? origin.RiemannianNorth)!.Value;
+        double originEast = (origin.Y ?? origin.RiemannianEast)!.Value;
+        double deltaNorth = (end.X ?? end.RiemannianNorth)!.Value - originNorth;
+        double deltaEast = (end.Y ?? end.RiemannianEast)!.Value - originEast;
+        double horizontalLength = Math.Sqrt(deltaNorth * deltaNorth + deltaEast * deltaEast);
+        double directionNorth;
+        double directionEast;
+        if (horizontalLength > 1e-9)
+        {
+            directionNorth = deltaNorth / horizontalLength;
+            directionEast = deltaEast / horizontalLength;
+        }
+        else
+        {
+            double azimuth = end.Azimuth ?? origin.Azimuth ?? 0.0;
+            directionNorth = Math.Cos(azimuth);
+            directionEast = Math.Sin(azimuth);
+        }
+
+        double originVerticalSection = origin.VerticalSection ?? 0.0;
+        if (end.VerticalSection is double endVerticalSection && endVerticalSection < originVerticalSection)
+        {
+            directionNorth = -directionNorth;
+            directionEast = -directionEast;
+        }
+        return new VerticalSectionCurtain(
+            originNorth, originEast, originVerticalSection, directionNorth, directionEast);
+    }
+
+    private static List<SurveyStation> ProjectOntoVerticalSectionCurtain(
+        IEnumerable<SurveyStation> stations,
+        VerticalSectionCurtain? curtain)
+    {
+        if (curtain == null)
+        {
+            return stations.ToList();
+        }
+
+        return stations.Select(station =>
+        {
+            double? north = station.X ?? station.RiemannianNorth;
+            double? east = station.Y ?? station.RiemannianEast;
+            return new SurveyStation
+            {
+                MD = station.MD,
+                Abscissa = station.Abscissa,
+                Inclination = station.Inclination,
+                Azimuth = station.Azimuth,
+                TVD = station.TVD ?? station.Z,
+                Z = station.Z ?? station.TVD,
+                RiemannianNorth = north,
+                RiemannianEast = east,
+                X = north,
+                Y = east,
+                Curvature = station.Curvature,
+                Toolface = station.Toolface,
+                BUR = station.BUR,
+                TUR = station.TUR,
+                VerticalSection = north.HasValue && east.HasValue
+                    ? curtain.Value.Project(north.Value, east.Value)
+                    : station.VerticalSection,
+                Annotation = station.Annotation,
+                BoreholeRadius = station.BoreholeRadius
+            };
+        }).ToList();
     }
 
     private async Task OnExtrapolationEllipseResultsChanged(ICollection<SurveyStationEllipseResult> results)
@@ -1343,13 +1517,14 @@
 
     private void UpdateAllUncertaintyPlotData()
     {
-        UpdateUncertaintyPlotData(sourceUncertaintyHistory, sourceEllipseResults, sourceEllipseCalculation,
-            sourceEllipsePlotData, "Source", "blue");
-        UpdateUncertaintyPlotData(interpolatedExtrapolationStations, extrapolationEllipseResults,
+        VerticalSectionCurtain? curtain = ResolveVerticalSectionCurtain();
+        UpdateUncertaintyPlotData(ProjectOntoVerticalSectionCurtain(sourceUncertaintyHistory, curtain), sourceEllipseResults, sourceEllipseCalculation,
+            sourceEllipsePlotData, "Source", "blue", curtain);
+        UpdateUncertaintyPlotData(ProjectOntoVerticalSectionCurtain(interpolatedExtrapolationStations, curtain), extrapolationEllipseResults,
             extrapolationEllipseCalculation, extrapolationEllipsePlotData, "Extrapolated", "red",
-            restrictExtremePathsToStationInterval: true);
-        UpdateUncertaintyPlotData(reconnectReferenceStations, reconnectEllipseResults, reconnectEllipseCalculation,
-            reconnectEllipsePlotData, "Reconnect target", "green");
+            curtain, restrictExtremePathsToStationInterval: true);
+        UpdateUncertaintyPlotData(ProjectOntoVerticalSectionCurtain(reconnectReferenceStations, curtain), reconnectEllipseResults, reconnectEllipseCalculation,
+            reconnectEllipsePlotData, "Reconnect target", "green", curtain);
     }
 
     private void UpdateUncertaintyPlotData(
@@ -1359,6 +1534,7 @@
         EllipsePlotData plotData,
         string label,
         string color,
+        VerticalSectionCurtain? curtain,
         bool restrictExtremePathsToStationInterval = false)
     {
         DataUtils.UpdateEllipsePlots(stations.ToList(), results.ToList(), plotData, maxDisplayedUncertaintiesInPlots);
@@ -1369,7 +1545,42 @@
             ? stations.Select(station => station.MD ?? station.Abscissa).Where(value => value.HasValue).Max()
             : null;
         DataUtils.AddExtremeTvdPathPlots(calculation, plotData, minimumAbscissa, maximumAbscissa);
+        ProjectExtremeTvdPathsOntoCurtain(plotData, curtain);
         StyleEllipsePlotData(plotData, label, color);
+    }
+
+    private static void ProjectExtremeTvdPathsOntoCurtain(EllipsePlotData plotData, VerticalSectionCurtain? curtain)
+    {
+        if (curtain == null)
+        {
+            return;
+        }
+
+        for (int index = 0; index < plotData.VerticalNameList.Count; index++)
+        {
+            string name = plotData.VerticalNameList[index];
+            if (name is not ("Highest TVD path" or "Lowest TVD path"))
+            {
+                continue;
+            }
+
+            int horizontalIndex = plotData.HorizontalNameList.FindIndex(horizontalName => horizontalName == name);
+            if (horizontalIndex < 0 || horizontalIndex >= plotData.HorizontalNorthValuesList.Count ||
+                horizontalIndex >= plotData.HorizontalEastValuesList.Count)
+            {
+                continue;
+            }
+            List<object> northValues = plotData.HorizontalNorthValuesList[horizontalIndex];
+            List<object> eastValues = plotData.HorizontalEastValuesList[horizontalIndex];
+            if (northValues.Count != eastValues.Count)
+            {
+                continue;
+            }
+            plotData.VerticalSectionValuesList[index] = northValues.Zip(eastValues, (north, east) =>
+                north is double northValue && east is double eastValue
+                    ? (object)curtain.Value.Project(northValue, eastValue)
+                    : null!).ToList();
+        }
     }
 
     private static void StyleEllipsePlotData(EllipsePlotData plotData, string label, string color)
@@ -1395,7 +1606,8 @@
 
     private void UpdatePlotBounds()
     {
-        List<SurveyStation> stations = interpolatedExtrapolationStations.ToList();
+        List<SurveyStation> stations = ProjectOntoVerticalSectionCurtain(
+            interpolatedExtrapolationStations, ResolveVerticalSectionCurtain());
         double fallbackSpan = Math.Max(1.0, new[]
         {
             CoordinateSpan(stations, station => station.X ?? station.RiemannianNorth),
@@ -1468,5 +1680,16 @@
     private readonly record struct PlotAxisBounds(double? Minimum, double? Maximum)
     {
         public static PlotAxisBounds Empty => new(null, null);
+    }
+    private readonly record struct VerticalSectionCurtain(
+        double OriginNorth,
+        double OriginEast,
+        double OriginVerticalSection,
+        double DirectionNorth,
+        double DirectionEast)
+    {
+        public double Project(double north, double east) => OriginVerticalSection +
+            (north - OriginNorth) * DirectionNorth +
+            (east - OriginEast) * DirectionEast;
     }
 }

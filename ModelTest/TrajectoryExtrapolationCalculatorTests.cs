@@ -424,6 +424,9 @@ public class TrajectoryExtrapolationCalculatorTests
         Assert.That(success, Is.True, calculation.CalculationMessage);
         Assert.That(calculation.ClosestReferenceMD, Is.EqualTo(120).Within(1e-5));
         Assert.That(calculation.TargetReferenceMD, Is.EqualTo(220).Within(1e-5));
+        Assert.That(calculation.TargetReferenceMD - calculation.ClosestReferenceMD,
+            Is.EqualTo(100).Within(1e-5),
+            "The reference advance is added after the lead-in establishes the effective closest point.");
         Assert.That(calculation.SolvedSectionList, Has.Count.EqualTo(3));
         Assert.That(calculation.SolvedSectionList![0].Role,
             Is.EqualTo(TrajectoryExtrapolationSectionRole.LeadInContinuation));

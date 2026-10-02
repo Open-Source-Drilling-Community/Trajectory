@@ -51,6 +51,7 @@ namespace OSDC.Drilling.Trajectory.Model
             List<SurveyStation> orderedStations = surveyStations
                 .OrderBy(station => station.MD ?? station.Abscissa ?? double.MaxValue)
                 .ToList();
+            double? verticalSectionAzimuth = ResolveVerticalSectionAzimuth(orderedStations);
 
             SurveyStationEllipseResultList = orderedStations
                 .Select(station =>
@@ -59,7 +60,7 @@ namespace OSDC.Drilling.Trajectory.Model
                     {
                         MD = station.MD ?? station.Abscissa,
                         HorizontalEllipse = CalculateEllipse(station, EllipseProjection.Horizontal),
-                        VerticalEllipse = CalculateEllipse(station, EllipseProjection.Vertical),
+                        VerticalEllipse = CalculateEllipse(station, EllipseProjection.Vertical, verticalSectionAzimuth),
                         PerpendicularEllipse = CalculateEllipse(station, EllipseProjection.Perpendicular)
                     };
                     return result;
@@ -292,16 +293,86 @@ namespace OSDC.Drilling.Trajectory.Model
             return previous.CompleteFromXYZ(target) ? target : null;
         }
 
-        private SurveyStationEllipse? CalculateEllipse(SurveyStation station, EllipseProjection projection)
+        private static double? ResolveVerticalSectionAzimuth(IReadOnlyList<SurveyStation> stations)
+        {
+            SurveyStation? origin = stations.FirstOrDefault(HasHorizontalPosition);
+            if (origin == null)
+            {
+                return stations.Select(station => station.Azimuth).FirstOrDefault(azimuth => azimuth.HasValue);
+            }
+
+            double originNorth = (origin.X ?? origin.RiemannianNorth)!.Value;
+            double originEast = (origin.Y ?? origin.RiemannianEast)!.Value;
+            for (int index = stations.Count - 1; index >= 0; index--)
+            {
+                SurveyStation end = stations[index];
+                if (!HasHorizontalPosition(end))
+                {
+                    continue;
+                }
+
+                double deltaNorth = (end.X ?? end.RiemannianNorth)!.Value - originNorth;
+                double deltaEast = (end.Y ?? end.RiemannianEast)!.Value - originEast;
+                if (deltaNorth * deltaNorth + deltaEast * deltaEast <= 1e-18)
+                {
+                    continue;
+                }
+
+                double azimuth = System.Math.Atan2(deltaEast, deltaNorth);
+                if (end.VerticalSection is double endVerticalSection &&
+                    origin.VerticalSection is double originVerticalSection &&
+                    endVerticalSection < originVerticalSection)
+                {
+                    azimuth += Numeric.PI;
+                }
+                return NormalizeAzimuth(azimuth);
+            }
+
+            return stations.Select(station => station.Azimuth).FirstOrDefault(azimuth => azimuth.HasValue);
+        }
+
+        private static bool HasHorizontalPosition(SurveyStation station) =>
+            (station.X ?? station.RiemannianNorth).HasValue &&
+            (station.Y ?? station.RiemannianEast).HasValue;
+
+        private static double NormalizeAzimuth(double azimuth)
+        {
+            double normalized = azimuth % (2.0 * Numeric.PI);
+            return normalized < 0.0 ? normalized + 2.0 * Numeric.PI : normalized;
+        }
+
+        private SurveyStationEllipse? CalculateEllipse(
+            SurveyStation station,
+            EllipseProjection projection,
+            double? verticalSectionAzimuth = null)
         {
             if (station.Covariance == null)
             {
                 return null;
             }
 
+            // A vertical projection must use one stable curtain for the complete calculation.
+            // The station azimuth is ill-conditioned close to vertical and can otherwise rotate
+            // the projection plane sharply between adjacent stations while covariance stays smooth.
+            SurveyStation projectionStation = projection == EllipseProjection.Vertical && verticalSectionAzimuth.HasValue
+                ? new SurveyStation
+                {
+                    Covariance = station.Covariance,
+                    BoreholeRadius = station.BoreholeRadius,
+                    Azimuth = verticalSectionAzimuth,
+                    Inclination = station.Inclination,
+                    X = station.X,
+                    Y = station.Y,
+                    Z = station.Z,
+                    RiemannianNorth = station.RiemannianNorth,
+                    RiemannianEast = station.RiemannianEast,
+                    TVD = station.TVD
+                }
+                : station;
+
             UncertaintyEllipsoid ellipsoid = new()
             {
-                EllipsoidSurveyStation = station,
+                EllipsoidSurveyStation = projectionStation,
                 ConfidenceFactor = ConfidenceFactor,
                 ScalingFactor = 1.0,
                 CalculateHorizontalEllipse = projection == EllipseProjection.Horizontal,

@@ -288,6 +288,33 @@ public sealed class WebPageComponentContractTests
     }
 
     [Test]
+    public void Reconnect_extrapolation_uses_a_searchable_reference_hierarchy_and_one_vertical_section_curtain()
+    {
+        string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", "..", "WebPages", "TrajectoryExtrapolationEdit.razor"));
+        string source = File.ReadAllText(path);
+        int leadIn = source.IndexOf("QuantityLabel=\"Lead-in continuation\"", StringComparison.Ordinal);
+        int advance = source.IndexOf("QuantityLabel=\"Advance from closest reference point\"", StringComparison.Ordinal);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Regex.Matches(source, "<TrajectoryResourceFilter").Count, Is.GreaterThanOrEqualTo(2));
+            Assert.That(source, Does.Contain("ResourceLabelOverride=\"Reference trajectory\" ResourceRequired=\"true\""));
+            Assert.That(source, Does.Contain("CompletedTrajectoriesOnly=\"true\""));
+            Assert.That(source, Does.Contain("ResourceId=\"@SelectedReconnectTrajectoryId\" ResourceIdChanged=\"OnReconnectReferenceTrajectoryChanged\""));
+            Assert.That(source, Does.Not.Contain("<MudSelect T=\"Guid\" Value=\"@reconnect.ReferenceTrajectoryID\""));
+            Assert.That(leadIn, Is.GreaterThan(0));
+            Assert.That(advance, Is.GreaterThan(leadIn));
+            Assert.That(source, Does.Not.Contain("Label=\"Az branch\""));
+            Assert.That(source, Does.Contain("reconnect.AzimuthBranch = 0;"));
+            Assert.That(source, Does.Contain("The advance is then added to the measured depth of the closest point"));
+            Assert.That(source, Does.Contain("ResolveVerticalSectionCurtain()"));
+            Assert.That(source, Does.Contain("ProjectOntoVerticalSectionCurtain(reconnectReferenceStations, curtain)"));
+            Assert.That(source, Does.Contain("curtain.Value.Project(north.Value, east.Value)"));
+        });
+    }
+
+    [Test]
     public void Rig_job_selection_is_separate_date_aware_and_controls_rotary_table_depth()
     {
         string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,

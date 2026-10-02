@@ -68,6 +68,9 @@ Configure `EarthGravityHostURL` and `EarthMagneticFieldHostURL`. Development def
 The REST/OpenAPI and MCP contracts carry the same reference-frame semantics and SI units. Run defaults must be concrete (`GeodeticVertical` or `GravityVertical`, and `TrueNorth` or `MagneticNorth`); `InheritRun` is valid only on an individual measurement. Dependency exception details are logged server-side while persisted and returned failure messages remain sanitized.
 
 Ellipse calculations intended for a stored resource use `POST SurveyStationEllipseCalculation/SurveyRun/{surveyRunId}` or `POST SurveyStationEllipseCalculation/Trajectory/{trajectoryId}`. These routes rebuild authoritative SurveyRun uncertainty from the complete parent chain, rematerialize trajectories from those corrected runs, and replace submitted covariance at exact or interpolated display depths. The original station-only route remains available for genuinely standalone complete histories, but rejects partial Wolff-de Wardt covariance because the missing transfer matrix cannot be recovered. Trajectory realizations use the same lineage-aware rematerialization and fail rather than silently restarting at a slot or tie-in.
+
+Within each ellipse calculation, every vertical ellipse uses the same first-to-last vertical-section curtain. It does not follow the instantaneous station azimuth, avoiding false changes in projected semi-axis size when azimuth becomes ill-conditioned near vertical inclination.
+
 ## Related Projects
 
 - `Model` contains the main model and trajectory calculation logic used by the service.
