@@ -613,6 +613,10 @@ public sealed class WebPageComponentContractTests
             Assert.That(scan, Does.Contain("color:#ed6c02").And.Contain("color:#d32f2f"));
             Assert.That(scan, Does.Contain("LineDashList=\"@PlotLineDashes\"").And.Contain("LineWidthList=\"@PlotLineWidths\""));
             Assert.That(scan, Does.Contain("ProfileClassification.Alarm ? 5m : 2m"));
+            Assert.That(scan, Does.Contain("InterpolateThresholdCrossings(left, right, evaluation)"));
+            Assert.That(scan, Does.Contain("left.ReferenceMD + fraction * (right.ReferenceMD - left.ReferenceMD)"));
+            Assert.That(scan, Does.Contain("Value=\"@AllCandidatesSelected\" ValueChanged=\"SetAllCandidatesSelected\""));
+            Assert.That(scan, Does.Not.Contain("OnClick=\"@SelectAllCandidates\"").And.Not.Contain("OnClick=\"@ClearCandidateSelection\""));
             Assert.That(ellipse, Does.Contain("confidenceFactor_ > 0.0 && confidenceFactor_ <= MaximumConfidenceFactor"));
             Assert.That(ellipse, Does.Contain("public bool ReadOnlyCalculation").And.Contain("public SurveyStationEllipseCalculation? ExternalCalculation"));
             Assert.That(ellipse, Does.Contain("confidenceFactor_ = ExternalCalculation.ConfidenceFactor"));

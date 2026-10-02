@@ -102,8 +102,6 @@
             <MudToolBar Dense="true" Class="px-0">
                 <MudText Typo="Typo.h6">Overlapping trajectories (@candidateTrajectories_.Count)</MudText>
                 <MudSpacer />
-                <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@SelectAllCandidates" Disabled="@(candidateTrajectories_.Count == 0)">All</MudButton>
-                <MudButton Variant="Variant.Text" Color="Color.Primary" OnClick="@ClearCandidateSelection" Disabled="@(selectedCandidateIds_.Count == 0)">None</MudButton>
                 <div style="width: 190px; margin-left: 12px; margin-right: 12px;">
                     <MudInputWithUnitAdornment QuantityName="ProportionStandard" QuantityLabel="Confidence factor"
                                                SIValue="@confidenceFactor_" SIValueChanged="@OnConfidenceFactorChanged"
@@ -142,7 +140,11 @@
             {
                 <MudTable Items="@candidateTrajectories_" T="TrajectoryLight" Dense="true" Hover="true" Bordered="true" Striped="true" Elevation="0">
                     <HeaderContent>
-                        <MudTh></MudTh>
+                        <MudTh>
+                            <MudCheckBox T="bool" Value="@AllCandidatesSelected" ValueChanged="SetAllCandidatesSelected"
+                                         Color="Color.Primary" Disabled="@(candidateTrajectories_.Count == 0)"
+                                         AriaLabel="Select or clear all overlapping trajectories" />
+                        </MudTh>
                         <MudTh>Trajectory</MudTh>
                         <MudTh>Cluster</MudTh>
                         <MudTh>Well</MudTh>
@@ -870,30 +872,92 @@
             }
 
             double splitThreshold = CalculateSplitThreshold(values.Keys.OrderBy(value => value).ToList());
-            List<SafetyFactorPlotPoint> current = [];
-            bool firstSegment = true;
+            List<SafetyFactorPlotPoint> currentRun = [];
+            bool showLegend = true;
             double? previousDepth = null;
-            ProfileClassification? currentClassification = null;
             evaluations.TryGetValue(trajectoryId, out AntiCollisionPolicyEvaluation? evaluation);
             foreach ((double depth, double safetyFactor) in values.OrderBy(entry => entry.Key))
             {
-                ProfileClassification classification = Classify(safetyFactor, evaluation);
                 bool gap = previousDepth.HasValue && depth - previousDepth.Value > splitThreshold;
-                if ((gap || currentClassification != classification) && current.Count > 0)
+                if (gap)
                 {
-                    SafetyFactorPlotPoint? transition = gap ? null : current[^1];
-                    AddPlotSeries(series, trajectoryId, trajectoryIndex, current, currentClassification!.Value, firstSegment);
-                    current = transition == null ? [] : [transition];
-                    firstSegment = false;
+                    AddClassifiedRun(series, trajectoryId, trajectoryIndex, currentRun, evaluation, ref showLegend);
+                    currentRun = [];
                 }
-                current.Add(new SafetyFactorPlotPoint(depth, safetyFactor));
-                currentClassification = classification;
+                currentRun.Add(new SafetyFactorPlotPoint(depth, safetyFactor));
                 previousDepth = depth;
             }
-            if (currentClassification.HasValue)
-                AddPlotSeries(series, trajectoryId, trajectoryIndex, current, currentClassification.Value, firstSegment);
+            AddClassifiedRun(series, trajectoryId, trajectoryIndex, currentRun, evaluation, ref showLegend);
         }
         return series;
+    }
+
+    private void AddClassifiedRun(List<SafetyFactorPlotSeries> target, Guid trajectoryId, int trajectoryIndex,
+        List<SafetyFactorPlotPoint> run, AntiCollisionPolicyEvaluation? evaluation, ref bool showLegend)
+    {
+        if (run.Count == 0) return;
+        if (run.Count == 1)
+        {
+            AddPlotSeries(target, trajectoryId, trajectoryIndex, run, Classify(run[0].SafetyFactor, evaluation), showLegend);
+            showLegend = false;
+            return;
+        }
+
+        List<SafetyFactorPlotPoint> current = [];
+        ProfileClassification? currentClassification = null;
+        for (int index = 1; index < run.Count; index++)
+        {
+            SafetyFactorPlotPoint left = run[index - 1];
+            SafetyFactorPlotPoint right = run[index];
+            List<SafetyFactorPlotPoint> interval = InterpolateThresholdCrossings(left, right, evaluation);
+            for (int pointIndex = 1; pointIndex < interval.Count; pointIndex++)
+            {
+                SafetyFactorPlotPoint intervalStart = interval[pointIndex - 1];
+                SafetyFactorPlotPoint intervalEnd = interval[pointIndex];
+                ProfileClassification classification = Classify(
+                    0.5 * (intervalStart.SafetyFactor + intervalEnd.SafetyFactor), evaluation);
+                if (currentClassification != classification)
+                {
+                    if (current.Count > 1)
+                    {
+                        AddPlotSeries(target, trajectoryId, trajectoryIndex, current, currentClassification!.Value, showLegend);
+                        showLegend = false;
+                    }
+                    current = [intervalStart];
+                    currentClassification = classification;
+                }
+                if (current.Count == 0 || current[^1] != intervalEnd) current.Add(intervalEnd);
+            }
+        }
+        if (current.Count > 0 && currentClassification.HasValue)
+        {
+            AddPlotSeries(target, trajectoryId, trajectoryIndex, current, currentClassification.Value, showLegend);
+            showLegend = false;
+        }
+    }
+
+    private static List<SafetyFactorPlotPoint> InterpolateThresholdCrossings(SafetyFactorPlotPoint left,
+        SafetyFactorPlotPoint right, AntiCollisionPolicyEvaluation? evaluation)
+    {
+        var points = new List<(double Fraction, SafetyFactorPlotPoint Point)> { (0.0, left), (1.0, right) };
+        if (evaluation?.State == AntiCollisionPolicyEvaluationState.Matched &&
+            evaluation.AlertThreshold is double alert && evaluation.AlarmThreshold is double alarm)
+        {
+            double delta = right.SafetyFactor - left.SafetyFactor;
+            if (Math.Abs(delta) > 1e-12)
+            {
+                foreach (double threshold in new[] { alarm, alert }.Distinct())
+                {
+                    double fraction = (threshold - left.SafetyFactor) / delta;
+                    if (fraction > 1e-12 && fraction < 1.0 - 1e-12)
+                    {
+                        points.Add((fraction, new SafetyFactorPlotPoint(
+                            left.ReferenceMD + fraction * (right.ReferenceMD - left.ReferenceMD), threshold)));
+                    }
+                }
+            }
+        }
+        return points.OrderBy(point => point.Fraction).Select(point => point.Point).ToList();
     }
 
     private void AddPlotSeries(List<SafetyFactorPlotSeries> target, Guid trajectoryId, int trajectoryIndex,
@@ -953,14 +1017,12 @@
         policyEvaluationsByTrajectory_ = [];
     }
 
-    private void SelectAllCandidates()
+    private bool AllCandidatesSelected => candidateTrajectories_.Count > 0 &&
+        candidateTrajectories_.All(item => selectedCandidateIds_.Contains(item.MetaInfo.ID));
+    private void SetAllCandidatesSelected(bool selected)
     {
-        selectedCandidateIds_.UnionWith(candidateTrajectories_.Select(item => item.MetaInfo.ID));
-        ResetResults();
-    }
-    private void ClearCandidateSelection()
-    {
-        selectedCandidateIds_.Clear();
+        if (selected) selectedCandidateIds_.UnionWith(candidateTrajectories_.Select(item => item.MetaInfo.ID));
+        else selectedCandidateIds_.Clear();
         ResetResults();
     }
 
