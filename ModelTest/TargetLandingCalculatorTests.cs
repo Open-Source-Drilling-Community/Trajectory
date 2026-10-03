@@ -1,4 +1,5 @@
 using OSDC.Drilling.Trajectory.Model;
+using OSDC.DotnetLibraries.Drilling.Section;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.DataManagement;
 using OSDC.DotnetLibraries.General.Math;
@@ -27,7 +28,58 @@ public sealed class TargetLandingCalculatorTests
         {
             Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(4));
             Assert.That(TargetLandingCalculator.BoundaryPositionTolerance, Is.EqualTo(0.25));
-            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(7));
+            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(8));
+        });
+    }
+
+    [Test]
+    public void ExactControlSamplesUseTheDefiningCurveEquations()
+    {
+        TrajectoryPoint3D start = new()
+        {
+            X = 0.0, Y = 0.0, Z = 0.0, Abscissa = 1000.0,
+            Inclination = 0.8, Azimuth = 0.3
+        };
+        BuildAndTurnArcSection buildTurn = new(start, new TrajectoryPoint3D());
+        buildTurn.BuildAndTurn.Length = 120.0;
+        buildTurn.BuildAndTurn.BUR = -0.001;
+        buildTurn.BuildAndTurn.TR = 0.002;
+        Assert.That(buildTurn.CalculateLBT(), Is.True);
+
+        ConstantCurvatureAndToolfaceArcSection ctc = new(start, new TrajectoryPoint3D());
+        ctc.CTCCurve.Length = 120.0;
+        ctc.CTCCurve.Curvature = 0.002;
+        ctc.CTCCurve.Toolface = 0.7;
+        Assert.That(ctc.CalculateLDT(), Is.True);
+
+        CircularArcSection circular = new(start, new TrajectoryPoint3D());
+        circular.Circle.Length = 120.0;
+        circular.Circle.Curvature = 0.002;
+        circular.Circle.ReferenceToolface = 0.7;
+        Assert.That(circular.CalculateLDT(), Is.True);
+
+        List<TargetLandingControlPoint> btControls = TargetLandingCalculator.BuildControlPointList([buildTurn]);
+        List<TargetLandingControlPoint> ctcControls = TargetLandingCalculator.BuildControlPointList([ctc]);
+        List<TargetLandingControlPoint> caControls = TargetLandingCalculator.BuildControlPointList([circular]);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(btControls, Is.Not.Empty);
+            Assert.That(btControls.First().NormalizedLength, Is.Zero.Within(1e-12));
+            Assert.That(btControls.Last().NormalizedLength, Is.EqualTo(1.0).Within(1e-12));
+            Assert.That(btControls.All(point => Math.Abs(point.BuildRate + 0.001) < 1e-14), Is.True);
+            Assert.That(btControls.All(point => Math.Abs(point.TurnRate - 0.002) < 1e-14), Is.True);
+
+            Assert.That(ctcControls, Is.Not.Empty);
+            Assert.That(ctcControls.All(point => Math.Abs(point.Curvature - 0.002) < 1e-14), Is.True);
+            Assert.That(ctcControls.All(point => AngularDifference(point.Toolface, 0.7) < 1e-12), Is.True);
+            Assert.That(ctcControls.All(point => Math.Abs(point.BuildRate - 0.002 * Math.Cos(0.7)) < 1e-14), Is.True);
+
+            Assert.That(caControls, Is.Not.Empty);
+            Assert.That(AngularDifference(caControls.First().Toolface, 0.7), Is.LessThan(1e-12));
+            Assert.That(AngularDifference(caControls.Last().Toolface, caControls.First().Toolface), Is.GreaterThan(1e-3),
+                "A circular arc's exact local toolface must not be presented as its constant start/reference toolface.");
+            Assert.That(caControls.All(point => Math.Abs(point.Curvature - 0.002) < 1e-12), Is.True);
         });
     }
 
@@ -99,6 +151,8 @@ public sealed class TargetLandingCalculatorTests
             Assert.That(value.LeadSurveyStationList, Is.Not.Null.And.Not.Empty);
             Assert.That(value.LeadSurveyStationList!.First().MD, Is.EqualTo(value.SourceEndStation.MD));
             Assert.That(value.LeadSurveyStationList!.Last().MD, Is.EqualTo(value.SteeringStartStation!.MD));
+            Assert.That(value.SampleList!.Where(sample => sample.SolvedSectionList is { Count: > 0 })
+                .All(sample => sample.ControlPointList is { Count: > 0 }), Is.True);
         });
     }
 
@@ -322,4 +376,7 @@ public sealed class TargetLandingCalculatorTests
         }
         return 0.5 * twiceArea;
     }
+
+    private static double AngularDifference(double first, double second) =>
+        Math.Abs(Math.IEEERemainder(first - second, 2.0 * Math.PI));
 }

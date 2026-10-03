@@ -40,6 +40,7 @@ public sealed class OpenApiTargetLandingContractTests
         JsonObject landing = schemas["OSDC.Drilling.Trajectory.Model.TargetLandingCase"]!.AsObject();
         JsonObject target = schemas["OSDC.Drilling.Trajectory.Model.TargetPlaneDefinition"]!.AsObject();
         JsonObject point = schemas["OSDC.Drilling.Trajectory.Model.TargetPlanePoint"]!.AsObject();
+        JsonObject control = schemas["OSDC.Drilling.Trajectory.Model.TargetLandingControlPoint"]!.AsObject();
 
         Assert.Multiple(() =>
         {
@@ -56,6 +57,12 @@ public sealed class OpenApiTargetLandingContractTests
             Assert.That(target["properties"]!["Polygon"]!["minItems"]!.GetValue<int>(), Is.EqualTo(3));
             Assert.That(point["properties"]!["X"]!["x-si-unit"]!.GetValue<string>(), Is.EqualTo("m"));
             Assert.That(point["properties"]!["Y"]!["description"]!.GetValue<string>(), Does.Contain("vertical-up"));
+            Assert.That(control["properties"]!["NormalizedLength"]!["minimum"]!.GetValue<double>(), Is.Zero);
+            Assert.That(control["properties"]!["NormalizedLength"]!["maximum"]!.GetValue<double>(), Is.EqualTo(1.0));
+            Assert.That(control["properties"]!["Curvature"]!["x-si-unit"]!.GetValue<string>(), Is.EqualTo("rad/m"));
+            Assert.That(control["properties"]!["BuildRate"]!["x-osdc-semantic"]!.GetValue<string>(), Is.EqualTo("BuildUpRate"));
+            Assert.That(control["properties"]!["TurnRate"]!["x-osdc-semantic"]!.GetValue<string>(), Is.EqualTo("TurnRate"));
+            Assert.That(control["properties"]!["Toolface"]!["description"]!.GetValue<string>(), Does.Contain("vary from the arc's start/reference toolface"));
         });
     }
 }

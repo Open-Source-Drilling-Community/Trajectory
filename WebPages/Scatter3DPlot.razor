@@ -16,8 +16,10 @@
     [Parameter] public List<int> ModeFlagList { get; set; }   // 1=lines, 2=markers, 3=lines+markers
     [Parameter] public List<string> ColorList { get; set; }
     [Parameter] public List<int?>? MarkerSizeList { get; set; }
+    [Parameter] public List<int?>? LineWidthList { get; set; }
     [Parameter] public List<bool>? ShowLegendList { get; set; }
     [Parameter] public bool ShowUnitCylinder { get; set; }
+    [Parameter] public bool UseCubeAspect { get; set; }
     [Parameter] public double? CentralCurvatureMarker { get; set; }
 
     [Parameter] public List<List<object>> XValuesList { get; set; }
@@ -342,9 +344,12 @@
             Plotly.Blazor.Traces.Scatter3DLib.Line? line = null;
             if (wantsLines)
             {
+                decimal lineWidth = LineWidthList != null && i < LineWidthList.Count && LineWidthList[i] is { } requestedWidth && requestedWidth > 0
+                    ? requestedWidth
+                    : 3;
                 line = (ColorList != null && i < ColorList.Count)
-                    ? new Plotly.Blazor.Traces.Scatter3DLib.Line { Color = ColorList[i], Width = 3 }
-                    : new Plotly.Blazor.Traces.Scatter3DLib.Line { Width = 3 };
+                    ? new Plotly.Blazor.Traces.Scatter3DLib.Line { Color = ColorList[i], Width = lineWidth }
+                    : new Plotly.Blazor.Traces.Scatter3DLib.Line { Width = lineWidth };
             }
 
             var trace = new Scatter3D
@@ -491,7 +496,7 @@
             };
             // Curvature is numerically much smaller than the unit radius; use a cube so the
             // cylinder remains legible while axis labels retain the converted engineering values.
-            scene.AspectMode = ShowUnitCylinder
+            scene.AspectMode = ShowUnitCylinder || UseCubeAspect
                 ? Plotly.Blazor.LayoutLib.SceneLib.AspectModeEnum.Cube
                 : Plotly.Blazor.LayoutLib.SceneLib.AspectModeEnum.Data;
 
@@ -595,6 +600,7 @@
             .Append(YAxisUsesPositionReference).Append('|')
             .Append(ZAxisUsesDepthReference).Append('|')
             .Append(ShowUnitCylinder).Append('|')
+            .Append(UseCubeAspect).Append('|')
             .Append(CentralCurvatureMarker).Append('|')
             .Append(XAxisPositionDirection).Append('|')
             .Append(YAxisPositionDirection).Append('|');
@@ -603,6 +609,7 @@
         AppendListSignature(builder, ModeFlagList);
         AppendListSignature(builder, ColorList);
         AppendListSignature(builder, MarkerSizeList);
+        AppendListSignature(builder, LineWidthList);
         AppendListSignature(builder, ShowLegendList);
         AppendNestedListSignature(builder, XValuesList);
         AppendNestedListSignature(builder, YValuesList);

@@ -9821,6 +9821,51 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.Trajectory.Model.TargetLandingControlPoint": {
+        "type": "object",
+        "properties": {
+          "NormalizedLength": {
+            "maximum": 1.0,
+            "minimum": 0.0,
+            "type": "number",
+            "description": "Dimensionless along-hole position over the complete landing path: zero is the steering start after the lead and one is the target boundary.",
+            "format": "double",
+            "x-osdc-semantic": "LengthRatio",
+            "x-si-unit": "1"
+          },
+          "Curvature": {
+            "minimum": 0.0,
+            "type": "number",
+            "description": "Local non-negative spatial curvature calculated from the defining solved curve, in SI radians per metre.",
+            "format": "double",
+            "x-osdc-semantic": "Curvature",
+            "x-si-unit": "rad/m"
+          },
+          "Toolface": {
+            "type": "number",
+            "description": "Local signed toolface about the borehole tangent, zero at high side and positive toward the right side, in SI radians. Circular-arc values vary from the arc's start/reference toolface.",
+            "format": "double",
+            "x-osdc-semantic": "ToolfaceOrientation",
+            "x-si-unit": "rad"
+          },
+          "BuildRate": {
+            "type": "number",
+            "description": "Signed local inclination derivative with respect to measured length, in SI radians per metre; positive builds inclination and negative drops it.",
+            "format": "double",
+            "x-osdc-semantic": "BuildUpRate",
+            "x-si-unit": "rad/m"
+          },
+          "TurnRate": {
+            "type": "number",
+            "description": "Signed local azimuth derivative with respect to measured length, in SI radians per metre.",
+            "format": "double",
+            "x-osdc-semantic": "TurnRate",
+            "x-si-unit": "rad/m"
+          }
+        },
+        "additionalProperties": false,
+        "description": "Authoritative curve-specific control state at one normalized position along a solved target-landing path."
+      },
       "OSDC.Drilling.Trajectory.Model.TargetLandingMeshTriangle": {
         "type": "object",
         "properties": {
@@ -9912,6 +9957,13 @@
             "type": "array",
             "items": {
               "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+            },
+            "nullable": true
+          },
+          "ControlPointList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingControlPoint"
             },
             "nullable": true
           }

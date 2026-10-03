@@ -92,6 +92,17 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
             Describe(schema, "X", "First Cartesian coordinate in the target plane, in canonical SI metres.", "Length", "m");
             Describe(schema, "Y", "Second Cartesian coordinate in the target plane, positive toward the plane's projected vertical-up axis when the plane is not horizontal, in canonical SI metres.", "Length", "m");
         }
+        if (context.Type == typeof(TargetLandingControlPoint))
+        {
+            schema.Description = "Authoritative curve-specific control state at one normalized position along a solved target-landing path.";
+            Describe(schema, "NormalizedLength", "Dimensionless along-hole position over the complete landing path: zero is the steering start after the lead and one is the target boundary.", "LengthRatio", "1");
+            Describe(schema, "Curvature", "Local non-negative spatial curvature calculated from the defining solved curve, in SI radians per metre.", "Curvature", "rad/m");
+            Describe(schema, "Toolface", "Local signed toolface about the borehole tangent, zero at high side and positive toward the right side, in SI radians. Circular-arc values vary from the arc's start/reference toolface.", "ToolfaceOrientation", "rad");
+            Describe(schema, "BuildRate", "Signed local inclination derivative with respect to measured length, in SI radians per metre; positive builds inclination and negative drops it.", "BuildUpRate", "rad/m");
+            Describe(schema, "TurnRate", "Signed local azimuth derivative with respect to measured length, in SI radians per metre.", "TurnRate", "rad/m");
+            SetRange(schema, "NormalizedLength", 0.0m, 1.0m);
+            SetMinimum(schema, "Curvature", 0.0m);
+        }
         if (context.Type == typeof(DepartureGeosteeringExtentConstraint))
         {
             Describe(schema, "DepartureDistance", "Overall horizontal departure from the final source-trajectory station in canonical SI metres.", "HorizontalDistance", "m");

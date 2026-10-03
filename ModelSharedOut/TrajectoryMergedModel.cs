@@ -54978,6 +54978,56 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
     }
 
+    /// <summary>
+    /// Authoritative curve-specific control state at one normalized position along a solved target-landing path.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class TargetLandingControlPoint
+    {
+
+        /// <summary>
+        /// Dimensionless along-hole position over the complete landing path: zero is the steering start after the lead and one is the target boundary.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("NormalizedLength")]
+        [System.ComponentModel.DataAnnotations.Range(0.0D, 1.0D)]
+        public double NormalizedLength { get; set; }
+
+        /// <summary>
+        /// Local non-negative spatial curvature calculated from the defining solved curve, in SI radians per metre.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("Curvature")]
+        [System.ComponentModel.DataAnnotations.Range(0.0D, double.MaxValue)]
+        public double Curvature { get; set; }
+
+        /// <summary>
+        /// Local signed toolface about the borehole tangent, zero at high side and positive toward the right side, in SI radians. Circular-arc values vary from the arc's start/reference toolface.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("Toolface")]
+        public double Toolface { get; set; }
+
+        /// <summary>
+        /// Signed local inclination derivative with respect to measured length, in SI radians per metre; positive builds inclination and negative drops it.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("BuildRate")]
+        public double BuildRate { get; set; }
+
+        /// <summary>
+        /// Signed local azimuth derivative with respect to measured length, in SI radians per metre.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("TurnRate")]
+        public double TurnRate { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class TargetLandingMeshTriangle
     {
@@ -55057,6 +55107,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("SurveyStationList")]
         public System.Collections.Generic.List<SurveyStation> SurveyStationList { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ControlPointList")]
+        public System.Collections.Generic.List<TargetLandingControlPoint> ControlPointList { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 

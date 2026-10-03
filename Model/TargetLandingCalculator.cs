@@ -16,10 +16,11 @@ public static class TargetLandingCalculator
 {
     internal const int MaximumAdaptiveDepth = 4;
     internal const int EllipsePointCount = 72;
-    internal const int CalculationAlgorithmVersion = 7;
+    internal const int CalculationAlgorithmVersion = 8;
     internal const double BoundaryPositionTolerance = 0.25;
     internal const double PositionTolerance = 0.05;
     internal const double SamplingInterval = 10.0;
+    internal const double ControlSamplingInterval = 5.0;
 
     public static List<string> Validate(TargetLandingCase? value)
     {
@@ -215,6 +216,7 @@ public static class TargetLandingCalculator
         }
         result.TotalLandingLength = sections.Sum(SectionLength);
         result.PeakLandingCurvature = sections.Max(PeakCurvature);
+        result.ControlPointList = BuildControlPointList(sections);
         bool exceedsMaximumCurvature = value.MaximumLandingCurvature is double maximum &&
             result.PeakLandingCurvature > maximum + 1e-12;
 
@@ -343,6 +345,130 @@ public static class TargetLandingCalculator
         }
         return result;
     }
+
+    internal static List<TargetLandingControlPoint> BuildControlPointList(IReadOnlyList<ArcSection> sections)
+    {
+        List<TargetLandingControlPoint> result = [];
+        if (sections.Count == 0) return result;
+        double startMd = sections[0].Start.Abscissa ?? double.NaN;
+        double totalLength = sections.Sum(SectionLength);
+        if (!Finite(startMd) || !Finite(totalLength) || totalLength <= 0.0) return result;
+
+        foreach (ArcSection section in sections)
+        {
+            double sectionLength = SectionLength(section);
+            int intervals = Math.Max(1, (int)Math.Ceiling(sectionLength / ControlSamplingInterval));
+            for (int index = 0; index <= intervals; index++)
+            {
+                double md = section.Start.Abscissa!.Value + sectionLength * index / intervals;
+                CurvilinearPoint3D? point = ExactInterpolatedPoint(section, md);
+                if (point?.Inclination is not double inclination || !Finite(inclination) ||
+                    !TryExactControls(section, point, out double curvature, out double toolface,
+                        out double buildRate, out double turnRate))
+                    continue;
+                result.Add(new TargetLandingControlPoint
+                {
+                    NormalizedLength = Math.Clamp((md - startMd) / totalLength, 0.0, 1.0),
+                    Curvature = curvature,
+                    Toolface = NormalizeAngle(toolface),
+                    BuildRate = buildRate,
+                    TurnRate = turnRate
+                });
+            }
+        }
+        return result;
+    }
+
+    private static CurvilinearPoint3D? ExactInterpolatedPoint(ArcSection section, double md)
+    {
+        // The section package owns the curve equations. In particular, CTC is reconstructed as a
+        // partial CTC section so even an endpoint receives the exact local controls instead of the
+        // endpoint shortcut returning an unannotated station.
+        if (section is ConstantCurvatureAndToolfaceArcSection ctc)
+        {
+            ConstantCurvatureAndToolfaceArcSection partial = new(ctc.Start, new TrajectoryPoint3D { Abscissa = md });
+            partial.CTCCurve.Curvature = ctc.CTCCurve.Curvature;
+            partial.CTCCurve.Toolface = ctc.CTCCurve.Toolface;
+            return partial.CalculateSDT() ? partial.End : null;
+        }
+        return section.InterpolateAtMD(md);
+    }
+
+    private static bool TryExactControls(ArcSection section, CurvilinearPoint3D point,
+        out double curvature, out double toolface, out double buildRate, out double turnRate)
+    {
+        curvature = toolface = buildRate = turnRate = double.NaN;
+        if (point.Inclination is not double inclination) return false;
+        switch (section)
+        {
+            case BuildAndTurnArcSection bt when bt.BuildAndTurn.BUR is double build && bt.BuildAndTurn.TR is double turn:
+                buildRate = build;
+                turnRate = turn;
+                double turnComponent = turn * Math.Sin(inclination);
+                curvature = Math.Sqrt(build * build + turnComponent * turnComponent);
+                toolface = curvature > 1e-14 ? Math.Atan2(turnComponent, build) : 0.0;
+                break;
+            case ConstantCurvatureAndToolfaceArcSection ctc when
+                ctc.CTCCurve.Curvature is double constantCurvature && ctc.CTCCurve.Toolface is double constantToolface:
+                // CompleteCDTSDT supplies exact local controls, including its defined behaviour at a
+                // vertical crossing and on the tangent continuation.
+                if (point is TrajectoryPoint3D exact && exact.Curvature is double exactCurvature &&
+                    exact.Toolface is double exactToolface && exact.BUR is double exactBuild && exact.TUR is double exactTurn)
+                {
+                    curvature = Math.Abs(exactCurvature);
+                    toolface = exactToolface;
+                    buildRate = exactBuild;
+                    turnRate = exactTurn;
+                }
+                else
+                {
+                    curvature = Math.Abs(constantCurvature);
+                    toolface = constantToolface;
+                    buildRate = constantCurvature * Math.Cos(constantToolface);
+                    double turn = constantCurvature * Math.Sin(constantToolface);
+                    double sine = Math.Sin(inclination);
+                    if (Math.Abs(sine) <= 1e-14 && Math.Abs(turn) > 1e-14) return false;
+                    turnRate = Math.Abs(sine) <= 1e-14 ? 0.0 : turn / sine;
+                }
+                break;
+            case CircularArcSection circular when circular.Circle.Curvature is double circularCurvature &&
+                circular.Circle.ReferenceToolface is double referenceToolface:
+                curvature = Math.Abs(circularCurvature);
+                if (!TryCircularArcLocalToolface(circular, point, referenceToolface, out toolface)) return false;
+                if (circularCurvature < 0.0) toolface += Math.PI;
+                buildRate = curvature * Math.Cos(toolface);
+                double circularTurn = curvature * Math.Sin(toolface);
+                double sinInclination = Math.Sin(inclination);
+                if (Math.Abs(sinInclination) <= 1e-14 && Math.Abs(circularTurn) > 1e-14) return false;
+                turnRate = Math.Abs(sinInclination) <= 1e-14 ? 0.0 : circularTurn / sinInclination;
+                break;
+            default:
+                return false;
+        }
+        return Finite(curvature) && Finite(toolface) && Finite(buildRate) && Finite(turnRate);
+    }
+
+    private static bool TryCircularArcLocalToolface(CircularArcSection section, CurvilinearPoint3D point,
+        double referenceToolface, out double toolface)
+    {
+        toolface = double.NaN;
+        if (section.Start.Inclination is not double startInclination || section.Start.Azimuth is not double startAzimuth ||
+            point.Inclination is not double inclination || point.Azimuth is not double azimuth) return false;
+        Vec3 startTangent = Tangent(startInclination, startAzimuth);
+        Vec3 startNormal = HighSide(startInclination, startAzimuth) * Math.Cos(referenceToolface) +
+                           RightSide(startAzimuth) * Math.Sin(referenceToolface);
+        Vec3 binormal = Normalize(Cross(startTangent, startNormal));
+        Vec3 tangent = Tangent(inclination, azimuth);
+        Vec3 localNormal = Normalize(Cross(binormal, tangent));
+        toolface = Math.Atan2(Dot(localNormal, RightSide(azimuth)), Dot(localNormal, HighSide(inclination, azimuth)));
+        return Finite(toolface);
+    }
+
+    private static Vec3 Tangent(double inclination, double azimuth) => new(
+        Math.Sin(inclination) * Math.Cos(azimuth), Math.Sin(inclination) * Math.Sin(azimuth), Math.Cos(inclination));
+    private static Vec3 HighSide(double inclination, double azimuth) => new(
+        Math.Cos(inclination) * Math.Cos(azimuth), Math.Cos(inclination) * Math.Sin(azimuth), -Math.Sin(inclination));
+    private static Vec3 RightSide(double azimuth) => new(-Math.Sin(azimuth), Math.Cos(azimuth), 0.0);
 
     private static double PeakCurvature(ArcSection section)
     {

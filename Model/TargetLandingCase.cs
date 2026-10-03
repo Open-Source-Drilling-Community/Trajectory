@@ -116,6 +116,21 @@ public class TargetLandingSample
     public SurveyStationEllipse? LandingEllipseInTargetPlane { get; set; }
     public List<TrajectoryExtrapolationSolvedSection>? SolvedSectionList { get; set; }
     public List<SurveyStation>? SurveyStationList { get; set; }
+    /// <summary>
+    /// Curve-specific control samples calculated directly from the solved landing sections. Length is
+    /// normalized over the complete landing path; rates and curvature are SI radians per metre and
+    /// toolface is in SI radians.
+    /// </summary>
+    public List<TargetLandingControlPoint>? ControlPointList { get; set; }
+}
+
+public class TargetLandingControlPoint
+{
+    public double NormalizedLength { get; set; }
+    public double Curvature { get; set; }
+    public double Toolface { get; set; }
+    public double BuildRate { get; set; }
+    public double TurnRate { get; set; }
 }
 
 public class TargetLandingMeshTriangle

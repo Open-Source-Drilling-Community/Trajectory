@@ -6963,6 +6963,17 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					},
 			};
 		}
+		public static TargetLandingControlPoint ConstructTargetLandingControlPoint()
+		{
+			return new TargetLandingControlPoint
+			{
+				NormalizedLength = 0.0,
+				Curvature = 0.0,
+				Toolface = 0.0,
+				BuildRate = 0.0,
+				TurnRate = 0.0,
+			};
+		}
 		public static TargetLandingMeshTriangle ConstructTargetLandingMeshTriangle()
 		{
 			return new TargetLandingMeshTriangle
@@ -6998,6 +7009,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				SurveyStationList = new List<SurveyStation>
 					{
 						ConstructSurveyStation(),
+					},
+				ControlPointList = new List<TargetLandingControlPoint>
+					{
+						ConstructTargetLandingControlPoint(),
 					},
 			};
 		}

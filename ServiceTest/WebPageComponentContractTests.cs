@@ -711,6 +711,7 @@ public sealed class WebPageComponentContractTests
             "..", "..", "..", ".."));
         string editor = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TargetLandingEdit.razor"));
         string scatter3D = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "Scatter3DPlot.razor"));
+        string generatedClient = File.ReadAllText(Path.Combine(repositoryRoot, "ModelSharedOut", "TrajectoryMergedModel.cs"));
         string main = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TargetLandingMain.razor"));
         string stableUnitInput = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "StableMudInputWithUnitAdornment.razor"));
         string navigation = File.ReadAllText(Path.Combine(repositoryRoot, "WebApp", "Shared", "NavMenu.razor"));
@@ -793,12 +794,18 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("CentralCurvatureMarker=\"@(value.SourceEndStation?.Curvature)\"")
                 .And.Contain("ZUnit=\"CurvatureDrilling\""),
                 "CA, CTC and BT boundary paths must be drawn as marker-free lines on a normalized-length toolface/curvature cylinder.");
-            Assert.That(editor, Does.Contain("station.Curvature is double curvature && station.Toolface is double toolface")
-                .And.Contain("turn*Math.Sin(inclination)")
-                .And.Contain("Math.Atan2(turnComponent,build)")
+            Assert.That(editor, Does.Contain("sample.ControlPointList?.Where(ControlPointIsFinite)")
+                .And.Not.Contain("StationControl(")
+                .And.Not.Contain("StationBuildTurn(")
                 .And.Not.Contain("XAxisTitle=\"sin(toolface)")
                 .And.Not.Contain("YAxisTitle=\"cos(toolface)"),
-                "The paths must use calculated station controls, with a build/turn fallback, and hide meaningless Cartesian axis titles.");
+                "The paths must use authoritative model-level curve controls without reconstructing them from sparse survey stations.");
+            Assert.That(generatedClient, Does.Contain("class TargetLandingControlPoint")
+                .And.Contain("public System.Collections.Generic.List<TargetLandingControlPoint> ControlPointList")
+                .And.Contain("public double NormalizedLength")
+                .And.Contain("public double BuildRate")
+                .And.Contain("public double TurnRate"),
+                "The exact normalized controls must be part of the generated REST/client result contract.");
             Assert.That(scatter3D, Does.Contain("Math.Max(0.0, convertedCurvatures.Max()) * 1.2")
                 .And.Contain("return (0.0, Math.Max(maximum, 1e-6))")
                 .And.Contain("ShowUnitCylinder ? UnitCylinderCurvatureRange() : null")
@@ -807,6 +814,21 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("scene.XAxis.Title.Text = ShowUnitCylinder ? \"\"")
                 .And.Contain("scene.YAxis.Title.Text = ShowUnitCylinder ? \"\""),
                 "The cylinder and curvature axis must span zero to 120 percent of the maximum boundary curvature.");
+            Assert.That(editor, Does.Contain("Build and turn landing controls")
+                .And.Contain("XAxisTitle=\"Turn rate\"")
+                .And.Contain("YAxisTitle=\"Normalized length\"")
+                .And.Contain("ZAxisTitle=\"Build rate\"")
+                .And.Contain("XUnit=\"CurvatureDrilling\" YUnit=\"Dimensionless\" ZUnit=\"CurvatureDrilling\"")
+                .And.Contain("YAxisMinimum=\"0\" YAxisMaximum=\"1\"")
+                .And.Contain("UseCubeAspect=\"true\"")
+                .And.Contain("BuildTurnPath(sample)")
+                .And.Contain("point.TurnRate,point.NormalizedLength,point.BuildRate")
+                .And.Contain("with { NormalizedLength=1.0 }")
+                .And.Contain("0.5*Math.PI/(180.0*30.0)")
+                .And.Contain("0.2*(maximum-minimum)"),
+                "The build/turn view must show sampled control paths from normalized length zero to the reachable boundary at one, using unit-aware axes with the requested padding.");
+            Assert.That(scatter3D, Does.Contain("ShowUnitCylinder || UseCubeAspect"),
+                "The control-space graph must remain legible despite the different numerical scales of curvature and normalized length.");
             Assert.That(editor, Does.Contain("Reachable target boundary commands")
                 .And.Contain("Items=\"@BoundarySolutions\"")
                 .And.Contain("SectionCurvature(section)")
@@ -818,6 +840,10 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("GetTrajectorySurveyStationChunkCountAsync")
                 .And.Contain("GetTrajectorySurveyStationChunkAsync")
                 .And.Contain("value.LeadSurveyStationList")
+                .And.Contain("LeadStationsForPlot()")
+                .And.Contain("value.SourceEndStation??sourceTrajectoryStations.LastOrDefault")
+                .And.Contain("LineWidthList=\"@cartesianPlot.LineWidths\"")
+                .And.Contain("\"Lead path\",\"#ff6f00\",8")
                 .And.Contain("sample.SurveyStationList")
                 .And.Contain("TargetBoundaryPoints")
                 .And.Contain("XAxisTitle=\"North\"")
