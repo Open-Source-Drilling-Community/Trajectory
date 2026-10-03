@@ -16,11 +16,12 @@ public static class TargetLandingCalculator
 {
     internal const int MaximumAdaptiveDepth = 4;
     internal const int EllipsePointCount = 72;
-    internal const int CalculationAlgorithmVersion = 11;
+    internal const int CalculationAlgorithmVersion = 12;
     internal const double BoundaryPositionTolerance = 0.25;
     internal const double PositionTolerance = 0.05;
     internal const double SamplingInterval = 10.0;
     internal const double ControlSamplingInterval = 5.0;
+    internal const double MaximumAbsoluteLandingTurnRate = 50.0 * Math.PI / (180.0 * 30.0);
 
     public static List<string> Validate(TargetLandingCase? value)
     {
@@ -234,6 +235,11 @@ public static class TargetLandingCalculator
         result.TotalLandingLength = sections.Sum(SectionLength);
         result.PeakLandingCurvature = sections.Max(PeakCurvature);
         result.ControlPointList = BuildControlPointList(sections);
+        if (result.ControlPointList.Any(point => Math.Abs(point.TurnRate) > MaximumAbsoluteLandingTurnRate + 1e-12))
+        {
+            result.Message = "The landing solution exceeds the maximum absolute turn rate of 50 degrees per 30 metres.";
+            return result;
+        }
         bool exceedsMaximumCurvature = value.MaximumLandingCurvature is double maximum &&
             result.PeakLandingCurvature > maximum + 1e-12;
 

@@ -28,7 +28,9 @@ public sealed class TargetLandingCalculatorTests
         {
             Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(4));
             Assert.That(TargetLandingCalculator.BoundaryPositionTolerance, Is.EqualTo(0.25));
-            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(11));
+            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(12));
+            Assert.That(TargetLandingCalculator.MaximumAbsoluteLandingTurnRate,
+                Is.EqualTo(50.0 * Math.PI / (180.0 * 30.0)).Within(1e-15));
         });
     }
 
@@ -367,13 +369,22 @@ public sealed class TargetLandingCalculatorTests
         List<TargetLandingSample> reachable = samples
             .Where(sample => sample.State == TargetLandingSampleState.Reachable)
             .ToList();
+        List<TargetLandingSample> excessiveTurn = samples
+            .Where(sample => sample.Message?.Contains("maximum absolute turn rate", StringComparison.Ordinal) == true)
+            .ToList();
 
         Assert.Multiple(() =>
         {
             Assert.That(rejected, Is.Not.Empty,
                 "The production geometry must exercise the CTC vertical singularity regression.");
             Assert.That(rejected.All(sample => sample.State == TargetLandingSampleState.NoGeometricSolution), Is.True);
+            Assert.That(excessiveTurn, Is.Not.Empty,
+                "The production geometry must exercise the 50 degrees per 30 metres turn-rate limit.");
+            Assert.That(excessiveTurn.All(sample => sample.State == TargetLandingSampleState.NoGeometricSolution), Is.True);
             Assert.That(reachable, Is.Not.Empty);
+            Assert.That(reachable.SelectMany(sample => sample.ControlPointList ?? [])
+                .All(point => Math.Abs(point.TurnRate) <= TargetLandingCalculator.MaximumAbsoluteLandingTurnRate + 1e-12),
+                Is.True);
             Assert.That(reachable.SelectMany(sample => sample.ControlPointList ?? [])
                 .Any(point => point.Curvature > 1e-8 && Math.Abs(point.BuildRate) < 1e-14 && Math.Abs(point.TurnRate) < 1e-14),
                 Is.False, "A retained CTC solution must not contain the former nonzero-curvature tangent continuation.");
