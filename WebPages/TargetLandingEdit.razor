@@ -1,5 +1,6 @@
 @inject ILogger<TargetLandingEdit> logger
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 @inject ITrajectoryAPIUtils Api
 @inject ITrajectoryReferenceDataCache ReferenceData
 @implements IDisposable
@@ -7,6 +8,10 @@
 <MudText Typo="Typo.h6" Class="mt-4 mb-3">Target Landing</MudText>
 <MudStack Row="true" Class="mb-4">
     <MudButton Color="Color.Success" OnClick="SaveAsync" Disabled="@(saving || IsCalculationActive)">@(saving || IsCalculationActive ? "Calculating..." : "Save and calculate")</MudButton>
+    @if (value.CreationDate != null)
+    {
+        <MudButton Color="Color.Primary" Variant="Variant.Outlined" OnClick="SaveAsAsync" Disabled="@(saving || IsCalculationActive)">Save as</MudButton>
+    }
     <MudButton Color="Color.Error" OnClick="@(() => ValueChanged.InvokeAsync())">Close</MudButton>
 </MudStack>
 @if (loading) { <MudProgressLinear Indeterminate="true" Color="Color.Info" /> }
@@ -229,6 +234,48 @@
         }
         catch (Exception ex) { logger.LogError(ex, "Unable to save target landing case"); Snackbar.Add("Unable to save the target landing case.", Severity.Error); }
         finally { saving = false; }
+    }
+    private async Task SaveAsAsync()
+    {
+        if (saving || IsCalculationActive) return;
+        if (value.SourceTrajectoryID == Guid.Empty) { Snackbar.Add("A source trajectory is required.", Severity.Warning); return; }
+        string initialName = string.IsNullOrWhiteSpace(value.Name) ? "Target landing copy" : $"{value.Name} copy";
+        string? copyName = await PromptAsync("Save target landing case as", "New case name", initialName, "Create copy");
+        if (copyName == null) return;
+
+        saving = true;
+        try
+        {
+            TargetLandingCase copy = CreateSavePayload(value);
+            copy.MetaInfo = new MetaInfo { ID = Guid.NewGuid() };
+            copy.Name = copyName;
+            value = await Api.ClientTrajectory.PostTargetLandingCaseAsync(copy, calculationPolling.Token);
+            loadedEditableFingerprint = EditableFingerprint(value);
+            Snackbar.Add($"Created '{copyName}' and queued its calculation.", Severity.Success);
+            await RefreshAfterCalculationAsync(value.MetaInfo.ID, calculationPolling.Token);
+        }
+        catch (OperationCanceledException) when (calculationPolling.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unable to create a copy of target landing case {CaseId}", value.MetaInfo.ID);
+            Snackbar.Add("Unable to create the target landing case copy.", Severity.Error);
+        }
+        finally { saving = false; }
+    }
+    private async Task<string?> PromptAsync(string title, string label, string initialValue, string confirmText)
+    {
+        DialogParameters parameters = new()
+        {
+            { nameof(TextPromptDialog.Label), label },
+            { nameof(TextPromptDialog.InitialValue), initialValue },
+            { nameof(TextPromptDialog.ConfirmText), confirmText }
+        };
+        IDialogReference dialog = await DialogService.ShowAsync<TextPromptDialog>(
+            title, parameters, TrajectoryDialogOptions.Compact);
+        DialogResult? result = await dialog.Result;
+        return result is { Canceled: false, Data: string text } && !string.IsNullOrWhiteSpace(text)
+            ? text.Trim()
+            : null;
     }
     private async Task<bool> PutWithSafeCalculationRetryAsync(Guid caseId, TargetLandingCase savePayload)
     {

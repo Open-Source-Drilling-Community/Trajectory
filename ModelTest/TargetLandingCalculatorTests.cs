@@ -28,9 +28,9 @@ public sealed class TargetLandingCalculatorTests
         {
             Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(4));
             Assert.That(TargetLandingCalculator.BoundaryPositionTolerance, Is.EqualTo(0.25));
-            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(12));
-            Assert.That(TargetLandingCalculator.MaximumAbsoluteLandingTurnRate,
-                Is.EqualTo(50.0 * Math.PI / (180.0 * 30.0)).Within(1e-15));
+            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(13));
+            Assert.That(TargetLandingCalculator.MinimumConstantToolfaceInclination,
+                Is.EqualTo(3.0 * Math.PI / 180.0).Within(1e-15));
         });
     }
 
@@ -86,22 +86,26 @@ public sealed class TargetLandingCalculatorTests
     }
 
     [Test]
-    public void ConstantToolfaceVerticalReachIsRejected()
+    public void ConstantToolfaceNearVerticalReachIsRejected()
     {
         TrajectoryPoint3D start = new()
         {
             X = 0.0, Y = 0.0, Z = 0.0, Abscissa = 1000.0,
             Inclination = 0.2, Azimuth = 0.3
         };
-        ConstantCurvatureAndToolfaceArcSection beforeVertical = CtcSection(50.0);
-        ConstantCurvatureAndToolfaceArcSection atVertical = CtcSection(100.0);
+        double lengthAtLimit = (start.Inclination!.Value - TargetLandingCalculator.MinimumConstantToolfaceInclination) / 0.002;
+        ConstantCurvatureAndToolfaceArcSection outsideLimit = CtcSection(lengthAtLimit - 1.0);
+        ConstantCurvatureAndToolfaceArcSection atLimit = CtcSection(lengthAtLimit);
+        ConstantCurvatureAndToolfaceArcSection insideLimit = CtcSection(lengthAtLimit + 1.0);
         ConstantCurvatureAndToolfaceArcSection beyondVertical = CtcSection(150.0);
 
         Assert.Multiple(() =>
         {
-            Assert.That(TargetLandingCalculator.ConstantToolfaceSectionReachesVertical(beforeVertical), Is.False);
-            Assert.That(TargetLandingCalculator.ConstantToolfaceSectionReachesVertical(atVertical), Is.True);
-            Assert.That(TargetLandingCalculator.ConstantToolfaceSectionReachesVertical(beyondVertical), Is.True);
+            Assert.That(TargetLandingCalculator.ConstantToolfaceSectionApproachesVertical(outsideLimit), Is.False);
+            Assert.That(TargetLandingCalculator.ConstantToolfaceSectionApproachesVertical(atLimit), Is.False,
+                "The agreed rejection is strictly below 3 degrees.");
+            Assert.That(TargetLandingCalculator.ConstantToolfaceSectionApproachesVertical(insideLimit), Is.True);
+            Assert.That(TargetLandingCalculator.ConstantToolfaceSectionApproachesVertical(beyondVertical), Is.True);
         });
 
         ConstantCurvatureAndToolfaceArcSection CtcSection(double length)
@@ -355,7 +359,28 @@ public sealed class TargetLandingCalculatorTests
     }
 
     [Test]
-    public void ProductionU3ConstantToolfaceCaseRejectsVerticalReachingSolutions()
+    public void ProductionU3CircularArcRetainsCenterDespiteCoordinateTurnRateSingularity()
+    {
+        TargetLandingCase value = U3Case(1700.78);
+        value.CurveType = ExtrapolationCurveType.CircularArc;
+        value.MaximumLandingCurvature = 8.0 * Math.PI / 180.0 / 30.0;
+
+        Assert.That(TargetLandingCalculator.Calculate(value, U3Source(value.SourceTrajectoryID)), Is.True, value.CalculationMessage);
+        TargetLandingSample center = value.SampleList!.OrderBy(sample => sample.PolarRadius).First();
+        double formerTurnRateLimit = 50.0 * Math.PI / (180.0 * 30.0);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(center.State, Is.EqualTo(TargetLandingSampleState.Reachable), center.Message);
+            Assert.That(center.PeakLandingCurvature, Is.LessThan(value.MaximumLandingCurvature!.Value));
+            Assert.That(center.ControlPointList!.Max(point => Math.Abs(point.TurnRate)),
+                Is.GreaterThan(formerTurnRateLimit),
+                "A CA path must not be rejected because azimuth-based turn rate is singular near vertical.");
+        });
+    }
+
+    [Test]
+    public void ProductionU3ConstantToolfaceCaseRejectsNearVerticalSolutions()
     {
         TargetLandingCase value = U3Case(1700.78);
         value.CurveType = ExtrapolationCurveType.ConstantCurvatureAndToolface;
@@ -364,27 +389,20 @@ public sealed class TargetLandingCalculatorTests
         Assert.That(TargetLandingCalculator.Calculate(value, U3Source(value.SourceTrajectoryID)), Is.True, value.CalculationMessage);
         List<TargetLandingSample> samples = value.SampleList!;
         List<TargetLandingSample> rejected = samples
-            .Where(sample => sample.Message?.Contains("reaches vertical", StringComparison.Ordinal) == true)
+            .Where(sample => sample.Message?.Contains("within 3 degrees of vertical", StringComparison.Ordinal) == true)
             .ToList();
         List<TargetLandingSample> reachable = samples
             .Where(sample => sample.State == TargetLandingSampleState.Reachable)
-            .ToList();
-        List<TargetLandingSample> excessiveTurn = samples
-            .Where(sample => sample.Message?.Contains("maximum absolute turn rate", StringComparison.Ordinal) == true)
             .ToList();
 
         Assert.Multiple(() =>
         {
             Assert.That(rejected, Is.Not.Empty,
-                "The production geometry must exercise the CTC vertical singularity regression.");
+                "The production geometry must exercise the CTC near-vertical singularity regression.");
             Assert.That(rejected.All(sample => sample.State == TargetLandingSampleState.NoGeometricSolution), Is.True);
-            Assert.That(excessiveTurn, Is.Not.Empty,
-                "The production geometry must exercise the 50 degrees per 30 metres turn-rate limit.");
-            Assert.That(excessiveTurn.All(sample => sample.State == TargetLandingSampleState.NoGeometricSolution), Is.True);
+            Assert.That(samples.Any(sample => sample.Message?.Contains("maximum absolute turn rate", StringComparison.Ordinal) == true),
+                Is.False, "Turn rate is no longer a landing-path rejection criterion.");
             Assert.That(reachable, Is.Not.Empty);
-            Assert.That(reachable.SelectMany(sample => sample.ControlPointList ?? [])
-                .All(point => Math.Abs(point.TurnRate) <= TargetLandingCalculator.MaximumAbsoluteLandingTurnRate + 1e-12),
-                Is.True);
             Assert.That(reachable.SelectMany(sample => sample.ControlPointList ?? [])
                 .Any(point => point.Curvature > 1e-8 && Math.Abs(point.BuildRate) < 1e-14 && Math.Abs(point.TurnRate) < 1e-14),
                 Is.False, "A retained CTC solution must not contain the former nonzero-curvature tangent continuation.");

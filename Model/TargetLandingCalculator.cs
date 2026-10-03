@@ -16,12 +16,13 @@ public static class TargetLandingCalculator
 {
     internal const int MaximumAdaptiveDepth = 4;
     internal const int EllipsePointCount = 72;
-    internal const int CalculationAlgorithmVersion = 12;
+    internal const int CalculationAlgorithmVersion = 13;
     internal const double BoundaryPositionTolerance = 0.25;
     internal const double PositionTolerance = 0.05;
     internal const double SamplingInterval = 10.0;
     internal const double ControlSamplingInterval = 5.0;
-    internal const double MaximumAbsoluteLandingTurnRate = 50.0 * Math.PI / (180.0 * 30.0);
+    internal const double MinimumConstantToolfaceInclination = 3.0 * Math.PI / 180.0;
+    private const double InclinationComparisonTolerance = 1.0e-12;
 
     public static List<string> Validate(TargetLandingCase? value)
     {
@@ -227,19 +228,14 @@ public static class TargetLandingCalculator
             result.Message = "The landing solution does not have positive forward section lengths.";
             return result;
         }
-        if (sections.OfType<ConstantCurvatureAndToolfaceArcSection>().Any(ConstantToolfaceSectionReachesVertical))
+        if (sections.OfType<ConstantCurvatureAndToolfaceArcSection>().Any(ConstantToolfaceSectionApproachesVertical))
         {
-            result.Message = "The constant-curvature-and-toolface solution reaches vertical, where toolface and turn rate are undefined.";
+            result.Message = "The constant-curvature-and-toolface solution approaches within 3 degrees of vertical, where toolface and turn rate become ill-conditioned.";
             return result;
         }
         result.TotalLandingLength = sections.Sum(SectionLength);
         result.PeakLandingCurvature = sections.Max(PeakCurvature);
         result.ControlPointList = BuildControlPointList(sections);
-        if (result.ControlPointList.Any(point => Math.Abs(point.TurnRate) > MaximumAbsoluteLandingTurnRate + 1e-12))
-        {
-            result.Message = "The landing solution exceeds the maximum absolute turn rate of 50 degrees per 30 metres.";
-            return result;
-        }
         bool exceedsMaximumCurvature = value.MaximumLandingCurvature is double maximum &&
             result.PeakLandingCurvature > maximum + 1e-12;
 
@@ -504,9 +500,8 @@ public static class TargetLandingCalculator
         };
     }
 
-    internal static bool ConstantToolfaceSectionReachesVertical(ConstantCurvatureAndToolfaceArcSection section)
+    internal static bool ConstantToolfaceSectionApproachesVertical(ConstantCurvatureAndToolfaceArcSection section)
     {
-        const double inclinationMargin = 1.0e-9;
         if (section.Start.Inclination is not double startInclination ||
             section.CTCCurve.Curvature is not double curvature ||
             section.CTCCurve.Toolface is not double toolface)
@@ -515,15 +510,16 @@ public static class TargetLandingCalculator
         double length = SectionLength(section);
         if (!Finite(startInclination) || !Finite(curvature) || !Finite(toolface) || !Finite(length) || length < 0.0)
             return true;
-        if (startInclination <= inclinationMargin || startInclination >= Math.PI - inclinationMargin)
+        if (startInclination < MinimumConstantToolfaceInclination - InclinationComparisonTolerance ||
+            startInclination > Math.PI - MinimumConstantToolfaceInclination + InclinationComparisonTolerance)
             return true;
 
         double buildRate = curvature * Math.Cos(toolface);
         if (Math.Abs(buildRate) <= 1e-14) return false;
         double rawEndInclination = startInclination + buildRate * length;
         return buildRate < 0.0
-            ? rawEndInclination <= inclinationMargin
-            : rawEndInclination >= Math.PI - inclinationMargin;
+            ? rawEndInclination < MinimumConstantToolfaceInclination - InclinationComparisonTolerance
+            : rawEndInclination > Math.PI - MinimumConstantToolfaceInclination + InclinationComparisonTolerance;
     }
 
     private static double PeakBuildTurnCurvature(BuildAndTurnArcSection section)

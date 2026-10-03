@@ -36,6 +36,7 @@ public sealed class OpenApiTargetLandingContractTests
         string worker = File.ReadAllText(Path.Combine(repositoryRoot, "Service", "TargetLandingCalculationWorker.cs"));
         string manager = File.ReadAllText(Path.Combine(repositoryRoot, "Service", "Managers", "TargetLandingCaseManager.cs"));
         string controller = File.ReadAllText(Path.Combine(repositoryRoot, "Service", "Controllers", "TargetLandingCaseController.cs"));
+        string clientSettings = File.ReadAllText(Path.Combine(repositoryRoot, "ModelSharedOut", "ClientJsonSerializerSettings.cs"));
         string program = File.ReadAllText(Path.Combine(repositoryRoot, "Service", "Program.cs"));
 
         Assert.Multiple(() =>
@@ -54,6 +55,13 @@ public sealed class OpenApiTargetLandingContractTests
                 "Listing and progress polling must not parse or rewrite the heavy result, and request handlers must not launch fire-and-forget calculations.");
             Assert.That(controller, Does.Contain("GetTargetLandingCaseEditData")
                 .And.Contain("GetTargetLandingCaseDisplayData"));
+            Assert.That(controller, Does.Contain("CompactResponseJson")
+                .And.Contain("JsonIgnoreCondition.WhenWritingNull")
+                .And.Contain("new JsonResult(value, CompactResponseJson)"),
+                "Target-landing edit/display projections must omit null members from repeated nested station payloads.");
+            Assert.That(clientSettings, Does.Contain("DefaultIgnoreCondition")
+                .And.Contain("JsonIgnoreCondition.WhenWritingNull"),
+                "Generated client requests must omit null result members from compact save projections.");
         });
     }
 

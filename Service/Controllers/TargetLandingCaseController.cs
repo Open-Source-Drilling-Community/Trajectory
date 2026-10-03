@@ -7,6 +7,8 @@ using OSDC.Drilling.Trajectory.Service.Managers;
 using OSDC.DotnetLibraries.General.DataManagement;
 using System;
 using System.Collections.Generic;
+using System.Text.Json;
+using System.Text.Json.Serialization;
 using System.Threading.Tasks;
 
 namespace OSDC.Drilling.Trajectory.Service.Controllers;
@@ -16,6 +18,7 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers;
 [ApiController]
 public sealed class TargetLandingCaseController : ControllerBase
 {
+    private static readonly JsonSerializerOptions CompactResponseJson = CreateCompactResponseJson();
     private readonly TargetLandingCaseManager manager_;
     private readonly TargetLandingCalculationWorker worker_;
     public TargetLandingCaseController(ILogger<TargetLandingCaseManager> logger, SqlConnectionManager connectionManager,
@@ -56,7 +59,9 @@ public sealed class TargetLandingCaseController : ControllerBase
     {
         UsageStatisticsTrajectory.Instance.IncrementOperation("GetTargetLandingCaseEditData");
         if (id == Guid.Empty) return BadRequest(Error("invalid_id", "A non-empty target-landing-case UUID is required."));
-        return manager_.GetEditById(id) is { } value ? Ok(value) : NotFound(Error("not_found", "The target landing case does not exist."));
+        return manager_.GetEditById(id) is { } value
+            ? new JsonResult(value, CompactResponseJson)
+            : NotFound(Error("not_found", "The target landing case does not exist."));
     }
 
     [HttpGet("{id}/DisplayData", Name = "GetTargetLandingCaseDisplayData")]
@@ -65,7 +70,9 @@ public sealed class TargetLandingCaseController : ControllerBase
     {
         UsageStatisticsTrajectory.Instance.IncrementOperation("GetTargetLandingCaseDisplayData");
         if (id == Guid.Empty) return BadRequest(Error("invalid_id", "A non-empty target-landing-case UUID is required."));
-        return manager_.GetDisplayById(id) is { } value ? Ok(value) : NotFound(Error("not_found", "The target landing case does not exist."));
+        return manager_.GetDisplayById(id) is { } value
+            ? new JsonResult(value, CompactResponseJson)
+            : NotFound(Error("not_found", "The target landing case does not exist."));
     }
 
     [HttpGet("{id}/Status", Name = "GetTargetLandingCaseStatus")]
@@ -135,4 +142,12 @@ public sealed class TargetLandingCaseController : ControllerBase
     }
 
     private static object Error(string code, string message) => new { error = code, message };
+
+    private static JsonSerializerOptions CreateCompactResponseJson()
+    {
+        JsonSerializerOptions options = new();
+        JsonSettings.ApplyTo(options);
+        options.DefaultIgnoreCondition = JsonIgnoreCondition.WhenWritingNull;
+        return options;
+    }
 }

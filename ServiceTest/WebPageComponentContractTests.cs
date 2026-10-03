@@ -717,6 +717,8 @@ public sealed class WebPageComponentContractTests
         string navigation = File.ReadAllText(Path.Combine(repositoryRoot, "WebApp", "Shared", "NavMenu.razor"));
         string savePayload = GetMethodSource(editor,
             "private static TargetLandingCase CreateSavePayload", "private List<PlaneContour> PlaneContours");
+        string saveAs = GetMethodSource(editor,
+            "private async Task SaveAsAsync()", "private async Task<string?> PromptAsync");
         string listLoad = GetMethodSource(main, "private async Task LoadAsync()", "private void Add()");
         int referenceSelectorEnd = main.IndexOf("</MudUnitAndReferenceChoiceTag>", StringComparison.Ordinal);
         int listGridStart = main.IndexOf("<MudDataGrid T=\"TargetLandingCaseLight\"", StringComparison.Ordinal);
@@ -791,6 +793,19 @@ public sealed class WebPageComponentContractTests
             Assert.That(GetMethodSource(editor, "private async Task SaveAsync()", "private async Task RefreshAfterCalculationAsync"),
                 Does.Not.Contain("ValueChanged.InvokeAsync"),
                 "Saving must not invoke the close callback.");
+            Assert.That(editor, Does.Contain("OnClick=\"SaveAsAsync\"")
+                .And.Contain(">Save as</MudButton>")
+                .And.Contain("ShowAsync<TextPromptDialog>"),
+                "An existing target-landing case must expose a named Save-as workflow.");
+            Assert.That(saveAs, Does.Contain("TargetLandingCase copy = CreateSavePayload(value);")
+                .And.Contain("copy.MetaInfo = new MetaInfo { ID = Guid.NewGuid() };")
+                .And.Contain("copy.Name = copyName;")
+                .And.Contain("PostTargetLandingCaseAsync(copy, calculationPolling.Token)")
+                .And.Contain("RefreshAfterCalculationAsync(value.MetaInfo.ID, calculationPolling.Token)")
+                .And.Not.Contain("PutTargetLandingCaseByIdAsync")
+                .And.Not.Contain("SampleList")
+                .And.Not.Contain("CalculationFingerprint"),
+                "Save as must create a new resource from editable inputs and must not overwrite or copy calculated results.");
             Assert.That(savePayload, Does.Contain("Target = source.Target")
                 .And.Contain("MaximumLandingCurvature = source.MaximumLandingCurvature")
                 .And.Not.Contain("SampleList")
