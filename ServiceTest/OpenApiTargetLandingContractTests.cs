@@ -58,6 +58,27 @@ public sealed class OpenApiTargetLandingContractTests
     }
 
     [Test]
+    public void Target_landing_status_does_not_publish_completion_before_the_result_is_saved()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", ".."));
+        string manager = File.ReadAllText(Path.Combine(repositoryRoot, "Service", "Managers", "TargetLandingCaseManager.cs"));
+
+        int calculatorCall = manager.IndexOf("bool calculated = TargetLandingCalculator.Calculate", StringComparison.Ordinal);
+        int terminalSave = manager.IndexOf("if (!Save(value, true, queuedRevision))", calculatorCall, StringComparison.Ordinal);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(calculatorCall, Is.GreaterThanOrEqualTo(0));
+            Assert.That(terminalSave, Is.GreaterThan(calculatorCall));
+            Assert.That(manager, Does.Contain("value.CalculationState = CalculationState.Running;")
+                .And.Contain("Math.Clamp(0.08 + 0.90 * progress, 0.08, 0.98)")
+                .And.Contain("Target landing calculation completed, but its result could not be saved"),
+                "Polling must remain Running until the terminal save succeeds, and a failed save must be visible as a failure.");
+        });
+    }
+
+    [Test]
     public void Generated_openapi_describes_target_plane_si_references_and_landing_constraints()
     {
         string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,

@@ -18,6 +18,7 @@
     [Parameter] public string? QuantityName { get; set; }
     [Parameter] public DrillingSignalReferenceType DrillingSignalReference { get; set; } = DrillingSignalReferenceType.Independent;
     [Parameter] public PositionDirectionType PositionDirection { get; set; } = PositionDirectionType.Independent;
+    [Parameter] public long ReferenceSourceVersion { get; set; }
     [Parameter] public double SIValue { get; set; } = double.NaN;
     [Parameter] public double? SIValueNullable { get; set; }
     [Parameter] public EventCallback<double> SIValueChanged { get; set; }
@@ -26,6 +27,7 @@
     private string? displayValue;
     private string? unitLabel;
     private double? lastCanonicalValue;
+    private long lastReferenceSourceVersion = long.MinValue;
     private bool initialized;
     private double? CanonicalValue => double.IsNaN(SIValue) ? SIValueNullable : SIValue;
 
@@ -41,9 +43,10 @@
     protected override void OnParametersSet()
     {
         double? canonicalValue = CanonicalValue;
-        if (!initialized || !Nullable.Equals(canonicalValue, lastCanonicalValue))
+        if (!initialized || !Nullable.Equals(canonicalValue, lastCanonicalValue) || ReferenceSourceVersion != lastReferenceSourceVersion)
         {
             lastCanonicalValue = canonicalValue;
+            lastReferenceSourceVersion = ReferenceSourceVersion;
             ManageUnits();
         }
 

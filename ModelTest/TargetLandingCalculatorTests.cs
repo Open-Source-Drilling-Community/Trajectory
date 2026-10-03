@@ -276,35 +276,8 @@ public sealed class TargetLandingCalculatorTests
     [Test]
     public void U3GeometryProducesSimpleReachableBoundaryWithoutInternalChords()
     {
-        TargetLandingCase value = Case();
-        value.AttitudeMode = TargetLandingAttitudeMode.Free;
-        value.LeadLength = 30.0;
-        value.Target.Plane = new CurvilinearPoint3D
-        {
-            RiemannianNorth = 6534947.00301523,
-            RiemannianEast = 328721.161419567,
-            TVD = 1400.78,
-            Inclination = 0.191986217719376,
-            Azimuth = 3.05432619099008
-        };
-        value.Target.Polygon =
-        [
-            new() { X = -50.0, Y = -50.0 }, new() { X = 50.0, Y = -50.0 },
-            new() { X = 50.0, Y = 50.0 }, new() { X = -50.0, Y = 50.0 }
-        ];
-        TrajectoryModel source = new()
-        {
-            MetaInfo = new MetaInfo { ID = value.SourceTrajectoryID },
-            LastModificationDate = DateTimeOffset.UtcNow,
-            CalculationType = TrajectoryCalculationType.MinimumCurvatureMethod,
-            SurveyStationList =
-            [
-                Station(905.78, 0.30543195539339985, 3.141585834467332, 6535003.245693119, 328712.2103161793, 860.9392922960917),
-                Station(922.78, 0.28797869523224956, 3.124132061288359, 6534998.275804975, 328712.2524846864, 877.1963052739194),
-                Station(951.78, 0.2844883352921184, 2.9845053863106266, 6534990.137604863, 328712.9611460306, 905.0199983912321),
-                Station(982.78, 0.3577923117971354, 2.9146938185442055, 6534980.547083098, 328714.8637621408, 934.4297472299482)
-            ]
-        };
+        TargetLandingCase value = U3Case(1400.78);
+        TrajectoryModel source = U3Source(value.SourceTrajectoryID);
 
         Assert.That(TargetLandingCalculator.Calculate(value, source), Is.True, value.CalculationMessage);
         Assert.That(value.ReachableTargetContourList, Is.Not.Null.And.Not.Empty);
@@ -322,6 +295,23 @@ public sealed class TargetLandingCalculatorTests
                 Assert.That(HasSelfIntersection(contour), Is.False);
             });
         }
+    }
+
+    [Test]
+    public void ProductionU3BuildTurnCaseRetainsDetailedReachableBoundary()
+    {
+        TargetLandingCase value = U3Case(1700.78);
+        value.CurveType = ExtrapolationCurveType.ConstantBuildAndTurn;
+        value.MaximumLandingCurvature = 8.0 * Math.PI / 180.0 / 30.0;
+
+        Assert.That(TargetLandingCalculator.Calculate(value, U3Source(value.SourceTrajectoryID)), Is.True, value.CalculationMessage);
+        Assert.That(value.ReachableTargetContourList, Is.Not.Null.And.Not.Empty);
+        Assert.Multiple(() =>
+        {
+            Assert.That(value.ReachableTargetContourList![0], Has.Count.GreaterThanOrEqualTo(100),
+                "The current production geometry should retain the transition samples needed to represent its curved boundary.");
+            Assert.That(HasSelfIntersection(value.ReachableTargetContourList[0]), Is.False);
+        });
     }
 
     private static TargetLandingCase Case() => new()
@@ -345,6 +335,41 @@ public sealed class TargetLandingCalculatorTests
                 new() { X = 5, Y = 5 }, new() { X = -5, Y = 5 }
             ]
         }
+    };
+
+    private static TargetLandingCase U3Case(double targetTvd)
+    {
+        TargetLandingCase value = Case();
+        value.AttitudeMode = TargetLandingAttitudeMode.Free;
+        value.LeadLength = 30.0;
+        value.Target.Plane = new CurvilinearPoint3D
+        {
+            RiemannianNorth = 6534947.00301523,
+            RiemannianEast = 328721.161419567,
+            TVD = targetTvd,
+            Inclination = 0.191986217719376,
+            Azimuth = 3.05432619099008
+        };
+        value.Target.Polygon =
+        [
+            new() { X = -50.0, Y = -50.0 }, new() { X = 50.0, Y = -50.0 },
+            new() { X = 50.0, Y = 50.0 }, new() { X = -50.0, Y = 50.0 }
+        ];
+        return value;
+    }
+
+    private static TrajectoryModel U3Source(Guid sourceTrajectoryId) => new()
+    {
+        MetaInfo = new MetaInfo { ID = sourceTrajectoryId },
+        LastModificationDate = DateTimeOffset.UtcNow,
+        CalculationType = TrajectoryCalculationType.MinimumCurvatureMethod,
+        SurveyStationList =
+        [
+            Station(905.78, 0.30543195539339985, 3.141585834467332, 6535003.245693119, 328712.2103161793, 860.9392922960917),
+            Station(922.78, 0.28797869523224956, 3.124132061288359, 6534998.275804975, 328712.2524846864, 877.1963052739194),
+            Station(951.78, 0.2844883352921184, 2.9845053863106266, 6534990.137604863, 328712.9611460306, 905.0199983912321),
+            Station(982.78, 0.3577923117971354, 2.9146938185442055, 6534980.547083098, 328714.8637621408, 934.4297472299482)
+        ]
     };
 
     private static TrajectoryModel Source() => new()

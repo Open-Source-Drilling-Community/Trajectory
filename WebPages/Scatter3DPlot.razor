@@ -51,6 +51,7 @@
     [Parameter] public bool ZAxisUsesDepthReference { get; set; }
     [Parameter] public PositionDirectionType XAxisPositionDirection { get; set; } = PositionDirectionType.Independent;
     [Parameter] public PositionDirectionType YAxisPositionDirection { get; set; } = PositionDirectionType.Independent;
+    [Parameter] public long ReferenceSourceVersion { get; set; }
     [Parameter] public EventCallback<int> TraceClicked { get; set; }
 
     // ---- Helpers ----
@@ -603,7 +604,8 @@
             .Append(UseCubeAspect).Append('|')
             .Append(CentralCurvatureMarker).Append('|')
             .Append(XAxisPositionDirection).Append('|')
-            .Append(YAxisPositionDirection).Append('|');
+            .Append(YAxisPositionDirection).Append('|')
+            .Append(ReferenceSourceVersion).Append('|');
 
         AppendListSignature(builder, NameList);
         AppendListSignature(builder, ModeFlagList);

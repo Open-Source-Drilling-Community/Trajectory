@@ -739,7 +739,14 @@ public sealed class WebPageComponentContractTests
             Assert.That(editor, Does.Contain("QuantityName=\"LengthStandard\"").And.Not.Contain("LengthDrilling"),
                 "Target-plane coordinates and landing lengths must use the supported LengthStandard physical quantity.");
             Assert.That(editor, Does.Contain("private static bool Finite(double value)").And.Contain("CylinderPath(TargetLandingSample sample)"));
-            Assert.That(editor, Does.Contain("@if (!loading)"), "Saved target coordinates must not initialize against the temporary new-case model while the case is loading.");
+            Assert.That(editor, Does.Contain("@if (referenceValuesReady)")
+                .And.Contain("referenceValuesReady = true;")
+                .And.Contain("referenceSourceVersion++;")
+                .And.Contain("ReferenceSourceVersion=\"@referenceSourceVersion\""),
+                "Reference-aware inputs and plots must initialize only after source reference values are resolved, and must reformat when their source context changes.");
+            Assert.That(stableUnitInput, Does.Contain("ReferenceSourceVersion != lastReferenceSourceVersion")
+                .And.Contain("lastReferenceSourceVersion = ReferenceSourceVersion"),
+                "A changed reference source must refresh the displayed value even when its canonical SI value is unchanged.");
             Assert.That(editor, Does.Contain("DrillingSignalReferenceType.Depth"));
             Assert.That(editor, Does.Contain("<StableMudInputWithUnitAdornment QuantityLabel=\"Target TVD\"")
                 .And.Contain("SIValueNullableChanged=\"SetTargetTvd\"")

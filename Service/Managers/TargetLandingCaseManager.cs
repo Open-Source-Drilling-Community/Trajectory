@@ -5,6 +5,7 @@ using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.DataManagement;
 using System;
 using System.Collections.Generic;
+using System.Diagnostics;
 using System.Linq;
 using System.Text.Json;
 using System.Threading;
@@ -243,14 +244,24 @@ public sealed class TargetLandingCaseManager
     internal async Task RecalculateAsync(Guid id, DateTimeOffset queuedRevision, CancellationToken cancellationToken)
     {
         await Task.Yield();
+        Stopwatch elapsed = Stopwatch.StartNew();
         try
         {
             cancellationToken.ThrowIfCancellationRequested();
             TargetLandingCase? value = GetById(id);
             if (value?.LastModificationDate != queuedRevision) return;
             Mark(value, CalculationState.Running, 0.01, "Preparing target landing calculation");
-            Save(value, true, queuedRevision);
+            if (!Save(value, true, queuedRevision))
+            {
+                logger_.LogWarning("Target landing calculation {CaseId} could not enter the running state", id);
+                return;
+            }
+
+            Mark(value, CalculationState.Running, 0.03, "Loading source trajectory");
+            UpdateProgress(value, queuedRevision);
             Model.Trajectory? source = trajectoryManager_.GetTrajectoryById(value.SourceTrajectoryID, includeCalculatedStations: true);
+            Mark(value, CalculationState.Running, 0.05, "Reconstructing source trajectory and uncertainty");
+            UpdateProgress(value, queuedRevision);
             source = await trajectoryManager_.CalculateTrajectoryAsync(
                 source,
                 recalculateSurveyRunUncertainty: true);
@@ -261,20 +272,40 @@ public sealed class TargetLandingCaseManager
             }
             else
             {
-                TargetLandingCalculator.Calculate(value, source, (progress, message) =>
+                Mark(value, CalculationState.Running, 0.08, "Preparing target plane sampling");
+                UpdateProgress(value, queuedRevision);
+                bool calculated = TargetLandingCalculator.Calculate(value, source, (progress, message) =>
                 {
                     cancellationToken.ThrowIfCancellationRequested();
-                    value.CalculationProgress = progress;
+                    // The calculator owns the result state, but Completed must not become visible
+                    // until the corresponding large result has been persisted successfully below.
+                    value.CalculationState = CalculationState.Running;
+                    value.CalculationProgress = Math.Clamp(0.08 + 0.90 * progress, 0.08, 0.98);
                     value.CalculationMessage = message;
                     // Keep the lightweight polling representation useful during adaptive sampling.
                     // LastModificationDate remains the queued revision until the terminal write.
                     UpdateProgress(value, queuedRevision);
                 });
+                Mark(value, calculated ? CalculationState.Completed : CalculationState.Failed, 1.0,
+                    value.CalculationMessage);
             }
             TargetLandingCase? current = GetById(id);
             if (current?.LastModificationDate != queuedRevision) return;
             value.LastModificationDate = DateTimeOffset.UtcNow;
-            Save(value, true, queuedRevision);
+            if (!Save(value, true, queuedRevision))
+            {
+                logger_.LogError("Unable to persist the completed target landing calculation {CaseId}", id);
+                value.LastModificationDate = queuedRevision;
+                Mark(value, CalculationState.Failed, 1.0,
+                    "Target landing calculation completed, but its result could not be saved");
+                UpdateProgress(value, queuedRevision);
+                return;
+            }
+
+            logger_.LogInformation(
+                "Target landing calculation {CaseId} finished in {ElapsedMilliseconds} ms with {SampleCount} samples and {ContourPointCount} reachable contour points",
+                id, elapsed.ElapsedMilliseconds, value.SampleList?.Count ?? 0,
+                value.ReachableTargetContourList?.Sum(contour => contour.Count) ?? 0);
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
         {
