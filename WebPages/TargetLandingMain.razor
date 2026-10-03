@@ -4,35 +4,40 @@
 @inject IDialogService DialogService
 @inject ITrajectoryAPIUtils Api
 
-<MudUnitAndReferenceChoiceTag HttpHost="@Api.HostNameUnitConversion" HttpBasePath="@Api.HostBasePathUnitConversion"
-                              HttpController="UnitSystem/" UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
-                              UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName" DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
-                              DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
-                              GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
-                              MeanSeaLevelDepthReferenceSource="@DataUtils.MeanSeaLevelDepthReferenceSource"
-                              SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
-                              RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
-                              PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
-                              PositionReferenceNameChanged="@DataUtils.UpdatePositionReferenceName"
-                              WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
-                              CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
-                              FieldPositionReferenceSource="@DataUtils.FieldPositionReferenceSource"
-                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource"
-                              GeodeticReferenceName="@DataUtils.UnitAndReferenceParameters.GeodeticReferenceName"
-                              GeodeticReferenceNameChanged="@DataUtils.UpdateGeodeticReferenceName"
-                              CartographicProjectionDatumGeodeticReferenceSource="@DataUtils.CartographicProjectionDatumGeodeticReferenceSource"
-                              AzimuthReferenceName="@DataUtils.UnitAndReferenceParameters.AzimuthReferenceName"
-                              AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName"
-                              GridConvergenceSource="@DataUtils.GridConvergenceSource"
-                              MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource">
-    @if (editing)
-    {
+@if (editing)
+{
+    <MudUnitAndReferenceChoiceTag HttpHost="@Api.HostNameUnitConversion" HttpBasePath="@Api.HostBasePathUnitConversion"
+                                  HttpController="UnitSystem/" UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
+                                  UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName" DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
+                                  DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
+                                  GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                                  MeanSeaLevelDepthReferenceSource="@DataUtils.MeanSeaLevelDepthReferenceSource"
+                                  SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
+                                  RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
+                                  PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
+                                  PositionReferenceNameChanged="@DataUtils.UpdatePositionReferenceName"
+                                  WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
+                                  CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
+                                  FieldPositionReferenceSource="@DataUtils.FieldPositionReferenceSource"
+                                  ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource"
+                                  GeodeticReferenceName="@DataUtils.UnitAndReferenceParameters.GeodeticReferenceName"
+                                  GeodeticReferenceNameChanged="@DataUtils.UpdateGeodeticReferenceName"
+                                  CartographicProjectionDatumGeodeticReferenceSource="@DataUtils.CartographicProjectionDatumGeodeticReferenceSource"
+                                  AzimuthReferenceName="@DataUtils.UnitAndReferenceParameters.AzimuthReferenceName"
+                                  AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName"
+                                  GridConvergenceSource="@DataUtils.GridConvergenceSource"
+                                  MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource">
         <TargetLandingEdit CaseId="@caseId" ValueChanged="LoadAsync" />
-    }
-    else
+    </MudUnitAndReferenceChoiceTag>
+}
+else
+{
+    @if (loading)
     {
-        <MudDataGrid T="TargetLandingCaseLight" Items="@cases" Hover="true" RowClick="OpenRow" ReadOnly="true"
-                     QuickFilter="Filter" SortMode="SortMode.Multiple" Elevation="0">
+        <MudProgressLinear Indeterminate="true" Color="Color.Info" Class="mb-2" />
+    }
+    <MudDataGrid T="TargetLandingCaseLight" Items="@cases" Hover="true" RowClick="OpenRow" ReadOnly="true"
+                 QuickFilter="Filter" SortMode="SortMode.Multiple" Elevation="0">
             <ToolBarContent>
                 <MudText Typo="Typo.h6">Target Landing</MudText>
                 <MudButton Color="Color.Success" OnClick="Add">Add</MudButton>
@@ -55,15 +60,15 @@
                 <TemplateColumn><CellTemplate><MudIconButton Icon="@Icons.Material.Outlined.Delete" Size="Size.Small" OnClick="@(() => DeleteAsync(context.Item))" /></CellTemplate></TemplateColumn>
             </Columns>
             <PagerContent><MudDataGridPager T="TargetLandingCaseLight" /></PagerContent>
-        </MudDataGrid>
-    }
-</MudUnitAndReferenceChoiceTag>
+    </MudDataGrid>
+}
 
 @code {
     private List<TargetLandingCaseLight> cases = [];
     private List<TrajectoryLight> trajectories = [];
     private Guid? caseId;
     private bool editing;
+    private bool loading;
     private string? search;
     private CancellationTokenSource? polling;
 
@@ -71,16 +76,19 @@
     private async Task LoadAsync()
     {
         editing = false; caseId = null; polling?.Cancel();
+        loading = true;
         try
         {
             Task<List<TargetLandingCaseLight>> casesTask = Api.ClientTrajectory.GetAllTargetLandingCaseLightAsync();
             Task<List<TrajectoryLight>> trajectoriesTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
-            await Task.WhenAll(casesTask, trajectoriesTask);
             cases = (await casesTask).OrderBy(x => x.Name).ToList();
+            loading = false;
+            await InvokeAsync(StateHasChanged);
             trajectories = await trajectoriesTask;
             if (cases.Any(Active)) { polling = new(); _ = PollAsync(polling.Token); }
         }
         catch (Exception ex) { logger.LogError(ex, "Unable to load target landing cases"); Snackbar.Add("Unable to load target landing cases.", Severity.Error); }
+        finally { loading = false; }
     }
     private void Add() { caseId = null; editing = true; }
     private Task OpenRow(DataGridRowClickEventArgs<TargetLandingCaseLight> args) { caseId = args.Item.MetaInfo.ID; editing = true; return Task.CompletedTask; }

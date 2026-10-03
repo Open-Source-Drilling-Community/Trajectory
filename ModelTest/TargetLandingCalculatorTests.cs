@@ -28,7 +28,7 @@ public sealed class TargetLandingCalculatorTests
         {
             Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(4));
             Assert.That(TargetLandingCalculator.BoundaryPositionTolerance, Is.EqualTo(0.25));
-            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(10));
+            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(11));
         });
     }
 
@@ -81,6 +81,36 @@ public sealed class TargetLandingCalculatorTests
                 "A circular arc's exact local toolface must not be presented as its constant start/reference toolface.");
             Assert.That(caControls.All(point => Math.Abs(point.Curvature - 0.002) < 1e-12), Is.True);
         });
+    }
+
+    [Test]
+    public void ConstantToolfaceVerticalReachIsRejected()
+    {
+        TrajectoryPoint3D start = new()
+        {
+            X = 0.0, Y = 0.0, Z = 0.0, Abscissa = 1000.0,
+            Inclination = 0.2, Azimuth = 0.3
+        };
+        ConstantCurvatureAndToolfaceArcSection beforeVertical = CtcSection(50.0);
+        ConstantCurvatureAndToolfaceArcSection atVertical = CtcSection(100.0);
+        ConstantCurvatureAndToolfaceArcSection beyondVertical = CtcSection(150.0);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(TargetLandingCalculator.ConstantToolfaceSectionReachesVertical(beforeVertical), Is.False);
+            Assert.That(TargetLandingCalculator.ConstantToolfaceSectionReachesVertical(atVertical), Is.True);
+            Assert.That(TargetLandingCalculator.ConstantToolfaceSectionReachesVertical(beyondVertical), Is.True);
+        });
+
+        ConstantCurvatureAndToolfaceArcSection CtcSection(double length)
+        {
+            ConstantCurvatureAndToolfaceArcSection section = new(start, new TrajectoryPoint3D());
+            section.CTCCurve.Length = length;
+            section.CTCCurve.Curvature = 0.002;
+            section.CTCCurve.Toolface = Math.PI;
+            Assert.That(section.CalculateLDT(), Is.True);
+            return section;
+        }
     }
 
     [Test]
@@ -319,6 +349,34 @@ public sealed class TargetLandingCalculatorTests
             Assert.That(value.SampleList!.OrderBy(sample => sample.PolarRadius).First().State,
                 Is.EqualTo(TargetLandingSampleState.Reachable),
                 "A compliant alternative constant-build-and-turn root reaches the target centre; the shortest root alone exceeds the curvature limit.");
+        });
+    }
+
+    [Test]
+    public void ProductionU3ConstantToolfaceCaseRejectsVerticalReachingSolutions()
+    {
+        TargetLandingCase value = U3Case(1700.78);
+        value.CurveType = ExtrapolationCurveType.ConstantCurvatureAndToolface;
+        value.MaximumLandingCurvature = 8.0 * Math.PI / 180.0 / 30.0;
+
+        Assert.That(TargetLandingCalculator.Calculate(value, U3Source(value.SourceTrajectoryID)), Is.True, value.CalculationMessage);
+        List<TargetLandingSample> samples = value.SampleList!;
+        List<TargetLandingSample> rejected = samples
+            .Where(sample => sample.Message?.Contains("reaches vertical", StringComparison.Ordinal) == true)
+            .ToList();
+        List<TargetLandingSample> reachable = samples
+            .Where(sample => sample.State == TargetLandingSampleState.Reachable)
+            .ToList();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(rejected, Is.Not.Empty,
+                "The production geometry must exercise the CTC vertical singularity regression.");
+            Assert.That(rejected.All(sample => sample.State == TargetLandingSampleState.NoGeometricSolution), Is.True);
+            Assert.That(reachable, Is.Not.Empty);
+            Assert.That(reachable.SelectMany(sample => sample.ControlPointList ?? [])
+                .Any(point => point.Curvature > 1e-8 && Math.Abs(point.BuildRate) < 1e-14 && Math.Abs(point.TurnRate) < 1e-14),
+                Is.False, "A retained CTC solution must not contain the former nonzero-curvature tangent continuation.");
         });
     }
 

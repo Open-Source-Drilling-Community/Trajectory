@@ -16,7 +16,7 @@ public static class TargetLandingCalculator
 {
     internal const int MaximumAdaptiveDepth = 4;
     internal const int EllipsePointCount = 72;
-    internal const int CalculationAlgorithmVersion = 10;
+    internal const int CalculationAlgorithmVersion = 11;
     internal const double BoundaryPositionTolerance = 0.25;
     internal const double PositionTolerance = 0.05;
     internal const double SamplingInterval = 10.0;
@@ -224,6 +224,11 @@ public static class TargetLandingCalculator
         if (sections.Count == 0 || sections.Any(x => SectionLength(x) <= 0.0))
         {
             result.Message = "The landing solution does not have positive forward section lengths.";
+            return result;
+        }
+        if (sections.OfType<ConstantCurvatureAndToolfaceArcSection>().Any(ConstantToolfaceSectionReachesVertical))
+        {
+            result.Message = "The constant-curvature-and-toolface solution reaches vertical, where toolface and turn rate are undefined.";
             return result;
         }
         result.TotalLandingLength = sections.Sum(SectionLength);
@@ -491,6 +496,28 @@ public static class TargetLandingCalculator
             BuildAndTurnArcSection bt => PeakBuildTurnCurvature(bt),
             _ => double.PositiveInfinity
         };
+    }
+
+    internal static bool ConstantToolfaceSectionReachesVertical(ConstantCurvatureAndToolfaceArcSection section)
+    {
+        const double inclinationMargin = 1.0e-9;
+        if (section.Start.Inclination is not double startInclination ||
+            section.CTCCurve.Curvature is not double curvature ||
+            section.CTCCurve.Toolface is not double toolface)
+            return true;
+
+        double length = SectionLength(section);
+        if (!Finite(startInclination) || !Finite(curvature) || !Finite(toolface) || !Finite(length) || length < 0.0)
+            return true;
+        if (startInclination <= inclinationMargin || startInclination >= Math.PI - inclinationMargin)
+            return true;
+
+        double buildRate = curvature * Math.Cos(toolface);
+        if (Math.Abs(buildRate) <= 1e-14) return false;
+        double rawEndInclination = startInclination + buildRate * length;
+        return buildRate < 0.0
+            ? rawEndInclination <= inclinationMargin
+            : rawEndInclination >= Math.PI - inclinationMargin;
     }
 
     private static double PeakBuildTurnCurvature(BuildAndTurnArcSection section)

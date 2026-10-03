@@ -717,6 +717,9 @@ public sealed class WebPageComponentContractTests
         string navigation = File.ReadAllText(Path.Combine(repositoryRoot, "WebApp", "Shared", "NavMenu.razor"));
         string savePayload = GetMethodSource(editor,
             "private static TargetLandingCase CreateSavePayload", "private List<PlaneContour> PlaneContours");
+        string listLoad = GetMethodSource(main, "private async Task LoadAsync()", "private void Add()");
+        int referenceSelectorEnd = main.IndexOf("</MudUnitAndReferenceChoiceTag>", StringComparison.Ordinal);
+        int listGridStart = main.IndexOf("<MudDataGrid T=\"TargetLandingCaseLight\"", StringComparison.Ordinal);
 
         Assert.Multiple(() =>
         {
@@ -728,6 +731,12 @@ public sealed class WebPageComponentContractTests
             Assert.That(main, Does.Contain("GridConvergenceSource=\"@DataUtils.GridConvergenceSource\""));
             Assert.That(main, Does.Contain("GeodeticReferenceName=\"@DataUtils.UnitAndReferenceParameters.GeodeticReferenceName\""));
             Assert.That(main, Does.Contain("CartographicProjectionDatumGeodeticReferenceSource=\"@DataUtils.CartographicProjectionDatumGeodeticReferenceSource\""));
+            Assert.That(referenceSelectorEnd, Is.GreaterThanOrEqualTo(0).And.LessThan(listGridStart),
+                "The list must render without waiting for the editor-only unit and reference selector.");
+            Assert.That(listLoad.IndexOf("cases = (await casesTask)", StringComparison.Ordinal),
+                Is.LessThan(listLoad.IndexOf("trajectories = await trajectoriesTask", StringComparison.Ordinal)));
+            Assert.That(listLoad, Does.Contain("await InvokeAsync(StateHasChanged);"),
+                "Target landing cases must be rendered as soon as their light response arrives, before source names finish loading.");
             Assert.That(editor, Does.Contain("QuantityLabel=\"North\"").And.Contain("QuantityLabel=\"East\""));
             Assert.That(editor, Does.Contain("QuantityLabel=\"Latitude\"").And.Contain("QuantityLabel=\"Longitude\""));
             Assert.That(editor, Does.Contain("DrillingSignalReferenceType.Geodetic").And.Contain("PlaneAngleGeodesic"));
