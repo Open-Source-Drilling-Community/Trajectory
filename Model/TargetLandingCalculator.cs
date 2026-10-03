@@ -16,6 +16,7 @@ public static class TargetLandingCalculator
 {
     internal const int MaximumAdaptiveDepth = 4;
     internal const int EllipsePointCount = 72;
+    internal const int CalculationAlgorithmVersion = 2;
     internal const double PositionTolerance = 0.05;
     internal const double SamplingInterval = 10.0;
 
@@ -152,7 +153,7 @@ public static class TargetLandingCalculator
             value.ConfidenceFactor,
             value.MaximumLandingCurvature,
             value.Target,
-            AlgorithmVersion = 1
+            AlgorithmVersion = CalculationAlgorithmVersion
         };
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(JsonSerializer.Serialize(input))));
     }
@@ -530,36 +531,118 @@ public static class TargetLandingCalculator
         return StitchSegments(segments);
     }
 
-    private static List<List<TargetPlanePoint>> StitchSegments(List<PlaneSegment> segments)
-    {
-        List<List<TargetPlanePoint>> contours = [];
-        while (segments.Count > 0)
-        {
-            PlaneSegment seed = segments[^1];
-            segments.RemoveAt(segments.Count - 1);
-            List<TargetPlanePoint> contour = [Copy(seed.A), Copy(seed.B)];
-            bool extended;
-            do
-            {
-                extended = false;
-                for (int index = segments.Count - 1; index >= 0; index--)
-                {
-                    PlaneSegment candidate = segments[index];
-                    if (SamePoint(contour[^1], candidate.A)) contour.Add(Copy(candidate.B));
-                    else if (SamePoint(contour[^1], candidate.B)) contour.Add(Copy(candidate.A));
-                    else if (SamePoint(contour[0], candidate.B)) contour.Insert(0, Copy(candidate.A));
-                    else if (SamePoint(contour[0], candidate.A)) contour.Insert(0, Copy(candidate.B));
-                    else continue;
-                    segments.RemoveAt(index);
-                    extended = true;
-                    break;
-                }
-            } while (extended);
+    private static List<List<TargetPlanePoint>> StitchSegments(List<PlaneSegment> segments) =>
+        TraceBoundaryLoops(segments.Select(segment => (segment.A, segment.B)));
 
-            if (contour.Count > 2 && SamePoint(contour[0], contour[^1])) contour.RemoveAt(contour.Count - 1);
-            if (contour.Count >= 3) contours.Add(contour);
+    /// <summary>
+    /// Traces the exterior face of each connected segment graph. Adaptive target meshes can leave
+    /// several contour segments meeting at one coordinate. A greedy chain then follows an arbitrary
+    /// branch and creates self-intersecting chords. Walking planar graph faces keeps those internal
+    /// branches out of the returned zone boundary.
+    /// </summary>
+    internal static List<List<TargetPlanePoint>> TraceBoundaryLoops(
+        IEnumerable<(TargetPlanePoint A, TargetPlanePoint B)> segments)
+    {
+        Dictionary<string, TargetPlanePoint> points = [];
+        Dictionary<string, HashSet<string>> neighbours = [];
+        HashSet<string> uniqueEdges = [];
+
+        foreach ((TargetPlanePoint a, TargetPlanePoint b) in segments)
+        {
+            string aKey = Key(a);
+            string bKey = Key(b);
+            if (aKey == bKey) continue;
+            string edgeKey = string.CompareOrdinal(aKey, bKey) < 0 ? $"{aKey}>{bKey}" : $"{bKey}>{aKey}";
+            if (!uniqueEdges.Add(edgeKey)) continue;
+
+            points.TryAdd(aKey, Copy(a));
+            points.TryAdd(bKey, Copy(b));
+            if (!neighbours.TryGetValue(aKey, out HashSet<string>? aNeighbours))
+                neighbours[aKey] = aNeighbours = [];
+            if (!neighbours.TryGetValue(bKey, out HashSet<string>? bNeighbours))
+                neighbours[bKey] = bNeighbours = [];
+            aNeighbours.Add(bKey);
+            bNeighbours.Add(aKey);
         }
-        return contours.OrderByDescending(x => Math.Abs(PolygonArea(x))).ToList();
+
+        List<List<TargetPlanePoint>> contours = [];
+        HashSet<string> unassigned = [.. neighbours.Keys];
+        while (unassigned.Count > 0)
+        {
+            string seed = unassigned.Order(StringComparer.Ordinal).First();
+            HashSet<string> component = [];
+            Queue<string> pending = new();
+            pending.Enqueue(seed);
+            unassigned.Remove(seed);
+            while (pending.TryDequeue(out string? current))
+            {
+                component.Add(current);
+                foreach (string next in neighbours[current])
+                {
+                    if (unassigned.Remove(next)) pending.Enqueue(next);
+                }
+            }
+
+            List<(List<TargetPlanePoint> Points, double Area)> faces = [];
+            HashSet<(string From, string To)> visitedDirectedEdges = [];
+            foreach (string from in component.Order(StringComparer.Ordinal))
+            {
+                foreach (string to in neighbours[from].Order(StringComparer.Ordinal))
+                {
+                    if (visitedDirectedEdges.Contains((from, to))) continue;
+                    List<TargetPlanePoint>? face = TraceFace(from, to, component.Count + uniqueEdges.Count);
+                    if (face == null || face.Count < 3) continue;
+                    double area = PolygonArea(face);
+                    if (Math.Abs(area) > PositionTolerance * PositionTolerance) faces.Add((face, area));
+                }
+            }
+
+            // With the face on the left of every directed edge, the exterior face is clockwise.
+            // Fall back to the largest simple face for degenerate orientation or legacy data.
+            List<(List<TargetPlanePoint> Points, double Area)> clockwiseFaces = faces
+                .Where(face => face.Area < 0.0)
+                .OrderBy(face => face.Area)
+                .ToList();
+            (List<TargetPlanePoint> Points, double Area)? exterior = clockwiseFaces.Count > 0
+                ? clockwiseFaces[0]
+                : faces.Count > 0
+                    ? faces.OrderByDescending(face => Math.Abs(face.Area)).First()
+                    : null;
+            if (exterior is { } selected)
+            {
+                if (selected.Area < 0.0) selected.Points.Reverse();
+                contours.Add(selected.Points);
+            }
+
+            List<TargetPlanePoint>? TraceFace(string startFrom, string startTo, int maximumSteps)
+            {
+                (string From, string To) start = (startFrom, startTo);
+                (string From, string To) edge = start;
+                List<string> vertexKeys = [];
+                for (int step = 0; step <= maximumSteps * 2; step++)
+                {
+                    if (!visitedDirectedEdges.Add(edge)) return null;
+                    vertexKeys.Add(edge.From);
+
+                    List<string> orderedNeighbours = neighbours[edge.To]
+                        .OrderBy(key => Math.Atan2(points[key].Y - points[edge.To].Y, points[key].X - points[edge.To].X))
+                        .ThenBy(key => key, StringComparer.Ordinal)
+                        .ToList();
+                    int incomingIndex = orderedNeighbours.IndexOf(edge.From);
+                    if (incomingIndex < 0) return null;
+                    string next = orderedNeighbours[(incomingIndex - 1 + orderedNeighbours.Count) % orderedNeighbours.Count];
+                    edge = (edge.To, next);
+                    if (edge == start)
+                    {
+                        if (vertexKeys.Distinct(StringComparer.Ordinal).Count() != vertexKeys.Count) return null;
+                        return vertexKeys.Select(key => Copy(points[key])).ToList();
+                    }
+                }
+                return null;
+            }
+        }
+
+        return contours.OrderByDescending(contour => Math.Abs(PolygonArea(contour))).ToList();
     }
 
     private static List<TargetPlanePoint> LargestContour(IReadOnlyList<List<TargetPlanePoint>>? contours) =>

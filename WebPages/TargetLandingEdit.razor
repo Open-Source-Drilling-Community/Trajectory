@@ -35,44 +35,41 @@
     <MudItem xs="12" md="3"><MudSelect T="TargetLandingAttitudeMode" @bind-Value="value.AttitudeMode" Label="Landing attitude">@foreach (var item in Enum.GetValues<TargetLandingAttitudeMode>()) { <MudSelectItem Value="item">@(item == TargetLandingAttitudeMode.PerpendicularToTargetPlane ? "Land perpendicular to target plane" : "Free landing attitude")</MudSelectItem> }</MudSelect></MudItem>
 </MudGrid>
 <MudGrid>
-    <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Lead length" QuantityName="DepthDrilling" SIValue="@value.LeadLength" SIValueChanged="x => value.LeadLength = x" /></MudItem>
-    <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Confidence factor" QuantityName="ProportionStandard" SIValue="@value.ConfidenceFactor" SIValueChanged="x => value.ConfidenceFactor = Math.Clamp(x, 0.000001, 0.999)" /></MudItem>
-    <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Maximum Landing Curvature" QuantityName="CurvatureDrilling" SIValueNullable="@value.MaximumLandingCurvature" SIValueNullableChanged="x => value.MaximumLandingCurvature = x" /></MudItem>
+    <MudItem xs="12" md="3"><StableMudInputWithUnitAdornment QuantityLabel="Lead length" QuantityName="DepthDrilling" SIValue="@value.LeadLength" SIValueChanged="x => value.LeadLength = x" /></MudItem>
+    <MudItem xs="12" md="3"><StableMudInputWithUnitAdornment QuantityLabel="Confidence factor" QuantityName="ProportionStandard" SIValue="@value.ConfidenceFactor" SIValueChanged="x => value.ConfidenceFactor = Math.Clamp(x, 0.000001, 0.999)" /></MudItem>
+    <MudItem xs="12" md="3"><StableMudInputWithUnitAdornment QuantityLabel="Maximum Landing Curvature" QuantityName="CurvatureDrilling" SIValueNullable="@value.MaximumLandingCurvature" SIValueNullableChanged="x => value.MaximumLandingCurvature = x" /></MudItem>
 </MudGrid>
 
+@if (!loading)
+{
 <MudPaper Class="pa-4 mt-4" Outlined="true">
     <MudText Typo="Typo.subtitle1">Target plane origin and forward normal</MudText>
-    <MudSelect T="OriginCoordinateMode" @bind-Value="originMode" Label="Origin coordinate input" Class="mb-2" Style="max-width:260px"><MudSelectItem Value="OriginCoordinateMode.Cartesian">Riemannian North / East</MudSelectItem><MudSelectItem Value="OriginCoordinateMode.Geographic">WGS84 latitude / longitude</MudSelectItem></MudSelect>
     <MudGrid>
-        @if (originMode == OriginCoordinateMode.Cartesian)
-        {
-            <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Riemannian North" QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.North" SIValueNullable="@Plane.RiemannianNorth" SIValueNullableChanged="SetNorth" /></MudItem>
-            <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Riemannian East" QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.East" SIValueNullable="@Plane.RiemannianEast" SIValueNullableChanged="SetEast" /></MudItem>
-        }
-        else
-        {
-            <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="WGS84 latitude" QuantityName="PlaneAngleDrilling" SIValueNullable="@Plane.Latitude" SIValueNullableChanged="SetLatitude" /></MudItem>
-            <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="WGS84 longitude" QuantityName="PlaneAngleDrilling" SIValueNullable="@Plane.Longitude" SIValueNullableChanged="SetLongitude" /></MudItem>
-        }
-        <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Target TVD" QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValueNullable="@Plane.TVD" SIValueNullableChanged="x => { Plane.TVD = x; Plane.Z = x; }" /></MudItem>
-        <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Normal inclination" QuantityName="PlaneAngleDrilling" SIValueNullable="@Plane.Inclination" SIValueNullableChanged="x => Plane.Inclination = x" /></MudItem>
-        <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Normal azimuth" QuantityName="PlaneAngleDrilling" DrillingSignalReference="DrillingSignalReferenceType.Azimuth" SIValueNullable="@Plane.Azimuth" SIValueNullableChanged="x => Plane.Azimuth = x" /></MudItem>
+        <MudItem xs="12" md="3"><StableMudInputWithUnitAdornment QuantityLabel="North" QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.North" SIValueNullable="@Plane.RiemannianNorth" SIValueNullableChanged="SetNorth" /></MudItem>
+        <MudItem xs="12" md="3"><StableMudInputWithUnitAdornment QuantityLabel="East" QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.East" SIValueNullable="@Plane.RiemannianEast" SIValueNullableChanged="SetEast" /></MudItem>
+        <MudItem xs="12" md="3"><StableMudInputWithUnitAdornment QuantityLabel="Latitude" QuantityName="PlaneAngleGeodesic" DrillingSignalReference="DrillingSignalReferenceType.Geodetic" PositionDirection="PositionDirectionType.North" SIValueNullable="@Plane.Latitude" SIValueNullableChanged="SetLatitude" /></MudItem>
+        <MudItem xs="12" md="3"><StableMudInputWithUnitAdornment QuantityLabel="Longitude" QuantityName="PlaneAngleGeodesic" DrillingSignalReference="DrillingSignalReferenceType.Geodetic" PositionDirection="PositionDirectionType.East" SIValueNullable="@Plane.Longitude" SIValueNullableChanged="SetLongitude" /></MudItem>
+        <MudItem xs="12" md="3"><StableMudInputWithUnitAdornment QuantityLabel="Target TVD" QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValueNullable="@Plane.TVD" SIValueNullableChanged="SetTargetTvd" /></MudItem>
+        <MudItem xs="12" md="3"><StableMudInputWithUnitAdornment QuantityLabel="Normal inclination" QuantityName="PlaneAngleDrilling" SIValueNullable="@Plane.Inclination" SIValueNullableChanged="x => Plane.Inclination = x" /></MudItem>
+        <MudItem xs="12" md="3"><StableMudInputWithUnitAdornment QuantityLabel="Normal azimuth" QuantityName="PlaneAngleDrilling" DrillingSignalReference="DrillingSignalReferenceType.Azimuth" SIValueNullable="@Plane.Azimuth" SIValueNullableChanged="x => Plane.Azimuth = x" /></MudItem>
     </MudGrid>
 </MudPaper>
 
 <MudPaper Class="pa-4 mt-4" Outlined="true">
-    <MudStack Row="true" AlignItems="AlignItems.Center"><MudText Typo="Typo.subtitle1">Convex target polygon</MudText><MudButton Color="Color.Success" OnClick="AddVertex">Add vertex</MudButton><MudSpacer /><MudSelect T="PolygonCoordinateMode" @bind-Value="polygonMode" Label="Coordinates" Style="width:180px"><MudSelectItem Value="PolygonCoordinateMode.Cartesian">Cartesian</MudSelectItem><MudSelectItem Value="PolygonCoordinateMode.Polar">Polar</MudSelectItem></MudSelect></MudStack>
+    <MudStack Row="true" AlignItems="AlignItems.Center"><MudText Typo="Typo.subtitle1">Convex target polygon</MudText><MudButton Color="Color.Success" OnClick="AddVertex">Add vertex</MudButton></MudStack>
+    <MudText Typo="Typo.body2" Class="mb-2">Plane Y is the projection of vertical upward into the target plane; Plane X is perpendicular to Plane Y and the forward plane normal. For a horizontal target plane, Plane X is North and Plane Y is East. The angle follows the toolface convention: zero along positive Plane Y and positive toward positive Plane X.</MudText>
     <MudTable T="TargetPlanePoint" Items="@Polygon" Dense="true" Bordered="true">
-        <HeaderContent><MudTh>#</MudTh>@if (polygonMode == PolygonCoordinateMode.Cartesian) { <MudTh>Plane X</MudTh><MudTh>Plane Y (up)</MudTh> } else { <MudTh>Radius</MudTh><MudTh>Plane angle</MudTh> }<MudTh></MudTh></HeaderContent>
+        <HeaderContent><MudTh>#</MudTh><MudTh>Plane X</MudTh><MudTh>Plane Y</MudTh><MudTh>Radial distance</MudTh><MudTh>Angle</MudTh><MudTh></MudTh></HeaderContent>
         <RowTemplate><MudTd>@Polygon.IndexOf(context)</MudTd>
-            @if (polygonMode == PolygonCoordinateMode.Cartesian)
-            { <MudTd><MudInputWithUnitAdornment QuantityName="LengthDrilling" QuantityLabel="X" SIValue="@context.X" SIValueChanged="x => context.X = x" /></MudTd><MudTd><MudInputWithUnitAdornment QuantityName="LengthDrilling" QuantityLabel="Y" SIValue="@context.Y" SIValueChanged="x => context.Y = x" /></MudTd> }
-            else
-            { <MudTd><MudInputWithUnitAdornment QuantityName="LengthDrilling" QuantityLabel="Radius" SIValue="@Radius(context)" SIValueChanged="x => SetRadius(context, x)" /></MudTd><MudTd><MudInputWithUnitAdornment QuantityName="PlaneAngleDrilling" QuantityLabel="Angle" SIValue="@Angle(context)" SIValueChanged="x => SetAngle(context, x)" /></MudTd> }
+            <MudTd><StableMudInputWithUnitAdornment QuantityName="LengthStandard" QuantityLabel="X" SIValue="@context.X" SIValueChanged="x => SetX(context, x)" /></MudTd>
+            <MudTd><StableMudInputWithUnitAdornment QuantityName="LengthStandard" QuantityLabel="Y" SIValue="@context.Y" SIValueChanged="x => SetY(context, x)" /></MudTd>
+            <MudTd><StableMudInputWithUnitAdornment QuantityName="LengthStandard" QuantityLabel="Radial distance" SIValue="@Radius(context)" SIValueChanged="x => SetRadius(context, x)" /></MudTd>
+            <MudTd><StableMudInputWithUnitAdornment QuantityName="PlaneAngleDrilling" QuantityLabel="Angle" SIValue="@Angle(context)" SIValueChanged="x => SetAngle(context, x)" /></MudTd>
             <MudTd><MudIconButton Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => Polygon.Remove(context))" /></MudTd>
         </RowTemplate>
     </MudTable>
 </MudPaper>
+}
 
 @if (value.CalculationState is CalculationState.Queued or CalculationState.Running)
 { <MudProgressLinear Class="mt-4" Value="@(100 * value.CalculationProgress)" /><MudText Typo="Typo.caption">@value.CalculationMessage</MudText> }
@@ -81,14 +78,14 @@
 {
     <MudText Typo="Typo.h6" Class="mt-4">Landing result</MudText>
     <MudText Typo="Typo.body2">Black: specified target. Blue: uncertainty-safe driller target. Green: reachable within Maximum Landing Curvature. Orange/red samples are excluded by uncertainty/curvature or geometry.</MudText>
-    <ScatterPlot NameList="@PlanePlotNames" ModeFlagList="@PlanePlotModes" ColorList="@PlanePlotColors" XValuesList="@PlanePlotX" YValuesList="@PlanePlotY" XUnit="LengthDrilling" YUnit="LengthDrilling" XAxisTitle="Plane X" YAxisTitle="Plane Y (up)" AspectRatio="1" />
+    <ScatterPlot NameList="@PlanePlotNames" ModeFlagList="@PlanePlotModes" ColorList="@PlanePlotColors" XValuesList="@PlanePlotX" YValuesList="@PlanePlotY" XUnit="LengthStandard" YUnit="LengthStandard" XAxisTitle="Plane X" YAxisTitle="Plane Y (up)" AspectRatio="1" />
     @if (value.CurveType == ExtrapolationCurveType.ConstantBuildAndTurn)
     { <ScatterPlot NameList="@ControlNames" ModeFlagList="@ControlModes" ColorList="@ControlColors" XValuesList="@TurnValues" YValuesList="@BuildValues" XUnit="CurvatureDrilling" YUnit="CurvatureDrilling" XAxisTitle="Turn rate" YAxisTitle="Build rate" AspectRatio="1" /> }
     else
     { <Scatter3DPlot NameList="@ControlNames" ModeFlagList="@ControlModes" ColorList="@ControlColors" XValuesList="@ControlX" YValuesList="@ControlY" ZValuesList="@ControlZ" XUnit="Dimensionless" YUnit="Dimensionless" ZUnit="CurvatureDrilling" XAxisTitle="Normalized radial X" YAxisTitle="Normalized radial Y" ZAxisTitle="Curvature" /> }
     <MudTable T="TargetLandingSample" Items="@value.SampleList" Dense="true" Bordered="true" Hover="true" Style="max-height:500px;overflow:auto">
         <HeaderContent><MudTh>State</MudTh><MudTh>Plane X</MudTh><MudTh>Plane Y</MudTh><MudTh>Radius</MudTh><MudTh>Angle</MudTh><MudTh>North</MudTh><MudTh>East</MudTh><MudTh>TVD</MudTh><MudTh>Length</MudTh><MudTh>Peak curvature</MudTh><MudTh>Commands</MudTh></HeaderContent>
-        <RowTemplate><MudTd Style="@StateStyle(context.State)">@context.State</MudTd><MudTd><MudSpanWithUnit QuantityName="LengthDrilling" SIValue="@context.PlaneX" /></MudTd><MudTd><MudSpanWithUnit QuantityName="LengthDrilling" SIValue="@context.PlaneY" /></MudTd><MudTd><MudSpanWithUnit QuantityName="LengthDrilling" SIValue="@context.PolarRadius" /></MudTd><MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.PolarAngle" /></MudTd><MudTd><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.North" SIValue="@context.North" /></MudTd><MudTd><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.East" SIValue="@context.East" /></MudTd><MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.TVD" /></MudTd><MudTd><MudSpanWithUnit QuantityName="LengthDrilling" SIValue="@context.TotalLandingLength" /></MudTd><MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.PeakLandingCurvature" /></MudTd><MudTd>@Commands(context)</MudTd></RowTemplate>
+        <RowTemplate><MudTd Style="@StateStyle(context.State)">@context.State</MudTd><MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.PlaneX" /></MudTd><MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.PlaneY" /></MudTd><MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.PolarRadius" /></MudTd><MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.PolarAngle" /></MudTd><MudTd><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.North" SIValue="@context.North" /></MudTd><MudTd><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.East" SIValue="@context.East" /></MudTd><MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.TVD" /></MudTd><MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.TotalLandingLength" /></MudTd><MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.PeakLandingCurvature" /></MudTd><MudTd>@Commands(context)</MudTd></RowTemplate>
     </MudTable>
 }
 
@@ -97,7 +94,7 @@
     [Parameter] public EventCallback ValueChanged { get; set; }
     private TargetLandingCase value = NewCase();
     private List<Field> fields = []; private List<Cluster> clusters = []; private List<Well> wells = []; private List<WellBore> wellBores = []; private List<Rig> rigs = []; private List<TrajectoryLight> trajectories = []; private List<SurveyRunLight> surveyRuns = [];
-    private Guid? fieldId, clusterId, wellId, wellBoreId, selectedRigJobId; private DateTimeOffset? sourceReferenceDate; private bool loading; private OriginCoordinateMode originMode; private PolygonCoordinateMode polygonMode;
+    private Guid? fieldId, clusterId, wellId, wellBoreId, selectedRigJobId; private DateTimeOffset? sourceReferenceDate; private bool loading;
     private CurvilinearPoint3D Plane => value.Target.Plane;
     private List<TargetPlanePoint> Polygon => value.Target.Polygon;
     private Guid? SourceTrajectoryId => value.SourceTrajectoryID == Guid.Empty ? null : value.SourceTrajectoryID;
@@ -116,7 +113,7 @@
             InitializeHierarchy();
             sourceReferenceDate = await ResolveSourceTrajectoryDateAsync(SourceTrajectoryId);
             await UpdateSourceReferenceValuesAsync();
-            if (Plane.RiemannianNorth == null && Plane.Latitude != null) originMode = OriginCoordinateMode.Geographic;
+            CompleteOriginCoordinates();
         }
         catch (Exception ex) { logger.LogError(ex, "Unable to initialize target landing editor"); Snackbar.Add("Unable to load the target landing case.", Severity.Error); }
         finally { loading = false; }
@@ -126,8 +123,9 @@
         if (string.IsNullOrWhiteSpace(value.Name) || value.SourceTrajectoryID == Guid.Empty) { Snackbar.Add("Name and source trajectory are required.", Severity.Warning); return; }
         try
         {
-            if (value.CreationDate == null) await Api.ClientTrajectory.PostTargetLandingCaseAsync(value);
-            else await Api.ClientTrajectory.PutTargetLandingCaseByIdAsync(value.MetaInfo.ID, ConcurrencyToken.Require(value.LastModificationDate), value);
+            TargetLandingCase savePayload = CreateSavePayload(value);
+            if (value.CreationDate == null) await Api.ClientTrajectory.PostTargetLandingCaseAsync(savePayload);
+            else await Api.ClientTrajectory.PutTargetLandingCaseByIdAsync(value.MetaInfo.ID, ConcurrencyToken.Require(value.LastModificationDate), savePayload);
             Snackbar.Add("Target landing calculation queued.", Severity.Success); await ValueChanged.InvokeAsync();
         }
         catch (Exception ex) { logger.LogError(ex, "Unable to save target landing case"); Snackbar.Add("Unable to save the target landing case.", Severity.Error); }
@@ -148,17 +146,50 @@
         try { TrajectoryReferenceDatumUtils.Apply(await TrajectoryReferenceDatumUtils.ResolveForTrajectoryAsync(Api, SourceTrajectoryId, trajectories, wellBores, wells, clusters)); }
         catch (Exception ex) { logger.LogWarning(ex, "Unable to resolve optional target-landing source references"); TrajectoryReferenceDatumUtils.Apply(new TrajectoryReferenceDatumValues(null, null, null)); }
     }
-    private void SetNorth(double? x) { Plane.RiemannianNorth=Plane.X=x; Plane.Latitude=Plane.Longitude=null; }
-    private void SetEast(double? x) { Plane.RiemannianEast=Plane.Y=x; Plane.Latitude=Plane.Longitude=null; }
-    private void SetLatitude(double? x) { Plane.Latitude=x; Plane.RiemannianNorth=Plane.X=null; }
-    private void SetLongitude(double? x) { Plane.Longitude=x; Plane.RiemannianEast=Plane.Y=null; }
+    private void SetNorth(double? x) { Plane.RiemannianNorth=Plane.X=x; if (x is double north && Plane.RiemannianEast is double east) SynchronizeFromNorthEast(north, east); else Plane.Latitude=null; }
+    private void SetEast(double? x) { Plane.RiemannianEast=Plane.Y=x; if (Plane.RiemannianNorth is double north && x is double east) SynchronizeFromNorthEast(north, east); else Plane.Longitude=null; }
+    private void SetLatitude(double? x) { Plane.Latitude=x; if (x is double latitude && Plane.Longitude is double longitude) SynchronizeFromLatitudeLongitude(latitude, longitude); else Plane.RiemannianNorth=Plane.X=null; }
+    private void SetLongitude(double? x) { Plane.Longitude=x; if (Plane.Latitude is double latitude && x is double longitude) SynchronizeFromLatitudeLongitude(latitude, longitude); else Plane.RiemannianEast=Plane.Y=null; }
+    private void SetTargetTvd(double? x) { Plane.TVD=x; Plane.Z=x; }
+    private void CompleteOriginCoordinates()
+    {
+        if (Plane.RiemannianNorth is double north && Plane.RiemannianEast is double east && (Plane.Latitude == null || Plane.Longitude == null))
+            SynchronizeFromNorthEast(north, east);
+        else if (Plane.Latitude is double latitude && Plane.Longitude is double longitude && (Plane.RiemannianNorth == null || Plane.RiemannianEast == null))
+            SynchronizeFromLatitudeLongitude(latitude, longitude);
+    }
+    private void SynchronizeFromNorthEast(double north, double east)
+    {
+        OSDC.DotnetLibraries.General.Math.Point3DGlobalCoordinates coordinate = new(north, east, Plane.TVD);
+        Plane.RiemannianNorth=Plane.X=north; Plane.RiemannianEast=Plane.Y=east; Plane.Latitude=coordinate.Latitude; Plane.Longitude=coordinate.Longitude;
+    }
+    private void SynchronizeFromLatitudeLongitude(double latitude, double longitude)
+    {
+        OSDC.DotnetLibraries.General.Math.Point3DGlobalCoordinates coordinate = new() { Latitude=latitude, Longitude=longitude, TVD=Plane.TVD };
+        Plane.Latitude=latitude; Plane.Longitude=longitude; Plane.RiemannianNorth=Plane.X=coordinate.RiemannianNorth; Plane.RiemannianEast=Plane.Y=coordinate.RiemannianEast;
+    }
     private void AddVertex() => Polygon.Add(new TargetPlanePoint());
-    private static double Radius(TargetPlanePoint p) => Math.Sqrt(p.X*p.X+p.Y*p.Y);
-    private static double Angle(TargetPlanePoint p) => Math.Atan2(p.X,p.Y);
-    private static void SetRadius(TargetPlanePoint p,double r) { double a=Angle(p); p.X=r*Math.Sin(a);p.Y=r*Math.Cos(a); }
-    private static void SetAngle(TargetPlanePoint p,double a) { double r=Radius(p);p.X=r*Math.Sin(a);p.Y=r*Math.Cos(a); }
+    private static double Radius(TargetPlanePoint p) => Finite(p.X) && Finite(p.Y) ? Math.Sqrt(p.X*p.X+p.Y*p.Y) : 0;
+    private static double Angle(TargetPlanePoint p) => Finite(p.X) && Finite(p.Y) ? Math.Atan2(p.X,p.Y) : 0;
+    private static void SetX(TargetPlanePoint p, double x) { if (Finite(x)) p.X=x; }
+    private static void SetY(TargetPlanePoint p, double y) { if (Finite(y)) p.Y=y; }
+    private static void SetRadius(TargetPlanePoint p,double r) { if (!Finite(r)) return; r=Math.Max(0,r); double a=Angle(p); p.X=r*Math.Sin(a);p.Y=r*Math.Cos(a); }
+    private static void SetAngle(TargetPlanePoint p,double a) { if (!Finite(a)) return; double r=Radius(p);p.X=r*Math.Sin(a);p.Y=r*Math.Cos(a); }
     private static TargetLandingCase NewCase() => new() { MetaInfo=new MetaInfo { ID=Guid.NewGuid() }, LeadLength=30, ConfidenceFactor=.95, MaximumLandingCurvature=Math.PI/1800, Target=new TargetPlaneDefinition { Plane=new CurvilinearPoint3D(), Polygon=[new(){X=-10,Y=-5},new(){X=10,Y=-5},new(){X=10,Y=5},new(){X=-10,Y=5}] } };
-    private enum OriginCoordinateMode { Cartesian, Geographic } private enum PolygonCoordinateMode { Cartesian, Polar }
+    private static TargetLandingCase CreateSavePayload(TargetLandingCase source) => new()
+    {
+        MetaInfo = source.MetaInfo,
+        Name = source.Name,
+        Description = source.Description,
+        SourceTrajectoryID = source.SourceTrajectoryID,
+        TargetType = source.TargetType,
+        CurveType = source.CurveType,
+        AttitudeMode = source.AttitudeMode,
+        Target = source.Target,
+        LeadLength = source.LeadLength,
+        ConfidenceFactor = source.ConfidenceFactor,
+        MaximumLandingCurvature = source.MaximumLandingCurvature
+    };
     private static string StateStyle(TargetLandingSampleState state) => state switch { TargetLandingSampleState.Reachable=>"color:#2e7d32;font-weight:600",TargetLandingSampleState.OutsideUncertaintySafeTarget=>"color:#ed6c02",_=>"color:#d32f2f" };
     private static string Commands(TargetLandingSample s) => string.Join("; ", s.SolvedSectionList?.Select((x,i) => x.CurveType switch { ExtrapolationCurveType.ConstantBuildAndTurn=>$"S{i+1}: B={x.ConstantBuildRate:G4}, T={x.ConstantTurnRate:G4}",ExtrapolationCurveType.ConstantCurvatureAndToolface=>$"S{i+1}: κ={x.ConstantCurvature:G4}, TF={x.ConstantToolface:G4}",_=>$"S{i+1}: κ={x.CircularArcCurvature:G4}, TF₀={x.CircularArcStartToolface:G4}" }) ?? []);
     private IEnumerable<(string Name,string Color,List<TargetPlanePoint> Points)> ZoneContours
@@ -172,15 +203,22 @@
     }
     private List<string> PlanePlotNames => [..ZoneContours.Select(x=>x.Name),"Uncertainty excluded","Curvature/geometry excluded"];
     private List<int> PlanePlotModes => [..ZoneContours.Select(_=>1),2,2]; private List<string> PlanePlotColors => [..ZoneContours.Select(x=>x.Color),"#ed6c02","#d32f2f"];
-    private List<List<object>> PlanePlotX => [..ZoneContours.Select(x=>ClosedX(x.Points)),value.SampleList.Where(x=>x.State==TargetLandingSampleState.OutsideUncertaintySafeTarget).Select(x=>(object)x.PlaneX).ToList(),value.SampleList.Where(x=>x.State is TargetLandingSampleState.ExceedsMaximumLandingCurvature or TargetLandingSampleState.NoGeometricSolution).Select(x=>(object)x.PlaneX).ToList()];
-    private List<List<object>> PlanePlotY => [..ZoneContours.Select(x=>ClosedY(x.Points)),value.SampleList.Where(x=>x.State==TargetLandingSampleState.OutsideUncertaintySafeTarget).Select(x=>(object)x.PlaneY).ToList(),value.SampleList.Where(x=>x.State is TargetLandingSampleState.ExceedsMaximumLandingCurvature or TargetLandingSampleState.NoGeometricSolution).Select(x=>(object)x.PlaneY).ToList()];
-    private static List<object> ClosedX(List<TargetPlanePoint>? p) => p is {Count:>0} ? p.Concat([p[0]]).Select(x=>(object)x.X).ToList() : [];
-    private static List<object> ClosedY(List<TargetPlanePoint>? p) => p is {Count:>0} ? p.Concat([p[0]]).Select(x=>(object)x.Y).ToList() : [];
+    private List<List<object>> PlanePlotX => [..ZoneContours.Select(x=>ClosedX(x.Points)),SampleCoordinates(TargetLandingSampleState.OutsideUncertaintySafeTarget, true),RejectedSampleCoordinates(true)];
+    private List<List<object>> PlanePlotY => [..ZoneContours.Select(x=>ClosedY(x.Points)),SampleCoordinates(TargetLandingSampleState.OutsideUncertaintySafeTarget, false),RejectedSampleCoordinates(false)];
+    private static List<TargetPlanePoint> FinitePoints(List<TargetPlanePoint>? points) => points?.Where(point=>Finite(point.X) && Finite(point.Y)).ToList() ?? [];
+    private static List<object> ClosedX(List<TargetPlanePoint>? points) { List<TargetPlanePoint> finite=FinitePoints(points); return finite.Count>0 ? finite.Concat([finite[0]]).Select(x=>(object)x.X).ToList() : []; }
+    private static List<object> ClosedY(List<TargetPlanePoint>? points) { List<TargetPlanePoint> finite=FinitePoints(points); return finite.Count>0 ? finite.Concat([finite[0]]).Select(x=>(object)x.Y).ToList() : []; }
+    private List<object> SampleCoordinates(TargetLandingSampleState state, bool xCoordinate) => value.SampleList.Where(x=>x.State==state && Finite(x.PlaneX) && Finite(x.PlaneY)).Select(x=>(object)(xCoordinate?x.PlaneX:x.PlaneY)).ToList();
+    private List<object> RejectedSampleCoordinates(bool xCoordinate) => value.SampleList.Where(x=>x.State is TargetLandingSampleState.ExceedsMaximumLandingCurvature or TargetLandingSampleState.NoGeometricSolution).Where(x=>Finite(x.PlaneX) && Finite(x.PlaneY)).Select(x=>(object)(xCoordinate?x.PlaneX:x.PlaneY)).ToList();
     private List<TargetLandingSample> Reachable => value.SampleList?.Where(x=>x.State==TargetLandingSampleState.Reachable).Take(250).ToList() ?? [];
     private List<string> ControlNames => Reachable.Select((_,i)=>$"Solution {i+1}").ToList(); private List<int> ControlModes => Reachable.Select(_=>3).ToList(); private List<string> ControlColors => Reachable.Select(_=>"#1976d2").ToList();
-    private List<List<object>> BuildValues => Reachable.Select(x=>x.SolvedSectionList.Select(s=>(object)(s.ConstantBuildRate??0)).ToList()).ToList(); private List<List<object>> TurnValues => Reachable.Select(x=>x.SolvedSectionList.Select(s=>(object)(s.ConstantTurnRate??0)).ToList()).ToList();
+    private List<List<object>> BuildValues => Reachable.Select(x=>FiniteBuildTurnSections(x).Select(s=>(object)(s.ConstantBuildRate??0)).ToList()).ToList(); private List<List<object>> TurnValues => Reachable.Select(x=>FiniteBuildTurnSections(x).Select(s=>(object)(s.ConstantTurnRate??0)).ToList()).ToList();
     private List<List<object>> ControlX => Reachable.Select(ControlCoordinatesX).ToList(); private List<List<object>> ControlY => Reachable.Select(ControlCoordinatesY).ToList(); private List<List<object>> ControlZ => Reachable.Select(ControlCoordinatesZ).ToList();
-    private static List<object> ControlCoordinatesX(TargetLandingSample x) { double total=x.TotalLandingLength??1, cumulative=0; List<object> r=[]; foreach(var s in x.SolvedSectionList){ cumulative+=s.Length; double radius=cumulative/total; double tf=s.ConstantToolface??s.CircularArcStartToolface??0;r.Add(radius*Math.Cos(tf)); } return r; }
-    private static List<object> ControlCoordinatesY(TargetLandingSample x) { double total=x.TotalLandingLength??1, cumulative=0; List<object> r=[]; foreach(var s in x.SolvedSectionList){ cumulative+=s.Length; double radius=cumulative/total; double tf=s.ConstantToolface??s.CircularArcStartToolface??0;r.Add(radius*Math.Sin(tf)); } return r; }
-    private static List<object> ControlCoordinatesZ(TargetLandingSample x) => x.SolvedSectionList.Select(s=>(object)(s.ConstantCurvature??s.CircularArcCurvature??0)).ToList();
+    private static List<TrajectoryExtrapolationSolvedSection> FiniteBuildTurnSections(TargetLandingSample sample) => sample.SolvedSectionList.Where(section=>Finite(section.ConstantBuildRate??0) && Finite(section.ConstantTurnRate??0)).ToList();
+    private static List<TrajectoryExtrapolationSolvedSection> FiniteControlSections(TargetLandingSample sample) => sample.SolvedSectionList.Where(section=>Finite(section.Length) && Finite(section.ConstantToolface??section.CircularArcStartToolface??0) && Finite(section.ConstantCurvature??section.CircularArcCurvature??0)).ToList();
+    private static double ControlTotal(TargetLandingSample sample, List<TrajectoryExtrapolationSolvedSection> sections) => sample.TotalLandingLength is double total && Finite(total) && Math.Abs(total)>1e-12 ? total : Math.Max(sections.Sum(section=>Math.Abs(section.Length)),1);
+    private static List<object> ControlCoordinatesX(TargetLandingSample x) { List<TrajectoryExtrapolationSolvedSection> sections=FiniteControlSections(x); double total=ControlTotal(x,sections), cumulative=0; List<object> r=[]; foreach(var s in sections){ cumulative+=s.Length; double radius=cumulative/total; double tf=s.ConstantToolface??s.CircularArcStartToolface??0;r.Add(radius*Math.Cos(tf)); } return r; }
+    private static List<object> ControlCoordinatesY(TargetLandingSample x) { List<TrajectoryExtrapolationSolvedSection> sections=FiniteControlSections(x); double total=ControlTotal(x,sections), cumulative=0; List<object> r=[]; foreach(var s in sections){ cumulative+=s.Length; double radius=cumulative/total; double tf=s.ConstantToolface??s.CircularArcStartToolface??0;r.Add(radius*Math.Sin(tf)); } return r; }
+    private static List<object> ControlCoordinatesZ(TargetLandingSample x) => FiniteControlSections(x).Select(s=>(object)(s.ConstantCurvature??s.CircularArcCurvature??0)).ToList();
+    private static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
 }

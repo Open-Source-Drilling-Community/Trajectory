@@ -448,6 +448,8 @@ public sealed class WebPageComponentContractTests
             Assert.That(editor, Does.Contain("LoadReconnectReferenceTrajectoryAsync"));
             Assert.That(scatterPlot, Does.Contain("public double? XAxisMinimum").And.Contain("ConvertXAxisBound(XAxisMinimum)"));
             Assert.That(scatter3DPlot, Does.Contain("public double? ZAxisMinimum").And.Contain("ApplyZAxisRange"));
+            Assert.That(scatterPlot, Does.Contain("double.IsFinite(converted)").And.Contain("FiniteOrNull"));
+            Assert.That(scatter3DPlot, Does.Contain("double.IsFinite(converted)").And.Contain("FiniteOrNull"));
             Assert.That(dataUtils, Does.Contain("SurveyStationList is { Count: > 1 } traj"));
             Assert.That(dataUtils, Does.Contain("double? minimumAbscissa = null").And.Contain("pathAbscissa!.Value < minimumAbscissa.Value - abscissaTolerance"));
             Assert.That(editor, Does.Contain("Items=\"@(new[] { startingStation })\""));
@@ -709,7 +711,10 @@ public sealed class WebPageComponentContractTests
             "..", "..", "..", ".."));
         string editor = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TargetLandingEdit.razor"));
         string main = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TargetLandingMain.razor"));
+        string stableUnitInput = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "StableMudInputWithUnitAdornment.razor"));
         string navigation = File.ReadAllText(Path.Combine(repositoryRoot, "WebApp", "Shared", "NavMenu.razor"));
+        string savePayload = GetMethodSource(editor,
+            "private static TargetLandingCase CreateSavePayload", "private static string StateStyle");
 
         Assert.Multiple(() =>
         {
@@ -719,8 +724,42 @@ public sealed class WebPageComponentContractTests
             Assert.That(main, Does.Contain("GroundMudLineDepthReferenceSource=\"@DataUtils.GroundMudLineDepthReferenceSource\""));
             Assert.That(main, Does.Contain("WellHeadPositionReferenceSource=\"@DataUtils.WellHeadPositionReferenceSource\""));
             Assert.That(main, Does.Contain("GridConvergenceSource=\"@DataUtils.GridConvergenceSource\""));
-            Assert.That(editor, Does.Contain("Riemannian North").And.Contain("WGS84 latitude"));
+            Assert.That(main, Does.Contain("GeodeticReferenceName=\"@DataUtils.UnitAndReferenceParameters.GeodeticReferenceName\""));
+            Assert.That(main, Does.Contain("CartographicProjectionDatumGeodeticReferenceSource=\"@DataUtils.CartographicProjectionDatumGeodeticReferenceSource\""));
+            Assert.That(editor, Does.Contain("QuantityLabel=\"North\"").And.Contain("QuantityLabel=\"East\""));
+            Assert.That(editor, Does.Contain("QuantityLabel=\"Latitude\"").And.Contain("QuantityLabel=\"Longitude\""));
+            Assert.That(editor, Does.Contain("DrillingSignalReferenceType.Geodetic").And.Contain("PlaneAngleGeodesic"));
+            Assert.That(editor, Does.Not.Contain("OriginCoordinateMode").And.Not.Contain("PolygonCoordinateMode").And.Not.Contain("Riemannian North"));
+            Assert.That(editor, Does.Contain("<MudTh>Plane X</MudTh><MudTh>Plane Y</MudTh><MudTh>Radial distance</MudTh><MudTh>Angle</MudTh>"));
+            Assert.That(editor, Does.Contain("The angle follows the toolface convention"));
+            Assert.That(editor, Does.Contain("SetX(context, x)").And.Contain("SetY(context, x)").And.Contain("SetRadius(context, x)").And.Contain("SetAngle(context, x)"));
+            Assert.That(editor, Does.Not.Contain("CoordinateEditorKey").And.Not.Contain("RefreshPolygonRow"));
+            Assert.That(editor, Does.Contain("QuantityName=\"LengthStandard\"").And.Not.Contain("LengthDrilling"),
+                "Target-plane coordinates and landing lengths must use the supported LengthStandard physical quantity.");
+            Assert.That(editor, Does.Contain("private static bool Finite(double value)").And.Contain("FiniteControlSections"));
+            Assert.That(editor, Does.Contain("@if (!loading)"), "Saved target coordinates must not initialize against the temporary new-case model while the case is loading.");
             Assert.That(editor, Does.Contain("DrillingSignalReferenceType.Depth"));
+            Assert.That(editor, Does.Contain("<StableMudInputWithUnitAdornment QuantityLabel=\"Target TVD\"")
+                .And.Contain("SIValueNullableChanged=\"SetTargetTvd\"")
+                .And.Contain("private void SetTargetTvd(double? x) { Plane.TVD=x; Plane.Z=x; }"));
+            Assert.That(editor, Does.Not.Contain("<MudInputWithUnitAdornment"),
+                "Every unit-bearing target-landing editor must use the page-local input that synchronizes displayed and canonical values.");
+            Assert.That(stableUnitInput, Does.Contain("Immediate=\"true\"")
+                .And.Contain("displayValue = value;")
+                .And.Contain("lastCanonicalValue = canonicalValue;")
+                .And.Contain("DrillingSignalReferenceType.Depth => Parent!.ToWGS84DepthSI")
+                .And.Contain("DrillingSignalReferenceType.Position => Parent!.ToWGS84PositionSI")
+                .And.Contain("DrillingSignalReferenceType.Geodetic => Parent!.ToWGS84GeodeticSI")
+                .And.Contain("DrillingSignalReferenceType.Azimuth => Parent!.ToTrueNorthAzimuthSI"),
+                "Target-landing engineering inputs must commit every valid edit without reformatting raw text from stale parent values.");
+            Assert.That(editor, Does.Contain("PutTargetLandingCaseByIdAsync(value.MetaInfo.ID, ConcurrencyToken.Require(value.LastModificationDate), savePayload)"));
+            Assert.That(savePayload, Does.Contain("Target = source.Target")
+                .And.Contain("MaximumLandingCurvature = source.MaximumLandingCurvature")
+                .And.Not.Contain("SampleList")
+                .And.Not.Contain("MeshTriangleList")
+                .And.Not.Contain("SteeringStartStation")
+                .And.Not.Contain("CalculationFingerprint"),
+                "Saving an edited case must not resend the large server-derived calculation result through nginx.");
             Assert.That(editor, Does.Contain("DrillingSignalReferenceType.Azimuth"));
             Assert.That(editor, Does.Contain("QuantityName=\"ProportionStandard\""));
             Assert.That(editor, Does.Contain("Math.Clamp(x, 0.000001, 0.999)"));

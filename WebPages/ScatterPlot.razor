@@ -247,9 +247,9 @@
                         : XAxisUsesPositionReference
                             ? ConvertPositionForPlot(xd, XUnit, XAxisPositionDirection)
                         : Parent.FromSI((double?)xd, XUnit);
-                    if (value.HasValue)
+                    if (value is double converted && double.IsFinite(converted))
                     {
-                        xValuesInUserUnit.Add(value.Value);
+                        xValuesInUserUnit.Add(converted);
                     }
                 }
             }
@@ -263,9 +263,9 @@
                         : YAxisUsesPositionReference
                             ? ConvertPositionForPlot(yd, YUnit, YAxisPositionDirection)
                         : Parent.FromSI((double?)yd, YUnit);
-                    if (value.HasValue)
+                    if (value is double converted && double.IsFinite(converted))
                     {
-                        yValuesInUserUnit.Add(value.Value);
+                        yValuesInUserUnit.Add(converted);
                     }
                 }
             }
@@ -413,13 +413,13 @@
         {
             case double dd:
                 d = dd;
-                return true;
+                return double.IsFinite(d);
             case float ff:
                 d = ff;
-                return true;
+                return double.IsFinite(d);
             case decimal mm:
                 d = (double)mm;
-                return true;
+                return double.IsFinite(d);
             case int ii:
                 d = ii;
                 return true;
@@ -447,12 +447,12 @@
 
         if (double.TryParse(converted, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.CurrentCulture, out double parsed))
         {
-            return parsed;
+            return double.IsFinite(parsed) ? parsed : null;
         }
 
         if (double.TryParse(converted, NumberStyles.Float | NumberStyles.AllowThousands, CultureInfo.InvariantCulture, out parsed))
         {
-            return parsed;
+            return double.IsFinite(parsed) ? parsed : null;
         }
 
         return null;
@@ -466,7 +466,7 @@
         }
 
         double converted = Parent.FromWGS84PositionSI(value, quantityName, direction);
-        return double.IsNaN(converted) ? null : converted;
+        return double.IsFinite(converted) ? converted : null;
     }
 
     private double? ConvertYAxisBound(double? value)
@@ -480,7 +480,7 @@
             ? ConvertDepthForPlot(value.Value, YUnit)
             : YAxisUsesPositionReference
                 ? ConvertPositionForPlot(value.Value, YUnit, YAxisPositionDirection)
-                : Parent?.FromSI(value.Value, YUnit);
+                : FiniteOrNull(Parent?.FromSI(value.Value, YUnit));
     }
 
     private double? ConvertXAxisBound(double? value)
@@ -494,8 +494,11 @@
             ? ConvertDepthForPlot(value.Value, XUnit)
             : XAxisUsesPositionReference
                 ? ConvertPositionForPlot(value.Value, XUnit, XAxisPositionDirection)
-                : Parent?.FromSI(value.Value, XUnit);
+                : FiniteOrNull(Parent?.FromSI(value.Value, XUnit));
     }
+
+    private static double? FiniteOrNull(double? value) =>
+        value is double number && double.IsFinite(number) ? number : null;
 
     private string BuildPlotSignature()
     {

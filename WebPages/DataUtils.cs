@@ -19,6 +19,7 @@ public static class DataUtils
         public static string? UnitSystemName { get; set; } = "Metric";
         public static string? DepthReferenceName { get; set; } = "Rotary table";
         public static string? PositionReferenceName { get; set; } = "Well-head";
+        public static string? GeodeticReferenceName { get; set; } = "WGS84";
         public static string? AzimuthReferenceName { get; set; } = "True North";
         public static string? PressureReferenceName { get; set; }
         public static string? DateReferenceName { get; set; }
@@ -352,12 +353,14 @@ public static class DataUtils
     public static MagneticDeclinationSource MagneticDeclinationSource { get; set; } = new MagneticDeclinationSource();
     public static WellHeadPositionReferenceSource WellHeadPositionReferenceSource { get; set; } = new WellHeadPositionReferenceSource();
     public static CartographicGridPositionReferenceSource CartographicGridPositionReferenceSource { get; set; } = new CartographicGridPositionReferenceSource();
+    public static CartographicProjectionDatumGeodeticReferenceSource CartographicProjectionDatumGeodeticReferenceSource { get; set; } = new CartographicProjectionDatumGeodeticReferenceSource();
     public static FieldPositionReferenceSource FieldPositionReferenceSource { get; set; } = new FieldPositionReferenceSource();
     public static ClusterPositionReferenceSource ClusterPositionReferenceSource { get; set; } = new ClusterPositionReferenceSource();
 
     public static void UpdateUnitSystemName(string value) => UnitAndReferenceParameters.UnitSystemName = value;
     public static void UpdateDepthReferenceName(string value) => UnitAndReferenceParameters.DepthReferenceName = value;
     public static void UpdatePositionReferenceName(string value) => UnitAndReferenceParameters.PositionReferenceName = value;
+    public static void UpdateGeodeticReferenceName(string value) => UnitAndReferenceParameters.GeodeticReferenceName = value;
     public static void UpdateAzimuthReferenceName(string value) => UnitAndReferenceParameters.AzimuthReferenceName = value;
 
     public static string[] COLORSCALE = ["black", "blue", "grey", "red", "orange", "green", "yellow", "pink", "brown", "purple"];
@@ -844,6 +847,12 @@ public class CartographicGridPositionReferenceSource : ICartographicGridPosition
 {
     public double? CartographicGridNorthPositionReference { get; set; }
     public double? CartographicGridEastPositionReference { get; set; }
+}
+
+public class CartographicProjectionDatumGeodeticReferenceSource : ICartographicProjectionDatumGeodeticReferenceSource
+{
+    public double? CartographicProjectionDatumLatitudeReference { get; set; }
+    public double? CartographicProjectionDatumLongitudeReference { get; set; }
 }
 
 public class FieldPositionReferenceSource : IFieldPositionReferenceSource

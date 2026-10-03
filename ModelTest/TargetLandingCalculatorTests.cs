@@ -21,6 +21,12 @@ public sealed class TargetLandingCalculatorTests
     }
 
     [Test]
+    public void ContourCorrectionAdvancesCalculationAlgorithmVersion()
+    {
+        Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(2));
+    }
+
+    [Test]
     public void ValidationRejectsNonConvexPolygon()
     {
         TargetLandingCase value = Case();
@@ -115,6 +121,78 @@ public sealed class TargetLandingCalculatorTests
         });
     }
 
+    [Test]
+    public void ContourTracingIgnoresInternalBranchesInsteadOfCreatingGreenChords()
+    {
+        TargetPlanePoint lowerLeft = new() { X = 0.0, Y = 0.0 };
+        TargetPlanePoint lowerRight = new() { X = 10.0, Y = 0.0 };
+        TargetPlanePoint upperRight = new() { X = 10.0, Y = 10.0 };
+        TargetPlanePoint upperLeft = new() { X = 0.0, Y = 10.0 };
+        List<(TargetPlanePoint A, TargetPlanePoint B)> segments =
+        [
+            (upperRight, lowerLeft), // Deliberately place the internal branch first.
+            (lowerLeft, lowerRight),
+            (lowerRight, upperRight),
+            (upperRight, upperLeft),
+            (upperLeft, lowerLeft)
+        ];
+
+        List<List<TargetPlanePoint>> contours = TargetLandingCalculator.TraceBoundaryLoops(segments);
+
+        Assert.That(contours, Has.Count.EqualTo(1));
+        Assert.Multiple(() =>
+        {
+            Assert.That(contours[0], Has.Count.EqualTo(4));
+            Assert.That(contours[0].Select(point => (point.X, point.Y)).Distinct().ToList(), Has.Count.EqualTo(4));
+            Assert.That(Math.Abs(PolygonArea(contours[0])), Is.EqualTo(100.0).Within(1e-9));
+        });
+    }
+
+    [Test]
+    public void U3GeometryProducesSimpleReachableBoundaryWithoutInternalChords()
+    {
+        TargetLandingCase value = Case();
+        value.AttitudeMode = TargetLandingAttitudeMode.Free;
+        value.LeadLength = 30.0;
+        value.Target.Plane = new CurvilinearPoint3D
+        {
+            RiemannianNorth = 6534947.00301523,
+            RiemannianEast = 328721.161419567,
+            TVD = 1400.78,
+            Inclination = 0.191986217719376,
+            Azimuth = 3.05432619099008
+        };
+        value.Target.Polygon =
+        [
+            new() { X = -50.0, Y = -50.0 }, new() { X = 50.0, Y = -50.0 },
+            new() { X = 50.0, Y = 50.0 }, new() { X = -50.0, Y = 50.0 }
+        ];
+        TrajectoryModel source = new()
+        {
+            MetaInfo = new MetaInfo { ID = value.SourceTrajectoryID },
+            LastModificationDate = DateTimeOffset.UtcNow,
+            CalculationType = TrajectoryCalculationType.MinimumCurvatureMethod,
+            SurveyStationList =
+            [
+                Station(905.78, 0.30543195539339985, 3.141585834467332, 6535003.245693119, 328712.2103161793, 860.9392922960917),
+                Station(922.78, 0.28797869523224956, 3.124132061288359, 6534998.275804975, 328712.2524846864, 877.1963052739194),
+                Station(951.78, 0.2844883352921184, 2.9845053863106266, 6534990.137604863, 328712.9611460306, 905.0199983912321),
+                Station(982.78, 0.3577923117971354, 2.9146938185442055, 6534980.547083098, 328714.8637621408, 934.4297472299482)
+            ]
+        };
+
+        Assert.That(TargetLandingCalculator.Calculate(value, source), Is.True, value.CalculationMessage);
+        Assert.That(value.ReachableTargetContourList, Is.Not.Null.And.Not.Empty);
+        foreach (List<TargetPlanePoint> contour in value.ReachableTargetContourList!)
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(contour.Select(point => (point.X, point.Y)).Distinct().Count(), Is.EqualTo(contour.Count));
+                Assert.That(HasSelfIntersection(contour), Is.False);
+            });
+        }
+    }
+
     private static TargetLandingCase Case() => new()
     {
         MetaInfo = new MetaInfo { ID = Guid.NewGuid() },
@@ -149,4 +227,52 @@ public sealed class TargetLandingCalculatorTests
             new SurveyStation { MD = 10.0, Inclination = Math.PI / 2.0, Azimuth = 0.0, RiemannianNorth = 0.0, RiemannianEast = 0.0, TVD = 1000.0 }
         ]
     };
+
+    private static SurveyStation Station(double md, double inclination, double azimuth, double north, double east, double tvd) => new()
+    {
+        MD = md,
+        Inclination = inclination,
+        Azimuth = azimuth,
+        RiemannianNorth = north,
+        RiemannianEast = east,
+        TVD = tvd
+    };
+
+    private static bool HasSelfIntersection(IReadOnlyList<TargetPlanePoint> polygon)
+    {
+        for (int first = 0; first < polygon.Count; first++)
+        {
+            int firstNext = (first + 1) % polygon.Count;
+            for (int second = first + 1; second < polygon.Count; second++)
+            {
+                int secondNext = (second + 1) % polygon.Count;
+                if (first == second || firstNext == second || secondNext == first) continue;
+                if (SegmentsIntersect(polygon[first], polygon[firstNext], polygon[second], polygon[secondNext])) return true;
+            }
+        }
+        return false;
+    }
+
+    private static bool SegmentsIntersect(TargetPlanePoint a, TargetPlanePoint b, TargetPlanePoint c, TargetPlanePoint d)
+    {
+        static double Orientation(TargetPlanePoint p, TargetPlanePoint q, TargetPlanePoint r) =>
+            (q.X - p.X) * (r.Y - p.Y) - (q.Y - p.Y) * (r.X - p.X);
+        double first = Orientation(a, b, c);
+        double second = Orientation(a, b, d);
+        double third = Orientation(c, d, a);
+        double fourth = Orientation(c, d, b);
+        return first * second < -1e-12 && third * fourth < -1e-12;
+    }
+
+    private static double PolygonArea(IReadOnlyList<TargetPlanePoint> polygon)
+    {
+        double twiceArea = 0.0;
+        for (int index = 0; index < polygon.Count; index++)
+        {
+            TargetPlanePoint current = polygon[index];
+            TargetPlanePoint next = polygon[(index + 1) % polygon.Count];
+            twiceArea += current.X * next.Y - next.X * current.Y;
+        }
+        return 0.5 * twiceArea;
+    }
 }

@@ -34,8 +34,11 @@ internal static class CartographicPositionReferenceUtils
     public static async Task ApplyAsync(ITrajectoryAPIUtils api, Field? field, ILogger logger)
     {
         CartographicGridPositionReferenceSource source = DataUtils.CartographicGridPositionReferenceSource;
+        CartographicProjectionDatumGeodeticReferenceSource geodeticSource = DataUtils.CartographicProjectionDatumGeodeticReferenceSource;
         source.CartographicGridNorthPositionReference = null;
         source.CartographicGridEastPositionReference = null;
+        geodeticSource.CartographicProjectionDatumLatitudeReference = null;
+        geodeticSource.CartographicProjectionDatumLongitudeReference = null;
 
         if (field?.MetaInfo?.ID is not Guid fieldId || fieldId == Guid.Empty ||
             field.ReferencePoint?.Latitude is not double latitude ||
@@ -72,7 +75,7 @@ internal static class CartographicPositionReferenceUtils
             });
 
             FieldCoordinateConversionPositionResult? result = response.Positions?.FirstOrDefault();
-            if (result?.ProjectedCoordinate == null)
+            if (result?.ProjectedCoordinate == null || result.ProjectionDatumGeographicCoordinate == null)
             {
                 ResetUnavailableSelection();
                 return;
@@ -80,6 +83,8 @@ internal static class CartographicPositionReferenceUtils
 
             source.CartographicGridNorthPositionReference = result.ProjectedCoordinate.Northing - riemannianNorth;
             source.CartographicGridEastPositionReference = result.ProjectedCoordinate.Easting - riemannianEast;
+            geodeticSource.CartographicProjectionDatumLatitudeReference = result.ProjectionDatumGeographicCoordinate.Latitude - latitude;
+            geodeticSource.CartographicProjectionDatumLongitudeReference = result.ProjectionDatumGeographicCoordinate.Longitude - longitude;
         }
         catch (Exception ex)
         {
@@ -103,6 +108,10 @@ internal static class CartographicPositionReferenceUtils
         if (string.Equals(DataUtils.UnitAndReferenceParameters.PositionReferenceName, "Cartographic", StringComparison.Ordinal))
         {
             DataUtils.UnitAndReferenceParameters.PositionReferenceName = "WGS84";
+        }
+        if (string.Equals(DataUtils.UnitAndReferenceParameters.GeodeticReferenceName, "Cartographic Projection Datum", StringComparison.Ordinal))
+        {
+            DataUtils.UnitAndReferenceParameters.GeodeticReferenceName = "WGS84";
         }
     }
 }

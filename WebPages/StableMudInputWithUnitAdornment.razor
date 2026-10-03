@@ -1,0 +1,123 @@
+@implements IUnitAwareComponent
+@inject ILogger<StableMudInputWithUnitAdornment> Logger
+
+<MudTextField T="string"
+              ShrinkLabel
+              Value="@displayValue"
+              ValueChanged="HandleTextChangedAsync"
+              Label="@QuantityLabel"
+              Variant="Variant.Text"
+              Adornment="Adornment.End"
+              AdornmentText="@unitLabel"
+              Immediate="true" />
+
+@code {
+    [CascadingParameter] private MudUnitAndReferenceChoiceTag? Parent { get; set; }
+
+    [Parameter] public string? QuantityLabel { get; set; }
+    [Parameter] public string? QuantityName { get; set; }
+    [Parameter] public DrillingSignalReferenceType DrillingSignalReference { get; set; } = DrillingSignalReferenceType.Independent;
+    [Parameter] public PositionDirectionType PositionDirection { get; set; } = PositionDirectionType.Independent;
+    [Parameter] public double SIValue { get; set; } = double.NaN;
+    [Parameter] public double? SIValueNullable { get; set; }
+    [Parameter] public EventCallback<double> SIValueChanged { get; set; }
+    [Parameter] public EventCallback<double?> SIValueNullableChanged { get; set; }
+
+    private string? displayValue;
+    private string? unitLabel;
+    private double? lastCanonicalValue;
+    private bool initialized;
+    private double? CanonicalValue => double.IsNaN(SIValue) ? SIValueNullable : SIValue;
+
+    protected override void OnInitialized()
+    {
+        if (Parent == null)
+            throw new InvalidOperationException("StableMudInputWithUnitAdornment must exist within a MudUnitAndReferenceChoiceTag.");
+
+        Parent.Add(this);
+        ManageUnits();
+    }
+
+    protected override void OnParametersSet()
+    {
+        double? canonicalValue = CanonicalValue;
+        if (!initialized || !Nullable.Equals(canonicalValue, lastCanonicalValue))
+        {
+            lastCanonicalValue = canonicalValue;
+            ManageUnits();
+        }
+
+        initialized = true;
+    }
+
+    private async Task HandleTextChangedAsync(string? value)
+    {
+        displayValue = value;
+        if (string.IsNullOrWhiteSpace(value))
+        {
+            lastCanonicalValue = null;
+            if (SIValueNullableChanged.HasDelegate) await SIValueNullableChanged.InvokeAsync(null);
+            return;
+        }
+
+        if (Parent == null || string.IsNullOrEmpty(QuantityName) || !TryParse(value, out double userValue)) return;
+
+        double canonicalValue = ToCanonicalValue(userValue);
+        lastCanonicalValue = canonicalValue;
+        if (SIValueChanged.HasDelegate) await SIValueChanged.InvokeAsync(canonicalValue);
+        if (SIValueNullableChanged.HasDelegate) await SIValueNullableChanged.InvokeAsync(canonicalValue);
+    }
+
+    public void ManageUnits()
+    {
+        if (Parent == null || string.IsNullOrEmpty(Parent.UnitSystemName) || string.IsNullOrEmpty(QuantityName)) return;
+
+        try
+        {
+            displayValue = FromCanonicalValue(CanonicalValue);
+            unitLabel = GetUnitLabel();
+        }
+        catch (Exception ex)
+        {
+            Logger.LogError(ex, "Unable to format {QuantityLabel}", QuantityLabel);
+        }
+    }
+
+    private string? FromCanonicalValue(double? value) => DrillingSignalReference switch
+    {
+        DrillingSignalReferenceType.Pressure => Parent!.FromAbsolutePressureSI(value, QuantityName!, false),
+        DrillingSignalReferenceType.Azimuth => Parent!.FromTrueNorthAzimuthSI(value, QuantityName!, false),
+        DrillingSignalReferenceType.Depth => Parent!.FromWGS84DepthSI(value, QuantityName!, false),
+        DrillingSignalReferenceType.Position => Parent!.FromWGS84PositionSI(value, QuantityName!, false, PositionDirection),
+        DrillingSignalReferenceType.Geodetic => Parent!.FromWGS84GeodeticSI(value, QuantityName!, false, PositionDirection),
+        _ => Parent!.FromSI(value, QuantityName!, false)
+    };
+
+    private double ToCanonicalValue(double value) => DrillingSignalReference switch
+    {
+        DrillingSignalReferenceType.Pressure => Parent!.ToAbsolutePressureSI(value, QuantityName!),
+        DrillingSignalReferenceType.Azimuth => Parent!.ToTrueNorthAzimuthSI(value, QuantityName!),
+        DrillingSignalReferenceType.Depth => Parent!.ToWGS84DepthSI(value, QuantityName!),
+        DrillingSignalReferenceType.Position => Parent!.ToWGS84PositionSI(value, QuantityName!, PositionDirection),
+        DrillingSignalReferenceType.Geodetic => Parent!.ToWGS84GeodeticSI(value, QuantityName!, PositionDirection),
+        _ => Parent!.ToSI(value, QuantityName!)
+    };
+
+    private string GetUnitLabel() => DrillingSignalReference switch
+    {
+        DrillingSignalReferenceType.Pressure => Parent!.GetPressureUnitLabel(QuantityName!),
+        DrillingSignalReferenceType.Azimuth => Parent!.GetAzimuthUnitLabel(QuantityName!),
+        DrillingSignalReferenceType.Depth => Parent!.GetDepthUnitLabel(QuantityName!),
+        DrillingSignalReferenceType.Position => Parent!.GetPositionUnitLabel(QuantityName!),
+        DrillingSignalReferenceType.Geodetic => Parent!.GetGeodeticUnitLabel(QuantityName!),
+        _ => Parent!.GetUnitLabel(QuantityName!)
+    };
+
+    private static bool TryParse(string value, out double result)
+    {
+        const System.Globalization.NumberStyles styles =
+            System.Globalization.NumberStyles.Float | System.Globalization.NumberStyles.AllowThousands;
+        return double.TryParse(value, styles, System.Globalization.CultureInfo.CurrentCulture, out result) ||
+               double.TryParse(value, styles, System.Globalization.CultureInfo.InvariantCulture, out result);
+    }
+}

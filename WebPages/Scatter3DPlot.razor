@@ -56,9 +56,9 @@
     {
         switch (v)
         {
-            case double dd: d = dd; return true;
-            case float ff: d = ff; return true;
-            case decimal mm: d = (double)mm; return true;
+            case double dd: d = dd; return double.IsFinite(d);
+            case float ff: d = ff; return double.IsFinite(d);
+            case decimal mm: d = (double)mm; return double.IsFinite(d);
             case int ii: d = ii; return true;
             default: d = default; return false; // case null when double? is passed, is handled here
         }
@@ -286,7 +286,7 @@
                     double? X = XAxisUsesPositionReference
                         ? ConvertPositionForPlot(xd, XUnit, XAxisPositionDirection)
                         : Parent.FromSI((double?)xd, XUnit);
-                    if (X.HasValue) xOut.Add(X.Value);
+                    if (X is double converted && double.IsFinite(converted)) xOut.Add(converted);
                 }
 
             foreach (var y in YValuesList[i])
@@ -295,7 +295,7 @@
                     double? Y = YAxisUsesPositionReference
                         ? ConvertPositionForPlot(yd, YUnit, YAxisPositionDirection)
                         : Parent.FromSI((double?)yd, YUnit);
-                    if (Y.HasValue) yOut.Add(Y.Value);
+                    if (Y is double converted && double.IsFinite(converted)) yOut.Add(converted);
                 }
 
             foreach (var z in ZValuesList[i])
@@ -304,7 +304,7 @@
                     double? Z = ZAxisUsesDepthReference
                         ? ConvertDepthForPlot(zd, ZUnit)
                         : Parent.FromSI((double?)zd, ZUnit);
-                    if (Z.HasValue) zOut.Add(Z.Value);
+                    if (Z is double converted && double.IsFinite(converted)) zOut.Add(converted);
                 }
 
             int n = xOut.Count;
@@ -541,12 +541,12 @@
 
         if (double.TryParse(converted, out double parsed))
         {
-            return parsed;
+            return double.IsFinite(parsed) ? parsed : null;
         }
 
         if (double.TryParse(converted, System.Globalization.NumberStyles.Float | System.Globalization.NumberStyles.AllowThousands, System.Globalization.CultureInfo.InvariantCulture, out parsed))
         {
-            return parsed;
+            return double.IsFinite(parsed) ? parsed : null;
         }
 
         return null;
@@ -560,24 +560,27 @@
         }
 
         double converted = Parent.FromWGS84PositionSI(value, quantityName, direction);
-        return double.IsNaN(converted) ? null : converted;
+        return double.IsFinite(converted) ? converted : null;
     }
 
     private double? ConvertXAxisBound(double? value) => !value.HasValue
         ? null
         : XAxisUsesPositionReference
             ? ConvertPositionForPlot(value.Value, XUnit, XAxisPositionDirection)
-            : Parent.FromSI(value.Value, XUnit);
+            : FiniteOrNull(Parent.FromSI(value.Value, XUnit));
 
     private double? ConvertYAxisBound(double? value) => !value.HasValue
         ? null
         : YAxisUsesPositionReference
             ? ConvertPositionForPlot(value.Value, YUnit, YAxisPositionDirection)
-            : Parent.FromSI(value.Value, YUnit);
+            : FiniteOrNull(Parent.FromSI(value.Value, YUnit));
 
     private double? ConvertZAxisBound(double? value) => !value.HasValue
         ? null
         : ZAxisUsesDepthReference
             ? ConvertDepthForPlot(value.Value, ZUnit)
-            : Parent.FromSI(value.Value, ZUnit);
+            : FiniteOrNull(Parent.FromSI(value.Value, ZUnit));
+
+    private static double? FiniteOrNull(double? value) =>
+        value is double number && double.IsFinite(number) ? number : null;
 }
