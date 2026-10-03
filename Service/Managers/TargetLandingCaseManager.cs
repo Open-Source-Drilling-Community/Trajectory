@@ -112,19 +112,7 @@ public sealed class TargetLandingCaseManager
     {
         TargetLandingCase? value = ReadById(id, includeSamples: true, refreshStale: false);
         if (value == null) return null;
-        HashSet<Guid> boundarySampleIds = [];
-        List<TargetLandingSample> samples = value.SampleList ?? [];
-        Dictionary<(double X, double Y), TargetLandingSample> samplesByPosition = samples
-            .Where(sample => sample.SolvedSectionList is { Count: > 0 })
-            .GroupBy(sample => (sample.PlaneX, sample.PlaneY))
-            .ToDictionary(group => group.Key, group => group.First());
-        foreach (TargetPlanePoint point in (value.ReachableTargetContourList ?? []).SelectMany(contour => contour).Take(250))
-        {
-            TargetLandingSample? nearest = samplesByPosition.GetValueOrDefault((point.X, point.Y));
-            nearest ??= samplesByPosition.Values.OrderBy(sample => SquaredDistance(point, sample)).FirstOrDefault();
-            if (nearest != null) boundarySampleIds.Add(nearest.SampleID);
-        }
-        value.SampleList = samples.Where(sample => boundarySampleIds.Contains(sample.SampleID)).Take(250).ToList();
+        value.SampleList = SelectReachableBoundarySamples(value);
         foreach (TargetLandingSample sample in value.SampleList)
         {
             sample.SurveyStationList = sample.SurveyStationList?.Select(ToDisplayStation).ToList();
@@ -135,6 +123,31 @@ public sealed class TargetLandingCaseManager
         value.SteeringStartStation = value.SteeringStartStation == null ? null : ToDisplayStation(value.SteeringStartStation);
         value.MeshTriangleList = [];
         return value;
+    }
+
+    internal static List<TargetLandingSample> SelectReachableBoundarySamples(TargetLandingCase value,
+        int maximumSampleCount = 250)
+    {
+        if (maximumSampleCount <= 0) return [];
+        List<TargetLandingSample> reachable = (value.SampleList ?? [])
+            .Where(sample => sample.State == TargetLandingSampleState.Reachable &&
+                sample.SolvedSectionList is { Count: > 0 })
+            .ToList();
+        if (reachable.Count == 0) return [];
+
+        Dictionary<(double X, double Y), TargetLandingSample> reachableByPosition = reachable
+            .GroupBy(sample => (sample.PlaneX, sample.PlaneY))
+            .ToDictionary(group => group.Key, group => group.First());
+        HashSet<Guid> selectedIds = [];
+        List<TargetLandingSample> selected = [];
+        foreach (TargetPlanePoint point in (value.ReachableTargetContourList ?? []).SelectMany(contour => contour))
+        {
+            TargetLandingSample? nearest = reachableByPosition.GetValueOrDefault((point.X, point.Y));
+            nearest ??= reachable.MinBy(sample => SquaredDistance(point, sample));
+            if (nearest != null && selectedIds.Add(nearest.SampleID)) selected.Add(nearest);
+            if (selected.Count >= maximumSampleCount) break;
+        }
+        return selected;
     }
 
     private TargetLandingCase? ReadById(Guid id, bool includeSamples, bool refreshStale = true)

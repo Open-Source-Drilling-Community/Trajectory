@@ -1,10 +1,41 @@
 using System.Text.Json.Nodes;
+using OSDC.Drilling.Trajectory.Model;
+using OSDC.Drilling.Trajectory.Service.Managers;
 
 namespace OSDC.Drilling.Trajectory.ServiceTest;
 
 [TestFixture]
 public sealed class OpenApiTargetLandingContractTests
 {
+    [Test]
+    public void Target_landing_display_selects_reachable_side_of_bisected_boundary()
+    {
+        TargetPlanePoint boundaryPoint = new() { X = 10.0, Y = 20.0 };
+        TargetLandingSample excludedAtBoundary = new()
+        {
+            SampleID = Guid.NewGuid(), PlaneX = 10.0, PlaneY = 20.0,
+            State = TargetLandingSampleState.ExceedsMaximumLandingCurvature,
+            SolvedSectionList = [new TrajectoryExtrapolationSolvedSection()]
+        };
+        TargetLandingSample reachableBesideBoundary = new()
+        {
+            SampleID = Guid.NewGuid(), PlaneX = 10.05, PlaneY = 20.0,
+            State = TargetLandingSampleState.Reachable,
+            SolvedSectionList = [new TrajectoryExtrapolationSolvedSection()]
+        };
+        TargetLandingCase value = new()
+        {
+            ReachableTargetContourList = [[boundaryPoint]],
+            SampleList = [excludedAtBoundary, reachableBesideBoundary]
+        };
+
+        List<TargetLandingSample> selected = TargetLandingCaseManager.SelectReachableBoundarySamples(value);
+
+        Assert.That(selected, Has.Count.EqualTo(1));
+        Assert.That(selected[0].SampleID, Is.EqualTo(reachableBesideBoundary.SampleID));
+        Assert.That(selected[0].State, Is.EqualTo(TargetLandingSampleState.Reachable));
+    }
+
     [Test]
     public void Target_landing_projection_operations_have_usage_statistics_counters()
     {
