@@ -6,6 +6,29 @@ namespace OSDC.Drilling.Trajectory.ServiceTest;
 public sealed class OpenApiTargetLandingContractTests
 {
     [Test]
+    public void Target_landing_projection_operations_have_usage_statistics_counters()
+    {
+        var statistics = new OSDC.Drilling.Trajectory.Model.UsageStatisticsTrajectory
+        {
+            LastSaved = DateTime.UtcNow,
+            BackUpInterval = TimeSpan.FromDays(1)
+        };
+
+        Assert.DoesNotThrow(() =>
+        {
+            statistics.IncrementOperation("GetTargetLandingCaseEditData");
+            statistics.IncrementOperation("GetTargetLandingCaseDisplayData");
+        });
+        Assert.Multiple(() =>
+        {
+            Assert.That(statistics.GetTargetLandingCaseEditDataPerDay.Data, Has.Count.EqualTo(1));
+            Assert.That(statistics.GetTargetLandingCaseEditDataPerDay.Data[0].Count, Is.EqualTo(1));
+            Assert.That(statistics.GetTargetLandingCaseDisplayDataPerDay.Data, Has.Count.EqualTo(1));
+            Assert.That(statistics.GetTargetLandingCaseDisplayDataPerDay.Data[0].Count, Is.EqualTo(1));
+        });
+    }
+
+    [Test]
     public void Target_landing_uses_a_managed_background_queue_and_lightweight_status_query()
     {
         string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,

@@ -33839,6 +33839,12 @@
           "GetTargetLandingCaseByIdPerDay": {
             "$ref": "#/components/schemas/History"
           },
+          "GetTargetLandingCaseEditDataPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
+          "GetTargetLandingCaseDisplayDataPerDay": {
+            "$ref": "#/components/schemas/History"
+          },
           "GetTargetLandingCaseStatusPerDay": {
             "$ref": "#/components/schemas/History"
           },

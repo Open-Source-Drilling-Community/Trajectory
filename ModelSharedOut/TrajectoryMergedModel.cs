@@ -51536,6 +51536,12 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("GetTargetLandingCaseByIdPerDay")]
         public History GetTargetLandingCaseByIdPerDay { get; set; }
 
+        [System.Text.Json.Serialization.JsonPropertyName("GetTargetLandingCaseEditDataPerDay")]
+        public History GetTargetLandingCaseEditDataPerDay { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("GetTargetLandingCaseDisplayDataPerDay")]
+        public History GetTargetLandingCaseDisplayDataPerDay { get; set; }
+
         [System.Text.Json.Serialization.JsonPropertyName("GetTargetLandingCaseStatusPerDay")]
         public History GetTargetLandingCaseStatusPerDay { get; set; }
 

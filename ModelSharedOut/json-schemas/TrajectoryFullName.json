@@ -12115,6 +12115,12 @@
           "GetTargetLandingCaseByIdPerDay": {
             "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
           },
+          "GetTargetLandingCaseEditDataPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetTargetLandingCaseDisplayDataPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
           "GetTargetLandingCaseStatusPerDay": {
             "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
           },
