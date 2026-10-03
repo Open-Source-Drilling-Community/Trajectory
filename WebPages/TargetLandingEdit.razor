@@ -2,10 +2,11 @@
 @inject ISnackbar Snackbar
 @inject ITrajectoryAPIUtils Api
 @inject ITrajectoryReferenceDataCache ReferenceData
+@implements IDisposable
 
 <MudText Typo="Typo.h6" Class="mt-4 mb-3">Target Landing</MudText>
 <MudStack Row="true" Class="mb-4">
-    <MudButton Color="Color.Success" OnClick="SaveAsync">Save and calculate</MudButton>
+    <MudButton Color="Color.Success" OnClick="SaveAsync" Disabled="@saving">@(saving ? "Saving and calculating..." : "Save and calculate")</MudButton>
     <MudButton Color="Color.Error" OnClick="@(() => ValueChanged.InvokeAsync())">Close</MudButton>
 </MudStack>
 @if (loading) { <MudProgressLinear Indeterminate="true" Color="Color.Info" /> }
@@ -94,7 +95,8 @@
     [Parameter] public EventCallback ValueChanged { get; set; }
     private TargetLandingCase value = NewCase();
     private List<Field> fields = []; private List<Cluster> clusters = []; private List<Well> wells = []; private List<WellBore> wellBores = []; private List<Rig> rigs = []; private List<TrajectoryLight> trajectories = []; private List<SurveyRunLight> surveyRuns = [];
-    private Guid? fieldId, clusterId, wellId, wellBoreId, selectedRigJobId; private DateTimeOffset? sourceReferenceDate; private bool loading;
+    private Guid? fieldId, clusterId, wellId, wellBoreId, selectedRigJobId; private DateTimeOffset? sourceReferenceDate; private bool loading, saving;
+    private readonly CancellationTokenSource calculationPolling = new();
     private CurvilinearPoint3D Plane => value.Target.Plane;
     private List<TargetPlanePoint> Polygon => value.Target.Polygon;
     private Guid? SourceTrajectoryId => value.SourceTrajectoryID == Guid.Empty ? null : value.SourceTrajectoryID;
@@ -120,15 +122,44 @@
     }
     private async Task SaveAsync()
     {
+        if (saving) return;
         if (string.IsNullOrWhiteSpace(value.Name) || value.SourceTrajectoryID == Guid.Empty) { Snackbar.Add("Name and source trajectory are required.", Severity.Warning); return; }
+        saving = true;
         try
         {
             TargetLandingCase savePayload = CreateSavePayload(value);
             if (value.CreationDate == null) await Api.ClientTrajectory.PostTargetLandingCaseAsync(savePayload);
             else await Api.ClientTrajectory.PutTargetLandingCaseByIdAsync(value.MetaInfo.ID, ConcurrencyToken.Require(value.LastModificationDate), savePayload);
-            Snackbar.Add("Target landing calculation queued.", Severity.Success); await ValueChanged.InvokeAsync();
+            Snackbar.Add("Target landing calculation queued.", Severity.Success);
+            await RefreshAfterCalculationAsync(value.MetaInfo.ID, calculationPolling.Token);
         }
+        catch (OperationCanceledException) when (calculationPolling.IsCancellationRequested) { }
         catch (Exception ex) { logger.LogError(ex, "Unable to save target landing case"); Snackbar.Add("Unable to save the target landing case.", Severity.Error); }
+        finally { saving = false; }
+    }
+    private async Task RefreshAfterCalculationAsync(Guid caseId, CancellationToken cancellationToken)
+    {
+        TargetLandingCaseLight status;
+        do
+        {
+            status = await Api.ClientTrajectory.GetTargetLandingCaseStatusAsync(caseId, cancellationToken);
+            value.CalculationState = status.CalculationState;
+            value.CalculationProgress = status.CalculationProgress;
+            value.CalculationMessage = status.CalculationMessage;
+            value.IsStale = status.IsStale;
+            await InvokeAsync(StateHasChanged);
+            if (status.CalculationState is CalculationState.Queued or CalculationState.Running)
+                await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
+        }
+        while (status.CalculationState is CalculationState.Queued or CalculationState.Running);
+
+        value = await Api.ClientTrajectory.GetTargetLandingCaseByIdAsync(caseId, cancellationToken);
+        CompleteOriginCoordinates();
+        await InvokeAsync(StateHasChanged);
+        if (value.CalculationState == CalculationState.Completed)
+            Snackbar.Add("Target landing calculation completed.", Severity.Success);
+        else if (value.CalculationState == CalculationState.Failed)
+            Snackbar.Add(value.CalculationMessage ?? "Target landing calculation failed.", Severity.Error);
     }
     private void InitializeHierarchy() { var t = trajectories.FirstOrDefault(x => x.MetaInfo?.ID == value.SourceTrajectoryID); if (t == null) return; fieldId = t.FieldID; clusterId = t.ClusterID; wellId = t.WellID; wellBoreId = t.WellBoreID; }
     private async Task SetField(Guid? x) { fieldId=x; clusterId=wellId=wellBoreId=null; selectedRigJobId=null; sourceReferenceDate=null; value.SourceTrajectoryID=Guid.Empty; await UpdateSourceReferenceValuesAsync(); }
@@ -221,4 +252,9 @@
     private static List<object> ControlCoordinatesY(TargetLandingSample x) { List<TrajectoryExtrapolationSolvedSection> sections=FiniteControlSections(x); double total=ControlTotal(x,sections), cumulative=0; List<object> r=[]; foreach(var s in sections){ cumulative+=s.Length; double radius=cumulative/total; double tf=s.ConstantToolface??s.CircularArcStartToolface??0;r.Add(radius*Math.Sin(tf)); } return r; }
     private static List<object> ControlCoordinatesZ(TargetLandingSample x) => FiniteControlSections(x).Select(s=>(object)(s.ConstantCurvature??s.CircularArcCurvature??0)).ToList();
     private static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
+    public void Dispose()
+    {
+        calculationPolling.Cancel();
+        calculationPolling.Dispose();
+    }
 }

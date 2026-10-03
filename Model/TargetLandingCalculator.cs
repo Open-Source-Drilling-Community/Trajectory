@@ -14,9 +14,9 @@ namespace OSDC.Drilling.Trajectory.Model;
 
 public static class TargetLandingCalculator
 {
-    internal const int MaximumAdaptiveDepth = 4;
+    internal const int MaximumAdaptiveDepth = 6;
     internal const int EllipsePointCount = 72;
-    internal const int CalculationAlgorithmVersion = 2;
+    internal const int CalculationAlgorithmVersion = 3;
     internal const double PositionTolerance = 0.05;
     internal const double SamplingInterval = 10.0;
 

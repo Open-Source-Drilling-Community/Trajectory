@@ -753,6 +753,13 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("DrillingSignalReferenceType.Azimuth => Parent!.ToTrueNorthAzimuthSI"),
                 "Target-landing engineering inputs must commit every valid edit without reformatting raw text from stale parent values.");
             Assert.That(editor, Does.Contain("PutTargetLandingCaseByIdAsync(value.MetaInfo.ID, ConcurrencyToken.Require(value.LastModificationDate), savePayload)"));
+            Assert.That(editor, Does.Contain("await RefreshAfterCalculationAsync(value.MetaInfo.ID, calculationPolling.Token)")
+                .And.Contain("GetTargetLandingCaseStatusAsync(caseId, cancellationToken)")
+                .And.Contain("value = await Api.ClientTrajectory.GetTargetLandingCaseByIdAsync(caseId, cancellationToken)"),
+                "Saving must keep the detailed editor open, report progress, and reload the completed calculation in place.");
+            Assert.That(GetMethodSource(editor, "private async Task SaveAsync()", "private async Task RefreshAfterCalculationAsync"),
+                Does.Not.Contain("ValueChanged.InvokeAsync"),
+                "Saving must not invoke the close callback.");
             Assert.That(savePayload, Does.Contain("Target = source.Target")
                 .And.Contain("MaximumLandingCurvature = source.MaximumLandingCurvature")
                 .And.Not.Contain("SampleList")

@@ -21,9 +21,13 @@ public sealed class TargetLandingCalculatorTests
     }
 
     [Test]
-    public void ContourCorrectionAdvancesCalculationAlgorithmVersion()
+    public void FineContourRefinementAdvancesCalculationAlgorithmVersion()
     {
-        Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(2));
+        Assert.Multiple(() =>
+        {
+            Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(6));
+            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(3));
+        });
     }
 
     [Test]
