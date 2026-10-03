@@ -27,7 +27,7 @@ public sealed class TargetLandingCalculatorTests
         {
             Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(4));
             Assert.That(TargetLandingCalculator.BoundaryPositionTolerance, Is.EqualTo(0.25));
-            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(6));
+            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(7));
         });
     }
 
@@ -96,6 +96,9 @@ public sealed class TargetLandingCalculatorTests
             Assert.That(value.CalculationFingerprint, Is.Not.Null.And.Not.Empty);
             Assert.That(value.SourceEndStation, Is.Not.Null);
             Assert.That(value.SourceEndStation!.MD, Is.EqualTo(source.SurveyStationList!.Last().MD));
+            Assert.That(value.LeadSurveyStationList, Is.Not.Null.And.Not.Empty);
+            Assert.That(value.LeadSurveyStationList!.First().MD, Is.EqualTo(value.SourceEndStation.MD));
+            Assert.That(value.LeadSurveyStationList!.Last().MD, Is.EqualTo(value.SteeringStartStation!.MD));
         });
     }
 
@@ -221,6 +224,12 @@ public sealed class TargetLandingCalculatorTests
 
         Assert.That(TargetLandingCalculator.Calculate(value, source), Is.True, value.CalculationMessage);
         Assert.That(value.ReachableTargetContourList, Is.Not.Null.And.Not.Empty);
+        Assert.Multiple(() =>
+        {
+            Assert.That(value.LeadSurveyStationList, Has.Count.GreaterThan(1));
+            Assert.That(value.LeadSurveyStationList!.First().MD, Is.EqualTo(value.SourceEndStation!.MD));
+            Assert.That(value.LeadSurveyStationList!.Last().MD, Is.EqualTo(value.SteeringStartStation!.MD));
+        });
         foreach (List<TargetPlanePoint> contour in value.ReachableTargetContourList!)
         {
             Assert.Multiple(() =>

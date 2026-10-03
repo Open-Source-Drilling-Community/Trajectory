@@ -16,7 +16,7 @@ public static class TargetLandingCalculator
 {
     internal const int MaximumAdaptiveDepth = 4;
     internal const int EllipsePointCount = 72;
-    internal const int CalculationAlgorithmVersion = 6;
+    internal const int CalculationAlgorithmVersion = 7;
     internal const double BoundaryPositionTolerance = 0.25;
     internal const double PositionTolerance = 0.05;
     internal const double SamplingInterval = 10.0;
@@ -68,6 +68,7 @@ public static class TargetLandingCalculator
             return Fail(value, "The final source trend could not be continued through the requested lead length.");
         TrajectoryExtrapolationCalculator.ContinueSourceUncertainty(leadStations, sourceEnd, sourceStations);
         steeringStart = new SurveyStation(leadStations[^1]);
+        value.LeadSurveyStationList = leadStations.Select(station => new SurveyStation(station)).ToList();
         value.SteeringStartStation = new SurveyStation(steeringStart);
 
         Dictionary<string, TargetLandingSample> samples = [];

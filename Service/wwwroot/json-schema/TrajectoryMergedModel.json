@@ -37175,6 +37175,13 @@
           "SourceEndStation": {
             "$ref": "#/components/schemas/SurveyStation"
           },
+          "LeadSurveyStationList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/SurveyStation"
+            },
+            "nullable": true
+          },
           "SteeringStartStation": {
             "$ref": "#/components/schemas/SurveyStation"
           },

@@ -96,6 +96,20 @@
                    ZAxisTitle="Curvature" XAxisMinimum="-1.1" XAxisMaximum="1.1" YAxisMinimum="-1.1" YAxisMaximum="1.1"
                    ShowUnitCylinder="true" CentralCurvatureMarker="@(value.SourceEndStation?.Curvature)" />
 
+    CartesianPlotData cartesianPlot = BuildCartesianPlot();
+    <MudText Typo="Typo.h6" Class="mt-4">Cartesian landing geometry</MudText>
+    <MudText Typo="Typo.body2">The source trajectory is blue, the specified target boundary is black, the reachable boundary is solid green, the lead from the final source survey to the steering start is orange, and the landing paths are translucent green.</MudText>
+    @if (loadingCartesianSource) { <MudProgressLinear Indeterminate="true" Color="Color.Info" Class="mt-2" /> }
+    @if (cartesianPlot.Names.Count>0)
+    {
+        <Scatter3DPlot NameList="@cartesianPlot.Names" ModeFlagList="@cartesianPlot.Modes" ColorList="@cartesianPlot.Colors" ShowLegendList="@cartesianPlot.ShowLegend"
+                       XValuesList="@cartesianPlot.X" YValuesList="@cartesianPlot.Y" ZValuesList="@cartesianPlot.Z"
+                       XUnit="PositionDrilling" YUnit="PositionDrilling" ZUnit="DepthDrilling"
+                       XAxisUsesPositionReference="true" YAxisUsesPositionReference="true" ZAxisUsesDepthReference="true"
+                       XAxisPositionDirection="PositionDirectionType.North" YAxisPositionDirection="PositionDirectionType.East"
+                       XAxisTitle="North" YAxisTitle="East" ZAxisTitle="TVD" ZAxisReversed="true" />
+    }
+
     <MudText Typo="Typo.h6" Class="mt-4">Reachable target boundary commands</MudText>
     <MudTable T="BoundarySolutionRow" Items="@BoundarySolutions" Dense="true" Bordered="true" Hover="true" Style="max-height:500px;overflow:auto">
         <HeaderContent><MudTh>Contour</MudTh><MudTh>Point</MudTh><MudTh>Plane X</MudTh><MudTh>Plane Y</MudTh><MudTh>Landing length</MudTh><MudTh>Peak curvature</MudTh><MudTh>Boundary commands</MudTh></HeaderContent>
@@ -132,7 +146,10 @@
     [Parameter] public EventCallback ValueChanged { get; set; }
     private TargetLandingCase value = NewCase();
     private List<Field> fields = []; private List<Cluster> clusters = []; private List<Well> wells = []; private List<WellBore> wellBores = []; private List<Rig> rigs = []; private List<TrajectoryLight> trajectories = []; private List<SurveyRunLight> surveyRuns = [];
+    private List<SurveyStation> sourceTrajectoryStations = [];
+    private Guid? loadedSourceTrajectoryId;
     private Guid? fieldId, clusterId, wellId, wellBoreId, selectedRigJobId; private DateTimeOffset? sourceReferenceDate; private bool loading, saving;
+    private bool loadingCartesianSource;
     private readonly CancellationTokenSource calculationPolling = new();
     private CurvilinearPoint3D Plane => value.Target.Plane;
     private List<TargetPlanePoint> Polygon => value.Target.Polygon;
@@ -153,6 +170,7 @@
             sourceReferenceDate = await ResolveSourceTrajectoryDateAsync(SourceTrajectoryId);
             await UpdateSourceReferenceValuesAsync();
             CompleteOriginCoordinates();
+            if (value.SampleList is { Count: > 0 }) _ = LoadSourceTrajectoryStationsForPlotAsync(value.SourceTrajectoryID);
             if (IsCalculationActive) _ = MonitorExistingCalculationAsync(value.MetaInfo.ID);
         }
         catch (Exception ex) { logger.LogError(ex, "Unable to initialize target landing editor"); Snackbar.Add("Unable to load the target landing case.", Severity.Error); }
@@ -193,6 +211,7 @@
 
         value = await Api.ClientTrajectory.GetTargetLandingCaseByIdAsync(caseId, cancellationToken);
         CompleteOriginCoordinates();
+        _ = LoadSourceTrajectoryStationsForPlotAsync(value.SourceTrajectoryID,true);
         await InvokeAsync(StateHasChanged);
         if (value.CalculationState == CalculationState.Completed)
             Snackbar.Add("Target landing calculation completed.", Severity.Success);
@@ -215,7 +234,7 @@
     private async Task SetCluster(Guid? x) { clusterId=x; wellId=wellBoreId=null; selectedRigJobId=null; sourceReferenceDate=null; value.SourceTrajectoryID=Guid.Empty; await UpdateSourceReferenceValuesAsync(); }
     private async Task SetWell(Guid? x) { wellId=x; wellBoreId=null; selectedRigJobId=null; sourceReferenceDate=null; value.SourceTrajectoryID=Guid.Empty; await UpdateSourceReferenceValuesAsync(); }
     private async Task SetWellBore(Guid? x) { wellBoreId=x; selectedRigJobId=null; sourceReferenceDate=null; value.SourceTrajectoryID=Guid.Empty; await UpdateSourceReferenceValuesAsync(); }
-    private async Task SetTrajectory(Guid? x) { value.SourceTrajectoryID=x ?? Guid.Empty; selectedRigJobId=null; sourceReferenceDate=await ResolveSourceTrajectoryDateAsync(SourceTrajectoryId); await UpdateSourceReferenceValuesAsync(); }
+    private async Task SetTrajectory(Guid? x) { value.SourceTrajectoryID=x ?? Guid.Empty; selectedRigJobId=null; sourceTrajectoryStations=[];loadedSourceTrajectoryId=null;sourceReferenceDate=await ResolveSourceTrajectoryDateAsync(SourceTrajectoryId); await UpdateSourceReferenceValuesAsync(); }
     private Task OnRigJobIdChanged(Guid? x) { selectedRigJobId=x; return Task.CompletedTask; }
     private async Task OnRigJobChanged(RigJob? _) => await UpdateSourceReferenceValuesAsync();
     private Task<DateTimeOffset?> ResolveSourceTrajectoryDateAsync(Guid? trajectoryId) => TrajectoryRigJobDateResolver.ResolveAsync(Api, trajectoryId, trajectories, surveyRuns, logger);
@@ -225,6 +244,35 @@
         await CartographicPositionReferenceUtils.ApplyForTrajectoryAsync(Api, SourceTrajectoryId, trajectories, clusters, fields, logger);
         try { TrajectoryReferenceDatumUtils.Apply(await TrajectoryReferenceDatumUtils.ResolveForTrajectoryAsync(Api, SourceTrajectoryId, trajectories, wellBores, wells, clusters)); }
         catch (Exception ex) { logger.LogWarning(ex, "Unable to resolve optional target-landing source references"); TrajectoryReferenceDatumUtils.Apply(new TrajectoryReferenceDatumValues(null, null, null)); }
+    }
+    private async Task LoadSourceTrajectoryStationsForPlotAsync(Guid trajectoryId,bool forceReload=false)
+    {
+        if (trajectoryId==Guid.Empty || (!forceReload && loadedSourceTrajectoryId==trajectoryId) || loadingCartesianSource || calculationPolling.IsCancellationRequested) return;
+        if (forceReload) { sourceTrajectoryStations=[];loadedSourceTrajectoryId=null; }
+        loadingCartesianSource=true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            int chunkCount=await Api.ClientTrajectory.GetTrajectorySurveyStationChunkCountAsync(trajectoryId,calculationPolling.Token);
+            List<SurveyStation> stations=[];
+            for (int chunkIndex=0;chunkIndex<chunkCount;chunkIndex++)
+            {
+                SurveyStationChunk chunk=await Api.ClientTrajectory.GetTrajectorySurveyStationChunkAsync(trajectoryId,chunkIndex,calculationPolling.Token);
+                if (chunk.SurveyStationList is { Count:>0 }) stations.AddRange(chunk.SurveyStationList);
+            }
+            if (value.SourceTrajectoryID==trajectoryId)
+            {
+                sourceTrajectoryStations=stations.OrderBy(station=>station.MD??station.Abscissa).ToList();
+                loadedSourceTrajectoryId=trajectoryId;
+            }
+        }
+        catch (OperationCanceledException) when (calculationPolling.IsCancellationRequested) { }
+        catch (Exception ex) { logger.LogWarning(ex,"Unable to load source trajectory stations for the Cartesian target-landing view"); }
+        finally
+        {
+            loadingCartesianSource=false;
+            if (!calculationPolling.IsCancellationRequested) await InvokeAsync(StateHasChanged);
+        }
     }
     private void SetNorth(double? x) { Plane.RiemannianNorth=Plane.X=x; if (x is double north && Plane.RiemannianEast is double east) SynchronizeFromNorthEast(north, east); else Plane.Latitude=null; }
     private void SetEast(double? x) { Plane.RiemannianEast=Plane.Y=x; if (Plane.RiemannianNorth is double north && x is double east) SynchronizeFromNorthEast(north, east); else Plane.Longitude=null; }
@@ -289,6 +337,70 @@
     private static List<TargetPlanePoint> FinitePoints(List<TargetPlanePoint>? points) => points?.Where(point=>Finite(point.X) && Finite(point.Y)).ToList() ?? [];
     private static List<object> ClosedX(List<TargetPlanePoint>? points) { List<TargetPlanePoint> finite=FinitePoints(points); return finite.Count>0 ? finite.Concat([finite[0]]).Select(x=>(object)x.X).ToList() : []; }
     private static List<object> ClosedY(List<TargetPlanePoint>? points) { List<TargetPlanePoint> finite=FinitePoints(points); return finite.Count>0 ? finite.Concat([finite[0]]).Select(x=>(object)x.Y).ToList() : []; }
+    private CartesianPlotData BuildCartesianPlot()
+    {
+        List<CartesianTrace> traces=[];
+        AddStationTrace("Source trajectory","#1976d2",true,sourceTrajectoryStations);
+        AddPointTrace("Specified target boundary","#212121",true,TargetBoundaryPoints(value.GeologicalTargetBoundary??value.Target.Polygon));
+        int contourIndex=0;
+        foreach (List<TargetPlanePoint> contour in value.ReachableTargetContourList??[])
+            AddPointTrace(contourIndex++==0?"Reachable target boundary":"Reachable target contour","#2e7d32",true,TargetBoundaryPoints(contour));
+        AddStationTrace("Lead path","#ed6c02",true,value.LeadSurveyStationList??[]);
+        int pathIndex=0;
+        foreach (TargetLandingSample sample in BoundarySamples)
+            AddStationTrace($"Landing path {++pathIndex}","rgba(46,125,50,0.28)",false,sample.SurveyStationList??[]);
+
+        return new CartesianPlotData(
+            traces.Select(trace=>trace.Name).ToList(),
+            traces.Select(_=>1).ToList(),
+            traces.Select(trace=>trace.Color).ToList(),
+            traces.Select(trace=>trace.ShowLegend).ToList(),
+            traces.Select(trace=>trace.Points.Select(point=>(object)point.North).ToList()).ToList(),
+            traces.Select(trace=>trace.Points.Select(point=>(object)point.East).ToList()).ToList(),
+            traces.Select(trace=>trace.Points.Select(point=>(object)point.TVD).ToList()).ToList());
+
+        void AddStationTrace(string name,string color,bool showLegend,IEnumerable<SurveyStation> stations)
+        {
+            List<CartesianPoint> points=stations.Select(StationPoint).Where(point=>point.HasValue).Select(point=>point!.Value).ToList();
+            if (points.Count>1) traces.Add(new CartesianTrace(name,color,showLegend,points));
+        }
+        void AddPointTrace(string name,string color,bool showLegend,List<CartesianPoint> points)
+        {
+            if (points.Count>1) traces.Add(new CartesianTrace(name,color,showLegend,points));
+        }
+    }
+    private List<CartesianPoint> TargetBoundaryPoints(List<TargetPlanePoint>? boundary)
+    {
+        List<CartesianPoint> points=[];
+        foreach (TargetPlanePoint point in FinitePoints(boundary))
+            if (TargetPointToCartesian(point) is CartesianPoint converted) points.Add(converted);
+        if (points.Count>0) points.Add(points[0]);
+        return points;
+    }
+    private CartesianPoint? TargetPointToCartesian(TargetPlanePoint point)
+    {
+        double? north=Plane.RiemannianNorth??Plane.X,east=Plane.RiemannianEast??Plane.Y,tvd=Plane.TVD??Plane.Z;
+        if (north is not double originNorth || east is not double originEast || tvd is not double originTvd ||
+            Plane.Inclination is not double inclination || Plane.Azimuth is not double azimuth ||
+            !Finite(originNorth) || !Finite(originEast) || !Finite(originTvd) || !Finite(inclination) || !Finite(azimuth)) return null;
+        CartesianVector normal=new(Math.Sin(inclination)*Math.Cos(azimuth),Math.Sin(inclination)*Math.Sin(azimuth),Math.Cos(inclination));
+        CartesianVector up=new(0.0,0.0,-1.0);
+        CartesianVector projectedUp=up-normal*Dot(up,normal);
+        CartesianVector xAxis,yAxis;
+        if (Norm(projectedUp)<=1e-8) { xAxis=new(1.0,0.0,0.0);yAxis=new(0.0,1.0,0.0); }
+        else { yAxis=Normalize(projectedUp);xAxis=Normalize(Cross(normal,yAxis)); }
+        CartesianVector result=new CartesianVector(originNorth,originEast,originTvd)+xAxis*point.X+yAxis*point.Y;
+        return new CartesianPoint(result.North,result.East,result.TVD);
+    }
+    private static CartesianPoint? StationPoint(SurveyStation station)
+    {
+        double? north=station.RiemannianNorth??station.X,east=station.RiemannianEast??station.Y,tvd=station.TVD??station.Z;
+        return north is double n && east is double e && tvd is double d && Finite(n) && Finite(e) && Finite(d) ? new CartesianPoint(n,e,d) : null;
+    }
+    private static double Dot(CartesianVector first,CartesianVector second)=>first.North*second.North+first.East*second.East+first.TVD*second.TVD;
+    private static double Norm(CartesianVector value)=>Math.Sqrt(Dot(value,value));
+    private static CartesianVector Normalize(CartesianVector value)=>value*(1.0/Norm(value));
+    private static CartesianVector Cross(CartesianVector first,CartesianVector second)=>new(first.East*second.TVD-first.TVD*second.East,first.TVD*second.North-first.North*second.TVD,first.North*second.East-first.East*second.North);
     private List<List<BoundarySolutionRow>> BoundarySolutionContours
     {
         get
@@ -362,6 +474,15 @@
     private static double NormalizeAngle(double value) { double result=value%(2*Math.PI); return result<0?result+2*Math.PI:result; }
     private static double SquaredDistance(TargetPlanePoint point, TargetLandingSample sample) { double dx=point.X-sample.PlaneX,dy=point.Y-sample.PlaneY;return dx*dx+dy*dy; }
     private readonly record struct CylinderControlPoint(double Radius,double Curvature,double Toolface);
+    private readonly record struct CartesianPoint(double North,double East,double TVD);
+    private readonly record struct CartesianVector(double North,double East,double TVD)
+    {
+        public static CartesianVector operator +(CartesianVector first,CartesianVector second)=>new(first.North+second.North,first.East+second.East,first.TVD+second.TVD);
+        public static CartesianVector operator -(CartesianVector first,CartesianVector second)=>new(first.North-second.North,first.East-second.East,first.TVD-second.TVD);
+        public static CartesianVector operator *(CartesianVector value,double scale)=>new(value.North*scale,value.East*scale,value.TVD*scale);
+    }
+    private sealed record CartesianTrace(string Name,string Color,bool ShowLegend,List<CartesianPoint> Points);
+    private sealed record CartesianPlotData(List<string> Names,List<int> Modes,List<string> Colors,List<bool> ShowLegend,List<List<object>> X,List<List<object>> Y,List<List<object>> Z);
     private sealed record BoundarySolutionRow(int ContourNumber, int PointNumber, TargetPlanePoint Point, TargetLandingSample Sample);
     private static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
     public void Dispose()

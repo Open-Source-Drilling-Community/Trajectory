@@ -771,6 +771,7 @@ public sealed class WebPageComponentContractTests
                 .And.Not.Contain("SampleList")
                 .And.Not.Contain("MeshTriangleList")
                 .And.Not.Contain("SourceEndStation")
+                .And.Not.Contain("LeadSurveyStationList")
                 .And.Not.Contain("SteeringStartStation")
                 .And.Not.Contain("CalculationFingerprint"),
                 "Saving an edited case must not resend the large server-derived calculation result through nginx.");
@@ -813,6 +814,17 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("section.ConstantBuildRate")
                 .And.Contain("section.ConstantTurnRate"),
                 "The end-user table must report boundary points and their unit-aware section commands.");
+            Assert.That(editor, Does.Contain("Cartesian landing geometry")
+                .And.Contain("GetTrajectorySurveyStationChunkCountAsync")
+                .And.Contain("GetTrajectorySurveyStationChunkAsync")
+                .And.Contain("value.LeadSurveyStationList")
+                .And.Contain("sample.SurveyStationList")
+                .And.Contain("TargetBoundaryPoints")
+                .And.Contain("XAxisTitle=\"North\"")
+                .And.Contain("YAxisTitle=\"East\"")
+                .And.Contain("ZAxisTitle=\"TVD\"")
+                .And.Contain("ZAxisReversed=\"true\""),
+                "The Cartesian view must combine the chunked source trajectory, target boundaries, lead path, and landing paths in unit-aware N/E/TVD coordinates.");
             Assert.That(navigation, Does.Contain("/Trajectory/webapp/TargetLanding"));
         });
     }

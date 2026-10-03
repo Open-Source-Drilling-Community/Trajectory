@@ -6922,6 +6922,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				SourceTrajectoryRevision = DateTimeOffset.UtcNow,
 				CalculationFingerprint = "Default CalculationFingerprint",
 				SourceEndStation = ConstructSurveyStation(),
+				LeadSurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
 				SteeringStartStation = ConstructSurveyStation(),
 				GeologicalTargetBoundary = new List<TargetPlanePoint>
 					{

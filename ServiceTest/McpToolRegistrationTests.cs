@@ -525,6 +525,7 @@ public sealed class McpToolRegistrationTests
             Assert.That(properties.ContainsKey("SampleList"), Is.False);
             Assert.That(properties.ContainsKey("ReachableTargetBoundary"), Is.False);
             Assert.That(properties.ContainsKey("SourceEndStation"), Is.False);
+            Assert.That(properties.ContainsKey("LeadSurveyStationList"), Is.False);
             Assert.That(caseDefinition["required"]!.AsArray().Select(node => node!.GetValue<string>()),
                 Is.EquivalentTo(new[] { "MetaInfo", "SourceTrajectoryID", "Target" }));
             Assert.That(properties["LeadLength"]!["minimum"]!.GetValue<double>(), Is.Zero);

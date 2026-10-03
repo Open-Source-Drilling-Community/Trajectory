@@ -9699,6 +9699,13 @@
           "SourceEndStation": {
             "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
           },
+          "LeadSurveyStationList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+            },
+            "nullable": true
+          },
           "SteeringStartStation": {
             "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
           },

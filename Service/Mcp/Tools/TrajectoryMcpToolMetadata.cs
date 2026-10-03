@@ -313,6 +313,7 @@ internal static class TrajectoryMcpToolMetadata
                 nameof(TargetLandingCase.SourceTrajectoryRevision),
                 nameof(TargetLandingCase.CalculationFingerprint),
                 nameof(TargetLandingCase.SourceEndStation),
+                nameof(TargetLandingCase.LeadSurveyStationList),
                 nameof(TargetLandingCase.SteeringStartStation),
                 nameof(TargetLandingCase.GeologicalTargetBoundary),
                 nameof(TargetLandingCase.DrillerTargetBoundary),
