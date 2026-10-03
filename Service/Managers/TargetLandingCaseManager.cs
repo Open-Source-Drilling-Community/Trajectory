@@ -1,6 +1,7 @@
 using Microsoft.Data.Sqlite;
 using Microsoft.Extensions.Logging;
 using OSDC.Drilling.Trajectory.Model;
+using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.DataManagement;
 using System;
 using System.Collections.Generic;
@@ -29,9 +30,55 @@ public sealed class TargetLandingCaseManager
     public static TargetLandingCaseManager GetInstance(ILogger<TargetLandingCaseManager> logger,
         SqlConnectionManager connectionManager) => instance_ ??= new(logger, connectionManager);
 
-    public List<Guid>? GetAllIds() => ReadAll()?.Select(x => x.MetaInfo!.ID).ToList();
-    public List<MetaInfo>? GetAllMetaInfo() => ReadAll()?.Where(x => x.MetaInfo != null).Select(x => x.MetaInfo!).ToList();
-    public List<TargetLandingCaseLight>? GetAllLight() => ReadAll()?.Select(ToLight).ToList();
+    public List<Guid>? GetAllIds()
+    {
+        using SqliteConnection? connection = connectionManager_.GetConnection();
+        if (connection == null) return null;
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = "SELECT ID FROM TargetLandingCaseTable ORDER BY CreationDate";
+        try
+        {
+            using SqliteDataReader reader = command.ExecuteReader();
+            List<Guid> values = [];
+            while (reader.Read()) if (Guid.TryParse(reader.GetString(0), out Guid id)) values.Add(id);
+            return values;
+        }
+        catch (SqliteException ex) { logger_.LogError(ex, "Unable to list target landing case IDs"); return null; }
+    }
+    public List<MetaInfo>? GetAllMetaInfo()
+    {
+        using SqliteConnection? connection = connectionManager_.GetConnection();
+        if (connection == null) return null;
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = "SELECT MetaInfo FROM TargetLandingCaseTable ORDER BY CreationDate";
+        try
+        {
+            using SqliteDataReader reader = command.ExecuteReader();
+            List<MetaInfo> values = [];
+            while (reader.Read())
+            {
+                MetaInfo? value = reader.IsDBNull(0) ? null : JsonSerializer.Deserialize<MetaInfo>(reader.GetString(0), JsonSettings.Options);
+                if (value != null) values.Add(value);
+            }
+            return values;
+        }
+        catch (Exception ex) when (ex is SqliteException or JsonException) { logger_.LogError(ex, "Unable to list target landing case metadata"); return null; }
+    }
+    public List<TargetLandingCaseLight>? GetAllLight()
+    {
+        using SqliteConnection? connection = connectionManager_.GetConnection();
+        if (connection == null) return null;
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = LightSelect + " ORDER BY c.CreationDate";
+        try
+        {
+            using SqliteDataReader reader = command.ExecuteReader();
+            List<TargetLandingCaseLight> values = [];
+            while (reader.Read()) values.Add(ReadLight(reader));
+            return values;
+        }
+        catch (Exception ex) when (ex is SqliteException or JsonException) { logger_.LogError(ex, "Unable to list light target landing cases"); return null; }
+    }
     public List<TargetLandingCase>? GetAll() => ReadAll();
     public TargetLandingCaseLight? GetLightById(Guid id)
     {
@@ -39,25 +86,13 @@ public sealed class TargetLandingCaseManager
         using SqliteConnection? connection = connectionManager_.GetConnection();
         if (connection == null) return null;
         using SqliteCommand command = connection.CreateCommand();
-        command.CommandText = "SELECT MetaInfo,CreationDate,LastModificationDate,SourceTrajectoryID,TargetType,CurveType,AttitudeMode,CalculationState,CalculationProgress,CalculationMessage FROM TargetLandingCaseTable WHERE ID=@id";
+        command.CommandText = LightSelect + " WHERE c.ID=@id";
         command.Parameters.AddWithValue("@id", id.ToString());
         try
         {
             using SqliteDataReader reader = command.ExecuteReader();
             if (!reader.Read()) return null;
-            return new TargetLandingCaseLight
-            {
-                MetaInfo = reader.IsDBNull(0) ? null : JsonSerializer.Deserialize<MetaInfo>(reader.GetString(0), JsonSettings.Options),
-                CreationDate = ReadDate(reader, 1),
-                LastModificationDate = ReadDate(reader, 2),
-                SourceTrajectoryID = Guid.TryParse(reader.GetString(3), out Guid sourceId) ? sourceId : Guid.Empty,
-                TargetType = Enum.TryParse(reader.GetString(4), out TargetLandingTargetType targetType) ? targetType : default,
-                CurveType = Enum.TryParse(reader.GetString(5), out ExtrapolationCurveType curveType) ? curveType : default,
-                AttitudeMode = Enum.TryParse(reader.GetString(6), out TargetLandingAttitudeMode attitudeMode) ? attitudeMode : default,
-                CalculationState = Enum.TryParse(reader.GetString(7), out CalculationState state) ? state : CalculationState.NotCalculated,
-                CalculationProgress = reader.IsDBNull(8) ? 0.0 : reader.GetDouble(8),
-                CalculationMessage = reader.IsDBNull(9) ? null : reader.GetString(9)
-            };
+            return ReadLight(reader);
         }
         catch (Exception ex) when (ex is SqliteException or JsonException)
         {
@@ -67,18 +102,55 @@ public sealed class TargetLandingCaseManager
     }
 
     public TargetLandingCase? GetById(Guid id)
+        => ReadById(id, includeSamples: true);
+
+    public TargetLandingCase? GetEditById(Guid id)
+        => ReadById(id, includeSamples: false);
+
+    public TargetLandingCase? GetDisplayById(Guid id)
+    {
+        TargetLandingCase? value = ReadById(id, includeSamples: true, refreshStale: false);
+        if (value == null) return null;
+        HashSet<Guid> boundarySampleIds = [];
+        List<TargetLandingSample> samples = value.SampleList ?? [];
+        Dictionary<(double X, double Y), TargetLandingSample> samplesByPosition = samples
+            .Where(sample => sample.SolvedSectionList is { Count: > 0 })
+            .GroupBy(sample => (sample.PlaneX, sample.PlaneY))
+            .ToDictionary(group => group.Key, group => group.First());
+        foreach (TargetPlanePoint point in (value.ReachableTargetContourList ?? []).SelectMany(contour => contour).Take(250))
+        {
+            TargetLandingSample? nearest = samplesByPosition.GetValueOrDefault((point.X, point.Y));
+            nearest ??= samplesByPosition.Values.OrderBy(sample => SquaredDistance(point, sample)).FirstOrDefault();
+            if (nearest != null) boundarySampleIds.Add(nearest.SampleID);
+        }
+        value.SampleList = samples.Where(sample => boundarySampleIds.Contains(sample.SampleID)).Take(250).ToList();
+        foreach (TargetLandingSample sample in value.SampleList)
+        {
+            sample.SurveyStationList = sample.SurveyStationList?.Select(ToDisplayStation).ToList();
+            sample.LandingStation = sample.LandingStation == null ? null : ToDisplayStation(sample.LandingStation);
+        }
+        value.LeadSurveyStationList = value.LeadSurveyStationList?.Select(ToDisplayStation).ToList();
+        value.SourceEndStation = value.SourceEndStation == null ? null : ToDisplayStation(value.SourceEndStation);
+        value.SteeringStartStation = value.SteeringStartStation == null ? null : ToDisplayStation(value.SteeringStartStation);
+        value.MeshTriangleList = [];
+        return value;
+    }
+
+    private TargetLandingCase? ReadById(Guid id, bool includeSamples, bool refreshStale = true)
     {
         if (id == Guid.Empty) return null;
         using SqliteConnection? connection = connectionManager_.GetConnection();
         if (connection == null) return null;
         using SqliteCommand command = connection.CreateCommand();
-        command.CommandText = "SELECT TargetLandingCase FROM TargetLandingCaseTable WHERE ID=@id";
+        command.CommandText = includeSamples
+            ? "SELECT TargetLandingCase FROM TargetLandingCaseTable WHERE ID=@id"
+            : "SELECT TargetLandingCaseEditData FROM TargetLandingCaseTable WHERE ID=@id";
         command.Parameters.AddWithValue("@id", id.ToString());
         try
         {
             string? json = command.ExecuteScalar() as string;
             TargetLandingCase? value = json == null ? null : JsonSerializer.Deserialize<TargetLandingCase>(json, JsonSettings.Options);
-            RefreshStale(value);
+            if (refreshStale) RefreshStaleLight(value);
             return value;
         }
         catch (Exception ex) when (ex is SqliteException or JsonException)
@@ -86,6 +158,36 @@ public sealed class TargetLandingCaseManager
             logger_.LogError(ex, "Unable to read target landing case {CaseId}", id);
             return null;
         }
+    }
+
+    private const string LightSelect = """
+        SELECT c.MetaInfo,c.CreationDate,c.LastModificationDate,c.SourceTrajectoryID,c.TargetType,c.CurveType,c.AttitudeMode,
+               c.CalculationState,c.CalculationProgress,c.CalculationMessage,
+               c.Name,c.Description,c.SourceTrajectoryRevision,c.CalculationFingerprint,
+               t.LastModificationDate
+        FROM TargetLandingCaseTable c LEFT JOIN TrajectoryTable t ON t.ID=c.SourceTrajectoryID
+        """;
+
+    private static TargetLandingCaseLight ReadLight(SqliteDataReader reader)
+    {
+        CalculationState state = Enum.TryParse(reader.GetString(7), out CalculationState parsedState) ? parsedState : CalculationState.NotCalculated;
+        DateTimeOffset? sourceRevision = ReadJsonDate(reader, 12);
+        DateTimeOffset? currentSourceRevision = ReadDate(reader, 14);
+        bool stale = state == CalculationState.Completed &&
+            (reader.IsDBNull(13) || string.IsNullOrWhiteSpace(reader.GetString(13)) || sourceRevision != currentSourceRevision);
+        return new TargetLandingCaseLight
+        {
+            MetaInfo = reader.IsDBNull(0) ? null : JsonSerializer.Deserialize<MetaInfo>(reader.GetString(0), JsonSettings.Options),
+            CreationDate = ReadDate(reader, 1), LastModificationDate = ReadDate(reader, 2),
+            SourceTrajectoryID = Guid.TryParse(reader.GetString(3), out Guid sourceId) ? sourceId : Guid.Empty,
+            TargetType = Enum.TryParse(reader.GetString(4), out TargetLandingTargetType targetType) ? targetType : default,
+            CurveType = Enum.TryParse(reader.GetString(5), out ExtrapolationCurveType curveType) ? curveType : default,
+            AttitudeMode = Enum.TryParse(reader.GetString(6), out TargetLandingAttitudeMode attitudeMode) ? attitudeMode : default,
+            CalculationState = state, CalculationProgress = reader.IsDBNull(8) ? 0.0 : reader.GetDouble(8),
+            CalculationMessage = reader.IsDBNull(9) ? null : reader.GetString(9),
+            Name = reader.IsDBNull(10) ? null : reader.GetString(10), Description = reader.IsDBNull(11) ? null : reader.GetString(11),
+            IsStale = stale
+        };
     }
 
     public List<(Guid Id, DateTimeOffset Revision)> PrepareInterruptedCalculationsForResume()
@@ -105,7 +207,7 @@ public sealed class TargetLandingCaseManager
 
     public Task<bool> AddAsync(TargetLandingCase value)
     {
-        if (TargetLandingCalculator.Validate(value).Count > 0 || GetById(value.MetaInfo!.ID) != null)
+        if (TargetLandingCalculator.Validate(value).Count > 0 || GetLightById(value.MetaInfo!.ID) != null)
             return Task.FromResult(false);
         DateTimeOffset now = DateTimeOffset.UtcNow;
         value.CreationDate = now;
@@ -117,7 +219,7 @@ public sealed class TargetLandingCaseManager
 
     public Task<bool> UpdateAsync(Guid id, DateTimeOffset expectedRevision, TargetLandingCase value)
     {
-        TargetLandingCase? existing = GetById(id);
+        TargetLandingCase? existing = GetEditById(id);
         if (existing == null || value.MetaInfo?.ID != id || TargetLandingCalculator.Validate(value).Count > 0)
             return Task.FromResult(false);
         value.CreationDate = existing.CreationDate;
@@ -166,7 +268,7 @@ public sealed class TargetLandingCaseManager
                     value.CalculationMessage = message;
                     // Keep the lightweight polling representation useful during adaptive sampling.
                     // LastModificationDate remains the queued revision until the terminal write.
-                    Save(value, true, queuedRevision);
+                    UpdateProgress(value, queuedRevision);
                 });
             }
             TargetLandingCase? current = GetById(id);
@@ -226,8 +328,8 @@ public sealed class TargetLandingCaseManager
         if (connection == null) return false;
         using SqliteCommand command = connection.CreateCommand();
         command.CommandText = update
-            ? "UPDATE TargetLandingCaseTable SET MetaInfo=@meta,CreationDate=@created,LastModificationDate=@modified,SourceTrajectoryID=@source,TargetType=@targetType,CurveType=@curveType,AttitudeMode=@attitude,CalculationState=@state,CalculationProgress=@progress,CalculationMessage=@message,TargetLandingCase=@data WHERE ID=@id AND LastModificationDate=@expected"
-            : "INSERT INTO TargetLandingCaseTable (ID,MetaInfo,CreationDate,LastModificationDate,SourceTrajectoryID,TargetType,CurveType,AttitudeMode,CalculationState,CalculationProgress,CalculationMessage,TargetLandingCase) VALUES (@id,@meta,@created,@modified,@source,@targetType,@curveType,@attitude,@state,@progress,@message,@data)";
+            ? "UPDATE TargetLandingCaseTable SET MetaInfo=@meta,CreationDate=@created,LastModificationDate=@modified,SourceTrajectoryID=@source,TargetType=@targetType,CurveType=@curveType,AttitudeMode=@attitude,CalculationState=@state,CalculationProgress=@progress,CalculationMessage=@message,TargetLandingCase=@data,Name=@name,Description=@description,SourceTrajectoryRevision=@sourceRevision,CalculationFingerprint=@fingerprint,TargetLandingCaseEditData=@editData WHERE ID=@id AND LastModificationDate=@expected"
+            : "INSERT INTO TargetLandingCaseTable (ID,MetaInfo,CreationDate,LastModificationDate,SourceTrajectoryID,TargetType,CurveType,AttitudeMode,CalculationState,CalculationProgress,CalculationMessage,TargetLandingCase,Name,Description,SourceTrajectoryRevision,CalculationFingerprint,TargetLandingCaseEditData) VALUES (@id,@meta,@created,@modified,@source,@targetType,@curveType,@attitude,@state,@progress,@message,@data,@name,@description,@sourceRevision,@fingerprint,@editData)";
         command.Parameters.AddWithValue("@id", value.MetaInfo.ID.ToString());
         command.Parameters.AddWithValue("@meta", JsonSerializer.Serialize(value.MetaInfo, JsonSettings.Options));
         command.Parameters.AddWithValue("@created", (object?)value.CreationDate?.ToString(SqlConnectionManager.DATE_TIME_FORMAT) ?? DBNull.Value);
@@ -240,6 +342,11 @@ public sealed class TargetLandingCaseManager
         command.Parameters.AddWithValue("@progress", value.CalculationProgress);
         command.Parameters.AddWithValue("@message", (object?)value.CalculationMessage ?? DBNull.Value);
         command.Parameters.AddWithValue("@data", JsonSerializer.Serialize(value, JsonSettings.Options));
+        command.Parameters.AddWithValue("@name", (object?)value.Name ?? DBNull.Value);
+        command.Parameters.AddWithValue("@description", (object?)value.Description ?? DBNull.Value);
+        command.Parameters.AddWithValue("@sourceRevision", (object?)value.SourceTrajectoryRevision?.ToString(SqlConnectionManager.DATE_TIME_FORMAT) ?? DBNull.Value);
+        command.Parameters.AddWithValue("@fingerprint", (object?)value.CalculationFingerprint ?? DBNull.Value);
+        command.Parameters.AddWithValue("@editData", SerializeEditData(value));
         if (update)
         {
             if (!expectedRevision.HasValue) return false;
@@ -253,12 +360,57 @@ public sealed class TargetLandingCaseManager
         }
     }
 
-    private void RefreshStale(TargetLandingCase? value)
+    private static string SerializeEditData(TargetLandingCase value)
+    {
+        List<TargetLandingSample>? samples = value.SampleList;
+        List<TargetLandingMeshTriangle>? triangles = value.MeshTriangleList;
+        try
+        {
+            value.SampleList = [];
+            value.MeshTriangleList = [];
+            return JsonSerializer.Serialize(value, JsonSettings.Options);
+        }
+        finally
+        {
+            value.SampleList = samples;
+            value.MeshTriangleList = triangles;
+        }
+    }
+
+    private bool UpdateProgress(TargetLandingCase value, DateTimeOffset expectedRevision)
+    {
+        if (value.MetaInfo == null) return false;
+        using SqliteConnection? connection = connectionManager_.GetConnection();
+        if (connection == null) return false;
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = "UPDATE TargetLandingCaseTable SET CalculationState=@state,CalculationProgress=@progress,CalculationMessage=@message WHERE ID=@id AND LastModificationDate=@expected";
+        command.Parameters.AddWithValue("@id", value.MetaInfo.ID.ToString());
+        command.Parameters.AddWithValue("@expected", expectedRevision.ToString(SqlConnectionManager.DATE_TIME_FORMAT));
+        command.Parameters.AddWithValue("@state", value.CalculationState.ToString());
+        command.Parameters.AddWithValue("@progress", value.CalculationProgress);
+        command.Parameters.AddWithValue("@message", (object?)value.CalculationMessage ?? DBNull.Value);
+        try { return command.ExecuteNonQuery() == 1; }
+        catch (SqliteException ex)
+        {
+            logger_.LogError(ex, "Unable to update target landing calculation progress for {CaseId}", value.MetaInfo.ID);
+            return false;
+        }
+    }
+
+    private void RefreshStale(TargetLandingCase? value) => RefreshStaleLight(value);
+
+    private void RefreshStaleLight(TargetLandingCase? value)
     {
         if (value == null || value.CalculationState != CalculationState.Completed) return;
-        Model.Trajectory? source = trajectoryManager_.GetTrajectoryById(value.SourceTrajectoryID, includeCalculatedStations: true);
-        value.IsStale = source == null || string.IsNullOrWhiteSpace(value.CalculationFingerprint) ||
-            !string.Equals(TargetLandingCalculator.ComputeFingerprint(value, source), value.CalculationFingerprint, StringComparison.Ordinal);
+        using SqliteConnection? connection = connectionManager_.GetConnection();
+        if (connection == null) { value.IsStale = true; return; }
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = "SELECT LastModificationDate FROM TrajectoryTable WHERE ID=@id";
+        command.Parameters.AddWithValue("@id", value.SourceTrajectoryID.ToString());
+        object? result = command.ExecuteScalar();
+        DateTimeOffset? currentRevision = result is string text && DateTimeOffset.TryParse(text, out DateTimeOffset parsed) ? parsed : null;
+        value.IsStale = currentRevision == null || string.IsNullOrWhiteSpace(value.CalculationFingerprint) ||
+            value.SourceTrajectoryRevision != currentRevision;
     }
 
     private static TargetLandingCaseLight ToLight(TargetLandingCase value) => new()
@@ -275,6 +427,25 @@ public sealed class TargetLandingCaseManager
         reader.IsDBNull(ordinal) || !DateTimeOffset.TryParse(reader.GetString(ordinal), out DateTimeOffset value)
             ? null
             : value;
+
+    private static DateTimeOffset? ReadJsonDate(SqliteDataReader reader, int ordinal) => ReadDate(reader, ordinal);
+
+    private static double SquaredDistance(TargetPlanePoint point, TargetLandingSample sample)
+    {
+        double dx = point.X - sample.PlaneX;
+        double dy = point.Y - sample.PlaneY;
+        return dx * dx + dy * dy;
+    }
+
+    private static SurveyStation ToDisplayStation(SurveyStation source) => new()
+    {
+        MD = source.MD, X = source.X, Y = source.Y, Z = source.Z,
+        RiemannianNorth = source.RiemannianNorth, RiemannianEast = source.RiemannianEast, TVD = source.TVD,
+        Latitude = source.Latitude, Longitude = source.Longitude,
+        Inclination = source.Inclination, Azimuth = source.Azimuth,
+        Curvature = source.Curvature, Toolface = source.Toolface, BUR = source.BUR, TUR = source.TUR,
+        VerticalSection = source.VerticalSection, Abscissa = source.Abscissa
+    };
 
     private static void Mark(TargetLandingCase value, CalculationState state, double progress, string? message)
     {

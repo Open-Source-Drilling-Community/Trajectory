@@ -207,6 +207,51 @@ public sealed class TrajectoryCatalogMigrationTests
         }
     }
 
+    [Test]
+    public void Version_five_database_adds_and_backfills_target_landing_light_columns()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "trajectory-target-landing-light-migration", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        string mainPath = Path.Combine(directory, "Trajectory.db");
+        try
+        {
+            _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+            Execute(mainPath, """
+                ALTER TABLE TargetLandingCaseTable RENAME TO TargetLandingCaseTableV6;
+                CREATE TABLE TargetLandingCaseTable (
+                    ID text primary key, MetaInfo text, CreationDate text, LastModificationDate text,
+                    SourceTrajectoryID text, TargetType text, CurveType text, AttitudeMode text,
+                    CalculationState text, CalculationProgress real, CalculationMessage text,
+                    TargetLandingCase text);
+                INSERT INTO TargetLandingCaseTable VALUES(
+                    'case-id','{}','2026-10-03T10:00:00.0000000+00:00','2026-10-03T10:01:00.0000000+00:00',
+                    'source-id','Polygon','ConstantBuildAndTurn','PositionOnly','Completed',1.0,'done',
+                    '{"Name":"Landing A","Description":"Preserved","SourceTrajectoryRevision":"2026-10-03T09:00:00+00:00","CalculationFingerprint":"abc","SampleList":[{"PlaneX":1.0}]}');
+                DROP TABLE TargetLandingCaseTableV6;
+                CREATE UNIQUE INDEX TargetLandingCaseTableIndex ON TargetLandingCaseTable(ID);
+                PRAGMA user_version=5;
+                """);
+
+            _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+
+            using SqliteConnection main = Open(mainPath);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Scalar<long>(main, "PRAGMA user_version"), Is.EqualTo(SqlConnectionManagerTrajectory.TrajectorySchemaVersion));
+                Assert.That(Scalar<string>(main, "SELECT Name FROM TargetLandingCaseTable WHERE ID='case-id'"), Is.EqualTo("Landing A"));
+                Assert.That(Scalar<string>(main, "SELECT Description FROM TargetLandingCaseTable WHERE ID='case-id'"), Is.EqualTo("Preserved"));
+                Assert.That(Scalar<string>(main, "SELECT CalculationFingerprint FROM TargetLandingCaseTable WHERE ID='case-id'"), Is.EqualTo("abc"));
+                Assert.That(Scalar<string>(main, "SELECT TargetLandingCase FROM TargetLandingCaseTable WHERE ID='case-id'"), Does.Contain("SampleList"));
+                Assert.That(Scalar<string>(main, "SELECT TargetLandingCaseEditData FROM TargetLandingCaseTable WHERE ID='case-id'"), Does.Not.Contain("SampleList"));
+            });
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
+    }
+
     private static void Execute(string path, string sql)
     {
         using SqliteConnection connection = Open(path);

@@ -24,9 +24,13 @@ public sealed class OpenApiTargetLandingContractTests
             Assert.That(program, Does.Contain("AddSingleton<TargetLandingCalculationWorker>()")
                 .And.Contain("AddHostedService(sp => sp.GetRequiredService<TargetLandingCalculationWorker>())"));
             Assert.That(controller, Does.Contain("worker_.Queue(id, value.LastModificationDate!.Value)"));
-            Assert.That(manager, Does.Contain("SELECT MetaInfo,CreationDate,LastModificationDate,SourceTrajectoryID,TargetType,CurveType,AttitudeMode,CalculationState,CalculationProgress,CalculationMessage")
+            Assert.That(manager, Does.Contain("c.Name,c.Description,c.SourceTrajectoryRevision,c.CalculationFingerprint")
+                .And.Not.Contain("json_extract(c.TargetLandingCase")
+                .And.Contain("private bool UpdateProgress")
                 .And.Not.Contain("_ = Task.Run(() => RecalculateAsync"),
-                "Polling status must not deserialize the heavy result, and request handlers must not launch fire-and-forget calculations.");
+                "Listing and progress polling must not parse or rewrite the heavy result, and request handlers must not launch fire-and-forget calculations.");
+            Assert.That(controller, Does.Contain("GetTargetLandingCaseEditData")
+                .And.Contain("GetTargetLandingCaseDisplayData"));
         });
     }
 

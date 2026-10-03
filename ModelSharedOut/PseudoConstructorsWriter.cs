@@ -3,6 +3,7 @@ using System.IO;
 using System.Text;
 using System.Linq;
 using System.Reflection;
+using System.Collections.Generic;
 using OSDC.Drilling.Trajectory.ModelShared;
 
 namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
@@ -14,17 +15,19 @@ namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
         private static readonly string MODELSHARED_FOLDER = "ModelSharedOut";
         private static string fullPath = "";
         private static string IDENTATION = "\n\t\t\t\t";
-        private static string ICOLLECTION_FULL_NAME = "System.Collections.Generic.ICollection`1[";
         private static string? dictionaryKey;
         private static string? dictionaryValue;
         private static bool isFromNamespace = false;
         private static int CollectionStacks(PropertyInfo propertyInfo)
         {
-            //Get number of list stacks
-            if (propertyInfo.PropertyType.AssemblyQualifiedName != null)
-                return propertyInfo.PropertyType.AssemblyQualifiedName.Split(ICOLLECTION_FULL_NAME).Length - 1;
-            else
-                return 0;
+            return CollectionStacks(propertyInfo.PropertyType);
+        }
+        private static int CollectionStacks(Type type)
+        {
+            if (!type.IsGenericType) return 0;
+            Type definition = type.GetGenericTypeDefinition();
+            if (definition != typeof(ICollection<>) && definition != typeof(List<>)) return 0;
+            return 1 + CollectionStacks(type.GenericTypeArguments[0]);
         }
         private static string ReturnBaseType(Type type)
         {
@@ -46,7 +49,7 @@ namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
             if (type.GenericTypeArguments.Length > 0)
             {
                 //If it is a list, create a list stack in the type
-                if (type.Name == "ICollection`1")
+                if (type.Name is "ICollection`1" or "List`1")
                     return "List<" + ReturnFullType(type.GenericTypeArguments[0]) + ">";
                 else if (type.Name == "Nullable`1")
                     return ReturnFullType(type.GenericTypeArguments[0]) + "?";

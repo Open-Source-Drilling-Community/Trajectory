@@ -754,11 +754,19 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("DrillingSignalReferenceType.Geodetic => Parent!.ToWGS84GeodeticSI")
                 .And.Contain("DrillingSignalReferenceType.Azimuth => Parent!.ToTrueNorthAzimuthSI"),
                 "Target-landing engineering inputs must commit every valid edit without reformatting raw text from stale parent values.");
-            Assert.That(editor, Does.Contain("PutTargetLandingCaseByIdAsync(value.MetaInfo.ID, ConcurrencyToken.Require(value.LastModificationDate), savePayload)"));
+            Assert.That(editor, Does.Contain("PutWithSafeCalculationRetryAsync(value.MetaInfo.ID, savePayload)")
+                .And.Contain("catch (ApiException ex) when (ex.StatusCode == 409)")
+                .And.Contain("latest.CalculationState is CalculationState.Completed or CalculationState.Failed")
+                .And.Contain("string.Equals(EditableFingerprint(latest), loadedEditableFingerprint, StringComparison.Ordinal)")
+                .And.Contain("ConcurrencyToken.Require(latest.LastModificationDate), savePayload"),
+                "A terminal background-calculation write may advance the revision, but the editor must retry only when the editable configuration is unchanged.");
             Assert.That(editor, Does.Contain("await RefreshAfterCalculationAsync(value.MetaInfo.ID, calculationPolling.Token)")
                 .And.Contain("GetTargetLandingCaseStatusAsync(caseId, cancellationToken)")
-                .And.Contain("value = await Api.ClientTrajectory.GetTargetLandingCaseByIdAsync(caseId, cancellationToken)"),
-                "Saving must keep the detailed editor open, report progress, and reload the completed calculation in place.");
+                .And.Contain("GetTargetLandingCaseEditDataAsync(caseId, cancellationToken)")
+                .And.Contain("GetTargetLandingCaseDisplayDataAsync(caseId, cancellationToken)"),
+                "Saving must keep the detailed editor open, report progress, and reload only the edit and display projections in place.");
+            Assert.That(editor, Does.Not.Contain("GetTargetLandingCaseByIdAsync"),
+                "The editor must never download the unrestricted calculation aggregate.");
             Assert.That(editor, Does.Contain("% complete — calculation continues on the server")
                 .And.Contain("MonitorExistingCalculationAsync")
                 .And.Contain("Disabled=\"@(saving || IsCalculationActive)\""));
@@ -794,6 +802,10 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("CentralCurvatureMarker=\"@(value.SourceEndStation?.Curvature)\"")
                 .And.Contain("ZUnit=\"CurvatureDrilling\""),
                 "CA, CTC and BT boundary paths must be drawn as marker-free lines on a normalized-length toolface/curvature cylinder.");
+            Assert.That(editor, Does.Contain("@if (HasAuthoritativeBoundaryControls)")
+                .And.Contain("saved result predates authoritative normalized curve controls")
+                .And.Contain("Run Save and calculate against the current Trajectory service"),
+                "Legacy results must explain why exact-control graphs cannot be drawn instead of silently showing empty plot areas.");
             Assert.That(editor, Does.Contain("sample.ControlPointList?.Where(ControlPointIsFinite)")
                 .And.Not.Contain("StationControl(")
                 .And.Not.Contain("StationBuildTurn(")
@@ -824,9 +836,14 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("BuildTurnPath(sample)")
                 .And.Contain("point.TurnRate,point.NormalizedLength,point.BuildRate")
                 .And.Contain("with { NormalizedLength=1.0 }")
+                .And.Contain("List<BuildTurnControlPoint> target=CloseTrace(contour")
                 .And.Contain("0.5*Math.PI/(180.0*30.0)")
                 .And.Contain("0.2*(maximum-minimum)"),
                 "The build/turn view must show sampled control paths from normalized length zero to the reachable boundary at one, using unit-aware axes with the requested padding.");
+            Assert.That(editor, Does.Contain(".Select(rows=>CloseTrace(rows.Where")
+                .And.Contain("private static List<T> CloseTrace<T>(IEnumerable<T> points)")
+                .And.Contain("if (result.Count>1) result.Add(result[0]);"),
+                "The terminal build/turn and cylindrical boundary traces must repeat their first point so Plotly draws the closing segment.");
             Assert.That(scatter3D, Does.Contain("ShowUnitCylinder || UseCubeAspect"),
                 "The control-space graph must remain legible despite the different numerical scales of curvature and normalized length.");
             Assert.That(editor, Does.Contain("Reachable target boundary commands")

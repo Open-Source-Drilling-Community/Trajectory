@@ -234,11 +234,16 @@ class Program
                             {
                                 Namespace = NAMESPACE,
                                 TypeNameGenerator = new CustomTypeNameGenerator(), // strip type names to short names
-                                JsonLibrary = CSharpJsonLibrary.SystemTextJson
+                                JsonLibrary = CSharpJsonLibrary.SystemTextJson,
+                                ArrayType = "System.Collections.Generic.List",
+                                ArrayInstanceType = "System.Collections.Generic.List",
+                                ArrayBaseType = "System.Collections.Generic.List"
                             },
                         GenerateClientClasses = true,
                         GenerateDtoTypes = true,
                         GenerateOptionalParameters = true,
+                        ResponseArrayType = "System.Collections.Generic.List",
+                        ParameterArrayType = "System.Collections.Generic.List",
                         // Concurrency timestamps are query parameters. NSwag's default "s" format
                         // truncates fractional seconds and the UTC offset, making a token returned by
                         // the service stale before it can be sent back.

@@ -11,7 +11,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 {
     /// <summary>
     /// A manager for the sql database connection, registered as a singleton through dependency injection (see Program.cs)
-    /// Existing version-1 through version-4 databases are migrated additively to version 5 by adding
+    /// Existing version-1 through version-5 databases are migrated additively to version 6 by adding
     /// the shared catalogs, trajectory extrapolation and target-landing cases, and anti-collision policy tables as needed.
     /// If a validated TrajectoryCatalog.db exists beside the main database, its rows are copied and the source file is retained.
     /// </summary>
@@ -30,7 +30,14 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
     public class SqlConnectionManagerTrajectory : SqlConnectionManager
     {
         private const string DatabaseName = "Trajectory.db";
-        public const int TrajectorySchemaVersion = 5;
+        public const int TrajectorySchemaVersion = 6;
+
+        private static readonly string[] TargetLandingCaseVersion5Columns =
+        [
+            "ID", "MetaInfo", "CreationDate", "LastModificationDate", "SourceTrajectoryID", "TargetType",
+            "CurveType", "AttitudeMode", "CalculationState", "CalculationProgress", "CalculationMessage",
+            "TargetLandingCase"
+        ];
 
         // dictionary describing tables format
         // Light weight data fields are enumerated explicitly in the data table implementing the light weight data concept
@@ -129,7 +136,12 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     "CalculationState text",
                     "CalculationProgress real",
                     "CalculationMessage text",
-                    "TargetLandingCase text" }
+                    "TargetLandingCase text",
+                    "Name text",
+                    "Description text",
+                    "SourceTrajectoryRevision text",
+                    "CalculationFingerprint text",
+                    "TargetLandingCaseEditData text" }
                 },
                 { "TrajectoryRealizationCaseTable", new string[] {
                     "ID text primary key",
@@ -325,11 +337,15 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 3 => TableStructureDictTrajectory.Keys.Except(policyTables, StringComparer.Ordinal)
                     .Except(targetLandingTables, StringComparer.Ordinal).ToArray(),
                 4 => TableStructureDictTrajectory.Keys.Except(targetLandingTables, StringComparer.Ordinal).ToArray(),
+                5 => TableStructureDictTrajectory.Keys.ToArray(),
                 _ => []
             };
             bool expectedShape = tables.Order().SequenceEqual(expectedBeforeMigration.Order(), StringComparer.Ordinal);
             bool currentShape = tables.Order().SequenceEqual(TableStructureDictTrajectory.Keys.Order(), StringComparer.Ordinal);
-            if ((!expectedShape && !currentShape) || !tables.All(table => HasExpectedColumns(connection, table)))
+            bool expectedColumns = tables.All(table => table == "TargetLandingCaseTable" && version == 5
+                ? HasColumns(connection, table, TargetLandingCaseVersion5Columns)
+                : HasExpectedColumns(connection, table));
+            if ((!expectedShape && !currentShape) || !expectedColumns)
                 return databasePath; // The base validator rejects the database without changing it.
 
             string legacyCatalogPath = Path.Combine(Path.GetDirectoryName(Path.GetFullPath(databasePath))!, "TrajectoryCatalog.db");
@@ -357,6 +373,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     index.Transaction = transaction;
                     index.CommandText = $"CREATE UNIQUE INDEX \"{table}Index\" ON \"{table}\" (\"ID\")";
                     index.ExecuteNonQuery();
+                }
+
+                if (version == 5)
+                {
+                    AddTargetLandingLightColumns(connection, transaction);
                 }
 
                 if (importLegacyCatalog)
@@ -433,6 +454,39 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             string[] expected = TableStructureDictTrajectory[table]
                 .Select(value => value.Split(' ', StringSplitOptions.RemoveEmptyEntries)[0]).ToArray();
             return actual.SequenceEqual(expected, StringComparer.Ordinal);
+        }
+
+        private static bool HasColumns(SqliteConnection connection, string table, IReadOnlyList<string> expected)
+        {
+            using SqliteCommand command = connection.CreateCommand();
+            command.CommandText = $"PRAGMA table_info(\"{table}\")";
+            using SqliteDataReader reader = command.ExecuteReader();
+            List<string> actual = [];
+            while (reader.Read()) actual.Add(reader.GetString(1));
+            return actual.SequenceEqual(expected, StringComparer.Ordinal);
+        }
+
+        private static void AddTargetLandingLightColumns(SqliteConnection connection, SqliteTransaction transaction)
+        {
+            foreach (string column in new[] { "Name text", "Description text", "SourceTrajectoryRevision text", "CalculationFingerprint text", "TargetLandingCaseEditData text" })
+            {
+                using SqliteCommand add = connection.CreateCommand();
+                add.Transaction = transaction;
+                add.CommandText = $"ALTER TABLE TargetLandingCaseTable ADD COLUMN {column}";
+                add.ExecuteNonQuery();
+            }
+
+            using SqliteCommand backfill = connection.CreateCommand();
+            backfill.Transaction = transaction;
+            backfill.CommandText = """
+                UPDATE TargetLandingCaseTable SET
+                    Name=json_extract(TargetLandingCase,'$.Name'),
+                    Description=json_extract(TargetLandingCase,'$.Description'),
+                    SourceTrajectoryRevision=json_extract(TargetLandingCase,'$.SourceTrajectoryRevision'),
+                    CalculationFingerprint=json_extract(TargetLandingCase,'$.CalculationFingerprint'),
+                    TargetLandingCaseEditData=json_remove(TargetLandingCase,'$.SampleList','$.MeshTriangleList')
+                """;
+            backfill.ExecuteNonQuery();
         }
     }
 }

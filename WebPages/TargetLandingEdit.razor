@@ -10,6 +10,7 @@
     <MudButton Color="Color.Error" OnClick="@(() => ValueChanged.InvokeAsync())">Close</MudButton>
 </MudStack>
 @if (loading) { <MudProgressLinear Indeterminate="true" Color="Color.Info" /> }
+@if (loadingResult) { <MudProgressLinear Indeterminate="true" Color="Color.Info" Class="mt-2" /><MudText Typo="Typo.caption">Loading calculated boundary paths…</MudText> }
 @if (value.CalculationState is CalculationState.Queued or CalculationState.Running)
 {
     <MudPaper Class="pa-3 mb-4" Outlined="true">
@@ -90,11 +91,18 @@
                  XValuesList="@PlanePlotX" YValuesList="@PlanePlotY" XUnit="LengthStandard" YUnit="LengthStandard"
                  XAxisTitle="Plane X" YAxisTitle="Plane Y (up)" AspectRatio="1" />
     <MudText Typo="Typo.body2" Class="mt-3">The translucent cylinder has normalized radius 1. Toolface is measured around the cylinder (zero on +Y, positive toward +X); curvature is its height. Each faint green line follows the exact curve-specific controls calculated by the model from the central axis to a target-boundary solution. Circular-arc toolface is the varying local toolface, not its start/reference value. The solid green curve joins their endpoints.</MudText>
-    <Scatter3DPlot NameList="@CylinderNames" ModeFlagList="@CylinderModes" ColorList="@CylinderColors" ShowLegendList="@CylinderShowLegend"
-                   XValuesList="@CylinderX" YValuesList="@CylinderY" ZValuesList="@CylinderZ"
-                   XUnit="Dimensionless" YUnit="Dimensionless" ZUnit="CurvatureDrilling"
-                   ZAxisTitle="Curvature" XAxisMinimum="-1.1" XAxisMaximum="1.1" YAxisMinimum="-1.1" YAxisMaximum="1.1"
-                   ShowUnitCylinder="true" CentralCurvatureMarker="@(value.SourceEndStation?.Curvature)" />
+    @if (HasAuthoritativeBoundaryControls)
+    {
+        <Scatter3DPlot NameList="@CylinderNames" ModeFlagList="@CylinderModes" ColorList="@CylinderColors" ShowLegendList="@CylinderShowLegend"
+                       XValuesList="@CylinderX" YValuesList="@CylinderY" ZValuesList="@CylinderZ"
+                       XUnit="Dimensionless" YUnit="Dimensionless" ZUnit="CurvatureDrilling"
+                       ZAxisTitle="Curvature" XAxisMinimum="-1.1" XAxisMaximum="1.1" YAxisMinimum="-1.1" YAxisMaximum="1.1"
+                       ShowUnitCylinder="true" CentralCurvatureMarker="@(value.SourceEndStation?.Curvature)" />
+    }
+    else
+    {
+        <MudAlert Severity="Severity.Warning" Class="mt-3">This saved result predates authoritative normalized curve controls. Run Save and calculate against the current Trajectory service to display the cylindrical and build/turn graphs.</MudAlert>
+    }
 
     BuildTurnPlotData buildTurnPlot = BuildBuildTurnPlot();
     @if (buildTurnPlot.Names.Count>0)
@@ -163,7 +171,8 @@
     private List<SurveyStation> sourceTrajectoryStations = [];
     private Guid? loadedSourceTrajectoryId;
     private Guid? fieldId, clusterId, wellId, wellBoreId, selectedRigJobId; private DateTimeOffset? sourceReferenceDate; private bool loading, saving;
-    private bool loadingCartesianSource;
+    private bool loadingCartesianSource, loadingResult;
+    private string? loadedEditableFingerprint;
     private readonly CancellationTokenSource calculationPolling = new();
     private CurvilinearPoint3D Plane => value.Target.Plane;
     private List<TargetPlanePoint> Polygon => value.Target.Polygon;
@@ -176,16 +185,23 @@
             Task<TrajectoryReferenceDataSnapshot> refs = ReferenceData.GetSnapshotAsync();
             Task<List<TrajectoryLight>> trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
             Task<List<SurveyRunLight>> surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
-            Task<TargetLandingCase>? caseTask = CaseId.HasValue ? Api.ClientTrajectory.GetTargetLandingCaseByIdAsync(CaseId.Value) : null;
+            Task<TargetLandingCase>? caseTask = CaseId.HasValue ? Api.ClientTrajectory.GetTargetLandingCaseEditDataAsync(CaseId.Value) : null;
+            if (caseTask != null)
+            {
+                value = await caseTask;
+                loadedEditableFingerprint = EditableFingerprint(value);
+                loading = false;
+                loadingResult = !IsCalculationActive;
+                await InvokeAsync(StateHasChanged);
+                if (IsCalculationActive) _ = MonitorExistingCalculationAsync(value.MetaInfo.ID);
+                else _ = LoadDisplayDataAsync(value.MetaInfo.ID, calculationPolling.Token);
+            }
             await Task.WhenAll(refs, trajectoryTask, surveyRunTask);
             TrajectoryReferenceDataSnapshot snapshot = await refs; fields = snapshot.Fields.ToList(); clusters = snapshot.Clusters.ToList(); wells = snapshot.Wells.ToList(); wellBores = snapshot.WellBores.ToList(); rigs = snapshot.Rigs.ToList(); trajectories = await trajectoryTask; surveyRuns = await surveyRunTask;
-            if (caseTask != null) value = await caseTask;
             InitializeHierarchy();
             sourceReferenceDate = await ResolveSourceTrajectoryDateAsync(SourceTrajectoryId);
             await UpdateSourceReferenceValuesAsync();
             CompleteOriginCoordinates();
-            if (value.SampleList is { Count: > 0 }) _ = LoadSourceTrajectoryStationsForPlotAsync(value.SourceTrajectoryID);
-            if (IsCalculationActive) _ = MonitorExistingCalculationAsync(value.MetaInfo.ID);
         }
         catch (Exception ex) { logger.LogError(ex, "Unable to initialize target landing editor"); Snackbar.Add("Unable to load the target landing case.", Severity.Error); }
         finally { loading = false; }
@@ -199,13 +215,45 @@
         {
             TargetLandingCase savePayload = CreateSavePayload(value);
             if (value.CreationDate == null) await Api.ClientTrajectory.PostTargetLandingCaseAsync(savePayload);
-            else await Api.ClientTrajectory.PutTargetLandingCaseByIdAsync(value.MetaInfo.ID, ConcurrencyToken.Require(value.LastModificationDate), savePayload);
+            else if (!await PutWithSafeCalculationRetryAsync(value.MetaInfo.ID, savePayload)) return;
             Snackbar.Add("Target landing calculation queued.", Severity.Success);
             await RefreshAfterCalculationAsync(value.MetaInfo.ID, calculationPolling.Token);
         }
         catch (OperationCanceledException) when (calculationPolling.IsCancellationRequested) { }
+        catch (ApiException ex) when (ex.StatusCode == 409)
+        {
+            logger.LogWarning(ex, "Target landing case {CaseId} changed again while saving", value.MetaInfo.ID);
+            Snackbar.Add("The case changed again while it was being saved. Review the latest case and retry.", Severity.Warning);
+        }
         catch (Exception ex) { logger.LogError(ex, "Unable to save target landing case"); Snackbar.Add("Unable to save the target landing case.", Severity.Error); }
         finally { saving = false; }
+    }
+    private async Task<bool> PutWithSafeCalculationRetryAsync(Guid caseId, TargetLandingCase savePayload)
+    {
+        try
+        {
+            await Api.ClientTrajectory.PutTargetLandingCaseByIdAsync(caseId, ConcurrencyToken.Require(value.LastModificationDate), savePayload);
+            return true;
+        }
+        catch (ApiException ex) when (ex.StatusCode == 409)
+        {
+            TargetLandingCase latest = await Api.ClientTrajectory.GetTargetLandingCaseEditDataAsync(caseId, calculationPolling.Token);
+            bool onlyCalculationStateChanged = latest.CalculationState is CalculationState.Completed or CalculationState.Failed
+                && loadedEditableFingerprint != null
+                && string.Equals(EditableFingerprint(latest), loadedEditableFingerprint, StringComparison.Ordinal);
+            if (!onlyCalculationStateChanged)
+            {
+                logger.LogWarning(ex, "Target landing case {CaseId} configuration changed after it was loaded", caseId);
+                Snackbar.Add("This case was changed elsewhere. Reopen it to review the latest inputs before saving.", Severity.Warning);
+                return false;
+            }
+
+            // A background calculation updates the revision when it reaches a terminal state. The editable
+            // configuration is unchanged, so preserve this draft and retry once with the freshly read token.
+            loadedEditableFingerprint = EditableFingerprint(latest);
+            await Api.ClientTrajectory.PutTargetLandingCaseByIdAsync(caseId, ConcurrencyToken.Require(latest.LastModificationDate), savePayload);
+            return true;
+        }
     }
     private async Task RefreshAfterCalculationAsync(Guid caseId, CancellationToken cancellationToken)
     {
@@ -223,10 +271,12 @@
         }
         while (status.CalculationState is CalculationState.Queued or CalculationState.Running);
 
-        value = await Api.ClientTrajectory.GetTargetLandingCaseByIdAsync(caseId, cancellationToken);
+        value = await Api.ClientTrajectory.GetTargetLandingCaseEditDataAsync(caseId, cancellationToken);
+        loadedEditableFingerprint = EditableFingerprint(value);
         CompleteOriginCoordinates();
-        _ = LoadSourceTrajectoryStationsForPlotAsync(value.SourceTrajectoryID,true);
         await InvokeAsync(StateHasChanged);
+        if (value.CalculationState == CalculationState.Completed)
+            await LoadDisplayDataAsync(caseId, cancellationToken, true);
         if (value.CalculationState == CalculationState.Completed)
             Snackbar.Add("Target landing calculation completed.", Severity.Success);
         else if (value.CalculationState == CalculationState.Failed)
@@ -241,6 +291,38 @@
             logger.LogError(ex, "Unable to monitor target landing calculation");
             Snackbar.Add("Unable to refresh the target landing calculation progress.", Severity.Error);
         }
+    }
+    private async Task LoadDisplayDataAsync(Guid caseId, CancellationToken cancellationToken, bool forceSourceReload=false)
+    {
+        loadingResult = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            TargetLandingCase display = await Api.ClientTrajectory.GetTargetLandingCaseDisplayDataAsync(caseId, cancellationToken);
+            if (value.MetaInfo.ID != caseId) return;
+            ApplyDisplayData(display);
+            _ = LoadSourceTrajectoryStationsForPlotAsync(value.SourceTrajectoryID, forceSourceReload);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unable to load target landing display data for {CaseId}", caseId);
+            Snackbar.Add("The case inputs are available, but calculated paths could not be loaded.", Severity.Warning);
+        }
+        finally
+        {
+            loadingResult = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    private void ApplyDisplayData(TargetLandingCase display)
+    {
+        value.SourceTrajectoryRevision=display.SourceTrajectoryRevision; value.CalculationFingerprint=display.CalculationFingerprint;
+        value.SourceEndStation=display.SourceEndStation; value.LeadSurveyStationList=display.LeadSurveyStationList;
+        value.SteeringStartStation=display.SteeringStartStation; value.GeologicalTargetBoundary=display.GeologicalTargetBoundary;
+        value.DrillerTargetBoundary=display.DrillerTargetBoundary; value.ReachableTargetBoundary=display.ReachableTargetBoundary;
+        value.DrillerTargetContourList=display.DrillerTargetContourList; value.ReachableTargetContourList=display.ReachableTargetContourList;
+        value.SampleList=display.SampleList; value.MeshTriangleList=display.MeshTriangleList;
     }
     private bool IsCalculationActive => value.CalculationState is CalculationState.Queued or CalculationState.Running;
     private void InitializeHierarchy() { var t = trajectories.FirstOrDefault(x => x.MetaInfo?.ID == value.SourceTrajectoryID); if (t == null) return; fieldId = t.FieldID; clusterId = t.ClusterID; wellId = t.WellID; wellBoreId = t.WellBoreID; }
@@ -332,6 +414,8 @@
         ConfidenceFactor = source.ConfidenceFactor,
         MaximumLandingCurvature = source.MaximumLandingCurvature
     };
+    private static string EditableFingerprint(TargetLandingCase source) =>
+        System.Text.Json.JsonSerializer.Serialize(CreateSavePayload(source));
     private IEnumerable<(string Name,string Color,List<TargetPlanePoint> Points)> ZoneContours
     {
         get
@@ -448,6 +532,7 @@
     }
     private List<BoundarySolutionRow> BoundarySolutions => BoundarySolutionContours.SelectMany(rows=>rows).ToList();
     private List<TargetLandingSample> BoundarySamples => BoundarySolutions.Select(row=>row.Sample).DistinctBy(sample=>sample.SampleID).Take(250).ToList();
+    private bool HasAuthoritativeBoundaryControls => BoundarySamples.Any(sample=>sample.ControlPointList is { Count: > 1 });
     private BuildTurnPlotData BuildBuildTurnPlot()
     {
         Dictionary<Guid,List<BuildTurnControlPoint>> paths=BoundarySamples
@@ -462,10 +547,10 @@
         int contourIndex=0;
         foreach (List<BoundarySolutionRow> contour in BoundarySolutionContours)
         {
-            List<BuildTurnControlPoint> target=contour
+            List<BuildTurnControlPoint> target=CloseTrace(contour
                 .Where(row=>paths.ContainsKey(row.Sample.SampleID))
                 .Select(row=>paths[row.Sample.SampleID][^1] with { NormalizedLength=1.0 })
-                .ToList();
+            );
             if (target.Count>1)
                 traces.Add(new BuildTurnTrace(contourIndex++==0?"Reachable target boundary":"Reachable target contour","#2e7d32",5,true,target));
         }
@@ -492,7 +577,9 @@
         double padding=Math.Max(0.2*(maximum-minimum),minimumPadding);
         return (minimum-padding,maximum+padding);
     }
-    private List<List<BoundarySolutionRow>> CylinderBoundaryContours => BoundarySolutionContours.Select(rows=>rows.Where(row=>TerminalCylinderPoint(row.Sample) != null).ToList()).Where(rows=>rows.Count>1).ToList();
+    private List<List<BoundarySolutionRow>> CylinderBoundaryContours => BoundarySolutionContours
+        .Select(rows=>CloseTrace(rows.Where(row=>TerminalCylinderPoint(row.Sample) != null)))
+        .Where(rows=>rows.Count>2).ToList();
     private List<TargetLandingSample> CylinderPathSamples => BoundarySamples.Where(sample=>CylinderPath(sample).Count>1).ToList();
     private List<string> CylinderNames => CylinderBoundaryContours.Select((_,i)=>i==0?"Reachable target boundary":$"Reachable contour {i+1}").Concat(CylinderPathSamples.Select((_,i)=>$"Boundary path {i+1}")).ToList();
     private List<int> CylinderModes => CylinderNames.Select(_=>1).ToList();
@@ -516,6 +603,12 @@
     private static double? SectionCurvature(TrajectoryExtrapolationSolvedSection section) => section.CurveType == ExtrapolationCurveType.ConstantCurvatureAndToolface ? section.ConstantCurvature : section.CircularArcCurvature;
     private static double? SectionToolface(TrajectoryExtrapolationSolvedSection section) => section.CurveType == ExtrapolationCurveType.ConstantCurvatureAndToolface ? section.ConstantToolface : section.CircularArcStartToolface;
     private static double NormalizeAngle(double value) { double result=value%(2*Math.PI); return result<0?result+2*Math.PI:result; }
+    private static List<T> CloseTrace<T>(IEnumerable<T> points)
+    {
+        List<T> result=points.ToList();
+        if (result.Count>1) result.Add(result[0]);
+        return result;
+    }
     private static double SquaredDistance(TargetPlanePoint point, TargetLandingSample sample) { double dx=point.X-sample.PlaneX,dy=point.Y-sample.PlaneY;return dx*dx+dy*dy; }
     private readonly record struct CylinderControlPoint(double Radius,double Curvature,double Toolface);
     private readonly record struct BuildTurnControlPoint(double Turn,double NormalizedLength,double Build);

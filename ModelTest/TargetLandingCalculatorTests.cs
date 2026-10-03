@@ -156,6 +156,36 @@ public sealed class TargetLandingCalculatorTests
         });
     }
 
+    [TestCase(ExtrapolationCurveType.CircularArc)]
+    [TestCase(ExtrapolationCurveType.ConstantBuildAndTurn)]
+    [TestCase(ExtrapolationCurveType.ConstantCurvatureAndToolface)]
+    public void EveryLandingCurveFamilyProducesAuthoritativeRenderableControls(ExtrapolationCurveType curveType)
+    {
+        TargetLandingCase value = Case();
+        value.CurveType = curveType;
+        value.AttitudeMode = TargetLandingAttitudeMode.Free;
+        value.LeadLength = 0.0;
+
+        Assert.That(TargetLandingCalculator.Calculate(value, Source()), Is.True, value.CalculationMessage);
+        List<TargetLandingSample> solved = value.SampleList!
+            .Where(sample => sample.SolvedSectionList is { Count: > 0 })
+            .ToList();
+
+        Assert.That(solved, Is.Not.Empty);
+        Assert.That(solved.All(sample => sample.ControlPointList is { Count: > 1 }), Is.True);
+        foreach (TargetLandingSample sample in solved)
+        {
+            Assert.Multiple(() =>
+            {
+                Assert.That(sample.ControlPointList![0].NormalizedLength, Is.Zero.Within(1e-12));
+                Assert.That(sample.ControlPointList[^1].NormalizedLength, Is.EqualTo(1.0).Within(1e-12));
+                Assert.That(sample.ControlPointList.All(point =>
+                    double.IsFinite(point.Curvature) && double.IsFinite(point.Toolface) &&
+                    double.IsFinite(point.BuildRate) && double.IsFinite(point.TurnRate)), Is.True);
+            });
+        }
+    }
+
     [Test]
     public void PerpendicularLandingUsesPlaneNormalAndRetainsShortestForwardSolution()
     {

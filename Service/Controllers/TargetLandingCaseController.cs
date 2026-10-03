@@ -50,6 +50,24 @@ public sealed class TargetLandingCaseController : ControllerBase
         return manager_.GetById(id) is { } value ? Ok(value) : NotFound(Error("not_found", "The target landing case does not exist."));
     }
 
+    [HttpGet("{id}/EditData", Name = "GetTargetLandingCaseEditData")]
+    [ProducesResponseType<TargetLandingCase>(StatusCodes.Status200OK)]
+    public ActionResult<TargetLandingCase> GetEditData(Guid id)
+    {
+        UsageStatisticsTrajectory.Instance.IncrementOperation("GetTargetLandingCaseEditData");
+        if (id == Guid.Empty) return BadRequest(Error("invalid_id", "A non-empty target-landing-case UUID is required."));
+        return manager_.GetEditById(id) is { } value ? Ok(value) : NotFound(Error("not_found", "The target landing case does not exist."));
+    }
+
+    [HttpGet("{id}/DisplayData", Name = "GetTargetLandingCaseDisplayData")]
+    [ProducesResponseType<TargetLandingCase>(StatusCodes.Status200OK)]
+    public ActionResult<TargetLandingCase> GetDisplayData(Guid id)
+    {
+        UsageStatisticsTrajectory.Instance.IncrementOperation("GetTargetLandingCaseDisplayData");
+        if (id == Guid.Empty) return BadRequest(Error("invalid_id", "A non-empty target-landing-case UUID is required."));
+        return manager_.GetDisplayById(id) is { } value ? Ok(value) : NotFound(Error("not_found", "The target landing case does not exist."));
+    }
+
     [HttpGet("{id}/Status", Name = "GetTargetLandingCaseStatus")]
     [ProducesResponseType<TargetLandingCaseLight>(StatusCodes.Status200OK)]
     public ActionResult<TargetLandingCaseLight> GetStatus(Guid id)

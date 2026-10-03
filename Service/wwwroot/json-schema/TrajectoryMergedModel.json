@@ -16258,6 +16258,68 @@
         }
       }
     },
+    "/TargetLandingCase/{id}/EditData": {
+      "get": {
+        "tags": [
+          "TargetLandingCase"
+        ],
+        "operationId": "GetTargetLandingCaseEditData",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TargetLandingCase"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TargetLandingCase/{id}/DisplayData": {
+      "get": {
+        "tags": [
+          "TargetLandingCase"
+        ],
+        "operationId": "GetTargetLandingCaseDisplayData",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/TargetLandingCase"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/TargetLandingCase/{id}/Status": {
       "get": {
         "tags": [
