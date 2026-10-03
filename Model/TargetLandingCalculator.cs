@@ -14,9 +14,9 @@ namespace OSDC.Drilling.Trajectory.Model;
 
 public static class TargetLandingCalculator
 {
-    internal const int MaximumAdaptiveDepth = 6;
+    internal const int MaximumAdaptiveDepth = 4;
     internal const int EllipsePointCount = 72;
-    internal const int CalculationAlgorithmVersion = 3;
+    internal const int CalculationAlgorithmVersion = 4;
     internal const double PositionTolerance = 0.05;
     internal const double SamplingInterval = 10.0;
 
@@ -84,12 +84,13 @@ public static class TargetLandingCalculator
                 $"Sampling target region edge {index + 1} of {value.Target.Polygon.Count}");
         }
 
-        value.SampleList = samples.Values.OrderBy(x => x.PlaneY).ThenBy(x => x.PlaneX).ToList();
         value.DrillerTargetContourList = value.TargetType == TargetLandingTargetType.DrillerTarget
             ? [value.Target.Polygon.Select(Copy).ToList()]
-            : ExtractContours(value.SampleList, value.MeshTriangleList, x => x.IsUncertaintySafe == true);
-        value.ReachableTargetContourList = ExtractContours(value.SampleList, value.MeshTriangleList,
-            x => x.State == TargetLandingSampleState.Reachable);
+            : ExtractContours(samples.Values.ToList(), value.MeshTriangleList,
+                x => x.IsUncertaintySafe == true, FindBoundaryPoint);
+        value.ReachableTargetContourList = ExtractContours(samples.Values.ToList(), value.MeshTriangleList,
+            x => x.State == TargetLandingSampleState.Reachable, FindBoundaryPoint);
+        value.SampleList = samples.Values.OrderBy(x => x.PlaneY).ThenBy(x => x.PlaneX).ToList();
         value.DrillerTargetBoundary = LargestContour(value.DrillerTargetContourList);
         value.ReachableTargetBoundary = LargestContour(value.ReachableTargetContourList);
         value.CalculationFingerprint = ComputeFingerprint(value, source);
@@ -113,6 +114,10 @@ public static class TargetLandingCalculator
             }
             return sample;
         }
+
+        TargetPlanePoint FindBoundaryPoint(TargetLandingSample first, TargetLandingSample second,
+            Func<TargetLandingSample, bool> included) =>
+            BisectBoundary(first, second, GetOrEvaluate, included, PositionTolerance);
 
         void Refine(TargetLandingSample a, TargetLandingSample b, TargetLandingSample c, int depth)
         {
@@ -487,7 +492,8 @@ public static class TargetLandingCalculator
     private static List<List<TargetPlanePoint>> ExtractContours(
         IReadOnlyList<TargetLandingSample> samples,
         IReadOnlyList<TargetLandingMeshTriangle> triangles,
-        Func<TargetLandingSample, bool> included)
+        Func<TargetLandingSample, bool> included,
+        Func<TargetLandingSample, TargetLandingSample, Func<TargetLandingSample, bool>, TargetPlanePoint> findBoundary)
     {
         Dictionary<Guid, TargetLandingSample> byId = samples.ToDictionary(x => x.SampleID);
         Dictionary<string, (TargetLandingSample A, TargetLandingSample B, int Count)> edges = [];
@@ -508,7 +514,7 @@ public static class TargetLandingCalculator
                 edges[edgeKey] = edges.TryGetValue(edgeKey, out var edge)
                     ? (edge.A, edge.B, edge.Count + 1)
                     : (first, second, 1);
-                if (included(first) != included(second)) crossings.Add(Midpoint(first, second));
+                if (included(first) != included(second)) crossings.Add(findBoundary(first, second, included));
             }
             if (crossings.Count == 2) segments.Add(new PlaneSegment(crossings[0], crossings[1]));
         }
@@ -521,7 +527,7 @@ public static class TargetLandingCalculator
             if (includeA && includeB) segments.Add(new PlaneSegment(ToPlanePoint(a), ToPlanePoint(b)));
             else if (includeA != includeB)
             {
-                TargetPlanePoint midpoint = Midpoint(a, b);
+                TargetPlanePoint midpoint = findBoundary(a, b, included);
                 segments.Add(includeA
                     ? new PlaneSegment(ToPlanePoint(a), midpoint)
                     : new PlaneSegment(midpoint, ToPlanePoint(b)));
@@ -529,6 +535,28 @@ public static class TargetLandingCalculator
         }
 
         return StitchSegments(segments);
+    }
+
+    internal static TargetPlanePoint BisectBoundary(
+        TargetLandingSample first,
+        TargetLandingSample second,
+        Func<TargetPlanePoint, TargetLandingSample> evaluate,
+        Func<TargetLandingSample, bool> included,
+        double positionTolerance)
+    {
+        TargetLandingSample sameAsFirst = first;
+        TargetLandingSample sameAsSecond = second;
+        bool firstIncluded = included(first);
+        if (firstIncluded == included(second)) return Midpoint(first, second);
+
+        double tolerance = Math.Max(positionTolerance, 1e-9);
+        for (int iteration = 0; iteration < 64 && Distance(sameAsFirst, sameAsSecond) > tolerance; iteration++)
+        {
+            TargetLandingSample middle = evaluate(Midpoint(sameAsFirst, sameAsSecond));
+            if (included(middle) == firstIncluded) sameAsFirst = middle;
+            else sameAsSecond = middle;
+        }
+        return Midpoint(sameAsFirst, sameAsSecond);
     }
 
     private static List<List<TargetPlanePoint>> StitchSegments(List<PlaneSegment> segments) =>

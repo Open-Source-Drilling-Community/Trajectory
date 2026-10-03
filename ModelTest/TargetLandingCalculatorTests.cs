@@ -21,13 +21,44 @@ public sealed class TargetLandingCalculatorTests
     }
 
     [Test]
-    public void FineContourRefinementAdvancesCalculationAlgorithmVersion()
+    public void HybridContourRefinementAdvancesCalculationAlgorithmVersion()
     {
         Assert.Multiple(() =>
         {
-            Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(6));
-            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(3));
+            Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(4));
+            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(4));
         });
+    }
+
+    [Test]
+    public void BoundaryBisectionFindsTransitionWithoutDeepeningTheMesh()
+    {
+        const double transition = 2.345;
+        int evaluationCount = 0;
+        TargetLandingSample first = SampleAt(0.0);
+        TargetLandingSample second = SampleAt(10.0);
+
+        TargetPlanePoint boundary = TargetLandingCalculator.BisectBoundary(first, second, point =>
+        {
+            evaluationCount++;
+            return SampleAt(point.X);
+        }, sample => sample.State == TargetLandingSampleState.Reachable, 0.01);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(boundary.X, Is.EqualTo(transition).Within(0.01));
+            Assert.That(boundary.Y, Is.Zero);
+            Assert.That(evaluationCount, Is.LessThanOrEqualTo(10));
+        });
+
+        static TargetLandingSample SampleAt(double x) => new()
+        {
+            PlaneX = x,
+            PlaneY = 0.0,
+            State = x <= transition
+                ? TargetLandingSampleState.Reachable
+                : TargetLandingSampleState.ExceedsMaximumLandingCurvature
+        };
     }
 
     [Test]
