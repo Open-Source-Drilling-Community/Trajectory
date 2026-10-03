@@ -145,26 +145,32 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             return count >= 1;
         }
 
-        private static Model.TrajectoryLight CreateDataLightInstance(Model.Trajectory trajectory)
+        private static Model.TrajectoryLight ReadLight(SqliteDataReader reader)
         {
             return new Model.TrajectoryLight()
             {
-                MetaInfo = trajectory.MetaInfo,
-                Name = trajectory.Name,
-                Description = trajectory.Description,
-                CreationDate = trajectory.CreationDate,
-                LastModificationDate = trajectory.LastModificationDate,
-                FieldID = trajectory.FieldID,
-                ClusterID = trajectory.ClusterID,
-                WellID = trajectory.WellID,
-                WellBoreID = trajectory.WellBoreID,
-                TrajectoryType = trajectory.TrajectoryType,
-                IsDefinitive = trajectory.IsDefinitive,
-                CalculationState = trajectory.CalculationState,
-                CalculationProgress = trajectory.CalculationProgress,
-                CalculationMessage = trajectory.CalculationMessage
+                MetaInfo = reader.IsDBNull(0) ? null : JsonSerializer.Deserialize<OSDC.DotnetLibraries.General.DataManagement.MetaInfo>(reader.GetString(0), JsonSettings.Options),
+                CreationDate = ReadDate(reader, 1),
+                LastModificationDate = ReadDate(reader, 2),
+                FieldID = ReadNullableGuid(reader, 3),
+                ClusterID = ReadNullableGuid(reader, 4),
+                WellID = ReadNullableGuid(reader, 5),
+                WellBoreID = Guid.TryParse(reader.GetString(6), out Guid wellBoreId) ? wellBoreId : Guid.Empty,
+                TrajectoryType = Enum.TryParse(reader.GetString(7), out TrajectoryType trajectoryType) ? trajectoryType : default,
+                IsDefinitive = !reader.IsDBNull(8) && reader.GetInt64(8) != 0,
+                CalculationState = Enum.TryParse(reader.GetString(9), out CalculationState state) ? state : CalculationState.NotCalculated,
+                CalculationProgress = reader.IsDBNull(10) ? 0.0 : reader.GetDouble(10),
+                CalculationMessage = reader.IsDBNull(11) ? null : reader.GetString(11),
+                Name = reader.IsDBNull(12) ? null : reader.GetString(12),
+                Description = reader.IsDBNull(13) ? null : reader.GetString(13)
             };
         }
+
+        private static DateTimeOffset? ReadDate(SqliteDataReader reader, int ordinal) =>
+            reader.IsDBNull(ordinal) ? null : DateTimeOffset.TryParse(reader.GetString(ordinal), out DateTimeOffset value) ? value : null;
+
+        private static Guid? ReadNullableGuid(SqliteDataReader reader, int ordinal) =>
+            !reader.IsDBNull(ordinal) && Guid.TryParse(reader.GetString(ordinal), out Guid value) ? value : null;
         /// <summary>
         /// Returns the list of Guid of all Trajectory present in the microservice database 
         /// </summary>
@@ -444,7 +450,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             if (connection != null)
             {
                 var command = connection.CreateCommand();
-                command.CommandText = "SELECT Trajectory FROM TrajectoryTable" + BuildFilterClause(fieldId, clusterId, wellId, wellBoreId, trajectoryType, isDefinitive);
+                command.CommandText = "SELECT MetaInfo,CreationDate,LastModificationDate,FieldID,ClusterID,WellID,WellBoreID,TrajectoryType,IsDefinitive,CalculationState,CalculationProgress,CalculationMessage,Name,Description FROM TrajectoryTable" + BuildFilterClause(fieldId, clusterId, wellId, wellBoreId, trajectoryType, isDefinitive);
                 AddFilterParameters(command, fieldId, clusterId, wellId, wellBoreId, trajectoryType, isDefinitive);
                 try
                 {
@@ -492,15 +498,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 try
                 {
                     using var reader = command.ExecuteReader();
-                    while (reader.Read() && !reader.IsDBNull(0))
-                    {
-                        Model.Trajectory? trajectory = JsonSerializer.Deserialize<Model.Trajectory>(reader.GetString(0), JsonSettings.Options);
-                        EnsureRevision(trajectory);
-                        if (trajectory != null)
-                        {
-                            trajectoryLightList.Add(CreateDataLightInstance(trajectory));
-                        }
-                    }
+                    while (reader.Read()) trajectoryLightList.Add(ReadLight(reader));
                     _logger.LogInformation("Returning the list of existing TrajectoryLight from TrajectoryTable");
                     return trajectoryLightList;
                 }
@@ -689,13 +687,13 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     command.CommandText = "UPDATE TrajectoryTable SET " +
                         "MetaInfo = @metaInfo, CreationDate = @creationDate, LastModificationDate = @lastModificationDate, " +
                         "FieldID = @fieldId, ClusterID = @clusterId, WellID = @wellId, WellBoreID = @wellBoreId, TrajectoryType = @trajectoryType, IsDefinitive = @isDefinitive, " +
-                        "CalculationState = @calculationState, CalculationProgress = @calculationProgress, CalculationMessage = @calculationMessage, Trajectory = @trajectory WHERE ID = @id";
+                        "CalculationState = @calculationState, CalculationProgress = @calculationProgress, CalculationMessage = @calculationMessage, Name = @name, Description = @description, Trajectory = @trajectory WHERE ID = @id";
                 }
                 else
                 {
                     command.CommandText = "INSERT INTO TrajectoryTable " +
-                        "(ID, MetaInfo, CreationDate, LastModificationDate, FieldID, ClusterID, WellID, WellBoreID, TrajectoryType, IsDefinitive, CalculationState, CalculationProgress, CalculationMessage, Trajectory) " +
-                        "VALUES (@id, @metaInfo, @creationDate, @lastModificationDate, @fieldId, @clusterId, @wellId, @wellBoreId, @trajectoryType, @isDefinitive, @calculationState, @calculationProgress, @calculationMessage, @trajectory)";
+                        "(ID, MetaInfo, CreationDate, LastModificationDate, FieldID, ClusterID, WellID, WellBoreID, TrajectoryType, IsDefinitive, CalculationState, CalculationProgress, CalculationMessage, Name, Description, Trajectory) " +
+                        "VALUES (@id, @metaInfo, @creationDate, @lastModificationDate, @fieldId, @clusterId, @wellId, @wellBoreId, @trajectoryType, @isDefinitive, @calculationState, @calculationProgress, @calculationMessage, @name, @description, @trajectory)";
                 }
 
                 command.Parameters.AddWithValue("@id", trajectory.MetaInfo!.ID.ToString());
@@ -711,6 +709,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 command.Parameters.AddWithValue("@calculationState", trajectory.CalculationState.ToString());
                 command.Parameters.AddWithValue("@calculationProgress", trajectory.CalculationProgress);
                 command.Parameters.AddWithValue("@calculationMessage", (object?)trajectory.CalculationMessage ?? DBNull.Value);
+                command.Parameters.AddWithValue("@name", (object?)trajectory.Name ?? DBNull.Value);
+                command.Parameters.AddWithValue("@description", (object?)trajectory.Description ?? DBNull.Value);
                 command.Parameters.AddWithValue("@trajectory", data);
 
                 bool success = command.ExecuteNonQuery() == 1;

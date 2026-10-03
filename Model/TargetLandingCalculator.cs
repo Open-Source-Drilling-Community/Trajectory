@@ -16,7 +16,7 @@ public static class TargetLandingCalculator
 {
     internal const int MaximumAdaptiveDepth = 4;
     internal const int EllipsePointCount = 72;
-    internal const int CalculationAlgorithmVersion = 9;
+    internal const int CalculationAlgorithmVersion = 10;
     internal const double BoundaryPositionTolerance = 0.25;
     internal const double PositionTolerance = 0.05;
     internal const double SamplingInterval = 10.0;
@@ -197,13 +197,24 @@ public static class TargetLandingCalculator
         TargetAxisPath path = new()
         {
             Start = TrajectoryExtrapolationCalculator.ToPoint(steeringStart),
-            CurveType = ToSectionCurveType(value.CurveType)
+            CurveType = ToSectionCurveType(value.CurveType),
+            MaximumCurvature = value.MaximumLandingCurvature
         };
         TargetAxis target = value.AttitudeMode == TargetLandingAttitudeMode.PerpendicularToTargetPlane
             ? new TargetAxis(north, east, tvd, value.Target.Plane.Inclination!.Value, value.Target.Plane.Azimuth!.Value)
             : new TargetAxis(north, east, tvd);
         path.Targets.Add(target);
-        if (!path.Calculate() || path.Sections.Count == 0)
+        bool pathCalculated = path.Calculate();
+        if (!pathCalculated && value.CurveType == ExtrapolationCurveType.ConstantBuildAndTurn &&
+            value.AttitudeMode == TargetLandingAttitudeMode.Free && value.MaximumLandingCurvature.HasValue)
+        {
+            // Preserve the distinction between "no geometric root" and "roots exist, but none respect
+            // the limit". The constrained solver has already checked every known exact BT root; this
+            // inexpensive retry retains the conventional root so it can be classified below.
+            path.MaximumCurvature = null;
+            pathCalculated = path.Calculate();
+        }
+        if (!pathCalculated || path.Sections.Count == 0)
         {
             result.Message = path.FailureDescription;
             return result;
@@ -270,7 +281,7 @@ public static class TargetLandingCalculator
         if (exceedsMaximumCurvature)
         {
             result.State = TargetLandingSampleState.ExceedsMaximumLandingCurvature;
-            result.Message = "The shortest forward solution exceeds Maximum Landing Curvature.";
+            result.Message = "The selected forward solution exceeds Maximum Landing Curvature.";
             return result;
         }
 

@@ -30,7 +30,14 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
     public class SqlConnectionManagerTrajectory : SqlConnectionManager
     {
         private const string DatabaseName = "Trajectory.db";
-        public const int TrajectorySchemaVersion = 6;
+        public const int TrajectorySchemaVersion = 7;
+
+        private static readonly string[] TrajectoryVersion6Columns =
+        [
+            "ID", "MetaInfo", "CreationDate", "LastModificationDate", "FieldID", "ClusterID", "WellID",
+            "WellBoreID", "TrajectoryType", "IsDefinitive", "CalculationState", "CalculationProgress",
+            "CalculationMessage", "Trajectory"
+        ];
 
         private static readonly string[] TargetLandingCaseVersion5Columns =
         [
@@ -62,7 +69,9 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     "CalculationState text",
                     "CalculationProgress real",
                     "CalculationMessage text",
-                    "Trajectory text" }
+                    "Trajectory text",
+                    "Name text",
+                    "Description text" }
                 },
                 { "SurveyRunTable", new string[] {
                     "ID text primary key",
@@ -342,9 +351,12 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             };
             bool expectedShape = tables.Order().SequenceEqual(expectedBeforeMigration.Order(), StringComparer.Ordinal);
             bool currentShape = tables.Order().SequenceEqual(TableStructureDictTrajectory.Keys.Order(), StringComparer.Ordinal);
-            bool expectedColumns = tables.All(table => table == "TargetLandingCaseTable" && version == 5
-                ? HasColumns(connection, table, TargetLandingCaseVersion5Columns)
-                : HasExpectedColumns(connection, table));
+            bool expectedColumns = tables.All(table => table switch
+            {
+                "TrajectoryTable" when version <= 6 => HasColumns(connection, table, TrajectoryVersion6Columns) || HasExpectedColumns(connection, table),
+                "TargetLandingCaseTable" when version == 5 => HasColumns(connection, table, TargetLandingCaseVersion5Columns),
+                _ => HasExpectedColumns(connection, table)
+            });
             if ((!expectedShape && !currentShape) || !expectedColumns)
                 return databasePath; // The base validator rejects the database without changing it.
 
@@ -378,6 +390,10 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 if (version == 5)
                 {
                     AddTargetLandingLightColumns(connection, transaction);
+                }
+                if (version <= 6 && HasColumns(connection, "TrajectoryTable", TrajectoryVersion6Columns))
+                {
+                    AddTrajectoryLightColumns(connection, transaction);
                 }
 
                 if (importLegacyCatalog)
@@ -485,6 +501,26 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     SourceTrajectoryRevision=json_extract(TargetLandingCase,'$.SourceTrajectoryRevision'),
                     CalculationFingerprint=json_extract(TargetLandingCase,'$.CalculationFingerprint'),
                     TargetLandingCaseEditData=json_remove(TargetLandingCase,'$.SampleList','$.MeshTriangleList')
+                """;
+            backfill.ExecuteNonQuery();
+        }
+
+        private static void AddTrajectoryLightColumns(SqliteConnection connection, SqliteTransaction transaction)
+        {
+            foreach (string column in new[] { "Name text", "Description text" })
+            {
+                using SqliteCommand add = connection.CreateCommand();
+                add.Transaction = transaction;
+                add.CommandText = $"ALTER TABLE TrajectoryTable ADD COLUMN {column}";
+                add.ExecuteNonQuery();
+            }
+
+            using SqliteCommand backfill = connection.CreateCommand();
+            backfill.Transaction = transaction;
+            backfill.CommandText = """
+                UPDATE TrajectoryTable SET
+                    Name=json_extract(Trajectory,'$.Name'),
+                    Description=json_extract(Trajectory,'$.Description')
                 """;
             backfill.ExecuteNonQuery();
         }

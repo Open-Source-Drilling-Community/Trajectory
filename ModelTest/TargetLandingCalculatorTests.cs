@@ -28,7 +28,7 @@ public sealed class TargetLandingCalculatorTests
         {
             Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(4));
             Assert.That(TargetLandingCalculator.BoundaryPositionTolerance, Is.EqualTo(0.25));
-            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(9));
+            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(10));
         });
     }
 
@@ -172,7 +172,12 @@ public sealed class TargetLandingCalculatorTests
             .ToList();
 
         Assert.That(solved, Is.Not.Empty);
-        Assert.That(solved.All(sample => sample.ControlPointList is { Count: > 1 }), Is.True);
+        Assert.That(solved.All(sample => sample.ControlPointList is { Count: > 1 }), Is.True,
+            string.Join("; ", solved.Where(sample => sample.ControlPointList is not { Count: > 1 })
+                .Take(5)
+                .Select(sample => $"plane=({sample.PlaneX:R},{sample.PlaneY:R}), state={sample.State}, " +
+                    $"length={sample.TotalLandingLength:R}, peak={sample.PeakLandingCurvature:R}, " +
+                    $"sections={sample.SolvedSectionList?.Count ?? 0}, controls={sample.ControlPointList?.Count ?? 0}")));
         foreach (TargetLandingSample sample in solved)
         {
             Assert.Multiple(() =>
@@ -311,6 +316,9 @@ public sealed class TargetLandingCalculatorTests
             Assert.That(value.ReachableTargetContourList![0], Has.Count.GreaterThanOrEqualTo(100),
                 "The current production geometry should retain the transition samples needed to represent its curved boundary.");
             Assert.That(value.ReachableTargetContourList.All(contour => !HasSelfIntersection(contour)), Is.True);
+            Assert.That(value.SampleList!.OrderBy(sample => sample.PolarRadius).First().State,
+                Is.EqualTo(TargetLandingSampleState.Reachable),
+                "A compliant alternative constant-build-and-turn root reaches the target centre; the shortest root alone exceeds the curvature limit.");
         });
     }
 

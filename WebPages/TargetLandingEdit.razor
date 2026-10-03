@@ -85,16 +85,17 @@
 @if (referenceValuesReady && value.SampleList is { Count: > 0 })
 {
     <MudText Typo="Typo.h6" Class="mt-4">Landing result</MudText>
-    <MudText Typo="Typo.body2">Black: specified target. Blue: uncertainty-safe driller target. Green fill: reachable within Maximum Landing Curvature.</MudText>
+    <MudText Typo="Typo.body2">Black: specified target. Blue: uncertainty-safe driller target. Green fill: reachable within Maximum Landing Curvature. Orange nested contours delimit samples excluded by the stored landing-solution curvature test.</MudText>
     <ScatterPlot NameList="@PlanePlotNames" ModeFlagList="@PlanePlotModes" ColorList="@PlanePlotColors"
                  FillToSelfList="@PlanePlotFill" FillColorList="@PlanePlotFillColors"
                  XValuesList="@PlanePlotX" YValuesList="@PlanePlotY" XUnit="LengthStandard" YUnit="LengthStandard"
                  XAxisTitle="Plane X" YAxisTitle="Plane Y (up)" AspectRatio="1" />
-    <MudText Typo="Typo.body2" Class="mt-3">The translucent cylinder has normalized radius 1. Toolface is measured around the cylinder (zero on +Y, positive toward +X); curvature is its height. Each faint green line follows the exact curve-specific controls calculated by the model from the central axis to a target-boundary solution. Circular-arc toolface is the varying local toolface, not its start/reference value. The solid green curve joins their endpoints.</MudText>
-    @if (HasAuthoritativeBoundaryControls)
+    <MudText Typo="Typo.body2" Class="mt-3">The translucent cylinder has normalized radius 1. Toolface is measured around the cylinder (zero on +Y, positive toward +X); curvature is its height. Each faint line follows the exact curve-specific controls calculated by the model from the central axis to a target-boundary solution. Circular-arc toolface is the varying local toolface, not its start/reference value. Color identifies a continuous solution family; endpoint lines deliberately stop where the shortest valid solution switches to another branch.</MudText>
+    CylinderPlotData cylinderPlot = BuildCylinderPlot();
+    @if (cylinderPlot.Names.Count > 0)
     {
-        <Scatter3DPlot NameList="@CylinderNames" ModeFlagList="@CylinderModes" ColorList="@CylinderColors" ShowLegendList="@CylinderShowLegend"
-                       XValuesList="@CylinderX" YValuesList="@CylinderY" ZValuesList="@CylinderZ"
+        <Scatter3DPlot NameList="@cylinderPlot.Names" ModeFlagList="@cylinderPlot.Modes" ColorList="@cylinderPlot.Colors" LineWidthList="@cylinderPlot.LineWidths" ShowLegendList="@cylinderPlot.ShowLegend"
+                       XValuesList="@cylinderPlot.X" YValuesList="@cylinderPlot.Y" ZValuesList="@cylinderPlot.Z"
                        XUnit="Dimensionless" YUnit="Dimensionless" ZUnit="CurvatureDrilling"
                        ZAxisTitle="Curvature" XAxisMinimum="-1.1" XAxisMaximum="1.1" YAxisMinimum="-1.1" YAxisMaximum="1.1"
                        ShowUnitCylinder="true" CentralCurvatureMarker="@(value.SourceEndStation?.Curvature)" />
@@ -108,7 +109,7 @@
     @if (buildTurnPlot.Names.Count>0)
     {
         <MudText Typo="Typo.h6" Class="mt-4">Build and turn landing controls</MudText>
-        <MudText Typo="Typo.body2">Normalized length runs from the lead point at 0 to the reachable target boundary at 1. The model calculates signed build and turn directly from each solved curve; no survey-station reconstruction is used. The solid green curve joins the terminal build/turn commands; faint green lines show the commands followed by each boundary solution.</MudText>
+        <MudText Typo="Typo.body2">Normalized length runs from the lead point at 0 to the reachable target boundary at 1. The model calculates signed build and turn directly from each solved curve; no survey-station reconstruction is used. Color identifies a continuous mapped boundary segment. A complete contour is closed; partial segments stop where the selected shortest solution switches branch, because joining or merging those segments would invent controls that were not calculated.</MudText>
         <Scatter3DPlot NameList="@buildTurnPlot.Names" ModeFlagList="@buildTurnPlot.Modes" ColorList="@buildTurnPlot.Colors" LineWidthList="@buildTurnPlot.LineWidths" ShowLegendList="@buildTurnPlot.ShowLegend"
                        XValuesList="@buildTurnPlot.X" YValuesList="@buildTurnPlot.Y" ZValuesList="@buildTurnPlot.Z"
                        XUnit="CurvatureDrilling" YUnit="Dimensionless" ZUnit="CurvatureDrilling"
@@ -120,7 +121,7 @@
 
     CartesianPlotData cartesianPlot = BuildCartesianPlot();
     <MudText Typo="Typo.h6" Class="mt-4">Cartesian landing geometry</MudText>
-    <MudText Typo="Typo.body2">The source trajectory is blue, the specified target boundary is black, the reachable boundary is solid green, the lead from the final source survey to the steering start is orange, and the landing paths are translucent green.</MudText>
+    <MudText Typo="Typo.body2">The source trajectory is blue, the specified target boundary is black, the reachable boundary is solid green, and the lead from the final source survey to the steering start is orange. Landing-path colors identify continuous solution families, making distinct shortest-solution branches visible in NED space.</MudText>
     @if (loadingCartesianSource) { <MudProgressLinear Indeterminate="true" Color="Color.Info" Class="mt-2" /> }
     @if (cartesianPlot.Names.Count>0)
     {
@@ -134,9 +135,9 @@
 
     <MudText Typo="Typo.h6" Class="mt-4">Reachable target boundary commands</MudText>
     <MudTable T="BoundarySolutionRow" Items="@BoundarySolutions" Dense="true" Bordered="true" Hover="true" Style="max-height:500px;overflow:auto">
-        <HeaderContent><MudTh>Contour</MudTh><MudTh>Point</MudTh><MudTh>Plane X</MudTh><MudTh>Plane Y</MudTh><MudTh>Landing length</MudTh><MudTh>Peak curvature</MudTh><MudTh>Boundary commands</MudTh></HeaderContent>
+        <HeaderContent><MudTh>Contour</MudTh><MudTh>Family</MudTh><MudTh>Point</MudTh><MudTh>Plane X</MudTh><MudTh>Plane Y</MudTh><MudTh>Landing length</MudTh><MudTh>Peak curvature</MudTh><MudTh>Boundary commands</MudTh></HeaderContent>
         <RowTemplate>
-            <MudTd>@context.ContourNumber</MudTd><MudTd>@context.PointNumber</MudTd>
+            <MudTd>@context.ContourNumber</MudTd><MudTd>@context.FamilyNumber</MudTd><MudTd>@context.PointNumber</MudTd>
             <MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.Point.X" /></MudTd>
             <MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.Point.Y" /></MudTd>
             <MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.Sample.TotalLandingLength" /></MudTd>
@@ -419,22 +420,36 @@
     };
     private static string EditableFingerprint(TargetLandingCase source) =>
         System.Text.Json.JsonSerializer.Serialize(CreateSavePayload(source));
-    private IEnumerable<(string Name,string Color,List<TargetPlanePoint> Points)> ZoneContours
+    private List<PlaneContour> PlaneContours
     {
         get
         {
-            yield return ("Specified target", "#212121", value.GeologicalTargetBoundary ?? []);
-            int index=0; foreach (List<TargetPlanePoint> contour in value.DrillerTargetContourList ?? []) yield return (index++ == 0 ? "Driller target" : "Driller target contour", "#1976d2", contour);
-            index=0; foreach (List<TargetPlanePoint> contour in value.ReachableTargetContourList ?? []) yield return (index++ == 0 ? "Reachable target" : "Reachable target contour", "#2e7d32", contour);
+            List<PlaneContour> result=[new("Specified target","#212121",value.GeologicalTargetBoundary??[],false,null,false)];
+            int index=0;
+            foreach (List<TargetPlanePoint> contour in value.DrillerTargetContourList??[])
+                result.Add(new(index++==0?"Driller target":"Driller target contour","#1976d2",contour,false,null,false));
+            List<List<TargetPlanePoint>> reachable=value.ReachableTargetContourList??[];
+            int reachableIndex=0;
+            for (int contourIndex=0;contourIndex<reachable.Count;contourIndex++)
+            {
+                List<TargetPlanePoint> contour=reachable[contourIndex];
+                TargetPlanePoint? probe=FinitePoints(contour).FirstOrDefault();
+                int nestingDepth=probe==null?0:reachable.Where((other,index)=>index!=contourIndex&&PointInPolygon(probe,other)).Count();
+                bool isHole=nestingDepth%2==1;
+                result.Add(isHole
+                    ? new PlaneContour($"Curvature-excluded island {contourIndex+1}","#e65100",contour,true,"rgba(230,81,0,0.20)",true)
+                    : new PlaneContour(reachableIndex++==0?"Reachable target":"Reachable target region","#1b5e20",contour,true,"rgba(46,125,50,0.24)",false));
+            }
+            return result;
         }
     }
-    private List<string> PlanePlotNames => ZoneContours.Select(x=>x.Name).ToList();
-    private List<int> PlanePlotModes => ZoneContours.Select(_=>1).ToList();
-    private List<string> PlanePlotColors => ZoneContours.Select(x=>x.Color).ToList();
-    private List<bool> PlanePlotFill => ZoneContours.Select(x=>x.Name.StartsWith("Reachable target", StringComparison.Ordinal)).ToList();
-    private List<string?> PlanePlotFillColors => ZoneContours.Select(x=>x.Name.StartsWith("Reachable target", StringComparison.Ordinal) ? "rgba(46,125,50,0.20)" : null).ToList();
-    private List<List<object>> PlanePlotX => ZoneContours.Select(x=>ClosedX(x.Points)).ToList();
-    private List<List<object>> PlanePlotY => ZoneContours.Select(x=>ClosedY(x.Points)).ToList();
+    private List<string> PlanePlotNames => PlaneContours.Select(x=>x.Name).ToList();
+    private List<int> PlanePlotModes => PlaneContours.Select(_=>1).ToList();
+    private List<string> PlanePlotColors => PlaneContours.Select(x=>x.Color).ToList();
+    private List<bool> PlanePlotFill => PlaneContours.Select(x=>x.Fill).ToList();
+    private List<string?> PlanePlotFillColors => PlaneContours.Select(x=>x.FillColor).ToList();
+    private List<List<object>> PlanePlotX => PlaneContours.Select(x=>ClosedX(x.Points)).ToList();
+    private List<List<object>> PlanePlotY => PlaneContours.Select(x=>ClosedY(x.Points)).ToList();
     private static List<TargetPlanePoint> FinitePoints(List<TargetPlanePoint>? points) => points?.Where(point=>Finite(point.X) && Finite(point.Y)).ToList() ?? [];
     private static List<object> ClosedX(List<TargetPlanePoint>? points) { List<TargetPlanePoint> finite=FinitePoints(points); return finite.Count>0 ? finite.Concat([finite[0]]).Select(x=>(object)x.X).ToList() : []; }
     private static List<object> ClosedY(List<TargetPlanePoint>? points) { List<TargetPlanePoint> finite=FinitePoints(points); return finite.Count>0 ? finite.Concat([finite[0]]).Select(x=>(object)x.Y).ToList() : []; }
@@ -443,12 +458,18 @@
         List<CartesianTrace> traces=[];
         AddStationTrace("Source trajectory","#1976d2",4,true,sourceTrajectoryStations);
         AddPointTrace("Specified target boundary","#212121",5,true,TargetBoundaryPoints(value.GeologicalTargetBoundary??value.Target.Polygon));
-        int contourIndex=0;
-        foreach (List<TargetPlanePoint> contour in value.ReachableTargetContourList??[])
-            AddPointTrace(contourIndex++==0?"Reachable target boundary":"Reachable target contour","#2e7d32",5,true,TargetBoundaryPoints(contour));
-        int pathIndex=0;
-        foreach (TargetLandingSample sample in BoundarySamples)
-            AddStationTrace($"Landing path {++pathIndex}","rgba(46,125,50,0.28)",2,false,sample.SurveyStationList??[]);
+        foreach (PlaneContour contour in PlaneContours.Where(contour=>contour.Fill))
+            AddPointTrace(contour.IsHole?"Curvature-excluded island boundary":"Reachable target boundary",contour.Color,5,true,TargetBoundaryPoints(contour.Points));
+        foreach (BoundarySolutionFamily family in BoundarySolutionFamilies)
+        {
+            FamilyStyle style=SolutionFamilyStyle(family.ColorIndex);
+            bool firstPath=true;
+            foreach (TargetLandingSample sample in family.Rows.Select(row=>row.Sample).DistinctBy(sample=>sample.SampleID))
+            {
+                AddStationTrace($"Contour {family.ContourNumber}, solution family {family.FamilyNumber}",style.Translucent,3,firstPath,sample.SurveyStationList??[]);
+                firstPath=false;
+            }
+        }
         AddStationTrace("Lead path","#ff6f00",8,true,LeadStationsForPlot());
 
         return new CartesianPlotData(
@@ -526,16 +547,34 @@
                 {
                     TargetPlanePoint point = contour[pointIndex];
                     TargetLandingSample sample = reachable.MinBy(candidate => SquaredDistance(point, candidate))!;
-                    rows.Add(new BoundarySolutionRow(contourNumber, pointIndex + 1, point, sample));
+                    rows.Add(new BoundarySolutionRow(contourNumber, 0, pointIndex + 1, point, sample));
                 }
                 if (rows.Count > 0) result.Add(rows);
             }
             return result;
         }
     }
-    private List<BoundarySolutionRow> BoundarySolutions => BoundarySolutionContours.SelectMany(rows=>rows).ToList();
+    private List<BoundarySolutionFamily> BoundarySolutionFamilies
+    {
+        get
+        {
+            List<BoundarySolutionFamily> result=[];
+            int colorIndex=0;
+            foreach (List<BoundarySolutionRow> contour in BoundarySolutionContours)
+            {
+                int familyNumber=0;
+                foreach (SolutionSegment segment in SplitSolutionFamilies(contour))
+                {
+                    familyNumber++;
+                    List<BoundarySolutionRow> rows=segment.Rows.Select(row=>row with { FamilyNumber=familyNumber }).ToList();
+                    result.Add(new BoundarySolutionFamily(rows[0].ContourNumber,familyNumber,colorIndex++,segment.IsClosed,rows));
+                }
+            }
+            return result;
+        }
+    }
+    private List<BoundarySolutionRow> BoundarySolutions => BoundarySolutionFamilies.SelectMany(family=>family.Rows).ToList();
     private List<TargetLandingSample> BoundarySamples => BoundarySolutions.Select(row=>row.Sample).DistinctBy(sample=>sample.SampleID).Take(250).ToList();
-    private bool HasAuthoritativeBoundaryControls => BoundarySamples.Any(sample=>sample.ControlPointList is { Count: > 1 });
     private BuildTurnPlotData BuildBuildTurnPlot()
     {
         Dictionary<Guid,List<BuildTurnControlPoint>> paths=BoundarySamples
@@ -543,19 +582,19 @@
             .Where(item=>item.Points.Count>1)
             .ToDictionary(item=>item.SampleID,item=>item.Points);
         List<BuildTurnTrace> traces=[];
-        int pathIndex=0;
-        foreach (TargetLandingSample sample in BoundarySamples)
-            if (paths.TryGetValue(sample.SampleID,out List<BuildTurnControlPoint>? path))
-                traces.Add(new BuildTurnTrace($"Boundary path {++pathIndex}","rgba(46,125,50,0.28)",2,false,path));
-        int contourIndex=0;
-        foreach (List<BoundarySolutionRow> contour in BoundarySolutionContours)
+        foreach (BoundarySolutionFamily family in BoundarySolutionFamilies)
         {
-            List<BuildTurnControlPoint> target=CloseTrace(contour
+            FamilyStyle style=SolutionFamilyStyle(family.ColorIndex);
+            int pathIndex=0;
+            foreach (TargetLandingSample sample in family.Rows.Select(row=>row.Sample).DistinctBy(sample=>sample.SampleID))
+                if (paths.TryGetValue(sample.SampleID,out List<BuildTurnControlPoint>? path))
+                    traces.Add(new BuildTurnTrace($"Contour {family.ContourNumber}, family {family.FamilyNumber}, path {++pathIndex}",style.Translucent,3,false,path));
+            IEnumerable<BuildTurnControlPoint> terminalPoints=family.Rows
                 .Where(row=>paths.ContainsKey(row.Sample.SampleID))
-                .Select(row=>paths[row.Sample.SampleID][^1] with { NormalizedLength=1.0 })
-            );
+                .Select(row=>paths[row.Sample.SampleID][^1] with { NormalizedLength=1.0 });
+            List<BuildTurnControlPoint> target=family.IsClosed ? CloseTrace(terminalPoints) : terminalPoints.ToList();
             if (target.Count>1)
-                traces.Add(new BuildTurnTrace(contourIndex++==0?"Reachable target boundary":"Reachable target contour","#2e7d32",5,true,target));
+                traces.Add(new BuildTurnTrace($"Contour {family.ContourNumber}, solution family {family.FamilyNumber}",style.Solid,5,true,target));
         }
         List<double> turns=traces.SelectMany(trace=>trace.Points).Select(point=>point.Turn).ToList();
         List<double> builds=traces.SelectMany(trace=>trace.Points).Select(point=>point.Build).ToList();
@@ -580,17 +619,39 @@
         double padding=Math.Max(0.2*(maximum-minimum),minimumPadding);
         return (minimum-padding,maximum+padding);
     }
-    private List<List<BoundarySolutionRow>> CylinderBoundaryContours => BoundarySolutionContours
-        .Select(rows=>CloseTrace(rows.Where(row=>TerminalCylinderPoint(row.Sample) != null)))
-        .Where(rows=>rows.Count>2).ToList();
-    private List<TargetLandingSample> CylinderPathSamples => BoundarySamples.Where(sample=>CylinderPath(sample).Count>1).ToList();
-    private List<string> CylinderNames => CylinderBoundaryContours.Select((_,i)=>i==0?"Reachable target boundary":$"Reachable contour {i+1}").Concat(CylinderPathSamples.Select((_,i)=>$"Boundary path {i+1}")).ToList();
-    private List<int> CylinderModes => CylinderNames.Select(_=>1).ToList();
-    private List<string> CylinderColors => CylinderBoundaryContours.Select(_=>"#2e7d32").Concat(CylinderPathSamples.Select(_=>"rgba(46,125,50,0.28)")).ToList();
-    private List<bool> CylinderShowLegend => CylinderBoundaryContours.Select(_=>true).Concat(CylinderPathSamples.Select(_=>false)).ToList();
-    private List<List<object>> CylinderX => CylinderBoundaryContours.Select(rows=>rows.Select(row=>(object)Math.Sin(TerminalCylinderPoint(row.Sample)!.Value.Toolface)).ToList()).Concat(CylinderPathSamples.Select(sample=>CylinderPath(sample).Select(point=>(object)(point.Radius*Math.Sin(point.Toolface))).ToList())).ToList();
-    private List<List<object>> CylinderY => CylinderBoundaryContours.Select(rows=>rows.Select(row=>(object)Math.Cos(TerminalCylinderPoint(row.Sample)!.Value.Toolface)).ToList()).Concat(CylinderPathSamples.Select(sample=>CylinderPath(sample).Select(point=>(object)(point.Radius*Math.Cos(point.Toolface))).ToList())).ToList();
-    private List<List<object>> CylinderZ => CylinderBoundaryContours.Select(rows=>rows.Select(row=>(object)TerminalCylinderPoint(row.Sample)!.Value.Curvature).ToList()).Concat(CylinderPathSamples.Select(sample=>CylinderPath(sample).Select(point=>(object)point.Curvature).ToList())).ToList();
+    private CylinderPlotData BuildCylinderPlot()
+    {
+        List<CylinderTrace> traces=[];
+        foreach (BoundarySolutionFamily family in BoundarySolutionFamilies)
+        {
+            FamilyStyle style=SolutionFamilyStyle(family.ColorIndex);
+            IEnumerable<BoundarySolutionRow> terminalRows=family.Rows.Where(row=>TerminalCylinderPoint(row.Sample) != null);
+            List<BoundarySolutionRow> boundary=family.IsClosed ? CloseTrace(terminalRows) : terminalRows.ToList();
+            if (boundary.Count>1)
+            {
+                traces.Add(new CylinderTrace($"Contour {family.ContourNumber}, solution family {family.FamilyNumber}",style.Solid,5,true,
+                    boundary.Select(row=>
+                    {
+                        CylinderControlPoint terminal=TerminalCylinderPoint(row.Sample)!.Value;
+                        return new CylinderCartesianPoint(Math.Sin(terminal.Toolface),Math.Cos(terminal.Toolface),terminal.Curvature);
+                    }).ToList()));
+            }
+            int pathIndex=0;
+            foreach (TargetLandingSample sample in family.Rows.Select(row=>row.Sample).DistinctBy(sample=>sample.SampleID))
+            {
+                List<CylinderControlPoint> path=CylinderPath(sample);
+                if (path.Count>1)
+                    traces.Add(new CylinderTrace($"Contour {family.ContourNumber}, family {family.FamilyNumber}, path {++pathIndex}",style.Translucent,3,false,
+                        path.Select(point=>new CylinderCartesianPoint(point.Radius*Math.Sin(point.Toolface),point.Radius*Math.Cos(point.Toolface),point.Curvature)).ToList()));
+            }
+        }
+        return new CylinderPlotData(
+            traces.Select(trace=>trace.Name).ToList(),traces.Select(_=>1).ToList(),traces.Select(trace=>trace.Color).ToList(),
+            traces.Select(trace=>(int?)trace.LineWidth).ToList(),traces.Select(trace=>trace.ShowLegend).ToList(),
+            traces.Select(trace=>trace.Points.Select(point=>(object)point.X).ToList()).ToList(),
+            traces.Select(trace=>trace.Points.Select(point=>(object)point.Y).ToList()).ToList(),
+            traces.Select(trace=>trace.Points.Select(point=>(object)point.Z).ToList()).ToList());
+    }
     private static CylinderControlPoint? TerminalCylinderPoint(TargetLandingSample sample)
     {
         List<CylinderControlPoint> path=CylinderPath(sample);
@@ -612,8 +673,76 @@
         if (result.Count>1) result.Add(result[0]);
         return result;
     }
+    private static List<SolutionSegment> SplitSolutionFamilies(List<BoundarySolutionRow> rows)
+    {
+        if (rows.Count<2) return rows.Count==0?[]:[new SolutionSegment(rows,true)];
+        bool[] breakBefore=new bool[rows.Count];
+        for (int index=0;index<rows.Count;index++)
+            breakBefore[index]=IsSolutionDiscontinuity(rows[(index-1+rows.Count)%rows.Count],rows[index]);
+        int firstBreak=Array.FindIndex(breakBefore,value=>value);
+        if (firstBreak<0) return [new SolutionSegment(rows,true)];
+
+        List<SolutionSegment> result=[];
+        List<BoundarySolutionRow> current=[];
+        for (int offset=0;offset<rows.Count;offset++)
+        {
+            int index=(firstBreak+offset)%rows.Count;
+            if (offset>0&&breakBefore[index]&&current.Count>0)
+            {
+                result.Add(new SolutionSegment(current,false));
+                current=[];
+            }
+            current.Add(rows[index]);
+        }
+        if (current.Count>0) result.Add(new SolutionSegment(current,false));
+        return result;
+    }
+    private static bool IsSolutionDiscontinuity(BoundarySolutionRow first,BoundarySolutionRow second)
+    {
+        if (first.Sample.SampleID==second.Sample.SampleID) return false;
+        CartesianPoint? firstMidpoint=NormalizedPathMidpoint(first.Sample);
+        CartesianPoint? secondMidpoint=NormalizedPathMidpoint(second.Sample);
+        if (firstMidpoint is not CartesianPoint a||secondMidpoint is not CartesianPoint b) return false;
+        double dn=a.North-b.North,de=a.East-b.East,dd=a.TVD-b.TVD;
+        double midpointSeparation=Math.Sqrt(dn*dn+de*de+dd*dd);
+        double planeStep=Math.Sqrt(SquaredDistance(first.Point,second.Point));
+        return midpointSeparation>Math.Max(25.0,8.0*Math.Max(planeStep,PositionComparisonTolerance));
+    }
+    private static CartesianPoint? NormalizedPathMidpoint(TargetLandingSample sample)
+    {
+        List<SurveyStation> stations=sample.SurveyStationList?.Where(station=>StationPoint(station)!=null).ToList()??[];
+        if (stations.Count==0) return null;
+        double? start=stations[0].MD??stations[0].Abscissa,end=stations[^1].MD??stations[^1].Abscissa;
+        if (start is not double firstMd||end is not double lastMd) return StationPoint(stations[stations.Count/2]);
+        double midpoint=0.5*(firstMd+lastMd);
+        SurveyStation nearest=stations.MinBy(station=>Math.Abs((station.MD??station.Abscissa??midpoint)-midpoint))!;
+        return StationPoint(nearest);
+    }
+    private const double PositionComparisonTolerance=0.25;
+    private static FamilyStyle SolutionFamilyStyle(int index)=>(index%6) switch
+    {
+        0=>new("#1b5e20","rgba(27,94,32,0.62)"),
+        1=>new("#00695c","rgba(0,105,92,0.62)"),
+        2=>new("#1565c0","rgba(21,101,192,0.62)"),
+        3=>new("#6a1b9a","rgba(106,27,154,0.62)"),
+        4=>new("#006064","rgba(0,96,100,0.62)"),
+        _=>new("#4e342e","rgba(78,52,46,0.62)")
+    };
+    private static bool PointInPolygon(TargetPlanePoint point,IReadOnlyList<TargetPlanePoint> polygon)
+    {
+        bool inside=false;
+        for (int index=0,previous=polygon.Count-1;index<polygon.Count;previous=index++)
+        {
+            TargetPlanePoint current=polygon[index],prior=polygon[previous];
+            if ((current.Y>point.Y)!=(prior.Y>point.Y)&&
+                point.X<(prior.X-current.X)*(point.Y-current.Y)/(prior.Y-current.Y)+current.X) inside=!inside;
+        }
+        return inside;
+    }
     private static double SquaredDistance(TargetPlanePoint point, TargetLandingSample sample) { double dx=point.X-sample.PlaneX,dy=point.Y-sample.PlaneY;return dx*dx+dy*dy; }
+    private static double SquaredDistance(TargetPlanePoint first,TargetPlanePoint second) { double dx=first.X-second.X,dy=first.Y-second.Y;return dx*dx+dy*dy; }
     private readonly record struct CylinderControlPoint(double Radius,double Curvature,double Toolface);
+    private readonly record struct CylinderCartesianPoint(double X,double Y,double Z);
     private readonly record struct BuildTurnControlPoint(double Turn,double NormalizedLength,double Build);
     private readonly record struct CartesianPoint(double North,double East,double TVD);
     private readonly record struct CartesianVector(double North,double East,double TVD)
@@ -626,7 +755,13 @@
     private sealed record CartesianPlotData(List<string> Names,List<int> Modes,List<string> Colors,List<int?> LineWidths,List<bool> ShowLegend,List<List<object>> X,List<List<object>> Y,List<List<object>> Z);
     private sealed record BuildTurnTrace(string Name,string Color,int LineWidth,bool ShowLegend,List<BuildTurnControlPoint> Points);
     private sealed record BuildTurnPlotData(List<string> Names,List<int> Modes,List<string> Colors,List<int?> LineWidths,List<bool> ShowLegend,List<List<object>> X,List<List<object>> Y,List<List<object>> Z,double TurnMinimum,double TurnMaximum,double BuildMinimum,double BuildMaximum);
-    private sealed record BoundarySolutionRow(int ContourNumber, int PointNumber, TargetPlanePoint Point, TargetLandingSample Sample);
+    private sealed record CylinderTrace(string Name,string Color,int LineWidth,bool ShowLegend,List<CylinderCartesianPoint> Points);
+    private sealed record CylinderPlotData(List<string> Names,List<int> Modes,List<string> Colors,List<int?> LineWidths,List<bool> ShowLegend,List<List<object>> X,List<List<object>> Y,List<List<object>> Z);
+    private sealed record PlaneContour(string Name,string Color,List<TargetPlanePoint> Points,bool Fill,string? FillColor,bool IsHole);
+    private sealed record BoundarySolutionRow(int ContourNumber,int FamilyNumber,int PointNumber,TargetPlanePoint Point,TargetLandingSample Sample);
+    private sealed record BoundarySolutionFamily(int ContourNumber,int FamilyNumber,int ColorIndex,bool IsClosed,List<BoundarySolutionRow> Rows);
+    private sealed record SolutionSegment(List<BoundarySolutionRow> Rows,bool IsClosed);
+    private readonly record struct FamilyStyle(string Solid,string Translucent);
     private static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
     public void Dispose()
     {

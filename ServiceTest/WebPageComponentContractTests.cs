@@ -716,7 +716,7 @@ public sealed class WebPageComponentContractTests
         string stableUnitInput = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "StableMudInputWithUnitAdornment.razor"));
         string navigation = File.ReadAllText(Path.Combine(repositoryRoot, "WebApp", "Shared", "NavMenu.razor"));
         string savePayload = GetMethodSource(editor,
-            "private static TargetLandingCase CreateSavePayload", "private IEnumerable<(string Name,string Color,List<TargetPlanePoint> Points)> ZoneContours");
+            "private static TargetLandingCase CreateSavePayload", "private List<PlaneContour> PlaneContours");
 
         Assert.Multiple(() =>
         {
@@ -798,18 +798,21 @@ public sealed class WebPageComponentContractTests
             Assert.That(editor, Does.Contain("DrillerTargetContourList").And.Contain("ReachableTargetContourList"));
             Assert.That(editor, Does.Contain("AspectRatio=\"1\""));
             Assert.That(editor, Does.Contain("FillToSelfList=\"@PlanePlotFill\"")
-                .And.Contain("rgba(46,125,50,0.20)")
+                .And.Contain("rgba(46,125,50,0.24)")
+                .And.Contain("Curvature-excluded island")
+                .And.Contain("rgba(230,81,0,0.20)")
                 .And.Not.Contain("Uncertainty excluded")
                 .And.Not.Contain("Curvature/geometry excluded"),
                 "The plane plot must fill reachable contours without rendering adaptive excluded samples.");
             Assert.That(editor, Does.Contain("ShowUnitCylinder=\"true\"")
                 .And.Contain("point.Radius*Math.Sin(point.Toolface)")
                 .And.Contain("point.Radius*Math.Cos(point.Toolface)")
-                .And.Contain("CylinderNames.Select(_=>1)")
+                .And.Contain("CylinderPlotData cylinderPlot = BuildCylinderPlot()")
+                .And.Contain("LineWidthList=\"@cylinderPlot.LineWidths\"")
                 .And.Contain("CentralCurvatureMarker=\"@(value.SourceEndStation?.Curvature)\"")
                 .And.Contain("ZUnit=\"CurvatureDrilling\""),
                 "CA, CTC and BT boundary paths must be drawn as marker-free lines on a normalized-length toolface/curvature cylinder.");
-            Assert.That(editor, Does.Contain("@if (HasAuthoritativeBoundaryControls)")
+            Assert.That(editor, Does.Contain("@if (cylinderPlot.Names.Count > 0)")
                 .And.Contain("saved result predates authoritative normalized curve controls")
                 .And.Contain("Run Save and calculate against the current Trajectory service"),
                 "Legacy results must explain why exact-control graphs cannot be drawn instead of silently showing empty plot areas.");
@@ -843,14 +846,20 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("BuildTurnPath(sample)")
                 .And.Contain("point.TurnRate,point.NormalizedLength,point.BuildRate")
                 .And.Contain("with { NormalizedLength=1.0 }")
-                .And.Contain("List<BuildTurnControlPoint> target=CloseTrace(contour")
+                .And.Contain("family.IsClosed ? CloseTrace(terminalPoints) : terminalPoints.ToList()")
                 .And.Contain("0.5*Math.PI/(180.0*30.0)")
                 .And.Contain("0.2*(maximum-minimum)"),
                 "The build/turn view must show sampled control paths from normalized length zero to the reachable boundary at one, using unit-aware axes with the requested padding.");
-            Assert.That(editor, Does.Contain(".Select(rows=>CloseTrace(rows.Where")
+            Assert.That(editor, Does.Contain("family.IsClosed ? CloseTrace(terminalRows) : terminalRows.ToList()")
                 .And.Contain("private static List<T> CloseTrace<T>(IEnumerable<T> points)")
                 .And.Contain("if (result.Count>1) result.Add(result[0]);"),
-                "The terminal build/turn and cylindrical boundary traces must repeat their first point so Plotly draws the closing segment.");
+                "The terminal build/turn and cylindrical boundary traces must close only for a continuous solution family.");
+            Assert.That(editor, Does.Contain("SplitSolutionFamilies(contour)")
+                .And.Contain("private static bool IsSolutionDiscontinuity")
+                .And.Contain("midpointSeparation>Math.Max(25.0,8.0*Math.Max(planeStep,PositionComparisonTolerance))")
+                .And.Contain("Color identifies a continuous solution family")
+                .And.Contain("<MudTh>Family</MudTh>"),
+                "Distinct inverse-solution branches must be split, colored, and identified instead of being joined by false contour segments.");
             Assert.That(scatter3D, Does.Contain("ShowUnitCylinder || UseCubeAspect"),
                 "The control-space graph must remain legible despite the different numerical scales of curvature and normalized length.");
             Assert.That(editor, Does.Contain("Reachable target boundary commands")
@@ -868,6 +877,8 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("value.SourceEndStation??sourceTrajectoryStations.LastOrDefault")
                 .And.Contain("LineWidthList=\"@cartesianPlot.LineWidths\"")
                 .And.Contain("\"Lead path\",\"#ff6f00\",8")
+                .And.Contain("foreach (BoundarySolutionFamily family in BoundarySolutionFamilies)")
+                .And.Contain("style.Translucent,3,firstPath")
                 .And.Contain("sample.SurveyStationList")
                 .And.Contain("TargetBoundaryPoints")
                 .And.Contain("XAxisTitle=\"North\"")

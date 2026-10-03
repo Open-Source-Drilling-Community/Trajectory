@@ -252,6 +252,49 @@ public sealed class TrajectoryCatalogMigrationTests
         }
     }
 
+    [Test]
+    public void Version_six_database_adds_and_backfills_trajectory_light_columns()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "trajectory-light-migration", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        string mainPath = Path.Combine(directory, "Trajectory.db");
+        try
+        {
+            _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+            Execute(mainPath, """
+                ALTER TABLE TrajectoryTable RENAME TO TrajectoryTableV7;
+                CREATE TABLE TrajectoryTable (
+                    ID text primary key, MetaInfo text, CreationDate text, LastModificationDate text,
+                    FieldID text, ClusterID text, WellID text, WellBoreID text, TrajectoryType text,
+                    IsDefinitive integer, CalculationState text, CalculationProgress real,
+                    CalculationMessage text, Trajectory text);
+                INSERT INTO TrajectoryTable VALUES(
+                    'trajectory-id','{}','2026-10-03T10:00:00.0000000+00:00','2026-10-03T10:01:00.0000000+00:00',
+                    NULL,NULL,NULL,'00000000-0000-0000-0000-000000000001','Planned',1,'Completed',1.0,NULL,
+                    '{"Name":"Trajectory A","Description":"Preserved scalar projection","SurveyStationList":[{"MD":1.0}]}');
+                DROP TABLE TrajectoryTableV7;
+                CREATE UNIQUE INDEX TrajectoryTableIndex ON TrajectoryTable(ID);
+                PRAGMA user_version=6;
+                """);
+
+            _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+
+            using SqliteConnection main = Open(mainPath);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Scalar<long>(main, "PRAGMA user_version"), Is.EqualTo(SqlConnectionManagerTrajectory.TrajectorySchemaVersion));
+                Assert.That(Scalar<string>(main, "SELECT Name FROM TrajectoryTable WHERE ID='trajectory-id'"), Is.EqualTo("Trajectory A"));
+                Assert.That(Scalar<string>(main, "SELECT Description FROM TrajectoryTable WHERE ID='trajectory-id'"), Is.EqualTo("Preserved scalar projection"));
+                Assert.That(Scalar<string>(main, "SELECT Trajectory FROM TrajectoryTable WHERE ID='trajectory-id'"), Does.Contain("SurveyStationList"));
+            });
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
+    }
+
     private static void Execute(string path, string sql)
     {
         using SqliteConnection connection = Open(path);
