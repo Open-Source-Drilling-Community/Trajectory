@@ -22,13 +22,13 @@ public sealed class TargetLandingCalculatorTests
     }
 
     [Test]
-    public void HybridContourRefinementAdvancesCalculationAlgorithmVersion()
+    public void ConformingHybridContourRefinementAdvancesCalculationAlgorithmVersion()
     {
         Assert.Multiple(() =>
         {
             Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(4));
             Assert.That(TargetLandingCalculator.BoundaryPositionTolerance, Is.EqualTo(0.25));
-            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(8));
+            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(9));
         });
     }
 
@@ -310,6 +310,49 @@ public sealed class TargetLandingCalculatorTests
         {
             Assert.That(value.ReachableTargetContourList![0], Has.Count.GreaterThanOrEqualTo(100),
                 "The current production geometry should retain the transition samples needed to represent its curved boundary.");
+            Assert.That(value.ReachableTargetContourList.All(contour => !HasSelfIntersection(contour)), Is.True);
+        });
+    }
+
+    [Test]
+    public void ProductionU3SteeringStartRetainsDetailedReachableBoundary()
+    {
+        TargetLandingCase value = U3Case(1700.78);
+        value.CurveType = ExtrapolationCurveType.ConstantBuildAndTurn;
+        value.MaximumLandingCurvature = 8.0 * Math.PI / 180.0 / 30.0;
+        value.LeadLength = 0.0;
+        TrajectoryModel source = new()
+        {
+            MetaInfo = new MetaInfo { ID = value.SourceTrajectoryID },
+            LastModificationDate = DateTimeOffset.UtcNow,
+            CalculationType = TrajectoryCalculationType.MinimumCurvatureMethod,
+            SurveyStationList =
+            [
+                new SurveyStation
+                {
+                    MD = 1026.78,
+                    Inclination = 0.463553651284207,
+                    Azimuth = 2.85256802886554,
+                    RiemannianNorth = 6534963.59450052,
+                    RiemannianEast = 328719.40509292,
+                    TVD = 974.754488870058,
+                    Curvature = 0.00246785292641435,
+                    Toolface = -0.202012736161278,
+                    BUR = 0.0024176685547328,
+                    TUR = -0.00110740462124781
+                }
+            ]
+        };
+
+        Assert.That(TargetLandingCalculator.Calculate(value, source), Is.True, value.CalculationMessage);
+        Assert.That(value.ReachableTargetContourList, Is.Not.Null.And.Not.Empty);
+        Assert.Multiple(() =>
+        {
+            Assert.That(value.ReachableTargetContourList![0], Has.Count.GreaterThanOrEqualTo(100),
+                $"The deployed steering geometry must not collapse its curved reachable boundary to a handful of mesh edges. " +
+                $"Samples: {value.SampleList!.Count}; reachable: {value.SampleList.Count(sample => sample.State == TargetLandingSampleState.Reachable)}; " +
+                $"contours: {string.Join(", ", value.ReachableTargetContourList.Select(contour => contour.Count))}. " +
+                $"Contour: {string.Join("; ", value.ReachableTargetContourList[0].Select(point => $"({point.X:R},{point.Y:R})"))}");
             Assert.That(HasSelfIntersection(value.ReachableTargetContourList[0]), Is.False);
         });
     }

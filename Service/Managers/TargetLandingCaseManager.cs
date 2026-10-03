@@ -282,7 +282,7 @@ public sealed class TargetLandingCaseManager
                     value.CalculationState = CalculationState.Running;
                     value.CalculationProgress = Math.Clamp(0.08 + 0.90 * progress, 0.08, 0.98);
                     value.CalculationMessage = message;
-                    // Keep the lightweight polling representation useful during adaptive sampling.
+                    // Keep the lightweight polling representation useful during mesh sampling.
                     // LastModificationDate remains the queued revision until the terminal write.
                     UpdateProgress(value, queuedRevision);
                 });

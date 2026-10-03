@@ -16,7 +16,7 @@ public static class TargetLandingCalculator
 {
     internal const int MaximumAdaptiveDepth = 4;
     internal const int EllipsePointCount = 72;
-    internal const int CalculationAlgorithmVersion = 8;
+    internal const int CalculationAlgorithmVersion = 9;
     internal const double BoundaryPositionTolerance = 0.25;
     internal const double PositionTolerance = 0.05;
     internal const double SamplingInterval = 10.0;
@@ -95,12 +95,12 @@ public static class TargetLandingCalculator
         value.DrillerTargetContourList = value.TargetType == TargetLandingTargetType.DrillerTarget
             ? [value.Target.Polygon.Select(Copy).ToList()]
             : ExtractContours(samples.Values.ToList(), value.MeshTriangleList,
-                x => x.IsUncertaintySafe == true, FindBoundaryPoint);
+                value.Target.Polygon, x => x.IsUncertaintySafe == true, FindBoundaryPoint);
         value.CalculationProgress = 0.90;
         value.CalculationMessage = "Refining curvature and geometry reachability boundary";
         progress?.Invoke(value.CalculationProgress, value.CalculationMessage);
         value.ReachableTargetContourList = ExtractContours(samples.Values.ToList(), value.MeshTriangleList,
-            x => x.State == TargetLandingSampleState.Reachable, FindBoundaryPoint);
+            value.Target.Polygon, x => x.State == TargetLandingSampleState.Reachable, FindBoundaryPoint);
         value.CalculationProgress = 0.98;
         value.CalculationMessage = "Finalizing target landing result";
         progress?.Invoke(value.CalculationProgress, value.CalculationMessage);
@@ -135,10 +135,11 @@ public static class TargetLandingCalculator
 
         void Refine(TargetLandingSample a, TargetLandingSample b, TargetLandingSample c, int depth)
         {
-            double longest = Math.Max(Distance(a, b), Math.Max(Distance(b, c), Distance(c, a)));
-            double scale = Math.Max(CharacteristicLength(value.Target.Polygon), PositionTolerance);
-            bool mixed = a.State != b.State || b.State != c.State;
-            bool refine = depth < 2 || (depth < MaximumAdaptiveDepth && (mixed || longest > scale / 5.0));
+            // Keep every fan triangle at the same depth. Selective subdivision leaves hanging
+            // one-sided edges where a refined triangle meets a coarse neighbour; those seams are
+            // not a valid contour topology and previously produced artificial four-edge loops.
+            // Boundary locations are still sharpened by bisection after this conforming seed mesh.
+            bool refine = depth < MaximumAdaptiveDepth;
             if (!refine)
             {
                 value.MeshTriangleList!.Add(new TargetLandingMeshTriangle
@@ -631,6 +632,7 @@ public static class TargetLandingCalculator
     private static List<List<TargetPlanePoint>> ExtractContours(
         IReadOnlyList<TargetLandingSample> samples,
         IReadOnlyList<TargetLandingMeshTriangle> triangles,
+        IReadOnlyList<TargetPlanePoint> targetPolygon,
         Func<TargetLandingSample, bool> included,
         Func<TargetLandingSample, TargetLandingSample, Func<TargetLandingSample, bool>, TargetPlanePoint> findBoundary)
     {
@@ -661,6 +663,10 @@ public static class TargetLandingCalculator
         // Retain the part of the original target boundary that belongs to the selected zone.
         foreach ((TargetLandingSample a, TargetLandingSample b, int count) in edges.Values.Where(x => x.Count == 1))
         {
+            // A non-conforming adaptive mesh also has one-sided edges where a refined triangle
+            // meets a coarser neighbour. Only one-sided edges lying on the original target polygon
+            // are genuine domain boundaries; adding refinement seams creates artificial small loops.
+            if (!OnSamePolygonEdge(a, b, targetPolygon)) continue;
             bool includeA = included(a);
             bool includeB = included(b);
             if (includeA && includeB) segments.Add(new PlaneSegment(ToPlanePoint(a), ToPlanePoint(b)));
@@ -674,6 +680,36 @@ public static class TargetLandingCalculator
         }
 
         return StitchSegments(segments);
+    }
+
+    private static bool OnSamePolygonEdge(
+        TargetLandingSample first,
+        TargetLandingSample second,
+        IReadOnlyList<TargetPlanePoint> polygon)
+    {
+        TargetPlanePoint a = ToPlanePoint(first);
+        TargetPlanePoint b = ToPlanePoint(second);
+        for (int index = 0; index < polygon.Count; index++)
+        {
+            TargetPlanePoint start = polygon[index];
+            TargetPlanePoint end = polygon[(index + 1) % polygon.Count];
+            if (OnSegment(a, start, end) && OnSegment(b, start, end)) return true;
+        }
+        return false;
+    }
+
+    private static bool OnSegment(TargetPlanePoint point, TargetPlanePoint start, TargetPlanePoint end)
+    {
+        double dx = end.X - start.X;
+        double dy = end.Y - start.Y;
+        double length = Math.Sqrt(dx * dx + dy * dy);
+        if (length <= 1e-12) return false;
+        double cross = Math.Abs((point.X - start.X) * dy - (point.Y - start.Y) * dx);
+        if (cross > PositionTolerance * 1e-3 * length) return false;
+        double projection = (point.X - start.X) * dx + (point.Y - start.Y) * dy;
+        double projectionTolerance = PositionTolerance * 1e-3 * length;
+        return projection >= -projectionTolerance &&
+            projection <= dx * dx + dy * dy + projectionTolerance;
     }
 
     internal static TargetPlanePoint BisectBoundary(
@@ -838,9 +874,6 @@ public static class TargetLandingCalculator
     private static TargetPlanePoint Copy(TargetPlanePoint value) => new() { X = value.X, Y = value.Y };
     private static double Distance(TargetLandingSample a, TargetLandingSample b) =>
         Math.Sqrt((a.PlaneX - b.PlaneX) * (a.PlaneX - b.PlaneX) + (a.PlaneY - b.PlaneY) * (a.PlaneY - b.PlaneY));
-    private static double CharacteristicLength(IReadOnlyList<TargetPlanePoint> polygon) =>
-        Math.Sqrt(Math.Max(1e-12, polygon.Max(x => x.X) - polygon.Min(x => x.X)) * Math.Max(1e-12, polygon.Max(x => x.X) - polygon.Min(x => x.X)) +
-                  Math.Max(1e-12, polygon.Max(x => x.Y) - polygon.Min(x => x.Y)) * Math.Max(1e-12, polygon.Max(x => x.Y) - polygon.Min(x => x.Y)));
     private static double SectionLength(ArcSection section) => section.End.Abscissa!.Value - section.Start.Abscissa!.Value;
     private static SectionCurveType ToSectionCurveType(ExtrapolationCurveType value) => value switch
     {
