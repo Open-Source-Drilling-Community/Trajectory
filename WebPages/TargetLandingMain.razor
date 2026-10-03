@@ -90,7 +90,21 @@
     private static bool Active(TargetLandingCaseLight item) => item.CalculationState is CalculationState.Queued or CalculationState.Running;
     private async Task PollAsync(CancellationToken token)
     {
-        try { while (!token.IsCancellationRequested && cases.Any(Active)) { await Task.Delay(2000, token); cases = await Api.ClientTrajectory.GetAllTargetLandingCaseLightAsync(token); await InvokeAsync(StateHasChanged); } }
+        try
+        {
+            while (!token.IsCancellationRequested && cases.Any(Active))
+            {
+                await Task.Delay(1000, token);
+                foreach (TargetLandingCaseLight item in cases.Where(Active).ToList())
+                {
+                    TargetLandingCaseLight status = await Api.ClientTrajectory.GetTargetLandingCaseStatusAsync(item.MetaInfo.ID, token);
+                    item.CalculationState = status.CalculationState;
+                    item.CalculationProgress = status.CalculationProgress;
+                    item.CalculationMessage = status.CalculationMessage;
+                }
+                await InvokeAsync(StateHasChanged);
+            }
+        }
         catch (TaskCanceledException) { }
     }
     private async Task DeleteAsync(TargetLandingCaseLight item)

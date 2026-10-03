@@ -2,6 +2,7 @@ using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
 using OSDC.Drilling.Trajectory.Model;
+using OSDC.Drilling.Trajectory.Service;
 using OSDC.Drilling.Trajectory.Service.Managers;
 using OSDC.DotnetLibraries.General.DataManagement;
 using System;
@@ -16,8 +17,13 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers;
 public sealed class TargetLandingCaseController : ControllerBase
 {
     private readonly TargetLandingCaseManager manager_;
-    public TargetLandingCaseController(ILogger<TargetLandingCaseManager> logger, SqlConnectionManager connectionManager) =>
+    private readonly TargetLandingCalculationWorker worker_;
+    public TargetLandingCaseController(ILogger<TargetLandingCaseManager> logger, SqlConnectionManager connectionManager,
+        TargetLandingCalculationWorker worker)
+    {
         manager_ = TargetLandingCaseManager.GetInstance(logger, connectionManager);
+        worker_ = worker;
+    }
 
     [HttpGet(Name = "GetAllTargetLandingCaseId")]
     [ProducesResponseType<IEnumerable<Guid>>(StatusCodes.Status200OK)]
@@ -63,6 +69,7 @@ public sealed class TargetLandingCaseController : ControllerBase
         Guid id = value!.MetaInfo!.ID;
         if (manager_.GetById(id) != null) return Conflict(Error("already_exists", "A target landing case with this UUID already exists."));
         if (!await manager_.AddAsync(value)) return Problem("The target landing case could not be saved.");
+        worker_.Queue(id, value.LastModificationDate!.Value);
         return AcceptedAtAction(nameof(GetStatus), new { id }, value);
     }
 
@@ -88,6 +95,7 @@ public sealed class TargetLandingCaseController : ControllerBase
                 return Conflict(new { error = "stale_write", currentModifiedUtc = latest.LastModificationDate });
             return Problem("The target landing case could not be saved.");
         }
+        worker_.Queue(id, value.LastModificationDate!.Value);
         return AcceptedAtAction(nameof(GetStatus), new { id }, value);
     }
 

@@ -26,7 +26,8 @@ public sealed class TargetLandingCalculatorTests
         Assert.Multiple(() =>
         {
             Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(4));
-            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(4));
+            Assert.That(TargetLandingCalculator.BoundaryPositionTolerance, Is.EqualTo(0.25));
+            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(5));
         });
     }
 

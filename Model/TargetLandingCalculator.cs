@@ -16,7 +16,8 @@ public static class TargetLandingCalculator
 {
     internal const int MaximumAdaptiveDepth = 4;
     internal const int EllipsePointCount = 72;
-    internal const int CalculationAlgorithmVersion = 4;
+    internal const int CalculationAlgorithmVersion = 5;
+    internal const double BoundaryPositionTolerance = 0.25;
     internal const double PositionTolerance = 0.05;
     internal const double SamplingInterval = 10.0;
 
@@ -80,16 +81,26 @@ public static class TargetLandingCalculator
             TargetLandingSample a = GetOrEvaluate(first);
             TargetLandingSample b = GetOrEvaluate(second);
             Refine(center, a, b, 0);
-            progress?.Invoke(0.08 + 0.84 * (index + 1.0) / value.Target.Polygon.Count,
-                $"Sampling target region edge {index + 1} of {value.Target.Polygon.Count}");
+            value.CalculationProgress = 0.08 + 0.72 * (index + 1.0) / value.Target.Polygon.Count;
+            value.CalculationMessage = $"Sampling target region edge {index + 1} of {value.Target.Polygon.Count}";
+            progress?.Invoke(value.CalculationProgress, value.CalculationMessage);
         }
 
+        value.CalculationProgress = 0.84;
+        value.CalculationMessage = "Refining uncertainty-safe target boundary";
+        progress?.Invoke(value.CalculationProgress, value.CalculationMessage);
         value.DrillerTargetContourList = value.TargetType == TargetLandingTargetType.DrillerTarget
             ? [value.Target.Polygon.Select(Copy).ToList()]
             : ExtractContours(samples.Values.ToList(), value.MeshTriangleList,
                 x => x.IsUncertaintySafe == true, FindBoundaryPoint);
+        value.CalculationProgress = 0.90;
+        value.CalculationMessage = "Refining curvature and geometry reachability boundary";
+        progress?.Invoke(value.CalculationProgress, value.CalculationMessage);
         value.ReachableTargetContourList = ExtractContours(samples.Values.ToList(), value.MeshTriangleList,
             x => x.State == TargetLandingSampleState.Reachable, FindBoundaryPoint);
+        value.CalculationProgress = 0.98;
+        value.CalculationMessage = "Finalizing target landing result";
+        progress?.Invoke(value.CalculationProgress, value.CalculationMessage);
         value.SampleList = samples.Values.OrderBy(x => x.PlaneY).ThenBy(x => x.PlaneX).ToList();
         value.DrillerTargetBoundary = LargestContour(value.DrillerTargetContourList);
         value.ReachableTargetBoundary = LargestContour(value.ReachableTargetContourList);
@@ -117,7 +128,7 @@ public static class TargetLandingCalculator
 
         TargetPlanePoint FindBoundaryPoint(TargetLandingSample first, TargetLandingSample second,
             Func<TargetLandingSample, bool> included) =>
-            BisectBoundary(first, second, GetOrEvaluate, included, PositionTolerance);
+            BisectBoundary(first, second, GetOrEvaluate, included, BoundaryPositionTolerance);
 
         void Refine(TargetLandingSample a, TargetLandingSample b, TargetLandingSample c, int depth)
         {

@@ -35,6 +35,8 @@ builder.Services.AddSingleton<OctreeSearchJobWorker>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<OctreeSearchJobWorker>());
 builder.Services.AddSingleton<GlobalAntiCollisionCalculationWorker>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<GlobalAntiCollisionCalculationWorker>());
+builder.Services.AddSingleton<TargetLandingCalculationWorker>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<TargetLandingCalculationWorker>());
 builder.Services.AddHostedService<TrajectoryExtrapolationRecoveryService>();
 
 // serialization settings (using System.Json)

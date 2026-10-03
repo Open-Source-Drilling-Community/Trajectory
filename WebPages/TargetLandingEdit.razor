@@ -6,10 +6,18 @@
 
 <MudText Typo="Typo.h6" Class="mt-4 mb-3">Target Landing</MudText>
 <MudStack Row="true" Class="mb-4">
-    <MudButton Color="Color.Success" OnClick="SaveAsync" Disabled="@saving">@(saving ? "Saving and calculating..." : "Save and calculate")</MudButton>
+    <MudButton Color="Color.Success" OnClick="SaveAsync" Disabled="@(saving || IsCalculationActive)">@(saving || IsCalculationActive ? "Calculating..." : "Save and calculate")</MudButton>
     <MudButton Color="Color.Error" OnClick="@(() => ValueChanged.InvokeAsync())">Close</MudButton>
 </MudStack>
 @if (loading) { <MudProgressLinear Indeterminate="true" Color="Color.Info" /> }
+@if (value.CalculationState is CalculationState.Queued or CalculationState.Running)
+{
+    <MudPaper Class="pa-3 mb-4" Outlined="true">
+        <MudText Typo="Typo.subtitle2">@value.CalculationState: @value.CalculationMessage</MudText>
+        <MudProgressLinear Class="mt-2" Value="@(100 * value.CalculationProgress)" Color="Color.Info" />
+        <MudText Typo="Typo.caption">@($"{100 * value.CalculationProgress:F0}% complete — calculation continues on the server if this page is closed.")</MudText>
+    </MudPaper>
+}
 
 <MudGrid>
     <MudItem xs="12" md="3"><MudTextField @bind-Value="value.Name" Label="Name" Required="true" /></MudItem>
@@ -72,8 +80,6 @@
 </MudPaper>
 }
 
-@if (value.CalculationState is CalculationState.Queued or CalculationState.Running)
-{ <MudProgressLinear Class="mt-4" Value="@(100 * value.CalculationProgress)" /><MudText Typo="Typo.caption">@value.CalculationMessage</MudText> }
 @if (value.IsStale) { <MudAlert Severity="Severity.Warning" Class="mt-4">The source trajectory has changed. Saving this case will recalculate it.</MudAlert> }
 @if (value.SampleList is { Count: > 0 })
 {
@@ -116,6 +122,7 @@
             sourceReferenceDate = await ResolveSourceTrajectoryDateAsync(SourceTrajectoryId);
             await UpdateSourceReferenceValuesAsync();
             CompleteOriginCoordinates();
+            if (IsCalculationActive) _ = MonitorExistingCalculationAsync(value.MetaInfo.ID);
         }
         catch (Exception ex) { logger.LogError(ex, "Unable to initialize target landing editor"); Snackbar.Add("Unable to load the target landing case.", Severity.Error); }
         finally { loading = false; }
@@ -161,6 +168,17 @@
         else if (value.CalculationState == CalculationState.Failed)
             Snackbar.Add(value.CalculationMessage ?? "Target landing calculation failed.", Severity.Error);
     }
+    private async Task MonitorExistingCalculationAsync(Guid caseId)
+    {
+        try { await RefreshAfterCalculationAsync(caseId, calculationPolling.Token); }
+        catch (OperationCanceledException) when (calculationPolling.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unable to monitor target landing calculation");
+            Snackbar.Add("Unable to refresh the target landing calculation progress.", Severity.Error);
+        }
+    }
+    private bool IsCalculationActive => value.CalculationState is CalculationState.Queued or CalculationState.Running;
     private void InitializeHierarchy() { var t = trajectories.FirstOrDefault(x => x.MetaInfo?.ID == value.SourceTrajectoryID); if (t == null) return; fieldId = t.FieldID; clusterId = t.ClusterID; wellId = t.WellID; wellBoreId = t.WellBoreID; }
     private async Task SetField(Guid? x) { fieldId=x; clusterId=wellId=wellBoreId=null; selectedRigJobId=null; sourceReferenceDate=null; value.SourceTrajectoryID=Guid.Empty; await UpdateSourceReferenceValuesAsync(); }
     private async Task SetCluster(Guid? x) { clusterId=x; wellId=wellBoreId=null; selectedRigJobId=null; sourceReferenceDate=null; value.SourceTrajectoryID=Guid.Empty; await UpdateSourceReferenceValuesAsync(); }

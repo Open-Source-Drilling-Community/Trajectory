@@ -6,6 +6,7 @@ using System;
 using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
+using System.Threading;
 using System.Threading.Tasks;
 
 namespace OSDC.Drilling.Trajectory.Service.Managers;
@@ -32,7 +33,38 @@ public sealed class TargetLandingCaseManager
     public List<MetaInfo>? GetAllMetaInfo() => ReadAll()?.Where(x => x.MetaInfo != null).Select(x => x.MetaInfo!).ToList();
     public List<TargetLandingCaseLight>? GetAllLight() => ReadAll()?.Select(ToLight).ToList();
     public List<TargetLandingCase>? GetAll() => ReadAll();
-    public TargetLandingCaseLight? GetLightById(Guid id) => GetById(id) is { } value ? ToLight(value) : null;
+    public TargetLandingCaseLight? GetLightById(Guid id)
+    {
+        if (id == Guid.Empty) return null;
+        using SqliteConnection? connection = connectionManager_.GetConnection();
+        if (connection == null) return null;
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = "SELECT MetaInfo,CreationDate,LastModificationDate,SourceTrajectoryID,TargetType,CurveType,AttitudeMode,CalculationState,CalculationProgress,CalculationMessage FROM TargetLandingCaseTable WHERE ID=@id";
+        command.Parameters.AddWithValue("@id", id.ToString());
+        try
+        {
+            using SqliteDataReader reader = command.ExecuteReader();
+            if (!reader.Read()) return null;
+            return new TargetLandingCaseLight
+            {
+                MetaInfo = reader.IsDBNull(0) ? null : JsonSerializer.Deserialize<MetaInfo>(reader.GetString(0), JsonSettings.Options),
+                CreationDate = ReadDate(reader, 1),
+                LastModificationDate = ReadDate(reader, 2),
+                SourceTrajectoryID = Guid.TryParse(reader.GetString(3), out Guid sourceId) ? sourceId : Guid.Empty,
+                TargetType = Enum.TryParse(reader.GetString(4), out TargetLandingTargetType targetType) ? targetType : default,
+                CurveType = Enum.TryParse(reader.GetString(5), out ExtrapolationCurveType curveType) ? curveType : default,
+                AttitudeMode = Enum.TryParse(reader.GetString(6), out TargetLandingAttitudeMode attitudeMode) ? attitudeMode : default,
+                CalculationState = Enum.TryParse(reader.GetString(7), out CalculationState state) ? state : CalculationState.NotCalculated,
+                CalculationProgress = reader.IsDBNull(8) ? 0.0 : reader.GetDouble(8),
+                CalculationMessage = reader.IsDBNull(9) ? null : reader.GetString(9)
+            };
+        }
+        catch (Exception ex) when (ex is SqliteException or JsonException)
+        {
+            logger_.LogError(ex, "Unable to read target landing status {CaseId}", id);
+            return null;
+        }
+    }
 
     public TargetLandingCase? GetById(Guid id)
     {
@@ -56,18 +88,19 @@ public sealed class TargetLandingCaseManager
         }
     }
 
-    public int ResumeInterruptedCalculations()
+    public List<(Guid Id, DateTimeOffset Revision)> PrepareInterruptedCalculationsForResume()
     {
         List<TargetLandingCase> interrupted = ReadAll()?.Where(value => value.MetaInfo != null &&
             value.LastModificationDate.HasValue &&
             value.CalculationState is CalculationState.Queued or CalculationState.Running).ToList() ?? [];
+        List<(Guid Id, DateTimeOffset Revision)> requests = [];
         foreach (TargetLandingCase value in interrupted)
         {
             DateTimeOffset revision = value.LastModificationDate!.Value;
             Mark(value, CalculationState.Queued, value.CalculationProgress, "Calculation resumed after service restart");
-            if (Save(value, true, revision)) _ = Task.Run(() => RecalculateAsync(value.MetaInfo!.ID, revision));
+            if (Save(value, true, revision)) requests.Add((value.MetaInfo!.ID, revision));
         }
-        return interrupted.Count;
+        return requests;
     }
 
     public Task<bool> AddAsync(TargetLandingCase value)
@@ -79,7 +112,6 @@ public sealed class TargetLandingCaseManager
         value.LastModificationDate = now;
         Mark(value, CalculationState.Queued, 0.0, "Calculation queued");
         bool saved = Save(value, false);
-        if (saved) _ = Task.Run(() => RecalculateAsync(value.MetaInfo.ID, now));
         return Task.FromResult(saved);
     }
 
@@ -92,7 +124,6 @@ public sealed class TargetLandingCaseManager
         value.LastModificationDate = DateTimeOffset.UtcNow;
         Mark(value, CalculationState.Queued, 0.0, "Calculation queued");
         bool saved = Save(value, true, expectedRevision);
-        if (saved) _ = Task.Run(() => RecalculateAsync(id, value.LastModificationDate.Value));
         return Task.FromResult(saved);
     }
 
@@ -107,11 +138,12 @@ public sealed class TargetLandingCaseManager
         return command.ExecuteNonQuery() == 1;
     }
 
-    private async Task RecalculateAsync(Guid id, DateTimeOffset queuedRevision)
+    internal async Task RecalculateAsync(Guid id, DateTimeOffset queuedRevision, CancellationToken cancellationToken)
     {
         await Task.Yield();
         try
         {
+            cancellationToken.ThrowIfCancellationRequested();
             TargetLandingCase? value = GetById(id);
             if (value?.LastModificationDate != queuedRevision) return;
             Mark(value, CalculationState.Running, 0.01, "Preparing target landing calculation");
@@ -129,6 +161,7 @@ public sealed class TargetLandingCaseManager
             {
                 TargetLandingCalculator.Calculate(value, source, (progress, message) =>
                 {
+                    cancellationToken.ThrowIfCancellationRequested();
                     value.CalculationProgress = progress;
                     value.CalculationMessage = message;
                     // Keep the lightweight polling representation useful during adaptive sampling.
@@ -140,6 +173,15 @@ public sealed class TargetLandingCaseManager
             if (current?.LastModificationDate != queuedRevision) return;
             value.LastModificationDate = DateTimeOffset.UtcNow;
             Save(value, true, queuedRevision);
+        }
+        catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested)
+        {
+            TargetLandingCase? value = GetById(id);
+            if (value?.LastModificationDate == queuedRevision)
+            {
+                Mark(value, CalculationState.Queued, value.CalculationProgress, "Calculation interrupted by service shutdown");
+                Save(value, true, queuedRevision);
+            }
         }
         catch (Exception ex)
         {
@@ -228,6 +270,11 @@ public sealed class TargetLandingCaseManager
         CalculationState = value.CalculationState, CalculationProgress = value.CalculationProgress,
         CalculationMessage = value.CalculationMessage, IsStale = value.IsStale
     };
+
+    private static DateTimeOffset? ReadDate(SqliteDataReader reader, int ordinal) =>
+        reader.IsDBNull(ordinal) || !DateTimeOffset.TryParse(reader.GetString(ordinal), out DateTimeOffset value)
+            ? null
+            : value;
 
     private static void Mark(TargetLandingCase value, CalculationState state, double progress, string? message)
     {

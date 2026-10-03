@@ -757,6 +757,11 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("GetTargetLandingCaseStatusAsync(caseId, cancellationToken)")
                 .And.Contain("value = await Api.ClientTrajectory.GetTargetLandingCaseByIdAsync(caseId, cancellationToken)"),
                 "Saving must keep the detailed editor open, report progress, and reload the completed calculation in place.");
+            Assert.That(editor, Does.Contain("% complete — calculation continues on the server")
+                .And.Contain("MonitorExistingCalculationAsync")
+                .And.Contain("Disabled=\"@(saving || IsCalculationActive)\""));
+            Assert.That(main, Does.Contain("GetTargetLandingCaseStatusAsync(item.MetaInfo.ID, token)"),
+                "The list must poll lightweight per-case status rather than repeatedly downloading every heavy case.");
             Assert.That(GetMethodSource(editor, "private async Task SaveAsync()", "private async Task RefreshAfterCalculationAsync"),
                 Does.Not.Contain("ValueChanged.InvokeAsync"),
                 "Saving must not invoke the close callback.");
