@@ -71,6 +71,27 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
             Describe(schema, "LeadInLength", "Initial continuation of the source trajectory's final calculated curve before the closest reference point is found and steering starts, in canonical SI metres.", "DrilledLength", "m");
             SetMinimum(schema, "LeadInLength", 0.0m);
         }
+        if (context.Type == typeof(TargetLandingCase))
+        {
+            Describe(schema, "SourceTrajectoryID", "Non-empty UUID of the stored calculated trajectory from whose final station the landing is designed.");
+            Describe(schema, "LeadLength", "Initial continuation of the source trajectory's final calculated trend before the newly designed landing sections begin, in canonical SI metres.", "DrilledLength", "m");
+            Describe(schema, "MaximumLandingCurvature", "Optional hard curvature limit applied only to newly designed landing sections, in SI radians per metre. The default is 3 degrees per 30 metres.", "Curvature", "rad/m");
+            DescribeConfidenceFactor(schema, (decimal)SurveyStationEllipseCalculation.MaximumConfidenceFactor);
+            SetMinimum(schema, "LeadLength", 0.0m);
+            SetExclusiveMinimum(schema, "MaximumLandingCurvature", 0.0m);
+        }
+        if (context.Type == typeof(TargetPlaneDefinition))
+        {
+            schema.Description = "Convex target polygon in an oriented plane. Plane defines the origin and forward normal; Polygon coordinates are canonical Cartesian metres in that plane.";
+            Describe(schema, "Plane", "Target-plane origin and forward normal. RiemannianNorth/RiemannianEast and TVD are canonical local WGS84 NED metres; Latitude/Longitude are WGS84 radians; Inclination is from WGS84 geodetic down and Azimuth is clockwise from true north.");
+            Describe(schema, "Polygon", "Ordered vertices of a simple convex target polygon in canonical plane Cartesian metres. At least three vertices are required.");
+            if (schema.Properties.TryGetValue("Polygon", out OpenApiSchema? polygon)) polygon.MinItems = 3;
+        }
+        if (context.Type == typeof(TargetPlanePoint))
+        {
+            Describe(schema, "X", "First Cartesian coordinate in the target plane, in canonical SI metres.", "Length", "m");
+            Describe(schema, "Y", "Second Cartesian coordinate in the target plane, positive toward the plane's projected vertical-up axis when the plane is not horizontal, in canonical SI metres.", "Length", "m");
+        }
         if (context.Type == typeof(DepartureGeosteeringExtentConstraint))
         {
             Describe(schema, "DepartureDistance", "Overall horizontal departure from the final source-trajectory station in canonical SI metres.", "HorizontalDistance", "m");

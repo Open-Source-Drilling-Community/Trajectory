@@ -1,0 +1,100 @@
+@page "/TargetLanding"
+@inject ILogger<TargetLandingMain> logger
+@inject ISnackbar Snackbar
+@inject IDialogService DialogService
+@inject ITrajectoryAPIUtils Api
+
+<MudUnitAndReferenceChoiceTag HttpHost="@Api.HostNameUnitConversion" HttpBasePath="@Api.HostBasePathUnitConversion"
+                              HttpController="UnitSystem/" UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
+                              UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName" DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
+                              DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
+                              GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
+                              MeanSeaLevelDepthReferenceSource="@DataUtils.MeanSeaLevelDepthReferenceSource"
+                              SeaWaterLevelDepthReferenceSource="@DataUtils.SeaWaterLevelDepthReferenceSource"
+                              RotaryTableDepthReferenceSource="@DataUtils.RotaryTableDepthReferenceSource"
+                              PositionReferenceName="@DataUtils.UnitAndReferenceParameters.PositionReferenceName"
+                              PositionReferenceNameChanged="@DataUtils.UpdatePositionReferenceName"
+                              WellHeadPositionReferenceSource="@DataUtils.WellHeadPositionReferenceSource"
+                              CartographicGridPositionReferenceSource="@DataUtils.CartographicGridPositionReferenceSource"
+                              FieldPositionReferenceSource="@DataUtils.FieldPositionReferenceSource"
+                              ClusterPositionReferenceSource="@DataUtils.ClusterPositionReferenceSource"
+                              AzimuthReferenceName="@DataUtils.UnitAndReferenceParameters.AzimuthReferenceName"
+                              AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName"
+                              GridConvergenceSource="@DataUtils.GridConvergenceSource"
+                              MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource">
+    @if (editing)
+    {
+        <TargetLandingEdit CaseId="@caseId" ValueChanged="LoadAsync" />
+    }
+    else
+    {
+        <MudDataGrid T="TargetLandingCaseLight" Items="@cases" Hover="true" RowClick="OpenRow" ReadOnly="true"
+                     QuickFilter="Filter" SortMode="SortMode.Multiple" Elevation="0">
+            <ToolBarContent>
+                <MudText Typo="Typo.h6">Target Landing</MudText>
+                <MudButton Color="Color.Success" OnClick="Add">Add</MudButton>
+                <MudSpacer />
+                <MudTextField @bind-Value="search" Placeholder="Search" Immediate="true" Adornment="Adornment.Start"
+                              AdornmentIcon="@Icons.Material.Filled.Search" />
+            </ToolBarContent>
+            <Columns>
+                <PropertyColumn Property="x => x.Name" Title="Case" />
+                <PropertyColumn Property="x => x.Description" Title="Description" />
+                <PropertyColumn Property="x => SourceName(x.SourceTrajectoryID)" Title="Source trajectory" />
+                <PropertyColumn Property="x => x.TargetType" Title="Target" />
+                <PropertyColumn Property="x => x.CurveType" Title="Curve" />
+                <TemplateColumn Title="Calculation"><CellTemplate>
+                    <MudText Typo="Typo.caption" Color="@(context.Item.CalculationState == CalculationState.Failed ? Color.Error : Color.Default)">
+                        @context.Item.CalculationState @(context.Item.IsStale ? "(stale)" : null) @context.Item.CalculationMessage
+                    </MudText>
+                    @if (Active(context.Item)) { <MudProgressLinear Value="@(100 * context.Item.CalculationProgress)" Size="Size.Small" /> }
+                </CellTemplate></TemplateColumn>
+                <TemplateColumn><CellTemplate><MudIconButton Icon="@Icons.Material.Outlined.Delete" Size="Size.Small" OnClick="@(() => DeleteAsync(context.Item))" /></CellTemplate></TemplateColumn>
+            </Columns>
+            <PagerContent><MudDataGridPager T="TargetLandingCaseLight" /></PagerContent>
+        </MudDataGrid>
+    }
+</MudUnitAndReferenceChoiceTag>
+
+@code {
+    private List<TargetLandingCaseLight> cases = [];
+    private List<TrajectoryLight> trajectories = [];
+    private Guid? caseId;
+    private bool editing;
+    private string? search;
+    private CancellationTokenSource? polling;
+
+    protected override Task OnInitializedAsync() => LoadAsync();
+    private async Task LoadAsync()
+    {
+        editing = false; caseId = null; polling?.Cancel();
+        try
+        {
+            Task<List<TargetLandingCaseLight>> casesTask = Api.ClientTrajectory.GetAllTargetLandingCaseLightAsync();
+            Task<List<TrajectoryLight>> trajectoriesTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
+            await Task.WhenAll(casesTask, trajectoriesTask);
+            cases = (await casesTask).OrderBy(x => x.Name).ToList();
+            trajectories = await trajectoriesTask;
+            if (cases.Any(Active)) { polling = new(); _ = PollAsync(polling.Token); }
+        }
+        catch (Exception ex) { logger.LogError(ex, "Unable to load target landing cases"); Snackbar.Add("Unable to load target landing cases.", Severity.Error); }
+    }
+    private void Add() { caseId = null; editing = true; }
+    private Task OpenRow(DataGridRowClickEventArgs<TargetLandingCaseLight> args) { caseId = args.Item.MetaInfo.ID; editing = true; return Task.CompletedTask; }
+    private string SourceName(Guid id) => trajectories.FirstOrDefault(x => x.MetaInfo?.ID == id)?.Name ?? "Unknown trajectory";
+    private Func<TargetLandingCaseLight, bool> Filter => item => string.IsNullOrWhiteSpace(search) ||
+        $"{item.Name} {item.Description} {SourceName(item.SourceTrajectoryID)} {item.TargetType} {item.CurveType}".Contains(search, StringComparison.OrdinalIgnoreCase);
+    private static bool Active(TargetLandingCaseLight item) => item.CalculationState is CalculationState.Queued or CalculationState.Running;
+    private async Task PollAsync(CancellationToken token)
+    {
+        try { while (!token.IsCancellationRequested && cases.Any(Active)) { await Task.Delay(2000, token); cases = await Api.ClientTrajectory.GetAllTargetLandingCaseLightAsync(token); await InvokeAsync(StateHasChanged); } }
+        catch (TaskCanceledException) { }
+    }
+    private async Task DeleteAsync(TargetLandingCaseLight item)
+    {
+        bool? yes = await DialogService.ShowMessageBoxAsync("Delete target landing case", $"Delete '{item.Name}'?", yesText: "Delete", cancelText: "Cancel", options: TrajectoryDialogOptions.Compact);
+        if (yes != true) return;
+        try { await Api.ClientTrajectory.DeleteTargetLandingCaseByIdAsync(item.MetaInfo.ID, ConcurrencyToken.Require(item.LastModificationDate)); await LoadAsync(); }
+        catch (Exception ex) { logger.LogError(ex, "Unable to delete target landing case"); Snackbar.Add("Unable to delete the target landing case.", Severity.Error); }
+    }
+}

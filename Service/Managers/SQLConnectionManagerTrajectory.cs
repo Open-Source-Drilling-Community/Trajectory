@@ -11,8 +11,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 {
     /// <summary>
     /// A manager for the sql database connection, registered as a singleton through dependency injection (see Program.cs)
-    /// Existing version-1 through version-3 databases are migrated additively to version 4 by adding
-    /// the shared catalogs, trajectory extrapolation cases, and anti-collision policy tables as needed.
+    /// Existing version-1 through version-4 databases are migrated additively to version 5 by adding
+    /// the shared catalogs, trajectory extrapolation and target-landing cases, and anti-collision policy tables as needed.
     /// If a validated TrajectoryCatalog.db exists beside the main database, its rows are copied and the source file is retained.
     /// </summary>
     /// <remarks>
@@ -30,7 +30,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
     public class SqlConnectionManagerTrajectory : SqlConnectionManager
     {
         private const string DatabaseName = "Trajectory.db";
-        public const int TrajectorySchemaVersion = 4;
+        public const int TrajectorySchemaVersion = 5;
 
         // dictionary describing tables format
         // Light weight data fields are enumerated explicitly in the data table implementing the light weight data concept
@@ -116,6 +116,20 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     "CalculationProgress real",
                     "CalculationMessage text",
                     "TrajectoryExtrapolationCase text" }
+                },
+                { "TargetLandingCaseTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "SourceTrajectoryID text",
+                    "TargetType text",
+                    "CurveType text",
+                    "AttitudeMode text",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
+                    "TargetLandingCase text" }
                 },
                 { "TrajectoryRealizationCaseTable", new string[] {
                     "ID text primary key",
@@ -300,13 +314,17 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             string[] catalogTables = ["TrajectoryIdentityTable", "TrajectoryFeatureCategoryTable"];
             string[] extrapolationTables = ["TrajectoryExtrapolationCaseTable"];
             string[] policyTables = ["AntiCollisionPolicyRevisionTable", "FieldAntiCollisionPolicyAssignmentTable"];
+            string[] targetLandingTables = ["TargetLandingCaseTable"];
             string[] expectedBeforeMigration = version switch
             {
                 1 => TableStructureDictTrajectory.Keys.Except(catalogTables, StringComparer.Ordinal)
-                    .Except(extrapolationTables, StringComparer.Ordinal).Except(policyTables, StringComparer.Ordinal).ToArray(),
+                    .Except(extrapolationTables, StringComparer.Ordinal).Except(policyTables, StringComparer.Ordinal)
+                    .Except(targetLandingTables, StringComparer.Ordinal).ToArray(),
                 2 => TableStructureDictTrajectory.Keys.Except(extrapolationTables, StringComparer.Ordinal)
-                    .Except(policyTables, StringComparer.Ordinal).ToArray(),
-                3 => TableStructureDictTrajectory.Keys.Except(policyTables, StringComparer.Ordinal).ToArray(),
+                    .Except(policyTables, StringComparer.Ordinal).Except(targetLandingTables, StringComparer.Ordinal).ToArray(),
+                3 => TableStructureDictTrajectory.Keys.Except(policyTables, StringComparer.Ordinal)
+                    .Except(targetLandingTables, StringComparer.Ordinal).ToArray(),
+                4 => TableStructureDictTrajectory.Keys.Except(targetLandingTables, StringComparer.Ordinal).ToArray(),
                 _ => []
             };
             bool expectedShape = tables.Order().SequenceEqual(expectedBeforeMigration.Order(), StringComparer.Ordinal);
@@ -327,7 +345,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             using SqliteTransaction transaction = connection.BeginTransaction();
             try
             {
-                string[] additiveTables = catalogTables.Concat(extrapolationTables).Concat(policyTables).ToArray();
+                string[] additiveTables = catalogTables.Concat(extrapolationTables).Concat(policyTables)
+                    .Concat(targetLandingTables).ToArray();
                 foreach (string table in additiveTables.Where(table => !tables.Contains(table, StringComparer.Ordinal)))
                 {
                     using SqliteCommand create = connection.CreateCommand();

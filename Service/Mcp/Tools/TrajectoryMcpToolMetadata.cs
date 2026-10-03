@@ -27,6 +27,7 @@ internal static class TrajectoryMcpToolMetadata
         ["TrajectoryRealizationCase"] = "a stochastic trajectory-realization case",
         ["TrajectoryAggregationCase"] = "a case that aggregates multiple trajectories against a common reference",
         ["TrajectoryExtrapolationCase"] = "an asynchronous extrapolation from a calculated trajectory endpoint",
+        ["TargetLandingCase"] = "an asynchronous target-landing design from a calculated trajectory to a convex oriented target plane",
         ["GlobalAntiCollisions"] = "an asynchronous global anti-collision calculation job",
         ["AntiCollisionPolicyRevision"] = "an immutable anti-collision policy revision containing ordered comparison-trajectory conditions and Alert/Alarm thresholds",
         ["FieldAntiCollisionPolicyAssignment"] = "an effective-dated assignment from a Field to one exact immutable anti-collision policy revision",
@@ -70,11 +71,13 @@ internal static class TrajectoryMcpToolMetadata
             detail = "Create or replace a survey run preserving observed references and canonical WGS84-geodetic/true-north angles, then queue calculation. BitExtrapolation is optional. CalculateFromLastMeasurement requires only Measured rows and derives the terminal bit station using the run CalculationType; LastStationAlreadyExtrapolated requires exactly the final row to have Origin Extrapolated and its MD increment to equal the positive SI-metre tool-to-bit distance. Extrapolated rows are not corrected or treated as new instrument observations." +
                 (action == "PutSurveyRunById" ? " Supply expectedModifiedUtc exactly as returned by the latest read; a stale token returns conflict." : string.Empty);
         else if (controller == "SurveyStationEllipseCalculation" && action == "PostSurveyRunSurveyStationEllipseCalculation")
-            detail = "Calculate and store uncertainty ellipses for display stations using the authoritative source SurveyRun. The service reloads the source, replays its complete parent SurveyRun chain for Wolff-de Wardt propagation, and replaces stale or partial submitted covariance before calculating ellipses. Requested measured depths must lie within the source run.";
+            detail = "Calculate and store uncertainty ellipses for display stations using the authoritative source SurveyRun. The service reloads the source, replays its complete parent SurveyRun chain for Wolff-de Wardt and ISCWSA propagation, and replaces stale or partial submitted covariance before calculating ellipses. Requested measured depths must lie within the source run.";
         else if (controller == "SurveyStationEllipseCalculation" && action == "PostTrajectorySurveyStationEllipseCalculation")
-            detail = "Calculate and store uncertainty ellipses for display stations using the authoritative source Trajectory. The service rematerializes its SurveyRun sections, replays complete parent SurveyRun chains for Wolff-de Wardt propagation, and replaces stale or partial submitted covariance before calculating ellipses. Requested measured depths must lie within the source trajectory.";
+            detail = "Calculate and store uncertainty ellipses for display stations using the authoritative source Trajectory. The service rematerializes its SurveyRun sections, replays complete parent SurveyRun chains for Wolff-de Wardt and ISCWSA propagation, and replaces stale or partial submitted covariance before calculating ellipses. Requested measured depths must lie within the source trajectory.";
         else if (controller == "TrajectoryExtrapolationCase" && action == "GetStatus")
             detail = "Return lightweight state, progress and message for a queued trajectory extrapolation. Poll while Queued or Running; after Completed retrieve solved metadata by UUID and sampled survey stations through the chunk-count and zero-based chunk tools.";
+        else if (controller == "TargetLandingCase" && action == "GetStatus")
+            detail = "Return lightweight state, progress, staleness and message for a queued target-landing calculation. Poll while Queued or Running, then retrieve the completed sampled target zones and drilling solution data by UUID.";
         else if (action.Contains("ChunkCount", StringComparison.Ordinal))
             detail = $"Return the number of available result chunks for {resource}. Call this before requesting chunks, then retrieve zero-based chunkIndex values from 0 through count - 1. A count of zero means no chunks are currently available.";
         else if (action.Contains("Chunk", StringComparison.Ordinal) && action.StartsWith("Get", StringComparison.Ordinal))
@@ -295,6 +298,43 @@ internal static class TrajectoryMcpToolMetadata
             extrapolation["description"] = "Closed submission for an asynchronous trajectory extrapolation. The server derives timestamps, source/target snapshots, solved sections, calculation state and sampled stations.";
         }
 
+        if (controller == "TargetLandingCase" && action is "Post" or "Put" &&
+            definitions[nameof(TargetLandingCase)] is JsonObject landingCase &&
+            landingCase["properties"] is JsonObject landingProperties)
+        {
+            string[] serverDerived =
+            [
+                nameof(TargetLandingCase.CreationDate),
+                nameof(TargetLandingCase.LastModificationDate),
+                nameof(TargetLandingCase.CalculationState),
+                nameof(TargetLandingCase.CalculationProgress),
+                nameof(TargetLandingCase.CalculationMessage),
+                nameof(TargetLandingCase.IsStale),
+                nameof(TargetLandingCase.SourceTrajectoryRevision),
+                nameof(TargetLandingCase.CalculationFingerprint),
+                nameof(TargetLandingCase.SteeringStartStation),
+                nameof(TargetLandingCase.GeologicalTargetBoundary),
+                nameof(TargetLandingCase.DrillerTargetBoundary),
+                nameof(TargetLandingCase.ReachableTargetBoundary),
+                nameof(TargetLandingCase.DrillerTargetContourList),
+                nameof(TargetLandingCase.ReachableTargetContourList),
+                nameof(TargetLandingCase.SampleList),
+                nameof(TargetLandingCase.MeshTriangleList)
+            ];
+            foreach (string propertyName in serverDerived) landingProperties.Remove(propertyName);
+            landingCase["required"] = new JsonArray(
+                nameof(TargetLandingCase.MetaInfo),
+                nameof(TargetLandingCase.SourceTrajectoryID),
+                nameof(TargetLandingCase.Target));
+            landingCase["description"] = "Closed target-landing submission. Plane coordinates are canonical local North/East/WGS84 depth metres with WGS84 latitude/longitude and normal inclination/true-north azimuth in radians. The service derives timestamps, calculation state, source revision, adaptive samples, zones and landing solutions.";
+
+            SetNumericBounds(landingProperties[nameof(TargetLandingCase.LeadLength)], 0.0, null);
+            SetNumericBounds(landingProperties[nameof(TargetLandingCase.ConfidenceFactor)], 0.0,
+                SurveyStationEllipseCalculation.MaximumConfidenceFactor, exclusiveMinimum: true);
+            SetNumericBounds(landingProperties[nameof(TargetLandingCase.MaximumLandingCurvature)], 0.0, null,
+                exclusiveMinimum: true);
+        }
+
         if (controller != "GlobalAntiCollisions" || action is not ("Post" or "Put") ||
             definitions[nameof(GlobalAntiCollision.GlobalAntiCollision)] is not JsonObject calculation ||
             calculation["properties"] is not JsonObject properties)
@@ -357,6 +397,14 @@ internal static class TrajectoryMcpToolMetadata
         },
         ["required"] = new JsonArray(selectedName)
     };
+
+    private static void SetNumericBounds(JsonNode? node, double? minimum, double? maximum,
+        bool exclusiveMinimum = false)
+    {
+        if (node is not JsonObject schema) return;
+        if (minimum.HasValue) schema[exclusiveMinimum ? "exclusiveMinimum" : "minimum"] = minimum.Value;
+        if (maximum.HasValue) schema["maximum"] = maximum.Value;
+    }
 
     private static void ApplyOutputOperationConstraints(Type? payloadType, JsonObject definitions)
     {
@@ -442,6 +490,8 @@ internal static class TrajectoryMcpToolMetadata
     {
         if (controller == "TrajectoryExtrapolationCase")
             return "Create a trajectory extrapolation case and queue its calculation. Select exactly one discriminated specification matching Mode. FixedLength extends straight or continues the fitted last section; ReconnectToTrajectory optionally continues a lead-in, advances from the closest point on a reference trajectory, and solves two steering sections; Geosteering optionally continues a lead-in then reaches a target depth and attitude using either overall departure/bearing or steering length/steering-length ratio; WellPath requires exactly 3 × section-count constraints. The server derives timestamps, endpoint snapshots, solved sections and sampled stations. Poll status, then retrieve station chunks. SI units are metres, radians, and radians per metre.";
+        if (controller == "TargetLandingCase")
+            return "Create a target-landing case and queue adaptive calculation over its convex planar target. The source is a stored trajectory. Free landing attitude uses one CA, BT or CTC section; Land perpendicular to target plane uses the corresponding two-section solution. Geological targets require the projected confidence ellipse to remain inside the specified polygon. Maximum Landing Curvature applies only to newly designed landing sections. The server retains the shortest drilling-relevant forward solution and derives all samples, zones, result sections and staleness metadata. SI units are metres, radians and radians per metre.";
         if (controller is "TrajectoryMinimumDistanceCalculation" or "SurveyRunMinimumDistanceCalculation" or "SurveyStationEllipseCalculation" or "TrajectoryRealizationCase" or "TrajectoryAggregationCase" or "InterpolatedTrajectory")
             return $"Create {resource} and start its calculation. data.MetaInfo.ID must be a caller-assigned, non-empty UUID that is not already stored. Poll the corresponding by-id or light-list tool for CalculationState/CalculationProgress; retrieve large outputs through the result chunk tools where available. All lengths and distances are metres and angles are radians.";
         if (controller is "Trajectory" or "SurveyRun")
@@ -495,6 +545,7 @@ internal static class TrajectoryMcpToolMetadata
             "data" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation. Follow the nested schema and SI-unit annotations.",
             "value" when controller == "GlobalAntiCollisions" => "Separation-factor job configuration. Supply ID, ConfidenceFactor, exactly one reference identifier, and unique selected comparison trajectory UUIDs. Server-derived calculation and result fields are not accepted by MCP.",
             "value" when controller == "TrajectoryExtrapolationCase" => "Trajectory extrapolation configuration using the Mode discriminator and its matching specification. Timestamps, calculation state, frozen endpoints, solved sections and station results are server-derived and forbidden in MCP submissions.",
+            "value" when controller == "TargetLandingCase" => "Target-landing configuration with a source trajectory, convex oriented target plane, curve/attitude choices, confidence factor and optional Maximum Landing Curvature. Calculation state, source revision, adaptive samples, zones and solutions are server-derived and forbidden in MCP submissions.",
             "value" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation.",
             _ => $"Value for {SplitWords(action).ToLowerInvariant()}."
         };

@@ -100,9 +100,10 @@ namespace OSDC.Drilling.Trajectory.Model
                 .FirstOrDefault(tool => tool != null);
             SurveyStation? baseline = surveyStations.FirstOrDefault(HasUsableCovariance);
             if (baseline != null && surveyTool?.ModelType is
-                (SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt))
+                (SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt or
+                 SurveyInstrumentModelType.MWD_ISCWSA or SurveyInstrumentModelType.Gyro_ISCWSA))
             {
-                CalculationMessage = "A partial Wolff-de Wardt result cannot be continued from covariance alone; provide the complete propagation history or use a resource-specific ellipse endpoint.";
+                CalculationMessage = "A partial Wolff-de Wardt or ISCWSA result cannot be continued from covariance alone; provide the complete propagation history or use a resource-specific ellipse endpoint.";
                 return false;
             }
             if ((lastDefinedTool?.ModelType is

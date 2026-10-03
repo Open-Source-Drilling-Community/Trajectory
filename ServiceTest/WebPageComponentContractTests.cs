@@ -702,6 +702,35 @@ public sealed class WebPageComponentContractTests
         });
     }
 
+    [Test]
+    public void Target_landing_uses_shared_resource_filter_references_and_three_zone_results()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", ".."));
+        string editor = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TargetLandingEdit.razor"));
+        string main = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TargetLandingMain.razor"));
+        string navigation = File.ReadAllText(Path.Combine(repositoryRoot, "WebApp", "Shared", "NavMenu.razor"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(editor, Does.Contain("<TrajectoryResourceFilter"));
+            Assert.That(editor, Does.Contain("CompletedTrajectoriesOnly=\"true\""));
+            Assert.That(editor, Does.Contain("<RigJobSelector").And.Contain("sourceReferenceDate"));
+            Assert.That(main, Does.Contain("GroundMudLineDepthReferenceSource=\"@DataUtils.GroundMudLineDepthReferenceSource\""));
+            Assert.That(main, Does.Contain("WellHeadPositionReferenceSource=\"@DataUtils.WellHeadPositionReferenceSource\""));
+            Assert.That(main, Does.Contain("GridConvergenceSource=\"@DataUtils.GridConvergenceSource\""));
+            Assert.That(editor, Does.Contain("Riemannian North").And.Contain("WGS84 latitude"));
+            Assert.That(editor, Does.Contain("DrillingSignalReferenceType.Depth"));
+            Assert.That(editor, Does.Contain("DrillingSignalReferenceType.Azimuth"));
+            Assert.That(editor, Does.Contain("QuantityName=\"ProportionStandard\""));
+            Assert.That(editor, Does.Contain("Math.Clamp(x, 0.000001, 0.999)"));
+            Assert.That(editor, Does.Contain("Maximum Landing Curvature"));
+            Assert.That(editor, Does.Contain("DrillerTargetContourList").And.Contain("ReachableTargetContourList"));
+            Assert.That(editor, Does.Contain("AspectRatio=\"1\""));
+            Assert.That(navigation, Does.Contain("/Trajectory/webapp/TargetLanding"));
+        });
+    }
+
     private static string GetMethodSource(string source, string startMarker, string endMarker)
     {
         int start = source.IndexOf(startMarker, StringComparison.Ordinal);

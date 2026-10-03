@@ -231,6 +231,68 @@ public class TrajectoryExtrapolationCalculatorTests
     }
 
     [Test]
+    public void Iscwsa_extrapolation_replays_source_error_accumulators_without_resetting_the_ellipse()
+    {
+        SurveyInstrument instrument = CreateIscwsaInstrument();
+        List<SurveyStation> sourceStations =
+        [
+            Station(0.0, 0.20, 0.30, 0.0, 0.0, 0.0),
+            Station(30.0, 0.25, 0.32, 29.0, 5.0, 2.0),
+            Station(60.0, 0.30, 0.34, 57.0, 12.0, 4.0)
+        ];
+        sourceStations.ForEach(station => station.SurveyTool = instrument);
+        Assert.That(CovarianceCalculatorISCWSA.Calculate(sourceStations), Is.True);
+        SymmetricMatrix3x3 staleEndpointCovariance = new();
+        staleEndpointCovariance[0, 0] = 999.0;
+        staleEndpointCovariance[1, 1] = 999.0;
+        staleEndpointCovariance[2, 2] = 999.0;
+        sourceStations[^1].Covariance = staleEndpointCovariance;
+        sourceStations[^1].CalculateEigenProperties();
+        TrajectoryExtrapolationCase calculation = Case(
+            TrajectoryExtrapolationMode.FixedLength,
+            new FixedLengthExtrapolationSpecification
+            {
+                Length = 60.0,
+                ExtensionType = FixedLengthExtrapolationType.Straight
+            });
+
+        Assert.That(TrajectoryExtrapolationCalculator.Calculate(
+            calculation, SourceTrajectory(sourceStations.ToArray()), _ => null), Is.True, calculation.CalculationMessage);
+
+        List<SurveyStation> expectedReplay = sourceStations.Select(station => new SurveyStation(station)
+        {
+            Covariance = null,
+            Bias = null,
+            EigenValues = null,
+            EigenVectors = null,
+            SurveyTool = instrument
+        }).ToList();
+        List<SurveyStation> extrapolatedStations = calculation.SurveyStationList!;
+        expectedReplay.AddRange(extrapolatedStations.Skip(1).Select(station => new SurveyStation(station)
+        {
+            Covariance = null,
+            Bias = null,
+            EigenValues = null,
+            EigenVectors = null,
+            SurveyTool = instrument
+        }));
+        Assert.That(CovarianceCalculatorISCWSA.Calculate(expectedReplay), Is.True);
+
+        int sourceEndIndex = sourceStations.Count - 1;
+        Assert.Multiple(() =>
+        {
+            AssertCovarianceEqual(
+                expectedReplay[sourceEndIndex].Covariance!,
+                extrapolatedStations[0].Covariance!);
+            AssertCovarianceEqual(
+                expectedReplay[^1].Covariance!,
+                extrapolatedStations[^1].Covariance!);
+            Assert.That(CovarianceTrace(extrapolatedStations[0].Covariance!), Is.Not.EqualTo(2997.0),
+                "The endpoint covariance must be recomputed from the ISCWSA history, not copied as sufficient state.");
+        });
+    }
+
+    [Test]
     public void ContinueBuildAndTurnReconstructsTheLastInterval()
     {
         double tenDegrees = System.Math.PI / 18.0;
@@ -691,4 +753,35 @@ public class TrajectoryExtrapolationCalculatorTests
 
     private static double CovarianceTrace(SymmetricMatrix3x3 covariance) =>
         (covariance[0, 0] ?? 0.0) + (covariance[1, 1] ?? 0.0) + (covariance[2, 2] ?? 0.0);
+
+    private static SurveyInstrument CreateIscwsaInstrument() => new()
+    {
+        Name = "ISCWSA replay test tool",
+        ModelType = SurveyInstrumentModelType.MWD_ISCWSA,
+        BField = 50_000e-9,
+        Dip = 72.0 * System.Math.PI / 180.0,
+        Declination = -4.0 * System.Math.PI / 180.0,
+        Gravity = 9.80665,
+        ErrorSourceList =
+        [
+            ErrorSourceFactory.Create_DRFR(magnitude: 0.35),
+            ErrorSourceFactory.Create_DSFS(magnitude: 0.00056),
+            ErrorSourceFactory.Create_DSTG(magnitude: 2.5e-7),
+            ErrorSourceFactory.Create_ABXY_TI1S(magnitude: 0.004),
+            ErrorSourceFactory.Create_MBXY_TI1(magnitude: 70e-9),
+            ErrorSourceFactory.Create_DECR(magnitude: 0.1 * System.Math.PI / 180.0)
+        ]
+    };
+
+    private static void AssertCovarianceEqual(SymmetricMatrix3x3 expected, SymmetricMatrix3x3 actual)
+    {
+        for (int row = 0; row < 3; row++)
+        {
+            for (int column = 0; column < 3; column++)
+            {
+                Assert.That(actual[row, column], Is.EqualTo(expected[row, column]).Within(1e-12),
+                    $"Covariance[{row},{column}]");
+            }
+        }
+    }
 }

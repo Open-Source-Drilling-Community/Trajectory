@@ -216,9 +216,28 @@
 </MudPaper>
 
 <MudPaper Class="mx-4 px-4 pa-6 mt-4" Elevation="2">
+    <MudText Typo="Typo.h5" Class="mb-3">Target landing</MudText>
+    <MudText Typo="Typo.body1" Class="mb-2">
+        The <MudLink Href="/Trajectory/webapp/TargetLanding">Target Landing</MudLink> page designs a landing from
+        the final station of a calculated trajectory into a convex polygon on an oriented plane. The plane origin can
+        be entered as Riemannian North/East or WGS84 latitude/longitude and its normal as inclination and azimuth.
+        Free-attitude cases use one landing section; <i>Land perpendicular to target plane</i> uses the corresponding
+        two-section circular-arc, build/turn, or curvature/toolface solver.
+    </MudText>
+    <MudText Typo="Typo.body1">
+        Driller targets use the specified polygon directly. Geological targets shrink it to the sampled region where
+        the complete projected position-uncertainty ellipse remains inside the boundary at the requested confidence.
+        A separate reachable zone applies the optional Maximum Landing Curvature—3°/30 m by default—only to the newly
+        designed landing sections. The service stores the adaptive mesh, contours and shortest forward solutions,
+        preserves Wolff-de Wardt uncertainty through the lead and landing, and marks results stale when the source or
+        case input changes.
+    </MudText>
+</MudPaper>
+
+<MudPaper Class="mx-4 px-4 pa-6 mt-4" Elevation="2">
     <MudText Typo="Typo.h5" Class="mb-3">Hierarchy and rig-job selection</MudText>
     <MudText Typo="Typo.body1">
-        Survey Run, Trajectory, Extrapolation, and Anti-collision pages use the same searchable Field, Cluster, Well,
+        Survey Run, Trajectory, Extrapolation, Target Landing, and Anti-collision pages use the same searchable Field, Cluster, Well,
         WellBore, and resource selector. Each box accepts partial names. Rig job is selected separately because one
         WellBore can have several dated rig jobs. The job matching the Survey Run acquisition date—or the latest
         constituent Survey Run date for a Trajectory—is selected by default. Changing it updates the rotary-table

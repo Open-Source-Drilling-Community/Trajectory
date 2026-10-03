@@ -571,12 +571,14 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.MWD_WolffDeWardt or
                     OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.Gyro_WolffDeWardt =>
                         surveyRun.ParentSurveyRunID is Guid parentId && parentId != Guid.Empty
-                            ? await CalculateWolffDeWardtWithParentHistoryAsync(surveyRun, uncertaintyStations, surveyTool)
+                            ? await CalculateWithParentPropagationHistoryAsync(surveyRun, uncertaintyStations, surveyTool)
                             : CovarianceCalculatorWolffDeWardt.Calculate(uncertaintyStations),
 
                     OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.MWD_ISCWSA or
                     OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.Gyro_ISCWSA =>
-                        CovarianceCalculatorISCWSA.Calculate(uncertaintyStations),
+                        surveyRun.ParentSurveyRunID is Guid parentId && parentId != Guid.Empty
+                            ? await CalculateWithParentPropagationHistoryAsync(surveyRun, uncertaintyStations, surveyTool)
+                            : CovarianceCalculatorISCWSA.Calculate(uncertaintyStations),
 
                     _ => false
                 };
@@ -596,7 +598,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         /// <summary>
         /// Loads a stored SurveyRun and recalculates its uncertainty without persisting any
         /// changes. This is used by derived calculations that must not trust legacy or partial
-        /// covariance matrices. Wolff-de Wardt parent chains are replayed by
+        /// covariance matrices. Wolff-de Wardt and ISCWSA parent chains are replayed by
         /// <see cref="CalculateSurveyRunUncertaintyAsync"/>.
         /// </summary>
         internal async Task<SurveyRun?> GetSurveyRunWithRecalculatedUncertaintyAsync(Guid surveyRunId)
@@ -682,7 +684,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             target.EigenVectors = source.EigenVectors;
         }
 
-        private async Task<bool> CalculateWolffDeWardtWithParentHistoryAsync(
+        private async Task<bool> CalculateWithParentPropagationHistoryAsync(
             SurveyRun surveyRun,
             List<SurveyStation> childStations,
             OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument childTool)
@@ -690,19 +692,35 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             HashSet<Guid> visited = surveyRun.MetaInfo?.ID is Guid surveyRunId && surveyRunId != Guid.Empty
                 ? [surveyRunId]
                 : [];
-            List<SurveyStation>? parentHistory = await BuildWolffDeWardtParentHistoryAsync(surveyRun, visited);
+            List<SurveyStation>? parentHistory = await BuildParentPropagationHistoryAsync(
+                surveyRun, visited, childTool.ModelType, surveyRun.SurveyInstrumentID);
             if (parentHistory is not { Count: > 0 })
             {
                 _logger.LogWarning(
-                    "The Wolff-de Wardt parent propagation history for SurveyRun {SurveyRunId} could not be reconstructed",
+                    "The {ModelType} parent propagation history for SurveyRun {SurveyRunId} could not be reconstructed",
+                    childTool.ModelType,
                     surveyRun.MetaInfo?.ID);
                 return false;
             }
 
-            return ContinueWolffDeWardtFromParentHistory(parentHistory, childStations, childTool);
+            return ContinueFromParentPropagationHistory(parentHistory, childStations, childTool);
         }
 
         internal static bool ContinueWolffDeWardtFromParentHistory(
+            List<SurveyStation> parentHistory,
+            List<SurveyStation> childStations,
+            OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument childTool)
+            => IsWolffDeWardt(childTool.ModelType) &&
+               ContinueFromParentPropagationHistory(parentHistory, childStations, childTool);
+
+        internal static bool ContinueIscwsaFromParentHistory(
+            List<SurveyStation> parentHistory,
+            List<SurveyStation> childStations,
+            OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument childTool)
+            => IsIscwsa(childTool.ModelType) &&
+               ContinueFromParentPropagationHistory(parentHistory, childStations, childTool);
+
+        private static bool ContinueFromParentPropagationHistory(
             List<SurveyStation> parentHistory,
             List<SurveyStation> childStations,
             OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument childTool)
@@ -731,7 +749,15 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 replay.Add(copy);
             }
 
-            if (!CovarianceCalculatorWolffDeWardt.Calculate(replay))
+            bool calculated = childTool.ModelType switch
+            {
+                SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt =>
+                    CovarianceCalculatorWolffDeWardt.Calculate(replay),
+                SurveyInstrumentModelType.MWD_ISCWSA or SurveyInstrumentModelType.Gyro_ISCWSA =>
+                    CovarianceCalculatorISCWSA.Calculate(replay),
+                _ => false
+            };
+            if (!calculated)
             {
                 return false;
             }
@@ -744,9 +770,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             return true;
         }
 
-        private async Task<List<SurveyStation>?> BuildWolffDeWardtParentHistoryAsync(
+        private async Task<List<SurveyStation>?> BuildParentPropagationHistoryAsync(
             SurveyRun childSurveyRun,
-            HashSet<Guid> visited)
+            HashSet<Guid> visited,
+            SurveyInstrumentModelType modelType,
+            Guid surveyInstrumentId)
         {
             if (childSurveyRun.ParentSurveyRunID is not Guid parentId || parentId == Guid.Empty || !visited.Add(parentId))
             {
@@ -761,19 +789,33 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
             double? parentTieInMd = await ResolveParentTieInMdForUncertaintyAsync(childSurveyRun, parentSurveyRun);
             return parentTieInMd is double tieInMd
-                ? await BuildWolffDeWardtHistoryAsync(parentSurveyRun, tieInMd, visited)
+                ? await BuildPropagationHistoryAsync(parentSurveyRun, tieInMd, visited, modelType, surveyInstrumentId)
                 : null;
         }
 
-        private async Task<List<SurveyStation>?> BuildWolffDeWardtHistoryAsync(
+        private async Task<List<SurveyStation>?> BuildPropagationHistoryAsync(
             SurveyRun surveyRun,
             double cutoffMd,
-            HashSet<Guid> visited)
+            HashSet<Guid> visited,
+            SurveyInstrumentModelType modelType,
+            Guid surveyInstrumentId)
         {
+            // The ISCWSA calculator carries one accumulator per error source from the first
+            // station. Changing the instrument definition mid-history would make those indexes
+            // and correlation identities ambiguous, so fail closed rather than joining models.
+            if (IsIscwsa(modelType) && surveyRun.SurveyInstrumentID != surveyInstrumentId)
+            {
+                _logger.LogWarning(
+                    "Parent SurveyRun {SurveyRunId} uses a different ISCWSA survey instrument",
+                    surveyRun.MetaInfo?.ID);
+                return null;
+            }
+
             List<SurveyStation>? ancestorHistory = null;
             if (surveyRun.ParentSurveyRunID is Guid parentId && parentId != Guid.Empty)
             {
-                ancestorHistory = await BuildWolffDeWardtParentHistoryAsync(surveyRun, visited);
+                ancestorHistory = await BuildParentPropagationHistoryAsync(
+                    surveyRun, visited, modelType, surveyInstrumentId);
                 if (ancestorHistory is not { Count: > 0 })
                 {
                     return null;
@@ -829,9 +871,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 return null;
             }
 
-            OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument? runTool = segment
-                .Select(station => station.SurveyTool)
-                .LastOrDefault(tool => tool != null);
+            // ISCWSA weighting functions are executable delegates and therefore are not restored
+            // from persisted station JSON. Always reload that instrument from its owner service.
+            OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument? runTool = IsIscwsa(modelType)
+                ? null
+                : segment.Select(station => station.SurveyTool).LastOrDefault(tool => tool != null);
             if (runTool == null)
             {
                 OSDC.Drilling.Trajectory.ModelShared.SurveyInstrument? instrument;
@@ -846,9 +890,12 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 }
                 runTool = instrument == null ? null : ConvertSurveyInstrument(instrument);
             }
-            if (runTool?.ModelType is not (SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt))
+            if (runTool == null || !IsSamePropagationFamily(modelType, runTool.ModelType))
             {
-                _logger.LogWarning("Parent SurveyRun {SurveyRunId} does not use a Wolff-de Wardt survey instrument", surveyRun.MetaInfo?.ID);
+                _logger.LogWarning(
+                    "Parent SurveyRun {SurveyRunId} does not use the required {ModelType} propagation family",
+                    surveyRun.MetaInfo?.ID,
+                    modelType);
                 return null;
             }
             foreach (SurveyStation station in segment)
@@ -856,8 +903,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 station.SurveyTool ??= runTool;
                 ClearUncertainty(station);
             }
-            if (segment.Any(station => station.SurveyTool?.ModelType is not
-                    (SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt)))
+            if (segment.Any(station => station.SurveyTool == null ||
+                    !IsSamePropagationFamily(modelType, station.SurveyTool.ModelType)))
             {
                 _logger.LogWarning("Parent SurveyRun {SurveyRunId} contains an incompatible survey-instrument family", surveyRun.MetaInfo?.ID);
                 return null;
@@ -880,6 +927,18 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             return ancestorHistory;
         }
 
+        private static bool IsSamePropagationFamily(
+            SurveyInstrumentModelType expected,
+            SurveyInstrumentModelType actual) =>
+            (IsWolffDeWardt(expected) && IsWolffDeWardt(actual)) ||
+            (IsIscwsa(expected) && IsIscwsa(actual));
+
+        private static bool IsWolffDeWardt(SurveyInstrumentModelType modelType) =>
+            modelType is SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt;
+
+        private static bool IsIscwsa(SurveyInstrumentModelType modelType) =>
+            modelType is SurveyInstrumentModelType.MWD_ISCWSA or SurveyInstrumentModelType.Gyro_ISCWSA;
+
         private async Task<double?> ResolveParentTieInMdForUncertaintyAsync(SurveyRun child, SurveyRun parent)
         {
             if (child.WellBoreID == parent.WellBoreID)
@@ -897,7 +956,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             double? tieInMd = wellBore?.TieInPointAlongHoleDepth?.GaussianValue?.Mean;
             if (tieInMd is not double value || !Numeric.IsDefined(value))
             {
-                _logger.LogWarning("Unable to resolve parent tie-in MD for Wolff-de Wardt continuation: {Message}", message);
+                _logger.LogWarning("Unable to resolve parent tie-in MD for uncertainty continuation: {Message}", message);
                 return null;
             }
             return value;

@@ -183,9 +183,13 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 Mark(value, CalculationState.Running, 0.1, "Preparing extrapolation");
                 Save(value, true, null, queuedRevision);
                 Model.Trajectory? source = trajectoryManager_.GetTrajectoryById(value.SourceTrajectoryID, includeCalculatedStations: true);
+                source = await trajectoryManager_.CalculateTrajectoryAsync(
+                    source,
+                    recalculateSurveyRunUncertainty: true);
                 if (source == null)
                 {
-                    Mark(value, CalculationState.Failed, 1.0, "Source trajectory was not found");
+                    Mark(value, CalculationState.Failed, 1.0,
+                        "Source trajectory uncertainty lineage could not be reconstructed");
                     if (GetById(id)?.LastModificationDate == queuedRevision) Save(value, true, [], queuedRevision);
                     return;
                 }

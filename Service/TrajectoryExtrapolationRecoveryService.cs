@@ -8,6 +8,7 @@ namespace OSDC.Drilling.Trajectory.Service;
 public sealed class TrajectoryExtrapolationRecoveryService(
     ILogger<TrajectoryExtrapolationRecoveryService> logger,
     ILogger<TrajectoryExtrapolationCaseManager> managerLogger,
+    ILogger<TargetLandingCaseManager> targetLandingManagerLogger,
     SqlConnectionManager mainDatabase) : IHostedService
 {
     public Task StartAsync(CancellationToken cancellationToken)
@@ -20,6 +21,10 @@ public sealed class TrajectoryExtrapolationRecoveryService(
                 .GetInstance(managerLogger, mainDatabase)
                 .ResumeInterruptedCalculations();
             logger.LogInformation("Resumed {CalculationCount} interrupted trajectory extrapolation calculations", resumed);
+            int resumedTargetLanding = TargetLandingCaseManager
+                .GetInstance(targetLandingManagerLogger, mainDatabase)
+                .ResumeInterruptedCalculations();
+            logger.LogInformation("Resumed {CalculationCount} interrupted target landing calculations", resumedTargetLanding);
         }
         catch (Exception ex)
         {

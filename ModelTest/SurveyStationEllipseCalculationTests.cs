@@ -66,8 +66,11 @@ public sealed class SurveyStationEllipseCalculationTests
             "The boundary value must pass confidence validation even when the minimal fixture cannot form an ellipse.");
     }
 
-    [Test]
-    public void Partial_wolff_de_wardt_covariance_without_history_is_rejected()
+    [TestCase(SurveyInstrumentModelType.MWD_WolffDeWardt, "Wolff-de Wardt")]
+    [TestCase(SurveyInstrumentModelType.MWD_ISCWSA, "ISCWSA")]
+    public void Partial_stateful_covariance_without_history_is_rejected(
+        SurveyInstrumentModelType modelType,
+        string modelName)
     {
         SymmetricMatrix3x3 covariance = new();
         covariance[0, 0] = 4.0;
@@ -75,7 +78,7 @@ public sealed class SurveyStationEllipseCalculationTests
         covariance[2, 2] = 16.0;
         SurveyInstrument instrument = new()
         {
-            ModelType = SurveyInstrumentModelType.MWD_WolffDeWardt,
+            ModelType = modelType,
             Misalignment = 0.01,
             RelDepthError = 0.001
         };
@@ -112,6 +115,7 @@ public sealed class SurveyStationEllipseCalculationTests
             Assert.That(end.SurveyTool, Is.SameAs(instrument));
             Assert.That(end.Covariance, Is.Null);
             Assert.That(calculation.CalculationMessage, Does.Contain("cannot be continued from covariance alone"));
+            Assert.That(calculation.CalculationMessage, Does.Contain(modelName));
         });
     }
 

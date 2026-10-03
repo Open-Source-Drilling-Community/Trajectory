@@ -5736,6 +5736,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				PostTrajectoryExtrapolationCasePerDay = ConstructHistory(),
 				PutTrajectoryExtrapolationCaseByIdPerDay = ConstructHistory(),
 				DeleteTrajectoryExtrapolationCaseByIdPerDay = ConstructHistory(),
+				GetAllTargetLandingCaseIdPerDay = ConstructHistory(),
+				GetAllTargetLandingCaseMetaInfoPerDay = ConstructHistory(),
+				GetAllTargetLandingCaseLightPerDay = ConstructHistory(),
+				GetAllTargetLandingCasePerDay = ConstructHistory(),
+				GetTargetLandingCaseByIdPerDay = ConstructHistory(),
+				GetTargetLandingCaseStatusPerDay = ConstructHistory(),
+				PostTargetLandingCasePerDay = ConstructHistory(),
+				PutTargetLandingCaseByIdPerDay = ConstructHistory(),
+				DeleteTargetLandingCaseByIdPerDay = ConstructHistory(),
 				GetAllAntiCollisionPolicyRevisionIdPerDay = ConstructHistory(),
 				GetAllAntiCollisionPolicyRevisionPerDay = ConstructHistory(),
 				GetAntiCollisionPolicyRevisionByIdPerDay = ConstructHistory(),
@@ -6565,6 +6574,23 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CatalogWrites = 0,
 			};
 		}
+		public static CurvilinearPoint3D ConstructCurvilinearPoint3D()
+		{
+			return new CurvilinearPoint3D
+			{
+				X = null,
+				Y = null,
+				Z = null,
+				RiemannianNorth = null,
+				RiemannianEast = null,
+				Latitude = null,
+				Longitude = null,
+				TVD = null,
+				Abscissa = null,
+				Inclination = null,
+				Azimuth = null,
+			};
+		}
 		public static AntiCollisionFeatureCondition ConstructAntiCollisionFeatureCondition()
 		{
 			return new AntiCollisionFeatureCondition
@@ -6870,6 +6896,123 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 			{
 				Mode = (SurveyRunBitExtrapolationMode)0,
 				MeasurementToolToBitDistance = 0.0,
+			};
+		}
+		public static TargetLandingCase ConstructTargetLandingCase()
+		{
+			return new TargetLandingCase
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				SourceTrajectoryID = new Guid(),
+				TargetType = (TargetLandingTargetType)0,
+				CurveType = (ExtrapolationCurveType)0,
+				AttitudeMode = (TargetLandingAttitudeMode)0,
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				IsStale = false,
+				Target = ConstructTargetPlaneDefinition(),
+				LeadLength = 0.0,
+				ConfidenceFactor = 0.0,
+				MaximumLandingCurvature = null,
+				SourceTrajectoryRevision = DateTimeOffset.UtcNow,
+				CalculationFingerprint = "Default CalculationFingerprint",
+				SteeringStartStation = ConstructSurveyStation(),
+				GeologicalTargetBoundary = new List<TargetPlanePoint>
+					{
+						ConstructTargetPlanePoint(),
+					},
+				DrillerTargetBoundary = new List<TargetPlanePoint>
+					{
+						ConstructTargetPlanePoint(),
+					},
+				ReachableTargetBoundary = new List<TargetPlanePoint>
+					{
+						ConstructTargetPlanePoint(),
+					},
+				DrillerTargetContourList = new List<List<TargetPlanePoint>>
+					{
+						new List<TargetPlanePoint>
+						{
+							ConstructTargetPlanePoint(),
+						}
+					},
+				ReachableTargetContourList = new List<List<TargetPlanePoint>>
+					{
+						new List<TargetPlanePoint>
+						{
+							ConstructTargetPlanePoint(),
+						}
+					},
+				SampleList = new List<TargetLandingSample>
+					{
+						ConstructTargetLandingSample(),
+					},
+				MeshTriangleList = new List<TargetLandingMeshTriangle>
+					{
+						ConstructTargetLandingMeshTriangle(),
+					},
+			};
+		}
+		public static TargetLandingMeshTriangle ConstructTargetLandingMeshTriangle()
+		{
+			return new TargetLandingMeshTriangle
+			{
+				FirstSampleID = new Guid(),
+				SecondSampleID = new Guid(),
+				ThirdSampleID = new Guid(),
+			};
+		}
+		public static TargetLandingSample ConstructTargetLandingSample()
+		{
+			return new TargetLandingSample
+			{
+				SampleID = new Guid(),
+				PlaneX = 0.0,
+				PlaneY = 0.0,
+				PolarRadius = 0.0,
+				PolarAngle = 0.0,
+				North = 0.0,
+				East = 0.0,
+				TVD = 0.0,
+				State = (TargetLandingSampleState)0,
+				IsUncertaintySafe = null,
+				Message = "Default Message",
+				TotalLandingLength = null,
+				PeakLandingCurvature = null,
+				LandingStation = ConstructSurveyStation(),
+				LandingEllipseInTargetPlane = ConstructSurveyStationEllipse(),
+				SolvedSectionList = new List<TrajectoryExtrapolationSolvedSection>
+					{
+						ConstructTrajectoryExtrapolationSolvedSection(),
+					},
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+			};
+		}
+		public static TargetPlaneDefinition ConstructTargetPlaneDefinition()
+		{
+			return new TargetPlaneDefinition
+			{
+				Plane = ConstructCurvilinearPoint3D(),
+				Polygon = new List<TargetPlanePoint>
+					{
+						ConstructTargetPlanePoint(),
+					},
+			};
+		}
+		public static TargetPlanePoint ConstructTargetPlanePoint()
+		{
+			return new TargetPlanePoint
+			{
+				X = 0.0,
+				Y = 0.0,
 			};
 		}
 		public static TrajectoryExtrapolationCase ConstructTrajectoryExtrapolationCase()

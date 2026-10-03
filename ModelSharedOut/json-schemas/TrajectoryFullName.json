@@ -2835,6 +2835,286 @@
         }
       }
     },
+    "/TargetLandingCase": {
+      "get": {
+        "tags": [
+          "TargetLandingCase"
+        ],
+        "operationId": "GetAllTargetLandingCaseId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "TargetLandingCase"
+        ],
+        "operationId": "PostTargetLandingCase",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCase"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TargetLandingCase/MetaInfo": {
+      "get": {
+        "tags": [
+          "TargetLandingCase"
+        ],
+        "operationId": "GetAllTargetLandingCaseMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TargetLandingCase/LightData": {
+      "get": {
+        "tags": [
+          "TargetLandingCase"
+        ],
+        "operationId": "GetAllTargetLandingCaseLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCaseLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TargetLandingCase/HeavyData": {
+      "get": {
+        "tags": [
+          "TargetLandingCase"
+        ],
+        "operationId": "GetAllTargetLandingCase",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCase"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/TargetLandingCase/{id}": {
+      "get": {
+        "tags": [
+          "TargetLandingCase"
+        ],
+        "operationId": "GetTargetLandingCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCase"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "TargetLandingCase"
+        ],
+        "operationId": "PutTargetLandingCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCase"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "TargetLandingCase"
+        ],
+        "operationId": "DeleteTargetLandingCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/TargetLandingCase/{id}/Status": {
+      "get": {
+        "tags": [
+          "TargetLandingCase"
+        ],
+        "operationId": "GetTargetLandingCaseStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCaseLight"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/Trajectory/BatchExport": {
       "post": {
         "tags": [
@@ -6217,6 +6497,67 @@
         },
         "additionalProperties": false
       },
+      "OSDC.DotnetLibraries.General.Math.CurvilinearPoint3D": {
+        "type": "object",
+        "properties": {
+          "X": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Y": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Z": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "RiemannianNorth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "RiemannianEast": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Latitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Longitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Abscissa": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Inclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Azimuth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.DotnetLibraries.General.Math.Matrix3x3": {
         "type": "object",
         "properties": {
@@ -9255,6 +9596,378 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.Trajectory.Model.TargetLandingAttitudeMode": {
+        "enum": [
+          "Free",
+          "PerpendicularToTargetPlane"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.TargetLandingCase": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SourceTrajectoryID": {
+            "type": "string",
+            "description": "Non-empty UUID of the stored calculated trajectory from whose final station the landing is designed.",
+            "format": "uuid"
+          },
+          "TargetType": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingTargetType"
+          },
+          "CurveType": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExtrapolationCurveType"
+          },
+          "AttitudeMode": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingAttitudeMode"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsStale": {
+            "type": "boolean"
+          },
+          "Target": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetPlaneDefinition"
+          },
+          "LeadLength": {
+            "minimum": 0.0,
+            "type": "number",
+            "description": "Initial continuation of the source trajectory's final calculated trend before the newly designed landing sections begin, in canonical SI metres.",
+            "format": "double",
+            "x-osdc-semantic": "DrilledLength",
+            "x-si-unit": "m"
+          },
+          "ConfidenceFactor": {
+            "maximum": 0.999,
+            "exclusiveMaximum": false,
+            "minimum": 0.0,
+            "exclusiveMinimum": true,
+            "type": "number",
+            "description": "Dimensionless confidence proportion greater than 0 and no greater than 0.999.",
+            "format": "double",
+            "x-osdc-semantic": "ProportionStandard",
+            "x-si-unit": "1"
+          },
+          "MaximumLandingCurvature": {
+            "minimum": 0.0,
+            "exclusiveMinimum": true,
+            "type": "number",
+            "description": "Optional hard curvature limit applied only to newly designed landing sections, in SI radians per metre. The default is 3 degrees per 30 metres.",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": "Curvature",
+            "x-si-unit": "rad/m"
+          },
+          "SourceTrajectoryRevision": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "CalculationFingerprint": {
+            "type": "string",
+            "nullable": true
+          },
+          "SteeringStartStation": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+          },
+          "GeologicalTargetBoundary": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetPlanePoint"
+            },
+            "nullable": true
+          },
+          "DrillerTargetBoundary": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetPlanePoint"
+            },
+            "nullable": true
+          },
+          "ReachableTargetBoundary": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetPlanePoint"
+            },
+            "nullable": true
+          },
+          "DrillerTargetContourList": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetPlanePoint"
+              }
+            },
+            "nullable": true
+          },
+          "ReachableTargetContourList": {
+            "type": "array",
+            "items": {
+              "type": "array",
+              "items": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetPlanePoint"
+              }
+            },
+            "nullable": true
+          },
+          "SampleList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingSample"
+            },
+            "nullable": true
+          },
+          "MeshTriangleList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingMeshTriangle"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TargetLandingCaseLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "SourceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "TargetType": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingTargetType"
+          },
+          "CurveType": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExtrapolationCurveType"
+          },
+          "AttitudeMode": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingAttitudeMode"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsStale": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TargetLandingMeshTriangle": {
+        "type": "object",
+        "properties": {
+          "FirstSampleID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "SecondSampleID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ThirdSampleID": {
+            "type": "string",
+            "format": "uuid"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TargetLandingSample": {
+        "type": "object",
+        "properties": {
+          "SampleID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "PlaneX": {
+            "type": "number",
+            "format": "double"
+          },
+          "PlaneY": {
+            "type": "number",
+            "format": "double"
+          },
+          "PolarRadius": {
+            "type": "number",
+            "format": "double"
+          },
+          "PolarAngle": {
+            "type": "number",
+            "format": "double"
+          },
+          "North": {
+            "type": "number",
+            "format": "double"
+          },
+          "East": {
+            "type": "number",
+            "format": "double"
+          },
+          "TVD": {
+            "type": "number",
+            "format": "double"
+          },
+          "State": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingSampleState"
+          },
+          "IsUncertaintySafe": {
+            "type": "boolean",
+            "nullable": true
+          },
+          "Message": {
+            "type": "string",
+            "nullable": true
+          },
+          "TotalLandingLength": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "PeakLandingCurvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "LandingStation": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+          },
+          "LandingEllipseInTargetPlane": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyStationEllipse"
+          },
+          "SolvedSectionList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSolvedSection"
+            },
+            "nullable": true
+          },
+          "SurveyStationList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TargetLandingSampleState": {
+        "enum": [
+          "Reachable",
+          "OutsideUncertaintySafeTarget",
+          "ExceedsMaximumLandingCurvature",
+          "NoGeometricSolution"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.TargetLandingTargetType": {
+        "enum": [
+          "DrillerTarget",
+          "GeologicalTarget"
+        ],
+        "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.TargetPlaneDefinition": {
+        "type": "object",
+        "properties": {
+          "Plane": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.Math.CurvilinearPoint3D"
+              }
+            ],
+            "description": "Target-plane origin and forward normal. RiemannianNorth/RiemannianEast and TVD are canonical local WGS84 NED metres; Latitude/Longitude are WGS84 radians; Inclination is from WGS84 geodetic down and Azimuth is clockwise from true north."
+          },
+          "Polygon": {
+            "minItems": 3,
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetPlanePoint"
+            },
+            "description": "Ordered vertices of a simple convex target polygon in canonical plane Cartesian metres. At least three vertices are required.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false,
+        "description": "Convex target polygon in an oriented plane. Plane defines the origin and forward normal; Polygon coordinates are canonical Cartesian metres in that plane."
+      },
+      "OSDC.Drilling.Trajectory.Model.TargetPlanePoint": {
+        "type": "object",
+        "properties": {
+          "X": {
+            "type": "number",
+            "description": "First Cartesian coordinate in the target plane, in canonical SI metres.",
+            "format": "double",
+            "x-osdc-semantic": "Length",
+            "x-si-unit": "m"
+          },
+          "Y": {
+            "type": "number",
+            "description": "Second Cartesian coordinate in the target plane, positive toward the plane's projected vertical-up axis when the plane is not horizontal, in canonical SI metres.",
+            "format": "double",
+            "x-osdc-semantic": "Length",
+            "x-si-unit": "m"
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.Trajectory": {
         "type": "object",
         "properties": {
@@ -11261,6 +11974,33 @@
             "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
           },
           "DeleteTrajectoryExtrapolationCaseByIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetAllTargetLandingCaseIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetAllTargetLandingCaseMetaInfoPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetAllTargetLandingCaseLightPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetAllTargetLandingCasePerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetTargetLandingCaseByIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetTargetLandingCaseStatusPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "PostTargetLandingCasePerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "PutTargetLandingCaseByIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "DeleteTargetLandingCaseByIdPerDay": {
             "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
           },
           "GetAllAntiCollisionPolicyRevisionIdPerDay": {

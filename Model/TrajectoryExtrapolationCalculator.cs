@@ -172,7 +172,7 @@ namespace OSDC.Drilling.Trajectory.Model
             return true;
         }
 
-        private static ArcSection? ExtendCircularArc(SurveyStation previous, SurveyStation last, double extension)
+        internal static ArcSection? ExtendCircularArc(SurveyStation previous, SurveyStation last, double extension)
         {
             CircularArcSection fitted = new(ToPoint(previous), EndpointAttitude(last));
             if (!fitted.CalculateSIA()) return null;
@@ -183,7 +183,7 @@ namespace OSDC.Drilling.Trajectory.Model
             return extended.CalculateLDT() ? extended : null;
         }
 
-        private static ArcSection? ExtendBuildAndTurn(SurveyStation previous, SurveyStation last, double extension)
+        internal static ArcSection? ExtendBuildAndTurn(SurveyStation previous, SurveyStation last, double extension)
         {
             BuildAndTurnArcSection fitted = new(ToPoint(previous), EndpointAttitude(last));
             if (!fitted.CalculateSIA()) return null;
@@ -194,7 +194,7 @@ namespace OSDC.Drilling.Trajectory.Model
             return extended.CalculateLBT() ? extended : null;
         }
 
-        private static ArcSection? ExtendCurvatureAndToolface(SurveyStation previous, SurveyStation last, double extension)
+        internal static ArcSection? ExtendCurvatureAndToolface(SurveyStation previous, SurveyStation last, double extension)
         {
             ConstantCurvatureAndToolfaceArcSection fitted = new(ToPoint(previous), EndpointAttitude(last));
             if (!fitted.CalculateSIA()) return null;
@@ -520,7 +520,7 @@ namespace OSDC.Drilling.Trajectory.Model
             return dx * dx + dy * dy + dz * dz;
         }
 
-        private static void AddSamples(List<SurveyStation> output, ArcSection section, double startMd, double endMd,
+        internal static void AddSamples(List<SurveyStation> output, ArcSection section, double startMd, double endMd,
             double interval, double? requiredMd = null)
         {
             SortedSet<double> measuredDepths = [];
@@ -666,13 +666,13 @@ namespace OSDC.Drilling.Trajectory.Model
             return result;
         }
 
-        private static bool TryGetOrderedCompleteStations(Trajectory? trajectory, out List<SurveyStation> stations)
+        internal static bool TryGetOrderedCompleteStations(Trajectory? trajectory, out List<SurveyStation> stations)
         {
             stations = trajectory?.SurveyStationList?.Where(Complete).OrderBy(value => value.MD).ToList() ?? [];
             return stations.Count > 0;
         }
 
-        private static SurveyStation PrepareStartStation(
+        internal static SurveyStation PrepareStartStation(
             List<SurveyStation> sourceStations,
             OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType calculationType)
         {
@@ -733,6 +733,14 @@ namespace OSDC.Drilling.Trajectory.Model
                 return;
             }
 
+            if (surveyTool?.ModelType is SurveyInstrumentModelType.MWD_ISCWSA or
+                SurveyInstrumentModelType.Gyro_ISCWSA &&
+                sourceHistory is { Count: > 1 } &&
+                ContinueIscwsaUncertainty(stations, sourceHistory, surveyTool))
+            {
+                return;
+            }
+
             if (sourceEndpoint.Covariance == null)
             {
                 CalculateUncertainty(stations, surveyTool);
@@ -749,6 +757,17 @@ namespace OSDC.Drilling.Trajectory.Model
                 station.Covariance = CopyCovariance(sourceCovariance);
                 station.Bias = CopyVector(sourceBias);
                 station.CalculateEigenProperties();
+            }
+
+            // ISCWSA systematic, global, well-by-well, random and continuous-mode terms retain
+            // accumulators that cannot be recovered from the endpoint covariance. Without the
+            // complete source history, preserving the frozen endpoint covariance is safer than
+            // fabricating an independent incremental result.
+            if (surveyTool == null ||
+                surveyTool.ModelType is SurveyInstrumentModelType.MWD_ISCWSA or
+                SurveyInstrumentModelType.Gyro_ISCWSA)
+            {
+                return;
             }
 
             if (surveyTool == null || stations.Count < 2)
@@ -860,6 +879,63 @@ namespace OSDC.Drilling.Trajectory.Model
             {
                 CopyUncertainty(replay[sourceEndIndex + index], extrapolationStations[index], extrapolationTool);
             }
+            return true;
+        }
+
+        /// <summary>
+        /// Replays the complete ISCWSA error-source accumulators through the source trajectory
+        /// before extending it. Endpoint covariance alone loses correlation-mode and continuous
+        /// propagation state, so an incremental calculation starting at the endpoint is invalid.
+        /// </summary>
+        private static bool ContinueIscwsaUncertainty(
+            List<SurveyStation> extrapolationStations,
+            IReadOnlyList<SurveyStation> sourceHistory,
+            SurveyInstrument extrapolationTool)
+        {
+            List<SurveyStation> replay = sourceHistory
+                .Select(station => new SurveyStation(station)
+                {
+                    Covariance = null,
+                    Bias = null,
+                    EigenValues = null,
+                    EigenVectors = null
+                })
+                .ToList();
+            if (replay.Count == 0) return false;
+
+            SurveyInstrument? lastDefinedTool = null;
+            foreach (SurveyStation station in replay)
+            {
+                lastDefinedTool = station.SurveyTool ?? lastDefinedTool;
+                station.SurveyTool = lastDefinedTool;
+            }
+            if (replay.Any(station => station.SurveyTool == null)) return false;
+
+            for (int index = 1; index < extrapolationStations.Count; index++)
+            {
+                replay.Add(new SurveyStation(extrapolationStations[index])
+                {
+                    SurveyTool = extrapolationTool,
+                    Covariance = null,
+                    Bias = null,
+                    EigenValues = null,
+                    EigenVectors = null
+                });
+            }
+
+            try
+            {
+                if (!CovarianceCalculatorISCWSA.Calculate(replay)) return false;
+            }
+            catch
+            {
+                return false;
+            }
+
+            int sourceEndIndex = sourceHistory.Count - 1;
+            CopyUncertainty(replay[sourceEndIndex], extrapolationStations[0], extrapolationTool);
+            for (int index = 1; index < extrapolationStations.Count; index++)
+                CopyUncertainty(replay[sourceEndIndex + index], extrapolationStations[index], extrapolationTool);
             return true;
         }
 
@@ -975,7 +1051,7 @@ namespace OSDC.Drilling.Trajectory.Model
             Numeric.IsDefined(value.Azimuth) && Numeric.IsDefined(value.RiemannianNorth) &&
             Numeric.IsDefined(value.RiemannianEast) && Numeric.IsDefined(value.TVD);
 
-        private static TrajectoryPoint3D ToPoint(SurveyStation value) => new()
+        internal static TrajectoryPoint3D ToPoint(SurveyStation value) => new()
         {
             Abscissa = value.MD,
             Inclination = value.Inclination,
@@ -997,7 +1073,7 @@ namespace OSDC.Drilling.Trajectory.Model
             Azimuth = value.Azimuth
         };
 
-        private static SurveyStation FromPoint(CurvilinearPoint3D value)
+        internal static SurveyStation FromPoint(CurvilinearPoint3D value)
         {
             TrajectoryPoint3D? trajectoryPoint = value as TrajectoryPoint3D;
             return new SurveyStation

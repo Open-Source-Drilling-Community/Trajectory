@@ -15,7 +15,7 @@ public sealed class McpToolRegistrationTests
     {
         var endpoints = TrajectoryRestMcpToolRegistrations.Endpoints;
 
-        Assert.That(endpoints, Has.Count.EqualTo(154));
+        Assert.That(endpoints, Has.Count.EqualTo(163));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Is.Unique);
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("."));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("usage_statistics"));
@@ -53,7 +53,7 @@ public sealed class McpToolRegistrationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(tools, Has.Length.EqualTo(154));
+            Assert.That(tools, Has.Length.EqualTo(163));
             Assert.That(tools.All(tool => !string.IsNullOrWhiteSpace(tool.ProtocolTool.Title)), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema.HasValue), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.Annotations is not null), Is.True);
@@ -223,6 +223,8 @@ public sealed class McpToolRegistrationTests
     [TestCase("trajectory_aggregation_case_put_trajectory_aggregation_case_by_id")]
     [TestCase("trajectory_aggregation_case_delete_trajectory_aggregation_case_by_id")]
     [TestCase("survey_station_ellipse_calculation_delete_survey_station_ellipse_calculation_by_id")]
+    [TestCase("target_landing_case_put")]
+    [TestCase("target_landing_case_delete")]
     public void Durable_core_mutations_require_optimistic_concurrency(string toolName)
     {
         TrajectoryMcpEndpoint endpoint = Endpoint(toolName);
@@ -250,7 +252,7 @@ public sealed class McpToolRegistrationTests
             Assert.That(surveyRunSearch.InputSchema!["properties"]!["offset"]!["default"]!.GetValue<int>(), Is.Zero);
             Assert.That(endpoints.Any(value => value.Name == "trajectory_get_all_trajectory"), Is.False);
             Assert.That(endpoints.Any(value => value.Name == "survey_run_get_all_survey_run"), Is.False);
-            Assert.That(endpoints, Has.Count.EqualTo(154));
+            Assert.That(endpoints, Has.Count.EqualTo(163));
         });
     }
 
@@ -504,6 +506,34 @@ public sealed class McpToolRegistrationTests
             Assert.That(status.Description, Does.Contain("poll").IgnoreCase);
             Assert.That(chunk.Description, Does.Contain("zero-based"));
             Assert.That(chunk.InputSchema["properties"]!["chunkIndex"]!["minimum"]!.GetValue<int>(), Is.Zero);
+        });
+    }
+
+    [Test]
+    public void Target_landing_tools_publish_closed_si_submission_and_polling_contract()
+    {
+        TrajectoryMcpEndpoint create = Endpoint("target_landing_case_post");
+        TrajectoryMcpEndpoint status = Endpoint("target_landing_case_get_status");
+        JsonObject definitions = create.InputSchema["$defs"]!.AsObject();
+        JsonObject caseDefinition = definitions["TargetLandingCase"]!.AsObject();
+        JsonObject properties = caseDefinition["properties"]!.AsObject();
+        JsonObject plane = definitions["TargetPlaneDefinition"]!.AsObject();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(properties.ContainsKey("CalculationState"), Is.False);
+            Assert.That(properties.ContainsKey("SampleList"), Is.False);
+            Assert.That(properties.ContainsKey("ReachableTargetBoundary"), Is.False);
+            Assert.That(caseDefinition["required"]!.AsArray().Select(node => node!.GetValue<string>()),
+                Is.EquivalentTo(new[] { "MetaInfo", "SourceTrajectoryID", "Target" }));
+            Assert.That(properties["LeadLength"]!["minimum"]!.GetValue<double>(), Is.Zero);
+            Assert.That(properties["ConfidenceFactor"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
+            Assert.That(properties["ConfidenceFactor"]!["maximum"]!.GetValue<double>(), Is.EqualTo(0.999));
+            Assert.That(properties["MaximumLandingCurvature"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
+            Assert.That(plane["description"]!.GetValue<string>(), Does.Contain("target plane").IgnoreCase);
+            Assert.That(create.Description, Does.Contain("shortest drilling-relevant forward solution"));
+            Assert.That(create.Description, Does.Contain("radians per metre"));
+            Assert.That(status.Description, Does.Contain("poll").IgnoreCase);
         });
     }
 
