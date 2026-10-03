@@ -450,7 +450,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             if (connection != null)
             {
                 var command = connection.CreateCommand();
-                command.CommandText = "SELECT MetaInfo,CreationDate,LastModificationDate,FieldID,ClusterID,WellID,WellBoreID,TrajectoryType,IsDefinitive,CalculationState,CalculationProgress,CalculationMessage,Name,Description FROM TrajectoryTable" + BuildFilterClause(fieldId, clusterId, wellId, wellBoreId, trajectoryType, isDefinitive);
+                command.CommandText = "SELECT Trajectory FROM TrajectoryTable" + BuildFilterClause(fieldId, clusterId, wellId, wellBoreId, trajectoryType, isDefinitive);
                 AddFilterParameters(command, fieldId, clusterId, wellId, wellBoreId, trajectoryType, isDefinitive);
                 try
                 {
@@ -493,7 +493,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             if (connection != null)
             {
                 var command = connection.CreateCommand();
-                command.CommandText = "SELECT Trajectory FROM TrajectoryTable" + BuildFilterClause(fieldId, clusterId, wellId, wellBoreId, trajectoryType, isDefinitive);
+                command.CommandText = "SELECT MetaInfo,CreationDate,LastModificationDate,FieldID,ClusterID,WellID,WellBoreID,TrajectoryType,IsDefinitive,CalculationState,CalculationProgress,CalculationMessage,Name,Description FROM TrajectoryTable" + BuildFilterClause(fieldId, clusterId, wellId, wellBoreId, trajectoryType, isDefinitive);
                 AddFilterParameters(command, fieldId, clusterId, wellId, wellBoreId, trajectoryType, isDefinitive);
                 try
                 {
