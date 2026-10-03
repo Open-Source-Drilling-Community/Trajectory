@@ -83,6 +83,8 @@ public class TargetLandingCase : TargetLandingCaseLight
 
     public DateTimeOffset? SourceTrajectoryRevision { get; set; }
     public string? CalculationFingerprint { get; set; }
+    /// <summary>The terminal survey station of the source trajectory used by the calculation.</summary>
+    public SurveyStation? SourceEndStation { get; set; }
     public SurveyStation? SteeringStartStation { get; set; }
     public List<TargetPlanePoint>? GeologicalTargetBoundary { get; set; }
     public List<TargetPlanePoint>? DrillerTargetBoundary { get; set; }

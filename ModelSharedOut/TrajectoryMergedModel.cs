@@ -54879,6 +54879,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("CalculationFingerprint")]
         public string CalculationFingerprint { get; set; }
 
+        [System.Text.Json.Serialization.JsonPropertyName("SourceEndStation")]
+        public SurveyStation SourceEndStation { get; set; }
+
         [System.Text.Json.Serialization.JsonPropertyName("SteeringStartStation")]
         public SurveyStation SteeringStartStation { get; set; }
 

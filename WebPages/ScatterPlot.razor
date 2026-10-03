@@ -31,6 +31,10 @@
     public List<int?>? MarkerSizeList { get; set; }
     [Parameter]
     public List<bool>? ShowLegendList { get; set; }
+    [Parameter]
+    public List<bool>? FillToSelfList { get; set; }
+    [Parameter]
+    public List<string?>? FillColorList { get; set; }
 
     [Parameter]
     public List<string>? LegendGroupList { get; set; }
@@ -300,7 +304,7 @@
                 line.Width = LineWidthList[i];
             }
 
-            data.Add(new Scatter
+            Scatter trace = new()
             {
                 Name = name,
                 LegendGroup = LegendGroupList != null && i < LegendGroupList.Count ? LegendGroupList[i] : null,
@@ -310,7 +314,15 @@
                 ShowLegend = ShowLegendList == null || i >= ShowLegendList.Count || ShowLegendList[i],
                 X = xValuesInUserUnit,
                 Y = yValuesInUserUnit
-            });
+            };
+            if (FillToSelfList != null && i < FillToSelfList.Count && FillToSelfList[i])
+            {
+                trace.Fill = Plotly.Blazor.Traces.ScatterLib.FillEnum.ToSelf;
+                trace.FillColor = FillColorList != null && i < FillColorList.Count
+                    ? FillColorList[i]
+                    : "rgba(46,125,50,0.20)";
+            }
+            data.Add(trace);
         }
 
         return Task.CompletedTask;
@@ -532,6 +544,8 @@
         AppendListSignature(builder, LineWidthList);
         AppendListSignature(builder, MarkerSizeList);
         AppendListSignature(builder, ShowLegendList);
+        AppendListSignature(builder, FillToSelfList);
+        AppendListSignature(builder, FillColorList);
         AppendListSignature(builder, LegendGroupList);
         builder.Append(ToggleLegendGroups).Append('|');
         AppendNestedListSignature(builder, XValuesList);

@@ -17,6 +17,8 @@
     [Parameter] public List<string> ColorList { get; set; }
     [Parameter] public List<int?>? MarkerSizeList { get; set; }
     [Parameter] public List<bool>? ShowLegendList { get; set; }
+    [Parameter] public bool ShowUnitCylinder { get; set; }
+    [Parameter] public double? CentralCurvatureMarker { get; set; }
 
     [Parameter] public List<List<object>> XValuesList { get; set; }
     [Parameter] public List<List<object>> YValuesList { get; set; }
@@ -272,6 +274,11 @@
 
         data.Clear();
 
+        if (ShowUnitCylinder)
+        {
+            AddUnitCylinder();
+        }
+
         int nTraces = new[] { XValuesList.Count, YValuesList.Count, ZValuesList.Count }.Min();
 
         for (int i = 0; i < nTraces; i++)
@@ -359,6 +366,90 @@
         return Task.CompletedTask;
     }
 
+    private void AddUnitCylinder()
+    {
+        (double minimum, double maximum)? curvatureRange = UnitCylinderCurvatureRange();
+        if (curvatureRange == null) return;
+        (double minimum, double maximum) = curvatureRange.Value;
+
+        const int angularSteps = 72;
+        List<object> xRing = [];
+        List<object> yRing = [];
+        List<object> minimumRing = [];
+        List<object> maximumRing = [];
+        List<object> surfaceColor = [];
+        for (int index = 0; index <= angularSteps; index++)
+        {
+            double toolface = 2.0 * Math.PI * index / angularSteps;
+            xRing.Add(Math.Sin(toolface));
+            yRing.Add(Math.Cos(toolface));
+            minimumRing.Add(minimum);
+            maximumRing.Add(maximum);
+            surfaceColor.Add(0.0);
+        }
+
+        data.Add(new Surface
+        {
+            Name = "Normalized-length cylinder",
+            ShowLegend = true,
+            ShowScale = false,
+            Opacity = 0.12m,
+            ColorScale = "Greys",
+            X = [xRing, xRing],
+            Y = [yRing, yRing],
+            Z = [minimumRing, maximumRing],
+            SurfaceColor = [surfaceColor, surfaceColor]
+        });
+
+        data.Add(new Scatter3D
+        {
+            Name = "Curvature axis",
+            Mode = Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Lines,
+            ShowLegend = false,
+            X = [(object)0.0, (object)0.0],
+            Y = [(object)0.0, (object)0.0],
+            Z = [(object)minimum, (object)maximum],
+            Line = new Plotly.Blazor.Traces.Scatter3DLib.Line { Color = "#616161", Width = 4 }
+        });
+
+        double? displayedSourceCurvature = CentralCurvatureMarker is double sourceCurvature
+            ? Parent.FromSI((double?)sourceCurvature, ZUnit)
+            : null;
+        if (displayedSourceCurvature is double markerCurvature && double.IsFinite(markerCurvature))
+        {
+            data.Add(new Scatter3D
+            {
+                Name = "Source terminal curvature",
+                Mode = Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Markers,
+                ShowLegend = true,
+                X = [(object)0.0],
+                Y = [(object)0.0],
+                Z = [(object)markerCurvature],
+                Marker = new Plotly.Blazor.Traces.Scatter3DLib.Marker { Color = "#212121", Size = 6 }
+            });
+        }
+
+        string angleUnit = Parent.GetUnitLabel("PlaneAngleDrilling") ?? string.Empty;
+        for (int index = 0; index < 4; index++)
+        {
+            double toolface = 0.5 * Math.PI * index;
+            double displayed = Parent.FromSI((double?)toolface, "PlaneAngleDrilling") ?? toolface;
+            string label = index == 0
+                ? $"{displayed:G3}/{(Parent.FromSI((double?)(2.0 * Math.PI), "PlaneAngleDrilling") ?? 2.0 * Math.PI):G3} {angleUnit}"
+                : $"{displayed:G3} {angleUnit}";
+            data.Add(new Scatter3D
+            {
+                Name = "Toolface scale",
+                Mode = Plotly.Blazor.Traces.Scatter3DLib.ModeFlag.Text,
+                ShowLegend = false,
+                Text = label,
+                X = [(object)(1.08 * Math.Sin(toolface))],
+                Y = [(object)(1.08 * Math.Cos(toolface))],
+                Z = [(object)minimum]
+            });
+        }
+    }
+
     private void ManageLayout()
     {
         if (layout == null || Parent == null) return;
@@ -398,21 +489,45 @@
                 X = new List<object> { 0, 1 },
                 Y = new List<object> { 0, 1 }
             };
-            // AspectMode.Data keeps the same data scale on X, Y and Z.
-            scene.AspectMode = Plotly.Blazor.LayoutLib.SceneLib.AspectModeEnum.Data;
+            // Curvature is numerically much smaller than the unit radius; use a cube so the
+            // cylinder remains legible while axis labels retain the converted engineering values.
+            scene.AspectMode = ShowUnitCylinder
+                ? Plotly.Blazor.LayoutLib.SceneLib.AspectModeEnum.Cube
+                : Plotly.Blazor.LayoutLib.SceneLib.AspectModeEnum.Data;
 
-            scene.XAxis.Title.Text = (XAxisTitle ?? "") + xUnitLabel;
+            scene.XAxis.Title.Text = ShowUnitCylinder ? "" : (XAxisTitle ?? "") + xUnitLabel;
             ApplyXAxisRange(scene, ConvertXAxisBound(XAxisMinimum), ConvertXAxisBound(XAxisMaximum));
             scene.XAxis.RangeMode = Plotly.Blazor.LayoutLib.SceneLib.XAxisLib.RangeModeEnum.Normal;
 
-            scene.YAxis.Title.Text = (YAxisTitle ?? "") + yUnitLabel;
+            scene.YAxis.Title.Text = ShowUnitCylinder ? "" : (YAxisTitle ?? "") + yUnitLabel;
             scene.YAxis.RangeMode = Plotly.Blazor.LayoutLib.SceneLib.YAxisLib.RangeModeEnum.Normal;
             ApplyYAxisRange(scene, ConvertYAxisBound(YAxisMinimum), ConvertYAxisBound(YAxisMaximum));
 
             scene.ZAxis.Title.Text = (ZAxisTitle ?? "") + zUnitLabel;
             scene.ZAxis.RangeMode = Plotly.Blazor.LayoutLib.SceneLib.ZAxisLib.RangeModeEnum.Normal;
-            ApplyZAxisRange(scene, ConvertZAxisBound(ZAxisMinimum), ConvertZAxisBound(ZAxisMaximum));
+            (double minimum, double maximum)? cylinderRange = ShowUnitCylinder ? UnitCylinderCurvatureRange() : null;
+            ApplyZAxisRange(scene,
+                cylinderRange?.minimum ?? ConvertZAxisBound(ZAxisMinimum),
+                cylinderRange?.maximum ?? ConvertZAxisBound(ZAxisMaximum));
         }
+    }
+
+    private (double minimum, double maximum)? UnitCylinderCurvatureRange()
+    {
+        List<double> convertedCurvatures = ZValuesList
+            .SelectMany(values => values)
+            .Select(value => TryGetDouble(value, out double siValue) ? Parent.FromSI((double?)siValue, ZUnit) : null)
+            .OfType<double>()
+            .Where(double.IsFinite)
+            .ToList();
+        if (CentralCurvatureMarker is double sourceCurvature &&
+            Parent.FromSI((double?)sourceCurvature, ZUnit) is double displayedSourceCurvature &&
+            double.IsFinite(displayedSourceCurvature))
+            convertedCurvatures.Add(displayedSourceCurvature);
+        if (convertedCurvatures.Count == 0) return null;
+
+        double maximum = Math.Max(0.0, convertedCurvatures.Max()) * 1.2;
+        return (0.0, Math.Max(maximum, 1e-6));
     }
 
     private void ApplyXAxisRange(Scene scene, double? minimum, double? maximum)
@@ -479,6 +594,8 @@
             .Append(XAxisUsesPositionReference).Append('|')
             .Append(YAxisUsesPositionReference).Append('|')
             .Append(ZAxisUsesDepthReference).Append('|')
+            .Append(ShowUnitCylinder).Append('|')
+            .Append(CentralCurvatureMarker).Append('|')
             .Append(XAxisPositionDirection).Append('|')
             .Append(YAxisPositionDirection).Append('|');
 

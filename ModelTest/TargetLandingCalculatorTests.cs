@@ -27,7 +27,7 @@ public sealed class TargetLandingCalculatorTests
         {
             Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(4));
             Assert.That(TargetLandingCalculator.BoundaryPositionTolerance, Is.EqualTo(0.25));
-            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(5));
+            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(6));
         });
     }
 
@@ -94,6 +94,8 @@ public sealed class TargetLandingCalculatorTests
             Assert.That(value.MeshTriangleList, Is.Not.Null.And.Not.Empty);
             Assert.That(value.ReachableTargetBoundary, Has.Count.GreaterThanOrEqualTo(3));
             Assert.That(value.CalculationFingerprint, Is.Not.Null.And.Not.Empty);
+            Assert.That(value.SourceEndStation, Is.Not.Null);
+            Assert.That(value.SourceEndStation!.MD, Is.EqualTo(source.SurveyStationList!.Last().MD));
         });
     }
 

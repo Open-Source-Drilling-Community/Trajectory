@@ -6921,6 +6921,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				MaximumLandingCurvature = null,
 				SourceTrajectoryRevision = DateTimeOffset.UtcNow,
 				CalculationFingerprint = "Default CalculationFingerprint",
+				SourceEndStation = ConstructSurveyStation(),
 				SteeringStartStation = ConstructSurveyStation(),
 				GeologicalTargetBoundary = new List<TargetPlanePoint>
 					{

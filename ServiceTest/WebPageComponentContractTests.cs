@@ -710,11 +710,12 @@ public sealed class WebPageComponentContractTests
         string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
             "..", "..", "..", ".."));
         string editor = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TargetLandingEdit.razor"));
+        string scatter3D = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "Scatter3DPlot.razor"));
         string main = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TargetLandingMain.razor"));
         string stableUnitInput = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "StableMudInputWithUnitAdornment.razor"));
         string navigation = File.ReadAllText(Path.Combine(repositoryRoot, "WebApp", "Shared", "NavMenu.razor"));
         string savePayload = GetMethodSource(editor,
-            "private static TargetLandingCase CreateSavePayload", "private static string StateStyle");
+            "private static TargetLandingCase CreateSavePayload", "private IEnumerable<(string Name,string Color,List<TargetPlanePoint> Points)> ZoneContours");
 
         Assert.Multiple(() =>
         {
@@ -736,7 +737,7 @@ public sealed class WebPageComponentContractTests
             Assert.That(editor, Does.Not.Contain("CoordinateEditorKey").And.Not.Contain("RefreshPolygonRow"));
             Assert.That(editor, Does.Contain("QuantityName=\"LengthStandard\"").And.Not.Contain("LengthDrilling"),
                 "Target-plane coordinates and landing lengths must use the supported LengthStandard physical quantity.");
-            Assert.That(editor, Does.Contain("private static bool Finite(double value)").And.Contain("FiniteControlSections"));
+            Assert.That(editor, Does.Contain("private static bool Finite(double value)").And.Contain("CylinderPath(TargetLandingSample sample)"));
             Assert.That(editor, Does.Contain("@if (!loading)"), "Saved target coordinates must not initialize against the temporary new-case model while the case is loading.");
             Assert.That(editor, Does.Contain("DrillingSignalReferenceType.Depth"));
             Assert.That(editor, Does.Contain("<StableMudInputWithUnitAdornment QuantityLabel=\"Target TVD\"")
@@ -769,6 +770,7 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("MaximumLandingCurvature = source.MaximumLandingCurvature")
                 .And.Not.Contain("SampleList")
                 .And.Not.Contain("MeshTriangleList")
+                .And.Not.Contain("SourceEndStation")
                 .And.Not.Contain("SteeringStartStation")
                 .And.Not.Contain("CalculationFingerprint"),
                 "Saving an edited case must not resend the large server-derived calculation result through nginx.");
@@ -778,6 +780,39 @@ public sealed class WebPageComponentContractTests
             Assert.That(editor, Does.Contain("Maximum Landing Curvature"));
             Assert.That(editor, Does.Contain("DrillerTargetContourList").And.Contain("ReachableTargetContourList"));
             Assert.That(editor, Does.Contain("AspectRatio=\"1\""));
+            Assert.That(editor, Does.Contain("FillToSelfList=\"@PlanePlotFill\"")
+                .And.Contain("rgba(46,125,50,0.20)")
+                .And.Not.Contain("Uncertainty excluded")
+                .And.Not.Contain("Curvature/geometry excluded"),
+                "The plane plot must fill reachable contours without rendering adaptive excluded samples.");
+            Assert.That(editor, Does.Contain("ShowUnitCylinder=\"true\"")
+                .And.Contain("point.Radius*Math.Sin(point.Toolface)")
+                .And.Contain("point.Radius*Math.Cos(point.Toolface)")
+                .And.Contain("CylinderNames.Select(_=>1)")
+                .And.Contain("CentralCurvatureMarker=\"@(value.SourceEndStation?.Curvature)\"")
+                .And.Contain("ZUnit=\"CurvatureDrilling\""),
+                "CA, CTC and BT boundary paths must be drawn as marker-free lines on a normalized-length toolface/curvature cylinder.");
+            Assert.That(editor, Does.Contain("station.Curvature is double curvature && station.Toolface is double toolface")
+                .And.Contain("turn*Math.Sin(inclination)")
+                .And.Contain("Math.Atan2(turnComponent,build)")
+                .And.Not.Contain("XAxisTitle=\"sin(toolface)")
+                .And.Not.Contain("YAxisTitle=\"cos(toolface)"),
+                "The paths must use calculated station controls, with a build/turn fallback, and hide meaningless Cartesian axis titles.");
+            Assert.That(scatter3D, Does.Contain("Math.Max(0.0, convertedCurvatures.Max()) * 1.2")
+                .And.Contain("return (0.0, Math.Max(maximum, 1e-6))")
+                .And.Contain("ShowUnitCylinder ? UnitCylinderCurvatureRange() : null")
+                .And.Contain("Name = \"Curvature axis\"")
+                .And.Contain("Name = \"Source terminal curvature\"")
+                .And.Contain("scene.XAxis.Title.Text = ShowUnitCylinder ? \"\"")
+                .And.Contain("scene.YAxis.Title.Text = ShowUnitCylinder ? \"\""),
+                "The cylinder and curvature axis must span zero to 120 percent of the maximum boundary curvature.");
+            Assert.That(editor, Does.Contain("Reachable target boundary commands")
+                .And.Contain("Items=\"@BoundarySolutions\"")
+                .And.Contain("SectionCurvature(section)")
+                .And.Contain("SectionToolface(section)")
+                .And.Contain("section.ConstantBuildRate")
+                .And.Contain("section.ConstantTurnRate"),
+                "The end-user table must report boundary points and their unit-aware section commands.");
             Assert.That(navigation, Does.Contain("/Trajectory/webapp/TargetLanding"));
         });
     }

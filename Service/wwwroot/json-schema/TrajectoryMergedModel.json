@@ -37172,6 +37172,9 @@
             "type": "string",
             "nullable": true
           },
+          "SourceEndStation": {
+            "$ref": "#/components/schemas/SurveyStation"
+          },
           "SteeringStartStation": {
             "$ref": "#/components/schemas/SurveyStation"
           },

@@ -48,6 +48,8 @@ public sealed class OpenApiTargetLandingContractTests
             Assert.That(landing["properties"]!["ConfidenceFactor"]!["maximum"]!.GetValue<double>(), Is.EqualTo(0.999));
             Assert.That(landing["properties"]!["MaximumLandingCurvature"]!["x-si-unit"]!.GetValue<string>(), Is.EqualTo("rad/m"));
             Assert.That(landing["properties"]!["MaximumLandingCurvature"]!["exclusiveMinimum"]!.GetValue<bool>(), Is.True);
+            Assert.That(landing["properties"]!["SourceEndStation"], Is.Not.Null,
+                "The calculated source endpoint is required for the cylindrical curvature marker.");
             Assert.That(target["properties"]!["Plane"]!["description"]!.GetValue<string>(), Does.Contain("RiemannianNorth/RiemannianEast"));
             Assert.That(target["properties"]!["Polygon"]!["minItems"]!.GetValue<int>(), Is.EqualTo(3));
             Assert.That(point["properties"]!["X"]!["x-si-unit"]!.GetValue<string>(), Is.EqualTo("m"));

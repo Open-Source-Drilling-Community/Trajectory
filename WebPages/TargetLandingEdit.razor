@@ -84,15 +84,46 @@
 @if (value.SampleList is { Count: > 0 })
 {
     <MudText Typo="Typo.h6" Class="mt-4">Landing result</MudText>
-    <MudText Typo="Typo.body2">Black: specified target. Blue: uncertainty-safe driller target. Green: reachable within Maximum Landing Curvature. Orange/red samples are excluded by uncertainty/curvature or geometry.</MudText>
-    <ScatterPlot NameList="@PlanePlotNames" ModeFlagList="@PlanePlotModes" ColorList="@PlanePlotColors" XValuesList="@PlanePlotX" YValuesList="@PlanePlotY" XUnit="LengthStandard" YUnit="LengthStandard" XAxisTitle="Plane X" YAxisTitle="Plane Y (up)" AspectRatio="1" />
-    @if (value.CurveType == ExtrapolationCurveType.ConstantBuildAndTurn)
-    { <ScatterPlot NameList="@ControlNames" ModeFlagList="@ControlModes" ColorList="@ControlColors" XValuesList="@TurnValues" YValuesList="@BuildValues" XUnit="CurvatureDrilling" YUnit="CurvatureDrilling" XAxisTitle="Turn rate" YAxisTitle="Build rate" AspectRatio="1" /> }
-    else
-    { <Scatter3DPlot NameList="@ControlNames" ModeFlagList="@ControlModes" ColorList="@ControlColors" XValuesList="@ControlX" YValuesList="@ControlY" ZValuesList="@ControlZ" XUnit="Dimensionless" YUnit="Dimensionless" ZUnit="CurvatureDrilling" XAxisTitle="Normalized radial X" YAxisTitle="Normalized radial Y" ZAxisTitle="Curvature" /> }
-    <MudTable T="TargetLandingSample" Items="@value.SampleList" Dense="true" Bordered="true" Hover="true" Style="max-height:500px;overflow:auto">
-        <HeaderContent><MudTh>State</MudTh><MudTh>Plane X</MudTh><MudTh>Plane Y</MudTh><MudTh>Radius</MudTh><MudTh>Angle</MudTh><MudTh>North</MudTh><MudTh>East</MudTh><MudTh>TVD</MudTh><MudTh>Length</MudTh><MudTh>Peak curvature</MudTh><MudTh>Commands</MudTh></HeaderContent>
-        <RowTemplate><MudTd Style="@StateStyle(context.State)">@context.State</MudTd><MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.PlaneX" /></MudTd><MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.PlaneY" /></MudTd><MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.PolarRadius" /></MudTd><MudTd><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@context.PolarAngle" /></MudTd><MudTd><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.North" SIValue="@context.North" /></MudTd><MudTd><MudSpanWithUnit QuantityName="PositionDrilling" DrillingSignalReference="DrillingSignalReferenceType.Position" PositionDirection="PositionDirectionType.East" SIValue="@context.East" /></MudTd><MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.TVD" /></MudTd><MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.TotalLandingLength" /></MudTd><MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.PeakLandingCurvature" /></MudTd><MudTd>@Commands(context)</MudTd></RowTemplate>
+    <MudText Typo="Typo.body2">Black: specified target. Blue: uncertainty-safe driller target. Green fill: reachable within Maximum Landing Curvature.</MudText>
+    <ScatterPlot NameList="@PlanePlotNames" ModeFlagList="@PlanePlotModes" ColorList="@PlanePlotColors"
+                 FillToSelfList="@PlanePlotFill" FillColorList="@PlanePlotFillColors"
+                 XValuesList="@PlanePlotX" YValuesList="@PlanePlotY" XUnit="LengthStandard" YUnit="LengthStandard"
+                 XAxisTitle="Plane X" YAxisTitle="Plane Y (up)" AspectRatio="1" />
+    <MudText Typo="Typo.body2" Class="mt-3">The translucent cylinder has normalized radius 1. Toolface is measured around the cylinder (zero on +Y, positive toward +X); curvature is its height. Each faint green line follows the calculated curvature and toolface from the central axis to a target-boundary solution. The solid green curve joins their endpoints.</MudText>
+    <Scatter3DPlot NameList="@CylinderNames" ModeFlagList="@CylinderModes" ColorList="@CylinderColors" ShowLegendList="@CylinderShowLegend"
+                   XValuesList="@CylinderX" YValuesList="@CylinderY" ZValuesList="@CylinderZ"
+                   XUnit="Dimensionless" YUnit="Dimensionless" ZUnit="CurvatureDrilling"
+                   ZAxisTitle="Curvature" XAxisMinimum="-1.1" XAxisMaximum="1.1" YAxisMinimum="-1.1" YAxisMaximum="1.1"
+                   ShowUnitCylinder="true" CentralCurvatureMarker="@(value.SourceEndStation?.Curvature)" />
+
+    <MudText Typo="Typo.h6" Class="mt-4">Reachable target boundary commands</MudText>
+    <MudTable T="BoundarySolutionRow" Items="@BoundarySolutions" Dense="true" Bordered="true" Hover="true" Style="max-height:500px;overflow:auto">
+        <HeaderContent><MudTh>Contour</MudTh><MudTh>Point</MudTh><MudTh>Plane X</MudTh><MudTh>Plane Y</MudTh><MudTh>Landing length</MudTh><MudTh>Peak curvature</MudTh><MudTh>Boundary commands</MudTh></HeaderContent>
+        <RowTemplate>
+            <MudTd>@context.ContourNumber</MudTd><MudTd>@context.PointNumber</MudTd>
+            <MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.Point.X" /></MudTd>
+            <MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.Point.Y" /></MudTd>
+            <MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.Sample.TotalLandingLength" /></MudTd>
+            <MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.Sample.PeakLandingCurvature" /></MudTd>
+            <MudTd>
+                @foreach (TrajectoryExtrapolationSolvedSection section in context.Sample.SolvedSectionList ?? [])
+                {
+                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
+                        <MudText Typo="Typo.caption">S@(section.SectionIndex + 1):</MudText>
+                        @if (section.CurveType == ExtrapolationCurveType.ConstantBuildAndTurn)
+                        {
+                            <MudText Typo="Typo.caption">build</MudText><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@(section.ConstantBuildRate)" />
+                            <MudText Typo="Typo.caption">turn</MudText><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@(section.ConstantTurnRate)" />
+                        }
+                        else
+                        {
+                            <MudText Typo="Typo.caption">curvature</MudText><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@SectionCurvature(section)" />
+                            <MudText Typo="Typo.caption">toolface</MudText><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@SectionToolface(section)" />
+                        }
+                    </MudStack>
+                }
+            </MudTd>
+        </RowTemplate>
     </MudTable>
 }
 
@@ -239,8 +270,6 @@
         ConfidenceFactor = source.ConfidenceFactor,
         MaximumLandingCurvature = source.MaximumLandingCurvature
     };
-    private static string StateStyle(TargetLandingSampleState state) => state switch { TargetLandingSampleState.Reachable=>"color:#2e7d32;font-weight:600",TargetLandingSampleState.OutsideUncertaintySafeTarget=>"color:#ed6c02",_=>"color:#d32f2f" };
-    private static string Commands(TargetLandingSample s) => string.Join("; ", s.SolvedSectionList?.Select((x,i) => x.CurveType switch { ExtrapolationCurveType.ConstantBuildAndTurn=>$"S{i+1}: B={x.ConstantBuildRate:G4}, T={x.ConstantTurnRate:G4}",ExtrapolationCurveType.ConstantCurvatureAndToolface=>$"S{i+1}: κ={x.ConstantCurvature:G4}, TF={x.ConstantToolface:G4}",_=>$"S{i+1}: κ={x.CircularArcCurvature:G4}, TF₀={x.CircularArcStartToolface:G4}" }) ?? []);
     private IEnumerable<(string Name,string Color,List<TargetPlanePoint> Points)> ZoneContours
     {
         get
@@ -250,25 +279,90 @@
             index=0; foreach (List<TargetPlanePoint> contour in value.ReachableTargetContourList ?? []) yield return (index++ == 0 ? "Reachable target" : "Reachable target contour", "#2e7d32", contour);
         }
     }
-    private List<string> PlanePlotNames => [..ZoneContours.Select(x=>x.Name),"Uncertainty excluded","Curvature/geometry excluded"];
-    private List<int> PlanePlotModes => [..ZoneContours.Select(_=>1),2,2]; private List<string> PlanePlotColors => [..ZoneContours.Select(x=>x.Color),"#ed6c02","#d32f2f"];
-    private List<List<object>> PlanePlotX => [..ZoneContours.Select(x=>ClosedX(x.Points)),SampleCoordinates(TargetLandingSampleState.OutsideUncertaintySafeTarget, true),RejectedSampleCoordinates(true)];
-    private List<List<object>> PlanePlotY => [..ZoneContours.Select(x=>ClosedY(x.Points)),SampleCoordinates(TargetLandingSampleState.OutsideUncertaintySafeTarget, false),RejectedSampleCoordinates(false)];
+    private List<string> PlanePlotNames => ZoneContours.Select(x=>x.Name).ToList();
+    private List<int> PlanePlotModes => ZoneContours.Select(_=>1).ToList();
+    private List<string> PlanePlotColors => ZoneContours.Select(x=>x.Color).ToList();
+    private List<bool> PlanePlotFill => ZoneContours.Select(x=>x.Name.StartsWith("Reachable target", StringComparison.Ordinal)).ToList();
+    private List<string?> PlanePlotFillColors => ZoneContours.Select(x=>x.Name.StartsWith("Reachable target", StringComparison.Ordinal) ? "rgba(46,125,50,0.20)" : null).ToList();
+    private List<List<object>> PlanePlotX => ZoneContours.Select(x=>ClosedX(x.Points)).ToList();
+    private List<List<object>> PlanePlotY => ZoneContours.Select(x=>ClosedY(x.Points)).ToList();
     private static List<TargetPlanePoint> FinitePoints(List<TargetPlanePoint>? points) => points?.Where(point=>Finite(point.X) && Finite(point.Y)).ToList() ?? [];
     private static List<object> ClosedX(List<TargetPlanePoint>? points) { List<TargetPlanePoint> finite=FinitePoints(points); return finite.Count>0 ? finite.Concat([finite[0]]).Select(x=>(object)x.X).ToList() : []; }
     private static List<object> ClosedY(List<TargetPlanePoint>? points) { List<TargetPlanePoint> finite=FinitePoints(points); return finite.Count>0 ? finite.Concat([finite[0]]).Select(x=>(object)x.Y).ToList() : []; }
-    private List<object> SampleCoordinates(TargetLandingSampleState state, bool xCoordinate) => value.SampleList.Where(x=>x.State==state && Finite(x.PlaneX) && Finite(x.PlaneY)).Select(x=>(object)(xCoordinate?x.PlaneX:x.PlaneY)).ToList();
-    private List<object> RejectedSampleCoordinates(bool xCoordinate) => value.SampleList.Where(x=>x.State is TargetLandingSampleState.ExceedsMaximumLandingCurvature or TargetLandingSampleState.NoGeometricSolution).Where(x=>Finite(x.PlaneX) && Finite(x.PlaneY)).Select(x=>(object)(xCoordinate?x.PlaneX:x.PlaneY)).ToList();
-    private List<TargetLandingSample> Reachable => value.SampleList?.Where(x=>x.State==TargetLandingSampleState.Reachable).Take(250).ToList() ?? [];
-    private List<string> ControlNames => Reachable.Select((_,i)=>$"Solution {i+1}").ToList(); private List<int> ControlModes => Reachable.Select(_=>3).ToList(); private List<string> ControlColors => Reachable.Select(_=>"#1976d2").ToList();
-    private List<List<object>> BuildValues => Reachable.Select(x=>FiniteBuildTurnSections(x).Select(s=>(object)(s.ConstantBuildRate??0)).ToList()).ToList(); private List<List<object>> TurnValues => Reachable.Select(x=>FiniteBuildTurnSections(x).Select(s=>(object)(s.ConstantTurnRate??0)).ToList()).ToList();
-    private List<List<object>> ControlX => Reachable.Select(ControlCoordinatesX).ToList(); private List<List<object>> ControlY => Reachable.Select(ControlCoordinatesY).ToList(); private List<List<object>> ControlZ => Reachable.Select(ControlCoordinatesZ).ToList();
-    private static List<TrajectoryExtrapolationSolvedSection> FiniteBuildTurnSections(TargetLandingSample sample) => sample.SolvedSectionList.Where(section=>Finite(section.ConstantBuildRate??0) && Finite(section.ConstantTurnRate??0)).ToList();
-    private static List<TrajectoryExtrapolationSolvedSection> FiniteControlSections(TargetLandingSample sample) => sample.SolvedSectionList.Where(section=>Finite(section.Length) && Finite(section.ConstantToolface??section.CircularArcStartToolface??0) && Finite(section.ConstantCurvature??section.CircularArcCurvature??0)).ToList();
-    private static double ControlTotal(TargetLandingSample sample, List<TrajectoryExtrapolationSolvedSection> sections) => sample.TotalLandingLength is double total && Finite(total) && Math.Abs(total)>1e-12 ? total : Math.Max(sections.Sum(section=>Math.Abs(section.Length)),1);
-    private static List<object> ControlCoordinatesX(TargetLandingSample x) { List<TrajectoryExtrapolationSolvedSection> sections=FiniteControlSections(x); double total=ControlTotal(x,sections), cumulative=0; List<object> r=[]; foreach(var s in sections){ cumulative+=s.Length; double radius=cumulative/total; double tf=s.ConstantToolface??s.CircularArcStartToolface??0;r.Add(radius*Math.Cos(tf)); } return r; }
-    private static List<object> ControlCoordinatesY(TargetLandingSample x) { List<TrajectoryExtrapolationSolvedSection> sections=FiniteControlSections(x); double total=ControlTotal(x,sections), cumulative=0; List<object> r=[]; foreach(var s in sections){ cumulative+=s.Length; double radius=cumulative/total; double tf=s.ConstantToolface??s.CircularArcStartToolface??0;r.Add(radius*Math.Sin(tf)); } return r; }
-    private static List<object> ControlCoordinatesZ(TargetLandingSample x) => FiniteControlSections(x).Select(s=>(object)(s.ConstantCurvature??s.CircularArcCurvature??0)).ToList();
+    private List<List<BoundarySolutionRow>> BoundarySolutionContours
+    {
+        get
+        {
+            List<TargetLandingSample> reachable = value.SampleList?.Where(sample => sample.State == TargetLandingSampleState.Reachable && sample.SolvedSectionList is { Count: > 0 }).ToList() ?? [];
+            if (reachable.Count == 0) return [];
+            List<List<BoundarySolutionRow>> result = [];
+            int contourNumber = 0;
+            foreach (List<TargetPlanePoint> contour in value.ReachableTargetContourList ?? [])
+            {
+                contourNumber++;
+                List<BoundarySolutionRow> rows = [];
+                for (int pointIndex = 0; pointIndex < contour.Count; pointIndex++)
+                {
+                    TargetPlanePoint point = contour[pointIndex];
+                    TargetLandingSample sample = reachable.MinBy(candidate => SquaredDistance(point, candidate))!;
+                    rows.Add(new BoundarySolutionRow(contourNumber, pointIndex + 1, point, sample));
+                }
+                if (rows.Count > 0) result.Add(rows);
+            }
+            return result;
+        }
+    }
+    private List<BoundarySolutionRow> BoundarySolutions => BoundarySolutionContours.SelectMany(rows=>rows).ToList();
+    private List<TargetLandingSample> BoundarySamples => BoundarySolutions.Select(row=>row.Sample).DistinctBy(sample=>sample.SampleID).Take(250).ToList();
+    private List<List<BoundarySolutionRow>> CylinderBoundaryContours => BoundarySolutionContours.Select(rows=>rows.Where(row=>TerminalCylinderPoint(row.Sample) != null).ToList()).Where(rows=>rows.Count>1).ToList();
+    private List<TargetLandingSample> CylinderPathSamples => BoundarySamples.Where(sample=>CylinderPath(sample).Count>1).ToList();
+    private List<string> CylinderNames => CylinderBoundaryContours.Select((_,i)=>i==0?"Reachable target boundary":$"Reachable contour {i+1}").Concat(CylinderPathSamples.Select((_,i)=>$"Boundary path {i+1}")).ToList();
+    private List<int> CylinderModes => CylinderNames.Select(_=>1).ToList();
+    private List<string> CylinderColors => CylinderBoundaryContours.Select(_=>"#2e7d32").Concat(CylinderPathSamples.Select(_=>"rgba(46,125,50,0.28)")).ToList();
+    private List<bool> CylinderShowLegend => CylinderBoundaryContours.Select(_=>true).Concat(CylinderPathSamples.Select(_=>false)).ToList();
+    private List<List<object>> CylinderX => CylinderBoundaryContours.Select(rows=>rows.Select(row=>(object)Math.Sin(TerminalCylinderPoint(row.Sample)!.Value.Toolface)).ToList()).Concat(CylinderPathSamples.Select(sample=>CylinderPath(sample).Select(point=>(object)(point.Radius*Math.Sin(point.Toolface))).ToList())).ToList();
+    private List<List<object>> CylinderY => CylinderBoundaryContours.Select(rows=>rows.Select(row=>(object)Math.Cos(TerminalCylinderPoint(row.Sample)!.Value.Toolface)).ToList()).Concat(CylinderPathSamples.Select(sample=>CylinderPath(sample).Select(point=>(object)(point.Radius*Math.Cos(point.Toolface))).ToList())).ToList();
+    private List<List<object>> CylinderZ => CylinderBoundaryContours.Select(rows=>rows.Select(row=>(object)TerminalCylinderPoint(row.Sample)!.Value.Curvature).ToList()).Concat(CylinderPathSamples.Select(sample=>CylinderPath(sample).Select(point=>(object)point.Curvature).ToList())).ToList();
+    private static CylinderControlPoint? TerminalCylinderPoint(TargetLandingSample sample)
+    {
+        List<CylinderControlPoint> path=CylinderPath(sample);
+        return path.Count>0?path[^1]:null;
+    }
+    private static List<CylinderControlPoint> CylinderPath(TargetLandingSample sample)
+    {
+        List<SurveyStation> stations = sample.SurveyStationList?.Where(station=>station.MD is double md && Finite(md)).ToList() ?? [];
+        if (stations.Count<2) return [];
+        double startMd=stations[0].MD!.Value,endMd=stations[^1].MD!.Value,length=endMd-startMd;
+        if (!Finite(length) || length<=0.0) return [];
+        List<CylinderControlPoint> result=[];
+        double previousToolface=0.0;
+        for (int index=0;index<stations.Count;index++)
+        {
+            SurveyStation station=stations[index];
+            (double Curvature,double Toolface)? control=StationControl(station,previousToolface);
+            if (control==null) continue;
+            previousToolface=control.Value.Toolface;
+            double radius=Math.Clamp((station.MD!.Value-startMd)/length,0.0,1.0);
+            result.Add(new CylinderControlPoint(radius,control.Value.Curvature,control.Value.Toolface));
+        }
+        return result;
+    }
+    private static (double Curvature,double Toolface)? StationControl(SurveyStation station,double fallbackToolface)
+    {
+        if (station.Curvature is double curvature && station.Toolface is double toolface && Finite(curvature) && Finite(toolface))
+            return (Math.Abs(curvature),NormalizeAngle(toolface));
+        if (station.BUR is not double build || station.TUR is not double turn || station.Inclination is not double inclination || !Finite(build) || !Finite(turn) || !Finite(inclination)) return null;
+        double turnComponent=turn*Math.Sin(inclination);
+        double derivedCurvature=Math.Sqrt(build*build+turnComponent*turnComponent);
+        double derivedToolface=derivedCurvature>1e-12?Math.Atan2(turnComponent,build):fallbackToolface;
+        return (derivedCurvature,NormalizeAngle(derivedToolface));
+    }
+    private static double? SectionCurvature(TrajectoryExtrapolationSolvedSection section) => section.CurveType == ExtrapolationCurveType.ConstantCurvatureAndToolface ? section.ConstantCurvature : section.CircularArcCurvature;
+    private static double? SectionToolface(TrajectoryExtrapolationSolvedSection section) => section.CurveType == ExtrapolationCurveType.ConstantCurvatureAndToolface ? section.ConstantToolface : section.CircularArcStartToolface;
+    private static double NormalizeAngle(double value) { double result=value%(2*Math.PI); return result<0?result+2*Math.PI:result; }
+    private static double SquaredDistance(TargetPlanePoint point, TargetLandingSample sample) { double dx=point.X-sample.PlaneX,dy=point.Y-sample.PlaneY;return dx*dx+dy*dy; }
+    private readonly record struct CylinderControlPoint(double Radius,double Curvature,double Toolface);
+    private sealed record BoundarySolutionRow(int ContourNumber, int PointNumber, TargetPlanePoint Point, TargetLandingSample Sample);
     private static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
     public void Dispose()
     {
