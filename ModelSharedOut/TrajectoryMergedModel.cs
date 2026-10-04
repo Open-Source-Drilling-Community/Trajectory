@@ -55151,6 +55151,13 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double NormalizedLength { get; set; }
 
         /// <summary>
+        /// Exact local trajectory inclination at this control sample, in SI radians. Near vertical, azimuth, toolface and turn rate are ill-conditioned even though the Cartesian path and curvature remain valid.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("Inclination")]
+        [System.ComponentModel.DataAnnotations.Range(0.0D, 3.14159265358979D)]
+        public double? Inclination { get; set; }
+
+        /// <summary>
         /// Local non-negative spatial curvature calculated from the defining solved curve, in SI radians per metre.
         /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Curvature")]

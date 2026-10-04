@@ -37375,6 +37375,16 @@
             "x-osdc-semantic": "LengthRatio",
             "x-si-unit": "1"
           },
+          "Inclination": {
+            "maximum": 3.14159265358979,
+            "minimum": 0.0,
+            "type": "number",
+            "description": "Exact local trajectory inclination at this control sample, in SI radians. Near vertical, azimuth, toolface and turn rate are ill-conditioned even though the Cartesian path and curvature remain valid.",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": "Inclination",
+            "x-si-unit": "rad"
+          },
           "Curvature": {
             "minimum": 0.0,
             "type": "number",

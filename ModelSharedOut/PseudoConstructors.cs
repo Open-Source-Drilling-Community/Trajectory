@@ -6970,6 +6970,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 			return new TargetLandingControlPoint
 			{
 				NormalizedLength = 0.0,
+				Inclination = null,
 				Curvature = 0.0,
 				Toolface = 0.0,
 				BuildRate = 0.0,

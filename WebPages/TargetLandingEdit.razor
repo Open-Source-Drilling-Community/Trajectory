@@ -95,7 +95,7 @@
                  FillToSelfList="@PlanePlotFill" FillColorList="@PlanePlotFillColors"
                  XValuesList="@PlanePlotX" YValuesList="@PlanePlotY" XUnit="LengthStandard" YUnit="LengthStandard"
                  XAxisTitle="Plane X" YAxisTitle="Plane Y (up)" AspectRatio="1" />
-    <MudText Typo="Typo.body2" Class="mt-3">The translucent cylinder has normalized radius 1. Toolface is measured around the cylinder (zero on +Y, positive toward +X); curvature is its height. Each faint line follows the exact curve-specific controls calculated by the model from the central axis to a target-boundary solution. Circular-arc toolface is the varying local toolface, not its start/reference value. Color identifies a continuous solution family; endpoint lines deliberately stop where the shortest valid solution switches to another branch.</MudText>
+    <MudText Typo="Typo.body2" Class="mt-3">The translucent cylinder has normalized radius 1. Toolface is measured around the cylinder (zero on +Y, positive toward +X); curvature is its height. Each faint line follows the exact curve-specific controls calculated by the model from the central axis to a target-boundary solution. Circular-arc toolface is the varying local toolface, not its start/reference value. Paths contain a gap within 3° of vertical because toolface is undefined there; the valid Cartesian path is not rejected. Color identifies a continuous solution family; endpoint lines deliberately stop where the shortest valid solution switches to another branch.</MudText>
     CylinderPlotData cylinderPlot = BuildCylinderPlot();
     @if (cylinderPlot.Names.Count > 0)
     {
@@ -107,14 +107,14 @@
     }
     else
     {
-        <MudAlert Severity="Severity.Warning" Class="mt-3">This saved result predates authoritative normalized curve controls. Run Save and calculate against the current Trajectory service to display the cylindrical and build/turn graphs.</MudAlert>
+        <MudAlert Severity="Severity.Warning" Class="mt-3">This saved result predates inclination-aware normalized curve controls. Run Save and calculate against the current Trajectory service to display the cylindrical and build/turn graphs.</MudAlert>
     }
 
     BuildTurnPlotData buildTurnPlot = BuildBuildTurnPlot();
     @if (buildTurnPlot.Names.Count>0)
     {
         <MudText Typo="Typo.h6" Class="mt-4">Build and turn landing controls</MudText>
-        <MudText Typo="Typo.body2">Normalized length runs from the lead point at 0 to the reachable target boundary at 1. The model calculates signed build and turn directly from each solved curve; no survey-station reconstruction is used. Color identifies a continuous mapped boundary segment. A complete contour is closed; partial segments stop where the selected shortest solution switches branch, because joining or merging those segments would invent controls that were not calculated.</MudText>
+        <MudText Typo="Typo.body2">Normalized length runs from the lead point at 0 to the reachable target boundary at 1. The model calculates signed build and turn directly from each solved curve; no survey-station reconstruction is used. Paths contain a gap within 3° of vertical, where turn rate is singular although the Cartesian path remains valid. Color identifies a continuous mapped boundary segment. A complete contour is closed; partial segments stop where the selected shortest solution switches branch, because joining or merging those segments would invent controls that were not calculated.</MudText>
         <Scatter3DPlot NameList="@buildTurnPlot.Names" ModeFlagList="@buildTurnPlot.Modes" ColorList="@buildTurnPlot.Colors" LineWidthList="@buildTurnPlot.LineWidths" ShowLegendList="@buildTurnPlot.ShowLegend"
                        XValuesList="@buildTurnPlot.X" YValuesList="@buildTurnPlot.Y" ZValuesList="@buildTurnPlot.Z"
                        XUnit="CurvatureDrilling" YUnit="Dimensionless" ZUnit="CurvatureDrilling"
@@ -624,21 +624,23 @@
     private List<TargetLandingSample> BoundarySamples => BoundarySolutions.Select(row=>row.Sample).DistinctBy(sample=>sample.SampleID).Take(250).ToList();
     private BuildTurnPlotData BuildBuildTurnPlot()
     {
-        Dictionary<Guid,List<BuildTurnControlPoint>> paths=BoundarySamples
-            .Select(sample=>(sample.SampleID,Points:BuildTurnPath(sample)))
-            .Where(item=>item.Points.Count>1)
-            .ToDictionary(item=>item.SampleID,item=>item.Points);
+        Dictionary<Guid,List<List<BuildTurnControlPoint>>> paths=BoundarySamples
+            .Select(sample=>(sample.SampleID,Segments:BuildTurnPathSegments(sample)))
+            .Where(item=>item.Segments.Any(segment=>segment.Count>1))
+            .ToDictionary(item=>item.SampleID,item=>item.Segments);
         List<BuildTurnTrace> traces=[];
         foreach (BoundarySolutionFamily family in BoundarySolutionFamilies)
         {
             FamilyStyle style=SolutionFamilyStyle(family.ColorIndex);
             int pathIndex=0;
             foreach (TargetLandingSample sample in family.Rows.Select(row=>row.Sample).DistinctBy(sample=>sample.SampleID))
-                if (paths.TryGetValue(sample.SampleID,out List<BuildTurnControlPoint>? path))
-                    traces.Add(new BuildTurnTrace($"Contour {family.ContourNumber}, family {family.FamilyNumber}, path {++pathIndex}",style.Translucent,3,false,path));
+                if (paths.TryGetValue(sample.SampleID,out List<List<BuildTurnControlPoint>>? segments))
+                    foreach (List<BuildTurnControlPoint> segment in segments.Where(segment=>segment.Count>1))
+                        traces.Add(new BuildTurnTrace($"Contour {family.ContourNumber}, family {family.FamilyNumber}, path {++pathIndex}",style.Translucent,3,false,segment));
             IEnumerable<BuildTurnControlPoint> terminalPoints=family.Rows
-                .Where(row=>paths.ContainsKey(row.Sample.SampleID))
-                .Select(row=>paths[row.Sample.SampleID][^1] with { NormalizedLength=1.0 });
+                .Select(row=>TerminalBuildTurnPoint(row.Sample))
+                .Where(point=>point.HasValue)
+                .Select(point=>point!.Value with { NormalizedLength=1.0 });
             List<BuildTurnControlPoint> target=family.IsClosed ? CloseTrace(terminalPoints) : terminalPoints.ToList();
             if (target.Count>1)
                 traces.Add(new BuildTurnTrace($"Contour {family.ContourNumber}, solution family {family.FamilyNumber}",style.Solid,5,true,target));
@@ -655,9 +657,15 @@
             traces.Select(trace=>trace.Points.Select(point=>(object)point.Build).ToList()).ToList(),
             turnMinimum,turnMaximum,buildMinimum,buildMaximum);
     }
-    private static List<BuildTurnControlPoint> BuildTurnPath(TargetLandingSample sample) =>
-        sample.ControlPointList?.Where(ControlPointIsFinite)
-            .Select(point=>new BuildTurnControlPoint(point.TurnRate,point.NormalizedLength,point.BuildRate)).ToList()??[];
+    private static List<List<BuildTurnControlPoint>> BuildTurnPathSegments(TargetLandingSample sample) =>
+        SplitControlPath(sample).Select(segment=>segment
+            .Select(point=>new BuildTurnControlPoint(point.TurnRate,point.NormalizedLength,point.BuildRate)).ToList()).ToList();
+    private static BuildTurnControlPoint? TerminalBuildTurnPoint(TargetLandingSample sample)
+    {
+        TargetLandingControlPoint? point=sample.ControlPointList?.LastOrDefault();
+        return point!=null&&ControlPointIsRenderable(point)
+            ?new BuildTurnControlPoint(point.TurnRate,point.NormalizedLength,point.BuildRate):null;
+    }
     private static (double Minimum,double Maximum) ExpandedControlBounds(List<double> values)
     {
         const double minimumPadding=0.5*Math.PI/(180.0*30.0);
@@ -686,10 +694,9 @@
             int pathIndex=0;
             foreach (TargetLandingSample sample in family.Rows.Select(row=>row.Sample).DistinctBy(sample=>sample.SampleID))
             {
-                List<CylinderControlPoint> path=CylinderPath(sample);
-                if (path.Count>1)
+                foreach (List<CylinderControlPoint> segment in CylinderPathSegments(sample).Where(segment=>segment.Count>1))
                     traces.Add(new CylinderTrace($"Contour {family.ContourNumber}, family {family.FamilyNumber}, path {++pathIndex}",style.Translucent,3,false,
-                        path.Select(point=>new CylinderCartesianPoint(point.Radius*Math.Sin(point.Toolface),point.Radius*Math.Cos(point.Toolface),point.Curvature)).ToList()));
+                        segment.Select(point=>new CylinderCartesianPoint(point.Radius*Math.Sin(point.Toolface),point.Radius*Math.Cos(point.Toolface),point.Curvature)).ToList()));
             }
         }
         return new CylinderPlotData(
@@ -701,16 +708,38 @@
     }
     private static CylinderControlPoint? TerminalCylinderPoint(TargetLandingSample sample)
     {
-        List<CylinderControlPoint> path=CylinderPath(sample);
-        return path.Count>0?path[^1]:null;
+        TargetLandingControlPoint? point=sample.ControlPointList?.LastOrDefault();
+        return point!=null&&ControlPointIsRenderable(point)
+            ?new CylinderControlPoint(point.NormalizedLength,point.Curvature,NormalizeAngle(point.Toolface)):null;
     }
-    private static List<CylinderControlPoint> CylinderPath(TargetLandingSample sample)
+    private static List<List<CylinderControlPoint>> CylinderPathSegments(TargetLandingSample sample) =>
+        SplitControlPath(sample).Select(segment=>segment
+            .Select(point=>new CylinderControlPoint(point.NormalizedLength,point.Curvature,NormalizeAngle(point.Toolface))).ToList()).ToList();
+    private static List<List<TargetLandingControlPoint>> SplitControlPath(TargetLandingSample sample)
     {
-        return sample.ControlPointList?.Where(ControlPointIsFinite)
-            .Select(point=>new CylinderControlPoint(point.NormalizedLength,point.Curvature,NormalizeAngle(point.Toolface))).ToList()??[];
+        List<List<TargetLandingControlPoint>> result=[];
+        List<TargetLandingControlPoint> current=[];
+        foreach (TargetLandingControlPoint point in sample.ControlPointList??[])
+        {
+            if (!ControlPointIsRenderable(point))
+            {
+                if (current.Count>0) result.Add(current);
+                current=[];
+                continue;
+            }
+            current.Add(point);
+        }
+        if (current.Count>0) result.Add(current);
+        return result;
     }
+    private const double VerticalControlDisplayInclination=3.0*Math.PI/180.0;
+    private static bool ControlPointIsRenderable(TargetLandingControlPoint point) =>
+        point.Inclination.HasValue&&ControlPointIsFinite(point)&&!ControlPointIsNearVertical(point);
+    private static bool ControlPointIsNearVertical(TargetLandingControlPoint point) => point.Inclination is double inclination&&
+        (inclination<VerticalControlDisplayInclination||inclination>Math.PI-VerticalControlDisplayInclination);
     private static bool ControlPointIsFinite(TargetLandingControlPoint point) =>
-        Finite(point.NormalizedLength)&&Finite(point.Curvature)&&Finite(point.Toolface)&&Finite(point.BuildRate)&&Finite(point.TurnRate);
+        Finite(point.NormalizedLength)&&(!point.Inclination.HasValue||Finite(point.Inclination.Value))&&
+        Finite(point.Curvature)&&Finite(point.Toolface)&&Finite(point.BuildRate)&&Finite(point.TurnRate);
     private static double? SectionCurvature(TrajectoryExtrapolationSolvedSection section) => section.CurveType == ExtrapolationCurveType.ConstantCurvatureAndToolface ? section.ConstantCurvature : section.CircularArcCurvature;
     private static double? SectionToolface(TrajectoryExtrapolationSolvedSection section) => section.CurveType == ExtrapolationCurveType.ConstantCurvatureAndToolface ? section.ConstantToolface : section.CircularArcStartToolface;
     private static double NormalizeAngle(double value) { double result=value%(2*Math.PI); return result<0?result+2*Math.PI:result; }

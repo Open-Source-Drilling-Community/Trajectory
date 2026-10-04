@@ -127,6 +127,11 @@ public class TargetLandingSample
 public class TargetLandingControlPoint
 {
     public double NormalizedLength { get; set; }
+    /// <summary>
+    /// Exact local inclination in radians. Nullable so calculation results saved before this field
+    /// was introduced remain readable.
+    /// </summary>
+    public double? Inclination { get; set; }
     public double Curvature { get; set; }
     public double Toolface { get; set; }
     public double BuildRate { get; set; }

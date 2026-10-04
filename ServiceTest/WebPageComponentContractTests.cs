@@ -749,7 +749,7 @@ public sealed class WebPageComponentContractTests
             Assert.That(editor, Does.Not.Contain("CoordinateEditorKey").And.Not.Contain("RefreshPolygonRow"));
             Assert.That(editor, Does.Contain("QuantityName=\"LengthStandard\"").And.Not.Contain("LengthDrilling"),
                 "Target-plane coordinates and landing lengths must use the supported LengthStandard physical quantity.");
-            Assert.That(editor, Does.Contain("private static bool Finite(double value)").And.Contain("CylinderPath(TargetLandingSample sample)"));
+            Assert.That(editor, Does.Contain("private static bool Finite(double value)").And.Contain("CylinderPathSegments(TargetLandingSample sample)"));
             Assert.That(editor, Does.Contain("@if (referenceValuesReady)")
                 .And.Contain("referenceValuesReady = true;")
                 .And.Contain("referenceSourceVersion++;")
@@ -837,10 +837,14 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("ZUnit=\"CurvatureDrilling\""),
                 "CA, CTC and BT boundary paths must be drawn as marker-free lines on a normalized-length toolface/curvature cylinder.");
             Assert.That(editor, Does.Contain("@if (cylinderPlot.Names.Count > 0)")
-                .And.Contain("saved result predates authoritative normalized curve controls")
+                .And.Contain("saved result predates inclination-aware normalized curve controls")
                 .And.Contain("Run Save and calculate against the current Trajectory service"),
                 "Legacy results must explain why exact-control graphs cannot be drawn instead of silently showing empty plot areas.");
-            Assert.That(editor, Does.Contain("sample.ControlPointList?.Where(ControlPointIsFinite)")
+            Assert.That(editor, Does.Contain("SplitControlPath(sample)")
+                .And.Contain("VerticalControlDisplayInclination=3.0*Math.PI/180.0")
+                .And.Contain("point.Inclination.HasValue&&ControlPointIsFinite(point)")
+                .And.Contain("ControlPointIsNearVertical")
+                .And.Contain("Paths contain a gap within 3° of vertical")
                 .And.Not.Contain("StationControl(")
                 .And.Not.Contain("StationBuildTurn(")
                 .And.Not.Contain("XAxisTitle=\"sin(toolface)")
@@ -849,6 +853,7 @@ public sealed class WebPageComponentContractTests
             Assert.That(generatedClient, Does.Contain("class TargetLandingControlPoint")
                 .And.Contain("public System.Collections.Generic.List<TargetLandingControlPoint> ControlPointList")
                 .And.Contain("public double NormalizedLength")
+                .And.Contain("public double? Inclination")
                 .And.Contain("public double BuildRate")
                 .And.Contain("public double TurnRate"),
                 "The exact normalized controls must be part of the generated REST/client result contract.");
@@ -867,7 +872,7 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("XUnit=\"CurvatureDrilling\" YUnit=\"Dimensionless\" ZUnit=\"CurvatureDrilling\"")
                 .And.Contain("YAxisMinimum=\"0\" YAxisMaximum=\"1\"")
                 .And.Contain("UseCubeAspect=\"true\"")
-                .And.Contain("BuildTurnPath(sample)")
+                .And.Contain("BuildTurnPathSegments(sample)")
                 .And.Contain("point.TurnRate,point.NormalizedLength,point.BuildRate")
                 .And.Contain("with { NormalizedLength=1.0 }")
                 .And.Contain("family.IsClosed ? CloseTrace(terminalPoints) : terminalPoints.ToList()")

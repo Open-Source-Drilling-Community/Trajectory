@@ -16,7 +16,7 @@ public static class TargetLandingCalculator
 {
     internal const int MaximumAdaptiveDepth = 4;
     internal const int EllipsePointCount = 72;
-    internal const int CalculationAlgorithmVersion = 13;
+    internal const int CalculationAlgorithmVersion = 14;
     internal const double BoundaryPositionTolerance = 0.25;
     internal const double PositionTolerance = 0.05;
     internal const double SamplingInterval = 10.0;
@@ -388,6 +388,7 @@ public static class TargetLandingCalculator
                 result.Add(new TargetLandingControlPoint
                 {
                     NormalizedLength = Math.Clamp((md - startMd) / totalLength, 0.0, 1.0),
+                    Inclination = inclination,
                     Curvature = curvature,
                     Toolface = NormalizeAngle(toolface),
                     BuildRate = buildRate,

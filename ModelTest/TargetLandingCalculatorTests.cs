@@ -28,7 +28,7 @@ public sealed class TargetLandingCalculatorTests
         {
             Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(4));
             Assert.That(TargetLandingCalculator.BoundaryPositionTolerance, Is.EqualTo(0.25));
-            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(13));
+            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(14));
             Assert.That(TargetLandingCalculator.MinimumConstantToolfaceInclination,
                 Is.EqualTo(3.0 * Math.PI / 180.0).Within(1e-15));
         });
@@ -69,15 +69,19 @@ public sealed class TargetLandingCalculatorTests
             Assert.That(btControls, Is.Not.Empty);
             Assert.That(btControls.First().NormalizedLength, Is.Zero.Within(1e-12));
             Assert.That(btControls.Last().NormalizedLength, Is.EqualTo(1.0).Within(1e-12));
+            Assert.That(btControls.First().Inclination, Is.EqualTo(start.Inclination).Within(1e-12));
+            Assert.That(btControls.All(point => point.Inclination is >= 0.0 and <= Math.PI), Is.True);
             Assert.That(btControls.All(point => Math.Abs(point.BuildRate + 0.001) < 1e-14), Is.True);
             Assert.That(btControls.All(point => Math.Abs(point.TurnRate - 0.002) < 1e-14), Is.True);
 
             Assert.That(ctcControls, Is.Not.Empty);
+            Assert.That(ctcControls.All(point => point.Inclination is >= 0.0 and <= Math.PI), Is.True);
             Assert.That(ctcControls.All(point => Math.Abs(point.Curvature - 0.002) < 1e-14), Is.True);
             Assert.That(ctcControls.All(point => AngularDifference(point.Toolface, 0.7) < 1e-12), Is.True);
             Assert.That(ctcControls.All(point => Math.Abs(point.BuildRate - 0.002 * Math.Cos(0.7)) < 1e-14), Is.True);
 
             Assert.That(caControls, Is.Not.Empty);
+            Assert.That(caControls.All(point => point.Inclination is >= 0.0 and <= Math.PI), Is.True);
             Assert.That(AngularDifference(caControls.First().Toolface, 0.7), Is.LessThan(1e-12));
             Assert.That(AngularDifference(caControls.Last().Toolface, caControls.First().Toolface), Is.GreaterThan(1e-3),
                 "A circular arc's exact local toolface must not be presented as its constant start/reference toolface.");
@@ -221,6 +225,7 @@ public sealed class TargetLandingCalculatorTests
                 Assert.That(sample.ControlPointList![0].NormalizedLength, Is.Zero.Within(1e-12));
                 Assert.That(sample.ControlPointList[^1].NormalizedLength, Is.EqualTo(1.0).Within(1e-12));
                 Assert.That(sample.ControlPointList.All(point =>
+                    point.Inclination.HasValue && double.IsFinite(point.Inclination.Value) &&
                     double.IsFinite(point.Curvature) && double.IsFinite(point.Toolface) &&
                     double.IsFinite(point.BuildRate) && double.IsFinite(point.TurnRate)), Is.True);
             });
@@ -367,13 +372,19 @@ public sealed class TargetLandingCalculatorTests
 
         Assert.That(TargetLandingCalculator.Calculate(value, U3Source(value.SourceTrajectoryID)), Is.True, value.CalculationMessage);
         TargetLandingSample center = value.SampleList!.OrderBy(sample => sample.PolarRadius).First();
+        List<TargetLandingControlPoint> controls = center.ControlPointList ?? [];
         double formerTurnRateLimit = 50.0 * Math.PI / (180.0 * 30.0);
 
         Assert.Multiple(() =>
         {
             Assert.That(center.State, Is.EqualTo(TargetLandingSampleState.Reachable), center.Message);
             Assert.That(center.PeakLandingCurvature, Is.LessThan(value.MaximumLandingCurvature!.Value));
-            Assert.That(center.ControlPointList!.Max(point => Math.Abs(point.TurnRate)),
+            Assert.That(controls, Is.Not.Null.And.Not.Empty);
+            Assert.That(controls.All(point => point.Inclination.HasValue), Is.True,
+                "Every authoritative control point must retain its exact interpolated inclination.");
+            Assert.That(controls.Any(point => point.Inclination < 3.0 * Math.PI / 180.0), Is.True,
+                "This regression path must cross the near-vertical coordinate singularity while remaining geometrically valid.");
+            Assert.That(controls.Max(point => Math.Abs(point.TurnRate)),
                 Is.GreaterThan(formerTurnRateLimit),
                 "A CA path must not be rejected because azimuth-based turn rate is singular near vertical.");
         });
