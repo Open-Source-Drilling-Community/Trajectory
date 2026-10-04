@@ -89,6 +89,7 @@ public sealed class OpenApiTargetLandingContractTests
         {
             Assert.That(worker, Does.Contain(": BackgroundService")
                 .And.Contain("Channel.CreateUnbounded<CalculationRequest>")
+                .And.Contain("await Task.Yield()")
                 .And.Contain("PrepareInterruptedCalculationsForResume")
                 .And.Contain("RecalculateAsync(request.Id, request.Revision, stoppingToken)"));
             Assert.That(program, Does.Contain("AddSingleton<TargetLandingCalculationWorker>()")
@@ -96,6 +97,9 @@ public sealed class OpenApiTargetLandingContractTests
             Assert.That(controller, Does.Contain("worker_.Queue(id, value.LastModificationDate!.Value)"));
             Assert.That(manager, Does.Contain("c.Name,c.Description,c.SourceTrajectoryRevision,c.CalculationFingerprint")
                 .And.Not.Contain("json_extract(c.TargetLandingCase")
+                .And.Contain("SELECT ID FROM TargetLandingCaseTable")
+                .And.Contain("TargetLandingCase? value = GetEditById(id)")
+                .And.Not.Contain("List<TargetLandingCase> interrupted = ReadAll()")
                 .And.Contain("private bool UpdateProgress")
                 .And.Not.Contain("_ = Task.Run(() => RecalculateAsync"),
                 "Listing and progress polling must not parse or rewrite the heavy result, and request handlers must not launch fire-and-forget calculations.");
@@ -108,6 +112,31 @@ public sealed class OpenApiTargetLandingContractTests
             Assert.That(clientSettings, Does.Contain("DefaultIgnoreCondition")
                 .And.Contain("JsonIgnoreCondition.WhenWritingNull"),
                 "Generated client requests must omit null result members from compact save projections.");
+        });
+    }
+
+    [Test]
+    public void Deployment_charts_wait_until_the_servers_accept_connections()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", ".."));
+        string serviceDeployment = File.ReadAllText(Path.Combine(repositoryRoot, "Service", "charts",
+            "osdcdrillingtrajectoryservice", "templates", "deployment.yaml"));
+        string serviceValues = File.ReadAllText(Path.Combine(repositoryRoot, "Service", "charts",
+            "osdcdrillingtrajectoryservice", "values.yaml"));
+        string webDeployment = File.ReadAllText(Path.Combine(repositoryRoot, "WebApp", "charts",
+            "osdcdrillingtrajectorywebappclient", "templates", "deployment.yaml"));
+        string webValues = File.ReadAllText(Path.Combine(repositoryRoot, "WebApp", "charts",
+            "osdcdrillingtrajectorywebappclient", "values.yaml"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(serviceDeployment, Does.Contain("startupProbe:")
+                .And.Contain("readinessProbe:").And.Contain("tcpSocket:"));
+            Assert.That(webDeployment, Does.Contain("startupProbe:")
+                .And.Contain("readinessProbe:").And.Contain("tcpSocket:"));
+            Assert.That(serviceValues, Does.Match(@"probes:\s*\r?\n(?:.|\r|\n)*?enabled:\s*true"));
+            Assert.That(webValues, Does.Match(@"probes:\s*\r?\n(?:.|\r|\n)*?enabled:\s*true"));
         });
     }
 

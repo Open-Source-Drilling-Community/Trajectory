@@ -30,6 +30,10 @@ public sealed class TargetLandingCalculationWorker : BackgroundService
 
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
+        // BackgroundService.ExecuteAsync runs synchronously during host startup until its first
+        // incomplete await on .NET 8. Yield before database recovery so Kestrel can start.
+        await Task.Yield();
+
         List<(Guid Id, DateTimeOffset Revision)> interrupted = manager_.PrepareInterruptedCalculationsForResume();
         foreach ((Guid id, DateTimeOffset revision) in interrupted)
             Queue(id, revision);

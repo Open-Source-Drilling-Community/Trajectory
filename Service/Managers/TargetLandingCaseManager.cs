@@ -207,15 +207,38 @@ public sealed class TargetLandingCaseManager
 
     public List<(Guid Id, DateTimeOffset Revision)> PrepareInterruptedCalculationsForResume()
     {
-        List<TargetLandingCase> interrupted = ReadAll()?.Where(value => value.MetaInfo != null &&
-            value.LastModificationDate.HasValue &&
-            value.CalculationState is CalculationState.Queued or CalculationState.Running).ToList() ?? [];
-        List<(Guid Id, DateTimeOffset Revision)> requests = [];
-        foreach (TargetLandingCase value in interrupted)
+        using SqliteConnection? connection = connectionManager_.GetConnection();
+        if (connection == null) return [];
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = """
+            SELECT ID FROM TargetLandingCaseTable
+            WHERE CalculationState=@queued OR CalculationState=@running
+            """;
+        command.Parameters.AddWithValue("@queued", CalculationState.Queued.ToString());
+        command.Parameters.AddWithValue("@running", CalculationState.Running.ToString());
+
+        List<Guid> interruptedIds = [];
+        try
         {
+            using SqliteDataReader reader = command.ExecuteReader();
+            while (reader.Read())
+                if (Guid.TryParse(reader.GetString(0), out Guid id)) interruptedIds.Add(id);
+        }
+        catch (SqliteException ex)
+        {
+            logger_.LogError(ex, "Unable to find interrupted target landing calculations");
+            return [];
+        }
+
+        List<(Guid Id, DateTimeOffset Revision)> requests = [];
+        foreach (Guid id in interruptedIds)
+        {
+            // Edit data excludes the potentially very large calculated sample payload.
+            TargetLandingCase? value = GetEditById(id);
+            if (value?.MetaInfo == null || !value.LastModificationDate.HasValue) continue;
             DateTimeOffset revision = value.LastModificationDate!.Value;
             Mark(value, CalculationState.Queued, value.CalculationProgress, "Calculation resumed after service restart");
-            if (Save(value, true, revision)) requests.Add((value.MetaInfo!.ID, revision));
+            if (UpdateProgress(value, revision)) requests.Add((value.MetaInfo.ID, revision));
         }
         return requests;
     }

@@ -91,7 +91,21 @@ nodeSelector: {}
 tolerations: []
 affinity: {}
 probes:
-  enabled: false
+  # Do not publish the pod through the Service until Kestrel is accepting connections.
+  # Startup can include SQLite reconciliation and recovery of interrupted calculations.
+  enabled: true
+  startup:
+    periodSeconds: 2
+    timeoutSeconds: 1
+    failureThreshold: 120
+  readiness:
+    periodSeconds: 2
+    timeoutSeconds: 1
+    failureThreshold: 3
+  liveness:
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
 persistence:
   enabled: true
   # During an identity cutover with a new Helm release, set this explicitly to trajectory-claim.

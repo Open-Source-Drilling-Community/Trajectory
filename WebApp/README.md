@@ -64,7 +64,7 @@ The current work has been funded by the [Research Council of Norway](https://www
 
 The host consumes the local `OSDC.Drilling.Trajectory.WebPages` project and the published OSDC WebPages packages for the migrated sibling services, including `OSDC.Drilling.WellBoreArchitecture.WebPages`.
 
-The renamed Helm chart is `charts/osdcdrillingtrajectorywebappclient`. All production dependency URLs are supplied as Helm-managed environment variables and point to the corresponding OSDC Kubernetes services. `TrajectoryHostURL` points to `http://osdctrajectoryservice/`. The public routes remain `/Trajectory/webapp` and `/Trajectory/api` because they identify the domain resource rather than the owning organization.
+The renamed Helm chart is `charts/osdcdrillingtrajectorywebappclient`. TCP startup, readiness, and liveness probes keep ingress traffic away from a replacement pod until the Blazor server is accepting connections. All production dependency URLs are supplied as Helm-managed environment variables and point to the corresponding OSDC Kubernetes services. `TrajectoryHostURL` points to `http://osdctrajectoryservice/`. The public routes remain `/Trajectory/webapp` and `/Trajectory/api` because they identify the domain resource rather than the owning organization.
 
 ## Hosting requirements and local execution
 

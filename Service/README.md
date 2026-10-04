@@ -85,7 +85,7 @@ Within each ellipse calculation, every vertical ellipse uses the same first-to-l
 
 ## Persistence and identity cutover
 
-The service keeps its historical API path (`/Trajectory/api` case-insensitively), database filenames, and `trajectory-claim` storage identity. Its renamed Helm chart is `charts/osdcdrillingtrajectoryservice` and defaults to a `Recreate` deployment strategy with one replica. For a new OSDC Helm release that must reuse production data, set `persistence.existingClaim=trajectory-claim` explicitly. Never run overlapping service pods against these SQLite files.
+The service keeps its historical API path (`/Trajectory/api` case-insensitively), database filenames, and `trajectory-claim` storage identity. Its renamed Helm chart is `charts/osdcdrillingtrajectoryservice` and defaults to a `Recreate` deployment strategy with one replica. TCP startup, readiness, and liveness probes keep the pod out of the Service until Kestrel is accepting connections, including while SQLite reconciliation and calculation recovery run during startup. For a new OSDC Helm release that must reuse production data, set `persistence.existingClaim=trajectory-claim` explicitly. Never run overlapping service pods against these SQLite files.
 
 Each database uses private SQLite connection caches, a bounded busy timeout, and WAL journaling. Concurrent HTTP and background-calculation transactions therefore wait for the active writer instead of failing immediately with `SQLITE_LOCKED`; this does not make multiple service replicas safe, so the one-replica `Recreate` requirement still applies.
 

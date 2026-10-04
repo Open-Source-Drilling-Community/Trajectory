@@ -94,4 +94,17 @@ nodeSelector: {}
 tolerations: []
 affinity: {}
 probes:
-  enabled: false
+  # Keep ingress traffic away from the pod until the Blazor server is listening.
+  enabled: true
+  startup:
+    periodSeconds: 2
+    timeoutSeconds: 1
+    failureThreshold: 120
+  readiness:
+    periodSeconds: 2
+    timeoutSeconds: 1
+    failureThreshold: 3
+  liveness:
+    periodSeconds: 10
+    timeoutSeconds: 1
+    failureThreshold: 3
