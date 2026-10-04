@@ -3,6 +3,7 @@
 @inject IDialogService DialogService
 @inject IJSRuntime JSRuntime
 @inject ITrajectoryAPIUtils Api
+@inject ITrajectoryReferenceDataCache ReferenceData
 @using System.Globalization
 @using System.Text
 @using System.Text.Json
@@ -343,7 +344,7 @@
         ResetCalculatedStationLoadingState();
         selectedTrajectoryId = currentInterpolatedTrajectory.TrajectoryID == Guid.Empty ? null : currentInterpolatedTrajectory.TrajectoryID;
         SyncSelectorsFromTrajectory(selectedTrajectoryId);
-        if (surveyRuns.Count == 0) surveyRuns = await Api.ClientTrajectory.GetAllSurveyRunLightAsync();
+        if (surveyRuns.Count == 0) surveyRuns = (await ReferenceData.GetSnapshotAsync()).SurveyRuns.ToList();
         trajectoryReferenceDate = await TrajectoryRigJobDateResolver.ResolveAsync(Api, selectedTrajectoryId, TrajectoryList ?? [], surveyRuns, logger);
         await UpdateReferenceSourcesAsync();
         UpdatePlots();

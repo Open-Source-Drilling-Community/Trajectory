@@ -622,7 +622,7 @@
         {
             <MudProgressLinear Indeterminate="true" Color="Color.Info" Class="mb-1" />
             <MudText Typo="Typo.caption" Class="mb-2">
-                Loading fields, clusters, wells, wellbores, rigs, and survey instruments…
+                Loading shared survey runs, trajectories, fields, clusters, wells, wellbores, rigs, survey instruments, and wellbore architectures…
                 @if (pendingSurveyRunId_ != null)
                 {
                     <span> The selected Survey Run will open when loading finishes.</span>
@@ -878,11 +878,8 @@
             pendingSurveyRunId_ = null;
 
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
-            var surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
-
-            // Do not hold the page behind reference catalogs. The Survey Run list is independently
-            // useful and normally much faster, so render it as soon as its lightweight call finishes.
-            allSurveyRunList_ = ((IEnumerable<SurveyRunLight>)await surveyRunTask)
+            TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
+            allSurveyRunList_ = referenceData.SurveyRuns
                 .Where(item => item != null)
                 .OrderBy(item => item.Name)
                 .ToList();
@@ -892,7 +889,6 @@
             StartCalculationPollingIfNeeded();
             await InvokeAsync(StateHasChanged);
 
-            TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
             fieldList_ = referenceData.Fields.ToList();
             clusterList_ = referenceData.Clusters.ToList();
             wellList_ = referenceData.Wells.ToList();
@@ -954,7 +950,8 @@
             while (!cancellationToken.IsCancellationRequested)
             {
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-                allSurveyRunList_ = ((IEnumerable<SurveyRunLight>)await Api.ClientTrajectory.GetAllSurveyRunLightAsync()).OrderBy(item => item.Name).ToList();
+                await ReferenceData.RefreshSurveyRunsAsync(cancellationToken);
+                allSurveyRunList_ = ReferenceData.Current.SurveyRuns.ToList();
                 surveyRunList_ = ApplySurveyRunFilters();
                 gridKey_++;
                 await InvokeAsync(StateHasChanged);
@@ -1306,7 +1303,8 @@
             currentSurveyRun_.SurveyStationList ??= new List<SurveyStation>();
             selectedParentSurveyRunId_ = currentSurveyRun_.ParentSurveyRunID;
             selectedSurveyStations_.Clear();
-            allSurveyRunList_ = ((IEnumerable<SurveyRunLight>)await Api.ClientTrajectory.GetAllSurveyRunLightAsync()).OrderBy(item => item.Name).ToList();
+            await ReferenceData.RefreshSurveyRunsAsync();
+            allSurveyRunList_ = ReferenceData.Current.SurveyRuns.ToList();
             await LoadParentSurveyRunsAsync();
             surveyRunList_ = ApplySurveyRunFilters();
             UpdatePlots();
@@ -1370,7 +1368,8 @@
     {
         for (int attempt = 0; attempt < 120; attempt++)
         {
-            List<SurveyRunLight> lights = ((IEnumerable<SurveyRunLight>)await Api.ClientTrajectory.GetAllSurveyRunLightAsync()).ToList();
+            await ReferenceData.RefreshSurveyRunsAsync();
+            List<SurveyRunLight> lights = ReferenceData.Current.SurveyRuns.ToList();
             SurveyRunLight? light = lights.FirstOrDefault(item => item.MetaInfo?.ID == surveyRunId);
             if (light == null)
             {
@@ -1515,6 +1514,7 @@
             }
 
             Snackbar.Add(surveyRuns.Count == 1 ? "Survey Run deleted successfully" : $"{surveyRuns.Count} Survey Runs deleted successfully", Severity.Success);
+            await ReferenceData.RefreshSurveyRunsAsync();
             await LoadDataAsync();
         }
         catch (Exception ex)
@@ -1541,6 +1541,7 @@
             {
                 await Api.ClientTrajectory.DeleteSurveyRunByIdAsync(id, ConcurrencyToken.Require(surveyRun.LastModificationDate));
                 Snackbar.Add("Survey Run deleted successfully", Severity.Success);
+                await ReferenceData.RefreshSurveyRunsAsync();
                 await LoadDataAsync();
             }
         }

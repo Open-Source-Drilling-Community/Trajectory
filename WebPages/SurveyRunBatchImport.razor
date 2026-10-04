@@ -1257,6 +1257,9 @@ else
         finally
         {
             isUploading_ = false;
+            await Task.WhenAll(
+                ReferenceData.RefreshSurveyRunsAsync(),
+                ReferenceData.RefreshTrajectoriesAsync());
             await InvokeAsync(StateHasChanged);
         }
 
@@ -2206,7 +2209,11 @@ else
 
     private async Task<System.Collections.Generic.ICollection<TrajectoryLight>> GetExistingTrajectoriesAsync(Guid wellBoreId)
     {
-        return await Api.ClientTrajectory.GetAllTrajectoryLightAsync(null, null, null, wellBoreId);
+        await ReferenceData.GetSnapshotAsync();
+        await ReferenceData.RefreshTrajectoriesAsync();
+        return ReferenceData.Current.Trajectories
+            .Where(trajectory => trajectory.WellBoreID == wellBoreId)
+            .ToList();
     }
 
     private List<SurveyRun> GetExistingSurveyRuns(Guid wellBoreId) =>

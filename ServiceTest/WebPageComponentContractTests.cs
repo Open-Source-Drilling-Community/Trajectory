@@ -100,12 +100,10 @@ public sealed class WebPageComponentContractTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(loadData, Does.Contain("GetAllSurveyRunLightAsync()"));
+            Assert.That(loadData, Does.Contain("referenceData.SurveyRuns")
+                .And.Not.Contain("GetAllSurveyRunLightAsync"));
             Assert.That(loadData, Does.Not.Contain("GetAllSurveyRunAsync("),
                 "The list page must defer calculated-station data until an editor needs parent candidates.");
-            Assert.That(loadData.IndexOf("await surveyRunTask", StringComparison.Ordinal),
-                Is.LessThan(loadData.IndexOf("await referenceDataTask", StringComparison.Ordinal)),
-                "Survey Run rows must render before slower reference catalogs finish loading.");
             Assert.That(loadData, Does.Contain("ReferenceData.GetSnapshotAsync()"));
             Assert.That(loadData, Does.Contain("await InvokeAsync(StateHasChanged)"));
             Assert.That(pageSource, Does.Contain("<MudProgressLinear Indeterminate=\"true\" Color=\"Color.Info\""));
@@ -132,26 +130,28 @@ public sealed class WebPageComponentContractTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(loadData.IndexOf("await trajectoryTask", StringComparison.Ordinal),
-                Is.LessThan(loadData.IndexOf("await referenceDataTask", StringComparison.Ordinal)),
-                "Trajectory rows must render before reference catalogs finish loading.");
-            Assert.That(loadData, Does.Contain("ReferenceData.GetSnapshotAsync()"));
+            Assert.That(loadData, Does.Contain("ReferenceData.GetSnapshotAsync()")
+                .And.Contain("referenceData.Trajectories")
+                .And.Not.Contain("GetAllTrajectoryLightAsync"));
             Assert.That(loadData, Does.Contain("await EditTrajectory(queuedTrajectoryId)"));
             Assert.That(Regex.Matches(loadData, "_gridKey\\+\\+").Count, Is.EqualTo(1),
                 "Completing reference loading must not remount the grid and discard its selection.");
-            Assert.That(source, Does.Contain("Loading fields, clusters, wells, wellbores, rigs, and wellbore architectures"));
+            Assert.That(source, Does.Contain("Loading shared trajectories, survey runs, fields, clusters, wells, wellbores, rigs, survey instruments, and wellbore architectures"));
             Assert.That(source, Does.Contain("Disabled=\"@(!referenceDataAvailable)\">Add</MudButton>"));
             Assert.That(source, Does.Contain("isReferenceDataLoading ? \"Loading…\" : \"Unknown wellbore\""));
         });
     }
 
     [Test]
-    public void Shared_reference_data_is_cached_by_the_webapp_and_reused_by_trajectory_pages()
+    public void Trajectory_pages_use_a_host_cache_or_the_reusable_direct_fallback()
     {
         string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
             "..", "..", "..", ".."));
         string program = File.ReadAllText(Path.Combine(repositoryRoot, "WebApp", "Program.cs"));
         string cache = File.ReadAllText(Path.Combine(repositoryRoot, "WebApp", "TrajectoryReferenceDataCache.cs"));
+        string cacheContract = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "ITrajectoryReferenceDataCache.cs"));
+        string directProvider = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "DirectTrajectoryReferenceDataProvider.cs"));
+        string registration = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryWebPagesServiceCollectionExtensions.cs"));
         string[] pagesUsingReferenceData =
         [
             "AntiCollisionPolicies.razor",
@@ -159,10 +159,19 @@ public sealed class WebPageComponentContractTests
             "SurveyRunBatchImport.razor",
             "SurveyRunMain.razor",
             "SurveyRunMinimumDistanceCalculationMain.razor",
+            "TargetLandingEdit.razor",
+            "TargetLandingMain.razor",
+            "TrajectoryAggregationEdit.razor",
             "TrajectoryAggregationMain.razor",
+            "TrajectoryBackupRestore.razor",
+            "TrajectoryEdit.razor",
+            "TrajectoryExtrapolationEdit.razor",
+            "TrajectoryExtrapolationMain.razor",
+            "TrajectoryInterpolationEdit.razor",
             "TrajectoryInterpolatedMain.razor",
             "TrajectoryMain.razor",
             "TrajectoryMinimumDistanceCalculationMain.razor",
+            "TrajectoryRealizationEdit.razor",
             "TrajectoryRealizationMain.razor"
         ];
 
@@ -170,15 +179,71 @@ public sealed class WebPageComponentContractTests
         {
             Assert.That(program, Does.Contain("AddSingleton<ITrajectoryReferenceDataCache>"));
             Assert.That(program, Does.Contain("AddHostedService"));
+            Assert.That(program, Does.Contain("AddTrajectoryWebPages()"));
             Assert.That(cache, Does.Contain("TimeSpan.FromMinutes(1)"));
             Assert.That(cache, Does.Contain("retaining the last successful snapshot"));
+            Assert.That(cache, Does.Contain("LoadTrajectoriesAsync")
+                .And.Contain("LoadSurveyRunsAsync")
+                .And.Contain("GetAllWellBoreArchitectureLightAsync")
+                .And.Contain("GetAllSurveyInstrumentLightAsync")
+                .And.Contain("GetAllRigReferencesAsync"));
+            Assert.That(cacheContract, Does.Contain("IReadOnlyList<TrajectoryLight> Trajectories")
+                .And.Contain("IReadOnlyList<SurveyRunLight> SurveyRuns")
+                .And.Contain("RefreshTrajectoriesAsync")
+                .And.Contain("RefreshSurveyRunsAsync"));
+            Assert.That(registration, Does.Contain("TryAddSingleton")
+                .And.Contain("TryAddScoped")
+                .And.Contain("DirectTrajectoryReferenceDataProvider"));
+            Assert.That(directProvider, Does.Contain("await RefreshAsync(cancellationToken)")
+                .And.Contain("GetAllTrajectoryLightAsync")
+                .And.Contain("GetAllSurveyRunLightAsync")
+                .And.Contain("GetAllWellBoreArchitectureLightAsync")
+                .And.Contain("GetAllSurveyInstrumentLightAsync")
+                .And.Contain("GetAllRigReferencesAsync"));
+            Assert.That(program.IndexOf("AddSingleton<ITrajectoryReferenceDataCache>", StringComparison.Ordinal),
+                Is.LessThan(program.IndexOf("AddTrajectoryWebPages()", StringComparison.Ordinal)),
+                "The standalone host cache must be registered before the reusable fallback is considered.");
 
             foreach (string pageName in pagesUsingReferenceData)
             {
                 string source = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", pageName));
                 Assert.That(source, Does.Contain("@inject ITrajectoryReferenceDataCache ReferenceData"), pageName);
-                Assert.That(source, Does.Contain("ReferenceData.GetSnapshotAsync()"), pageName);
+                Assert.That(source, pageName == "TargetLandingMain.razor"
+                    ? Does.Contain("ReferenceData.GetTrajectoriesAsync()")
+                    : Does.Contain("ReferenceData.GetSnapshotAsync()"), pageName);
             }
+
+            string allPages = string.Join('\n', Directory.GetFiles(Path.Combine(repositoryRoot, "WebPages"), "*.razor")
+                .Select(File.ReadAllText));
+            Assert.That(allPages, Does.Not.Contain("GetAllTrajectoryLightAsync")
+                .And.Not.Contain("GetAllSurveyRunLightAsync"),
+                "Web pages must use the shared snapshots for trajectory and survey-run light lists.");
+        });
+    }
+
+    [Test]
+    public void Target_landing_list_does_not_wait_for_the_complete_reference_snapshot()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", ".."));
+        string source = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TargetLandingMain.razor"));
+        string loadCases = GetMethodSource(source, "private async Task LoadAsync()", "private async Task LoadTrajectoryNamesAsync()");
+        string loadNames = GetMethodSource(source, "private async Task LoadTrajectoryNamesAsync()", "private void Add()");
+        string cacheContract = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "ITrajectoryReferenceDataCache.cs"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(loadCases, Does.Contain("GetAllTargetLandingCaseLightAsync")
+                .And.Not.Contain("GetSnapshotAsync")
+                .And.Not.Contain("GetTrajectoriesAsync"));
+            Assert.That(loadCases, Does.Contain("StartPollingIfNeeded()"));
+            Assert.That(source, Does.Contain("_ = LoadTrajectoryNamesAsync()"),
+                "Source names should enrich the already-visible case list without extending page initialization.");
+            Assert.That(loadNames, Does.Contain("ReferenceData.GetTrajectoriesAsync()")
+                .And.Contain("InvokeAsync(StateHasChanged)"));
+            Assert.That(cacheContract, Does.Contain("GetTrajectoriesAsync")
+                .And.Contain("RefreshTrajectoriesAsync")
+                .And.Contain("return Current.Trajectories"));
         });
     }
 
@@ -719,7 +784,10 @@ public sealed class WebPageComponentContractTests
             "private static TargetLandingCase CreateSavePayload", "private List<PlaneContour> PlaneContours");
         string saveAs = GetMethodSource(editor,
             "private async Task SaveAsAsync()", "private async Task<string?> PromptAsync");
-        string listLoad = GetMethodSource(main, "private async Task LoadAsync()", "private void Add()");
+        string listLoad = GetMethodSource(main,
+            "private async Task LoadAsync()", "private async Task LoadTrajectoryNamesAsync()");
+        string closeEditor = GetMethodSource(main,
+            "private Task CloseEditorAsync(TargetLandingCaseLight? persisted)", "private void StartPollingIfNeeded()");
         int referenceSelectorEnd = main.IndexOf("</MudUnitAndReferenceChoiceTag>", StringComparison.Ordinal);
         int listGridStart = main.IndexOf("<MudDataGrid T=\"TargetLandingCaseLight\"", StringComparison.Ordinal);
 
@@ -735,10 +803,27 @@ public sealed class WebPageComponentContractTests
             Assert.That(main, Does.Contain("CartographicProjectionDatumGeodeticReferenceSource=\"@DataUtils.CartographicProjectionDatumGeodeticReferenceSource\""));
             Assert.That(referenceSelectorEnd, Is.GreaterThanOrEqualTo(0).And.LessThan(listGridStart),
                 "The list must render without waiting for the editor-only unit and reference selector.");
-            Assert.That(listLoad.IndexOf("cases = (await casesTask)", StringComparison.Ordinal),
-                Is.LessThan(listLoad.IndexOf("trajectories = await trajectoriesTask", StringComparison.Ordinal)));
-            Assert.That(listLoad, Does.Contain("await InvokeAsync(StateHasChanged);"),
-                "Target landing cases must be rendered as soon as their light response arrives, before source names finish loading.");
+            Assert.That(listLoad, Does.Contain("GetAllTargetLandingCaseLightAsync")
+                .And.Contain("StartPollingIfNeeded()")
+                .And.Not.Contain("GetSnapshotAsync")
+                .And.Not.Contain("GetTrajectoriesAsync"),
+                "Target landing cases and active calculation polling must not wait for reference-data loading.");
+            Assert.That(main, Does.Contain("_ = LoadTrajectoryNamesAsync()")
+                .And.Contain("ReferenceData.GetTrajectoriesAsync()"),
+                "Source names should enrich the already-visible target-landing list asynchronously.");
+            Assert.That(main, Does.Contain("<TargetLandingEdit CaseId=\"@caseId\" ValueChanged=\"CloseEditorAsync\" />"));
+            Assert.That(closeEditor, Does.Contain("cases.FindIndex")
+                .And.Contain("cases[index] = persisted")
+                .And.Contain("StartPollingIfNeeded()")
+                .And.Not.Contain("LoadAsync")
+                .And.Not.Contain("GetAllTargetLandingCaseLightAsync")
+                .And.Not.Contain("GetAllTrajectoryLightAsync"),
+                "Closing the editor must merge its persisted light record locally instead of repeating the case and trajectory list requests.");
+            Assert.That(editor, Does.Contain("EventCallback<TargetLandingCaseLight?> ValueChanged")
+                .And.Contain("ValueChanged.InvokeAsync(persistedLight)")
+                .And.Contain("persistedLight = status")
+                .And.Contain("persistedLight = ToLight(value)"),
+                "The editor must return only its latest persisted light state so unsaved draft fields are not copied into the list.");
             Assert.That(editor, Does.Contain("QuantityLabel=\"North\"").And.Contain("QuantityLabel=\"East\""));
             Assert.That(editor, Does.Contain("QuantityLabel=\"Latitude\"").And.Contain("QuantityLabel=\"Longitude\""));
             Assert.That(editor, Does.Contain("DrillingSignalReferenceType.Geodetic").And.Contain("PlaneAngleGeodesic"));
@@ -788,8 +873,9 @@ public sealed class WebPageComponentContractTests
             Assert.That(editor, Does.Contain("% complete — calculation continues on the server")
                 .And.Contain("MonitorExistingCalculationAsync")
                 .And.Contain("Disabled=\"@(saving || IsCalculationActive)\""));
-            Assert.That(main, Does.Contain("GetTargetLandingCaseStatusAsync(item.MetaInfo.ID, token)"),
-                "The list must poll lightweight per-case status rather than repeatedly downloading every heavy case.");
+            Assert.That(main, Does.Contain("GetTargetLandingCaseStatusAsync(item.MetaInfo.ID, token)")
+                .And.Contain("cases[index] = status"),
+                "The list must poll and replace the complete lightweight status row, including its latest concurrency token, rather than repeatedly downloading every heavy case.");
             Assert.That(GetMethodSource(editor, "private async Task SaveAsync()", "private async Task RefreshAfterCalculationAsync"),
                 Does.Not.Contain("ValueChanged.InvokeAsync"),
                 "Saving must not invoke the close callback.");

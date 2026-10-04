@@ -28,7 +28,7 @@ public sealed class TargetLandingCalculatorTests
         {
             Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(4));
             Assert.That(TargetLandingCalculator.BoundaryPositionTolerance, Is.EqualTo(0.25));
-            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(14));
+            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(16));
             Assert.That(TargetLandingCalculator.MinimumConstantToolfaceInclination,
                 Is.EqualTo(3.0 * Math.PI / 180.0).Within(1e-15));
         });
@@ -266,6 +266,8 @@ public sealed class TargetLandingCalculatorTests
         {
             Assert.That(center.State, Is.EqualTo(TargetLandingSampleState.ExceedsMaximumLandingCurvature));
             Assert.That(center.IsUncertaintySafe, Is.True);
+            Assert.That(center.SurveyStationList, Is.Null,
+                "A curvature-rejected driller-target sample must not spend time interpolating stations or propagating uncertainty.");
             Assert.That(value.DrillerTargetContourList, Is.Not.Null.And.Not.Empty);
             Assert.That(value.ReachableTargetContourList, Is.Empty);
         });

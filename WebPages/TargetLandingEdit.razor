@@ -12,7 +12,7 @@
     {
         <MudButton Color="Color.Primary" Variant="Variant.Outlined" OnClick="SaveAsAsync" Disabled="@(saving || IsCalculationActive)">Save as</MudButton>
     }
-    <MudButton Color="Color.Error" OnClick="@(() => ValueChanged.InvokeAsync())">Close</MudButton>
+    <MudButton Color="Color.Error" OnClick="CloseAsync">Close</MudButton>
 </MudStack>
 @if (loading) { <MudProgressLinear Indeterminate="true" Color="Color.Info" /> }
 @if (loadingResult) { <MudProgressLinear Indeterminate="true" Color="Color.Info" Class="mt-2" /><MudText Typo="Typo.caption">Loading calculated boundary paths…</MudText> }
@@ -171,7 +171,7 @@
 
 @code {
     [Parameter] public Guid? CaseId { get; set; }
-    [Parameter] public EventCallback ValueChanged { get; set; }
+    [Parameter] public EventCallback<TargetLandingCaseLight?> ValueChanged { get; set; }
     private TargetLandingCase value = NewCase();
     private List<Field> fields = []; private List<Cluster> clusters = []; private List<Well> wells = []; private List<WellBore> wellBores = []; private List<Rig> rigs = []; private List<TrajectoryLight> trajectories = []; private List<SurveyRunLight> surveyRuns = [];
     private List<SurveyStation> sourceTrajectoryStations = [];
@@ -180,6 +180,7 @@
     private bool loadingCartesianSource, loadingResult, referenceValuesReady;
     private long referenceSourceVersion;
     private string? loadedEditableFingerprint;
+    private TargetLandingCaseLight? persistedLight;
     private readonly CancellationTokenSource calculationPolling = new();
     private CurvilinearPoint3D Plane => value.Target.Plane;
     private List<TargetPlanePoint> Polygon => value.Target.Polygon;
@@ -190,12 +191,11 @@
         try
         {
             Task<TrajectoryReferenceDataSnapshot> refs = ReferenceData.GetSnapshotAsync();
-            Task<List<TrajectoryLight>> trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
-            Task<List<SurveyRunLight>> surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
             Task<TargetLandingCase>? caseTask = CaseId.HasValue ? Api.ClientTrajectory.GetTargetLandingCaseEditDataAsync(CaseId.Value) : null;
             if (caseTask != null)
             {
                 value = await caseTask;
+                persistedLight = ToLight(value);
                 loadedEditableFingerprint = EditableFingerprint(value);
                 loading = false;
                 loadingResult = !IsCalculationActive;
@@ -203,8 +203,7 @@
                 if (IsCalculationActive) _ = MonitorExistingCalculationAsync(value.MetaInfo.ID);
                 else _ = LoadDisplayDataAsync(value.MetaInfo.ID, calculationPolling.Token);
             }
-            await Task.WhenAll(refs, trajectoryTask, surveyRunTask);
-            TrajectoryReferenceDataSnapshot snapshot = await refs; fields = snapshot.Fields.ToList(); clusters = snapshot.Clusters.ToList(); wells = snapshot.Wells.ToList(); wellBores = snapshot.WellBores.ToList(); rigs = snapshot.Rigs.ToList(); trajectories = await trajectoryTask; surveyRuns = await surveyRunTask;
+            TrajectoryReferenceDataSnapshot snapshot = await refs; fields = snapshot.Fields.ToList(); clusters = snapshot.Clusters.ToList(); wells = snapshot.Wells.ToList(); wellBores = snapshot.WellBores.ToList(); rigs = snapshot.Rigs.ToList(); trajectories = snapshot.Trajectories.ToList(); surveyRuns = snapshot.SurveyRuns.ToList();
             InitializeHierarchy();
             sourceReferenceDate = await ResolveSourceTrajectoryDateAsync(SourceTrajectoryId);
             await UpdateSourceReferenceValuesAsync();
@@ -221,8 +220,13 @@
         try
         {
             TargetLandingCase savePayload = CreateSavePayload(value);
-            if (value.CreationDate == null) await Api.ClientTrajectory.PostTargetLandingCaseAsync(savePayload);
-            else if (!await PutWithSafeCalculationRetryAsync(value.MetaInfo.ID, savePayload)) return;
+            TargetLandingCase? persisted = value.CreationDate == null
+                ? await Api.ClientTrajectory.PostTargetLandingCaseAsync(savePayload)
+                : await PutWithSafeCalculationRetryAsync(value.MetaInfo.ID, savePayload);
+            if (persisted == null) return;
+            value = persisted;
+            persistedLight = ToLight(value);
+            loadedEditableFingerprint = EditableFingerprint(value);
             Snackbar.Add("Target landing calculation queued.", Severity.Success);
             await RefreshAfterCalculationAsync(value.MetaInfo.ID, calculationPolling.Token);
         }
@@ -250,6 +254,7 @@
             copy.MetaInfo = new MetaInfo { ID = Guid.NewGuid() };
             copy.Name = copyName;
             value = await Api.ClientTrajectory.PostTargetLandingCaseAsync(copy, calculationPolling.Token);
+            persistedLight = ToLight(value);
             loadedEditableFingerprint = EditableFingerprint(value);
             Snackbar.Add($"Created '{copyName}' and queued its calculation.", Severity.Success);
             await RefreshAfterCalculationAsync(value.MetaInfo.ID, calculationPolling.Token);
@@ -277,12 +282,11 @@
             ? text.Trim()
             : null;
     }
-    private async Task<bool> PutWithSafeCalculationRetryAsync(Guid caseId, TargetLandingCase savePayload)
+    private async Task<TargetLandingCase?> PutWithSafeCalculationRetryAsync(Guid caseId, TargetLandingCase savePayload)
     {
         try
         {
-            await Api.ClientTrajectory.PutTargetLandingCaseByIdAsync(caseId, ConcurrencyToken.Require(value.LastModificationDate), savePayload);
-            return true;
+            return await Api.ClientTrajectory.PutTargetLandingCaseByIdAsync(caseId, ConcurrencyToken.Require(value.LastModificationDate), savePayload);
         }
         catch (ApiException ex) when (ex.StatusCode == 409)
         {
@@ -294,14 +298,13 @@
             {
                 logger.LogWarning(ex, "Target landing case {CaseId} configuration changed after it was loaded", caseId);
                 Snackbar.Add("This case was changed elsewhere. Reopen it to review the latest inputs before saving.", Severity.Warning);
-                return false;
+                return null;
             }
 
             // A background calculation updates the revision when it reaches a terminal state. The editable
             // configuration is unchanged, so preserve this draft and retry once with the freshly read token.
             loadedEditableFingerprint = EditableFingerprint(latest);
-            await Api.ClientTrajectory.PutTargetLandingCaseByIdAsync(caseId, ConcurrencyToken.Require(latest.LastModificationDate), savePayload);
-            return true;
+            return await Api.ClientTrajectory.PutTargetLandingCaseByIdAsync(caseId, ConcurrencyToken.Require(latest.LastModificationDate), savePayload);
         }
     }
     private async Task RefreshAfterCalculationAsync(Guid caseId, CancellationToken cancellationToken)
@@ -314,6 +317,7 @@
             value.CalculationProgress = status.CalculationProgress;
             value.CalculationMessage = status.CalculationMessage;
             value.IsStale = status.IsStale;
+            persistedLight = status;
             await InvokeAsync(StateHasChanged);
             if (status.CalculationState is CalculationState.Queued or CalculationState.Running)
                 await Task.Delay(TimeSpan.FromSeconds(1), cancellationToken);
@@ -321,6 +325,7 @@
         while (status.CalculationState is CalculationState.Queued or CalculationState.Running);
 
         value = await Api.ClientTrajectory.GetTargetLandingCaseEditDataAsync(caseId, cancellationToken);
+        persistedLight = ToLight(value);
         loadedEditableFingerprint = EditableFingerprint(value);
         CompleteOriginCoordinates();
         await InvokeAsync(StateHasChanged);
@@ -374,6 +379,15 @@
         value.SampleList=display.SampleList; value.MeshTriangleList=display.MeshTriangleList;
     }
     private bool IsCalculationActive => value.CalculationState is CalculationState.Queued or CalculationState.Running;
+    private Task CloseAsync() => ValueChanged.InvokeAsync(persistedLight);
+    private static TargetLandingCaseLight ToLight(TargetLandingCase source) => new()
+    {
+        MetaInfo=source.MetaInfo,Name=source.Name,Description=source.Description,
+        CreationDate=source.CreationDate,LastModificationDate=source.LastModificationDate,
+        SourceTrajectoryID=source.SourceTrajectoryID,TargetType=source.TargetType,CurveType=source.CurveType,
+        AttitudeMode=source.AttitudeMode,CalculationState=source.CalculationState,
+        CalculationProgress=source.CalculationProgress,CalculationMessage=source.CalculationMessage,IsStale=source.IsStale
+    };
     private void InitializeHierarchy() { var t = trajectories.FirstOrDefault(x => x.MetaInfo?.ID == value.SourceTrajectoryID); if (t == null) return; fieldId = t.FieldID; clusterId = t.ClusterID; wellId = t.WellID; wellBoreId = t.WellBoreID; }
     private async Task SetField(Guid? x) { fieldId=x; clusterId=wellId=wellBoreId=null; selectedRigJobId=null; sourceReferenceDate=null; value.SourceTrajectoryID=Guid.Empty; await UpdateSourceReferenceValuesAsync(); }
     private async Task SetCluster(Guid? x) { clusterId=x; wellId=wellBoreId=null; selectedRigJobId=null; sourceReferenceDate=null; value.SourceTrajectoryID=Guid.Empty; await UpdateSourceReferenceValuesAsync(); }

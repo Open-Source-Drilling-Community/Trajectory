@@ -566,9 +566,7 @@
         try
         {
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
-            Task<List<TrajectoryLight>> trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
-            Task<List<SurveyRunLight>> surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
-            await Task.WhenAll(referenceDataTask, trajectoryTask, surveyRunTask);
+            await referenceDataTask;
 
             TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
             fields = referenceData.Fields.ToList();
@@ -576,8 +574,8 @@
             wells = referenceData.Wells.ToList();
             wellBores = referenceData.WellBores.ToList();
             rigs = referenceData.Rigs.ToList();
-            trajectories = (await trajectoryTask).OrderBy(x => x.Name).ToList();
-            surveyRuns = (await surveyRunTask).OrderBy(x => x.Name).ToList();
+            trajectories = referenceData.Trajectories.ToList();
+            surveyRuns = referenceData.SurveyRuns.ToList();
             if (CaseId is Guid id)
             {
                 value = await Api.ClientTrajectory.GetTrajectoryExtrapolationCaseByIdAsync(id, false);
@@ -1101,6 +1099,7 @@
             };
 
             await Api.ClientTrajectory.PostSurveyRunAsync(surveyRun);
+            await ReferenceData.RefreshSurveyRunsAsync();
             Snackbar.Add($"Planned survey run '{name}' was created", Severity.Success);
         }
         catch (ApiException ex)

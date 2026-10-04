@@ -4,6 +4,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject ITrajectoryAPIUtils Api
+@inject ITrajectoryReferenceDataCache ReferenceData
 @inject IJSRuntime JSRuntime
 
 <MudText Typo="Typo.h4" Class="mt-4 mb-4">Trajectory backup and restore</MudText>
@@ -189,11 +190,9 @@
     {
         try
         {
-            Task<List<SurveyRunLight>> surveyRuns = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
-            Task<List<TrajectoryLight>> trajectories = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
-            await Task.WhenAll(surveyRuns, trajectories);
-            _surveyRuns = (surveyRuns.Result ?? []).Where(HasId).OrderBy(value => value.Name, StringComparer.OrdinalIgnoreCase).ToList();
-            _trajectories = (trajectories.Result ?? []).Where(HasId).OrderBy(value => value.Name, StringComparer.OrdinalIgnoreCase).ToList();
+            TrajectoryReferenceDataSnapshot referenceData = await ReferenceData.GetSnapshotAsync();
+            _surveyRuns = referenceData.SurveyRuns.Where(HasId).OrderBy(value => value.Name, StringComparer.OrdinalIgnoreCase).ToList();
+            _trajectories = referenceData.Trajectories.Where(HasId).OrderBy(value => value.Name, StringComparer.OrdinalIgnoreCase).ToList();
             _selectedSurveyRuns = [];
             _selectedTrajectories = [];
         }

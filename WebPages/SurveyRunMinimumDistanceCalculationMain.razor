@@ -623,14 +623,13 @@
         try
         {
             var calculationTask = Api.ClientTrajectory.GetAllSurveyRunMinimumDistanceCalculationLightAsync();
-            var surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
 
-            await Task.WhenAll(calculationTask, surveyRunTask, referenceDataTask);
+            await Task.WhenAll(calculationTask, referenceDataTask);
 
             calculationLightList_ = ((ICollection<SurveyRunMinimumDistanceCalculationLight>)await calculationTask).OrderBy(x => x.Name).ToList();
-            SurveyRunLightList_ = ((ICollection<SurveyRunLight>)await surveyRunTask).OrderBy(x => x.Name).ToList();
             TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
+            SurveyRunLightList_ = referenceData.SurveyRuns.ToList();
             fieldList_ = referenceData.Fields.ToList();
             wellBoreList_ = referenceData.WellBores.ToList();
             wellList_ = referenceData.Wells.ToList();

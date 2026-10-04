@@ -3,6 +3,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject ITrajectoryAPIUtils Api
+@inject ITrajectoryReferenceDataCache ReferenceData
 
 <MudUnitAndReferenceChoiceTag HttpHost="@Api.HostNameUnitConversion"
                               HttpBasePath="@Api.HostBasePathUnitConversion"
@@ -78,10 +79,10 @@
         try
         {
             Task<List<TrajectoryExtrapolationCaseLight>> caseTask = Api.ClientTrajectory.GetAllTrajectoryExtrapolationCaseLightAsync();
-            Task<List<TrajectoryLight>> trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
-            await Task.WhenAll(caseTask, trajectoryTask);
+            Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
+            await Task.WhenAll(caseTask, referenceDataTask);
             cases = (await caseTask).OrderBy(x => x.Name).ToList();
-            trajectories = (await trajectoryTask).OrderBy(x => x.Name).ToList();
+            trajectories = (await referenceDataTask).Trajectories.ToList();
             StartPolling();
         }
         catch (Exception ex)

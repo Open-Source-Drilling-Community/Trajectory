@@ -376,20 +376,18 @@
         errorMessage_ = null;
         try
         {
-            Task<List<TrajectoryLight>> trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
-            Task<List<SurveyRunLight>> surveyRunTask = Api.ClientTrajectory.GetAllSurveyRunLightAsync();
             Task<List<AntiCollisionPolicyRevision>> policyRevisionTask = Api.ClientTrajectory.GetAllAntiCollisionPolicyRevisionAsync();
             Task<List<FieldAntiCollisionPolicyAssignment>> policyAssignmentTask = Api.ClientTrajectory.GetAllFieldAntiCollisionPolicyAssignmentAsync();
-            await Task.WhenAll(trajectoryTask, referenceDataTask, surveyRunTask, policyRevisionTask, policyAssignmentTask);
+            await Task.WhenAll(referenceDataTask, policyRevisionTask, policyAssignmentTask);
 
             TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
             fields_ = referenceData.Fields.ToList();
             clusters_ = referenceData.Clusters.ToList();
             wells_ = referenceData.Wells.ToList();
             wellBores_ = referenceData.WellBores.ToList();
-            trajectories_ = (await trajectoryTask).OrderBy(item => item.Name).ToList();
-            surveyRuns_ = (await surveyRunTask).OrderBy(item => item.Name).ToList();
+            trajectories_ = referenceData.Trajectories.ToList();
+            surveyRuns_ = referenceData.SurveyRuns.ToList();
             policyRevisions_ = await policyRevisionTask;
             policyAssignments_ = await policyAssignmentTask;
             rigs_ = referenceData.Rigs.ToList();

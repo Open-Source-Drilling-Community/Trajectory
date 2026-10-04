@@ -16,7 +16,7 @@ public static class TargetLandingCalculator
 {
     internal const int MaximumAdaptiveDepth = 4;
     internal const int EllipsePointCount = 72;
-    internal const int CalculationAlgorithmVersion = 14;
+    internal const int CalculationAlgorithmVersion = 16;
     internal const double BoundaryPositionTolerance = 0.25;
     internal const double PositionTolerance = 0.05;
     internal const double SamplingInterval = 10.0;
@@ -200,21 +200,20 @@ public static class TargetLandingCalculator
         {
             Start = TrajectoryExtrapolationCalculator.ToPoint(steeringStart),
             CurveType = ToSectionCurveType(value.CurveType),
-            MaximumCurvature = value.MaximumLandingCurvature
+            MaximumCurvature = value.MaximumLandingCurvature,
+            PositionAccuracy = BoundaryPositionTolerance
         };
         TargetAxis target = value.AttitudeMode == TargetLandingAttitudeMode.PerpendicularToTargetPlane
             ? new TargetAxis(north, east, tvd, value.Target.Plane.Inclination!.Value, value.Target.Plane.Azimuth!.Value)
             : new TargetAxis(north, east, tvd);
         path.Targets.Add(target);
         bool pathCalculated = path.Calculate();
-        if (!pathCalculated && value.CurveType == ExtrapolationCurveType.ConstantBuildAndTurn &&
-            value.AttitudeMode == TargetLandingAttitudeMode.Free && value.MaximumLandingCurvature.HasValue)
+        if (!pathCalculated && path.FailureReason == TargetAxisFailureReason.MaximumCurvatureExceeded &&
+            path.Sections.Count > 0)
         {
-            // Preserve the distinction between "no geometric root" and "roots exist, but none respect
-            // the limit". The constrained solver has already checked every known exact BT root; this
-            // inexpensive retry retains the conventional root so it can be classified below.
-            path.MaximumCurvature = null;
-            pathCalculated = path.Calculate();
+            // The constrained BT solve retains its shortest rejected geometric root, so classification
+            // and plotting can continue without repeating the complete inverse calculation.
+            pathCalculated = true;
         }
         if (!pathCalculated || path.Sections.Count == 0)
         {
@@ -238,6 +237,18 @@ public static class TargetLandingCalculator
         result.ControlPointList = BuildControlPointList(sections);
         bool exceedsMaximumCurvature = value.MaximumLandingCurvature is double maximum &&
             result.PeakLandingCurvature > maximum + 1e-12;
+
+        // A driller target is uncertainty-safe by definition. Once every exact root has been considered
+        // and the selected solution still exceeds the curvature limit, station interpolation and
+        // uncertainty propagation cannot change either target contour. BT cut-out regions contain many
+        // such samples, so avoid doing that unrelated work for every rejected point.
+        if (exceedsMaximumCurvature && value.TargetType == TargetLandingTargetType.DrillerTarget)
+        {
+            result.IsUncertaintySafe = true;
+            result.State = TargetLandingSampleState.ExceedsMaximumLandingCurvature;
+            result.Message = "The selected forward solution exceeds Maximum Landing Curvature.";
+            return result;
+        }
 
         // Uncertainty must be replayed from the actual source endpoint through the lead-in and
         // landing sections as one chain. This is essential for Wolff-de Wardt, whose propagated

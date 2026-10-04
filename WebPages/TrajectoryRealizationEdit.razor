@@ -2,6 +2,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject ITrajectoryAPIUtils Api
+@inject ITrajectoryReferenceDataCache ReferenceData
 @inject IJSRuntime JSRuntime
 @using System.Globalization
 @using System.Text
@@ -271,7 +272,7 @@
                 currentCase = CreateCase();
             }
 
-            surveyRuns = await Api.ClientTrajectory.GetAllSurveyRunLightAsync();
+            surveyRuns = (await ReferenceData.GetSnapshotAsync()).SurveyRuns.ToList();
             trajectoryReferenceDate = await TrajectoryRigJobDateResolver.ResolveAsync(Api, selectedTrajectoryId, TrajectoryList ?? [], surveyRuns, logger);
 
             exportFileName = $"{SanitizeFileName(string.IsNullOrWhiteSpace(currentCase.Name) ? "trajectory-realizations" : currentCase.Name)}.tsv";

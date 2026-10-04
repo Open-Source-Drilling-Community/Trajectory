@@ -36,7 +36,7 @@
             {
                 <MudProgressLinear Indeterminate="true" Color="Color.Info" Class="mb-1" />
                 <MudText Typo="Typo.caption" Class="mb-2">
-                    Loading fields, clusters, wells, wellbores, rigs, and wellbore architectures…
+                    Loading shared trajectories, survey runs, fields, clusters, wells, wellbores, rigs, survey instruments, and wellbore architectures…
                     @if (pendingTrajectoryId != null)
                     {
                         <span> The selected Trajectory will open when loading finishes.</span>
@@ -165,9 +165,8 @@
 
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
             logger.LogInformation("Trying to load list of trajectories from client: " + Api.HostNameTrajectory);
-            var trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
-
-            allTrajectoryList = ((IEnumerable<TrajectoryLight>)await trajectoryTask)
+            TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
+            allTrajectoryList = referenceData.Trajectories
                 .Where(item => item != null)
                 .OrderBy(item => item.Name)
                 .ToList();
@@ -176,7 +175,6 @@
             StartCalculationPollingIfNeeded();
             await InvokeAsync(StateHasChanged);
 
-            TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
             fieldList = referenceData.Fields.ToList();
             clusterList = referenceData.Clusters.ToList();
             wellList = referenceData.Wells.ToList();
@@ -417,6 +415,7 @@
             if (confirmed)
             {
                 await Api.ClientTrajectory.DeleteTrajectoryByIdAsync(id, ConcurrencyToken.Require(trajectory.LastModificationDate));
+                await ReferenceData.RefreshTrajectoriesAsync();
                 await LoadDataAsync();
             }
         }
@@ -461,7 +460,8 @@
             while (!cancellationToken.IsCancellationRequested)
             {
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-                allTrajectoryList = ((IEnumerable<TrajectoryLight>)await Api.ClientTrajectory.GetAllTrajectoryLightAsync()).OrderBy(item => item.Name).ToList();
+                await ReferenceData.RefreshTrajectoriesAsync(cancellationToken);
+                allTrajectoryList = ReferenceData.Current.Trajectories.ToList();
                 trajectoryList = ApplyTrajectoryFilters();
                 _gridKey++;
                 await InvokeAsync(StateHasChanged);
@@ -507,6 +507,7 @@
                 {
                     await Api.ClientTrajectory.DeleteTrajectoryByIdAsync(trajectory.MetaInfo.ID, ConcurrencyToken.Require(trajectory.LastModificationDate));
                 }
+                await ReferenceData.RefreshTrajectoriesAsync();
                 // Reload data: this also clears selectedTrajectoryList and bumps _gridKey.
                 await LoadDataAsync();
             }

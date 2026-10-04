@@ -3,6 +3,7 @@
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject ITrajectoryAPIUtils Api
+@inject ITrajectoryReferenceDataCache ReferenceData
 
 @if (editing)
 {
@@ -27,7 +28,7 @@
                                   AzimuthReferenceNameChanged="@DataUtils.UpdateAzimuthReferenceName"
                                   GridConvergenceSource="@DataUtils.GridConvergenceSource"
                                   MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource">
-        <TargetLandingEdit CaseId="@caseId" ValueChanged="LoadAsync" />
+        <TargetLandingEdit CaseId="@caseId" ValueChanged="CloseEditorAsync" />
     </MudUnitAndReferenceChoiceTag>
 }
 else
@@ -69,30 +70,82 @@ else
     private Guid? caseId;
     private bool editing;
     private bool loading;
+    private bool sourceNamesLoading;
     private string? search;
     private CancellationTokenSource? polling;
 
-    protected override Task OnInitializedAsync() => LoadAsync();
+    protected override async Task OnInitializedAsync()
+    {
+        trajectories = ReferenceData.Current.Trajectories.ToList();
+        await LoadAsync();
+
+        if (trajectories.Count == 0)
+        {
+            sourceNamesLoading = true;
+            _ = LoadTrajectoryNamesAsync();
+        }
+    }
+
     private async Task LoadAsync()
     {
-        editing = false; caseId = null; polling?.Cancel();
+        editing = false; caseId = null; StopPolling();
         loading = true;
         try
         {
-            Task<List<TargetLandingCaseLight>> casesTask = Api.ClientTrajectory.GetAllTargetLandingCaseLightAsync();
-            Task<List<TrajectoryLight>> trajectoriesTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
-            cases = (await casesTask).OrderBy(x => x.Name).ToList();
-            loading = false;
-            await InvokeAsync(StateHasChanged);
-            trajectories = await trajectoriesTask;
-            if (cases.Any(Active)) { polling = new(); _ = PollAsync(polling.Token); }
+            cases = (await Api.ClientTrajectory.GetAllTargetLandingCaseLightAsync()).OrderBy(x => x.Name).ToList();
+            StartPollingIfNeeded();
         }
         catch (Exception ex) { logger.LogError(ex, "Unable to load target landing cases"); Snackbar.Add("Unable to load target landing cases.", Severity.Error); }
         finally { loading = false; }
     }
-    private void Add() { caseId = null; editing = true; }
-    private Task OpenRow(DataGridRowClickEventArgs<TargetLandingCaseLight> args) { caseId = args.Item.MetaInfo.ID; editing = true; return Task.CompletedTask; }
-    private string SourceName(Guid id) => trajectories.FirstOrDefault(x => x.MetaInfo?.ID == id)?.Name ?? "Unknown trajectory";
+
+    private async Task LoadTrajectoryNamesAsync()
+    {
+        try
+        {
+            trajectories = (await ReferenceData.GetTrajectoriesAsync()).ToList();
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Unable to load source trajectory names for target landing cases");
+        }
+        finally
+        {
+            sourceNamesLoading = false;
+            await InvokeAsync(StateHasChanged);
+        }
+    }
+    private void Add() { StopPolling(); caseId = null; editing = true; }
+    private Task OpenRow(DataGridRowClickEventArgs<TargetLandingCaseLight> args) { StopPolling(); caseId = args.Item.MetaInfo.ID; editing = true; return Task.CompletedTask; }
+    private Task CloseEditorAsync(TargetLandingCaseLight? persisted)
+    {
+        editing = false;
+        caseId = null;
+        StopPolling();
+        if (persisted?.MetaInfo?.ID is Guid id && id != Guid.Empty)
+        {
+            int index = cases.FindIndex(item => item.MetaInfo?.ID == id);
+            if (index >= 0) cases[index] = persisted;
+            else cases.Add(persisted);
+            cases = cases.OrderBy(item => item.Name).ToList();
+        }
+        StartPollingIfNeeded();
+        return Task.CompletedTask;
+    }
+    private void StartPollingIfNeeded()
+    {
+        if (!cases.Any(Active)) return;
+        polling = new CancellationTokenSource();
+        _ = PollAsync(polling.Token);
+    }
+    private void StopPolling()
+    {
+        polling?.Cancel();
+        polling?.Dispose();
+        polling = null;
+    }
+    private string SourceName(Guid id) => trajectories.FirstOrDefault(x => x.MetaInfo?.ID == id)?.Name ??
+        (sourceNamesLoading ? "Loading…" : "Unknown trajectory");
     private Func<TargetLandingCaseLight, bool> Filter => item => string.IsNullOrWhiteSpace(search) ||
         $"{item.Name} {item.Description} {SourceName(item.SourceTrajectoryID)} {item.TargetType} {item.CurveType}".Contains(search, StringComparison.OrdinalIgnoreCase);
     private static bool Active(TargetLandingCaseLight item) => item.CalculationState is CalculationState.Queued or CalculationState.Running;
@@ -106,9 +159,8 @@ else
                 foreach (TargetLandingCaseLight item in cases.Where(Active).ToList())
                 {
                     TargetLandingCaseLight status = await Api.ClientTrajectory.GetTargetLandingCaseStatusAsync(item.MetaInfo.ID, token);
-                    item.CalculationState = status.CalculationState;
-                    item.CalculationProgress = status.CalculationProgress;
-                    item.CalculationMessage = status.CalculationMessage;
+                    int index = cases.FindIndex(candidate => candidate.MetaInfo?.ID == status.MetaInfo?.ID);
+                    if (index >= 0) cases[index] = status;
                 }
                 await InvokeAsync(StateHasChanged);
             }

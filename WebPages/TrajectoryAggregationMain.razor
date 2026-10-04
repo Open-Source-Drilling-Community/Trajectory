@@ -111,14 +111,13 @@
             selectedAggregationCaseList = [];
 
             var aggregationTask = Api.ClientTrajectory.GetAllTrajectoryAggregationCaseLightAsync();
-            var trajectoryTask = Api.ClientTrajectory.GetAllTrajectoryLightAsync();
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
 
-            await Task.WhenAll(aggregationTask, trajectoryTask, referenceDataTask);
+            await Task.WhenAll(aggregationTask, referenceDataTask);
 
             aggregationCaseList = ((ICollection<TrajectoryAggregationCaseLight>)await aggregationTask).OrderBy(x => x.Name).ToList();
-            trajectoryList = ((ICollection<TrajectoryLight>)await trajectoryTask).OrderBy(x => x.Name).ToList();
             TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
+            trajectoryList = referenceData.Trajectories.ToList();
             wellBoreList = referenceData.WellBores.ToList();
             wellList = referenceData.Wells.ToList();
             clusterList = referenceData.Clusters.ToList();

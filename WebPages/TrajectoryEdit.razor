@@ -3,6 +3,7 @@
 @inject IDialogService DialogService
 @inject IJSRuntime JSRuntime
 @inject ITrajectoryAPIUtils Api
+@inject ITrajectoryReferenceDataCache ReferenceData
 @using System.Net.Http.Json
 @using System.Globalization
 @using System.Reflection
@@ -475,7 +476,7 @@
             currentTrajectory.SurveyStationList ??= new List<SurveyStation>();
             currentTrajectory.TrajectoryIdentityAssignments ??= new List<TrajectoryIdentityAssignment>();
             currentTrajectory.TrajectoryFeatureAssignments ??= new List<TrajectoryFeatureAssignment>();
-            surveyRunList = ((IEnumerable<SurveyRunLight>)await Api.ClientTrajectory.GetAllSurveyRunLightAsync())
+            surveyRunList = (await ReferenceData.GetSnapshotAsync()).SurveyRuns
                 .Where(surveyRun => surveyRun?.MetaInfo != null)
                 .OrderBy(surveyRun => surveyRun.Name)
                 .ToList();
@@ -622,7 +623,8 @@
     {
         for (int attempt = 0; attempt < 120; attempt++)
         {
-            List<TrajectoryLight> lights = ((IEnumerable<TrajectoryLight>)await Api.ClientTrajectory.GetAllTrajectoryLightAsync()).ToList();
+            await ReferenceData.RefreshTrajectoriesAsync();
+            List<TrajectoryLight> lights = ReferenceData.Current.Trajectories.ToList();
             TrajectoryLight? light = lights.FirstOrDefault(item => item.MetaInfo?.ID == trajectoryId);
             if (light == null)
             {
