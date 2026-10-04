@@ -8,6 +8,21 @@ namespace OSDC.Drilling.Trajectory.ServiceTest;
 public sealed class OpenApiTargetLandingContractTests
 {
     [Test]
+    public void Target_landing_staleness_uses_database_timestamp_precision()
+    {
+        DateTimeOffset calculated = DateTimeOffset.Parse("2026-09-30T16:05:24.0680154+02:00");
+        DateTimeOffset stored = DateTimeOffset.Parse("2026-09-30T16:05:24+02:00");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(TargetLandingCaseManager.SameStoredRevision(calculated, stored), Is.True,
+                "Fractional seconds are not persisted in the trajectory revision column.");
+            Assert.That(TargetLandingCaseManager.SameStoredRevision(calculated, stored.AddSeconds(1)), Is.False);
+            Assert.That(TargetLandingCaseManager.SameStoredRevision(calculated, null), Is.False);
+        });
+    }
+
+    [Test]
     public void Target_landing_display_selects_reachable_side_of_bisected_boundary()
     {
         TargetPlanePoint boundaryPoint = new() { X = 10.0, Y = 20.0 };

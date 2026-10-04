@@ -188,7 +188,8 @@ public sealed class TargetLandingCaseManager
         DateTimeOffset? sourceRevision = ReadJsonDate(reader, 12);
         DateTimeOffset? currentSourceRevision = ReadDate(reader, 14);
         bool stale = state == CalculationState.Completed &&
-            (reader.IsDBNull(13) || string.IsNullOrWhiteSpace(reader.GetString(13)) || sourceRevision != currentSourceRevision);
+            (reader.IsDBNull(13) || string.IsNullOrWhiteSpace(reader.GetString(13)) ||
+                !SameStoredRevision(sourceRevision, currentSourceRevision));
         return new TargetLandingCaseLight
         {
             MetaInfo = reader.IsDBNull(0) ? null : JsonSerializer.Deserialize<MetaInfo>(reader.GetString(0), JsonSettings.Options),
@@ -454,8 +455,12 @@ public sealed class TargetLandingCaseManager
         object? result = command.ExecuteScalar();
         DateTimeOffset? currentRevision = result is string text && DateTimeOffset.TryParse(text, out DateTimeOffset parsed) ? parsed : null;
         value.IsStale = currentRevision == null || string.IsNullOrWhiteSpace(value.CalculationFingerprint) ||
-            value.SourceTrajectoryRevision != currentRevision;
+            !SameStoredRevision(value.SourceTrajectoryRevision, currentRevision);
     }
+
+    internal static bool SameStoredRevision(DateTimeOffset? calculatedRevision, DateTimeOffset? currentRevision) =>
+        calculatedRevision.HasValue && currentRevision.HasValue &&
+        calculatedRevision.Value.ToUnixTimeSeconds() == currentRevision.Value.ToUnixTimeSeconds();
 
     private static TargetLandingCaseLight ToLight(TargetLandingCase value) => new()
     {
