@@ -566,10 +566,21 @@ namespace OSDC.Drilling.Trajectory.Model
             double? north = station.RiemannianNorth;
             double? east = station.RiemannianEast;
             double? tvd = station.TVD;
-            previous.CompleteFromSIA(station, calculationType);
+
+            // CTC interpolation already returns a TrajectoryPoint3D carrying the exact curve controls.
+            // Completing it again from SIA would numerically integrate North and East only for those
+            // coordinates to be discarded below. This duplicate integration dominated dense CTC paths.
+            bool hasExactCtcControls =
+                calculationType == OSDC.DotnetLibraries.Drilling.Surveying.TrajectoryCalculationType.ConstantCurvatureAndToolfaceMethod &&
+                Numeric.IsDefined(station.Curvature) && Numeric.IsDefined(station.Toolface) &&
+                Numeric.IsDefined(station.BUR) && Numeric.IsDefined(station.TUR);
+            if (!hasExactCtcControls)
+            {
+                previous.CompleteFromSIA(station, calculationType);
+            }
 
             // Sampling has already established the authoritative section geometry. Completion is
-            // used for the curve diagnostics only, so retain those sampled coordinates exactly.
+            // used only when curve diagnostics were absent, so retain the sampled coordinates exactly.
             station.RiemannianNorth = north;
             station.RiemannianEast = east;
             station.TVD = tvd;

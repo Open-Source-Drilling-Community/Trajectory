@@ -399,7 +399,9 @@ public sealed class TargetLandingCalculatorTests
         value.CurveType = ExtrapolationCurveType.ConstantCurvatureAndToolface;
         value.MaximumLandingCurvature = 8.0 * Math.PI / 180.0 / 30.0;
 
+        System.Diagnostics.Stopwatch stopwatch = System.Diagnostics.Stopwatch.StartNew();
         Assert.That(TargetLandingCalculator.Calculate(value, U3Source(value.SourceTrajectoryID)), Is.True, value.CalculationMessage);
+        stopwatch.Stop();
         List<TargetLandingSample> samples = value.SampleList!;
         List<TargetLandingSample> rejected = samples
             .Where(sample => sample.Message?.Contains("within 3 degrees of vertical", StringComparison.Ordinal) == true)
@@ -416,6 +418,15 @@ public sealed class TargetLandingCalculatorTests
             Assert.That(samples.Any(sample => sample.Message?.Contains("maximum absolute turn rate", StringComparison.Ordinal) == true),
                 Is.False, "Turn rate is no longer a landing-path rejection criterion.");
             Assert.That(reachable, Is.Not.Empty);
+            Assert.That(stopwatch.Elapsed, Is.LessThan(TimeSpan.FromSeconds(30)),
+                "The production CTC case must not re-integrate every interpolated survey station.");
+            Assert.That(reachable.SelectMany(sample => sample.SurveyStationList?.Skip(1) ?? [])
+                .All(station => station.Curvature is double curvature && double.IsFinite(curvature) &&
+                    station.Toolface is double toolface && double.IsFinite(toolface) &&
+                    station.BUR is double buildRate && double.IsFinite(buildRate) &&
+                    station.TUR is double turnRate && double.IsFinite(turnRate) &&
+                    station.VerticalSection is double verticalSection && double.IsFinite(verticalSection)), Is.True,
+                "CTC samples must retain the exact controls supplied by curve interpolation.");
             Assert.That(reachable.SelectMany(sample => sample.ControlPointList ?? [])
                 .Any(point => point.Curvature > 1e-8 && Math.Abs(point.BuildRate) < 1e-14 && Math.Abs(point.TurnRate) < 1e-14),
                 Is.False, "A retained CTC solution must not contain the former nonzero-curvature tangent continuation.");
