@@ -11,7 +11,7 @@ The solution currently contains:
   - source OpenAPI schemas for Field, Cluster, Well, WellBore, WellBore Architecture, Survey Instrument, Earth Gravity, and Earth Magnetic Field
 - `Model`
   - domain model and trajectory calculation logic
-  - trajectory interpolation, extrapolation, and stochastic trajectory realization calculations
+  - survey correction, interpolation, aggregation, extrapolation, target landing, directional-control evaluation, uncertainty, distance, and stochastic realization calculations
 - `Service`
   - ASP.NET Core microservice exposing the Trajectory API
   - depends on `Model`
@@ -22,7 +22,7 @@ The solution currently contains:
   - auto-generated client-side classes and schemas used by consumers of the Trajectory service
   - includes the Trajectory service schema together with other relevant upstream schemas
 - `WebPages`
-  - Razor class library containing the Trajectory, TrajectoryInterpolation, and TrajectoryRealization pages and their page-specific support components
+  - reusable Razor pages for survey/trajectory management, every calculation workflow, anti-collision, import/export, catalogs, displays, and statistics
   - depends on `ModelSharedOut`
 - `WebApp`
   - ASP.NET Core Blazor host application
@@ -55,6 +55,16 @@ The repository supports the following main trajectory workflows:
 - versioned, dependency-closed backup and atomic restore
 
 Trajectory realization cases are defined from a reference trajectory and a requested number of realizations. The model optionally coarsens the reference trajectory before generation, draws realizations from the covariance-defined uncertainty field, completes the generated points with the minimum curvature method, and stores the resulting realized trajectories as lists of survey points. Large realization sets are persisted and retrieved in chunks.
+
+### Capability map
+
+| Area | Available functionality |
+| --- | --- |
+| Survey data | SurveyRun CRUD; observed-reference correction; bit extrapolation; batch import; chunked measurements/stations; uncertainty continuation through ordinary and sidetrack tie-ins |
+| Trajectories | Multi-SurveyRun composition; calculation; bounded discovery; identities/features; external-reference validation/audit; dependency-closed backup/restore |
+| Design and analysis | Interpolation; compact aggregation; stochastic realization; station ellipses; SurveyRun/Trajectory minimum distance; extrapolation; target landing; directional-control evaluation |
+| Anti-collision | Automatically reconciled uncertainty-volume octrees; asynchronous candidate scans; separation-factor profiles; immutable policy revisions and effective-dated Field assignments |
+| Interfaces | REST/OpenAPI, 176 REST-backed MCP tools plus `ping`, reusable Razor pages, and the standalone Blazor WebApp |
 
 ## Security and Confidentiality
 
@@ -111,7 +121,7 @@ The current work has been funded by the [Research Council of Norway](https://www
 
 - The service exposes its REST operations through MCP over streamable HTTP at `/trajectory/api/mcp` and WebSocket at `/trajectory/api/mcp/ws`.
 - Persisted Trajectory resources and calculation cases receive server-owned creation and initial modification timestamps; caller-provided values are not authoritative. Legacy trajectories without timestamps expose a deterministic effective revision.
-- MCP exposes 175 REST-backed tools plus `ping`; the usage-statistics controller is intentionally excluded. The unbounded full-list operations for trajectories and survey runs remain in REST for compatibility but are replaced in MCP by deterministic bounded searches. Target-landing editing and visualization use dedicated projections so clients do not transfer the full mesh-sampling aggregate. Trajectory extrapolation, target-landing, directional-control evaluation, and anti-collision policy tools publish closed inputs; calculated samples, statistics, revisions, and bundles remain server-derived. Policy mutations expose immutable revisions and optimistic-concurrency-protected, effective-dated Field assignments. Every tool publishes a title, strict input and success-output schemas, safety annotations, and operation-specific workflow guidance. Survey-run schemas distinguish observed gravity/geodetic and magnetic/true-north references from canonical WGS84-geodetic inclination and true-north azimuth. Resource-specific ellipse tools rebuild authoritative SurveyRun ancestry before projecting uncertainty onto requested display stations. Octree candidate discovery uses its queued scan/status/result workflow. Separation-factor submissions reject server-derived state, policy snapshots, classifications, and results; callers poll lightweight status and retrieve terminal profiles with SI measured-depth ranges and dimensionless separation factors.
+- MCP exposes 176 REST-backed tools plus `ping`, including read-only usage statistics. The unbounded full-list operations for trajectories and survey runs remain in REST for compatibility but are replaced in MCP by deterministic bounded searches. Target-landing editing and visualization use dedicated projections so clients do not transfer the full mesh-sampling aggregate. Trajectory extrapolation, target-landing, directional-control evaluation, and anti-collision policy tools publish closed inputs; calculated samples, statistics, revisions, and bundles remain server-derived. Policy mutations expose immutable revisions and optimistic-concurrency-protected, effective-dated Field assignments. Every tool publishes a title, strict input and success-output schemas, safety annotations, and operation-specific workflow guidance. Survey-run schemas distinguish observed gravity/geodetic and magnetic/true-north references from canonical WGS84-geodetic inclination and true-north azimuth. Resource-specific ellipse tools rebuild authoritative SurveyRun ancestry before projecting uncertainty onto requested display stations. Octree candidate discovery uses its queued scan/status/result workflow. Separation-factor submissions reject server-derived state, policy snapshots, classifications, and results; callers poll lightweight status and retrieve terminal profiles with SI measured-depth ranges and dimensionless separation factors.
 - The trajectory editor supports mean-sea-level depth references through the Vertical Datum integration.
 - Survey runs and trajectories share extensible identity and feature catalogs. Both editors support assignments; catalog definitions are managed from the `TrajectoryIdentities` and `TrajectoryFeatures` pages.
 - The Backup / Restore page creates versioned JSON backups. Survey runs may be selected independently; selecting a trajectory automatically includes its referenced survey runs and their parent chains. Schema version 2 also carries the complete immutable anti-collision policy library and historical Field assignments; version-1 documents remain restorable. Restore validates the dependency graph, policy revisions, non-overlapping assignment history, and catalogs before one atomic commit. Catalog UUIDs are matched exactly by default; normalized-name mapping requires an explicit opt-in.

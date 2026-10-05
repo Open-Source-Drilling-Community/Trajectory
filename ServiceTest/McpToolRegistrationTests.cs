@@ -11,14 +11,14 @@ namespace ServiceTest;
 public sealed class McpToolRegistrationTests
 {
     [Test]
-    public void Registration_exposes_all_non_statistics_actions_with_underscore_names()
+    public void Registration_exposes_all_supported_actions_with_underscore_names()
     {
         var endpoints = TrajectoryRestMcpToolRegistrations.Endpoints;
 
-        Assert.That(endpoints, Has.Count.EqualTo(175));
+        Assert.That(endpoints, Has.Count.EqualTo(176));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Is.Unique);
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("."));
-        Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("usage_statistics"));
+        Assert.That(endpoints.Select(endpoint => endpoint.Name), Does.Contain("trajectory_usage_statistics_get_trajectory_usage_statistics"));
     }
 
     [Test]
@@ -53,7 +53,7 @@ public sealed class McpToolRegistrationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(tools, Has.Length.EqualTo(175));
+            Assert.That(tools, Has.Length.EqualTo(176));
             Assert.That(tools.All(tool => !string.IsNullOrWhiteSpace(tool.ProtocolTool.Title)), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema.HasValue), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.Annotations is not null), Is.True);
@@ -61,6 +61,20 @@ public sealed class McpToolRegistrationTests
             Assert.That(Endpoint("trajectory_batch_export").Behavior.ReadOnlyHint, Is.True);
             Assert.That(Endpoint("trajectory_batch_restore").Behavior.DestructiveHint, Is.True);
             Assert.That(Endpoint("trajectory_delete_trajectory_by_id").Behavior.DestructiveHint, Is.True);
+        });
+    }
+
+    [Test]
+    public void Usage_statistics_is_exposed_as_a_read_only_monitoring_tool()
+    {
+        TrajectoryMcpEndpoint endpoint = Endpoint("trajectory_usage_statistics_get_trajectory_usage_statistics");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(endpoint.Description, Does.Contain("operational monitoring"));
+            Assert.That(endpoint.Description, Does.Contain("read-only"));
+            Assert.That(endpoint.Behavior.ReadOnlyHint, Is.True);
+            Assert.That(endpoint.Behavior.DestructiveHint, Is.False);
         });
     }
 
@@ -174,6 +188,28 @@ public sealed class McpToolRegistrationTests
         });
     }
 
+    [TestCase("interpolated_trajectory_post_interpolated_trajectory", "regularly sampled", "station")]
+    [TestCase("trajectory_realization_case_post_trajectory_realization_case", "stochastic", "chunks")]
+    [TestCase("trajectory_aggregation_case_post_trajectory_aggregation_case", "compact chain", "approximation")]
+    [TestCase("trajectory_minimum_distance_calculation_post_trajectory_minimum_distance_calculation", "closest-approach", "chunks")]
+    [TestCase("survey_run_minimum_distance_calculation_post_survey_run_minimum_distance_calculation", "closest-approach", "chunks")]
+    [TestCase("survey_station_ellipse_calculation_post_survey_station_ellipse_calculation", "uncertainty-ellipse", "confidence")]
+    [TestCase("survey_run_batch_import_post_survey_run_batch_import", "batch-import", "SurveyRuns")]
+    [TestCase("trajectory_extrapolation_case_post", "extrapolation", "Poll status")]
+    [TestCase("target_landing_case_post", "target-landing", "convex planar target")]
+    [TestCase("directional_control_evaluation_case_post", "directional-control", "same wellbore")]
+    public void Calculation_creation_tools_describe_their_domain_workflow(string toolName, string first, string second)
+    {
+        string description = Endpoint(toolName).Description;
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(description, Does.Contain(first).IgnoreCase, toolName);
+            Assert.That(description, Does.Contain(second).IgnoreCase, toolName);
+            Assert.That(description, Does.Contain("REST operation:"), toolName);
+        });
+    }
+
     [Test]
     public void Optional_large_payload_flags_are_documented_and_default_to_false()
     {
@@ -254,7 +290,7 @@ public sealed class McpToolRegistrationTests
             Assert.That(surveyRunSearch.InputSchema!["properties"]!["offset"]!["default"]!.GetValue<int>(), Is.Zero);
             Assert.That(endpoints.Any(value => value.Name == "trajectory_get_all_trajectory"), Is.False);
             Assert.That(endpoints.Any(value => value.Name == "survey_run_get_all_survey_run"), Is.False);
-            Assert.That(endpoints, Has.Count.EqualTo(175));
+            Assert.That(endpoints, Has.Count.EqualTo(176));
         });
     }
 

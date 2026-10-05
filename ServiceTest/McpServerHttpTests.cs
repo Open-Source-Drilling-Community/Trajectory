@@ -38,7 +38,7 @@ public sealed class McpServerHttpTests
         string[] remote = (await _client.ListToolsAsync(cancellationToken: CancellationToken.None)).Select(tool => tool.Name).ToArray();
         Assert.That(remote, Has.Length.EqualTo(176));
         Assert.That(remote, Is.Unique);
-        Assert.That(remote, Has.None.Contains("usage_statistics"));
+        Assert.That(remote, Does.Contain("trajectory_usage_statistics_get_trajectory_usage_statistics"));
     }
 
     [Test]

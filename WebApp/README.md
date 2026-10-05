@@ -2,7 +2,7 @@
 
 `WebApp` is the ASP.NET Core Blazor host application for Trajectory under `OSDC.Drilling.Trajectory.WebApp`.
 
-It provides the application shell, host-owned `/Home` route, startup configuration, routing, and static assets for the UI. Survey Run, Trajectory, trajectory extrapolation, anti-collision scan, calculation, catalog, backup/restore, and usage-statistics pages are provided by the `WebPages` Razor class library.
+It provides the application shell, host-owned `/Home` route, startup configuration, routing, and static assets for the UI. Survey Run, Trajectory, interpolation, aggregation, realization, extrapolation, target landing, directional-control evaluation, distance/ellipse, anti-collision, catalog, batch-import, backup/restore, display, and usage-statistics pages are provided by the `WebPages` Razor class library.
 
 The anti-collision scan provides case-insensitive partial-name search in its Field, Cluster, Well, WellBore, and Trajectory selectors. It submits both octree candidate discovery and selected separation-factor comparisons as background service jobs. Each phase polls a lightweight status endpoint and shows measured progress, allowing multi-minute work to continue without an HTTP request timeout; candidate UUIDs and complete calculation results are downloaded only after their respective jobs complete. Its separation-factor graph can show either the union of calculated depth intervals or the whole reference trajectory. The Anti-collision Policies page creates immutable revisions and effective-dated Field assignments; completed results display the frozen policy and per-comparison Alert/Alarm classification.
 
@@ -51,6 +51,8 @@ Home is the first side-menu entry, followed by Survey Management and Survey Calc
 Survey Calculations also includes Directional Control Evaluation. Its reusable page compares an actual trajectory with reconnect commands toward a reference trajectory in the same WellBore, monitors the server-side calculation after navigation, and retrieves large interval results by page while keeping case discovery lightweight.
 
 Trajectory and survey-run visualizations expose `Field` and `Cartographic` position references when the selected hierarchy resolves to a Field with a persisted reference point. Cartographic coordinates are resolved through the Field coordinate-conversion API; unavailable reference values fall back to WGS84.
+
+The Home page is the user-facing capability index. It documents the canonical SI/WGS84 contract, links directly to every owned workflow, explains queued calculations and chunked results, and identifies REST/OpenAPI, the 176 REST-backed MCP tools plus `ping`, and the reusable Razor package as equivalent access paths to the same persisted service state.
 
 ## Funding
 

@@ -18,6 +18,10 @@ The generated output includes client types and methods for trajectory realizatio
 
 For anti-collision clients, the generated REST sequence is `QueueOctreeSearchAsync` → repeated `GetOctreeSearchStatusAsync` calls → `GetOctreeSearchResultAsync` after completion. The returned candidate UUIDs can be selected for a durable Global Anti-Collision separation-factor request, which is then polled through its lightweight status endpoint before downloading its terminal profile and frozen policy classifications. `AntiCollisionPolicyRevision` is immutable; `FieldAntiCollisionPolicyAssignment` selects one exact revision over a UTC interval with optimistic concurrency. Whole-policy deletion removes every revision only when none is referenced by a current or historical Field assignment and requires the latest revision UUID as a concurrency token. Reference and comparison measured depths are SI metres, age thresholds are SI seconds, and separation factors are dimensionless. The MCP server advertises a narrower creation schema than the generated REST DTO: agents cannot submit server-derived calculation state, policy snapshot, classification, progress, messages, relevant-depth ranges, or results.
 
+## Generated API coverage
+
+The generated client covers SurveyRun and Trajectory CRUD/search/chunks, batch import, shared identity and feature catalogs, external-reference validation/audit, dependency-closed backup/restore, interpolation, aggregation, realization, station ellipses, SurveyRun/Trajectory minimum distance, extrapolation, target landing, directional-control evaluation, octree status/repair and queued candidate search, durable global anti-collision calculations, immutable policy revisions, effective-dated Field assignments, and usage statistics. Large calculation families expose light/status records and chunk-count/chunk operations so consumers do not need an unrestricted aggregate payload.
+
 ## Dependencies
 
 `ModelSharedOut` depends on:
@@ -30,7 +34,7 @@ For anti-collision clients, the generated REST sequence is `QueueOctreeSearchAsy
 
 - `WebPages` depends on `ModelSharedOut`.
 - client-facing generated types and schemas are produced here for use outside the core service implementation.
-- trajectory realization UI pages use the generated chunk endpoints to avoid loading large realization sets through the light case lists.
+- reusable calculation pages use generated light/status and chunk endpoints to avoid loading large station, realization, distance, target-landing, and directional-control results through discovery lists.
 
 ## Notes
 

@@ -10,6 +10,8 @@ It is the unit-test project for model-level behavior.
 
 Model-level test coverage includes trajectory interpolation, extrapolation, aggregation, uncertainty continuity, composition, and trajectory realization behavior, especially aggregation period-boundary and vertical-departure handling, coarsening, covariance-based realization generation, mirror-candidate selection, retry behavior, and minimum-curvature completion.
 
+The suite also covers survey-reference transforms and bit extrapolation, station ellipses, CA/BT/CTC fitting and controls, target-landing reachability, minimum-distance geometry, and the uncertainty continuity needed by anti-collision consumers. This complements service tests for persistence, HTTP/MCP schemas, background queues, and transactional behavior.
+
 Reconnect extrapolation tests also verify that the complete reference measured-depth advance is added after the lead-in has established the effective closest reference point.
 
 Directional-control tests verify exact CA/BT/CTC interval fitting, first-section reconnect comparisons, wrapped toolface residuals, linked two-component bundle segmentation, hard invalid-gap splitting, and same-WellBore validation. `TestData/Ullrigg/U3-MD-Incl-Az.txt` is a permitted copy of the raw Ullrigg text survey; a calibration test generates its reference automatically with Trajectory Aggregation before running the evaluation. No Valhall source data is copied into this repository.

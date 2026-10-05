@@ -9,6 +9,7 @@ It exposes the Trajectory API and depends on the `Model` project for the domain 
 - expose SurveyRun and Trajectory CRUD, search, identity/feature assignment, and chunk endpoints
 - expose interpolation, extrapolation, realization, aggregation, station-ellipse, and minimum-distance calculation cases
 - expose asynchronous uncertainty-aware target-landing design cases
+- expose directional-control evaluation, batch import, immutable anti-collision policies, and effective-dated Field assignments
 - maintain and query the derived global anti-collision octree index
 - provide versioned dependency-closed backup and atomic restore
 - provide read-only single-record external-reference validation and bounded audits
@@ -44,6 +45,8 @@ https://dev.digiwells.no/Trajectory/api/Trajectory
 https://app.digiwells.no/Trajectory/api/Trajectory
 
 https://awe.web.intra.norceresearch.no/Trajectory/api/Trajectory
+
+The controller surface covers `SurveyRun`, `Trajectory`, `SurveyRunBatchImport`, `InterpolatedTrajectory`, `TrajectoryAggregationCase`, `TrajectoryRealizationCase`, `SurveyStationEllipseCalculation`, SurveyRun/Trajectory minimum-distance calculations, `TrajectoryExtrapolationCase`, `TargetLandingCase`, `DirectionalControlEvaluationCase`, `Octrees`, `GlobalAntiCollisions`, anti-collision policy revisions and Field assignments, shared identity/feature catalogs, and usage statistics. Prefer light/status and chunk endpoints for discovery, polling, and large results.
 
 Trajectory realization cases are exposed through:
 
@@ -82,7 +85,7 @@ Within each ellipse calculation, every vertical ellipse uses the same first-to-l
 
 - `Model` contains the main model and trajectory calculation logic used by the service.
 - `ModelSharedOut` contains generated client-side types and service schemas for consumers.
-- `WebPages` contains the reusable Razor UI pages for Trajectory, TrajectoryInterpolation, and TrajectoryRealization.
+- `WebPages` contains the reusable Razor UI pages for all survey/trajectory management, calculation, anti-collision, catalog, and import/export workflows.
 - `WebApp` is the host application that renders the UI using `WebPages`.
 
 ## Persistence and identity cutover
@@ -91,7 +94,7 @@ The service keeps its historical API path (`/Trajectory/api` case-insensitively)
 
 Each database uses private SQLite connection caches, a bounded busy timeout, and WAL journaling. Concurrent HTTP and background-calculation transactions therefore wait for the active writer instead of failing immediately with `SQLITE_LOCKED`; this does not make multiple service replicas safe, so the one-replica `Recreate` requirement still applies.
 
-Fresh `Trajectory.db` files are created transactionally at schema version 8. Version-1 through version-7 databases are upgraded additively in one transaction. The upgrade preserves survey/trajectory data, shared catalogs, extrapolation cases, policies, and assignments while adding the target-landing case table where absent. Version 5 target-landing rows gain and backfill dedicated name, description, source-revision, fingerprint, and compact edit-data columns. Version 6 trajectory rows gain and backfill dedicated name and description columns; trajectory light-list queries read only scalar columns and never deserialize complete trajectory JSON. The version-7-to-8 upgrade adds a compact target-landing covering index so light listing and status polling do not traverse the large result value merely to reach scalar columns stored after it. The legacy catalog file is deliberately retained as a rollback copy. Unexpected tables, missing or malformed columns, malformed legacy catalogs, and newer schema versions fail startup without automatic deletion or reconstruction.
+Fresh `Trajectory.db` files are created transactionally at schema version 9. Version-1 through version-8 databases are upgraded additively in one transaction. The upgrade preserves survey/trajectory data, shared catalogs, extrapolation cases, policies, and assignments while adding newer calculation tables where absent. Version 5 target-landing rows gain and backfill dedicated name, description, source-revision, fingerprint, and compact edit-data columns. Version 6 trajectory rows gain and backfill dedicated name and description columns; trajectory light-list queries read only scalar columns and never deserialize complete trajectory JSON. Version 8 adds a compact target-landing covering index so light listing and status polling do not traverse the large result value merely to reach scalar columns stored after it. Version 9 adds compact directional-control cases and separate sample chunks. The legacy catalog file is deliberately retained as a rollback copy. Unexpected tables, missing or malformed columns, malformed legacy catalogs, and newer schema versions fail startup without automatic deletion or reconstruction.
 
 `GlobalAntiCollision.db` is a derived spatial index stored on the same persistent volume. Schema version 2 separates one-row-per-trajectory state (`TrajectoryType`, `IsDefinitive`, source modification time, and calculation provenance) from coarse octree bucket memberships. Each membership is uniquely keyed by octree depth/code and trajectory UUID and stores that trajectory's compacted detailed codes as a BLOB. Spatial lookup uses the bucket index first, joins the trajectory state for filtering, and then performs exact octree intersection on the detailed codes.
 
@@ -125,13 +128,14 @@ The current work has been funded by the [Research Council of Norway](https://www
 
 ## MCP server
 
-The service publishes its non-statistics REST actions as MCP tools. Tool registration discovers controller actions and preserves support for asynchronous operations, chunked trajectory data, filters, and multi-ID requests. Every tool has a human-readable title, an operation-specific description, strict JSON input and success-output schemas, and read-only/destructive/idempotent/open-world safety annotations. Input schemas include nested model properties, non-empty UUID and date-time formats, enum values, defaults, nullability, and SI-unit guidance. Unknown top-level arguments are rejected before controller invocation; the octree-scan and separation-factor binders also reject unknown nested fields and invalid cross-field combinations before any job is queued.
+The service publishes its supported REST actions as MCP tools. Tool registration discovers controller actions and preserves support for asynchronous operations, chunked trajectory data, filters, and multi-ID requests. Every tool has a human-readable title, an operation-specific description, strict JSON input and success-output schemas, and read-only/destructive/idempotent/open-world safety annotations. Input schemas include nested model properties, non-empty UUID and date-time formats, enum values, defaults, nullability, and SI-unit guidance. Unknown top-level arguments are rejected before controller invocation; the octree-scan and separation-factor binders also reject unknown nested fields and invalid cross-field combinations before any job is queued.
 
 - Streamable HTTP: `/trajectory/api/mcp`
 - WebSocket: `/trajectory/api/mcp/ws`
-- Published controller tools: 153
+- Published controller tools: 176
 - Utility tools: `ping`
-- Excluded surface: `TrajectoryUsageStatisticsController`
+
+The 176-tool contract covers every controller action except the two unbounded primary-resource full-list operations, which are deliberately replaced by bounded Trajectory and SurveyRun searches. Calculation creation tools describe their domain inputs and SI units; light/status tools describe polling; chunk tools describe zero-based retrieval; and mutation schemas remove timestamps, calculation state, results, policy snapshots, and other server-derived fields. Usage statistics are exposed read-only. OpenAPI remains authoritative and the generated REST client continues to expose the compatibility full lists.
 
 The descriptions explain the service workflows as well as individual calls. In particular, survey-measurement chunks are uploaded with zero-based indexes and then committed; calculation cases are created and polled through `CalculationState`/`CalculationProgress`; large station, realization, minimum-distance, and aggregation results are retrieved through chunk-count and chunk tools. Octree indexes are maintained automatically by trajectory writes and startup reconciliation. Spatial-index algorithm version 3 represents the 99.9%-confidence uncertainty volume with a compact, one-cell-padded conservative swept-AABB cover at detailed depth 22. Filling the swept interiors and end regions closes the former strict-containment and open-end blind spots; AABB corner space can deliberately yield false-positive candidates that the separation-factor narrow phase rejects. Compaction never crosses the cache depth, preserving exact bucket lookup. Existing trajectory data is untouched, while prior derived indexes become stale by provenance hash and are rebuilt automatically. `GET Octrees/{id}/Status` exposes `Missing`, `NotIndexable`, `Stale`, or `Current` plus algorithm/calculation provenance and compact counts; the list operation can filter indexed UUIDs by `TrajectoryType` and `IsDefinitive`. Octree candidate discovery is asynchronous only: `octrees_queue_search` queues it, `octrees_get_search_status` reports actual bucket-loading and exact-intersection progress, `octrees_get_search_result` transfers unique candidate UUIDs only after completion, and `octrees_delete_search` removes the transient job. The MCP request schema rejects an empty planned/actual selection. The fixed 0.999 index confidence is a conservative superset of every downstream confidence accepted by the API, whose maximum is also 0.999. Jobs expire one hour after reaching a terminal state and may be safely resubmitted after a service restart. Searches combine planned/actual selection with an optional definitive-only restriction, exclude the reference trajectory, and refuse a non-current reference index. POST/PUT index actions are documented as operational repairs and return the resulting status, while DELETE explicitly removes only rebuildable derived data. Unless a field explicitly says otherwise, lengths, depths, coordinates, and distances are metres, angles are radians, and curvature is radians per metre. Octree and mesh-refinement maximum depths are dimensionless subdivision/recursion levels, not physical depths.
 

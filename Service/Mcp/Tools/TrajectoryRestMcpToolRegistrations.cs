@@ -15,7 +15,6 @@ public static class TrajectoryRestMcpToolRegistrations
     private static readonly NullabilityInfoContext Nullability = new();
     private static readonly Type[] ControllerTypes = typeof(TrajectoryController).Assembly.GetTypes()
         .Where(type => !type.IsAbstract && typeof(ControllerBase).IsAssignableFrom(type))
-        .Where(type => type != typeof(TrajectoryUsageStatisticsController))
         .OrderBy(type => type.FullName, StringComparer.Ordinal)
         .ToArray();
 

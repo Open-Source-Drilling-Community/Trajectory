@@ -16,6 +16,7 @@ It currently provides routed pages for:
 - trajectory aggregation
 - trajectory extrapolation, including fixed continuation, reference-trajectory reconnection, and constrained well-path solving
 - target-landing design into convex driller or uncertainty-reduced geological targets
+- directional-control evaluation with bundled CA/BT/CTC command residuals
 - survey-run and trajectory minimum-distance calculations
 - `AntiCollisionScan`, for filtered octree candidate discovery and separation-factor tables and profiles
 - supporting UI components used by those pages
@@ -25,7 +26,11 @@ It currently provides routed pages for:
 
 ## Purpose
 
-This package makes the Trajectory, TrajectoryInterpolation, and TrajectoryRealization pages reusable from another ASP.NET Core Blazor host application without copying the page source into that host.
+This package makes the complete Trajectory survey-management, calculation, anti-collision, catalog, import/export, display, and statistics UI reusable from another ASP.NET Core Blazor host application without copying the page source into that host. Unit-, depth-, position-, azimuth-, geodetic-, and time-reference choices change presentation while submitted engineering values remain canonical SI/WGS84.
+
+## Directional control evaluation UI
+
+`DirectionalControlEvaluation` selects one WellBore followed by separate reference and actual trajectories, then compares exact CA, BT, or CTC fits of actual intervals with the first reconnect command toward the reference. It polls the compact server status, pages residual samples, colors the linked residual scatter by depth bundle, displays joint 3D empirical probability and marginal statistics, and applies the selected depth/unit references to legends and tables.
 
 Trajectory and survey-run plots offer `Field` and `Cartographic` position references when the selected resource resolves to a Field with a persisted reference point. The Field offset comes from the authoritative Field contract, while the cartographic offset is calculated through the Field coordinate-conversion API. Unavailable references fall back to WGS84 rather than presenting or relabelling zero-offset coordinates.
 

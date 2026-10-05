@@ -8,6 +8,8 @@ This project defines the core model types and computational behavior for traject
 
 It is the main implementation project behind the Trajectory service. It does not own database or HTTP behavior; those concerns belong to `Service`.
 
+The model owns survey-reference correction and uncertainty propagation; SurveyRun composition into trajectories; regular interpolation; compact multi-section aggregation; covariance-based stochastic realizations; station uncertainty ellipses; SurveyRun and Trajectory minimum-distance calculations; four trajectory-extrapolation modes; target-landing reachability; directional-control evaluation; and the trajectory uncertainty geometry consumed by anti-collision indexing and separation-factor calculation. Long-running service workflows keep configuration separate from calculated samples and other derived state.
+
 ## Main Features
 
 - trajectory domain objects and persistence models
@@ -15,6 +17,8 @@ It is the main implementation project behind the Trajectory service. It does not
 - durable trajectory extrapolation cases for fixed-length continuation, reconnection to another trajectory, and constrained multi-section well paths
 - durable target-landing cases for uncertainty-aware landing into convex oriented planar targets
 - stochastic trajectory realization cases
+- compact trajectory aggregation, station-ellipse, and SurveyRun/Trajectory minimum-distance calculations
+- directional-control evaluation using exact CA, BT, or CTC interval fits and linked residual bundles
 - shared identity and feature catalog models, with assignments on both survey runs and trajectories
 - versioned backup/restore contract types for dependency-closed survey-run/trajectory documents and the immutable anti-collision policy/Field-assignment history
 - deterministic bounded search-result contracts for trajectory and survey-run discovery

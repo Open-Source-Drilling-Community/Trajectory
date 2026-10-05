@@ -3,8 +3,9 @@
 <MudText Class="mx-4 px-4 mt-4" Typo="Typo.h2">OSDC Trajectory</MudText>
 <MudDivider Class="mb-4" />
 <MudText Class="mx-6 px-6" Typo="Typo.body1">
-    This microservice owns measured survey runs, calculated or imported trajectories, their interpolation,
-    stochastic realization, uncertainty, and anti-collision calculations, and the shared identity and feature
+    This microservice owns measured survey runs, calculated or imported trajectories, interpolation, aggregation,
+    stochastic realization, extrapolation, target landing, directional-control evaluation, uncertainty, distance,
+    and anti-collision calculations, and the shared identity and feature
     catalogs used to classify them. It persists to SQLite, enforces optimistic concurrency on every mutation, and
     exposes the same operations through a REST API, an MCP server, and a Blazor web application, so a survey run or
     trajectory created or edited in one interface is immediately visible through the others. Engineering values are
@@ -87,6 +88,22 @@
         as chunked lists of realized survey points — useful for Monte-Carlo style visualization of where the actual
         wellbore could plausibly be. Realization generation uses the same lineage-aware rematerialization and fails
         closed when the reference trajectory's uncertainty ancestry cannot be reconstructed.
+    </MudText>
+</MudPaper>
+
+<MudPaper Class="mx-4 px-4 pa-6 mt-4" Elevation="2">
+    <MudText Typo="Typo.h5" Class="mb-3">Aggregation and realization</MudText>
+    <MudText Typo="Typo.body1" Class="mb-2">
+        <MudLink Href="/Trajectory/webapp/TrajectoryAggregation">Aggregation</MudLink> replaces dense source
+        trajectories with a small, fitted chain of curve sections over
+        common periods, reports the remaining approximation error, and samples the compact result with DLS, build
+        rate, and turn rate. This is useful for creating a simpler planned reference without copying every original
+        survey interval.
+    </MudText>
+    <MudText Typo="Typo.body1">
+        <MudLink Href="/Trajectory/webapp/TrajectoryRealization">Trajectory Realizations</MudLink> draw alternative
+        paths from the reference trajectory's reconstructed covariance field. Both workflows persist their cases;
+        lightweight lists and calculation state remain small while large results are retrieved in chunks.
     </MudText>
 </MudPaper>
 
@@ -320,8 +337,8 @@
     </MudText>
     <MudText Typo="Typo.body1">
         Restoring validates the complete dependency graph, resolves the shared identity/feature catalogs — matching
-        catalog UUIDs exactly by default, with normalized-name mapping available only as an explicit opt-in — writes
-        validates policy revisions and non-overlapping assignment intervals, writes survey runs before the trajectories
+        catalog UUIDs exactly by default, with normalized-name mapping available only as an explicit opt-in — validates
+        policy revisions and non-overlapping assignment intervals, writes survey runs before the trajectories
         that reference them, and commits every record in one transaction without
         recalculation, so a restore of many survey runs and trajectories either succeeds completely or leaves the
         database untouched. <MudLink Href="/Trajectory/webapp/SurveyRunBatchImport">Batch Import</MudLink> offers a
@@ -373,9 +390,10 @@
                 <td><b>REST API</b></td>
                 <td>
                     JSON endpoints under <code>/Trajectory/api</code> for survey-run and trajectory CRUD, chunked
-                    measurement/station transfer, identity and feature catalog management, interpolation,
-                    realization, aggregation, station-ellipse, minimum-distance, asynchronous octree candidate scans,
-                    durable separation-factor jobs, and octree status/repair operations,
+                    measurement/station transfer, batch import, identity and feature catalog management, interpolation,
+                    realization, aggregation, station ellipses, minimum distance, extrapolation, target landing,
+                    directional-control evaluation, asynchronous octree candidate scans, durable separation-factor
+                    jobs, immutable policies/Field assignments, and octree status/repair operations,
                     external-reference validation/audit, and batch export/restore, documented and explorable through
                     the Swagger UI at <code>/Trajectory/api/swagger</code>. Suited to scripts, backend integration,
                     and any HTTP client.
@@ -385,10 +403,11 @@
                 <td><b>MCP</b></td>
                 <td>
                     A Model Context Protocol server exposed as Streamable HTTP at <code>/Trajectory/api/mcp</code>
-                    (and WebSocket at <code>/Trajectory/api/mcp/ws</code>), publishing 130 REST-backed tools plus
+                    (and WebSocket at <code>/Trajectory/api/mcp/ws</code>), publishing 176 REST-backed tools plus
                     connectivity <code>ping</code>. The two unrestricted primary-resource list operations are omitted
                     in favor of bounded search tools. Strict, closed input/output JSON Schemas guide agents through
-                    queued octree scan/status/result calls and durable separation-factor queue/status/result calls;
+                    survey/trajectory management and every calculation family, including queued status/result and
+                    zero-based chunk workflows;
                     invalid filter combinations, comparison sets, reference choices, and caller-supplied derived
                     calculation fields are rejected before work is queued.
                 </td>
