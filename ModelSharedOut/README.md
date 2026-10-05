@@ -55,3 +55,5 @@ dotnet run --project .\ModelSharedOut\ModelSharedOut.csproj
 ```
 
 Accept the overwrite prompt after reviewing the inputs. The generator updates `TrajectoryMergedModel.cs`, `PseudoConstructors.cs`, and `Service/wwwroot/json-schema/TrajectoryMergedModel.json` together. Build the full solution and run the contract tests after generation; do not patch the generated C# client directly.
+
+The target-landing client includes the lazy `GetTargetLandingCaseUncertaintyDisplayDataAsync` projection. It returns only MD-keyed perpendicular ellipse parameters needed by the Cartesian display; target-plane landing ellipses remain part of boundary samples in `DisplayData`.

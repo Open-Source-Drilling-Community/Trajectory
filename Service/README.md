@@ -170,3 +170,7 @@ The databases and usage history are relative to the service working directory an
 `TrajectoryIdentity` and `TrajectoryFeatureCategory` are common catalogs for both Survey Run and Trajectory resources. Catalog CRUD uses optimistic concurrency through `expectedModifiedUtc`. Referenced definitions and options cannot be deleted, and resource writes reject missing catalog references, duplicate assignment UUIDs, unsupported validity dates, invalid periods, and overlapping assignments in exclusive categories.
 
 Catalogs are stored in `Trajectory.db`, like the sibling DigiWells microservices. This gives resource and catalog restore genuine all-or-nothing SQLite transaction semantics. On the first version-2 startup, definitions from the former `TrajectoryCatalog.db` are copied without removing or modifying that file.
+
+### Target-landing uncertainty display
+
+`GET TargetLandingCase/{id}/UncertaintyDisplayData` is the lazy companion to the compact target-landing display projection. It calculates only MD-keyed perpendicular ellipse parameters for the source trajectory and sampled lead at the case confidence. It omits duplicate stations, horizontal and vertical ellipses, and extreme paths; landing endpoints already carry their target-plane projected ellipse in the ordinary display result.

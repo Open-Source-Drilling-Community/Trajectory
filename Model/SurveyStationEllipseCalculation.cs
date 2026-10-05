@@ -81,6 +81,48 @@ namespace OSDC.Drilling.Trajectory.Model
             return hasResult;
         }
 
+        /// <summary>
+        /// Calculates only the perpendicular ellipse needed by compact three-dimensional displays.
+        /// This avoids computing unused horizontal, vertical and extreme-TVD results.
+        /// </summary>
+        public bool CalculatePerpendicularOnly()
+        {
+            if (!Numeric.IsDefined(ConfidenceFactor) || !Numeric.GT(ConfidenceFactor, 0.0) ||
+                !Numeric.LE(ConfidenceFactor, MaximumConfidenceFactor) ||
+                SurveyStationList is not { Count: > 0 } surveyStations)
+            {
+                CalculationMessage = $"Confidence factor must be greater than 0 and no greater than {MaximumConfidenceFactor.ToString(CultureInfo.InvariantCulture)} and at least one survey station is required.";
+                SurveyStationEllipseResultList = null;
+                HighestTvdSurveyPointList = null;
+                LowestTvdSurveyPointList = null;
+                return false;
+            }
+
+            if (!EnsureCovariance(surveyStations))
+            {
+                SurveyStationEllipseResultList = null;
+                HighestTvdSurveyPointList = null;
+                LowestTvdSurveyPointList = null;
+                return false;
+            }
+
+            SurveyStationEllipseResultList = surveyStations
+                .OrderBy(station => station.MD ?? station.Abscissa ?? double.MaxValue)
+                .Select(station => new SurveyStationEllipseResult
+                {
+                    MD = station.MD ?? station.Abscissa,
+                    PerpendicularEllipse = CalculateEllipse(station, EllipseProjection.Perpendicular)
+                })
+                .Where(result => result.PerpendicularEllipse != null)
+                .ToList();
+            HighestTvdSurveyPointList = null;
+            LowestTvdSurveyPointList = null;
+            if (SurveyStationEllipseResultList.Count > 0) return true;
+
+            CalculationMessage = "No perpendicular uncertainty ellipse could be calculated from the survey station covariance matrices.";
+            return false;
+        }
+
         private bool EnsureCovariance(List<SurveyStation> surveyStations)
         {
             if (surveyStations.All(HasUsableCovariance))

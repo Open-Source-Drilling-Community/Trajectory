@@ -64,6 +64,7 @@ public sealed class OpenApiTargetLandingContractTests
         {
             statistics.IncrementOperation("GetTargetLandingCaseEditData");
             statistics.IncrementOperation("GetTargetLandingCaseDisplayData");
+            statistics.IncrementOperation("GetTargetLandingCaseUncertaintyDisplayData");
         });
         Assert.Multiple(() =>
         {
@@ -71,6 +72,8 @@ public sealed class OpenApiTargetLandingContractTests
             Assert.That(statistics.GetTargetLandingCaseEditDataPerDay.Data[0].Count, Is.EqualTo(1));
             Assert.That(statistics.GetTargetLandingCaseDisplayDataPerDay.Data, Has.Count.EqualTo(1));
             Assert.That(statistics.GetTargetLandingCaseDisplayDataPerDay.Data[0].Count, Is.EqualTo(1));
+            Assert.That(statistics.GetTargetLandingCaseUncertaintyDisplayDataPerDay.Data, Has.Count.EqualTo(1));
+            Assert.That(statistics.GetTargetLandingCaseUncertaintyDisplayDataPerDay.Data[0].Count, Is.EqualTo(1));
         });
     }
 
@@ -103,8 +106,12 @@ public sealed class OpenApiTargetLandingContractTests
                 .And.Contain("private bool UpdateProgress")
                 .And.Not.Contain("_ = Task.Run(() => RecalculateAsync"),
                 "Listing and progress polling must not parse or rewrite the heavy result, and request handlers must not launch fire-and-forget calculations.");
+            Assert.That(manager, Does.Contain("calculation.CalculatePerpendicularOnly()")
+                .And.Contain("calculation.SurveyStationList = null;"),
+                "The optional uncertainty projection must calculate only perpendicular ellipses and must never duplicate source or lead stations in its response.");
             Assert.That(controller, Does.Contain("GetTargetLandingCaseEditData")
-                .And.Contain("GetTargetLandingCaseDisplayData"));
+                .And.Contain("GetTargetLandingCaseDisplayData")
+                .And.Contain("GetTargetLandingCaseUncertaintyDisplayData"));
             Assert.That(controller, Does.Contain("CompactResponseJson")
                 .And.Contain("JsonIgnoreCondition.WhenWritingNull")
                 .And.Contain("new JsonResult(value, CompactResponseJson)"),

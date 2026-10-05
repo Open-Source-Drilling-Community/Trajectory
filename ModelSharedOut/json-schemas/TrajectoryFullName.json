@@ -3146,6 +3146,37 @@
         }
       }
     },
+    "/TargetLandingCase/{id}/UncertaintyDisplayData": {
+      "get": {
+        "tags": [
+          "TargetLandingCase"
+        ],
+        "operationId": "GetTargetLandingCaseUncertaintyDisplayData",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyStationEllipseCalculation"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/TargetLandingCase/{id}/Status": {
       "get": {
         "tags": [
@@ -12129,6 +12160,9 @@
             "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
           },
           "GetTargetLandingCaseDisplayDataPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetTargetLandingCaseUncertaintyDisplayDataPerDay": {
             "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
           },
           "GetTargetLandingCaseStatusPerDay": {

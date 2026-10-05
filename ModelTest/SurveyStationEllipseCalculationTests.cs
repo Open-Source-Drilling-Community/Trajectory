@@ -161,4 +161,40 @@ public sealed class SurveyStationEllipseCalculationTests
             Covariance = covariance
         };
     }
+
+    [Test]
+    public void Perpendicular_only_calculation_omits_unrequested_results()
+    {
+        SymmetricMatrix3x3 covariance = new();
+        covariance[0, 0] = 4.0;
+        covariance[1, 1] = 9.0;
+        covariance[2, 2] = 16.0;
+        covariance[0, 1] = covariance[0, 2] = covariance[1, 2] = 0.0;
+        SurveyStationEllipseCalculation calculation = new()
+        {
+            ConfidenceFactor = 0.95,
+            SurveyStationList =
+            [
+                new SurveyStation
+                {
+                    MD = 100.0, Inclination = 0.7, Azimuth = 0.4,
+                    RiemannianNorth = 20.0, RiemannianEast = 5.0, TVD = 90.0,
+                    Covariance = covariance
+                }
+            ]
+        };
+
+        Assert.That(calculation.CalculatePerpendicularOnly(), Is.True, calculation.CalculationMessage);
+        Assert.That(calculation.SurveyStationEllipseResultList, Has.Count.EqualTo(1));
+        SurveyStationEllipseResult result = calculation.SurveyStationEllipseResultList![0];
+        Assert.Multiple(() =>
+        {
+            Assert.That(result.MD, Is.EqualTo(100.0));
+            Assert.That(result.PerpendicularEllipse, Is.Not.Null);
+            Assert.That(result.HorizontalEllipse, Is.Null);
+            Assert.That(result.VerticalEllipse, Is.Null);
+            Assert.That(calculation.HighestTvdSurveyPointList, Is.Null);
+            Assert.That(calculation.LowestTvdSurveyPointList, Is.Null);
+        });
+    }
 }

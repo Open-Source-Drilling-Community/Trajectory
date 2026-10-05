@@ -81,6 +81,7 @@ namespace OSDC.Drilling.Trajectory.Model
         public History GetTargetLandingCaseByIdPerDay { get; set; } = new History();
         public History GetTargetLandingCaseEditDataPerDay { get; set; } = new History();
         public History GetTargetLandingCaseDisplayDataPerDay { get; set; } = new History();
+        public History GetTargetLandingCaseUncertaintyDisplayDataPerDay { get; set; } = new History();
         public History GetTargetLandingCaseStatusPerDay { get; set; } = new History();
         public History PostTargetLandingCasePerDay { get; set; } = new History();
         public History PutTargetLandingCaseByIdPerDay { get; set; } = new History();

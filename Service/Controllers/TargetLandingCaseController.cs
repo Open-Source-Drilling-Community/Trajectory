@@ -75,6 +75,18 @@ public sealed class TargetLandingCaseController : ControllerBase
             : NotFound(Error("not_found", "The target landing case does not exist."));
     }
 
+    [HttpGet("{id}/UncertaintyDisplayData", Name = "GetTargetLandingCaseUncertaintyDisplayData")]
+    [ProducesResponseType<SurveyStationEllipseCalculation>(StatusCodes.Status200OK)]
+    public ActionResult<SurveyStationEllipseCalculation> GetUncertaintyDisplayData(Guid id)
+    {
+        UsageStatisticsTrajectory.Instance.IncrementOperation("GetTargetLandingCaseUncertaintyDisplayData");
+        if (id == Guid.Empty) return BadRequest(Error("invalid_id", "A non-empty target-landing-case UUID is required."));
+        SurveyStationEllipseCalculation? value = manager_.GetUncertaintyDisplayById(id);
+        return value != null
+            ? new JsonResult(value, CompactResponseJson)
+            : NotFound(Error("not_found", "The target landing case or its source trajectory does not exist."));
+    }
+
     [HttpGet("{id}/Status", Name = "GetTargetLandingCaseStatus")]
     [ProducesResponseType<TargetLandingCaseLight>(StatusCodes.Status200OK)]
     public ActionResult<TargetLandingCaseLight> GetStatus(Guid id)

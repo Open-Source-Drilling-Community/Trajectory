@@ -828,7 +828,10 @@ public sealed class WebPageComponentContractTests
             Assert.That(editor, Does.Contain("QuantityLabel=\"Latitude\"").And.Contain("QuantityLabel=\"Longitude\""));
             Assert.That(editor, Does.Contain("DrillingSignalReferenceType.Geodetic").And.Contain("PlaneAngleGeodesic"));
             Assert.That(editor, Does.Not.Contain("OriginCoordinateMode").And.Not.Contain("PolygonCoordinateMode").And.Not.Contain("Riemannian North"));
-            Assert.That(editor, Does.Contain("<MudTh>Plane X</MudTh><MudTh>Plane Y</MudTh><MudTh>Radial distance</MudTh><MudTh>Angle</MudTh>"));
+            Assert.That(editor, Does.Contain("<MudTh>Plane X [@LengthUnitLabel]</MudTh>")
+                .And.Contain("<MudTh>Plane Y [@LengthUnitLabel]</MudTh>")
+                .And.Contain("<MudTh>Radial distance [@LengthUnitLabel]</MudTh>")
+                .And.Contain("<MudTh>Angle [@AngleUnitLabel]</MudTh>"));
             Assert.That(editor, Does.Contain("The angle follows the toolface convention"));
             Assert.That(editor, Does.Contain("SetX(context, x)").And.Contain("SetY(context, x)").And.Contain("SetRadius(context, x)").And.Contain("SetAngle(context, x)"));
             Assert.That(editor, Does.Not.Contain("CoordinateEditorKey").And.Not.Contain("RefreshPolygonRow"));
@@ -926,7 +929,7 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("saved result predates inclination-aware normalized curve controls")
                 .And.Contain("Run Save and calculate against the current Trajectory service"),
                 "Legacy results must explain why exact-control graphs cannot be drawn instead of silently showing empty plot areas.");
-            Assert.That(editor, Does.Contain("SplitControlPath(sample)")
+            Assert.That(editor, Does.Contain("SplitControlPath(sample,false)")
                 .And.Contain("VerticalControlDisplayInclination=3.0*Math.PI/180.0")
                 .And.Contain("point.Inclination.HasValue&&ControlPointIsFinite(point)")
                 .And.Contain("ControlPointIsNearVertical")
@@ -1001,6 +1004,15 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("ZAxisTitle=\"TVD\"")
                 .And.Contain("ZAxisReversed=\"true\""),
                 "The Cartesian view must combine the chunked source trajectory, target boundaries, lead path, and landing paths in unit-aware N/E/TVD coordinates.");
+            Assert.That(editor, Does.Contain("Reference perpendicular ellipses")
+                .And.Contain("Lead perpendicular ellipses")
+                .And.Contain("Landing ellipses in target plane")
+                .And.Contain("GetTargetLandingCaseUncertaintyDisplayDataAsync")
+                .And.Contain("PerpendicularEllipsePoints")
+                .And.Contain("TargetPlaneEllipsePoints")
+                .And.Contain("sample.LandingEllipseInTargetPlane")
+                .And.Not.Contain("Extended path perpendicular ellipses"),
+                "The Cartesian view must offer perpendicular uncertainty only for the reference and lead, while landing-path ellipses remain projected in the target plane.");
             Assert.That(navigation, Does.Contain("/Trajectory/webapp/TargetLanding"));
         });
     }

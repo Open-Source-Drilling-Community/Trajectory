@@ -5743,6 +5743,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				GetTargetLandingCaseByIdPerDay = ConstructHistory(),
 				GetTargetLandingCaseEditDataPerDay = ConstructHistory(),
 				GetTargetLandingCaseDisplayDataPerDay = ConstructHistory(),
+				GetTargetLandingCaseUncertaintyDisplayDataPerDay = ConstructHistory(),
 				GetTargetLandingCaseStatusPerDay = ConstructHistory(),
 				PostTargetLandingCasePerDay = ConstructHistory(),
 				PutTargetLandingCaseByIdPerDay = ConstructHistory(),

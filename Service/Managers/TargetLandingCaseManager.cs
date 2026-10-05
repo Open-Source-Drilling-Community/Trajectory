@@ -125,6 +125,40 @@ public sealed class TargetLandingCaseManager
         return value;
     }
 
+    public SurveyStationEllipseCalculation? GetUncertaintyDisplayById(Guid id)
+    {
+        TargetLandingCase? value = ReadById(id, includeSamples: true, refreshStale: false);
+        if (value == null) return null;
+        Model.Trajectory? source = trajectoryManager_.GetTrajectoryById(value.SourceTrajectoryID, includeCalculatedStations: true);
+        if (source?.SurveyStationList is not { Count: > 0 } sourceStations) return null;
+
+        List<SurveyStation> stations = sourceStations
+            .OrderBy(station => station.MD ?? station.Abscissa ?? double.MaxValue)
+            .Select(station => new SurveyStation(station))
+            .ToList();
+        foreach (SurveyStation station in value.LeadSurveyStationList ?? [])
+        {
+            double? md = station.MD ?? station.Abscissa;
+            if (md.HasValue && stations.Any(existing =>
+                    Math.Abs((existing.MD ?? existing.Abscissa ?? double.MaxValue) - md.Value) <= 1e-9))
+                continue;
+            stations.Add(new SurveyStation(station));
+        }
+
+        SurveyStationEllipseCalculation calculation = new()
+        {
+            ConfidenceFactor = value.ConfidenceFactor,
+            SurveyStationList = stations
+        };
+        calculation.CalculatePerpendicularOnly();
+
+        // Positions are already available from the chunked source and compact landing display
+        // payloads. Return only MD-keyed ellipse parameters to avoid duplicating the trajectory,
+        // including when calculation cannot produce an ellipse and returns a diagnostic message.
+        calculation.SurveyStationList = null;
+        return calculation;
+    }
+
     internal static List<TargetLandingSample> SelectReachableBoundarySamples(TargetLandingCase value,
         int maximumSampleCount = 250)
     {

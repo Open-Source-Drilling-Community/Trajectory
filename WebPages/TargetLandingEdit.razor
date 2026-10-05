@@ -74,12 +74,12 @@
     <MudStack Row="true" AlignItems="AlignItems.Center"><MudText Typo="Typo.subtitle1">Convex target polygon</MudText><MudButton Color="Color.Success" OnClick="AddVertex">Add vertex</MudButton></MudStack>
     <MudText Typo="Typo.body2" Class="mb-2">Plane Y is the projection of vertical upward into the target plane; Plane X is perpendicular to Plane Y and the forward plane normal. For a horizontal target plane, Plane X is North and Plane Y is East. The angle follows the toolface convention: zero along positive Plane Y and positive toward positive Plane X.</MudText>
     <MudTable T="TargetPlanePoint" Items="@Polygon" Dense="true" Bordered="true">
-        <HeaderContent><MudTh>#</MudTh><MudTh>Plane X</MudTh><MudTh>Plane Y</MudTh><MudTh>Radial distance</MudTh><MudTh>Angle</MudTh><MudTh></MudTh></HeaderContent>
+        <HeaderContent><MudTh>#</MudTh><MudTh>Plane X [@LengthUnitLabel]</MudTh><MudTh>Plane Y [@LengthUnitLabel]</MudTh><MudTh>Radial distance [@LengthUnitLabel]</MudTh><MudTh>Angle [@AngleUnitLabel]</MudTh><MudTh></MudTh></HeaderContent>
         <RowTemplate><MudTd>@Polygon.IndexOf(context)</MudTd>
-            <MudTd><StableMudInputWithUnitAdornment QuantityName="LengthStandard" QuantityLabel="X" SIValue="@context.X" SIValueChanged="x => SetX(context, x)" /></MudTd>
-            <MudTd><StableMudInputWithUnitAdornment QuantityName="LengthStandard" QuantityLabel="Y" SIValue="@context.Y" SIValueChanged="x => SetY(context, x)" /></MudTd>
-            <MudTd><StableMudInputWithUnitAdornment QuantityName="LengthStandard" QuantityLabel="Radial distance" SIValue="@Radius(context)" SIValueChanged="x => SetRadius(context, x)" /></MudTd>
-            <MudTd><StableMudInputWithUnitAdornment QuantityName="PlaneAngleDrilling" QuantityLabel="Angle" SIValue="@Angle(context)" SIValueChanged="x => SetAngle(context, x)" /></MudTd>
+            <MudTd><MudInputWithUnit QuantityName="LengthStandard" SIValue="@context.X" SIValueChanged="x => SetX(context, x)" /></MudTd>
+            <MudTd><MudInputWithUnit QuantityName="LengthStandard" SIValue="@context.Y" SIValueChanged="x => SetY(context, x)" /></MudTd>
+            <MudTd><MudInputWithUnit QuantityName="LengthStandard" SIValue="@Radius(context)" SIValueChanged="x => SetRadius(context, x)" /></MudTd>
+            <MudTd><MudInputWithUnit QuantityName="PlaneAngleDrilling" SIValue="@Angle(context)" SIValueChanged="x => SetAngle(context, x)" /></MudTd>
             <MudTd><MudIconButton Icon="@Icons.Material.Outlined.Delete" OnClick="@(() => Polygon.Remove(context))" /></MudTd>
         </RowTemplate>
     </MudTable>
@@ -114,7 +114,7 @@
     @if (buildTurnPlot.Names.Count>0)
     {
         <MudText Typo="Typo.h6" Class="mt-4">Build and turn landing controls</MudText>
-        <MudText Typo="Typo.body2">Normalized length runs from the lead point at 0 to the reachable target boundary at 1. The model calculates signed build and turn directly from each solved curve; no survey-station reconstruction is used. Paths contain a gap within 3° of vertical, where turn rate is singular although the Cartesian path remains valid. Color identifies a continuous mapped boundary segment. A complete contour is closed; partial segments stop where the selected shortest solution switches branch, because joining or merging those segments would invent controls that were not calculated.</MudText>
+        <MudText Typo="Typo.body2">Normalized length runs from the lead point at 0 to the reachable target boundary at 1. The model calculates signed build and turn directly from each solved curve; no survey-station reconstruction is used. For every perpendicular-attitude landing, the trace stops and restarts at the junction between the two sections so different section commands are not joined by a false vertical line. Paths also contain a gap within 3° of vertical, where turn rate is singular although the Cartesian path remains valid. Color identifies a continuous mapped boundary segment. A complete contour is closed; partial segments stop where the selected shortest solution switches branch, because joining or merging those segments would invent controls that were not calculated.</MudText>
         <Scatter3DPlot NameList="@buildTurnPlot.Names" ModeFlagList="@buildTurnPlot.Modes" ColorList="@buildTurnPlot.Colors" LineWidthList="@buildTurnPlot.LineWidths" ShowLegendList="@buildTurnPlot.ShowLegend"
                        XValuesList="@buildTurnPlot.X" YValuesList="@buildTurnPlot.Y" ZValuesList="@buildTurnPlot.Z"
                        XUnit="CurvatureDrilling" YUnit="Dimensionless" ZUnit="CurvatureDrilling"
@@ -126,7 +126,13 @@
 
     CartesianPlotData cartesianPlot = BuildCartesianPlot();
     <MudText Typo="Typo.h6" Class="mt-4">Cartesian landing geometry</MudText>
-    <MudText Typo="Typo.body2">The source trajectory is blue, the specified target boundary is black, the reachable boundary is solid green, and the lead from the final source survey to the steering start is orange. Landing-path colors identify continuous solution families, making distinct shortest-solution branches visible in NED space.</MudText>
+    <MudText Typo="Typo.body2">The source trajectory is blue, the specified target boundary is black, the reachable boundary is solid green, and the lead from the final source survey to the steering start is orange. Landing-path colors identify continuous solution families, making distinct shortest-solution branches visible in NED space. Reference and lead uncertainties are perpendicular to their local well path; landing-path uncertainties are shown only at their endpoints, projected in the target plane.</MudText>
+    <MudStack Row="true" Wrap="Wrap.Wrap" Spacing="2" Class="mt-2">
+        <MudSwitch T="bool" Value="@showReferencePerpendicularEllipses" ValueChanged="SetShowReferencePerpendicularEllipsesAsync" Color="Color.Primary" Label="Reference perpendicular ellipses" />
+        <MudSwitch T="bool" Value="@showLeadPerpendicularEllipses" ValueChanged="SetShowLeadPerpendicularEllipsesAsync" Color="Color.Warning" Label="Lead perpendicular ellipses" />
+        <MudSwitch T="bool" @bind-Value="showLandingTargetPlaneEllipses" Color="Color.Success" Label="Landing ellipses in target plane" />
+    </MudStack>
+    @if (loadingUncertaintyDisplay) { <MudProgressLinear Indeterminate="true" Color="Color.Info" Class="mt-2" /><MudText Typo="Typo.caption">Loading perpendicular uncertainty ellipses…</MudText> }
     @if (loadingCartesianSource) { <MudProgressLinear Indeterminate="true" Color="Color.Info" Class="mt-2" /> }
     @if (cartesianPlot.Names.Count>0)
     {
@@ -140,36 +146,37 @@
 
     <MudText Typo="Typo.h6" Class="mt-4">Reachable target boundary commands</MudText>
     <MudTable T="BoundarySolutionRow" Items="@BoundarySolutions" Dense="true" Bordered="true" Hover="true" Style="max-height:500px;overflow:auto">
-        <HeaderContent><MudTh>Contour</MudTh><MudTh>Family</MudTh><MudTh>Point</MudTh><MudTh>Plane X</MudTh><MudTh>Plane Y</MudTh><MudTh>Landing length</MudTh><MudTh>Peak curvature</MudTh><MudTh>Boundary commands</MudTh></HeaderContent>
+        <HeaderContent>
+            <MudTh>Contour</MudTh><MudTh>Family</MudTh><MudTh>Point</MudTh>
+            <MudTh>Plane X [@LengthUnitLabel]</MudTh><MudTh>Plane Y [@LengthUnitLabel]</MudTh>
+            <MudTh>Landing length [@LengthUnitLabel]</MudTh><MudTh>Peak curvature [@CurvatureUnitLabel]</MudTh>
+            <MudTh>@BoundaryFirstCommandLabel S1 [@BoundaryFirstCommandUnitLabel]</MudTh>
+            <MudTh>@BoundarySecondCommandLabel S1 [@BoundarySecondCommandUnitLabel]</MudTh>
+            @if (ShowsSecondBoundarySection)
+            {
+                <MudTh>@BoundaryFirstCommandLabel S2 [@BoundaryFirstCommandUnitLabel]</MudTh>
+                <MudTh>@BoundarySecondCommandLabel S2 [@BoundarySecondCommandUnitLabel]</MudTh>
+            }
+        </HeaderContent>
         <RowTemplate>
             <MudTd>@context.ContourNumber</MudTd><MudTd>@context.FamilyNumber</MudTd><MudTd>@context.PointNumber</MudTd>
             <MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.Point.X" /></MudTd>
             <MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.Point.Y" /></MudTd>
             <MudTd><MudSpanWithUnit QuantityName="LengthStandard" SIValue="@context.Sample.TotalLandingLength" /></MudTd>
             <MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@context.Sample.PeakLandingCurvature" /></MudTd>
-            <MudTd>
-                @foreach (TrajectoryExtrapolationSolvedSection section in context.Sample.SolvedSectionList ?? [])
-                {
-                    <MudStack Row="true" Spacing="1" AlignItems="AlignItems.Center">
-                        <MudText Typo="Typo.caption">S@(section.SectionIndex + 1):</MudText>
-                        @if (section.CurveType == ExtrapolationCurveType.ConstantBuildAndTurn)
-                        {
-                            <MudText Typo="Typo.caption">build</MudText><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@(section.ConstantBuildRate)" />
-                            <MudText Typo="Typo.caption">turn</MudText><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@(section.ConstantTurnRate)" />
-                        }
-                        else
-                        {
-                            <MudText Typo="Typo.caption">curvature</MudText><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@SectionCurvature(section)" />
-                            <MudText Typo="Typo.caption">toolface</MudText><MudSpanWithUnit QuantityName="PlaneAngleDrilling" SIValue="@SectionToolface(section)" />
-                        }
-                    </MudStack>
-                }
-            </MudTd>
+            <MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@BoundaryFirstCommand(context.Sample, 0)" /></MudTd>
+            <MudTd><MudSpanWithUnit QuantityName="@BoundarySecondCommandQuantity" SIValue="@BoundarySecondCommand(context.Sample, 0)" /></MudTd>
+            @if (ShowsSecondBoundarySection)
+            {
+                <MudTd><MudSpanWithUnit QuantityName="CurvatureDrilling" SIValue="@BoundaryFirstCommand(context.Sample, 1)" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="@BoundarySecondCommandQuantity" SIValue="@BoundarySecondCommand(context.Sample, 1)" /></MudTd>
+            }
         </RowTemplate>
     </MudTable>
 }
 
 @code {
+    [CascadingParameter] private MudUnitAndReferenceChoiceTag? Parent { get; set; }
     [Parameter] public Guid? CaseId { get; set; }
     [Parameter] public EventCallback<TargetLandingCaseLight?> ValueChanged { get; set; }
     private TargetLandingCase value = NewCase();
@@ -177,12 +184,24 @@
     private List<SurveyStation> sourceTrajectoryStations = [];
     private Guid? loadedSourceTrajectoryId;
     private Guid? fieldId, clusterId, wellId, wellBoreId, selectedRigJobId; private DateTimeOffset? sourceReferenceDate; private bool loading, saving;
-    private bool loadingCartesianSource, loadingResult, referenceValuesReady;
+    private bool loadingCartesianSource, loadingResult, loadingUncertaintyDisplay, referenceValuesReady;
+    private bool showReferencePerpendicularEllipses, showLeadPerpendicularEllipses, showLandingTargetPlaneEllipses;
+    private SurveyStationEllipseCalculation? uncertaintyDisplay;
     private long referenceSourceVersion;
     private string? loadedEditableFingerprint;
     private TargetLandingCaseLight? persistedLight;
     private readonly CancellationTokenSource calculationPolling = new();
     private CurvilinearPoint3D Plane => value.Target.Plane;
+    private string LengthUnitLabel => Parent?.GetUnitLabel("LengthStandard") ?? string.Empty;
+    private string AngleUnitLabel => Parent?.GetUnitLabel("PlaneAngleDrilling") ?? string.Empty;
+    private string CurvatureUnitLabel => Parent?.GetUnitLabel("CurvatureDrilling") ?? string.Empty;
+    private bool BoundaryUsesBuildAndTurn => value.CurveType == ExtrapolationCurveType.ConstantBuildAndTurn;
+    private bool ShowsSecondBoundarySection => value.AttitudeMode == TargetLandingAttitudeMode.PerpendicularToTargetPlane;
+    private string BoundaryFirstCommandLabel => BoundaryUsesBuildAndTurn ? "Build rate" : "Curvature";
+    private string BoundarySecondCommandLabel => BoundaryUsesBuildAndTurn ? "Turn rate" : "Toolface";
+    private string BoundaryFirstCommandUnitLabel => CurvatureUnitLabel;
+    private string BoundarySecondCommandUnitLabel => BoundaryUsesBuildAndTurn ? CurvatureUnitLabel : AngleUnitLabel;
+    private string BoundarySecondCommandQuantity => BoundaryUsesBuildAndTurn ? "CurvatureDrilling" : "PlaneAngleDrilling";
     private List<TargetPlanePoint> Polygon => value.Target.Polygon;
     private Guid? SourceTrajectoryId => value.SourceTrajectoryID == Guid.Empty ? null : value.SourceTrajectoryID;
     protected override async Task OnInitializedAsync()
@@ -356,6 +375,8 @@
             if (value.MetaInfo.ID != caseId) return;
             ApplyDisplayData(display);
             _ = LoadSourceTrajectoryStationsForPlotAsync(value.SourceTrajectoryID, forceSourceReload);
+            if (showReferencePerpendicularEllipses||showLeadPerpendicularEllipses)
+                await EnsureUncertaintyDisplayAsync();
         }
         catch (OperationCanceledException) when (cancellationToken.IsCancellationRequested) { }
         catch (Exception ex)
@@ -371,12 +392,49 @@
     }
     private void ApplyDisplayData(TargetLandingCase display)
     {
+        uncertaintyDisplay=null;
         value.SourceTrajectoryRevision=display.SourceTrajectoryRevision; value.CalculationFingerprint=display.CalculationFingerprint;
         value.SourceEndStation=display.SourceEndStation; value.LeadSurveyStationList=display.LeadSurveyStationList;
         value.SteeringStartStation=display.SteeringStartStation; value.GeologicalTargetBoundary=display.GeologicalTargetBoundary;
         value.DrillerTargetBoundary=display.DrillerTargetBoundary; value.ReachableTargetBoundary=display.ReachableTargetBoundary;
         value.DrillerTargetContourList=display.DrillerTargetContourList; value.ReachableTargetContourList=display.ReachableTargetContourList;
         value.SampleList=display.SampleList; value.MeshTriangleList=display.MeshTriangleList;
+    }
+    private async Task SetShowReferencePerpendicularEllipsesAsync(bool enabled)
+    {
+        showReferencePerpendicularEllipses=enabled;
+        if (enabled) await EnsureUncertaintyDisplayAsync();
+    }
+    private async Task SetShowLeadPerpendicularEllipsesAsync(bool enabled)
+    {
+        showLeadPerpendicularEllipses=enabled;
+        if (enabled) await EnsureUncertaintyDisplayAsync();
+    }
+    private async Task EnsureUncertaintyDisplayAsync()
+    {
+        if (uncertaintyDisplay!=null||loadingUncertaintyDisplay||value.MetaInfo?.ID is not Guid id||id==Guid.Empty) return;
+        loadingUncertaintyDisplay=true;
+        try
+        {
+            uncertaintyDisplay=await Api.ClientTrajectory.GetTargetLandingCaseUncertaintyDisplayDataAsync(id,calculationPolling.Token);
+            if (uncertaintyDisplay.SurveyStationEllipseResultList is not { Count:>0 })
+            {
+                Snackbar.Add(uncertaintyDisplay.CalculationMessage??"No perpendicular uncertainty ellipses are available for this case.",Severity.Warning);
+                showReferencePerpendicularEllipses=showLeadPerpendicularEllipses=false;
+            }
+        }
+        catch (OperationCanceledException) when (calculationPolling.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex,"Unable to load target landing uncertainty display data for {CaseId}",id);
+            Snackbar.Add("The landing geometry is available, but perpendicular uncertainty ellipses could not be loaded.",Severity.Warning);
+            showReferencePerpendicularEllipses=showLeadPerpendicularEllipses=false;
+        }
+        finally
+        {
+            loadingUncertaintyDisplay=false;
+            if (!calculationPolling.IsCancellationRequested) await InvokeAsync(StateHasChanged);
+        }
     }
     private bool IsCalculationActive => value.CalculationState is CalculationState.Queued or CalculationState.Running;
     private Task CloseAsync() => ValueChanged.InvokeAsync(persistedLight);
@@ -530,7 +588,21 @@
                 AddStationTrace($"Contour {family.ContourNumber}, solution family {family.FamilyNumber}",style.Translucent,3,firstPath,sample.SurveyStationList??[]);
                 firstPath=false;
             }
+            if (showLandingTargetPlaneEllipses)
+            {
+                bool firstEllipse=true;
+                foreach (TargetLandingSample sample in family.Rows.Select(row=>row.Sample).DistinctBy(sample=>sample.SampleID))
+                {
+                    List<CartesianPoint> points=TargetPlaneEllipsePoints(sample);
+                    AddPointTrace($"Contour {family.ContourNumber}, solution family {family.FamilyNumber} landing uncertainty",style.Solid,2,firstEllipse,points);
+                    if (points.Count>1) firstEllipse=false;
+                }
+            }
         }
+        if (showReferencePerpendicularEllipses)
+            AddPerpendicularEllipseTraces("Reference perpendicular uncertainty","#6a1b9a",sourceTrajectoryStations,60);
+        if (showLeadPerpendicularEllipses)
+            AddPerpendicularEllipseTraces("Lead perpendicular uncertainty","#ef6c00",LeadStationsForPlot(),40);
         AddStationTrace("Lead path","#ff6f00",8,true,LeadStationsForPlot());
 
         return new CartesianPlotData(
@@ -552,7 +624,75 @@
         {
             if (points.Count>1) traces.Add(new CartesianTrace(name,color,lineWidth,showLegend,points));
         }
+        void AddPerpendicularEllipseTraces(string name,string color,IReadOnlyList<SurveyStation> stations,int maximumCount)
+        {
+            Dictionary<double,SurveyStationEllipse> ellipses=(uncertaintyDisplay?.SurveyStationEllipseResultList??[])
+                .Where(result=>result.MD.HasValue&&result.PerpendicularEllipse!=null)
+                .GroupBy(result=>result.MD!.Value)
+                .ToDictionary(group=>group.Key,group=>group.First().PerpendicularEllipse);
+            List<(SurveyStation Station,SurveyStationEllipse Ellipse)> candidates=stations
+                .Where(station=>(station.MD??station.Abscissa).HasValue)
+                .Select(station=>(Station:station,Md:(station.MD??station.Abscissa)!.Value))
+                .Where(item=>ellipses.ContainsKey(item.Md))
+                .Select(item=>(item.Station,ellipses[item.Md]))
+                .ToList();
+            foreach ((SurveyStation station,SurveyStationEllipse ellipse) in SelectEvenlySpaced(candidates,maximumCount))
+                AddPointTrace(name,color,2,traces.All(trace=>trace.Name!=name),PerpendicularEllipsePoints(station,ellipse));
+        }
     }
+
+    private static List<(SurveyStation Station,SurveyStationEllipse Ellipse)> SelectEvenlySpaced(
+        List<(SurveyStation Station,SurveyStationEllipse Ellipse)> candidates,int maximumCount)
+    {
+        if (candidates.Count<=maximumCount) return candidates;
+        List<(SurveyStation Station,SurveyStationEllipse Ellipse)> result=[];
+        for (int index=0;index<maximumCount;index++)
+        {
+            int selected=(int)Math.Round(index*(candidates.Count-1.0)/(maximumCount-1.0));
+            result.Add(candidates[selected]);
+        }
+        return result;
+    }
+
+    private static List<CartesianPoint> PerpendicularEllipsePoints(SurveyStation station,SurveyStationEllipse ellipse)
+    {
+        if (StationPoint(station) is not CartesianPoint center||station.Inclination is not double inclination||
+            station.Azimuth is not double azimuth||ellipse.SemiMajorAxis is not double major||
+            ellipse.SemiMinorAxis is not double minor||ellipse.OrientationAngle is not double orientation||
+            !Finite(major)||!Finite(minor)||!Finite(orientation)) return [];
+        double cosA=Math.Cos(azimuth),sinA=Math.Sin(azimuth),cosI=Math.Cos(inclination),sinI=Math.Sin(inclination);
+        double cosO=Math.Cos(orientation),sinO=Math.Sin(orientation);
+        List<CartesianPoint> points=[];
+        for (int index=0;index<=EllipseDisplayPointCount;index++)
+        {
+            double parameter=2.0*Math.PI*index/EllipseDisplayPointCount;
+            double initialMajor=major*Math.Cos(parameter),initialMinor=minor*Math.Sin(parameter);
+            double localX=initialMajor*cosO-initialMinor*sinO,localY=initialMajor*sinO+initialMinor*cosO;
+            points.Add(new CartesianPoint(
+                center.North+cosA*cosI*localX-sinA*localY,
+                center.East+sinA*cosI*localX+cosA*localY,
+                center.TVD-sinI*localX));
+        }
+        return points;
+    }
+
+    private List<CartesianPoint> TargetPlaneEllipsePoints(TargetLandingSample sample)
+    {
+        SurveyStationEllipse? ellipse=sample.LandingEllipseInTargetPlane;
+        if (ellipse?.SemiMajorAxis is not double major||ellipse.SemiMinorAxis is not double minor||
+            ellipse.OrientationAngle is not double orientation||!Finite(major)||!Finite(minor)||!Finite(orientation)) return [];
+        double cos=Math.Cos(orientation),sin=Math.Sin(orientation);
+        List<CartesianPoint> points=[];
+        for (int index=0;index<=EllipseDisplayPointCount;index++)
+        {
+            double parameter=2.0*Math.PI*index/EllipseDisplayPointCount;
+            double x=major*Math.Cos(parameter),y=minor*Math.Sin(parameter);
+            TargetPlanePoint point=new() { X=sample.PlaneX+x*cos-y*sin,Y=sample.PlaneY+x*sin+y*cos };
+            if (TargetPointToCartesian(point) is CartesianPoint converted) points.Add(converted);
+        }
+        return points;
+    }
+    private const int EllipseDisplayPointCount=48;
     private List<SurveyStation> LeadStationsForPlot()
     {
         List<SurveyStation> sampled=value.LeadSurveyStationList?.Where(station=>StationPoint(station)!=null).ToList()??[];
@@ -672,7 +812,7 @@
             turnMinimum,turnMaximum,buildMinimum,buildMaximum);
     }
     private static List<List<BuildTurnControlPoint>> BuildTurnPathSegments(TargetLandingSample sample) =>
-        SplitControlPath(sample).Select(segment=>segment
+        SplitControlPath(sample,SplitAtSectionJunction(sample)).Select(segment=>segment
             .Select(point=>new BuildTurnControlPoint(point.TurnRate,point.NormalizedLength,point.BuildRate)).ToList()).ToList();
     private static BuildTurnControlPoint? TerminalBuildTurnPoint(TargetLandingSample sample)
     {
@@ -727,9 +867,11 @@
             ?new CylinderControlPoint(point.NormalizedLength,point.Curvature,NormalizeAngle(point.Toolface)):null;
     }
     private static List<List<CylinderControlPoint>> CylinderPathSegments(TargetLandingSample sample) =>
-        SplitControlPath(sample).Select(segment=>segment
+        SplitControlPath(sample,false).Select(segment=>segment
             .Select(point=>new CylinderControlPoint(point.NormalizedLength,point.Curvature,NormalizeAngle(point.Toolface))).ToList()).ToList();
-    private static List<List<TargetLandingControlPoint>> SplitControlPath(TargetLandingSample sample)
+    private static bool SplitAtSectionJunction(TargetLandingSample sample) =>
+        sample.SolvedSectionList is { Count: > 1 };
+    private static List<List<TargetLandingControlPoint>> SplitControlPath(TargetLandingSample sample,bool splitAtSectionJunction)
     {
         List<List<TargetLandingControlPoint>> result=[];
         List<TargetLandingControlPoint> current=[];
@@ -741,11 +883,18 @@
                 current=[];
                 continue;
             }
+            if (splitAtSectionJunction&&current.Count>0&&
+                Math.Abs(current[^1].NormalizedLength-point.NormalizedLength)<=NormalizedLengthComparisonTolerance)
+            {
+                result.Add(current);
+                current=[];
+            }
             current.Add(point);
         }
         if (current.Count>0) result.Add(current);
         return result;
     }
+    private const double NormalizedLengthComparisonTolerance=1e-12;
     private const double VerticalControlDisplayInclination=3.0*Math.PI/180.0;
     private static bool ControlPointIsRenderable(TargetLandingControlPoint point) =>
         point.Inclination.HasValue&&ControlPointIsFinite(point)&&!ControlPointIsNearVertical(point);
@@ -754,6 +903,22 @@
     private static bool ControlPointIsFinite(TargetLandingControlPoint point) =>
         Finite(point.NormalizedLength)&&(!point.Inclination.HasValue||Finite(point.Inclination.Value))&&
         Finite(point.Curvature)&&Finite(point.Toolface)&&Finite(point.BuildRate)&&Finite(point.TurnRate);
+    private static TrajectoryExtrapolationSolvedSection? BoundarySection(TargetLandingSample sample, int sectionIndex) =>
+        sample.SolvedSectionList?.FirstOrDefault(section => section.SectionIndex == sectionIndex);
+    private static double? BoundaryFirstCommand(TargetLandingSample sample, int sectionIndex)
+    {
+        TrajectoryExtrapolationSolvedSection? section = BoundarySection(sample, sectionIndex);
+        return section?.CurveType == ExtrapolationCurveType.ConstantBuildAndTurn
+            ? section.ConstantBuildRate
+            : section == null ? null : SectionCurvature(section);
+    }
+    private static double? BoundarySecondCommand(TargetLandingSample sample, int sectionIndex)
+    {
+        TrajectoryExtrapolationSolvedSection? section = BoundarySection(sample, sectionIndex);
+        return section?.CurveType == ExtrapolationCurveType.ConstantBuildAndTurn
+            ? section.ConstantTurnRate
+            : section == null ? null : SectionToolface(section);
+    }
     private static double? SectionCurvature(TrajectoryExtrapolationSolvedSection section) => section.CurveType == ExtrapolationCurveType.ConstantCurvatureAndToolface ? section.ConstantCurvature : section.CircularArcCurvature;
     private static double? SectionToolface(TrajectoryExtrapolationSolvedSection section) => section.CurveType == ExtrapolationCurveType.ConstantCurvatureAndToolface ? section.ConstantToolface : section.CircularArcStartToolface;
     private static double NormalizeAngle(double value) { double result=value%(2*Math.PI); return result<0?result+2*Math.PI:result; }

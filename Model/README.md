@@ -90,3 +90,5 @@ If a realization attempt cannot be completed, the model draws a new realization 
 ## Notes
 
 This project also contains DocFX-related files used for documentation generation.
+
+`SurveyStationEllipseCalculation.CalculatePerpendicularOnly` supports compact three-dimensional uncertainty displays without calculating unused horizontal, vertical, or extreme-TVD results.
