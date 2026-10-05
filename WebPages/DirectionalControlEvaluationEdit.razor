@@ -1,0 +1,315 @@
+@inject ILogger<DirectionalControlEvaluationEdit> logger
+@implements IDisposable
+@inject ISnackbar Snackbar
+@inject ITrajectoryAPIUtils Api
+@inject ITrajectoryReferenceDataCache ReferenceData
+
+<MudText Typo="Typo.h6" Class="mt-4 mb-3">Directional Control Evaluation</MudText>
+<MudStack Row="true" Class="mb-4">
+    <MudButton Color="Color.Success" Disabled="@busy" OnClick="SaveAsync">Save and calculate</MudButton>
+    <MudButton Color="Color.Error" Disabled="@busy" OnClick="@(() => ValueChanged.InvokeAsync())">Close</MudButton>
+</MudStack>
+
+@if (loading)
+{
+    <MudProgressLinear Indeterminate="true" />
+}
+else
+{
+    <MudGrid>
+        <MudItem xs="12" md="4"><MudTextField @bind-Value="value.Name" Label="Name" Required="true" /></MudItem>
+        <MudItem xs="12" md="8"><MudTextField @bind-Value="value.Description" Label="Description" /></MudItem>
+    </MudGrid>
+
+    <MudText Typo="Typo.subtitle1" Class="mt-4 mb-2">Reference trajectory</MudText>
+    <TrajectoryResourceFilter Fields="@fields" Clusters="@clusters" Wells="@wells" WellBores="@wellBores"
+                              Trajectories="@ReferenceTrajectoryChoices" ResourceKind="TrajectoryResourceFilterKind.Trajectory"
+                              ResourceLabelOverride="Reference trajectory" ResourceRequired="true" CompletedTrajectoriesOnly="true"
+                              FieldId="@referenceFieldId" FieldIdChanged="SetReferenceField"
+                              ClusterId="@referenceClusterId" ClusterIdChanged="SetReferenceCluster"
+                              WellId="@referenceWellId" WellIdChanged="SetReferenceWell"
+                              WellBoreId="@referenceWellBoreId" WellBoreIdChanged="SetReferenceWellBore"
+                              ResourceId="@ReferenceTrajectoryId" ResourceIdChanged="SetReferenceTrajectory" />
+
+    <MudText Typo="Typo.subtitle1" Class="mt-4 mb-2">Actual trajectory</MudText>
+    <TrajectoryResourceFilter Fields="@fields" Clusters="@clusters" Wells="@wells" WellBores="@wellBores"
+                              Trajectories="@ActualTrajectoryChoices" ResourceKind="TrajectoryResourceFilterKind.Trajectory"
+                              ResourceLabelOverride="Actual trajectory" ResourceRequired="true" CompletedTrajectoriesOnly="true"
+                              FieldId="@actualFieldId" FieldIdChanged="SetActualField"
+                              ClusterId="@actualClusterId" ClusterIdChanged="SetActualCluster"
+                              WellId="@actualWellId" WellIdChanged="SetActualWell"
+                              WellBoreId="@actualWellBoreId" WellBoreIdChanged="SetActualWellBore"
+                              ResourceId="@ActualTrajectoryId" ResourceIdChanged="SetActualTrajectory" />
+    <MudText Typo="Typo.caption">The reference and actual trajectories must belong to the same wellbore.</MudText>
+
+    <MudPaper Outlined="true" Class="pa-4 mt-4">
+        <MudText Typo="Typo.subtitle1" Class="mb-2">Evaluation settings</MudText>
+        <MudGrid>
+            <MudItem xs="12" md="3"><MudSelect T="ExtrapolationCurveType" @bind-Value="value.CurveType" Label="Reconnect curve family">@foreach (ExtrapolationCurveType curve in Enum.GetValues<ExtrapolationCurveType>()) { <MudSelectItem Value="@curve">@curve</MudSelectItem> }</MudSelect></MudItem>
+            <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Evaluation interval" QuantityName="DepthDrilling" SIValueNullable="@value.EvaluationInterval" SIValueNullableChanged="x => value.EvaluationInterval = x ?? 10.0" /></MudItem>
+            <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Start actual MD (optional)" QuantityName="DepthDrilling" SIValueNullable="@value.StartActualMD" SIValueNullableChanged="x => value.StartActualMD = x" /></MudItem>
+            <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="End actual MD (optional)" QuantityName="DepthDrilling" SIValueNullable="@value.EndActualMD" SIValueNullableChanged="x => value.EndActualMD = x" /></MudItem>
+            <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Advance from closest reference point" QuantityName="DepthDrilling" SIValueNullable="@value.ReferenceMDAdvance" SIValueNullableChanged="x => value.ReferenceMDAdvance = x ?? 30.0" /></MudItem>
+            <MudItem xs="12" md="3"><MudNumericField T="int" @bind-Value="value.AzimuthBranch" Label="Azimuth branch" /></MudItem>
+            @if (value.CurveType == ExtrapolationCurveType.ConstantBuildAndTurn)
+            {
+                <MudItem xs="12" md="3"><MudNumericField T="double" @bind-Value="value.JunctionCurvatureRatio" Label="Junction curvature ratio" Min="0.001" /></MudItem>
+            }
+        </MudGrid>
+    </MudPaper>
+
+    <MudPaper Outlined="true" Class="pa-4 mt-4">
+        <MudText Typo="Typo.subtitle1" Class="mb-2">Bundling settings</MudText>
+        <MudGrid>
+            <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Hard invalid-gap limit" QuantityName="DepthDrilling" SIValueNullable="@value.MaximumInvalidGap" SIValueNullableChanged="x => value.MaximumInvalidGap = x ?? 100.0" /></MudItem>
+            <MudItem xs="12" md="3"><MudInputWithUnitAdornment QuantityLabel="Minimum bundle length" QuantityName="DepthDrilling" SIValueNullable="@value.MinimumBundleLength" SIValueNullableChanged="x => value.MinimumBundleLength = x ?? 90.0" /></MudItem>
+            <MudItem xs="12" md="3"><MudNumericField T="int" @bind-Value="value.MinimumBundleSampleCount" Label="Minimum sample count" Min="2" /></MudItem>
+            <MudItem xs="12" md="3"><MudNumericField T="double" @bind-Value="value.BundlingPenalty" Label="Change-point penalty" Min="0.001" /></MudItem>
+        </MudGrid>
+        <MudText Typo="Typo.caption">The penalty is experimental: larger values produce fewer, longer bundles.</MudText>
+    </MudPaper>
+
+    <MudPaper Outlined="true" Class="pa-4 mt-4">
+        <MudText Typo="Typo.subtitle1">Calculation: @value.CalculationState @value.CalculationMessage</MudText>
+        @if (IsActive) { <MudProgressLinear Value="@(100 * value.CalculationProgress)" Class="mt-2" /> }
+        @if (value.IsStale) { <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-2">A selected trajectory has changed. Save to recalculate.</MudAlert> }
+    </MudPaper>
+
+    @if (value.BundleList is { Count: > 0 })
+    {
+        <MudText Typo="Typo.h6" Class="mt-5 mb-2">Detected response bundles</MudText>
+        <MudTable T="DirectionalControlEvaluationBundle" Items="@value.BundleList" Dense="true" Bordered="true" Hover="true" Style="overflow-x:auto">
+            <HeaderContent>
+                <MudTh>#</MudTh><MudTh>@DepthHeader("Start actual MD")</MudTh><MudTh>@DepthHeader("End actual MD")</MudTh>
+                <MudTh>Valid / attempted</MudTh><MudTh>Coverage</MudTh>
+                <MudTh>@ResidualHeader(FirstComponentLabel, FirstComponentQuantity)</MudTh>
+                <MudTh>@ResidualHeader(SecondComponentLabel, SecondComponentQuantity)</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd>@(context.BundleIndex + 1)</MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.StartActualMD" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.EndActualMD" /></MudTd>
+                <MudTd>@context.ValidSampleCount / @context.AttemptedSampleCount</MudTd>
+                <MudTd>@context.ValidCoverageRatio.ToString("P0")</MudTd>
+                <MudTd>@SummaryCell(FirstSummary(context), FirstComponentQuantity)</MudTd>
+                <MudTd>@SummaryCell(SecondSummary(context), SecondComponentQuantity)</MudTd>
+            </RowTemplate>
+        </MudTable>
+        <MudText Typo="Typo.caption">Each summary shows empirical P10 / P50 / P90. Toolface residuals use circular statistics.</MudText>
+        <MudExpansionPanels Class="mt-2">
+            @foreach (DirectionalControlEvaluationBundle bundle in value.BundleList)
+            {
+                <MudExpansionPanel Text="@($"Bundle {bundle.BundleIndex + 1} empirical distributions")">
+                    <MudGrid>
+                        <MudItem xs="12" md="6">@HistogramTable(FirstSummary(bundle), FirstComponentLabel, FirstComponentQuantity)</MudItem>
+                        <MudItem xs="12" md="6">@HistogramTable(SecondSummary(bundle), SecondComponentLabel, SecondComponentQuantity)</MudItem>
+                    </MudGrid>
+                </MudExpansionPanel>
+            }
+        </MudExpansionPanels>
+    }
+
+    @if (sampleChunkCount > 0)
+    {
+        <MudStack Row="true" AlignItems="AlignItems.Center" Class="mt-5 mb-2">
+            <MudText Typo="Typo.h6">Evaluation intervals</MudText><MudSpacer />
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronLeft" Disabled="@(sampleChunkIndex == 0)" OnClick="PreviousChunkAsync" />
+            <MudText Typo="Typo.caption">Page @(sampleChunkIndex + 1) / @sampleChunkCount</MudText>
+            <MudIconButton Icon="@Icons.Material.Filled.ChevronRight" Disabled="@(sampleChunkIndex + 1 >= sampleChunkCount)" OnClick="NextChunkAsync" />
+        </MudStack>
+        <MudTable T="DirectionalControlEvaluationSample" Items="@samples" Dense="true" Bordered="true" Hover="true" Style="overflow-x:auto">
+            <HeaderContent>
+                <MudTh>@DepthHeader("Actual MD")</MudTh><MudTh>State</MudTh>
+                <MudTh>@ResidualHeader($"Expected {FirstComponentLabel}", FirstComponentQuantity)</MudTh>
+                <MudTh>@ResidualHeader($"Actual {FirstComponentLabel}", FirstComponentQuantity)</MudTh>
+                <MudTh>@ResidualHeader($"{FirstComponentLabel} residual", FirstComponentQuantity)</MudTh>
+                <MudTh>@ResidualHeader($"Expected {SecondComponentLabel}", SecondComponentQuantity)</MudTh>
+                <MudTh>@ResidualHeader($"Actual {SecondComponentLabel}", SecondComponentQuantity)</MudTh>
+                <MudTh>@ResidualHeader($"{SecondComponentLabel} residual", SecondComponentQuantity)</MudTh>
+            </HeaderContent>
+            <RowTemplate>
+                <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.ActualMD" /></MudTd>
+                <MudTd>@(context.IsValid ? "Valid" : context.FailureCode)</MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="@FirstComponentQuantity" SIValue="@FirstExpected(context)" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="@FirstComponentQuantity" SIValue="@FirstActual(context)" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="@FirstComponentQuantity" SIValue="@FirstResidual(context)" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="@SecondComponentQuantity" SIValue="@SecondExpected(context)" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="@SecondComponentQuantity" SIValue="@SecondActual(context)" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="@SecondComponentQuantity" SIValue="@SecondResidual(context)" /></MudTd>
+            </RowTemplate>
+        </MudTable>
+    }
+}
+
+@code {
+    [CascadingParameter] private MudUnitAndReferenceChoiceTag? Parent { get; set; }
+    [Parameter] public Guid? CaseId { get; set; }
+    [Parameter] public EventCallback ValueChanged { get; set; }
+    private DirectionalControlEvaluationCase value = NewCase();
+    private List<Field> fields = []; private List<Cluster> clusters = []; private List<Well> wells = []; private List<WellBore> wellBores = []; private List<TrajectoryLight> trajectories = [];
+    private Guid? referenceFieldId, referenceClusterId, referenceWellId, referenceWellBoreId;
+    private Guid? actualFieldId, actualClusterId, actualWellId, actualWellBoreId;
+    private bool loading = true, busy;
+    private int sampleChunkCount, sampleChunkIndex;
+    private List<DirectionalControlEvaluationSample> samples = [];
+    private readonly CancellationTokenSource lifetime = new();
+
+    private Guid? ReferenceTrajectoryId => value.ReferenceTrajectoryID == Guid.Empty ? null : value.ReferenceTrajectoryID;
+    private Guid? ActualTrajectoryId => value.ActualTrajectoryID == Guid.Empty ? null : value.ActualTrajectoryID;
+    private List<TrajectoryLight> ReferenceTrajectoryChoices => actualWellBoreId is Guid id ? trajectories.Where(t => t.WellBoreID == id).ToList() : trajectories;
+    private List<TrajectoryLight> ActualTrajectoryChoices => referenceWellBoreId is Guid id ? trajectories.Where(t => t.WellBoreID == id).ToList() : trajectories;
+    private bool IsActive => value.CalculationState is CalculationState.Queued or CalculationState.Running;
+    private bool IsBuildTurn => value.CurveType == ExtrapolationCurveType.ConstantBuildAndTurn;
+    private string FirstComponentLabel => IsBuildTurn ? "build-rate" : "curvature";
+    private string SecondComponentLabel => IsBuildTurn ? "turn-rate" : "toolface";
+    private string FirstComponentQuantity => "CurvatureDrilling";
+    private string SecondComponentQuantity => IsBuildTurn ? "CurvatureDrilling" : "PlaneAngleDrilling";
+
+    protected override async Task OnInitializedAsync()
+    {
+        try
+        {
+            Task<TrajectoryReferenceDataSnapshot> references = ReferenceData.GetSnapshotAsync();
+            Task<DirectionalControlEvaluationCase>? caseTask = CaseId is Guid id
+                ? Api.ClientTrajectory.GetDirectionalControlEvaluationCaseByIdAsync(id) : null;
+            if (caseTask != null) value = await caseTask;
+            TrajectoryReferenceDataSnapshot snapshot = await references;
+            fields = snapshot.Fields.ToList(); clusters = snapshot.Clusters.ToList(); wells = snapshot.Wells.ToList();
+            wellBores = snapshot.WellBores.ToList(); trajectories = snapshot.Trajectories.ToList();
+            InitializeHierarchy(value.ReferenceTrajectoryID, true);
+            InitializeHierarchy(value.ActualTrajectoryID, false);
+            if (value.CalculationState == CalculationState.Completed) await LoadSamplesAsync(0);
+            else if (IsActive) _ = MonitorAsync(value.MetaInfo.ID, lifetime.Token);
+        }
+        catch (Exception ex)
+        {
+            logger.LogError(ex, "Unable to initialize directional-control evaluation editor");
+            Snackbar.Add("Unable to load the evaluation case.", Severity.Error);
+        }
+        finally { loading = false; }
+    }
+
+    private static DirectionalControlEvaluationCase NewCase() => new()
+    {
+        MetaInfo = PseudoConstructors.ConstructMetaInfo(), Name = "New directional-control evaluation",
+        CurveType = ExtrapolationCurveType.CircularArc, CalculationState = CalculationState.NotCalculated,
+        EvaluationInterval = 10.0, ReferenceMDAdvance = 30.0, JunctionCurvatureRatio = 1.0,
+        MaximumInvalidGap = 100.0, MinimumBundleLength = 90.0, MinimumBundleSampleCount = 5,
+        BundlingPenalty = 8.0, SampleList = [], BundleList = []
+    };
+
+    private async Task SaveAsync()
+    {
+        if (busy) return;
+        if (string.IsNullOrWhiteSpace(value.Name) || value.ReferenceTrajectoryID == Guid.Empty || value.ActualTrajectoryID == Guid.Empty)
+        { Snackbar.Add("Name, reference trajectory, and actual trajectory are required.", Severity.Warning); return; }
+        if (referenceWellBoreId == null || referenceWellBoreId != actualWellBoreId)
+        { Snackbar.Add("The two trajectories must belong to the same wellbore.", Severity.Warning); return; }
+        busy = true;
+        try
+        {
+            DirectionalControlEvaluationCase payload = ConfigurationPayload();
+            value = value.CreationDate == null
+                ? await Api.ClientTrajectory.PostDirectionalControlEvaluationCaseAsync(payload, lifetime.Token)
+                : await Api.ClientTrajectory.PutDirectionalControlEvaluationCaseByIdAsync(value.MetaInfo.ID, ConcurrencyToken.Require(value.LastModificationDate), payload, lifetime.Token);
+            Snackbar.Add("Directional-control evaluation queued.", Severity.Success);
+            await MonitorAsync(value.MetaInfo.ID, lifetime.Token);
+        }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { }
+        catch (ApiException ex) when (ex.StatusCode == 409)
+        { logger.LogWarning(ex, "Directional-control evaluation was changed concurrently"); Snackbar.Add("The case changed elsewhere. Reopen it before saving.", Severity.Warning); }
+        catch (Exception ex)
+        { logger.LogError(ex, "Unable to save directional-control evaluation"); Snackbar.Add("Unable to save the evaluation case.", Severity.Error); }
+        finally { busy = false; }
+    }
+
+    private DirectionalControlEvaluationCase ConfigurationPayload() => new()
+    {
+        MetaInfo = value.MetaInfo, Name = value.Name, Description = value.Description,
+        CreationDate = value.CreationDate, LastModificationDate = value.LastModificationDate,
+        ReferenceTrajectoryID = value.ReferenceTrajectoryID, ActualTrajectoryID = value.ActualTrajectoryID,
+        CurveType = value.CurveType, EvaluationInterval = value.EvaluationInterval,
+        StartActualMD = value.StartActualMD, EndActualMD = value.EndActualMD,
+        ReferenceMDAdvance = value.ReferenceMDAdvance, AzimuthBranch = value.AzimuthBranch,
+        JunctionCurvatureRatio = value.JunctionCurvatureRatio, MaximumInvalidGap = value.MaximumInvalidGap,
+        MinimumBundleLength = value.MinimumBundleLength, MinimumBundleSampleCount = value.MinimumBundleSampleCount,
+        BundlingPenalty = value.BundlingPenalty, SampleList = [], BundleList = []
+    };
+
+    private async Task MonitorAsync(Guid id, CancellationToken token)
+    {
+        DirectionalControlEvaluationCaseLight status;
+        do
+        {
+            status = await Api.ClientTrajectory.GetDirectionalControlEvaluationCaseStatusAsync(id, token);
+            value.CalculationState = status.CalculationState; value.CalculationProgress = status.CalculationProgress;
+            value.CalculationMessage = status.CalculationMessage; value.IsStale = status.IsStale;
+            await InvokeAsync(StateHasChanged);
+            if (IsActive) await Task.Delay(TimeSpan.FromSeconds(1), token);
+        } while (IsActive);
+        value = await Api.ClientTrajectory.GetDirectionalControlEvaluationCaseByIdAsync(id, token);
+        if (value.CalculationState == CalculationState.Completed) await LoadSamplesAsync(0);
+        Snackbar.Add(value.CalculationState == CalculationState.Completed ? "Directional-control evaluation completed." : value.CalculationMessage ?? "Evaluation failed.",
+            value.CalculationState == CalculationState.Completed ? Severity.Success : Severity.Error);
+        await InvokeAsync(StateHasChanged);
+    }
+
+    private async Task LoadSamplesAsync(int chunkIndex)
+    {
+        if (value.MetaInfo?.ID is not Guid id || id == Guid.Empty) return;
+        sampleChunkCount = await Api.ClientTrajectory.GetDirectionalControlEvaluationSampleChunkCountAsync(id, lifetime.Token);
+        if (sampleChunkCount == 0) { samples = []; return; }
+        sampleChunkIndex = Math.Clamp(chunkIndex, 0, sampleChunkCount - 1);
+        DirectionalControlEvaluationSampleChunk chunk = await Api.ClientTrajectory.GetDirectionalControlEvaluationSampleChunkAsync(id, sampleChunkIndex, lifetime.Token);
+        samples = chunk.SampleList ?? [];
+    }
+    private async Task PreviousChunkAsync() { await LoadSamplesAsync(sampleChunkIndex - 1); }
+    private async Task NextChunkAsync() { await LoadSamplesAsync(sampleChunkIndex + 1); }
+
+    private void InitializeHierarchy(Guid trajectoryId, bool reference)
+    {
+        TrajectoryLight? trajectory = trajectories.FirstOrDefault(value => value.MetaInfo?.ID == trajectoryId);
+        if (trajectory == null) return;
+        if (reference) { referenceFieldId = trajectory.FieldID; referenceClusterId = trajectory.ClusterID; referenceWellId = trajectory.WellID; referenceWellBoreId = trajectory.WellBoreID; }
+        else { actualFieldId = trajectory.FieldID; actualClusterId = trajectory.ClusterID; actualWellId = trajectory.WellID; actualWellBoreId = trajectory.WellBoreID; }
+    }
+    private Task SetReferenceField(Guid? id) { referenceFieldId = id; referenceClusterId = referenceWellId = referenceWellBoreId = null; value.ReferenceTrajectoryID = Guid.Empty; return Task.CompletedTask; }
+    private Task SetReferenceCluster(Guid? id) { referenceClusterId = id; referenceWellId = referenceWellBoreId = null; value.ReferenceTrajectoryID = Guid.Empty; return Task.CompletedTask; }
+    private Task SetReferenceWell(Guid? id) { referenceWellId = id; referenceWellBoreId = null; value.ReferenceTrajectoryID = Guid.Empty; return Task.CompletedTask; }
+    private Task SetReferenceWellBore(Guid? id) { referenceWellBoreId = id; value.ReferenceTrajectoryID = Guid.Empty; if (actualWellBoreId != null && actualWellBoreId != id) ClearActual(); return Task.CompletedTask; }
+    private Task SetReferenceTrajectory(Guid? id) { value.ReferenceTrajectoryID = id ?? Guid.Empty; InitializeHierarchy(value.ReferenceTrajectoryID, true); if (actualWellBoreId != null && actualWellBoreId != referenceWellBoreId) ClearActual(); return Task.CompletedTask; }
+    private Task SetActualField(Guid? id) { actualFieldId = id; actualClusterId = actualWellId = actualWellBoreId = null; value.ActualTrajectoryID = Guid.Empty; return Task.CompletedTask; }
+    private Task SetActualCluster(Guid? id) { actualClusterId = id; actualWellId = actualWellBoreId = null; value.ActualTrajectoryID = Guid.Empty; return Task.CompletedTask; }
+    private Task SetActualWell(Guid? id) { actualWellId = id; actualWellBoreId = null; value.ActualTrajectoryID = Guid.Empty; return Task.CompletedTask; }
+    private Task SetActualWellBore(Guid? id) { actualWellBoreId = id; value.ActualTrajectoryID = Guid.Empty; if (referenceWellBoreId != null && referenceWellBoreId != id) ClearReference(); return Task.CompletedTask; }
+    private Task SetActualTrajectory(Guid? id) { value.ActualTrajectoryID = id ?? Guid.Empty; InitializeHierarchy(value.ActualTrajectoryID, false); if (referenceWellBoreId != null && referenceWellBoreId != actualWellBoreId) ClearReference(); return Task.CompletedTask; }
+    private void ClearReference() { referenceFieldId = referenceClusterId = referenceWellId = referenceWellBoreId = null; value.ReferenceTrajectoryID = Guid.Empty; }
+    private void ClearActual() { actualFieldId = actualClusterId = actualWellId = actualWellBoreId = null; value.ActualTrajectoryID = Guid.Empty; }
+
+    private string DepthHeader(string label) => $"{label} ({Parent?.GetUnitLabel("DepthDrilling")})";
+    private string ResidualHeader(string label, string quantity) => $"{label} ({Parent?.GetUnitLabel(quantity)})";
+    private DirectionalControlDistributionSummary? FirstSummary(DirectionalControlEvaluationBundle bundle) => IsBuildTurn ? bundle.BuildRateResidual : bundle.CurvatureResidual;
+    private DirectionalControlDistributionSummary? SecondSummary(DirectionalControlEvaluationBundle bundle) => IsBuildTurn ? bundle.TurnRateResidual : bundle.ToolfaceResidual;
+    private RenderFragment SummaryCell(DirectionalControlDistributionSummary? summary, string quantity) => @<span>@if (summary != null) { <MudSpanWithUnit QuantityName="@quantity" SIValue="@summary.P10" /><text> / </text><MudSpanWithUnit QuantityName="@quantity" SIValue="@summary.P50" /><text> / </text><MudSpanWithUnit QuantityName="@quantity" SIValue="@summary.P90" /> }</span>;
+    private RenderFragment HistogramTable(DirectionalControlDistributionSummary? summary, string label, string quantity) => @<div>
+        <MudText Typo="Typo.subtitle2">@label distribution</MudText>
+        @if (summary?.Histogram is { Count: > 0 })
+        {
+            <MudTable T="DirectionalControlHistogramBin" Items="@summary.Histogram" Dense="true" Bordered="true">
+                <HeaderContent><MudTh>@ResidualHeader("Lower", quantity)</MudTh><MudTh>@ResidualHeader("Upper", quantity)</MudTh><MudTh>Count</MudTh><MudTh>Frequency</MudTh></HeaderContent>
+                <RowTemplate>
+                    <MudTd><MudSpanWithUnit QuantityName="@quantity" SIValue="@context.LowerBound" /></MudTd>
+                    <MudTd><MudSpanWithUnit QuantityName="@quantity" SIValue="@context.UpperBound" /></MudTd>
+                    <MudTd>@context.Count</MudTd><MudTd>@((context.Count / (double)summary.Count).ToString("P1"))</MudTd>
+                </RowTemplate>
+            </MudTable>
+        }
+    </div>;
+    private double? FirstExpected(DirectionalControlEvaluationSample sample) => IsBuildTurn ? sample.ExpectedBuildRate : sample.ExpectedCurvature;
+    private double? FirstActual(DirectionalControlEvaluationSample sample) => IsBuildTurn ? sample.ActualBuildRate : sample.ActualCurvature;
+    private double? FirstResidual(DirectionalControlEvaluationSample sample) => IsBuildTurn ? sample.BuildRateResidual : sample.CurvatureResidual;
+    private double? SecondExpected(DirectionalControlEvaluationSample sample) => IsBuildTurn ? sample.ExpectedTurnRate : sample.ExpectedToolface;
+    private double? SecondActual(DirectionalControlEvaluationSample sample) => IsBuildTurn ? sample.ActualTurnRate : sample.ActualToolface;
+    private double? SecondResidual(DirectionalControlEvaluationSample sample) => IsBuildTurn ? sample.TurnRateResidual : sample.ToolfaceResidual;
+    public void Dispose() { lifetime.Cancel(); lifetime.Dispose(); }
+}

@@ -173,6 +173,312 @@
         }
       }
     },
+    "/DirectionalControlEvaluationCase": {
+      "get": {
+        "tags": [
+          "DirectionalControlEvaluationCase"
+        ],
+        "operationId": "GetAllDirectionalControlEvaluationCaseId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        }
+      },
+      "post": {
+        "tags": [
+          "DirectionalControlEvaluationCase"
+        ],
+        "operationId": "PostDirectionalControlEvaluationCase",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCase"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/DirectionalControlEvaluationCase/LightData": {
+      "get": {
+        "tags": [
+          "DirectionalControlEvaluationCase"
+        ],
+        "operationId": "GetAllDirectionalControlEvaluationCaseLight",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCaseLight"
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/DirectionalControlEvaluationCase/{id}": {
+      "get": {
+        "tags": [
+          "DirectionalControlEvaluationCase"
+        ],
+        "operationId": "GetDirectionalControlEvaluationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCase"
+                }
+              }
+            }
+          }
+        }
+      },
+      "put": {
+        "tags": [
+          "DirectionalControlEvaluationCase"
+        ],
+        "operationId": "PutDirectionalControlEvaluationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCase"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCase"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCase"
+              }
+            }
+          }
+        },
+        "responses": {
+          "202": {
+            "description": "Accepted",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCase"
+                }
+              }
+            }
+          }
+        }
+      },
+      "delete": {
+        "tags": [
+          "DirectionalControlEvaluationCase"
+        ],
+        "operationId": "DeleteDirectionalControlEvaluationCaseById",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "expectedModifiedUtc",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "date-time"
+            }
+          }
+        ],
+        "responses": {
+          "204": {
+            "description": "No Content"
+          }
+        }
+      }
+    },
+    "/DirectionalControlEvaluationCase/{id}/Status": {
+      "get": {
+        "tags": [
+          "DirectionalControlEvaluationCase"
+        ],
+        "operationId": "GetDirectionalControlEvaluationCaseStatus",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCaseLight"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/DirectionalControlEvaluationCase/{id}/Samples/ChunkCount": {
+      "get": {
+        "tags": [
+          "DirectionalControlEvaluationCase"
+        ],
+        "operationId": "GetDirectionalControlEvaluationSampleChunkCount",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "integer",
+                  "format": "int32"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/DirectionalControlEvaluationCase/{id}/Samples/Chunks/{chunkIndex}": {
+      "get": {
+        "tags": [
+          "DirectionalControlEvaluationCase"
+        ],
+        "operationId": "GetDirectionalControlEvaluationSampleChunk",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "chunkIndex",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "integer",
+              "format": "int32"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationSampleChunk"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/FieldAntiCollisionPolicyAssignment": {
       "get": {
         "tags": [
@@ -7516,6 +7822,434 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.Trajectory.Model.DirectionalControlDistributionSummary": {
+        "type": "object",
+        "properties": {
+          "Count": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "P10": {
+            "type": "number",
+            "format": "double"
+          },
+          "P50": {
+            "type": "number",
+            "format": "double"
+          },
+          "P90": {
+            "type": "number",
+            "format": "double"
+          },
+          "Mean": {
+            "type": "number",
+            "format": "double"
+          },
+          "StandardDeviation": {
+            "type": "number",
+            "format": "double"
+          },
+          "MedianAbsoluteDeviation": {
+            "type": "number",
+            "format": "double"
+          },
+          "Minimum": {
+            "type": "number",
+            "format": "double"
+          },
+          "Maximum": {
+            "type": "number",
+            "format": "double"
+          },
+          "IsCircular": {
+            "type": "boolean"
+          },
+          "Histogram": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlHistogramBin"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationBundle": {
+        "type": "object",
+        "properties": {
+          "BundleID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "BundleIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "StartActualMD": {
+            "type": "number",
+            "format": "double"
+          },
+          "EndActualMD": {
+            "type": "number",
+            "format": "double"
+          },
+          "AttemptedSampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ValidSampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "InvalidSampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "ValidCoverageRatio": {
+            "type": "number",
+            "format": "double"
+          },
+          "MaximumInvalidGap": {
+            "type": "number",
+            "format": "double"
+          },
+          "CurvatureResidual": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlDistributionSummary"
+          },
+          "ToolfaceResidual": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlDistributionSummary"
+          },
+          "BuildRateResidual": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlDistributionSummary"
+          },
+          "TurnRateResidual": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlDistributionSummary"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCase": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ActualTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "CurveType": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExtrapolationCurveType"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsStale": {
+            "type": "boolean"
+          },
+          "EvaluationInterval": {
+            "type": "number",
+            "format": "double"
+          },
+          "StartActualMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndActualMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ReferenceMDAdvance": {
+            "type": "number",
+            "format": "double"
+          },
+          "AzimuthBranch": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "JunctionCurvatureRatio": {
+            "type": "number",
+            "format": "double"
+          },
+          "MaximumInvalidGap": {
+            "type": "number",
+            "format": "double"
+          },
+          "MinimumBundleLength": {
+            "type": "number",
+            "format": "double"
+          },
+          "MinimumBundleSampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "BundlingPenalty": {
+            "type": "number",
+            "format": "double"
+          },
+          "ReferenceTrajectoryRevision": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ActualTrajectoryRevision": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "CalculationFingerprint": {
+            "type": "string",
+            "nullable": true
+          },
+          "SampleList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationSample"
+            },
+            "nullable": true
+          },
+          "BundleList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationBundle"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCaseLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ActualTrajectoryID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "CurveType": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExtrapolationCurveType"
+          },
+          "CalculationState": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.CalculationState"
+          },
+          "CalculationProgress": {
+            "type": "number",
+            "format": "double"
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsStale": {
+            "type": "boolean"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationSample": {
+        "type": "object",
+        "properties": {
+          "SampleID": {
+            "type": "string",
+            "format": "uuid"
+          },
+          "ActualMD": {
+            "type": "number",
+            "format": "double"
+          },
+          "ActualEndMD": {
+            "type": "number",
+            "format": "double"
+          },
+          "ClosestReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TargetReferenceMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "IsValid": {
+            "type": "boolean"
+          },
+          "FailureCode": {
+            "type": "string",
+            "nullable": true
+          },
+          "FailureMessage": {
+            "type": "string",
+            "nullable": true
+          },
+          "ExpectedCurvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ActualCurvature": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "CurvatureResidual": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ExpectedToolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ActualToolface": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ToolfaceResidual": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ExpectedBuildRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ActualBuildRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "BuildRateResidual": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ExpectedTurnRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "ActualTurnRate": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "TurnRateResidual": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationSampleChunk": {
+        "type": "object",
+        "properties": {
+          "ChunkIndex": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "SampleCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "StartActualMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndActualMD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "SampleList": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationSample"
+            },
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.DirectionalControlHistogramBin": {
+        "type": "object",
+        "properties": {
+          "LowerBound": {
+            "type": "number",
+            "format": "double"
+          },
+          "UpperBound": {
+            "type": "number",
+            "format": "double"
+          },
+          "Count": {
+            "type": "integer",
+            "format": "int32"
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.DrilledLengthGeosteeringExtentConstraint": {
         "type": "object",
         "allOf": [
@@ -12175,6 +12909,33 @@
             "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
           },
           "DeleteTargetLandingCaseByIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetAllDirectionalControlEvaluationCaseIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetAllDirectionalControlEvaluationCaseLightPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetDirectionalControlEvaluationCaseByIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetDirectionalControlEvaluationCaseStatusPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetDirectionalControlEvaluationSampleChunkCountPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "GetDirectionalControlEvaluationSampleChunkPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "PostDirectionalControlEvaluationCasePerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "PutDirectionalControlEvaluationCaseByIdPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
+          "DeleteDirectionalControlEvaluationCaseByIdPerDay": {
             "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
           },
           "GetAllAntiCollisionPolicyRevisionIdPerDay": {

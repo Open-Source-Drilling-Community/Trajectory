@@ -28,6 +28,7 @@ internal static class TrajectoryMcpToolMetadata
         ["TrajectoryAggregationCase"] = "a case that aggregates multiple trajectories against a common reference",
         ["TrajectoryExtrapolationCase"] = "an asynchronous extrapolation from a calculated trajectory endpoint",
         ["TargetLandingCase"] = "an asynchronous target-landing design from a calculated trajectory to a convex oriented target plane",
+        ["DirectionalControlEvaluationCase"] = "an asynchronous comparison of expected reconnect steering commands with fitted actual trajectory response",
         ["GlobalAntiCollisions"] = "an asynchronous global anti-collision calculation job",
         ["AntiCollisionPolicyRevision"] = "an immutable anti-collision policy revision containing ordered comparison-trajectory conditions and Alert/Alarm thresholds",
         ["FieldAntiCollisionPolicyAssignment"] = "an effective-dated assignment from a Field to one exact immutable anti-collision policy revision",
@@ -78,6 +79,8 @@ internal static class TrajectoryMcpToolMetadata
             detail = "Return lightweight state, progress and message for a queued trajectory extrapolation. Poll while Queued or Running; after Completed retrieve solved metadata by UUID and sampled survey stations through the chunk-count and zero-based chunk tools.";
         else if (controller == "TargetLandingCase" && action == "GetStatus")
             detail = "Return lightweight state, progress, staleness and message for a queued target-landing calculation. Poll while Queued or Running, then retrieve the completed sampled target zones and drilling solution data by UUID.";
+        else if (controller == "DirectionalControlEvaluationCase" && action == "GetStatus")
+            detail = "Return lightweight state, progress, staleness and message without transferring interval samples. Poll while Queued or Running, then retrieve the compact bundle statistics and zero-based sample chunks after Completed.";
         else if (controller == "TargetLandingCase" && action == "GetUncertaintyDisplayData")
             detail = "Return a compact, read-only uncertainty projection for the Cartesian target-landing display. The response contains only MD-keyed perpendicular ellipse parameters for the authoritative source trajectory and sampled lead, calculated at the case confidence. It omits trajectory stations, horizontal and vertical ellipses, extreme paths, and landing-path perpendicular ellipses; target-plane landing ellipses are already available in DisplayData.";
         else if (action.Contains("ChunkCount", StringComparison.Ordinal))
@@ -339,6 +342,39 @@ internal static class TrajectoryMcpToolMetadata
                 exclusiveMinimum: true);
         }
 
+        if (controller == "DirectionalControlEvaluationCase" && action is "Post" or "Put" &&
+            definitions[nameof(DirectionalControlEvaluationCase)] is JsonObject evaluation &&
+            evaluation["properties"] is JsonObject evaluationProperties)
+        {
+            string[] serverDerived =
+            [
+                nameof(DirectionalControlEvaluationCase.CreationDate),
+                nameof(DirectionalControlEvaluationCase.LastModificationDate),
+                nameof(DirectionalControlEvaluationCase.CalculationState),
+                nameof(DirectionalControlEvaluationCase.CalculationProgress),
+                nameof(DirectionalControlEvaluationCase.CalculationMessage),
+                nameof(DirectionalControlEvaluationCase.IsStale),
+                nameof(DirectionalControlEvaluationCase.ReferenceTrajectoryRevision),
+                nameof(DirectionalControlEvaluationCase.ActualTrajectoryRevision),
+                nameof(DirectionalControlEvaluationCase.CalculationFingerprint),
+                nameof(DirectionalControlEvaluationCase.SampleList),
+                nameof(DirectionalControlEvaluationCase.BundleList)
+            ];
+            foreach (string propertyName in serverDerived) evaluationProperties.Remove(propertyName);
+            evaluation["required"] = new JsonArray(
+                nameof(DirectionalControlEvaluationCase.MetaInfo),
+                nameof(DirectionalControlEvaluationCase.ReferenceTrajectoryID),
+                nameof(DirectionalControlEvaluationCase.ActualTrajectoryID),
+                nameof(DirectionalControlEvaluationCase.CurveType));
+            evaluation["description"] = "Closed directional-control evaluation submission. Both trajectories must belong to one wellbore. MD values are SI metres, angles SI radians, and curvature/build/turn rates SI radians per metre. The service derives timestamps, progress, revisions, samples, empirical distributions and bundles.";
+            SetNumericBounds(evaluationProperties[nameof(DirectionalControlEvaluationCase.EvaluationInterval)], 0.0, null, exclusiveMinimum: true);
+            SetNumericBounds(evaluationProperties[nameof(DirectionalControlEvaluationCase.ReferenceMDAdvance)], 0.0, null, exclusiveMinimum: true);
+            SetNumericBounds(evaluationProperties[nameof(DirectionalControlEvaluationCase.MaximumInvalidGap)], 0.0, null, exclusiveMinimum: true);
+            SetNumericBounds(evaluationProperties[nameof(DirectionalControlEvaluationCase.MinimumBundleLength)], 0.0, null, exclusiveMinimum: true);
+            SetNumericBounds(evaluationProperties[nameof(DirectionalControlEvaluationCase.MinimumBundleSampleCount)], 2.0, null);
+            SetNumericBounds(evaluationProperties[nameof(DirectionalControlEvaluationCase.BundlingPenalty)], 0.0, null, exclusiveMinimum: true);
+        }
+
         if (controller != "GlobalAntiCollisions" || action is not ("Post" or "Put") ||
             definitions[nameof(GlobalAntiCollision.GlobalAntiCollision)] is not JsonObject calculation ||
             calculation["properties"] is not JsonObject properties)
@@ -496,6 +532,8 @@ internal static class TrajectoryMcpToolMetadata
             return "Create a trajectory extrapolation case and queue its calculation. Select exactly one discriminated specification matching Mode. FixedLength extends straight or continues the fitted last section; ReconnectToTrajectory optionally continues a lead-in, advances from the closest point on a reference trajectory, and solves two steering sections; Geosteering optionally continues a lead-in then reaches a target depth and attitude using either overall departure/bearing or steering length/steering-length ratio; WellPath requires exactly 3 × section-count constraints. The server derives timestamps, endpoint snapshots, solved sections and sampled stations. Poll status, then retrieve station chunks. SI units are metres, radians, and radians per metre.";
         if (controller == "TargetLandingCase")
             return "Create a target-landing case and queue adaptive calculation over its convex planar target. The source is a stored trajectory. Free landing attitude uses one CA, BT or CTC section; Land perpendicular to target plane uses the corresponding two-section solution. Geological targets require the projected confidence ellipse to remain inside the specified polygon. Maximum Landing Curvature applies only to newly designed landing sections. The server retains the shortest drilling-relevant forward solution and derives all samples, zones, result sections and staleness metadata. SI units are metres, radians and radians per metre.";
+        if (controller == "DirectionalControlEvaluationCase")
+            return "Create and queue a directional-control evaluation. Select reference and actual calculated trajectories from the same wellbore and one CA, BT or CTC curve family. At each actual-MD interval the service solves the first reconnect section toward closest-reference-MD plus the configured advance, fits the actual interval with that same exact curve family, compares the linked command pair, and detects joint depth bundles. There is no assumed command delay or lead-in. Poll status, read compact bundle statistics, then page interval samples. SI units are metres, radians, and radians per metre.";
         if (controller is "TrajectoryMinimumDistanceCalculation" or "SurveyRunMinimumDistanceCalculation" or "SurveyStationEllipseCalculation" or "TrajectoryRealizationCase" or "TrajectoryAggregationCase" or "InterpolatedTrajectory")
             return $"Create {resource} and start its calculation. data.MetaInfo.ID must be a caller-assigned, non-empty UUID that is not already stored. Poll the corresponding by-id or light-list tool for CalculationState/CalculationProgress; retrieve large outputs through the result chunk tools where available. All lengths and distances are metres and angles are radians.";
         if (controller is "Trajectory" or "SurveyRun")
@@ -550,6 +588,7 @@ internal static class TrajectoryMcpToolMetadata
             "value" when controller == "GlobalAntiCollisions" => "Separation-factor job configuration. Supply ID, ConfidenceFactor, exactly one reference identifier, and unique selected comparison trajectory UUIDs. Server-derived calculation and result fields are not accepted by MCP.",
             "value" when controller == "TrajectoryExtrapolationCase" => "Trajectory extrapolation configuration using the Mode discriminator and its matching specification. Timestamps, calculation state, frozen endpoints, solved sections and station results are server-derived and forbidden in MCP submissions.",
             "value" when controller == "TargetLandingCase" => "Target-landing configuration with a source trajectory, convex oriented target plane, curve/attitude choices, confidence factor and optional Maximum Landing Curvature. Calculation state, source revision, adaptive samples, zones and solutions are server-derived and forbidden in MCP submissions.",
+            "value" when controller == "DirectionalControlEvaluationCase" => "Directional-control configuration with same-wellbore reference and actual trajectory UUIDs, one curve family, actual-MD range/interval, reference advance, and bundling thresholds. Timestamps, progress, trajectory revisions, samples, distributions and bundles are server-derived and forbidden in MCP submissions.",
             "value" => $"Complete {SplitWords(controller).ToLowerInvariant()} JSON representation.",
             _ => $"Value for {SplitWords(action).ToLowerInvariant()}."
         };

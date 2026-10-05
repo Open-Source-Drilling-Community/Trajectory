@@ -86,6 +86,15 @@ namespace OSDC.Drilling.Trajectory.Model
         public History PostTargetLandingCasePerDay { get; set; } = new History();
         public History PutTargetLandingCaseByIdPerDay { get; set; } = new History();
         public History DeleteTargetLandingCaseByIdPerDay { get; set; } = new History();
+        public History GetAllDirectionalControlEvaluationCaseIdPerDay { get; set; } = new History();
+        public History GetAllDirectionalControlEvaluationCaseLightPerDay { get; set; } = new History();
+        public History GetDirectionalControlEvaluationCaseByIdPerDay { get; set; } = new History();
+        public History GetDirectionalControlEvaluationCaseStatusPerDay { get; set; } = new History();
+        public History GetDirectionalControlEvaluationSampleChunkCountPerDay { get; set; } = new History();
+        public History GetDirectionalControlEvaluationSampleChunkPerDay { get; set; } = new History();
+        public History PostDirectionalControlEvaluationCasePerDay { get; set; } = new History();
+        public History PutDirectionalControlEvaluationCaseByIdPerDay { get; set; } = new History();
+        public History DeleteDirectionalControlEvaluationCaseByIdPerDay { get; set; } = new History();
         public History GetAllAntiCollisionPolicyRevisionIdPerDay { get; set; } = new History();
         public History GetAllAntiCollisionPolicyRevisionPerDay { get; set; } = new History();
         public History GetAntiCollisionPolicyRevisionByIdPerDay { get; set; } = new History();

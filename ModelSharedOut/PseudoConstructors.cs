@@ -5748,6 +5748,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				PostTargetLandingCasePerDay = ConstructHistory(),
 				PutTargetLandingCaseByIdPerDay = ConstructHistory(),
 				DeleteTargetLandingCaseByIdPerDay = ConstructHistory(),
+				GetAllDirectionalControlEvaluationCaseIdPerDay = ConstructHistory(),
+				GetAllDirectionalControlEvaluationCaseLightPerDay = ConstructHistory(),
+				GetDirectionalControlEvaluationCaseByIdPerDay = ConstructHistory(),
+				GetDirectionalControlEvaluationCaseStatusPerDay = ConstructHistory(),
+				GetDirectionalControlEvaluationSampleChunkCountPerDay = ConstructHistory(),
+				GetDirectionalControlEvaluationSampleChunkPerDay = ConstructHistory(),
+				PostDirectionalControlEvaluationCasePerDay = ConstructHistory(),
+				PutDirectionalControlEvaluationCaseByIdPerDay = ConstructHistory(),
+				DeleteDirectionalControlEvaluationCaseByIdPerDay = ConstructHistory(),
 				GetAllAntiCollisionPolicyRevisionIdPerDay = ConstructHistory(),
 				GetAllAntiCollisionPolicyRevisionPerDay = ConstructHistory(),
 				GetAntiCollisionPolicyRevisionByIdPerDay = ConstructHistory(),
@@ -6817,6 +6826,133 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 			{
 				DepartureDistance = 0.0,
 				DepartureBearing = 0.0,
+			};
+		}
+		public static DirectionalControlDistributionSummary ConstructDirectionalControlDistributionSummary()
+		{
+			return new DirectionalControlDistributionSummary
+			{
+				Count = 0,
+				P10 = 0.0,
+				P50 = 0.0,
+				P90 = 0.0,
+				Mean = 0.0,
+				StandardDeviation = 0.0,
+				MedianAbsoluteDeviation = 0.0,
+				Minimum = 0.0,
+				Maximum = 0.0,
+				IsCircular = false,
+				Histogram = new List<DirectionalControlHistogramBin>
+					{
+						ConstructDirectionalControlHistogramBin(),
+					},
+			};
+		}
+		public static DirectionalControlEvaluationBundle ConstructDirectionalControlEvaluationBundle()
+		{
+			return new DirectionalControlEvaluationBundle
+			{
+				BundleID = new Guid(),
+				BundleIndex = 0,
+				StartActualMD = 0.0,
+				EndActualMD = 0.0,
+				AttemptedSampleCount = 0,
+				ValidSampleCount = 0,
+				InvalidSampleCount = 0,
+				ValidCoverageRatio = 0.0,
+				MaximumInvalidGap = 0.0,
+				CurvatureResidual = ConstructDirectionalControlDistributionSummary(),
+				ToolfaceResidual = ConstructDirectionalControlDistributionSummary(),
+				BuildRateResidual = ConstructDirectionalControlDistributionSummary(),
+				TurnRateResidual = ConstructDirectionalControlDistributionSummary(),
+			};
+		}
+		public static DirectionalControlEvaluationCase ConstructDirectionalControlEvaluationCase()
+		{
+			return new DirectionalControlEvaluationCase
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				ReferenceTrajectoryID = new Guid(),
+				ActualTrajectoryID = new Guid(),
+				CurveType = (ExtrapolationCurveType)0,
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				IsStale = false,
+				EvaluationInterval = 0.0,
+				StartActualMD = null,
+				EndActualMD = null,
+				ReferenceMDAdvance = 0.0,
+				AzimuthBranch = 0,
+				JunctionCurvatureRatio = 0.0,
+				MaximumInvalidGap = 0.0,
+				MinimumBundleLength = 0.0,
+				MinimumBundleSampleCount = 0,
+				BundlingPenalty = 0.0,
+				ReferenceTrajectoryRevision = DateTimeOffset.UtcNow,
+				ActualTrajectoryRevision = DateTimeOffset.UtcNow,
+				CalculationFingerprint = "Default CalculationFingerprint",
+				SampleList = new List<DirectionalControlEvaluationSample>
+					{
+						ConstructDirectionalControlEvaluationSample(),
+					},
+				BundleList = new List<DirectionalControlEvaluationBundle>
+					{
+						ConstructDirectionalControlEvaluationBundle(),
+					},
+			};
+		}
+		public static DirectionalControlEvaluationSample ConstructDirectionalControlEvaluationSample()
+		{
+			return new DirectionalControlEvaluationSample
+			{
+				SampleID = new Guid(),
+				ActualMD = 0.0,
+				ActualEndMD = 0.0,
+				ClosestReferenceMD = null,
+				TargetReferenceMD = null,
+				IsValid = false,
+				FailureCode = "Default FailureCode",
+				FailureMessage = "Default FailureMessage",
+				ExpectedCurvature = null,
+				ActualCurvature = null,
+				CurvatureResidual = null,
+				ExpectedToolface = null,
+				ActualToolface = null,
+				ToolfaceResidual = null,
+				ExpectedBuildRate = null,
+				ActualBuildRate = null,
+				BuildRateResidual = null,
+				ExpectedTurnRate = null,
+				ActualTurnRate = null,
+				TurnRateResidual = null,
+			};
+		}
+		public static DirectionalControlEvaluationSampleChunk ConstructDirectionalControlEvaluationSampleChunk()
+		{
+			return new DirectionalControlEvaluationSampleChunk
+			{
+				ChunkIndex = 0,
+				SampleCount = 0,
+				StartActualMD = null,
+				EndActualMD = null,
+				SampleList = new List<DirectionalControlEvaluationSample>
+					{
+						ConstructDirectionalControlEvaluationSample(),
+					},
+			};
+		}
+		public static DirectionalControlHistogramBin ConstructDirectionalControlHistogramBin()
+		{
+			return new DirectionalControlHistogramBin
+			{
+				LowerBound = 0.0,
+				UpperBound = 0.0,
+				Count = 0,
 			};
 		}
 		public static DrilledLengthGeosteeringExtentConstraint ConstructDrilledLengthGeosteeringExtentConstraint()

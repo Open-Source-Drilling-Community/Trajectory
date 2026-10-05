@@ -37,6 +37,8 @@ builder.Services.AddSingleton<GlobalAntiCollisionCalculationWorker>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<GlobalAntiCollisionCalculationWorker>());
 builder.Services.AddSingleton<TargetLandingCalculationWorker>();
 builder.Services.AddHostedService(sp => sp.GetRequiredService<TargetLandingCalculationWorker>());
+builder.Services.AddSingleton<DirectionalControlEvaluationCalculationWorker>();
+builder.Services.AddHostedService(sp => sp.GetRequiredService<DirectionalControlEvaluationCalculationWorker>());
 builder.Services.AddHostedService<TrajectoryExtrapolationRecoveryService>();
 
 // serialization settings (using System.Json)

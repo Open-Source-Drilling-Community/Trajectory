@@ -11,8 +11,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 {
     /// <summary>
     /// A manager for the sql database connection, registered as a singleton through dependency injection (see Program.cs)
-    /// Existing version-1 through version-5 databases are migrated additively to version 6 by adding
-    /// the shared catalogs, trajectory extrapolation and target-landing cases, and anti-collision policy tables as needed.
+    /// Existing version-1 through version-8 databases are migrated additively to the current schema by adding
+    /// shared catalogs and calculation/policy tables and indexes as needed.
     /// If a validated TrajectoryCatalog.db exists beside the main database, its rows are copied and the source file is retained.
     /// </summary>
     /// <remarks>
@@ -30,7 +30,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
     public class SqlConnectionManagerTrajectory : SqlConnectionManager
     {
         private const string DatabaseName = "Trajectory.db";
-        public const int TrajectorySchemaVersion = 8;
+        public const int TrajectorySchemaVersion = 9;
         internal const string TargetLandingLightCoveringIndexName = "TargetLandingCaseLightCoveringIndex";
 
         private static readonly string[] TrajectoryVersion6Columns =
@@ -152,6 +152,33 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     "SourceTrajectoryRevision text",
                     "CalculationFingerprint text",
                     "TargetLandingCaseEditData text" }
+                },
+                { "DirectionalControlEvaluationCaseTable", new string[] {
+                    "ID text primary key",
+                    "MetaInfo text",
+                    "Name text",
+                    "Description text",
+                    "CreationDate text",
+                    "LastModificationDate text",
+                    "ReferenceTrajectoryID text",
+                    "ActualTrajectoryID text",
+                    "CurveType text",
+                    "CalculationState text",
+                    "CalculationProgress real",
+                    "CalculationMessage text",
+                    "ReferenceTrajectoryRevision text",
+                    "ActualTrajectoryRevision text",
+                    "CalculationFingerprint text",
+                    "DirectionalControlEvaluationCase text" }
+                },
+                { "DirectionalControlEvaluationSampleChunkTable", new string[] {
+                    "ID text primary key",
+                    "CaseID text",
+                    "ChunkIndex integer",
+                    "SampleCount integer",
+                    "StartActualMD real",
+                    "EndActualMD real",
+                    "DirectionalControlEvaluationSamples text" }
                 },
                 { "TrajectoryRealizationCaseTable", new string[] {
                     "ID text primary key",
@@ -342,17 +369,20 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             string[] extrapolationTables = ["TrajectoryExtrapolationCaseTable"];
             string[] policyTables = ["AntiCollisionPolicyRevisionTable", "FieldAntiCollisionPolicyAssignmentTable"];
             string[] targetLandingTables = ["TargetLandingCaseTable"];
+            string[] directionalControlTables = ["DirectionalControlEvaluationCaseTable", "DirectionalControlEvaluationSampleChunkTable"];
             string[] expectedBeforeMigration = version switch
             {
                 1 => TableStructureDictTrajectory.Keys.Except(catalogTables, StringComparer.Ordinal)
                     .Except(extrapolationTables, StringComparer.Ordinal).Except(policyTables, StringComparer.Ordinal)
-                    .Except(targetLandingTables, StringComparer.Ordinal).ToArray(),
+                    .Except(targetLandingTables, StringComparer.Ordinal).Except(directionalControlTables, StringComparer.Ordinal).ToArray(),
                 2 => TableStructureDictTrajectory.Keys.Except(extrapolationTables, StringComparer.Ordinal)
-                    .Except(policyTables, StringComparer.Ordinal).Except(targetLandingTables, StringComparer.Ordinal).ToArray(),
+                    .Except(policyTables, StringComparer.Ordinal).Except(targetLandingTables, StringComparer.Ordinal)
+                    .Except(directionalControlTables, StringComparer.Ordinal).ToArray(),
                 3 => TableStructureDictTrajectory.Keys.Except(policyTables, StringComparer.Ordinal)
-                    .Except(targetLandingTables, StringComparer.Ordinal).ToArray(),
-                4 => TableStructureDictTrajectory.Keys.Except(targetLandingTables, StringComparer.Ordinal).ToArray(),
-                5 => TableStructureDictTrajectory.Keys.ToArray(),
+                    .Except(targetLandingTables, StringComparer.Ordinal).Except(directionalControlTables, StringComparer.Ordinal).ToArray(),
+                4 => TableStructureDictTrajectory.Keys.Except(targetLandingTables, StringComparer.Ordinal)
+                    .Except(directionalControlTables, StringComparer.Ordinal).ToArray(),
+                >= 5 and <= 8 => TableStructureDictTrajectory.Keys.Except(directionalControlTables, StringComparer.Ordinal).ToArray(),
                 _ => []
             };
             bool expectedShape = tables.Order().SequenceEqual(expectedBeforeMigration.Order(), StringComparer.Ordinal);
@@ -380,7 +410,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             try
             {
                 string[] additiveTables = catalogTables.Concat(extrapolationTables).Concat(policyTables)
-                    .Concat(targetLandingTables).ToArray();
+                    .Concat(targetLandingTables).Concat(directionalControlTables).ToArray();
                 foreach (string table in additiveTables.Where(table => !tables.Contains(table, StringComparer.Ordinal)))
                 {
                     using SqliteCommand create = connection.CreateCommand();
@@ -403,6 +433,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 }
 
                 CreateTargetLandingLightCoveringIndex(connection, transaction);
+                CreateDirectionalControlIndexes(connection, transaction);
 
                 if (importLegacyCatalog)
                 {
@@ -437,7 +468,31 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 .. definitions["TargetLandingCaseTable"],
                 TargetLandingLightCoveringIndexSql
             ];
+            definitions["DirectionalControlEvaluationCaseTable"] =
+            [
+                .. definitions["DirectionalControlEvaluationCaseTable"],
+                "CREATE INDEX \"DirectionalControlEvaluationCaseLightIndex\" ON \"DirectionalControlEvaluationCaseTable\" (\"CreationDate\",\"ID\",\"MetaInfo\",\"Name\",\"Description\",\"LastModificationDate\",\"ReferenceTrajectoryID\",\"ActualTrajectoryID\",\"CurveType\",\"CalculationState\",\"CalculationProgress\",\"CalculationMessage\",\"ReferenceTrajectoryRevision\",\"ActualTrajectoryRevision\",\"CalculationFingerprint\")"
+            ];
+            definitions["DirectionalControlEvaluationSampleChunkTable"] =
+            [
+                .. definitions["DirectionalControlEvaluationSampleChunkTable"],
+                "CREATE UNIQUE INDEX \"DirectionalControlEvaluationSampleChunkCaseIndex\" ON \"DirectionalControlEvaluationSampleChunkTable\" (\"CaseID\",\"ChunkIndex\")"
+            ];
             return definitions;
+        }
+
+        private static void CreateDirectionalControlIndexes(SqliteConnection connection, SqliteTransaction transaction)
+        {
+            foreach (string sql in TableIndexDefinitionsTrajectory
+                         .Where(pair => pair.Key is "DirectionalControlEvaluationCaseTable" or "DirectionalControlEvaluationSampleChunkTable")
+                         .SelectMany(pair => pair.Value))
+            {
+                using SqliteCommand command = connection.CreateCommand();
+                command.Transaction = transaction;
+                command.CommandText = sql.Replace("CREATE UNIQUE INDEX", "CREATE UNIQUE INDEX IF NOT EXISTS", StringComparison.Ordinal)
+                    .Replace("CREATE INDEX", "CREATE INDEX IF NOT EXISTS", StringComparison.Ordinal);
+                command.ExecuteNonQuery();
+            }
         }
 
         private const string TargetLandingLightCoveringIndexSql =

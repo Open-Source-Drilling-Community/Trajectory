@@ -178,6 +178,23 @@ public static class TrajectoryRestMcpToolRegistrations
             }
         }
 
+        if (method.DeclaringType == typeof(DirectionalControlEvaluationCaseController) &&
+            method.Name is "Post" or "Put" && arguments?["value"] is JsonObject evaluation)
+        {
+            string[] serverDerived =
+            [
+                "CreationDate", "LastModificationDate", "CalculationState", "CalculationProgress",
+                "CalculationMessage", "IsStale", "ReferenceTrajectoryRevision",
+                "ActualTrajectoryRevision", "CalculationFingerprint", "SampleList", "BundleList"
+            ];
+            string? suppliedDerived = serverDerived.FirstOrDefault(evaluation.ContainsKey);
+            if (suppliedDerived != null)
+            {
+                error = McpToolResponses.Validation($"'{suppliedDerived}' is server-derived and must not be submitted.");
+                return false;
+            }
+        }
+
         if (method.DeclaringType == typeof(OctreesController) && method.Name == "QueueSearch" &&
             arguments?["request"] is JsonObject searchRequest)
         {

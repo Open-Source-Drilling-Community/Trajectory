@@ -91,6 +91,22 @@
 </MudPaper>
 
 <MudPaper Class="mx-4 px-4 pa-6 mt-4" Elevation="2">
+    <MudText Typo="Typo.h5" Class="mb-3">Directional control evaluation</MudText>
+    <MudText Typo="Typo.body1" Class="mb-2">
+        The <MudLink Href="/Trajectory/webapp/DirectionalControlEvaluation">Directional Control Evaluation</MudLink>
+        page compares an actual trajectory with the steering commands that reconnect-to-trajectory would have proposed
+        toward a reference trajectory in the same WellBore. At each selected actual-MD interval it uses the first
+        reconnect section and fits the observed response with the same circular-arc, build/turn, or curvature/toolface model.
+    </MudText>
+    <MudText Typo="Typo.body1">
+        Residual command pairs are bundled jointly over depth, while invalid evaluations may be bridged only up to the
+        configured hard gap. Each bundle reports empirical P10, P50 and P90 together with robust distribution statistics.
+        The calculation runs durably in the service; case discovery and progress remain lightweight, and detailed interval
+        samples are retrieved in zero-based chunks. No command delay, lead-in, or wellbore-position uncertainty is assumed.
+    </MudText>
+</MudPaper>
+
+<MudPaper Class="mx-4 px-4 pa-6 mt-4" Elevation="2">
     <MudText Typo="Typo.h5" Class="mb-3">Interpolation</MudText>
     <MudText Typo="Typo.body1" Class="mb-2">
         An <MudLink Href="/Trajectory/webapp/TrajectoryInterpolated">interpolated trajectory</MudLink> recomputes a

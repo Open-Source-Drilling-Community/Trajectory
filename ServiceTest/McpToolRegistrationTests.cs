@@ -15,7 +15,7 @@ public sealed class McpToolRegistrationTests
     {
         var endpoints = TrajectoryRestMcpToolRegistrations.Endpoints;
 
-        Assert.That(endpoints, Has.Count.EqualTo(166));
+        Assert.That(endpoints, Has.Count.EqualTo(175));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Is.Unique);
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("."));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("usage_statistics"));
@@ -53,7 +53,7 @@ public sealed class McpToolRegistrationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(tools, Has.Length.EqualTo(166));
+            Assert.That(tools, Has.Length.EqualTo(175));
             Assert.That(tools.All(tool => !string.IsNullOrWhiteSpace(tool.ProtocolTool.Title)), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema.HasValue), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.Annotations is not null), Is.True);
@@ -225,6 +225,8 @@ public sealed class McpToolRegistrationTests
     [TestCase("survey_station_ellipse_calculation_delete_survey_station_ellipse_calculation_by_id")]
     [TestCase("target_landing_case_put")]
     [TestCase("target_landing_case_delete")]
+    [TestCase("directional_control_evaluation_case_put")]
+    [TestCase("directional_control_evaluation_case_delete")]
     public void Durable_core_mutations_require_optimistic_concurrency(string toolName)
     {
         TrajectoryMcpEndpoint endpoint = Endpoint(toolName);
@@ -252,7 +254,7 @@ public sealed class McpToolRegistrationTests
             Assert.That(surveyRunSearch.InputSchema!["properties"]!["offset"]!["default"]!.GetValue<int>(), Is.Zero);
             Assert.That(endpoints.Any(value => value.Name == "trajectory_get_all_trajectory"), Is.False);
             Assert.That(endpoints.Any(value => value.Name == "survey_run_get_all_survey_run"), Is.False);
-            Assert.That(endpoints, Has.Count.EqualTo(166));
+            Assert.That(endpoints, Has.Count.EqualTo(175));
         });
     }
 
@@ -540,6 +542,29 @@ public sealed class McpToolRegistrationTests
             Assert.That(uncertainty.Description, Does.Contain("MD-keyed perpendicular ellipse parameters")
                 .And.Contain("omits trajectory stations")
                 .And.Contain("target-plane landing ellipses"));
+        });
+    }
+
+    [Test]
+    public void Directional_control_tools_publish_closed_chunked_same_wellbore_contract()
+    {
+        TrajectoryMcpEndpoint create = Endpoint("directional_control_evaluation_case_post");
+        TrajectoryMcpEndpoint status = Endpoint("directional_control_evaluation_case_get_status");
+        JsonObject definition = create.InputSchema!["$defs"]!["DirectionalControlEvaluationCase"]!.AsObject();
+        JsonObject properties = definition["properties"]!.AsObject();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(properties.ContainsKey("CalculationState"), Is.False);
+            Assert.That(properties.ContainsKey("ReferenceTrajectoryRevision"), Is.False);
+            Assert.That(properties.ContainsKey("SampleList"), Is.False);
+            Assert.That(properties.ContainsKey("BundleList"), Is.False);
+            Assert.That(definition["required"]!.AsArray().Select(node => node!.GetValue<string>()),
+                Is.EquivalentTo(new[] { "MetaInfo", "ReferenceTrajectoryID", "ActualTrajectoryID", "CurveType" }));
+            Assert.That(properties["EvaluationInterval"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
+            Assert.That(properties["MinimumBundleSampleCount"]!["minimum"]!.GetValue<double>(), Is.EqualTo(2));
+            Assert.That(create.Description, Does.Contain("same wellbore").IgnoreCase.And.Contain("no assumed command delay"));
+            Assert.That(status.Description, Does.Contain("sample chunks").And.Contain("Poll"));
         });
     }
 

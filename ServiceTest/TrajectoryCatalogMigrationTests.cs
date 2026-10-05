@@ -27,6 +27,8 @@ public sealed class TrajectoryCatalogMigrationTests
                 DROP TABLE AntiCollisionPolicyRevisionTable;
                 DROP TABLE FieldAntiCollisionPolicyAssignmentTable;
                 DROP TABLE TargetLandingCaseTable;
+                DROP TABLE DirectionalControlEvaluationSampleChunkTable;
+                DROP TABLE DirectionalControlEvaluationCaseTable;
                 INSERT INTO TrajectoryTable(ID,Trajectory) VALUES('preserved-record','{}');
                 PRAGMA user_version=1;
                 """);
@@ -78,6 +80,8 @@ public sealed class TrajectoryCatalogMigrationTests
                 DROP TABLE AntiCollisionPolicyRevisionTable;
                 DROP TABLE FieldAntiCollisionPolicyAssignmentTable;
                 DROP TABLE TargetLandingCaseTable;
+                DROP TABLE DirectionalControlEvaluationSampleChunkTable;
+                DROP TABLE DirectionalControlEvaluationCaseTable;
                 INSERT INTO TrajectoryTable(ID,Trajectory) VALUES('preserved-record','{}');
                 PRAGMA user_version=1;
                 """);
@@ -118,6 +122,8 @@ public sealed class TrajectoryCatalogMigrationTests
                 DROP TABLE AntiCollisionPolicyRevisionTable;
                 DROP TABLE FieldAntiCollisionPolicyAssignmentTable;
                 DROP TABLE TargetLandingCaseTable;
+                DROP TABLE DirectionalControlEvaluationSampleChunkTable;
+                DROP TABLE DirectionalControlEvaluationCaseTable;
                 INSERT INTO TrajectoryTable(ID,Trajectory) VALUES('preserved-record','{}');
                 PRAGMA user_version=2;
                 """);
@@ -153,6 +159,8 @@ public sealed class TrajectoryCatalogMigrationTests
                 DROP TABLE AntiCollisionPolicyRevisionTable;
                 DROP TABLE FieldAntiCollisionPolicyAssignmentTable;
                 DROP TABLE TargetLandingCaseTable;
+                DROP TABLE DirectionalControlEvaluationSampleChunkTable;
+                DROP TABLE DirectionalControlEvaluationCaseTable;
                 INSERT INTO TrajectoryTable(ID,Trajectory) VALUES('preserved-record','{}');
                 PRAGMA user_version=3;
                 """);
@@ -186,6 +194,8 @@ public sealed class TrajectoryCatalogMigrationTests
             _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
             Execute(mainPath, """
                 DROP TABLE TargetLandingCaseTable;
+                DROP TABLE DirectionalControlEvaluationSampleChunkTable;
+                DROP TABLE DirectionalControlEvaluationCaseTable;
                 INSERT INTO TrajectoryTable(ID,Trajectory) VALUES('preserved-record','{}');
                 PRAGMA user_version=4;
                 """);
@@ -229,6 +239,8 @@ public sealed class TrajectoryCatalogMigrationTests
                     '{"Name":"Landing A","Description":"Preserved","SourceTrajectoryRevision":"2026-10-03T09:00:00+00:00","CalculationFingerprint":"abc","SampleList":[{"PlaneX":1.0}]}');
                 DROP TABLE TargetLandingCaseTableV6;
                 CREATE UNIQUE INDEX TargetLandingCaseTableIndex ON TargetLandingCaseTable(ID);
+                DROP TABLE DirectionalControlEvaluationSampleChunkTable;
+                DROP TABLE DirectionalControlEvaluationCaseTable;
                 PRAGMA user_version=5;
                 """);
 
@@ -274,6 +286,8 @@ public sealed class TrajectoryCatalogMigrationTests
                     '{"Name":"Trajectory A","Description":"Preserved scalar projection","SurveyStationList":[{"MD":1.0}]}');
                 DROP TABLE TrajectoryTableV7;
                 CREATE UNIQUE INDEX TrajectoryTableIndex ON TrajectoryTable(ID);
+                DROP TABLE DirectionalControlEvaluationSampleChunkTable;
+                DROP TABLE DirectionalControlEvaluationCaseTable;
                 PRAGMA user_version=6;
                 """);
 
@@ -306,6 +320,8 @@ public sealed class TrajectoryCatalogMigrationTests
             _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
             Execute(mainPath, $$"""
                 DROP INDEX {{SqlConnectionManagerTrajectory.TargetLandingLightCoveringIndexName}};
+                DROP TABLE DirectionalControlEvaluationSampleChunkTable;
+                DROP TABLE DirectionalControlEvaluationCaseTable;
                 INSERT INTO TrajectoryTable(ID,LastModificationDate,Trajectory) VALUES(
                     'source-id','2026-10-05 10:00:00','{}');
                 INSERT INTO TargetLandingCaseTable(
@@ -335,6 +351,40 @@ public sealed class TrajectoryCatalogMigrationTests
                     $"COVERING INDEX {SqlConnectionManagerTrajectory.TargetLandingLightCoveringIndexName}",
                     StringComparison.OrdinalIgnoreCase)), Is.True,
                     $"The light query must not read the table rows containing the large result payload. Plan: {string.Join(" | ", plan)}");
+            });
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
+    }
+
+    [Test]
+    public void Version_eight_database_adds_directional_control_tables_without_changing_existing_data()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "trajectory-directional-control-migration", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        string mainPath = Path.Combine(directory, "Trajectory.db");
+        try
+        {
+            _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+            Execute(mainPath, """
+                DROP TABLE DirectionalControlEvaluationSampleChunkTable;
+                DROP TABLE DirectionalControlEvaluationCaseTable;
+                INSERT INTO TrajectoryTable(ID,Trajectory) VALUES('preserved-record','{}');
+                PRAGMA user_version=8;
+                """);
+
+            _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+
+            using SqliteConnection main = Open(mainPath);
+            Assert.Multiple(() =>
+            {
+                Assert.That(Scalar<long>(main, "PRAGMA user_version"), Is.EqualTo(SqlConnectionManagerTrajectory.TrajectorySchemaVersion));
+                Assert.That(Scalar<long>(main, "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='DirectionalControlEvaluationCaseTable'"), Is.EqualTo(1));
+                Assert.That(Scalar<long>(main, "SELECT COUNT(*) FROM sqlite_master WHERE type='table' AND name='DirectionalControlEvaluationSampleChunkTable'"), Is.EqualTo(1));
+                Assert.That(Scalar<long>(main, "SELECT COUNT(*) FROM TrajectoryTable WHERE ID='preserved-record'"), Is.EqualTo(1));
             });
         }
         finally

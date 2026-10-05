@@ -216,29 +216,60 @@ namespace OSDC.Drilling.Trajectory.Model
                     specification.LeadInLength, out SurveyStation start))
                 return false;
             Trajectory? reference = trajectoryProvider(specification.ReferenceTrajectoryID);
+            if (!TrySolveReconnectFromStation(start, reference, specification,
+                    out ReconnectTrajectorySolution? solution, out string? failure))
+            {
+                calculation.CalculationMessage = failure;
+                return false;
+            }
+
+            calculation.ClosestReferenceMD = solution!.ClosestReferenceMD;
+            calculation.TargetReferenceMD = solution.TargetReferenceMD;
+            calculation.TargetStation = new SurveyStation(solution.TargetStation);
+            calculation.ReferenceTrajectoryRevision = reference!.LastModificationDate;
+            ArcSection pair = solution.Pair;
+            double endMd = pair.End.Abscissa!.Value;
+
+            AddSamples(calculation.SurveyStationList!, pair, start.MD!.Value, endMd, calculation.InterpolationInterval, JunctionMD(pair));
+            AppendDoubleSolvedSections(calculation, pair, specification.CurveType);
+            return true;
+        }
+
+        internal static bool TrySolveReconnectFromStation(
+            SurveyStation start,
+            Trajectory? reference,
+            ReconnectTrajectoryExtrapolationSpecification specification,
+            out ReconnectTrajectorySolution? solution,
+            out string? failure)
+        {
+            solution = null;
+            failure = null;
+            if (!Complete(start))
+            {
+                failure = "The reconnect start station is incomplete.";
+                return false;
+            }
             if (!TryGetOrderedCompleteStations(reference, out List<SurveyStation> referenceStations))
             {
-                calculation.CalculationMessage = "The reference trajectory has no complete calculated station list.";
+                failure = "The reference trajectory has no complete calculated station list.";
                 return false;
             }
             if (!TryFindClosestReferenceMD(start, referenceStations, reference!.CalculationType, out double closestMd))
             {
-                calculation.CalculationMessage = "A closest point on the reference trajectory could not be found.";
-                return false;
-            }
-            double targetMd = closestMd + specification.ReferenceMDAdvance;
-            double lastReferenceMd = referenceStations[^1].MD!.Value;
-            if (targetMd > lastReferenceMd || !SurveyStation.InterpolateAtAbscissa(referenceStations, targetMd, out SurveyStation? target, reference.CalculationType) || target == null)
-            {
-                calculation.CalculationMessage = "The requested target measured depth lies beyond the reference trajectory.";
+                failure = "A closest point on the reference trajectory could not be found.";
                 return false;
             }
 
-            calculation.ClosestReferenceMD = closestMd;
-            calculation.TargetReferenceMD = targetMd;
-            calculation.TargetStation = new SurveyStation(target);
-            calculation.ReferenceTrajectoryRevision = reference.LastModificationDate;
-            TrajectoryPoint3D from = ToPoint(start);
+            double targetMd = closestMd + specification.ReferenceMDAdvance;
+            double lastReferenceMd = referenceStations[^1].MD!.Value;
+            if (targetMd > lastReferenceMd ||
+                !SurveyStation.InterpolateAtAbscissa(referenceStations, targetMd,
+                    out SurveyStation? target, reference.CalculationType) || target == null)
+            {
+                failure = "The requested target measured depth lies beyond the reference trajectory.";
+                return false;
+            }
+
             TrajectoryPoint3D to = new()
             {
                 X = target.RiemannianNorth,
@@ -247,17 +278,65 @@ namespace OSDC.Drilling.Trajectory.Model
                 Inclination = target.Inclination,
                 Azimuth = target.Azimuth
             };
-
-            bool solved = TryCalculatePositionTargetPair(from, to, specification.CurveType,
-                specification.AzimuthBranch, specification.JunctionCurvatureRatio, out ArcSection pair);
-            if (!solved || pair.End.Abscissa is not double endMd)
+            if (!TryCalculatePositionTargetPair(ToPoint(start), to, specification.CurveType,
+                    specification.AzimuthBranch, specification.JunctionCurvatureRatio, out ArcSection pair) ||
+                pair.End.Abscissa is not double)
             {
-                calculation.CalculationMessage = "The selected double-curve solver could not reach the target position and attitude.";
+                failure = "The selected double-curve solver could not reach the target position and attitude.";
                 return false;
             }
 
-            AddSamples(calculation.SurveyStationList!, pair, start.MD!.Value, endMd, calculation.InterpolationInterval, JunctionMD(pair));
-            AppendDoubleSolvedSections(calculation, pair, specification.CurveType);
+            TrajectoryPoint3D intermediate = pair switch
+            {
+                DoubleArcs value => value.Intermediate,
+                DoubleBuildAndTurnArcs value => value.Intermediate,
+                DoubleConstantCurvatureAndToolfaceArcs value => value.Intermediate,
+                _ => throw new InvalidOperationException("Unsupported double section.")
+            };
+            ArcSection upstream = BuildHalf(pair, pair.Start, intermediate, true);
+            solution = new ReconnectTrajectorySolution(
+                closestMd,
+                targetMd,
+                new SurveyStation(target),
+                pair,
+                CreateSolvedSection(Guid.NewGuid(), 0,
+                    TrajectoryExtrapolationSectionRole.UpstreamSteeringSection,
+                    specification.CurveType, FromPoint(upstream.Start), upstream.End, upstream));
+            return true;
+        }
+
+        internal static bool TryFitIntervalControls(
+            SurveyStation start,
+            SurveyStation end,
+            ExtrapolationCurveType curveType,
+            out TrajectoryExtrapolationSolvedSection? solved)
+        {
+            solved = null;
+            if (!Complete(start) || !Complete(end) || start.MD is not double startMd ||
+                end.MD is not double endMd || !Numeric.GT(endMd, startMd))
+                return false;
+
+            ArcSection section = curveType switch
+            {
+                ExtrapolationCurveType.CircularArc =>
+                    new CircularArcSection(ToPoint(start), EndpointAttitude(end)),
+                ExtrapolationCurveType.ConstantBuildAndTurn =>
+                    new BuildAndTurnArcSection(ToPoint(start), EndpointAttitude(end)),
+                ExtrapolationCurveType.ConstantCurvatureAndToolface =>
+                    new ConstantCurvatureAndToolfaceArcSection(ToPoint(start), EndpointAttitude(end)),
+                _ => throw new ArgumentOutOfRangeException(nameof(curveType))
+            };
+            bool fitted = section switch
+            {
+                CircularArcSection circular => circular.CalculateSIA(),
+                BuildAndTurnArcSection buildTurn => buildTurn.CalculateSIA(),
+                ConstantCurvatureAndToolfaceArcSection curvatureToolface => curvatureToolface.CalculateSIA(),
+                _ => false
+            };
+            if (!fitted) return false;
+            solved = CreateSolvedSection(Guid.NewGuid(), 0,
+                TrajectoryExtrapolationSectionRole.UpstreamSteeringSection,
+                curveType, start, section.End, section);
             return true;
         }
 
