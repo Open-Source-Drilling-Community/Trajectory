@@ -10,6 +10,97 @@ namespace OSDC.Drilling.Trajectory.ServiceTest;
 [NonParallelizable]
 public sealed class DirectionalControlEvaluationPersistenceTests
 {
+    [Test]
+    public void Calculation_records_both_trajectory_revisions_before_creating_its_fingerprint()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", ".."));
+        string manager = File.ReadAllText(Path.Combine(repositoryRoot, "Service", "Managers",
+            "DirectionalControlEvaluationCaseManager.cs"));
+
+        int referenceRevision = manager.IndexOf(
+            "value.ReferenceTrajectoryRevision = reference.LastModificationDate;", StringComparison.Ordinal);
+        int actualRevision = manager.IndexOf(
+            "value.ActualTrajectoryRevision = actual.LastModificationDate;", StringComparison.Ordinal);
+        int fingerprint = manager.IndexOf(
+            "value.CalculationFingerprint = CreateFingerprint(value, reference, actual);", StringComparison.Ordinal);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(referenceRevision, Is.GreaterThanOrEqualTo(0));
+            Assert.That(actualRevision, Is.GreaterThan(referenceRevision));
+            Assert.That(fingerprint, Is.GreaterThan(actualRevision));
+        });
+    }
+
+    [Test]
+    public void Staleness_comparison_uses_the_precision_persisted_by_sqlite()
+    {
+        DateTimeOffset calculated = DateTimeOffset.Parse("2026-10-05T10:15:30.9876543+02:00");
+        DateTimeOffset stored = DateTimeOffset.Parse("2026-10-05T08:15:30Z");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(DirectionalControlEvaluationCaseManager.SameStoredRevision(calculated, stored), Is.True);
+            Assert.That(DirectionalControlEvaluationCaseManager.SameStoredRevision(calculated, stored.AddSeconds(1)), Is.False);
+            Assert.That(DirectionalControlEvaluationCaseManager.SameStoredRevision(calculated, null), Is.False);
+        });
+    }
+
+    [Test]
+    public void Missing_trajectory_revisions_are_repaired_only_when_the_fingerprint_still_matches()
+    {
+        string path = Path.Combine(Path.GetTempPath(), $"DirectionalControl_{Guid.NewGuid():N}.db");
+        try
+        {
+            var database = new SqlConnectionManagerTrajectory(path, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+            var manager = new DirectionalControlEvaluationCaseManager(
+                NullLogger<DirectionalControlEvaluationCaseManager>.Instance, database);
+            DateTimeOffset revision = DateTimeOffset.Parse("2026-10-05T08:15:30Z");
+            DateTimeOffset persistedRevision = DateTimeOffset.Parse(
+                revision.ToString(SqlConnectionManager.DATE_TIME_FORMAT));
+            DirectionalControlEvaluationCase matching = CreateCase(revision);
+            matching.CalculationState = CalculationState.Completed;
+            matching.CalculationFingerprint = DirectionalControlEvaluationCaseManager.CreateFingerprint(
+                matching, persistedRevision, persistedRevision);
+            DirectionalControlEvaluationCase changed = CreateCase(revision);
+            changed.CalculationState = CalculationState.Completed;
+            changed.CalculationFingerprint = DirectionalControlEvaluationCaseManager.CreateFingerprint(
+                changed, persistedRevision.AddMinutes(-1), persistedRevision);
+
+            using (SqliteConnection connection = database.GetConnection()!)
+            {
+                foreach (Guid trajectoryId in new[]
+                         {
+                             matching.ReferenceTrajectoryID, matching.ActualTrajectoryID,
+                             changed.ReferenceTrajectoryID, changed.ActualTrajectoryID
+                         })
+                {
+                    using SqliteCommand insert = connection.CreateCommand();
+                    insert.CommandText = "INSERT INTO TrajectoryTable (ID,LastModificationDate) VALUES (@id,@revision)";
+                    insert.Parameters.AddWithValue("@id", trajectoryId.ToString());
+                    insert.Parameters.AddWithValue("@revision", revision.ToString(SqlConnectionManager.DATE_TIME_FORMAT));
+                    insert.ExecuteNonQuery();
+                }
+            }
+            Assert.That(manager.SaveCase(matching, update: false), Is.True);
+            Assert.That(manager.SaveCase(changed, update: false), Is.True);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(manager.RepairMissingTrajectoryRevisions(), Is.EqualTo(1));
+                Assert.That(manager.GetLightById(matching.MetaInfo!.ID)!.IsStale, Is.False);
+                Assert.That(manager.GetLightById(changed.MetaInfo!.ID)!.IsStale, Is.True);
+                Assert.That(manager.RepairMissingTrajectoryRevisions(), Is.Zero, "The repair must be idempotent.");
+            });
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (File.Exists(path)) File.Delete(path);
+        }
+    }
+
     [TestCase("GetAllDirectionalControlEvaluationCaseId")]
     [TestCase("GetAllDirectionalControlEvaluationCaseLight")]
     [TestCase("GetDirectionalControlEvaluationCaseById")]

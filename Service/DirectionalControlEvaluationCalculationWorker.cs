@@ -32,6 +32,10 @@ public sealed class DirectionalControlEvaluationCalculationWorker : BackgroundSe
     protected override async Task ExecuteAsync(CancellationToken stoppingToken)
     {
         await Task.Yield();
+        int repaired = manager_.RepairMissingTrajectoryRevisions();
+        logger_.LogInformation(
+            "Repaired trajectory revision snapshots for {CalculationCount} directional-control evaluations",
+            repaired);
         List<(Guid Id, DateTimeOffset Revision)> interrupted = manager_.PrepareInterruptedCalculationsForResume();
         foreach ((Guid id, DateTimeOffset revision) in interrupted) Queue(id, revision);
         logger_.LogInformation("Queued {CalculationCount} interrupted directional-control evaluations", interrupted.Count);

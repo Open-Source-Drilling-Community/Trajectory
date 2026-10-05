@@ -283,6 +283,73 @@ public sealed class DirectionalControlEvaluationCaseManager
         return result;
     }
 
+    public int RepairMissingTrajectoryRevisions()
+    {
+        using SqliteConnection? connection = connectionManager_.GetConnection();
+        if (connection == null) return 0;
+        using SqliteCommand read = connection.CreateCommand();
+        read.CommandText = """
+            SELECT c.ID,c.DirectionalControlEvaluationCase,c.CalculationFingerprint,
+                   reference.LastModificationDate,actual.LastModificationDate
+            FROM DirectionalControlEvaluationCaseTable c
+            LEFT JOIN TrajectoryTable reference ON reference.ID=c.ReferenceTrajectoryID
+            LEFT JOIN TrajectoryTable actual ON actual.ID=c.ActualTrajectoryID
+            WHERE c.CalculationState=@completed
+              AND (c.ReferenceTrajectoryRevision IS NULL OR c.ActualTrajectoryRevision IS NULL)
+              AND c.CalculationFingerprint IS NOT NULL
+            """;
+        read.Parameters.AddWithValue("@completed", CalculationState.Completed.ToString());
+        List<(Guid Id, DateTimeOffset ReferenceRevision, DateTimeOffset ActualRevision, string Fingerprint)> repairs = [];
+        try
+        {
+            using (SqliteDataReader reader = read.ExecuteReader())
+            {
+                while (reader.Read())
+                {
+                    if (!Guid.TryParse(reader.GetString(0), out Guid id) || reader.IsDBNull(1) || reader.IsDBNull(2))
+                        continue;
+                    DateTimeOffset? referenceRevision = ReadDate(reader, 3);
+                    DateTimeOffset? actualRevision = ReadDate(reader, 4);
+                    DirectionalControlEvaluationCase? value = JsonSerializer.Deserialize<DirectionalControlEvaluationCase>(
+                        reader.GetString(1), JsonSettings.Options);
+                    string fingerprint = reader.GetString(2);
+                    if (value != null && referenceRevision.HasValue && actualRevision.HasValue &&
+                        string.Equals(fingerprint,
+                            CreateFingerprint(value, referenceRevision.Value, actualRevision.Value),
+                            StringComparison.Ordinal))
+                        repairs.Add((id, referenceRevision.Value, actualRevision.Value, fingerprint));
+                }
+            }
+
+            if (repairs.Count == 0) return 0;
+            using SqliteTransaction transaction = connection.BeginTransaction();
+            int repaired = 0;
+            foreach ((Guid id, DateTimeOffset referenceRevision, DateTimeOffset actualRevision, string fingerprint) in repairs)
+            {
+                using SqliteCommand update = connection.CreateCommand();
+                update.Transaction = transaction;
+                update.CommandText = """
+                    UPDATE DirectionalControlEvaluationCaseTable
+                    SET ReferenceTrajectoryRevision=@reference,ActualTrajectoryRevision=@actual
+                    WHERE ID=@id AND CalculationFingerprint=@fingerprint
+                      AND (ReferenceTrajectoryRevision IS NULL OR ActualTrajectoryRevision IS NULL)
+                    """;
+                update.Parameters.AddWithValue("@reference", referenceRevision.ToString(SqlConnectionManager.DATE_TIME_FORMAT));
+                update.Parameters.AddWithValue("@actual", actualRevision.ToString(SqlConnectionManager.DATE_TIME_FORMAT));
+                update.Parameters.AddWithValue("@id", id.ToString());
+                update.Parameters.AddWithValue("@fingerprint", fingerprint);
+                repaired += update.ExecuteNonQuery();
+            }
+            transaction.Commit();
+            return repaired;
+        }
+        catch (Exception ex) when (ex is SqliteException or JsonException)
+        {
+            logger_.LogError(ex, "Unable to repair missing directional-control trajectory revisions");
+            return 0;
+        }
+    }
+
     internal async Task RecalculateAsync(Guid id, DateTimeOffset queuedRevision, CancellationToken cancellationToken)
     {
         await Task.Yield();
@@ -307,6 +374,8 @@ public sealed class DirectionalControlEvaluationCaseManager
             }
             else
             {
+                value.ReferenceTrajectoryRevision = reference.LastModificationDate;
+                value.ActualTrajectoryRevision = actual.LastModificationDate;
                 value.CalculationFingerprint = CreateFingerprint(value, reference, actual);
                 bool calculated = DirectionalControlEvaluationCalculator.Calculate(value, reference, actual, (progress, message) =>
                 {
@@ -527,14 +596,20 @@ public sealed class DirectionalControlEvaluationCaseManager
     private static string CreateFingerprint(
         DirectionalControlEvaluationCase value,
         Model.Trajectory reference,
-        Model.Trajectory actual)
+        Model.Trajectory actual) =>
+        CreateFingerprint(value, reference.LastModificationDate, actual.LastModificationDate);
+
+    internal static string CreateFingerprint(
+        DirectionalControlEvaluationCase value,
+        DateTimeOffset? referenceRevision,
+        DateTimeOffset? actualRevision)
     {
         string input = string.Join('|',
             value.ReferenceTrajectoryID, value.ActualTrajectoryID, value.CurveType,
             value.EvaluationInterval, value.StartActualMD, value.EndActualMD,
             value.ReferenceMDAdvance, value.JunctionCurvatureRatio,
             value.MaximumInvalidGap, value.MinimumBundleLength, value.MinimumBundleSampleCount,
-            value.BundlingPenalty, reference.LastModificationDate, actual.LastModificationDate);
+            value.BundlingPenalty, referenceRevision, actualRevision);
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(input)));
     }
 
@@ -542,7 +617,7 @@ public sealed class DirectionalControlEvaluationCaseManager
         reader.IsDBNull(ordinal) || !DateTimeOffset.TryParse(reader.GetString(ordinal), out DateTimeOffset value)
             ? null : value;
 
-    private static bool SameStoredRevision(DateTimeOffset? left, DateTimeOffset? right) =>
+    internal static bool SameStoredRevision(DateTimeOffset? left, DateTimeOffset? right) =>
         left.HasValue && right.HasValue && left.Value.ToUnixTimeSeconds() == right.Value.ToUnixTimeSeconds();
 
     private void RefreshStale(DirectionalControlEvaluationCase? value)
