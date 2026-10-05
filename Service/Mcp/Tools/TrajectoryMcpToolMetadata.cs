@@ -78,6 +78,8 @@ internal static class TrajectoryMcpToolMetadata
             detail = "Return lightweight state, progress and message for a queued trajectory extrapolation. Poll while Queued or Running; after Completed retrieve solved metadata by UUID and sampled survey stations through the chunk-count and zero-based chunk tools.";
         else if (controller == "TargetLandingCase" && action == "GetStatus")
             detail = "Return lightweight state, progress, staleness and message for a queued target-landing calculation. Poll while Queued or Running, then retrieve the completed sampled target zones and drilling solution data by UUID.";
+        else if (controller == "TargetLandingCase" && action == "GetUncertaintyDisplayData")
+            detail = "Return a compact, read-only uncertainty projection for the Cartesian target-landing display. The response contains only MD-keyed perpendicular ellipse parameters for the authoritative source trajectory and sampled lead, calculated at the case confidence. It omits trajectory stations, horizontal and vertical ellipses, extreme paths, and landing-path perpendicular ellipses; target-plane landing ellipses are already available in DisplayData.";
         else if (action.Contains("ChunkCount", StringComparison.Ordinal))
             detail = $"Return the number of available result chunks for {resource}. Call this before requesting chunks, then retrieve zero-based chunkIndex values from 0 through count - 1. A count of zero means no chunks are currently available.";
         else if (action.Contains("Chunk", StringComparison.Ordinal) && action.StartsWith("Get", StringComparison.Ordinal))
