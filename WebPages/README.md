@@ -34,7 +34,7 @@ The current Rig and rotary-table depth reference come from the latest chronologi
 
 ## Survey-run observations and import
 
-The SurveyRun editor displays and edits the observed angles, per-station reference overrides, UTC measurement time, applied corrections, canonical geodetic/true-north angles, and correction status. Inclination reference, azimuth reference, and measurement time can also be applied to every station in one operation; individual rows remain editable afterward, and an empty bulk time clears every station time. Run defaults select geodetic versus gravity vertical, true versus magnetic north, geomagnetic model policy, and an optional UTC acquisition interval. Changing a run default, geomagnetic model, acquisition interval, or bulk station setting invalidates affected computed corrections and clears the stale calculated trajectory until it is recalculated. Manual corrections are retained as explicit overrides.
+The SurveyRun editor displays and edits the observed angles, per-station reference overrides, measurement time, applied corrections, canonical geodetic/true-north angles, and correction status. Inclination reference, azimuth reference, and measurement time can also be applied to every station in one operation; individual rows remain editable afterward, and an empty bulk time clears every station time. Run defaults select geodetic versus gravity vertical, true versus magnetic north, geomagnetic model policy, and an optional acquisition interval. Times are presented and interpreted using the selected time reference, while the service contract retains canonical UTC values. Changing a run default, geomagnetic model, acquisition interval, or bulk station setting invalidates affected computed corrections and clears the stale calculated trajectory until it is recalculated. Manual corrections are retained as explicit overrides.
 
 SurveyRun, Trajectory, and interpolated-Trajectory uncertainty views send the owning resource UUID to the corresponding lineage-aware ellipse endpoint. The service therefore rebuilds authoritative parent SurveyRun uncertainty and replaces stale or partial covariance before the shared table displays horizontal, vertical, and perpendicular ellipses. Every vertical ellipse in one result uses the same first-to-last vertical-section curtain, rather than rotating with the poorly conditioned instantaneous azimuth near vertical inclination. Standalone extrapolation continues to submit its explicit source history because its requested stations extend beyond the source trajectory.
 
@@ -44,7 +44,7 @@ Field, Cluster, Well, WellBore, and optional Trajectory/Survey Run selection is 
 
 Confirmation, unsaved-change, deletion, restore, and short text-entry dialogs use the shared `TrajectoryDialogOptions.Compact` configuration. They are capped at MudBlazor's extra-small responsive width and do not expand to the viewport width.
 
-Direct and batch imports can read an optional UTC timestamp column (or fixed-width field), declare gravity-vertical and/or magnetic-north source data, and supply a per-run acquisition interval when individual times are unavailable. Batch configurations and exported association descriptions retain these settings. Survey-measurement TSV export includes raw readings, corrected values, timestamps, correction state, evaluation context, and dependency-model hashes so it is suitable for audit rather than only trajectory reconstruction.
+Direct and batch imports can read an optional timestamp column (or fixed-width field) in the selected time reference, declare gravity-vertical and/or magnetic-north source data, and supply a per-run acquisition interval when individual times are unavailable. Batch configurations and exported association descriptions retain these settings. Survey-measurement TSV export includes raw readings, corrected values, timestamps in the selected time reference, correction state, evaluation context, and dependency-model hashes so it is suitable for audit rather than only trajectory reconstruction.
 
 After a Trajectory is saved, the editor polls its background calculation state and then reloads the calculated station chunks. The calculated table and plots therefore refresh when calculation completes even when their expansion panel was already open when Save was selected.
 
@@ -155,7 +155,7 @@ The package, assembly, and static-web-asset base identity are all `OSDC.Drilling
 
 ## Usage statistics
 
-`StatisticsTrajectory` follows the shared OSDC resource-service layout. It provides refresh and failure states, total and current-UTC-day request counts, the tracked-endpoint count, the service's last-save time, and a sortable table showing HTTP method, operation, daily and lifetime totals, and last use.
+`StatisticsTrajectory` follows the shared OSDC resource-service layout. It provides refresh and failure states, total and current-day request counts in the selected time reference, the tracked-endpoint count, the service's last-save time, and a sortable table showing HTTP method, operation, daily and lifetime totals, and last use.
 
 ## Mean-sea-level depth references
 

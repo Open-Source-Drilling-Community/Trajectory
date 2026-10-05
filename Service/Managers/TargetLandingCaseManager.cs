@@ -208,12 +208,13 @@ public sealed class TargetLandingCaseManager
         }
     }
 
-    private const string LightSelect = """
+    internal const string LightSelect = """
         SELECT c.MetaInfo,c.CreationDate,c.LastModificationDate,c.SourceTrajectoryID,c.TargetType,c.CurveType,c.AttitudeMode,
                c.CalculationState,c.CalculationProgress,c.CalculationMessage,
                c.Name,c.Description,c.SourceTrajectoryRevision,c.CalculationFingerprint,
                t.LastModificationDate
-        FROM TargetLandingCaseTable c LEFT JOIN TrajectoryTable t ON t.ID=c.SourceTrajectoryID
+        FROM TargetLandingCaseTable c INDEXED BY TargetLandingCaseLightCoveringIndex
+        LEFT JOIN TrajectoryTable t ON t.ID=c.SourceTrajectoryID
         """;
 
     private static TargetLandingCaseLight ReadLight(SqliteDataReader reader)

@@ -30,7 +30,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
     public class SqlConnectionManagerTrajectory : SqlConnectionManager
     {
         private const string DatabaseName = "Trajectory.db";
-        public const int TrajectorySchemaVersion = 7;
+        public const int TrajectorySchemaVersion = 8;
+        internal const string TargetLandingLightCoveringIndexName = "TargetLandingCaseLightCoveringIndex";
 
         private static readonly string[] TrajectoryVersion6Columns =
         [
@@ -309,16 +310,21 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 }
             };
 
+        private static readonly IReadOnlyDictionary<string, string[]> TableIndexDefinitionsTrajectory =
+            CreateTrajectoryIndexDefinitions();
+
         public SqlConnectionManagerTrajectory(ILogger<SqlConnectionManagerTrajectory> logger)
             : base(BuildConnectionString(PrepareDatabase(BuildDatabasePath(DatabaseName), logger)), logger,
                 BuildDatabasePath(DatabaseName), DatabaseName, TableStructureDictTrajectory,
+                TableIndexDefinitionsTrajectory,
                 currentSchemaVersion: TrajectorySchemaVersion)
         {
         }
 
         public SqlConnectionManagerTrajectory(string databasePath, ILogger<SqlConnectionManagerTrajectory> logger)
             : base(BuildConnectionString(PrepareDatabase(databasePath, logger)), logger, databasePath, DatabaseName,
-                TableStructureDictTrajectory, currentSchemaVersion: TrajectorySchemaVersion)
+                TableStructureDictTrajectory, TableIndexDefinitionsTrajectory,
+                currentSchemaVersion: TrajectorySchemaVersion)
         {
         }
 
@@ -396,6 +402,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     AddTrajectoryLightColumns(connection, transaction);
                 }
 
+                CreateTargetLandingLightCoveringIndex(connection, transaction);
+
                 if (importLegacyCatalog)
                 {
                     CopyLegacyCatalog(connection, transaction, "TrajectoryIdentityTable",
@@ -418,6 +426,33 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 throw;
             }
             return databasePath;
+        }
+
+        private static IReadOnlyDictionary<string, string[]> CreateTrajectoryIndexDefinitions()
+        {
+            Dictionary<string, string[]> definitions = CreateDefaultIndexDefinitions(TableStructureDictTrajectory)
+                .ToDictionary(pair => pair.Key, pair => pair.Value, StringComparer.Ordinal);
+            definitions["TargetLandingCaseTable"] =
+            [
+                .. definitions["TargetLandingCaseTable"],
+                TargetLandingLightCoveringIndexSql
+            ];
+            return definitions;
+        }
+
+        private const string TargetLandingLightCoveringIndexSql =
+            "CREATE INDEX \"" + TargetLandingLightCoveringIndexName + "\" ON \"TargetLandingCaseTable\" " +
+            "(\"ID\",\"MetaInfo\",\"CreationDate\",\"LastModificationDate\",\"SourceTrajectoryID\",\"TargetType\",\"CurveType\",\"AttitudeMode\",\"CalculationState\",\"CalculationProgress\",\"CalculationMessage\",\"Name\",\"Description\",\"SourceTrajectoryRevision\",\"CalculationFingerprint\")";
+
+        private static void CreateTargetLandingLightCoveringIndex(
+            SqliteConnection connection,
+            SqliteTransaction transaction)
+        {
+            using SqliteCommand command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = TargetLandingLightCoveringIndexSql.Replace(
+                "CREATE INDEX", "CREATE INDEX IF NOT EXISTS", StringComparison.Ordinal);
+            command.ExecuteNonQuery();
         }
 
         private static bool ValidateLegacyCatalog(string path)

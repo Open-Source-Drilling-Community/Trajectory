@@ -41,6 +41,6 @@
     private IEnumerable<TrajectoryFeatureOption> OptionsFor(TrajectoryFeatureAssignment assignment) => categories.FirstOrDefault(category => category.MetaInfo.ID == assignment.FeatureCategoryID)?.Options ?? [];
     private bool HasValidity(TrajectoryFeatureAssignment assignment) => categories.FirstOrDefault(category => category.MetaInfo.ID == assignment.FeatureCategoryID)?.HasValidityPeriod == true;
     private void SetCategory(TrajectoryFeatureAssignment assignment, Guid? categoryId) { assignment.FeatureCategoryID = categoryId; assignment.FeatureOptionID = null; if (!HasValidity(assignment)) { assignment.FromDate = null; assignment.ToDate = null; } }
-    private static DateTime? ToDateTime(DateTimeOffset? value) => value?.UtcDateTime;
-    private static DateTimeOffset? ToOffset(DateTime? value) => value.HasValue ? new DateTimeOffset(DateTime.SpecifyKind(value.Value, DateTimeKind.Utc)) : null;
+    private static DateTime? ToDateTime(DateTimeOffset? value) => value is { } defined ? DateTimeReference.ToDisplayDateTime(defined) : null;
+    private static DateTimeOffset? ToOffset(DateTime? value) => value.HasValue ? DateTimeReference.ToCanonicalUtc(value.Value) : null;
 }

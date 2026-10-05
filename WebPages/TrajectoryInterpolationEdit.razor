@@ -659,7 +659,7 @@
     private WellBore? FindWellBoreById(Guid wellBoreId) => WellBoreList?.FirstOrDefault(wb => wb?.MetaInfo?.ID == wellBoreId);
     private Guid? FindFieldIdForWell(Well? well) => well?.ClusterID is Guid clusterId ? FindClusterById(clusterId)?.FieldID : null;
     private bool MatchesSelectedField(Well well) => selectedFieldId == null || FindFieldIdForWell(well) == selectedFieldId;
-    private static string FormatDate(DateTimeOffset? value) => value?.ToString("yyyy-MM-dd HH:mm") ?? string.Empty;
+    private static string FormatDate(DateTimeOffset? value) => DateTimeReference.Format(value, "yyyy-MM-dd HH:mm");
     private string NorthCoordinateLabel => GetCoordinateLabel(PositionDirectionType.North);
     private string EastCoordinateLabel => GetCoordinateLabel(PositionDirectionType.East);
     private string AdditionalDepthReferenceRenderKey => Parent?.DepthReferenceName ?? DataUtils.UnitAndReferenceParameters.DepthReferenceName ?? "DepthReference";

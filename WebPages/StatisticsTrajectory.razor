@@ -4,6 +4,14 @@
 @inject ISnackbar Snackbar
 @inject ITrajectoryAPIUtils Api
 
+<MudUnitAndReferenceChoiceTag HttpHost="@Api.HostNameUnitConversion"
+                              HttpBasePath="@Api.HostBasePathUnitConversion"
+                              HttpController="UnitSystem/"
+                              UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
+                              UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName"
+                              EnableDateTimeReference="true"
+                              DateReferenceName="@DataUtils.UnitAndReferenceParameters.DateReferenceName"
+                              DateReferenceNameChanged="@((string value) => OnDateReferenceChanged(value))">
 <MudStack Spacing="3">
     <MudStack Row="true" Justify="Justify.SpaceBetween" AlignItems="AlignItems.Center" Class="mt-4">
         <div>
@@ -32,7 +40,7 @@
                 <MudText Typo="Typo.h6">@totalCount_</MudText>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
-                <MudText Typo="Typo.subtitle2">Today (UTC)</MudText>
+                <MudText Typo="Typo.subtitle2">Today</MudText>
                 <MudText Typo="Typo.h6">@todayCount_</MudText>
             </MudItem>
             <MudItem xs="12" sm="6" md="3">
@@ -69,6 +77,7 @@
         </MudTable>
     }
 </MudStack>
+</MudUnitAndReferenceChoiceTag>
 
 @code {
     private UsageStatisticsTrajectory? statistics_;
@@ -143,9 +152,9 @@
 
     private static long Today(History history)
     {
-        DateTime utcToday = DateTime.UtcNow.Date;
+        DateTime selectedToday = DateTimeReference.ToDisplayDateTime(DateTimeOffset.UtcNow).Date;
         return history.Data?
-            .Where(entry => entry != null && entry.Date.UtcDateTime.Date == utcToday)
+            .Where(entry => entry != null && DateTimeReference.ToDisplayDateTime(entry.Date).Date == selectedToday)
             .Sum(entry => entry.Count) ?? 0;
     }
 
@@ -208,10 +217,14 @@
         _ => Color.Default
     };
 
+    private void OnDateReferenceChanged(string value)
+    {
+        DataUtils.UpdateDateReferenceName(value);
+        if (statistics_ is not null) BuildRows();
+    }
+
     private static string FormatDate(DateTimeOffset? value) =>
-        value.HasValue && value.Value != default
-            ? value.Value.ToLocalTime().ToString("yyyy-MM-dd HH:mm")
-            : "-";
+        value.HasValue && value.Value != default ? DateTimeReference.Format(value, "yyyy-MM-dd HH:mm") : "-";
 
     private sealed record EndpointDescriptor(string Method, string Endpoint);
     private sealed record UsageRow(string Method, string Endpoint, long Today, long Total, DateTimeOffset? LastUsed);

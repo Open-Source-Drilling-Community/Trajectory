@@ -10,6 +10,9 @@
                               HttpController="UnitSystem/"
                               UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
                               UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName"
+                              EnableDateTimeReference="true"
+                              DateReferenceName="@DataUtils.UnitAndReferenceParameters.DateReferenceName"
+                              DateReferenceNameChanged="@((string value) => DataUtils.UpdateDateReferenceName(value))"
                               DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
                               DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
                               GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
@@ -176,7 +179,7 @@
         {
             <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-4">
                 Applied policy <b>@calculationResult_.PolicySnapshot.Name</b>, revision @calculationResult_.PolicySnapshot.RevisionNumber,
-                confidence @calculationResult_.PolicySnapshot.ConfidenceFactor.ToString("P1"), evaluated at @calculationResult_.PolicyEvaluationUtc?.ToString("u").
+                confidence @calculationResult_.PolicySnapshot.ConfidenceFactor.ToString("P1"), evaluated at @DateTimeReference.Format(calculationResult_.PolicyEvaluationUtc).
                 The stored result contains the exact policy snapshot and Field assignment UUID.
             </MudAlert>
             <MudTable Items="@PolicyEvaluations" T="SeparationFactorResult" Dense="true" Hover="true" Bordered="true" Striped="true" Class="mb-4">
@@ -513,8 +516,8 @@
             ? null
             : policyRevisions_.FirstOrDefault(item => item.MetaInfo?.ID == assignment.PolicyRevisionID);
         if (assignment == null || revision == null) return "Unavailable policy assignment";
-        string validTo = assignment.ValidToUtc?.ToString("yyyy-MM-dd") ?? "open";
-        return $"{revision.Name} · revision {revision.RevisionNumber} · {assignment.ValidFromUtc:yyyy-MM-dd} to {validTo}";
+        string validTo = assignment.ValidToUtc is null ? "open" : DateTimeReference.FormatDate(assignment.ValidToUtc);
+        return $"{revision.Name} · revision {revision.RevisionNumber} · {DateTimeReference.FormatDate(assignment.ValidFromUtc)} to {validTo}";
     }
 
     private void SelectDefaultPolicyAssignment()

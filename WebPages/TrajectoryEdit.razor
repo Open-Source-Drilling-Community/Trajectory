@@ -1033,8 +1033,7 @@
     private static string GetSurveyRunDisplayName(SurveyRunLight surveyRun) =>
         $"{surveyRun.Name} ({surveyRun.SurveyRunType})";
 
-    private static string FormatDate(DateTimeOffset? value) =>
-        value?.ToString("yyyy-MM-dd HH:mm") ?? string.Empty;
+    private static string FormatDate(DateTimeOffset? value) => DateTimeReference.Format(value, "yyyy-MM-dd HH:mm");
 
     private DateTimeOffset? CurrentTrajectoryReferenceDate
     {

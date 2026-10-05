@@ -10,6 +10,9 @@
                               HttpController="UnitSystem/"
                               UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
                               UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName"
+                              EnableDateTimeReference="true"
+                              DateReferenceName="@DataUtils.UnitAndReferenceParameters.DateReferenceName"
+                              DateReferenceNameChanged="@((string value) => DataUtils.UpdateDateReferenceName(value))"
                               DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
                               DepthReferenceNameChanged="@DataUtils.UpdateDepthReferenceName"
                               GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
@@ -28,7 +31,7 @@
                               MagneticDeclinationSource="@DataUtils.MagneticDeclinationSource">
 <MudText Typo="Typo.h5" Class="mt-4">Anti-collision policies</MudText>
 <MudText Typo="Typo.body2" Class="mb-4">
-    Policies are immutable, versioned decision records. Field assignments select the exact revision used for a calculation at a UTC instant.
+    Policies are immutable, versioned decision records. Field assignments select the exact revision used for a calculation at an instant.
 </MudText>
 <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mb-4">
     Conditions inspect only the comparison trajectory hierarchy. The current Cluster contract exposes Slot features and names but no Slot identity catalog; a Slot identity condition is therefore retained but evaluates as indeterminate until that upstream contract exists.
@@ -66,13 +69,13 @@
                             <HeaderContent>
                                 <MudTh>Revision</MudTh>
                                 <MudTh>Description</MudTh>
-                                <MudTh>Created UTC</MudTh>
+                                <MudTh>Created</MudTh>
                                 <MudTh>Rules</MudTh>
                             </HeaderContent>
                             <RowTemplate>
                                 <MudTd DataLabel="Revision">@context.RevisionNumber</MudTd>
                                 <MudTd DataLabel="Description">@(string.IsNullOrWhiteSpace(context.Description) ? "—" : context.Description)</MudTd>
-                                <MudTd DataLabel="Created UTC">@(context.CreationDate?.ToUniversalTime().ToString("u") ?? "—")</MudTd>
+                                <MudTd DataLabel="Created">@(string.IsNullOrEmpty(DateTimeReference.Format(context.CreationDate)) ? "—" : DateTimeReference.Format(context.CreationDate))</MudTd>
                                 <MudTd DataLabel="Rules">@(context.Rules?.Count ?? 0)</MudTd>
                             </RowTemplate>
                         </MudTable>
@@ -87,7 +90,7 @@
                             <div>
                                 <MudText Typo="Typo.h6">@selectedRevision_.Name · revision @selectedRevision_.RevisionNumber</MudText>
                                 <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                    Created @(selectedRevision_.CreationDate?.ToUniversalTime().ToString("u") ?? "—")
+                                    Created @(string.IsNullOrEmpty(DateTimeReference.Format(selectedRevision_.CreationDate)) ? "—" : DateTimeReference.Format(selectedRevision_.CreationDate))
                                 </MudText>
                             </div>
                             @if (IsLatestRevision(selectedRevision_))
@@ -198,12 +201,12 @@
                                             <MudItem xs="6" md="4"><MudSelect T="AntiCollisionFeatureTemporalOperator" @bind-Value="feature.TemporalOperator" Label="Temporal predicate">@foreach (AntiCollisionFeatureTemporalOperator value in Enum.GetValues<AntiCollisionFeatureTemporalOperator>()) { <MudSelectItem Value="value">@value</MudSelectItem> }</MudSelect></MudItem>
                                             @if (feature.TemporalOperator == AntiCollisionFeatureTemporalOperator.ActiveAtSpecifiedTime)
                                             {
-                                                <MudItem xs="12" md="3"><MudDatePicker Date="@ToDate(feature.SpecifiedTimeUtc)" DateChanged="@(value => feature.SpecifiedTimeUtc = ToUtc(value))" Label="Specified date (UTC)" /></MudItem>
+                                                <MudItem xs="12" md="3"><MudDatePicker Date="@ToDate(feature.SpecifiedTimeUtc)" DateChanged="@(value => feature.SpecifiedTimeUtc = ToCanonicalTime(value))" Label="Specified date" /></MudItem>
                                             }
                                             else if (feature.TemporalOperator == AntiCollisionFeatureTemporalOperator.OverlapsSpecifiedInterval)
                                             {
-                                                <MudItem xs="6" md="2"><MudDatePicker Date="@ToDate(feature.SpecifiedFromUtc)" DateChanged="@(value => feature.SpecifiedFromUtc = ToUtc(value))" Label="From (UTC)" /></MudItem>
-                                                <MudItem xs="6" md="2"><MudDatePicker Date="@ToDate(feature.SpecifiedToUtc)" DateChanged="@(value => feature.SpecifiedToUtc = ToUtc(value))" Label="To (UTC)" /></MudItem>
+                                                <MudItem xs="6" md="2"><MudDatePicker Date="@ToDate(feature.SpecifiedFromUtc)" DateChanged="@(value => feature.SpecifiedFromUtc = ToCanonicalTime(value))" Label="From" /></MudItem>
+                                                <MudItem xs="6" md="2"><MudDatePicker Date="@ToDate(feature.SpecifiedToUtc)" DateChanged="@(value => feature.SpecifiedToUtc = ToCanonicalTime(value))" Label="To" /></MudItem>
                                             }
                                         }
                                         <MudItem xs="12" md="1" Class="d-flex align-center justify-end"><MudIconButton Icon="@Icons.Material.Filled.Close" OnClick="@(() => RemoveCondition(rule, condition))" /></MudItem>
@@ -247,18 +250,18 @@
                                  ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
                                  Disabled="@(assignmentPolicyId_ == null)" />
             </MudItem>
-            <MudItem xs="12" md="3"><MudDatePicker @bind-Date="assignmentFrom_" Label="Valid from (UTC)" Required="true" /></MudItem>
-            <MudItem xs="12" md="3"><MudDatePicker @bind-Date="assignmentTo_" Label="Valid to (UTC, optional)" Clearable="true" /></MudItem>
+            <MudItem xs="12" md="3"><MudDatePicker @bind-Date="assignmentFrom_" Label="Valid from" Required="true" /></MudItem>
+            <MudItem xs="12" md="3"><MudDatePicker @bind-Date="assignmentTo_" Label="Valid to (optional)" Clearable="true" /></MudItem>
             <MudItem xs="12" md="2" Class="d-flex align-center"><MudButton Variant="Variant.Filled" Color="Color.Success" OnClick="CreateAssignmentAsync">Assign</MudButton></MudItem>
         </MudGrid>
-        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mx-3 mb-3">Dates are saved at 00:00 UTC. Validity intervals for one Field may not overlap.</MudAlert>
+        <MudAlert Severity="Severity.Info" Variant="Variant.Outlined" Class="mx-3 mb-3">Dates are saved at 00:00 in the selected time reference. Validity intervals for one Field may not overlap.</MudAlert>
         <MudTable Items="assignments_" T="FieldAntiCollisionPolicyAssignment" Dense="true" Hover="true" Bordered="true" Striped="true" Class="ma-3">
-            <HeaderContent><MudTh>Field</MudTh><MudTh>Policy revision</MudTh><MudTh>Valid from UTC</MudTh><MudTh>Valid to UTC</MudTh><MudTh></MudTh></HeaderContent>
+            <HeaderContent><MudTh>Field</MudTh><MudTh>Policy revision</MudTh><MudTh>Valid from</MudTh><MudTh>Valid to</MudTh><MudTh></MudTh></HeaderContent>
             <RowTemplate>
                 <MudTd>@FieldName(context.FieldID)</MudTd>
                 <MudTd>@RevisionName(context.PolicyRevisionID)</MudTd>
-                <MudTd>@context.ValidFromUtc.ToString("u")</MudTd>
-                <MudTd>@(context.ValidToUtc?.ToString("u") ?? "open")</MudTd>
+                <MudTd>@DateTimeReference.Format(context.ValidFromUtc)</MudTd>
+                <MudTd>@(context.ValidToUtc is null ? "open" : DateTimeReference.Format(context.ValidToUtc))</MudTd>
                 <MudTd><MudIconButton Icon="@Icons.Material.Filled.Delete" Disabled="@(context.ValidFromUtc <= DateTimeOffset.UtcNow)" OnClick="@(() => DeleteAssignmentAsync(context))" /></MudTd>
             </RowTemplate>
         </MudTable>
@@ -279,7 +282,7 @@
     private Guid? assignmentFieldId_;
     private Guid? assignmentPolicyId_;
     private Guid? assignmentPolicyRevisionId_;
-    private DateTime? assignmentFrom_ = DateTime.UtcNow.Date.AddDays(1);
+    private DateTime? assignmentFrom_ = DateTimeReference.ToDisplayDateTime(DateTimeOffset.UtcNow).Date.AddDays(1);
     private DateTime? assignmentTo_;
     private List<PolicyRevisionGroup> PolicyGroups => revisions_
         .GroupBy(revision => revision.PolicyID)
@@ -452,15 +455,15 @@
         if (assignmentFrom_ == null) { Snackbar.Add("A valid-from date is required", Severity.Warning); return; }
         assignment_.FieldID = fieldId;
         assignment_.PolicyRevisionID = policyRevisionId;
-        assignment_.ValidFromUtc = new DateTimeOffset(DateTime.SpecifyKind(assignmentFrom_.Value.Date, DateTimeKind.Utc));
-        assignment_.ValidToUtc = assignmentTo_ == null ? null : new DateTimeOffset(DateTime.SpecifyKind(assignmentTo_.Value.Date, DateTimeKind.Utc));
+        assignment_.ValidFromUtc = DateTimeReference.ToCanonicalUtc(assignmentFrom_.Value.Date);
+        assignment_.ValidToUtc = assignmentTo_ == null ? null : DateTimeReference.ToCanonicalUtc(assignmentTo_.Value.Date);
         assignment_.MetaInfo ??= NewMeta("FieldAntiCollisionPolicyAssignment/");
         try
         {
             await Api.ClientTrajectory.PostFieldAntiCollisionPolicyAssignmentAsync(assignment_);
             Snackbar.Add("Created Field policy assignment", Severity.Success);
             assignment_ = NewAssignment(); assignmentFieldId_ = null; assignmentPolicyId_ = null; assignmentPolicyRevisionId_ = null;
-            assignmentFrom_ = DateTime.UtcNow.Date.AddDays(1); assignmentTo_ = null;
+            assignmentFrom_ = DateTimeReference.ToDisplayDateTime(DateTimeOffset.UtcNow).Date.AddDays(1); assignmentTo_ = null;
             await LoadAsync();
         }
         catch (Exception ex) { Logger.LogError(ex, "Could not create Field policy assignment"); Snackbar.Add("Assignment was rejected. Check the Field, exact revision, and validity overlap.", Severity.Error); }
@@ -556,8 +559,8 @@
     }
 
     private string FieldName(Guid id) => fields_.FirstOrDefault(x => x.MetaInfo?.ID == id)?.Name ?? id.ToString();
-    private static DateTime? ToDate(DateTimeOffset? value) => value?.UtcDateTime;
-    private static DateTimeOffset? ToUtc(DateTime? value) => value == null ? null : new DateTimeOffset(DateTime.SpecifyKind(value.Value.Date, DateTimeKind.Utc));
+    private static DateTime? ToDate(DateTimeOffset? value) => value is { } defined ? DateTimeReference.ToDisplayDateTime(defined) : null;
+    private static DateTimeOffset? ToCanonicalTime(DateTime? value) => value == null ? null : DateTimeReference.ToCanonicalUtc(value.Value.Date);
     private static void NormalizeFeatureConditionFields(AntiCollisionPolicyRevisionCreate draft)
     {
         foreach (AntiCollisionFeatureCondition feature in (draft.Rules ?? []).SelectMany(rule => rule.Conditions ?? []).OfType<AntiCollisionFeatureCondition>())

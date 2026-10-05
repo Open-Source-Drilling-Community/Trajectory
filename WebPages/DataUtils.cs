@@ -22,7 +22,7 @@ public static class DataUtils
         public static string? GeodeticReferenceName { get; set; } = "WGS84";
         public static string? AzimuthReferenceName { get; set; } = "True North";
         public static string? PressureReferenceName { get; set; }
-        public static string? DateReferenceName { get; set; }
+        public static string DateReferenceName { get; set; } = "Local Time";
     }
 
     public static void ApplyTrajectoryReferenceValues(Guid? trajectoryID, List<TrajectoryLight>? trajectoryList, List<WellBore>? wellBores, List<Well>? wells, List<Cluster>? clusters, List<Rig>? rigs, List<Field>? fields = null,
@@ -362,6 +362,7 @@ public static class DataUtils
     public static void UpdatePositionReferenceName(string value) => UnitAndReferenceParameters.PositionReferenceName = value;
     public static void UpdateGeodeticReferenceName(string value) => UnitAndReferenceParameters.GeodeticReferenceName = value;
     public static void UpdateAzimuthReferenceName(string value) => UnitAndReferenceParameters.AzimuthReferenceName = value;
+    public static void UpdateDateReferenceName(string value) => UnitAndReferenceParameters.DateReferenceName = value == "Local Time" ? "Local Time" : "UTC";
 
     public static string[] COLORSCALE = ["black", "blue", "grey", "red", "orange", "green", "yellow", "pink", "brown", "purple"];
 

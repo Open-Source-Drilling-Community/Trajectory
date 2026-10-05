@@ -16,6 +16,9 @@
                               HttpController="UnitSystem/"
                               UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
                               UnitSystemNameChanged="@OnUnitSystemNameChanged"
+                              EnableDateTimeReference="true"
+                              DateReferenceName="@DataUtils.UnitAndReferenceParameters.DateReferenceName"
+                              DateReferenceNameChanged="@((string value) => DataUtils.UpdateDateReferenceName(value))"
                               DepthReferenceName="@DataUtils.UnitAndReferenceParameters.DepthReferenceName"
                               DepthReferenceNameChanged="@OnDepthReferenceNameChanged"
                               GroundMudLineDepthReferenceSource="@DataUtils.GroundMudLineDepthReferenceSource"
@@ -104,10 +107,10 @@
 
             <MudGrid Class="mt-2">
                 <MudItem xs="12" md="3">
-                    <MudTextField T="string" Label="Acquisition start UTC" Value="@FormatUtcInput(surveyRun.AcquisitionStartUtc)" ValueChanged="value => SetAcquisitionStart(value)" Placeholder="yyyy-MM-ddTHH:mm:ssZ" ShrinkLabel />
+                    <MudTextField T="string" Label="Acquisition start" Value="@FormatTimeInput(surveyRun.AcquisitionStartUtc)" ValueChanged="value => SetAcquisitionStart(value)" Placeholder="yyyy-MM-dd HH:mm:ss" ShrinkLabel />
                 </MudItem>
                 <MudItem xs="12" md="3">
-                    <MudTextField T="string" Label="Acquisition end UTC" Value="@FormatUtcInput(surveyRun.AcquisitionEndUtc)" ValueChanged="value => SetAcquisitionEnd(value)" Placeholder="yyyy-MM-ddTHH:mm:ssZ" ShrinkLabel />
+                    <MudTextField T="string" Label="Acquisition end" Value="@FormatTimeInput(surveyRun.AcquisitionEndUtc)" ValueChanged="value => SetAcquisitionEnd(value)" Placeholder="yyyy-MM-dd HH:mm:ss" ShrinkLabel />
                 </MudItem>
             </MudGrid>
 
@@ -160,7 +163,7 @@
                                 <MudNumericField T="int" Label="Az column" @bind-Value="surveyImportAzimuthColumn_" Min="1" Immediate="true" />
                             </MudItem>
                             <MudItem xs="12" md="2">
-                                <MudNumericField T="int" Label="UTC time column (0 = none)" @bind-Value="surveyImportTimeColumn_" Min="0" Immediate="true" />
+                                <MudNumericField T="int" Label="Time column (0 = none)" @bind-Value="surveyImportTimeColumn_" Min="0" Immediate="true" />
                             </MudItem>
                         }
                         else
@@ -184,10 +187,10 @@
                                 <MudNumericField T="int" Label="Az width" @bind-Value="surveyImportAzimuthWidth_" Min="1" Immediate="true" />
                             </MudItem>
                             <MudItem xs="12" md="2">
-                                <MudNumericField T="int" Label="UTC time start (0 = none)" @bind-Value="surveyImportTimeStart_" Min="0" Immediate="true" />
+                                <MudNumericField T="int" Label="Time start (0 = none)" @bind-Value="surveyImportTimeStart_" Min="0" Immediate="true" />
                             </MudItem>
                             <MudItem xs="12" md="2">
-                                <MudNumericField T="int" Label="UTC time width" @bind-Value="surveyImportTimeWidth_" Min="1" Immediate="true" />
+                                <MudNumericField T="int" Label="Time width" @bind-Value="surveyImportTimeWidth_" Min="1" Immediate="true" />
                             </MudItem>
                         }
                         <MudItem xs="12" md="2">
@@ -315,8 +318,8 @@
                                    Disabled="@(!SurveyMeasurements.Any())">Apply all</MudButton>
                     </MudItem>
                     <MudItem xs="12" md="3">
-                        <MudTextField T="string" Label="Measurement time UTC for all" @bind-Value="bulkMeasurementTimeUtc_"
-                                      Placeholder="yyyy-MM-ddTHH:mm:ssZ" ShrinkLabel />
+                        <MudTextField T="string" Label="Measurement time for all" @bind-Value="bulkMeasurementTimeUtc_"
+                                      Placeholder="yyyy-MM-dd HH:mm:ss" ShrinkLabel />
                     </MudItem>
                     <MudItem xs="12" md="1" Class="d-flex align-end">
                         <MudButton OnClick="ApplyMeasurementTimeToAll" Color="Color.Primary" Variant="Variant.Outlined"
@@ -351,7 +354,7 @@
                     <MudTh>Azimuth reference</MudTh>
                     <MudTh>Azimuth correction [@AngleUnitLabel]</MudTh>
                     <MudTh>True-north azimuth [@AngleUnitLabel]</MudTh>
-                    <MudTh>Measurement time UTC</MudTh>
+                    <MudTh>Measurement time</MudTh>
                     <MudTh>Correction status</MudTh>
                     <MudTh></MudTh>
                 </HeaderContent>
@@ -417,8 +420,8 @@
                         }
                     </MudTd>
                     <MudTd DataLabel="True-north azimuth">@FormatAngleValue(context.Azimuth)</MudTd>
-                    <MudTd DataLabel="Measurement time UTC">
-                        <MudTextField T="string" Value="@FormatUtcInput(context.MeasurementTimeUtc)" ValueChanged="value => SetMeasurementTime(context, value)" Placeholder="yyyy-MM-ddTHH:mm:ssZ" Disabled="@IsExtrapolated(context)" />
+                    <MudTd DataLabel="Measurement time">
+                        <MudTextField T="string" Value="@FormatTimeInput(context.MeasurementTimeUtc)" ValueChanged="value => SetMeasurementTime(context, value)" Placeholder="yyyy-MM-dd HH:mm:ss" Disabled="@IsExtrapolated(context)" />
                     </MudTd>
                     <MudTd DataLabel="Correction status">@(IsExtrapolated(context) ? "Not a measurement" : context.Correction?.Status.ToString() ?? "Pending")</MudTd>
                     <MudTd><MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete" OnClick="(() => DeleteSurveyStation(context))" /></MudTd>
@@ -2412,9 +2415,9 @@
 
     private void ApplyMeasurementTimeToAll()
     {
-        if (!TryParseUtcInput(bulkMeasurementTimeUtc_, out DateTimeOffset? parsed))
+        if (!TryParseTimeInput(bulkMeasurementTimeUtc_, out DateTimeOffset? parsed))
         {
-            Snackbar.Add("Measurement time must be a valid UTC date-time.", Severity.Warning);
+            Snackbar.Add("Measurement time must be a valid date-time.", Severity.Warning);
             return;
         }
 
@@ -2471,11 +2474,11 @@
         return normalized < 0.0 ? normalized + 2.0 * Math.PI : normalized;
     }
 
-    private static string FormatUtcInput(DateTimeOffset? value) => value?.ToUniversalTime().ToString("yyyy-MM-ddTHH:mm:ss'Z'", CultureInfo.InvariantCulture) ?? string.Empty;
+    private static string FormatTimeInput(DateTimeOffset? value) => DateTimeReference.Format(value);
 
     private void SetAcquisitionStart(string? value)
     {
-        if (TryParseUtcInput(value, out DateTimeOffset? parsed))
+        if (TryParseTimeInput(value, out DateTimeOffset? parsed))
         {
             currentSurveyRun_!.AcquisitionStartUtc = parsed;
             InvalidateReferenceCorrections(measurement =>
@@ -2483,12 +2486,12 @@
                     ? currentSurveyRun_.DefaultAzimuthReference
                     : measurement.AzimuthReference) == SurveyAzimuthReference.MagneticNorth);
         }
-        else Snackbar.Add("Acquisition start must be a valid UTC date-time.", Severity.Warning);
+        else Snackbar.Add("Acquisition start must be a valid date-time.", Severity.Warning);
     }
 
     private void SetAcquisitionEnd(string? value)
     {
-        if (TryParseUtcInput(value, out DateTimeOffset? parsed))
+        if (TryParseTimeInput(value, out DateTimeOffset? parsed))
         {
             currentSurveyRun_!.AcquisitionEndUtc = parsed;
             InvalidateReferenceCorrections(measurement =>
@@ -2496,29 +2499,22 @@
                     ? currentSurveyRun_.DefaultAzimuthReference
                     : measurement.AzimuthReference) == SurveyAzimuthReference.MagneticNorth);
         }
-        else Snackbar.Add("Acquisition end must be a valid UTC date-time.", Severity.Warning);
+        else Snackbar.Add("Acquisition end must be a valid date-time.", Severity.Warning);
     }
 
     private void SetMeasurementTime(SurveyMeasurement measurement, string? value)
     {
-        if (TryParseUtcInput(value, out DateTimeOffset? parsed))
+        if (TryParseTimeInput(value, out DateTimeOffset? parsed))
         {
             measurement.MeasurementTimeUtc = parsed;
             MarkCorrectionPending(measurement);
             ClearCalculatedSurveyRunData();
         }
-        else Snackbar.Add("Measurement time must be a valid UTC date-time.", Severity.Warning);
+        else Snackbar.Add("Measurement time must be a valid date-time.", Severity.Warning);
     }
 
-    private static bool TryParseUtcInput(string? value, out DateTimeOffset? parsed)
-    {
-        parsed = null;
-        if (string.IsNullOrWhiteSpace(value)) return true;
-        if (!DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture,
-            DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out DateTimeOffset dateTime)) return false;
-        parsed = dateTime.ToUniversalTime();
-        return true;
-    }
+    private static bool TryParseTimeInput(string? value, out DateTimeOffset? parsed) =>
+        DateTimeReference.TryParse(value, out parsed);
     private void DeleteSurveyStation(SurveyMeasurement measurement)
     {
         currentSurveyRun_?.SurveyMeasurementList?.Remove(measurement);
@@ -2669,7 +2665,7 @@
         if (!TryParseImportedNumber(mdToken, out double md) ||
             !TryParseImportedNumber(inclinationToken, out double inclination) ||
             !TryParseImportedNumber(azimuthToken, out double azimuth) ||
-            !TryParseUtcInput(timeToken, out DateTimeOffset? measurementTime)) return false;
+            !TryParseTimeInput(timeToken, out DateTimeOffset? measurementTime)) return false;
 
         double inclinationSi = ConvertAngleToSI(inclination, selectedSurveyImportInclinationUnit_);
         double azimuthSi = ConvertAngleToSI(azimuth, selectedSurveyImportAzimuthUnit_);
@@ -2963,9 +2959,9 @@
         [
             "Measurement ID", "Origin", "Measured Depth [m]", "Observed Inclination [rad]", "Inclination Reference",
             "Applied Inclination Correction [rad]", "Geodetic Inclination [rad]", "Observed Azimuth [rad]",
-            "Azimuth Reference", "Applied Azimuth Correction [rad]", "True Azimuth [rad]", "Measurement Time UTC",
+            "Azimuth Reference", "Applied Azimuth Correction [rad]", "True Azimuth [rad]", "Measurement Time",
             "Correction Source", "Correction Status", "Correction Message", "Magnetic Declination [rad]",
-            "Evaluation Latitude [rad]", "Evaluation Longitude [rad]", "Evaluation Depth WGS84 [m]", "Evaluation Time UTC",
+            "Evaluation Latitude [rad]", "Evaluation Longitude [rad]", "Evaluation Depth WGS84 [m]", "Evaluation Time",
             "Gravity Model ID", "Gravity Model Version", "Gravity Coefficient SHA256", "Geomagnetic Model ID",
             "Geomagnetic Metadata SHA256", "Geomagnetic Coefficient SHA256", "Correction Algorithm Version"
         ];
@@ -2976,11 +2972,11 @@
             FormatExportNumber(measurement.Correction?.AppliedInclinationCorrection), FormatExportNumber(measurement.Inclination),
             FormatExportNumber(measurement.ObservedAzimuth ?? measurement.Azimuth), measurement.AzimuthReference.ToString(),
             FormatExportNumber(measurement.Correction?.AppliedAzimuthCorrection), FormatExportNumber(measurement.Azimuth),
-            FormatUtcInput(measurement.MeasurementTimeUtc), measurement.Correction?.Source.ToString() ?? string.Empty,
+            FormatTimeInput(measurement.MeasurementTimeUtc), measurement.Correction?.Source.ToString() ?? string.Empty,
             measurement.Correction?.Status.ToString() ?? string.Empty, measurement.Correction?.Message ?? string.Empty,
             FormatExportNumber(measurement.Correction?.MagneticDeclination), FormatExportNumber(measurement.Correction?.EvaluatedLatitude),
             FormatExportNumber(measurement.Correction?.EvaluatedLongitude), FormatExportNumber(measurement.Correction?.EvaluatedDepthWgs84),
-            FormatUtcInput(measurement.Correction?.EvaluationTimeUtc), measurement.Correction?.GravityModelID ?? string.Empty,
+            FormatTimeInput(measurement.Correction?.EvaluationTimeUtc), measurement.Correction?.GravityModelID ?? string.Empty,
             measurement.Correction?.GravityModelVersion ?? string.Empty, measurement.Correction?.GravityCoefficientSHA256 ?? string.Empty,
             measurement.Correction?.GeomagneticModelID ?? string.Empty, measurement.Correction?.GeomagneticMetadataSHA256 ?? string.Empty,
             measurement.Correction?.GeomagneticCoefficientSHA256 ?? string.Empty, measurement.Correction?.AlgorithmVersion ?? string.Empty
@@ -3058,8 +3054,7 @@
         return string.IsNullOrWhiteSpace(sanitized) ? "survey-run" : sanitized;
     }
 
-    private static string FormatDate(DateTimeOffset? value) =>
-        value?.ToLocalTime().ToString("g", CultureInfo.CurrentCulture) ?? string.Empty;
+    private static string FormatDate(DateTimeOffset? value) => DateTimeReference.Format(value, "g");
 }
 
 

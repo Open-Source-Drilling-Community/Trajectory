@@ -295,6 +295,55 @@ public sealed class TrajectoryCatalogMigrationTests
         }
     }
 
+    [Test]
+    public void Version_seven_database_adds_covering_index_for_target_landing_light_reads()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "trajectory-target-landing-index-migration", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        string mainPath = Path.Combine(directory, "Trajectory.db");
+        try
+        {
+            _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+            Execute(mainPath, $$"""
+                DROP INDEX {{SqlConnectionManagerTrajectory.TargetLandingLightCoveringIndexName}};
+                INSERT INTO TrajectoryTable(ID,LastModificationDate,Trajectory) VALUES(
+                    'source-id','2026-10-05 10:00:00','{}');
+                INSERT INTO TargetLandingCaseTable(
+                    ID,MetaInfo,CreationDate,LastModificationDate,SourceTrajectoryID,TargetType,CurveType,
+                    AttitudeMode,CalculationState,CalculationProgress,CalculationMessage,TargetLandingCase,
+                    Name,Description,SourceTrajectoryRevision,CalculationFingerprint,TargetLandingCaseEditData)
+                VALUES(
+                    'case-id','{"ID":"case-id"}','2026-10-05 09:00:00','2026-10-05 10:00:00',
+                    'source-id','DrillerTarget','CircularArc','FreeLandingAttitude','Completed',1.0,'done',
+                    zeroblob(1048576),'Landing A','Preserved','2026-10-05 10:00:00','fingerprint','{}');
+                PRAGMA user_version=7;
+                """);
+
+            _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+
+            using SqliteConnection main = Open(mainPath);
+            List<string> plan = QueryStrings(main,
+                "EXPLAIN QUERY PLAN " + TargetLandingCaseManager.LightSelect + " ORDER BY c.CreationDate");
+            Assert.Multiple(() =>
+            {
+                Assert.That(Scalar<long>(main, "PRAGMA user_version"),
+                    Is.EqualTo(SqlConnectionManagerTrajectory.TrajectorySchemaVersion));
+                Assert.That(Scalar<long>(main,
+                    $"SELECT COUNT(*) FROM sqlite_master WHERE type='index' AND name='{SqlConnectionManagerTrajectory.TargetLandingLightCoveringIndexName}'"),
+                    Is.EqualTo(1));
+                Assert.That(plan.Any(line => line.Contains(
+                    $"COVERING INDEX {SqlConnectionManagerTrajectory.TargetLandingLightCoveringIndexName}",
+                    StringComparison.OrdinalIgnoreCase)), Is.True,
+                    $"The light query must not read the table rows containing the large result payload. Plan: {string.Join(" | ", plan)}");
+            });
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
+    }
+
     private static void Execute(string path, string sql)
     {
         using SqliteConnection connection = Open(path);
@@ -315,5 +364,15 @@ public sealed class TrajectoryCatalogMigrationTests
         using SqliteCommand command = connection.CreateCommand();
         command.CommandText = sql;
         return (T)Convert.ChangeType(command.ExecuteScalar()!, typeof(T));
+    }
+
+    private static List<string> QueryStrings(SqliteConnection connection, string sql)
+    {
+        using SqliteCommand command = connection.CreateCommand();
+        command.CommandText = sql;
+        using SqliteDataReader reader = command.ExecuteReader();
+        List<string> values = [];
+        while (reader.Read()) values.Add(reader.GetString(3));
+        return values;
     }
 }

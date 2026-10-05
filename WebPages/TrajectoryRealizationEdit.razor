@@ -716,7 +716,7 @@
     }
     private Task OnRigJobIdChanged(Guid? id) { selectedRigJobId = id; return Task.CompletedTask; }
     private async Task OnRigJobChanged(RigJob? _) { await UpdateReferenceSourcesAsync(); await InvokeAsync(StateHasChanged); }
-    private static string FormatDate(DateTimeOffset? value) => value?.ToString("yyyy-MM-dd HH:mm") ?? string.Empty;
+    private static string FormatDate(DateTimeOffset? value) => DateTimeReference.Format(value, "yyyy-MM-dd HH:mm");
     private string NorthCoordinateLabel => GetCoordinateLabel(PositionDirectionType.North);
     private string EastCoordinateLabel => GetCoordinateLabel(PositionDirectionType.East);
     private string GetCoordinateLabel(PositionDirectionType direction)

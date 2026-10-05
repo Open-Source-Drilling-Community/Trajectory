@@ -15,6 +15,14 @@
 @using SharedSurveyRunBatchImportLight = OSDC.Drilling.Trajectory.ModelShared.SurveyRunBatchImportLight
 @using SharedSurveyRunBatchImportRow = OSDC.Drilling.Trajectory.ModelShared.SurveyRunBatchImportRow
 
+<MudUnitAndReferenceChoiceTag HttpHost="@Api.HostNameUnitConversion"
+                              HttpBasePath="@Api.HostBasePathUnitConversion"
+                              HttpController="UnitSystem/"
+                              UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
+                              UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName"
+                              EnableDateTimeReference="true"
+                              DateReferenceName="@DataUtils.UnitAndReferenceParameters.DateReferenceName"
+                              DateReferenceNameChanged="@((string value) => DataUtils.UpdateDateReferenceName(value))">
 <MudText Class="mt-4 mb-4" Typo="Typo.h5"><strong>Batch Import Survey Runs</strong></MudText>
 
 @if (isLoading_)
@@ -43,7 +51,9 @@ else
                     <SelectColumn T="SharedSurveyRunBatchImportLight" />
                 <PropertyColumn Property="x => x.Name" Title="Batch Import" Sortable="true" />
                 <PropertyColumn Property="x => x.Description" Title="Description" Sortable="true" />
-                <PropertyColumn Property="x => x.LastModificationDate" Title="Last Updated" Sortable="true" />
+                <TemplateColumn Title="Last Updated" SortBy="x => x.LastModificationDate">
+                    <CellTemplate>@DateTimeReference.Format(context.Item.LastModificationDate, "yyyy-MM-dd HH:mm")</CellTemplate>
+                </TemplateColumn>
                 <TemplateColumn CellClass="d-flex justify-end">
                     <CellTemplate>
                         <MudIconButton Size="@Size.Small" Icon="@Icons.Material.Outlined.Delete"
@@ -163,7 +173,7 @@ else
                     </MudSelect>
                 </MudItem>
                 <MudItem xs="12" md="3">
-                    <MudNumericField T="int" Label="UTC time column (0 = none)" @bind-Value="surveyImportTimeColumn_" Min="0" Immediate="true" />
+                    <MudNumericField T="int" Label="Time column (0 = none)" @bind-Value="surveyImportTimeColumn_" Min="0" Immediate="true" />
                 </MudItem>
                 @if (IsFixedWidthImportFormat)
                 {
@@ -186,10 +196,10 @@ else
                         <MudNumericField T="int" Label="Az width" @bind-Value="surveyImportAzimuthWidth_" Min="1" Immediate="true" />
                     </MudItem>
                     <MudItem xs="12" md="2">
-                        <MudNumericField T="int" Label="UTC time start (0 = none)" @bind-Value="surveyImportTimeStart_" Min="0" Immediate="true" />
+                        <MudNumericField T="int" Label="Time start (0 = none)" @bind-Value="surveyImportTimeStart_" Min="0" Immediate="true" />
                     </MudItem>
                     <MudItem xs="12" md="2">
-                        <MudNumericField T="int" Label="UTC time width" @bind-Value="surveyImportTimeWidth_" Min="1" Immediate="true" />
+                        <MudNumericField T="int" Label="Time width" @bind-Value="surveyImportTimeWidth_" Min="1" Immediate="true" />
                     </MudItem>
                 }
             </MudGrid>
@@ -294,11 +304,11 @@ else
                             }
                         </MudSelect>
                     </MudTd>
-                    <MudTd DataLabel="Acquired from (UTC)">
-                        <MudTextField T="string" Value="@FormatUtcInput(context.AcquisitionStartUtc)" ValueChanged="@(value => context.AcquisitionStartUtc = ParseUtcInput(value))" Placeholder="2025-01-31T12:00:00Z" />
+                    <MudTd DataLabel="Acquired from">
+                        <MudTextField T="string" Value="@FormatTimeInput(context.AcquisitionStartUtc)" ValueChanged="@(value => context.AcquisitionStartUtc = ParseTimeInput(value))" Placeholder="2025-01-31 12:00:00" />
                     </MudTd>
-                    <MudTd DataLabel="Acquired to (UTC)">
-                        <MudTextField T="string" Value="@FormatUtcInput(context.AcquisitionEndUtc)" ValueChanged="@(value => context.AcquisitionEndUtc = ParseUtcInput(value))" Placeholder="2025-01-31T12:00:00Z" />
+                    <MudTd DataLabel="Acquired to">
+                        <MudTextField T="string" Value="@FormatTimeInput(context.AcquisitionEndUtc)" ValueChanged="@(value => context.AcquisitionEndUtc = ParseTimeInput(value))" Placeholder="2025-01-31 12:00:00" />
                     </MudTd>
                     <MudTd DataLabel="File name">
                         <MudText>@(string.IsNullOrWhiteSpace(context.FileName) ? "No file selected" : context.FileName)</MudText>
@@ -327,6 +337,7 @@ else
         </MudPaper>
     </div>
 }
+</MudUnitAndReferenceChoiceTag>
 
 @code {
     [CascadingParameter]
@@ -901,8 +912,7 @@ else
     [Inject]
     private IDialogService DialogService { get; set; } = null!;
 
-    private static string FormatDate(DateTimeOffset? value) =>
-        value?.ToString("yyyy-MM-dd HH:mm") ?? string.Empty;
+    private static string FormatDate(DateTimeOffset? value) => DateTimeReference.Format(value, "yyyy-MM-dd HH:mm");
 
     private Task OnFieldChanged(Guid? fieldId)
     {
@@ -1883,7 +1893,7 @@ else
             return false;
         }
 
-        DateTimeOffset? measurementTime = ParseUtcInput(timeToken);
+        DateTimeOffset? measurementTime = ParseTimeInput(timeToken);
         if (!string.IsNullOrWhiteSpace(timeToken) && measurementTime == null)
         {
             return false;
@@ -1945,12 +1955,10 @@ else
         }).ToList();
     }
 
-    private static string FormatUtcInput(DateTimeOffset? value) => value?.ToUniversalTime().ToString("O", CultureInfo.InvariantCulture) ?? string.Empty;
+    private static string FormatTimeInput(DateTimeOffset? value) => DateTimeReference.Format(value);
 
-    private static DateTimeOffset? ParseUtcInput(string? value) =>
-        DateTimeOffset.TryParse(value, CultureInfo.InvariantCulture, DateTimeStyles.AssumeUniversal | DateTimeStyles.AdjustToUniversal, out DateTimeOffset parsed)
-            ? parsed
-            : null;
+    private static DateTimeOffset? ParseTimeInput(string? value) =>
+        DateTimeReference.TryParse(value, out DateTimeOffset? parsed) ? parsed : null;
     private List<string> SplitDelimitedColumns(string line)
     {
         List<string> columns = SplitDelimitedColumns(line, selectedSurveyImportSeparator_);

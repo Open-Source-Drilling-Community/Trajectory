@@ -7,6 +7,14 @@
 @inject ITrajectoryReferenceDataCache ReferenceData
 @inject IJSRuntime JSRuntime
 
+<MudUnitAndReferenceChoiceTag HttpHost="@Api.HostNameUnitConversion"
+                              HttpBasePath="@Api.HostBasePathUnitConversion"
+                              HttpController="UnitSystem/"
+                              UnitSystemName="@DataUtils.UnitAndReferenceParameters.UnitSystemName"
+                              UnitSystemNameChanged="@DataUtils.UpdateUnitSystemName"
+                              EnableDateTimeReference="true"
+                              DateReferenceName="@DataUtils.UnitAndReferenceParameters.DateReferenceName"
+                              DateReferenceNameChanged="@((string value) => DataUtils.UpdateDateReferenceName(value))">
 <MudText Typo="Typo.h4" Class="mt-4 mb-4">Trajectory backup and restore</MudText>
 @if (_busy)
 {
@@ -104,7 +112,7 @@
                 <MudItem xs="6" md="2"><MudText Typo="Typo.subtitle2">Trajectories</MudText><MudText Typo="Typo.body2">@(_document.Trajectories?.Count ?? 0)</MudText></MudItem>
                 <MudItem xs="6" md="2"><MudText Typo="Typo.subtitle2">Policy revisions</MudText><MudText Typo="Typo.body2">@(_document.AntiCollisionPolicyRevisions?.Count ?? 0)</MudText></MudItem>
                 <MudItem xs="6" md="2"><MudText Typo="Typo.subtitle2">Field assignments</MudText><MudText Typo="Typo.body2">@(_document.FieldAntiCollisionPolicyAssignments?.Count ?? 0)</MudText></MudItem>
-                <MudItem xs="12" md="2"><MudText Typo="Typo.subtitle2">Exported UTC</MudText><MudText Typo="Typo.body2">@_document.ExportedAtUtc.ToString("u")</MudText></MudItem>
+                <MudItem xs="12" md="2"><MudText Typo="Typo.subtitle2">Exported</MudText><MudText Typo="Typo.body2">@DateTimeReference.Format(_document.ExportedAtUtc)</MudText></MudItem>
             </MudGrid>
             @if (_document.CatalogDependencies != null)
             {
@@ -160,6 +168,7 @@
         }
     </MudExpansionPanel>
 </MudExpansionPanels>
+</MudUnitAndReferenceChoiceTag>
 
 @code {
     private const long MaximumFileBytes = 512L * 1024L * 1024L;

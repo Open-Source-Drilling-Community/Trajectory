@@ -20,7 +20,8 @@
             <MudText Typo="Typo.body1" Class="mb-2">
                 A <b>SurveyRun</b> is an imported measured survey dataset acquired with one survey instrument: a
                 compact, editable list of <code>SurveyMeasurement</code> entries that preserves measured depth, original
-                observed inclination/azimuth, their vertical and north references, optional UTC measurement time, and
+                observed inclination/azimuth, their vertical and north references, optional measurement time in the
+                selected time reference, and
                 the applied correction with Earth-model provenance. Run-level defaults and an acquisition interval
                 support historical files. Each run is tied to a <code>SurveyInstrumentID</code>, plus a tie-in point resolved from its
                 <code>WellBoreID</code>, parent <code>WellID</code>, <code>ClusterID</code>, and
@@ -159,7 +160,8 @@
     </MudText>
     <MudText Typo="Typo.body1" Class="mt-2">
         The <MudLink Href="/Trajectory/webapp/AntiCollisionPolicies">Anti-collision Policies</MudLink> page maintains
-        immutable policy revisions and non-overlapping UTC Field assignments. Rules use first-match priority with
+        immutable policy revisions and non-overlapping Field assignments. Assignment dates are presented in the
+        selected time reference. Rules use first-match priority with
         comparison-side age, identity, and feature conditions, plus one unconditional default. Each rule defines a
         dimensionless Alert threshold above its Alarm threshold. A completed calculation freezes the exact policy,
         assignment, evaluation time, evidence, thresholds, and per-comparison classification; missing evidence is

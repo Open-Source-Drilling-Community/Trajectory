@@ -6,6 +6,38 @@ namespace OSDC.Drilling.Trajectory.ServiceTest;
 public sealed class WebPageComponentContractTests
 {
     [Test]
+    public void Time_bearing_pages_use_the_shared_time_reference_selection()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", ".."));
+        string webPages = Path.Combine(repositoryRoot, "WebPages");
+        string surveyRun = File.ReadAllText(Path.Combine(webPages, "SurveyRunMain.razor"));
+        string batchImport = File.ReadAllText(Path.Combine(webPages, "SurveyRunBatchImport.razor"));
+        string policies = File.ReadAllText(Path.Combine(webPages, "AntiCollisionPolicies.razor"));
+        string statistics = File.ReadAllText(Path.Combine(webPages, "StatisticsTrajectory.razor"));
+        string dataUtils = File.ReadAllText(Path.Combine(webPages, "DataUtils.cs"));
+        string project = File.ReadAllText(Path.Combine(webPages, "WebPages.csproj"));
+
+        Assert.Multiple(() =>
+        {
+            foreach (string source in new[] { surveyRun, batchImport, policies, statistics })
+            {
+                Assert.That(source, Does.Contain("EnableDateTimeReference=\"true\""));
+                Assert.That(source, Does.Contain("DateReferenceName=\"@DataUtils.UnitAndReferenceParameters.DateReferenceName\""));
+            }
+
+            Assert.That(surveyRun, Does.Contain("DateTimeReference.TryParse").And.Contain("DateTimeReference.Format"));
+            Assert.That(batchImport, Does.Contain("DateTimeReference.TryParse").And.Contain("DateTimeReference.Format"));
+            Assert.That(policies, Does.Contain("DateTimeReference.ToCanonicalUtc").And.Contain("DateTimeReference.ToDisplayDateTime"));
+            Assert.That(statistics, Does.Contain("DateTimeReference.ToDisplayDateTime(entry.Date)"));
+            Assert.That(dataUtils, Does.Contain("DateReferenceName { get; set; } = \"Local Time\";"));
+            Assert.That(surveyRun, Does.Not.Contain("Label=\"Acquisition start (UTC)\"").And.Not.Contain("DataLabel=\"Measurement time (UTC)\""));
+            Assert.That(batchImport, Does.Not.Contain("Label=\"UTC time column").And.Not.Contain("DataLabel=\"Acquired from (UTC)\""));
+            Assert.That(project, Does.Contain("OSDC.UnitConversion.DrillingRazorMudComponents\" Version=\"3.4.7\""));
+        });
+    }
+
+    [Test]
     public void Survey_measurement_settings_and_actions_follow_the_intended_workflow()
     {
         string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
