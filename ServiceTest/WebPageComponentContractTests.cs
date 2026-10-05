@@ -11,6 +11,7 @@ public sealed class WebPageComponentContractTests
         string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
             "..", "..", "..", ".."));
         string editor = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "DirectionalControlEvaluationEdit.razor"));
+        string main = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "DirectionalControlEvaluationMain.razor"));
         string model = File.ReadAllText(Path.Combine(repositoryRoot, "Model", "DirectionalControlEvaluationCase.cs"));
         string calculator = File.ReadAllText(Path.Combine(repositoryRoot, "Model", "DirectionalControlEvaluationCalculator.cs"));
 
@@ -32,6 +33,20 @@ public sealed class WebPageComponentContractTests
             Assert.That(editor, Does.Contain("ZAxisTitle=\"Probability\"").And.Contain("ZAxisMinimum=\"0\""));
             Assert.That(editor, Does.Contain("GetDirectionalControlEvaluationSampleChunkAsync(id, index"));
             Assert.That(Regex.Matches(editor, "FixedHeader=\"true\" Height=").Count, Is.GreaterThanOrEqualTo(3));
+            Assert.That(main, Does.Contain("GroundMudLineDepthReferenceSource=\"@DataUtils.GroundMudLineDepthReferenceSource\"")
+                .And.Contain("MeanSeaLevelDepthReferenceSource=\"@DataUtils.MeanSeaLevelDepthReferenceSource\"")
+                .And.Contain("RotaryTableDepthReferenceSource=\"@DataUtils.RotaryTableDepthReferenceSource\""),
+                "The page-level unit/reference selector must expose the depth-reference choices used by result depths.");
+            Assert.That(editor, Does.Contain("FromWGS84DepthSI(siValue, \"DepthDrilling\", false)")
+                .And.Contain("DrillingSignalReference=\"DrillingSignalReferenceType.Depth\""),
+                "Bundle legends and tabular depths must react to both unit and depth-reference changes.");
+            Assert.That(editor, Does.Contain(">Reference and actual trajectories</MudText>")
+                .And.Contain("GetTrajectorySurveyStationChunkCountAsync")
+                .And.Contain("GetTrajectorySurveyStationChunkAsync")
+                .And.Contain("XAxisUsesPositionReference=\"true\"")
+                .And.Contain("YAxisUsesPositionReference=\"true\"")
+                .And.Contain("ZAxisUsesDepthReference=\"true\""),
+                "The comparison plot must load trajectories by chunk and honor the selected position and depth references.");
         });
     }
 

@@ -11,6 +11,8 @@ namespace OSDC.Drilling.Trajectory.Model
     internal static class TrajectoryAggregationCalculator
     {
         private const int ClosestApproachIterations = 48;
+        private const double CatastrophicFitMinimumError = 25.0;
+        private const double CatastrophicFitMdFraction = 0.05;
 
         public static bool Calculate(
             Trajectory trajectory,
@@ -60,6 +62,25 @@ namespace OSDC.Drilling.Trajectory.Model
                 return false;
             }
 
+            List<SurveyPoint> coarsenedReference = CoarsenReferenceTrajectory(
+                sourcePoints, distanceReferenceCoarseningThreshold);
+            double sourceMdSpan = sourcePoints[^1].MD!.Value - sourcePoints[0].MD!.Value;
+            double catastrophicFitError = Math.Max(
+                CatastrophicFitMinimumError,
+                CatastrophicFitMdFraction * sourceMdSpan);
+            if (MaximumPositionErrorAtSourceStations(sourcePoints, sectionChain) > catastrophicFitError)
+            {
+                progress?.Invoke(0.35, "Replacing divergent fit with source-anchored circular arcs");
+                sectionChain = BuildReferenceArcChain(coarsenedReference, out sectionMessage);
+                if (sectionChain.Count == 0 ||
+                    MaximumPositionErrorAtSourceStations(sourcePoints, sectionChain) > catastrophicFitError)
+                {
+                    aggregation.CalculationMessage = sectionMessage ??
+                        "The fitted section chain diverges from the source trajectory.";
+                    return false;
+                }
+            }
+
             aggregation.SectionList = sectionChain.Select(runtime => runtime.Model).ToList();
             aggregation.SectionCount = aggregation.SectionList.Count;
 
@@ -74,7 +95,7 @@ namespace OSDC.Drilling.Trajectory.Model
             }
 
             progress?.Invoke(0.6, "Coarsening reference trajectory");
-            aggregation.CoarsenedReferenceTrajectory = CoarsenReferenceTrajectory(sourcePoints, distanceReferenceCoarseningThreshold);
+            aggregation.CoarsenedReferenceTrajectory = coarsenedReference;
             aggregation.CoarsenedReferencePointCount = aggregation.CoarsenedReferenceTrajectory.Count;
 
             progress?.Invoke(0.75, "Calculating closest approach distances");
@@ -162,6 +183,69 @@ namespace OSDC.Drilling.Trajectory.Model
             }
 
             return result;
+        }
+
+        private static List<SectionRuntime> BuildReferenceArcChain(
+            List<SurveyPoint> referencePoints,
+            out string? message)
+        {
+            message = null;
+            List<SectionRuntime> result = [];
+            for (int index = 0; index + 1 < referencePoints.Count; index++)
+            {
+                SurveyPoint start = referencePoints[index];
+                SurveyPoint end = referencePoints[index + 1];
+                double startMd = start.MD!.Value;
+                double endMd = end.MD!.Value;
+                CircularArcSection? arc = CreateReferenceCircularArc(start, end);
+                if (endMd <= startMd || arc == null || !arc.Calculate() ||
+                    arc.Circle.Curvature is not double curvature ||
+                    arc.Circle.ReferenceToolface is not double toolface)
+                {
+                    message = $"The source-anchored fallback arc {index + 1} could not be calculated.";
+                    return [];
+                }
+
+                FittedSection fitted = new(
+                    TrajectoryAggregationSectionType.CircularArc,
+                    startMd,
+                    endMd,
+                    curvature,
+                    toolface);
+                result.Add(new SectionRuntime(
+                    index,
+                    fitted.Type,
+                    startMd,
+                    endMd,
+                    arc,
+                    ToSectionModel(index, fitted, ToCurvilinearPoint(start))));
+            }
+            return result;
+        }
+
+        private static double MaximumPositionErrorAtSourceStations(
+            List<SurveyPoint> sourcePoints,
+            List<SectionRuntime> sectionChain)
+        {
+            double maximum = 0.0;
+            int sectionIndex = 0;
+            foreach (SurveyPoint source in sourcePoints)
+            {
+                double md = source.MD!.Value;
+                while (sectionIndex + 1 < sectionChain.Count && md > sectionChain[sectionIndex].EndMD + 1e-9)
+                {
+                    sectionIndex++;
+                }
+                SectionRuntime runtime = sectionChain[sectionIndex];
+                Geometry.CurvilinearPoint3D? calculated = runtime.Section.InterpolateAtMD(
+                    Math.Clamp(md, runtime.StartMD, runtime.EndMD));
+                if (calculated == null || !TryGetCoordinates(source, out double x, out double y, out double z))
+                {
+                    return double.PositiveInfinity;
+                }
+                maximum = Math.Max(maximum, Distance(calculated, x, y, z));
+            }
+            return maximum;
         }
 
         private static ArcSection? CreateArcSection(Geometry.CurvilinearPoint3D start, FittedSection fitted)

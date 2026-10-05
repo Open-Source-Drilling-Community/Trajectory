@@ -76,6 +76,27 @@ else
         @if (value.IsStale) { <MudAlert Severity="Severity.Warning" Dense="true" Class="mt-2">A selected trajectory has changed. Save to recalculate.</MudAlert> }
     </MudPaper>
 
+    @if (loadingTrajectoryPlot)
+    {
+        <MudProgressLinear Indeterminate="true" Color="Color.Info" Class="mt-4" />
+        <MudText Typo="Typo.caption">Loading reference and actual trajectories…</MudText>
+    }
+    else if (referenceTrajectoryStations.Count > 0 || actualTrajectoryStations.Count > 0)
+    {
+        TrajectoryComparisonPlotData trajectoryPlot = BuildTrajectoryComparisonPlot();
+        <MudText Typo="Typo.h6" Class="mt-5 mb-2">Reference and actual trajectories</MudText>
+        <MudText Typo="Typo.caption">The reference trajectory is blue and the actual trajectory is orange. Coordinates follow the selected position and depth references.</MudText>
+        <Scatter3DPlot @key="@($"directional-trajectories-{value.ReferenceTrajectoryID}-{value.ActualTrajectoryID}-{referenceTrajectoryStations.Count}-{actualTrajectoryStations.Count}")"
+                       ReferenceSourceVersion="@referenceSourceVersion"
+                       NameList="@trajectoryPlot.Names" ModeFlagList="@trajectoryPlot.Modes" ColorList="@trajectoryPlot.Colors"
+                       LineWidthList="@trajectoryPlot.LineWidths" ShowLegendList="@trajectoryPlot.ShowLegend"
+                       XValuesList="@trajectoryPlot.North" YValuesList="@trajectoryPlot.East" ZValuesList="@trajectoryPlot.Tvd"
+                       XUnit="PositionDrilling" YUnit="PositionDrilling" ZUnit="DepthDrilling"
+                       XAxisUsesPositionReference="true" YAxisUsesPositionReference="true" ZAxisUsesDepthReference="true"
+                       XAxisPositionDirection="PositionDirectionType.North" YAxisPositionDirection="PositionDirectionType.East"
+                       XAxisTitle="North" YAxisTitle="East" ZAxisTitle="TVD" ZAxisReversed="true" PlotHeight="620" />
+    }
+
     @if (plotSamples.Any(HasResidualPair))
     {
         ResidualPlotData residualPlot = BuildResidualPlot();
@@ -101,8 +122,8 @@ else
             </HeaderContent>
             <RowTemplate>
                 <MudTd>@(context.BundleIndex + 1)</MudTd>
-                <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.StartActualMD" /></MudTd>
-                <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.EndActualMD" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.StartActualMD" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.EndActualMD" /></MudTd>
                 <MudTd>@context.ValidSampleCount / @context.AttemptedSampleCount</MudTd>
                 <MudTd>@context.ValidCoverageRatio.ToString("P0")</MudTd>
                 <MudTd>@SummaryCell(FirstSummary(context), FirstComponentQuantity)</MudTd>
@@ -143,7 +164,7 @@ else
                 <MudTh>@ResidualHeader($"{SecondComponentLabel} residual", SecondComponentQuantity)</MudTh>
             </HeaderContent>
             <RowTemplate>
-                <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" SIValue="@context.ActualMD" /></MudTd>
+                <MudTd><MudSpanWithUnit QuantityName="DepthDrilling" DrillingSignalReference="DrillingSignalReferenceType.Depth" SIValue="@context.ActualMD" /></MudTd>
                 <MudTd>@(context.IsValid ? "Valid" : context.FailureCode)</MudTd>
                 <MudTd><MudSpanWithUnit QuantityName="@FirstComponentQuantity" SIValue="@FirstExpected(context)" /></MudTd>
                 <MudTd><MudSpanWithUnit QuantityName="@FirstComponentQuantity" SIValue="@FirstActual(context)" /></MudTd>
@@ -161,13 +182,19 @@ else
     [Parameter] public Guid? CaseId { get; set; }
     [Parameter] public EventCallback ValueChanged { get; set; }
     private DirectionalControlEvaluationCase value = NewCase();
-    private List<Field> fields = []; private List<Cluster> clusters = []; private List<Well> wells = []; private List<WellBore> wellBores = []; private List<TrajectoryLight> trajectories = [];
+    private List<Field> fields = []; private List<Cluster> clusters = []; private List<Well> wells = []; private List<WellBore> wellBores = [];
+    private List<Rig> rigs = []; private List<TrajectoryLight> trajectories = [];
     private Guid? fieldId, clusterId, wellId, wellBoreId;
     private bool loading = true, busy;
+    private bool loadingTrajectoryPlot;
     private int sampleChunkCount, sampleChunkIndex;
     private int resultsLoadVersion;
+    private int trajectoryPlotLoadVersion;
+    private long referenceSourceVersion;
     private List<DirectionalControlEvaluationSample> samples = [];
     private List<DirectionalControlEvaluationSample> plotSamples = [];
+    private List<SurveyStation> referenceTrajectoryStations = [];
+    private List<SurveyStation> actualTrajectoryStations = [];
     private readonly CancellationTokenSource lifetime = new();
     private static readonly string[] BundleColors =
     [
@@ -208,8 +235,10 @@ else
             if (caseTask != null) value = await caseTask;
             TrajectoryReferenceDataSnapshot snapshot = await references;
             fields = snapshot.Fields.ToList(); clusters = snapshot.Clusters.ToList(); wells = snapshot.Wells.ToList();
-            wellBores = snapshot.WellBores.ToList(); trajectories = snapshot.Trajectories.ToList();
+            wellBores = snapshot.WellBores.ToList(); rigs = snapshot.Rigs.ToList();
+            trajectories = snapshot.Trajectories.ToList();
             InitializeHierarchy(value.ReferenceTrajectoryID != Guid.Empty ? value.ReferenceTrajectoryID : value.ActualTrajectoryID);
+            await RefreshTrajectoryContextAsync();
             if (value.CalculationState == CalculationState.Completed) await LoadResultsAsync();
             else if (IsActive) _ = MonitorAsync(value.MetaInfo.ID, lifetime.Token);
         }
@@ -331,13 +360,80 @@ else
         if (trajectory == null) return;
         fieldId = trajectory.FieldID; clusterId = trajectory.ClusterID; wellId = trajectory.WellID; wellBoreId = trajectory.WellBoreID;
     }
-    private Task SetField(Guid? id) { fieldId = id; clusterId = wellId = wellBoreId = null; ClearTrajectories(); return Task.CompletedTask; }
-    private Task SetCluster(Guid? id) { clusterId = id; wellId = wellBoreId = null; ClearTrajectories(); return Task.CompletedTask; }
-    private Task SetWell(Guid? id) { wellId = id; wellBoreId = null; ClearTrajectories(); return Task.CompletedTask; }
-    private Task SetWellBore(Guid? id) { wellBoreId = id; ClearTrajectories(); return Task.CompletedTask; }
-    private Task SetReferenceTrajectory(Guid? id) { value.ReferenceTrajectoryID = id ?? Guid.Empty; return Task.CompletedTask; }
-    private Task SetActualTrajectory(Guid? id) { value.ActualTrajectoryID = id ?? Guid.Empty; return Task.CompletedTask; }
+    private async Task SetField(Guid? id) { fieldId = id; clusterId = wellId = wellBoreId = null; ClearTrajectories(); await RefreshTrajectoryContextAsync(); }
+    private async Task SetCluster(Guid? id) { clusterId = id; wellId = wellBoreId = null; ClearTrajectories(); await RefreshTrajectoryContextAsync(); }
+    private async Task SetWell(Guid? id) { wellId = id; wellBoreId = null; ClearTrajectories(); await RefreshTrajectoryContextAsync(); }
+    private async Task SetWellBore(Guid? id) { wellBoreId = id; ClearTrajectories(); await RefreshTrajectoryContextAsync(); }
+    private async Task SetReferenceTrajectory(Guid? id) { value.ReferenceTrajectoryID = id ?? Guid.Empty; await RefreshTrajectoryContextAsync(); }
+    private async Task SetActualTrajectory(Guid? id) { value.ActualTrajectoryID = id ?? Guid.Empty; await RefreshTrajectoryContextAsync(); }
     private void ClearTrajectories() { value.ReferenceTrajectoryID = Guid.Empty; value.ActualTrajectoryID = Guid.Empty; }
+    private async Task RefreshTrajectoryContextAsync()
+    {
+        Guid contextId = value.ActualTrajectoryID != Guid.Empty
+            ? value.ActualTrajectoryID
+            : value.ReferenceTrajectoryID;
+        DateTimeOffset? referenceDate = trajectories.FirstOrDefault(item => item.MetaInfo?.ID == contextId)?.LastModificationDate;
+        DataUtils.ApplyTrajectoryReferenceValues(contextId == Guid.Empty ? null : contextId,
+            trajectories, wellBores, wells, clusters, rigs, fields, referenceDate: referenceDate);
+        try
+        {
+            await CartographicPositionReferenceUtils.ApplyForTrajectoryAsync(Api,
+                contextId == Guid.Empty ? null : contextId, trajectories, clusters, fields, logger);
+            TrajectoryReferenceDatumUtils.Apply(await TrajectoryReferenceDatumUtils.ResolveForTrajectoryAsync(Api,
+                contextId == Guid.Empty ? null : contextId, trajectories, wellBores, wells, clusters));
+        }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Unable to resolve optional directional-control trajectory references");
+            TrajectoryReferenceDatumUtils.Apply(new TrajectoryReferenceDatumValues(null, null, null));
+        }
+        referenceSourceVersion++;
+        await LoadTrajectoryPlotsAsync();
+    }
+    private async Task LoadTrajectoryPlotsAsync()
+    {
+        int loadVersion = ++trajectoryPlotLoadVersion;
+        referenceTrajectoryStations = [];
+        actualTrajectoryStations = [];
+        if (value.ReferenceTrajectoryID == Guid.Empty && value.ActualTrajectoryID == Guid.Empty) return;
+        loadingTrajectoryPlot = true;
+        await InvokeAsync(StateHasChanged);
+        try
+        {
+            Task<List<SurveyStation>> referenceTask = LoadTrajectoryStationsAsync(value.ReferenceTrajectoryID, lifetime.Token);
+            Task<List<SurveyStation>> actualTask = LoadTrajectoryStationsAsync(value.ActualTrajectoryID, lifetime.Token);
+            await Task.WhenAll(referenceTask, actualTask);
+            if (loadVersion != trajectoryPlotLoadVersion) return;
+            referenceTrajectoryStations = await referenceTask;
+            actualTrajectoryStations = await actualTask;
+        }
+        catch (OperationCanceledException) when (lifetime.IsCancellationRequested) { }
+        catch (Exception ex)
+        {
+            logger.LogWarning(ex, "Unable to load directional-control trajectories for plotting");
+            Snackbar.Add("The reference or actual trajectory could not be loaded for plotting.", Severity.Warning);
+        }
+        finally
+        {
+            if (loadVersion == trajectoryPlotLoadVersion)
+            {
+                loadingTrajectoryPlot = false;
+                await InvokeAsync(StateHasChanged);
+            }
+        }
+    }
+    private async Task<List<SurveyStation>> LoadTrajectoryStationsAsync(Guid trajectoryId, CancellationToken token)
+    {
+        if (trajectoryId == Guid.Empty) return [];
+        int chunkCount = await Api.ClientTrajectory.GetTrajectorySurveyStationChunkCountAsync(trajectoryId, token);
+        List<SurveyStation> result = [];
+        for (int index = 0; index < chunkCount; index++)
+        {
+            SurveyStationChunk chunk = await Api.ClientTrajectory.GetTrajectorySurveyStationChunkAsync(trajectoryId, index, token);
+            if (chunk.SurveyStationList is { Count: > 0 }) result.AddRange(chunk.SurveyStationList);
+        }
+        return result.OrderBy(station => station.MD ?? station.Abscissa).ToList();
+    }
     private Task<IEnumerable<Guid?>> SearchTrajectoriesAsync(string? text, CancellationToken _)
     {
         string? term = text?.Trim();
@@ -351,7 +447,7 @@ else
         return trajectories.FirstOrDefault(item => item.MetaInfo?.ID == value)?.Name ?? "Unknown trajectory";
     }
 
-    private string DepthHeader(string label) => $"{label} ({Parent?.GetUnitLabel("DepthDrilling")})";
+    private string DepthHeader(string label) => $"{label} ({Parent?.GetDepthUnitLabel("DepthDrilling")})";
     private string ResidualHeader(string label, string quantity) => $"{label} ({Parent?.GetUnitLabel(quantity)})";
     private DirectionalControlDistributionSummary? FirstSummary(DirectionalControlEvaluationBundle bundle) => IsBuildTurn ? bundle.BuildRateResidual : bundle.CurvatureResidual;
     private DirectionalControlDistributionSummary? SecondSummary(DirectionalControlEvaluationBundle bundle) => IsBuildTurn ? bundle.TurnRateResidual : bundle.ToolfaceResidual;
@@ -474,8 +570,34 @@ else
     private static double WrapAngle(double angle) => Math.Atan2(Math.Sin(angle), Math.Cos(angle));
     private string FormatMd(double siValue)
     {
-        double displayed = Parent?.FromSI(siValue, "DepthDrilling") ?? siValue;
-        return $"{displayed:G5} {Parent?.GetDepthUnitLabel("DepthDrilling")}";
+        string displayed = Parent?.FromWGS84DepthSI(siValue, "DepthDrilling", false) ?? siValue.ToString("G5");
+        return $"{displayed} {Parent?.GetDepthUnitLabel("DepthDrilling")}";
+    }
+    private TrajectoryComparisonPlotData BuildTrajectoryComparisonPlot()
+    {
+        TrajectoryComparisonPlotData result = new();
+        AddTrajectoryTrace(result, "Reference trajectory", "#1565C0", referenceTrajectoryStations);
+        AddTrajectoryTrace(result, "Actual trajectory", "#EF6C00", actualTrajectoryStations);
+        return result;
+    }
+    private static void AddTrajectoryTrace(
+        TrajectoryComparisonPlotData result,
+        string name,
+        string color,
+        IEnumerable<SurveyStation> stations)
+    {
+        List<SurveyStation> drawable = stations
+            .Where(station => station.RiemannianNorth.HasValue && station.RiemannianEast.HasValue && station.TVD.HasValue)
+            .ToList();
+        if (drawable.Count == 0) return;
+        result.Names.Add(name);
+        result.Modes.Add(1);
+        result.Colors.Add(color);
+        result.LineWidths.Add(5);
+        result.ShowLegend.Add(true);
+        result.North.Add(drawable.Select(station => (object)station.RiemannianNorth!.Value).ToList());
+        result.East.Add(drawable.Select(station => (object)station.RiemannianEast!.Value).ToList());
+        result.Tvd.Add(drawable.Select(station => (object)station.TVD!.Value).ToList());
     }
     private double? FirstExpected(DirectionalControlEvaluationSample sample) => IsBuildTurn ? sample.ExpectedBuildRate : sample.ExpectedCurvature;
     private double? FirstActual(DirectionalControlEvaluationSample sample) => IsBuildTurn ? sample.ActualBuildRate : sample.ActualCurvature;
@@ -493,6 +615,17 @@ else
         public List<List<object>> X { get; } = [];
         public List<List<object>> Y { get; } = [];
         public List<List<object>> Z { get; } = [];
+    }
+    private sealed class TrajectoryComparisonPlotData
+    {
+        public List<string> Names { get; } = [];
+        public List<int> Modes { get; } = [];
+        public List<string> Colors { get; } = [];
+        public List<int?> LineWidths { get; } = [];
+        public List<bool> ShowLegend { get; } = [];
+        public List<List<object>> North { get; } = [];
+        public List<List<object>> East { get; } = [];
+        public List<List<object>> Tvd { get; } = [];
     }
     public void ManageUnits() => _ = InvokeAsync(StateHasChanged);
     public void Dispose() { lifetime.Cancel(); lifetime.Dispose(); }
