@@ -15,7 +15,7 @@ It exposes the Trajectory API and depends on the `Model` project for the domain 
 - persist resource, catalog, calculation, anti-collision, and usage-history state
 - run long calculations asynchronously so requests can poll state and progress instead of blocking
 
-Aggregation results sample the fitted section chain at the case's interpolation interval and include the standard derived survey values (DLS, BUR, TR, and vertical section) used by the Web UI and exports. Before publishing a result, the calculator checks the fitted chain against the source survey positions. A catastrophically divergent fit is replaced by source-anchored circular arcs built from the coarsened reference; the calculation fails closed if that fallback still diverges.
+Aggregation results sample the fitted section chain at the case's interpolation interval and include the standard derived survey values (DLS, BUR, TR, and vertical section) used by the Web UI and exports. When the source starts vertically, where its initial azimuth is physically undefined, the calculator aligns the compact fitted chain's departure direction with the source displacement without adding sections or changing source data. The distance results report the remaining approximation error of that compact representation.
 
 ## Container
 

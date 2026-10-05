@@ -8,7 +8,7 @@
 
 <MudText Class="mt-4 mb-4" Typo="Typo.h6">Edit Trajectory Aggregation</MudText>
 <MudContainer Class="d-flex flex-row mt-4 mb-4">
-    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveAggregationCase">Save</MudButton>
+    <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Success" OnClick="SaveAggregationCase">Save and Calculate</MudButton>
     <MudButton Class="me-1" Variant="Variant.Filled" Color="Color.Error" OnClick="CloseEditorAsync">Close</MudButton>
 </MudContainer>
 
@@ -120,7 +120,8 @@
                     <MudText>No sections</MudText>
                 }
             </MudExpansionPanel>
-            <MudExpansionPanel Text="Interpolated aggregated trajectory" ExpandedChanged="@OnResultsPanelExpandedChanged">
+            <MudExpansionPanel Text="Interpolated aggregated trajectory"
+                               ExpandedChanged="@(expanded => OnResultsPanelExpandedChanged(AggregationResultPanel.InterpolatedTrajectory, expanded))">
                 <MudStack Row="true" AlignItems="AlignItems.Center" Class="mb-2">
                     <MudButton Color="Color.Success" Variant="Variant.Outlined" Size="Size.Small"
                                Disabled="@(interpolatedAggregationStations.Count < 2 || isSavingSurveyRun_ || HasUnsavedAggregationCaseChanges())"
@@ -178,7 +179,8 @@
                     <MudText>Save and calculate the aggregation to create its interpolated trajectory.</MudText>
                 }
             </MudExpansionPanel>
-            <MudExpansionPanel Text="Distance to section list" ExpandedChanged="@OnResultsPanelExpandedChanged">
+            <MudExpansionPanel Text="Distance to section list"
+                               ExpandedChanged="@(expanded => OnResultsPanelExpandedChanged(AggregationResultPanel.DistanceToSections, expanded))">
                 @if (isLoadingResults_)
                 {
                     <MudPaper Class="pa-4" Outlined="true">
@@ -214,7 +216,8 @@
                     <MudText>No distance results</MudText>
                 }
             </MudExpansionPanel>
-            <MudExpansionPanel Text="Plots" Style="overflow: visible;" ExpandedChanged="@OnResultsPanelExpandedChanged">
+            <MudExpansionPanel Text="Plots" Style="overflow: visible;"
+                               ExpandedChanged="@(expanded => OnResultsPanelExpandedChanged(AggregationResultPanel.Plots, expanded))">
                 @if (isLoadingResults_)
                 {
                     <MudPaper Class="pa-4" Outlined="true">
@@ -306,6 +309,7 @@
     private bool isPollingCalculation_;
     private bool isSavingSurveyRun_;
     private bool isExportingSurveyStations_;
+    private readonly HashSet<AggregationResultPanel> expandedResultPanels_ = [];
     private int resultChunkCount_;
     private int resultChunksLoaded_;
     private int resultItemCount_;
@@ -345,6 +349,10 @@
         await UpdateReferenceSourcesAsync();
         ResetResultLoadingState();
         MarkAggregationCaseClean();
+        if (expandedResultPanels_.Count > 0)
+        {
+            StartResultLoading();
+        }
         await InvokeAsync(StateHasChanged);
     }
 
@@ -445,11 +453,16 @@
         return result == true;
     }
 
-    private Task OnResultsPanelExpandedChanged(bool expanded)
+    private Task OnResultsPanelExpandedChanged(AggregationResultPanel panel, bool expanded)
     {
         if (expanded)
         {
+            expandedResultPanels_.Add(panel);
             StartResultLoading();
+        }
+        else
+        {
+            expandedResultPanels_.Remove(panel);
         }
 
         return Task.CompletedTask;
@@ -500,6 +513,10 @@
 
                 if (!IsCalculationActive(currentAggregationCase))
                 {
+                    if (expandedResultPanels_.Count > 0)
+                    {
+                        StartResultLoading();
+                    }
                     return;
                 }
 
@@ -547,13 +564,19 @@
 
         try
         {
+            await WaitForCalculationCompletionAsync(caseId);
+            if (IsCalculationActive(currentAggregationCase))
+            {
+                return;
+            }
+
+            // Waiting replaces currentAggregationCase with the terminal server value. Reacquire its
+            // child so chunks are attached to the object rendered by the still-open result panel.
             TrajectoryAggregation? aggregation = SelectedAggregation;
             if (aggregation == null)
             {
                 return;
             }
-
-            await WaitForCalculationCompletionAsync(caseId);
 
             aggregation.AggregatedSurveyPointList = await LoadSurveyPointChunksAsync(
                 () => Api.ClientTrajectory.GetTrajectoryAggregationAggregatedSurveyPointChunkCountAsync(caseId, trajectoryId),
@@ -645,6 +668,13 @@
         DistanceReferenceCoarseningThreshold = 0.1,
         TrajectoryAggregationList = [new TrajectoryAggregation { ID = Guid.NewGuid(), SectionList = [], AggregatedSurveyPointList = [], CoarsenedReferenceTrajectory = [], DistanceResultList = [] }]
     };
+
+    private enum AggregationResultPanel
+    {
+        InterpolatedTrajectory,
+        DistanceToSections,
+        Plots
+    }
 
     private RenderFragment CalculationStatusContent(TrajectoryAggregationCase aggregationCase) => @<div style="min-width: 180px;">
         @if (aggregationCase.CalculationState == CalculationState.Running || aggregationCase.CalculationState == CalculationState.Queued)

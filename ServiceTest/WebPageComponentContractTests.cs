@@ -665,6 +665,7 @@ public sealed class WebPageComponentContractTests
         Assert.Multiple(() =>
         {
             Assert.That(editor, Does.Contain("QuantityLabel=\"Interpolation Step\""));
+            Assert.That(editor, Does.Contain("OnClick=\"SaveAggregationCase\">Save and Calculate"));
             Assert.That(editor, Does.Contain("Text=\"Interpolated aggregated trajectory\""));
             Assert.That(editor, Does.Contain("Items=\"@interpolatedAggregationStations\""));
             Assert.That(editor, Does.Contain("@CurvatureHeader(\"DLS\")"));
@@ -677,6 +678,9 @@ public sealed class WebPageComponentContractTests
             Assert.That(editor, Does.Contain("group.Sum(item => item.CoveredLength)"));
             Assert.That(editor, Does.Contain("ParentSurveyRunID = selection.ParentSurveyRunID"));
             Assert.That(editor, Does.Contain("await Api.ClientTrajectory.PostSurveyRunAsync(surveyRun)"));
+            Assert.That(editor, Does.Contain("expandedResultPanels_.Count > 0")
+                .And.Contain("TrajectoryAggregation? aggregation = SelectedAggregation;"),
+                "An already-expanded result panel must reload chunks into the terminal case object after saving.");
             Assert.That(calculator, Does.Contain("PopulateDerivedSurveyValues(aggregation.AggregatedSurveyPointList, sourcePoints)"));
         });
     }

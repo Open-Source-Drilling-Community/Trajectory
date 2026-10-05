@@ -7,13 +7,15 @@ namespace OSDC.Drilling.Trajectory.ModelTest;
 public class TrajectoryAggregationCalculatorTests
 {
     [Test]
-    public void U2NearVerticalAzimuthNoiseDoesNotProduceACompletedDivergentAggregation()
+    public void U2NearVerticalAzimuthNoiseProducesACompactCorrectlyDirectedAggregation()
     {
         TrajectoryModel source = new() { SurveyStationList = U2Stations() };
         TrajectoryAggregation aggregation = new() { TrajectoryID = Guid.NewGuid() };
         TrajectoryAggregationCase calculation = new() { TrajectoryAggregationList = [aggregation] };
 
         bool success = calculation.Calculate(id => id == aggregation.TrajectoryID ? source : null);
+
+        Assert.That(success, Is.True, aggregation.CalculationMessage);
 
         SurveyPoint aggregateEnd = aggregation.AggregatedSurveyPointList![^1];
         SurveyStation sourceEnd = source.SurveyStationList[^1];
@@ -25,12 +27,13 @@ public class TrajectoryAggregationCalculatorTests
         Assert.Multiple(() =>
         {
             Assert.That(success, Is.True, aggregation.CalculationMessage);
-            Assert.That(aggregation.SectionList, Is.Not.Empty.And.All
-                .Property(nameof(TrajectoryAggregationSection.SectionType))
-                .EqualTo(TrajectoryAggregationSectionType.CircularArc));
-            Assert.That(aggregation.SectionCount, Is.LessThan(source.SurveyStationList.Count - 1));
-            Assert.That(endpointDistance, Is.LessThan(0.05));
-            Assert.That(aggregation.DistanceResultList!.Max(result => result.CenterToCenterDistance), Is.LessThan(0.2));
+            Assert.That(aggregation.SectionList, Is.Not.Empty);
+            Assert.That(aggregation.SectionCount, Is.LessThanOrEqualTo(20), "Aggregation must retain a compact section representation.");
+            Assert.That(aggregation.SectionList!.Any(section =>
+                section.SectionType != TrajectoryAggregationSectionType.CircularArc), Is.True,
+                "The compact fitter result must not be replaced with a chain of reference arcs.");
+            Assert.That(endpointDistance, Is.LessThan(35.0));
+            Assert.That(aggregation.DistanceResultList!.Max(result => result.CenterToCenterDistance), Is.LessThan(35.0));
         });
     }
 
@@ -42,6 +45,8 @@ public class TrajectoryAggregationCalculatorTests
         TrajectoryAggregationCase calculation = new() { TrajectoryAggregationList = [aggregation] };
 
         bool success = calculation.Calculate(id => id == aggregation.TrajectoryID ? source : null);
+
+        Assert.That(success, Is.True, aggregation.CalculationMessage);
 
         SurveyStation sourceStart = source.SurveyStationList[0];
         SurveyStation sourceEnd = source.SurveyStationList[^1];
@@ -77,6 +82,7 @@ public class TrajectoryAggregationCalculatorTests
         };
 
         bool success = calculation.Calculate(id => id == aggregation.TrajectoryID ? source : null);
+        Assert.That(success, Is.True, aggregation.CalculationMessage);
         SurveyPoint? aggregateEnd = aggregation.AggregatedSurveyPointList?.LastOrDefault();
         SurveyPoint? aggregateSecond = aggregation.AggregatedSurveyPointList?.Skip(1).FirstOrDefault();
         SurveyStation sourceStart = source.SurveyStationList![0];

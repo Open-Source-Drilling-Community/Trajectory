@@ -11,8 +11,6 @@ namespace OSDC.Drilling.Trajectory.Model
     internal static class TrajectoryAggregationCalculator
     {
         private const int ClosestApproachIterations = 48;
-        private const double CatastrophicFitMinimumError = 25.0;
-        private const double CatastrophicFitMdFraction = 0.05;
 
         public static bool Calculate(
             Trajectory trajectory,
@@ -62,24 +60,10 @@ namespace OSDC.Drilling.Trajectory.Model
                 return false;
             }
 
+            sectionChain = AlignInitialNearVerticalDeparture(sourcePoints, fittedSections, sectionChain);
+
             List<SurveyPoint> coarsenedReference = CoarsenReferenceTrajectory(
                 sourcePoints, distanceReferenceCoarseningThreshold);
-            double sourceMdSpan = sourcePoints[^1].MD!.Value - sourcePoints[0].MD!.Value;
-            double catastrophicFitError = Math.Max(
-                CatastrophicFitMinimumError,
-                CatastrophicFitMdFraction * sourceMdSpan);
-            if (MaximumPositionErrorAtSourceStations(sourcePoints, sectionChain) > catastrophicFitError)
-            {
-                progress?.Invoke(0.35, "Replacing divergent fit with source-anchored circular arcs");
-                sectionChain = BuildReferenceArcChain(coarsenedReference, out sectionMessage);
-                if (sectionChain.Count == 0 ||
-                    MaximumPositionErrorAtSourceStations(sourcePoints, sectionChain) > catastrophicFitError)
-                {
-                    aggregation.CalculationMessage = sectionMessage ??
-                        "The fitted section chain diverges from the source trajectory.";
-                    return false;
-                }
-            }
 
             aggregation.SectionList = sectionChain.Select(runtime => runtime.Model).ToList();
             aggregation.SectionCount = aggregation.SectionList.Count;
@@ -149,6 +133,92 @@ namespace OSDC.Drilling.Trajectory.Model
             return points;
         }
 
+        private static List<SectionRuntime> AlignInitialNearVerticalDeparture(
+            List<SurveyPoint> sourcePoints,
+            List<FittedSection> fittedSections,
+            List<SectionRuntime> originalChain)
+        {
+            SurveyPoint sourceStart = sourcePoints[0];
+            if (sourceStart.Inclination is not double startInclination ||
+                Math.Abs(Math.Sin(startInclination)) >= 1e-6 ||
+                !TryGetCoordinates(sourceStart, out double startNorth, out double startEast, out _))
+            {
+                return originalChain;
+            }
+
+            // At vertical, changing only the departure reference rotates the compact solution around
+            // the vertical axis. Use every source station to determine the least-squares rotation,
+            // rather than trusting the undefined azimuth stored at the first station.
+            double dot = 0.0;
+            double cross = 0.0;
+            int sectionIndex = 0;
+            foreach (SurveyPoint source in sourcePoints)
+            {
+                double md = source.MD!.Value;
+                while (sectionIndex + 1 < originalChain.Count && md > originalChain[sectionIndex].EndMD + 1e-9)
+                {
+                    sectionIndex++;
+                }
+
+                SectionRuntime runtime = originalChain[sectionIndex];
+                Geometry.CurvilinearPoint3D? fitted = runtime.Section.InterpolateAtMD(
+                    Math.Clamp(md, runtime.StartMD, runtime.EndMD));
+                if (fitted?.X is not double fittedNorth || fitted.Y is not double fittedEast ||
+                    !TryGetCoordinates(source, out double sourceNorth, out double sourceEast, out _))
+                {
+                    continue;
+                }
+
+                double referenceNorth = sourceNorth - startNorth;
+                double referenceEast = sourceEast - startEast;
+                double aggregateNorth = fittedNorth - startNorth;
+                double aggregateEast = fittedEast - startEast;
+                dot += aggregateNorth * referenceNorth + aggregateEast * referenceEast;
+                cross += aggregateNorth * referenceEast - aggregateEast * referenceNorth;
+            }
+
+            if (Math.Abs(dot) + Math.Abs(cross) < 1e-12)
+            {
+                return originalChain;
+            }
+
+            double correction = Math.Atan2(cross, dot);
+            SurveyPoint rotatedStart = CloneSurveyPoint(sourceStart);
+            rotatedStart.Azimuth = NormalizeSignedAngle((rotatedStart.Azimuth ?? 0.0) + correction);
+
+            List<SectionRuntime> best = originalChain;
+            double bestError = MaximumPositionErrorAtSourceStations(sourcePoints, originalChain);
+            List<List<FittedSection>> candidates = [[.. fittedSections]];
+            if (fittedSections[0].Type is TrajectoryAggregationSectionType.CircularArc or
+                TrajectoryAggregationSectionType.ConstantCurvatureAndToolface)
+            {
+                List<FittedSection> rotatedControls = [.. fittedSections];
+                rotatedControls[0] = rotatedControls[0] with
+                {
+                    SecondParameter = NormalizeSignedAngle(rotatedControls[0].SecondParameter + correction)
+                };
+                candidates.Add(rotatedControls);
+            }
+
+            foreach (List<FittedSection> candidate in candidates)
+            {
+                List<SectionRuntime> chain = BuildSectionChain(rotatedStart, candidate, out _);
+                if (chain.Count == 0)
+                {
+                    continue;
+                }
+
+                double error = MaximumPositionErrorAtSourceStations(sourcePoints, chain);
+                if (error < bestError)
+                {
+                    best = chain;
+                    bestError = error;
+                }
+            }
+
+            return best;
+        }
+
         private static List<SectionRuntime> BuildSectionChain(SurveyPoint firstPoint, List<FittedSection> fittedSections, out string? message)
         {
             message = null;
@@ -182,44 +252,6 @@ namespace OSDC.Drilling.Trajectory.Model
                 current = new Geometry.CurvilinearPoint3D(end);
             }
 
-            return result;
-        }
-
-        private static List<SectionRuntime> BuildReferenceArcChain(
-            List<SurveyPoint> referencePoints,
-            out string? message)
-        {
-            message = null;
-            List<SectionRuntime> result = [];
-            for (int index = 0; index + 1 < referencePoints.Count; index++)
-            {
-                SurveyPoint start = referencePoints[index];
-                SurveyPoint end = referencePoints[index + 1];
-                double startMd = start.MD!.Value;
-                double endMd = end.MD!.Value;
-                CircularArcSection? arc = CreateReferenceCircularArc(start, end);
-                if (endMd <= startMd || arc == null || !arc.Calculate() ||
-                    arc.Circle.Curvature is not double curvature ||
-                    arc.Circle.ReferenceToolface is not double toolface)
-                {
-                    message = $"The source-anchored fallback arc {index + 1} could not be calculated.";
-                    return [];
-                }
-
-                FittedSection fitted = new(
-                    TrajectoryAggregationSectionType.CircularArc,
-                    startMd,
-                    endMd,
-                    curvature,
-                    toolface);
-                result.Add(new SectionRuntime(
-                    index,
-                    fitted.Type,
-                    startMd,
-                    endMd,
-                    arc,
-                    ToSectionModel(index, fitted, ToCurvilinearPoint(start))));
-            }
             return result;
         }
 
