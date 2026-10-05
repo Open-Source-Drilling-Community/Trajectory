@@ -112,7 +112,7 @@ public sealed class DirectionalControlEvaluationCaseManager
             DirectionalControlEvaluationCase? value = json == null
                 ? null
                 : JsonSerializer.Deserialize<DirectionalControlEvaluationCase>(json, JsonSettings.Options);
-            RefreshStale(value);
+            RefreshStale(id, value);
             return value;
         }
         catch (Exception ex) when (ex is SqliteException or JsonException)
@@ -620,23 +620,12 @@ public sealed class DirectionalControlEvaluationCaseManager
     internal static bool SameStoredRevision(DateTimeOffset? left, DateTimeOffset? right) =>
         left.HasValue && right.HasValue && left.Value.ToUnixTimeSeconds() == right.Value.ToUnixTimeSeconds();
 
-    private void RefreshStale(DirectionalControlEvaluationCase? value)
+    private void RefreshStale(Guid id, DirectionalControlEvaluationCase? value)
     {
         if (value == null || value.CalculationState != CalculationState.Completed) return;
-        using SqliteConnection? connection = connectionManager_.GetConnection();
-        if (connection == null) { value.IsStale = true; return; }
-        using SqliteCommand command = connection.CreateCommand();
-        command.CommandText = """
-            SELECT reference.LastModificationDate,actual.LastModificationDate
-            FROM (SELECT 1) seed
-            LEFT JOIN TrajectoryTable reference ON reference.ID=@reference
-            LEFT JOIN TrajectoryTable actual ON actual.ID=@actual
-            """;
-        command.Parameters.AddWithValue("@reference", value.ReferenceTrajectoryID.ToString());
-        command.Parameters.AddWithValue("@actual", value.ActualTrajectoryID.ToString());
-        using SqliteDataReader reader = command.ExecuteReader();
-        value.IsStale = !reader.Read() || string.IsNullOrWhiteSpace(value.CalculationFingerprint) ||
-            !SameStoredRevision(value.ReferenceTrajectoryRevision, ReadDate(reader, 0)) ||
-            !SameStoredRevision(value.ActualTrajectoryRevision, ReadDate(reader, 1));
+        // Keep the editor payload and the list/status endpoints on one authoritative
+        // staleness calculation. Separate queries previously disagreed in production
+        // even when both stored trajectory revisions matched exactly.
+        value.IsStale = GetLightById(id)?.IsStale ?? true;
     }
 }

@@ -90,7 +90,11 @@ public sealed class DirectionalControlEvaluationPersistenceTests
             {
                 Assert.That(manager.RepairMissingTrajectoryRevisions(), Is.EqualTo(1));
                 Assert.That(manager.GetLightById(matching.MetaInfo!.ID)!.IsStale, Is.False);
+                Assert.That(manager.GetById(matching.MetaInfo.ID)!.IsStale, Is.False,
+                    "The full editor payload must use the same staleness result as the light/status endpoint.");
                 Assert.That(manager.GetLightById(changed.MetaInfo!.ID)!.IsStale, Is.True);
+                Assert.That(manager.GetById(changed.MetaInfo.ID)!.IsStale, Is.True,
+                    "The full editor payload must preserve a real stale result.");
                 Assert.That(manager.RepairMissingTrajectoryRevisions(), Is.Zero, "The repair must be idempotent.");
             });
         }
