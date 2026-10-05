@@ -6,6 +6,18 @@ namespace OSDC.Drilling.Trajectory.ServiceTest;
 public sealed class WebPageComponentContractTests
 {
     [Test]
+    public void Development_webapp_uses_the_direct_https_trajectory_endpoint()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", ".."));
+        string settings = File.ReadAllText(Path.Combine(repositoryRoot, "WebApp", "appsettings.Development.json"));
+
+        Assert.That(settings, Does.Contain("\"TrajectoryHostURL\": \"https://app.digiwells.no/\"")
+            .And.Not.Contain("\"TrajectoryHostURL\": \"http://app.digiwells.no/\""),
+            "Local development must call the public HTTPS ingress directly instead of relying on an HTTP redirect.");
+    }
+
+    [Test]
     public void Directional_control_editor_uses_one_wellbore_filter_and_bounded_graphical_results()
     {
         string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
