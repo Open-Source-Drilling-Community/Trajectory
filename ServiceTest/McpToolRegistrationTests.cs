@@ -559,11 +559,14 @@ public sealed class McpToolRegistrationTests
             Assert.That(properties.ContainsKey("ReferenceTrajectoryRevision"), Is.False);
             Assert.That(properties.ContainsKey("SampleList"), Is.False);
             Assert.That(properties.ContainsKey("BundleList"), Is.False);
+            Assert.That(properties.ContainsKey("AzimuthBranch"), Is.False);
             Assert.That(definition["required"]!.AsArray().Select(node => node!.GetValue<string>()),
                 Is.EquivalentTo(new[] { "MetaInfo", "ReferenceTrajectoryID", "ActualTrajectoryID", "CurveType" }));
             Assert.That(properties["EvaluationInterval"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
             Assert.That(properties["MinimumBundleSampleCount"]!["minimum"]!.GetValue<double>(), Is.EqualTo(2));
-            Assert.That(create.Description, Does.Contain("same wellbore").IgnoreCase.And.Contain("no assumed command delay"));
+            Assert.That(create.Description, Does.Contain("same wellbore").IgnoreCase
+                .And.Contain("correction length").And.Contain("shortest azimuth branch")
+                .And.Contain("no assumed command delay"));
             Assert.That(status.Description, Does.Contain("sample chunks").And.Contain("Poll"));
         });
     }

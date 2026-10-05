@@ -25,7 +25,7 @@ public class DirectionalControlEvaluationCaseLight
 public class DirectionalControlEvaluationCase : DirectionalControlEvaluationCaseLight
 {
     public const double DefaultEvaluationInterval = 10.0;
-    public const double DefaultReferenceMDAdvance = 30.0;
+    public const double DefaultReferenceMDAdvance = 60.0;
     public const double DefaultMaximumInvalidGap = 100.0;
     public const double DefaultMinimumBundleLength = 90.0;
     public const int DefaultMinimumBundleSampleCount = 5;
@@ -37,10 +37,8 @@ public class DirectionalControlEvaluationCase : DirectionalControlEvaluationCase
     public double? StartActualMD { get; set; }
     /// <summary>Optional inclusive upper evaluation bound in SI metres of actual MD.</summary>
     public double? EndActualMD { get; set; }
-    /// <summary>Positive SI metres added to the closest reference MD.</summary>
+    /// <summary>Correction length in SI metres, measured forward from the closest reference MD.</summary>
     public double ReferenceMDAdvance { get; set; } = DefaultReferenceMDAdvance;
-    /// <summary>Explicit whole-turn azimuth branch; zero selects the shortest wrapped turn.</summary>
-    public int AzimuthBranch { get; set; }
     /// <summary>Junction-curvature ratio used by build-and-turn reconnect pairs.</summary>
     public double JunctionCurvatureRatio { get; set; } = 1.0;
     /// <summary>Invalid MD gaps larger than this SI-metre limit split bundles.</summary>

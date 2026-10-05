@@ -192,8 +192,10 @@ internal static class DirectionalControlBundling
         }
         return Enumerable.Range(0, binCount).Select(index => new DirectionalControlHistogramBin
         {
-            LowerBound = Normalize(low + index * width, circular),
-            UpperBound = Normalize(low + (index + 1) * width, circular),
+            // Keep circular bins on the continuous branch selected around the circular centre.
+            // Normalizing each edge independently would make a bin crossing +/-pi appear near zero.
+            LowerBound = low + index * width,
+            UpperBound = low + (index + 1) * width,
             Count = counts[index]
         }).ToList();
     }

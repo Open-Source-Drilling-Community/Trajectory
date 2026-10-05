@@ -7995,10 +7995,6 @@
             "type": "number",
             "format": "double"
           },
-          "AzimuthBranch": {
-            "type": "integer",
-            "format": "int32"
-          },
           "JunctionCurvatureRatio": {
             "type": "number",
             "format": "double"

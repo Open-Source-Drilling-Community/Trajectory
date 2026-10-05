@@ -6,6 +6,32 @@ namespace OSDC.Drilling.Trajectory.ServiceTest;
 public sealed class WebPageComponentContractTests
 {
     [Test]
+    public void Directional_control_editor_uses_one_wellbore_filter_and_bounded_graphical_results()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", ".."));
+        string editor = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "DirectionalControlEvaluationEdit.razor"));
+        string model = File.ReadAllText(Path.Combine(repositoryRoot, "Model", "DirectionalControlEvaluationCase.cs"));
+        string calculator = File.ReadAllText(Path.Combine(repositoryRoot, "Model", "DirectionalControlEvaluationCalculator.cs"));
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(Regex.Matches(editor, "ResourceKind=\"TrajectoryResourceFilterKind.None\"").Count, Is.EqualTo(1));
+            Assert.That(editor, Does.Contain("Label=\"Reference trajectory\"").And.Contain("Label=\"Actual trajectory\""));
+            Assert.That(editor, Does.Contain("QuantityLabel=\"Correction length\"").And.Contain("ReferenceMDAdvance = 60.0"));
+            Assert.That(editor, Does.Not.Contain("Label=\"Azimuth branch\"").And.Not.Contain("value.AzimuthBranch"));
+            Assert.That(model, Does.Contain("DefaultReferenceMDAdvance = 60.0").And.Not.Contain("public int AzimuthBranch"));
+            Assert.That(calculator, Does.Contain("AzimuthBranch = 0"));
+            Assert.That(editor, Does.Contain("Directional-control discrepancies"));
+            Assert.That(editor, Does.Contain("Delta turn rate").And.Contain("Delta build rate"));
+            Assert.That(editor, Does.Contain("Delta curvature").And.Contain("Delta toolface"));
+            Assert.That(editor, Does.Contain("BundleColors").And.Contain("FormatMd(bundle.StartActualMD)"));
+            Assert.That(editor, Does.Contain("GetDirectionalControlEvaluationSampleChunkAsync(id, index"));
+            Assert.That(Regex.Matches(editor, "FixedHeader=\"true\" Height=").Count, Is.GreaterThanOrEqualTo(3));
+        });
+    }
+
+    [Test]
     public void Time_bearing_pages_use_the_shared_time_reference_selection()
     {
         string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,

@@ -55457,9 +55457,6 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("ReferenceMDAdvance")]
         public double ReferenceMDAdvance { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("AzimuthBranch")]
-        public int AzimuthBranch { get; set; }
-
         [System.Text.Json.Serialization.JsonPropertyName("JunctionCurvatureRatio")]
         public double JunctionCurvatureRatio { get; set; }
 

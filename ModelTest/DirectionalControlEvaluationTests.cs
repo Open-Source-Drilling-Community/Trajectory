@@ -10,6 +10,18 @@ namespace OSDC.Drilling.Trajectory.ModelTest;
 public sealed class DirectionalControlEvaluationTests
 {
     [Test]
+    public void Defaults_use_a_sixty_metre_correction_and_fixed_shortest_azimuth_branch()
+    {
+        DirectionalControlEvaluationCase value = new();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(value.ReferenceMDAdvance, Is.EqualTo(60.0));
+            Assert.That(typeof(DirectionalControlEvaluationCase).GetProperty("AzimuthBranch"), Is.Null);
+        });
+    }
+
+    [Test]
     public void Evaluates_forward_actual_intervals_against_first_reconnect_section()
     {
         Guid wellBoreId = Guid.NewGuid();
@@ -139,6 +151,10 @@ public sealed class DirectionalControlEvaluationTests
 
         Assert.That(Math.Abs(Math.Abs(summary.P50) - Math.PI), Is.LessThan(3 * degree));
         Assert.That(summary.StandardDeviation, Is.LessThan(3 * degree));
+        Assert.That(summary.Histogram.All(bin => bin.UpperBound > bin.LowerBound), Is.True);
+        Assert.That(summary.Histogram.SelectMany(bin => new[] { bin.LowerBound, bin.UpperBound })
+            .Any(angle => Math.Abs(angle) > Math.PI), Is.True,
+            "Circular histogram edges should stay on one unwrapped branch around 180 degrees.");
     }
 
     [Test]

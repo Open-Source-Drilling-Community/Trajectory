@@ -532,7 +532,7 @@ public sealed class DirectionalControlEvaluationCaseManager
         string input = string.Join('|',
             value.ReferenceTrajectoryID, value.ActualTrajectoryID, value.CurveType,
             value.EvaluationInterval, value.StartActualMD, value.EndActualMD,
-            value.ReferenceMDAdvance, value.AzimuthBranch, value.JunctionCurvatureRatio,
+            value.ReferenceMDAdvance, value.JunctionCurvatureRatio,
             value.MaximumInvalidGap, value.MinimumBundleLength, value.MinimumBundleSampleCount,
             value.BundlingPenalty, reference.LastModificationDate, actual.LastModificationDate);
         return Convert.ToHexString(SHA256.HashData(Encoding.UTF8.GetBytes(input)));

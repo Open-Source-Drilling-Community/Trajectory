@@ -6887,7 +6887,6 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				StartActualMD = null,
 				EndActualMD = null,
 				ReferenceMDAdvance = 0.0,
-				AzimuthBranch = 0,
 				JunctionCurvatureRatio = 0.0,
 				MaximumInvalidGap = 0.0,
 				MinimumBundleLength = 0.0,

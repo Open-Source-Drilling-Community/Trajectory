@@ -45,7 +45,7 @@ public static class DirectionalControlEvaluationCalculator
             ReferenceTrajectoryID = value.ReferenceTrajectoryID,
             ReferenceMDAdvance = value.ReferenceMDAdvance,
             CurveType = value.CurveType,
-            AzimuthBranch = value.AzimuthBranch,
+            AzimuthBranch = 0,
             JunctionCurvatureRatio = value.JunctionCurvatureRatio,
             LeadInLength = 0.0
         };
