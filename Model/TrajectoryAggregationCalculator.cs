@@ -717,13 +717,20 @@ namespace OSDC.Drilling.Trajectory.Model
 
             public List<FittedSection> BuildFittedSections(SurveyPoint firstPoint, SurveyPoint lastPoint)
             {
-                if (fittedSections_.Count > 0)
-                {
-                    return fittedSections_;
-                }
-
                 double startMd = (firstPoint.MD ?? firstPoint.Abscissa)!.Value;
                 double endMd = (lastPoint.MD ?? lastPoint.Abscissa)!.Value;
+                if (fittedSections_.Count > 0)
+                {
+                    // The shortest-path representation contains transition endpoints rather than an
+                    // explicit initial boundary. Its first raw endpoint can therefore be a later survey
+                    // station. The section chain is nevertheless initialized from firstPoint, so retaining
+                    // that later MD relabels the source start and shortens the complete aggregation.
+                    List<FittedSection> result = [.. fittedSections_];
+                    result[0] = result[0] with { StartMD = startMd };
+                    result[^1] = result[^1] with { EndMD = endMd };
+                    return result;
+                }
+
                 return [new FittedSection(TrajectoryAggregationSectionType.CircularArc, startMd, endMd, 0.0, 0.0)];
             }
 

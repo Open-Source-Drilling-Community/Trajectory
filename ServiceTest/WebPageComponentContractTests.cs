@@ -23,9 +23,13 @@ public sealed class WebPageComponentContractTests
             Assert.That(model, Does.Contain("DefaultReferenceMDAdvance = 60.0").And.Not.Contain("public int AzimuthBranch"));
             Assert.That(calculator, Does.Contain("AzimuthBranch = 0"));
             Assert.That(editor, Does.Contain("Directional-control discrepancies"));
-            Assert.That(editor, Does.Contain("Delta turn rate").And.Contain("Delta build rate"));
-            Assert.That(editor, Does.Contain("Delta curvature").And.Contain("Delta toolface"));
+            Assert.That(editor, Does.Contain("Turn-rate residual").And.Contain("Build-rate residual"));
+            Assert.That(editor, Does.Contain("Curvature residual").And.Contain("Toolface residual"));
+            Assert.That(editor, Does.Not.Contain("Delta turn rate").And.Not.Contain("Delta curvature"));
             Assert.That(editor, Does.Contain("BundleColors").And.Contain("FormatMd(bundle.StartActualMD)"));
+            Assert.That(editor, Does.Contain("Joint residual probability").And.Contain("<Scatter3DPlot"));
+            Assert.That(editor, Does.Contain("int[,] counts").And.Contain("counts[xIndex, yIndex] / (double)bundleSamples.Count"));
+            Assert.That(editor, Does.Contain("ZAxisTitle=\"Probability\"").And.Contain("ZAxisMinimum=\"0\""));
             Assert.That(editor, Does.Contain("GetDirectionalControlEvaluationSampleChunkAsync(id, index"));
             Assert.That(Regex.Matches(editor, "FixedHeader=\"true\" Height=").Count, Is.GreaterThanOrEqualTo(3));
         });

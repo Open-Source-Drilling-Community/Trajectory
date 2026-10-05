@@ -114,9 +114,10 @@ else
             @foreach (DirectionalControlEvaluationBundle bundle in value.BundleList)
             {
                 <MudExpansionPanel Text="@($"Bundle {bundle.BundleIndex + 1} empirical distributions")">
+                    @JointDistributionPanel(bundle)
                     <MudGrid>
-                        <MudItem xs="12" md="6">@DistributionPanel(bundle, FirstSummary(bundle), FirstComponentLabel, FirstComponentQuantity)</MudItem>
-                        <MudItem xs="12" md="6">@DistributionPanel(bundle, SecondSummary(bundle), SecondComponentLabel, SecondComponentQuantity)</MudItem>
+                        <MudItem xs="12" md="6">@HistogramTable(FirstSummary(bundle), FirstComponentLabel, FirstComponentQuantity)</MudItem>
+                        <MudItem xs="12" md="6">@HistogramTable(SecondSummary(bundle), SecondComponentLabel, SecondComponentQuantity)</MudItem>
                     </MudGrid>
                 </MudExpansionPanel>
             }
@@ -186,8 +187,8 @@ else
     private string SecondComponentLabel => IsBuildTurn ? "turn rate" : "toolface";
     private string FirstComponentQuantity => "CurvatureDrilling";
     private string SecondComponentQuantity => IsBuildTurn ? "CurvatureDrilling" : "PlaneAngleDrilling";
-    private string ResidualPlotXLabel => IsBuildTurn ? "Delta turn rate" : "Delta curvature";
-    private string ResidualPlotYLabel => IsBuildTurn ? "Delta build rate" : "Delta toolface";
+    private string ResidualPlotXLabel => IsBuildTurn ? "Turn-rate residual" : "Curvature residual";
+    private string ResidualPlotYLabel => IsBuildTurn ? "Build-rate residual" : "Toolface residual";
     private string ResidualPlotXQuantity => "CurvatureDrilling";
     private string ResidualPlotYQuantity => IsBuildTurn ? "CurvatureDrilling" : "PlaneAngleDrilling";
 
@@ -355,21 +356,20 @@ else
     private DirectionalControlDistributionSummary? FirstSummary(DirectionalControlEvaluationBundle bundle) => IsBuildTurn ? bundle.BuildRateResidual : bundle.CurvatureResidual;
     private DirectionalControlDistributionSummary? SecondSummary(DirectionalControlEvaluationBundle bundle) => IsBuildTurn ? bundle.TurnRateResidual : bundle.ToolfaceResidual;
     private RenderFragment SummaryCell(DirectionalControlDistributionSummary? summary, string quantity) => @<span>@if (summary != null) { <MudSpanWithUnit QuantityName="@quantity" SIValue="@summary.P10" /><text> / </text><MudSpanWithUnit QuantityName="@quantity" SIValue="@summary.P50" /><text> / </text><MudSpanWithUnit QuantityName="@quantity" SIValue="@summary.P90" /> }</span>;
-    private RenderFragment DistributionPanel(
-        DirectionalControlEvaluationBundle bundle,
-        DirectionalControlDistributionSummary? summary,
-        string label,
-        string quantity) => @<div>
-        @if (summary?.Histogram is { Count: > 0 })
+    private RenderFragment JointDistributionPanel(DirectionalControlEvaluationBundle bundle) => @<div>
+        @{
+            ResidualPlotData jointDistribution = BuildJointProbabilityPlot(bundle);
+        }
+        @if (jointDistribution.X.Count > 0)
         {
-            ResidualPlotData distribution = BuildDistributionPlot(bundle, summary, label);
-            <ScatterPlot @key="@($"bundle-{bundle.BundleID}-{label}")"
-                         NameList="@distribution.Names" ModeFlagList="@distribution.Modes" ColorList="@distribution.Colors"
-                         MarkerSizeList="@distribution.MarkerSizes" ShowLegendList="@distribution.ShowLegend"
-                         XValuesList="@distribution.X" YValuesList="@distribution.Y"
-                         XUnit="@quantity" YUnit="Dimensionless" XAxisTitle="@($"Delta {label}")" YAxisTitle="Probability"
-                         PlotHeight="330" />
-            @HistogramTable(summary, label, quantity)
+            <MudText Typo="Typo.subtitle2" Class="mb-1">Joint residual probability</MudText>
+            <Scatter3DPlot @key="@($"bundle-probability-{bundle.BundleID}-{plotSamples.Count}")"
+                           NameList="@jointDistribution.Names" ModeFlagList="@jointDistribution.Modes" ColorList="@jointDistribution.Colors"
+                           MarkerSizeList="@jointDistribution.MarkerSizes" ShowLegendList="@jointDistribution.ShowLegend"
+                           XValuesList="@jointDistribution.X" YValuesList="@jointDistribution.Y" ZValuesList="@jointDistribution.Z"
+                           XUnit="@ResidualPlotXQuantity" YUnit="@ResidualPlotYQuantity" ZUnit="Dimensionless"
+                           XAxisTitle="@ResidualPlotXLabel" YAxisTitle="@ResidualPlotYLabel" ZAxisTitle="Probability"
+                           ZAxisMinimum="0" PlotHeight="520" />
         }
     </div>;
     private RenderFragment HistogramTable(DirectionalControlDistributionSummary? summary, string label, string quantity) => @<div>
@@ -412,20 +412,59 @@ else
         }
         return result;
     }
-    private ResidualPlotData BuildDistributionPlot(
-        DirectionalControlEvaluationBundle bundle,
-        DirectionalControlDistributionSummary summary,
-        string label)
+    private ResidualPlotData BuildJointProbabilityPlot(DirectionalControlEvaluationBundle bundle)
     {
         ResidualPlotData result = new();
-        result.Names.Add($"Bundle {bundle.BundleIndex + 1} {label}");
-        result.Modes.Add(3);
+        List<DirectionalControlEvaluationSample> bundleSamples = plotSamples
+            .Where(sample => HasResidualPair(sample) && sample.ActualMD >= bundle.StartActualMD - 1e-9 &&
+                             sample.ActualMD < bundle.EndActualMD - 1e-9)
+            .ToList();
+        if (bundleSamples.Count == 0) return result;
+
+        double toolfaceCenter = bundle.ToolfaceResidual?.P50 ?? 0.0;
+        List<double> xValues = bundleSamples.Select(sample => IsBuildTurn
+            ? sample.TurnRateResidual!.Value : sample.CurvatureResidual!.Value).ToList();
+        List<double> yValues = bundleSamples.Select(sample => IsBuildTurn
+            ? sample.BuildRateResidual!.Value
+            : toolfaceCenter + WrapAngle(sample.ToolfaceResidual!.Value - toolfaceCenter)).ToList();
+        int binCount = Math.Clamp((int)Math.Ceiling(Math.Pow(bundleSamples.Count, 1.0 / 3.0)), 2, 16);
+        (double xMinimum, double xMaximum) = DistributionRange(xValues, false);
+        (double yMinimum, double yMaximum) = DistributionRange(yValues, !IsBuildTurn);
+        double xWidth = (xMaximum - xMinimum) / binCount;
+        double yWidth = (yMaximum - yMinimum) / binCount;
+        int[,] counts = new int[binCount, binCount];
+        for (int index = 0; index < bundleSamples.Count; index++)
+        {
+            int xIndex = Math.Clamp((int)((xValues[index] - xMinimum) / xWidth), 0, binCount - 1);
+            int yIndex = Math.Clamp((int)((yValues[index] - yMinimum) / yWidth), 0, binCount - 1);
+            counts[xIndex, yIndex]++;
+        }
+
+        List<object> x = []; List<object> y = []; List<object> z = [];
+        for (int xIndex = 0; xIndex < binCount; xIndex++)
+            for (int yIndex = 0; yIndex < binCount; yIndex++)
+            {
+                if (counts[xIndex, yIndex] == 0) continue;
+                x.Add(xMinimum + (xIndex + 0.5) * xWidth);
+                y.Add(yMinimum + (yIndex + 0.5) * yWidth);
+                z.Add(counts[xIndex, yIndex] / (double)bundleSamples.Count);
+            }
+
+        result.Names.Add($"Bundle {bundle.BundleIndex + 1}: {FormatMd(bundle.StartActualMD)} – {FormatMd(bundle.EndActualMD)}");
+        result.Modes.Add(2);
         result.Colors.Add(BundleColor(bundle.BundleIndex));
-        result.MarkerSizes.Add(6);
+        result.MarkerSizes.Add(8);
         result.ShowLegend.Add(false);
-        result.X.Add(summary.Histogram.Select(bin => (object)((bin.LowerBound + bin.UpperBound) / 2.0)).ToList());
-        result.Y.Add(summary.Histogram.Select(bin => (object)(bin.Count / (double)summary.Count)).ToList());
+        result.X.Add(x); result.Y.Add(y); result.Z.Add(z);
         return result;
+    }
+    private static (double Minimum, double Maximum) DistributionRange(List<double> values, bool angle)
+    {
+        double minimum = values.Min();
+        double maximum = values.Max();
+        if (maximum - minimum > 1e-12) return (minimum, maximum);
+        double halfWidth = angle ? Math.PI / 180.0 : Math.Max(Math.Abs(minimum) * 0.05, 1e-9);
+        return (minimum - halfWidth, maximum + halfWidth);
     }
     private bool HasResidualPair(DirectionalControlEvaluationSample sample) => sample.IsValid &&
         (IsBuildTurn
@@ -453,6 +492,7 @@ else
         public List<bool> ShowLegend { get; } = [];
         public List<List<object>> X { get; } = [];
         public List<List<object>> Y { get; } = [];
+        public List<List<object>> Z { get; } = [];
     }
     public void ManageUnits() => _ = InvokeAsync(StateHasChanged);
     public void Dispose() { lifetime.Cancel(); lifetime.Dispose(); }

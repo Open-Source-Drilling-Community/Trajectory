@@ -7,6 +7,32 @@ namespace OSDC.Drilling.Trajectory.ModelTest;
 public class TrajectoryAggregationCalculatorTests
 {
     [Test]
+    public void AggregationCoversCompleteSourceMdRangeWhenFirstFittedTransitionIsLater()
+    {
+        TrajectoryModel source = new() { SurveyStationList = U4Stations() };
+        TrajectoryAggregation aggregation = new() { TrajectoryID = Guid.NewGuid() };
+        TrajectoryAggregationCase calculation = new() { TrajectoryAggregationList = [aggregation] };
+
+        bool success = calculation.Calculate(id => id == aggregation.TrajectoryID ? source : null);
+
+        SurveyStation sourceStart = source.SurveyStationList[0];
+        SurveyStation sourceEnd = source.SurveyStationList[^1];
+        SurveyPoint aggregateStart = aggregation.AggregatedSurveyPointList![0];
+        SurveyPoint aggregateEnd = aggregation.AggregatedSurveyPointList[^1];
+        Assert.Multiple(() =>
+        {
+            Assert.That(success, Is.True, aggregation.CalculationMessage);
+            Assert.That(aggregation.SectionList![0].StartMD, Is.EqualTo(sourceStart.MD).Within(1e-10));
+            Assert.That(aggregation.SectionList[^1].EndMD, Is.EqualTo(sourceEnd.MD).Within(1e-10));
+            Assert.That(aggregateStart.MD, Is.EqualTo(sourceStart.MD).Within(1e-10));
+            Assert.That(aggregateEnd.MD, Is.EqualTo(sourceEnd.MD).Within(1e-10));
+            Assert.That(aggregateStart.RiemannianNorth, Is.EqualTo(sourceStart.RiemannianNorth).Within(1e-8));
+            Assert.That(aggregateStart.RiemannianEast, Is.EqualTo(sourceStart.RiemannianEast).Within(1e-8));
+            Assert.That(aggregateStart.TVD, Is.EqualTo(sourceStart.TVD).Within(1e-8));
+        });
+    }
+
+    [Test]
     public void U3TrajectoryWithOverlappingConstantPeriodsCalculatesSuccessfully()
     {
         TrajectoryModel source = new()
@@ -106,6 +132,42 @@ public class TrajectoryAggregationCalculatorTests
             X = value[4],
             RiemannianEast = value[5],
             Y = value[5]
+        }).ToList();
+    }
+
+    private static List<SurveyStation> U4Stations()
+    {
+        double[][] values =
+        [
+            [-91.2, 0, 0, -91.2, 6535278.241692905, 328661.7175127231],
+            [-9.219999999999999, 0.05637413483941684, 3.051882730037285, -9.263415762502163, 6535275.9408187475, 328661.9244794798],
+            [9.780000000000001, 0.1117010721276371, 2.9234264970905017, 9.667280394323885, 6535274.3734337725, 328662.2017070809],
+            [60.78, 0.23753931119642824, 2.894104965656997, 59.858665865295066, 6535265.7693589935, 328664.2896113765],
+            [116.78, 0.31485739705977706, 3.0775390700416017, 113.7337950221604, 6535250.717529309, 328666.4602029333],
+            [143.78, 0.3152064629101759, 2.9722957161463435, 139.40730318708754, 6535242.419337123, 328667.4330513975],
+            [216.78, 0.3815289744859604, 3.0545007239152757, 208.0141664948493, 6535217.716082023, 328670.5230400507],
+            [247.78, 0.3885102914939378, 3.064449100651644, 236.7446644048125, 6535206.112531271, 328671.4775444912],
+            [304.78, 0.5703735995517469, 3.003711642682241, 287.2515948322068, 6535180.032547526, 328674.4329667445],
+            [370.78, 0.7323401541368206, 2.9398325920592487, 339.6880120342052, 6535140.675864596, 328681.3194268745],
+            [419.98, 0.7766715171374766, 2.998824720776657, 375.5375678844134, 6535107.484765238, 328687.0705034727],
+            [447.5799999999999, 0.7838273670706534, 3.0080749658122268, 395.15396648798725, 6535088.25445558, 328689.74373331503],
+            [503.48, 0.830427658098902, 2.979626099004719, 433.81093173102477, 6535048.325684577, 328695.6991496604],
+            [560.18, 0.9327039522657696, 2.962172806484776, 469.85376050940226, 6535005.226709284, 328703.14447891683],
+            [617.48, 1.056622329157367, 3.003711642682241, 501.05314615143647, 6534957.809218266, 328710.69033349754],
+            [645.98, 1.125562834611143, 3.025353725406971, 514.2041622284413, 6534932.734822491, 328713.8885947153],
+            [706.18, 1.285434994093824, 3.0632273701752477, 535.6885790090018, 6534876.833536525, 328719.31239464006],
+            [759.98, 1.3316862192716734, 3.1035444758963164, 549.636236405501, 6534824.969034988, 328722.3281578059],
+            [811.48, 1.4116222990130136, 3.144908779168582, 559.82308397871, 6534774.511627921, 328723.1960646878],
+            [859.18, 1.4158110892178002, 3.158522347334138, 567.2851149303483, 6534727.401725065, 328722.7190527227],
+            [907.48, 1.402895652753042, 3.1588714131845372, 575.0489269643045, 6534679.737105104, 328721.903715498],
+            [917.0799999999999, 1.402895652753042, 3.1623620716885257, 576.6532125230943, 6534670.273820359, 328721.7236634065]
+        ];
+
+        return values.Select(value => new SurveyStation
+        {
+            MD = value[0], Abscissa = value[0], Inclination = value[1], Azimuth = value[2],
+            TVD = value[3], Z = value[3], RiemannianNorth = value[4], X = value[4],
+            RiemannianEast = value[5], Y = value[5]
         }).ToList();
     }
 }
