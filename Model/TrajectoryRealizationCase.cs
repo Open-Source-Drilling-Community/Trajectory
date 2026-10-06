@@ -2,10 +2,7 @@ using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Common;
 using System;
 using System.Collections.Generic;
-using System.Globalization;
-using System.IO;
 using System.Linq;
-using System.Text;
 
 namespace OSDC.Drilling.Trajectory.Model
 {
@@ -63,7 +60,7 @@ namespace OSDC.Drilling.Trajectory.Model
                 int attempt;
                 for (attempt = 1; attempt <= MaximumAttemptsPerRealization; attempt++)
                 {
-                    realization = Realize(realizationStations, random, realizationIndex);
+                    realization = Realize(realizationStations, random);
                     if (realization != null)
                     {
                         break;
@@ -177,7 +174,7 @@ namespace OSDC.Drilling.Trajectory.Model
             return true;
         }
 
-        private static List<SurveyPoint>? Realize(List<SurveyStation> stations, Random random, int realizationIndex)
+        private static List<SurveyPoint>? Realize(List<SurveyStation> stations, Random random)
         {
             if (stations.Count == 0)
             {
@@ -185,12 +182,6 @@ namespace OSDC.Drilling.Trajectory.Model
             }
 
             double[] normalized = [NextGaussian(random), NextGaussian(random), NextGaussian(random)];
-            bool debugRealization = realizationIndex + 1 == DebugRealizationNumber;
-            if (debugRealization)
-            {
-                InitializeDebugExport(realizationIndex, normalized);
-            }
-
             List<SurveyPoint> realization = new(stations.Count);
             for (int stationIndex = 0; stationIndex < stations.Count; stationIndex++)
             {
@@ -211,15 +202,10 @@ namespace OSDC.Drilling.Trajectory.Model
                     point.Azimuth = station.Azimuth;
                     point.VerticalSection = station.VerticalSection;
                     realization.Add(point);
-                    if (debugRealization)
-                    {
-                        AppendDebugPoint("raw-covariance-spherical", stationIndex, point, station, candidateIndex: 0, selected: true, smoothnessScore: null);
-                        AppendDebugPoint("incremental-md-incl-az", stationIndex, point, station, candidateIndex: 0, selected: true, smoothnessScore: null);
-                    }
                     continue;
                 }
 
-                point = SelectAndCompleteSmoothCandidate(realization[^1], candidates, debugRealization ? stationIndex : null, station);
+                point = SelectAndCompleteSmoothCandidate(realization[^1], candidates, station);
                 if (point == null)
                 {
                     return null;
@@ -229,10 +215,6 @@ namespace OSDC.Drilling.Trajectory.Model
                 point.RiemannianEast = point.Y;
                 point.TVD = point.Z;
                 realization.Add(point);
-                if (debugRealization)
-                {
-                    AppendDebugPoint("incremental-md-incl-az-selected", stationIndex, point, station, candidateIndex: null, selected: true, smoothnessScore: CandidateSmoothnessScore(realization[^2], point));
-                }
             }
 
             List<SurveyPoint> completed = realization
@@ -267,15 +249,6 @@ namespace OSDC.Drilling.Trajectory.Model
                 point.RiemannianNorth = point.X;
                 point.RiemannianEast = point.Y;
                 point.TVD = point.Z;
-            }
-
-            if (debugRealization)
-            {
-                for (int stationIndex = 0; stationIndex < completed.Count; stationIndex++)
-                {
-                    SurveyStation? referenceStation = stationIndex < stations.Count ? stations[stationIndex] : null;
-                    AppendDebugPoint("final-complete-survey", stationIndex, completed[stationIndex], referenceStation, candidateIndex: null, selected: true, smoothnessScore: null);
-                }
             }
 
             return completed;
@@ -322,59 +295,34 @@ namespace OSDC.Drilling.Trajectory.Model
             [-1, -1, -1]
         ];
 
-        private static SurveyPoint? SelectAndCompleteSmoothCandidate(SurveyPoint previous, List<SurveyPoint> candidates, int? debugStationIndex = null, SurveyStation? debugReferenceStation = null)
+        private static SurveyPoint? SelectAndCompleteSmoothCandidate(SurveyPoint previous, List<SurveyPoint> candidates, SurveyStation referenceStation)
         {
             SurveyPoint? bestCandidate = null;
             double bestTangentScore = double.PositiveInfinity;
             double bestSmoothnessScore = double.PositiveInfinity;
-            int bestCandidateIndex = -1;
-            for (int candidateIndex = 0; candidateIndex < candidates.Count; candidateIndex++)
+            foreach (SurveyPoint candidate in candidates)
             {
-                SurveyPoint candidate = candidates[candidateIndex];
-                if (debugStationIndex is int stationIndex)
-                {
-                    AppendDebugPoint("raw-covariance-spherical-candidate", stationIndex, candidate, debugReferenceStation, candidateIndex, selected: false, smoothnessScore: null);
-                }
-
                 SurveyPoint previousCopy = new(previous);
                 SurveyPoint completedCandidate = new(candidate);
                 if (!previousCopy.CompleteFromXYZ(completedCandidate, TrajectoryCalculationType.MinimumCurvatureMethod))
                 {
-                    if (debugStationIndex is int failedStationIndex)
-                    {
-                        AppendDebugPoint("incremental-md-incl-az-candidate-failed", failedStationIndex, completedCandidate, debugReferenceStation, candidateIndex, selected: false, smoothnessScore: null);
-                    }
                     continue;
                 }
 
                 if (!CompleteFromXYZRoundTrips(previous, candidate, completedCandidate))
                 {
-                    if (debugStationIndex is int rejectedStationIndex)
-                    {
-                        AppendDebugPoint("incremental-md-incl-az-candidate-rejected-roundtrip", rejectedStationIndex, completedCandidate, debugReferenceStation, candidateIndex, selected: false, smoothnessScore: null);
-                    }
                     continue;
                 }
 
-                double tangentScore = CandidateTangentScore(debugReferenceStation, completedCandidate) ?? double.PositiveInfinity;
+                double tangentScore = CandidateTangentScore(referenceStation, completedCandidate) ?? double.PositiveInfinity;
                 double smoothnessScore = CandidateSmoothnessScore(previous, completedCandidate);
-                if (debugStationIndex is int completedStationIndex)
-                {
-                    AppendDebugPoint("incremental-md-incl-az-candidate", completedStationIndex, completedCandidate, debugReferenceStation, candidateIndex, selected: false, smoothnessScore: tangentScore);
-                }
                 if (tangentScore < bestTangentScore ||
                     (Numeric.EQ(tangentScore, bestTangentScore) && smoothnessScore < bestSmoothnessScore))
                 {
                     bestTangentScore = tangentScore;
                     bestSmoothnessScore = smoothnessScore;
                     bestCandidate = completedCandidate;
-                    bestCandidateIndex = candidateIndex;
                 }
-            }
-
-            if (bestCandidate != null && debugStationIndex is int selectedStationIndex)
-            {
-                AppendDebugPoint("incremental-md-incl-az-candidate-selected", selectedStationIndex, bestCandidate, debugReferenceStation, bestCandidateIndex, selected: true, smoothnessScore: bestTangentScore);
             }
 
             return bestCandidate;
@@ -455,85 +403,6 @@ namespace OSDC.Drilling.Trajectory.Model
 
             return curvature + buildRate + turnRate + 1e-9 * distance;
         }
-
-        private const int DebugRealizationNumber = 21;
-        private const string DebugExportPath = @"C:\OSDC\Trajectory\trajectory-realization-21-generation-debug.tsv";
-
-        private static void InitializeDebugExport(int realizationIndex, double[] normalized)
-        {
-            StringBuilder builder = new();
-            builder.AppendLine("# Temporary trajectory realization generation debug export");
-            builder.AppendLine("# RealizationNumberOneBased\t" + (realizationIndex + 1).ToString(CultureInfo.InvariantCulture));
-            builder.AppendLine("# RealizationIndexZeroBased\t" + realizationIndex.ToString(CultureInfo.InvariantCulture));
-            builder.AppendLine("# NormalizedGaussian\t" + string.Join("\t", normalized.Select(value => FormatDebugValue(value))));
-            builder.AppendLine(string.Join('\t',
-            [
-                "Stage",
-                "StationIndex",
-                "CandidateIndex",
-                "Selected",
-                "SmoothnessScore",
-                "ReferenceMD",
-                "ReferenceIncl",
-                "ReferenceAz",
-                "ReferenceX",
-                "ReferenceY",
-                "ReferenceZ",
-                "MD",
-                "Abscissa",
-                "Incl",
-                "Az",
-                "X",
-                "Y",
-                "Z",
-                "TVD",
-                "North",
-                "East",
-                "DLS",
-                "BUR",
-                "TUR",
-                "VSect"
-            ]));
-            File.WriteAllText(DebugExportPath, builder.ToString());
-        }
-
-        private static void AppendDebugPoint(string stage, int stationIndex, SurveyPoint point, SurveyStation? referenceStation, int? candidateIndex, bool selected, double? smoothnessScore)
-        {
-            List<string> fields =
-            [
-                stage,
-                (stationIndex + 1).ToString(CultureInfo.InvariantCulture),
-                candidateIndex?.ToString(CultureInfo.InvariantCulture) ?? string.Empty,
-                selected.ToString(CultureInfo.InvariantCulture),
-                FormatDebugValue(smoothnessScore),
-                FormatDebugValue(referenceStation?.MD ?? referenceStation?.Abscissa),
-                FormatDebugValue(referenceStation?.Inclination),
-                FormatDebugValue(referenceStation?.Azimuth),
-                FormatDebugValue(referenceStation?.X ?? referenceStation?.RiemannianNorth),
-                FormatDebugValue(referenceStation?.Y ?? referenceStation?.RiemannianEast),
-                FormatDebugValue(referenceStation?.Z ?? referenceStation?.TVD),
-                FormatDebugValue(point.MD),
-                FormatDebugValue(point.Abscissa),
-                FormatDebugValue(point.Inclination),
-                FormatDebugValue(point.Azimuth),
-                FormatDebugValue(point.X),
-                FormatDebugValue(point.Y),
-                FormatDebugValue(point.Z),
-                FormatDebugValue(point.TVD),
-                FormatDebugValue(point.RiemannianNorth),
-                FormatDebugValue(point.RiemannianEast),
-                FormatDebugValue(point.Curvature),
-                FormatDebugValue(point.BUR),
-                FormatDebugValue(point.TUR),
-                FormatDebugValue(point.VerticalSection)
-            ];
-            File.AppendAllText(DebugExportPath, string.Join('\t', fields) + Environment.NewLine);
-        }
-
-        private static string FormatDebugValue(double? value) =>
-            value is double defined && Numeric.IsDefined(defined)
-                ? defined.ToString("G17", CultureInfo.InvariantCulture)
-                : string.Empty;
 
         private static bool ValidateStations(List<SurveyStation> stations, out string? message)
         {
