@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using OSDC.DotnetLibraries.Drilling.SemanticCatalogue;
 using OSDC.Drilling.Trajectory.Model;
 using OSDC.Drilling.Trajectory.Service.Managers;
 
@@ -198,11 +199,11 @@ public sealed class OpenApiTargetLandingContractTests
             Assert.That(control["properties"]!["NormalizedLength"]!["minimum"]!.GetValue<double>(), Is.Zero);
             Assert.That(control["properties"]!["NormalizedLength"]!["maximum"]!.GetValue<double>(), Is.EqualTo(1.0));
             Assert.That(control["properties"]!["Inclination"]!["x-si-unit"]!.GetValue<string>(), Is.EqualTo("rad"));
-            Assert.That(control["properties"]!["Inclination"]!["x-osdc-semantic"]!.GetValue<string>(), Is.EqualTo("Inclination"));
+            Assert.That(control["properties"]!["Inclination"]!["x-osdc-semantic"]!["concept"]!.GetValue<string>(), Is.EqualTo(Concepts.WellboreInclination));
             Assert.That(control["properties"]!["Inclination"]!["description"]!.GetValue<string>(), Does.Contain("Near vertical"));
             Assert.That(control["properties"]!["Curvature"]!["x-si-unit"]!.GetValue<string>(), Is.EqualTo("rad/m"));
-            Assert.That(control["properties"]!["BuildRate"]!["x-osdc-semantic"]!.GetValue<string>(), Is.EqualTo("BuildUpRate"));
-            Assert.That(control["properties"]!["TurnRate"]!["x-osdc-semantic"]!.GetValue<string>(), Is.EqualTo("TurnRate"));
+            Assert.That(control["properties"]!["BuildRate"]!["x-osdc-semantic"]!["concept"]!.GetValue<string>(), Is.EqualTo(Concepts.BuildRate));
+            Assert.That(control["properties"]!["TurnRate"]!["x-osdc-semantic"]!["concept"]!.GetValue<string>(), Is.EqualTo(Concepts.TurnRate));
             Assert.That(control["properties"]!["Toolface"]!["description"]!.GetValue<string>(), Does.Contain("vary from the arc's start/reference toolface"));
         });
     }

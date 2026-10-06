@@ -1,6 +1,7 @@
 using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Server;
+using OSDC.DotnetLibraries.Drilling.SemanticCatalogue;
 using OSDC.Drilling.Trajectory.Model;
 using OSDC.Drilling.Trajectory.Service.Mcp;
 using OSDC.Drilling.Trajectory.Service.Mcp.Tools;
@@ -489,6 +490,8 @@ public sealed class McpToolRegistrationTests
         {
             Assert.That(condition["oneOf"]!.AsArray(), Has.Count.EqualTo(3));
             Assert.That(definitions["AntiCollisionTrajectoryAgeCondition"]!["properties"]!["ConditionType"]!["const"]!.GetValue<string>(), Is.EqualTo("TrajectoryAge"));
+            Assert.That(definitions["AntiCollisionTrajectoryAgeCondition"]!["properties"]!["AgeThreshold"], Is.Not.Null);
+            Assert.That(definitions["AntiCollisionTrajectoryAgeCondition"]!["properties"]!["AgeThresholdSeconds"], Is.Null);
             Assert.That(definitions["AntiCollisionIdentityCondition"]!["properties"]!["ConditionType"]!["const"]!.GetValue<string>(), Is.EqualTo("Identity"));
             Assert.That(definitions["AntiCollisionFeatureCondition"]!["properties"]!["ConditionType"]!["const"]!.GetValue<string>(), Is.EqualTo("Feature"));
             Assert.That(createRevision.Description, Does.Contain("AlertThreshold greater than AlarmThreshold"));
@@ -642,6 +645,35 @@ public sealed class McpToolRegistrationTests
             Assert.That(trajectory.Description, Does.Contain("rematerializes its SurveyRun sections"));
             Assert.That(trajectory.Description, Does.Contain("complete parent SurveyRun chains"));
         });
+    }
+
+    [Test]
+    public void Persisted_calculation_tools_publish_the_reviewed_lifecycle_vocabulary()
+    {
+        TrajectoryMcpEndpoint targetPost = Endpoint("target_landing_case_post");
+        TrajectoryMcpEndpoint targetStatus = Endpoint("target_landing_case_get_status");
+        TrajectoryMcpEndpoint ellipsePost = Endpoint("survey_station_ellipse_calculation_post_survey_station_ellipse_calculation");
+        TrajectoryMcpEndpoint interpolationPost = Endpoint("interpolated_trajectory_post_interpolated_trajectory");
+        TrajectoryMcpEndpoint interpolationChunk = TrajectoryRestMcpToolRegistrations.Endpoints.Single(value =>
+            value.ControllerType.Name == "InterpolatedTrajectoryController" &&
+            value.Method.Name == "GetSurveyStationChunk");
+
+        Assert.Multiple(() =>
+        {
+            AssertSemantic(targetPost, Concepts.TargetLandingCase, Concepts.QueuedCalculationSubmission);
+            AssertSemantic(targetStatus, Concepts.TargetLandingCase, Concepts.CalculationStatusRetrieval);
+            AssertSemantic(ellipsePost, Concepts.SurveyStationEllipseCalculation, Concepts.ImmediateCalculationSubmission);
+            AssertSemantic(interpolationPost, Concepts.InterpolatedTrajectory, Concepts.QueuedCalculationSubmission);
+            AssertSemantic(interpolationChunk, Concepts.InterpolatedTrajectory, Concepts.CalculationResultChunkRetrieval);
+        });
+    }
+
+    private static void AssertSemantic(TrajectoryMcpEndpoint endpoint, string concept, string role)
+    {
+        JsonObject semantic = endpoint.InputSchema["x-osdc-semantic"]!.AsObject();
+        Assert.That(semantic["catalogueVersion"]!.GetValue<string>(), Is.EqualTo("0.15.0"), endpoint.Name);
+        Assert.That(semantic["concept"]!.GetValue<string>(), Is.EqualTo(concept), endpoint.Name);
+        Assert.That(semantic["role"]!.GetValue<string>(), Is.EqualTo(role), endpoint.Name);
     }
 
     private static TrajectoryMcpEndpoint Endpoint(string name) =>

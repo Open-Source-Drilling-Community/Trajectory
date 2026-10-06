@@ -1452,6 +1452,21 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 {
                     AddCasingSectionIntervals(intervals, casingSection);
                 }
+
+                CasingSection? deepestCasingSection = architecture.CasingSections
+                    .Where(section => section is not null && GetGaussianMean(section.TopDepth).HasValue)
+                    .OrderBy(section => GetGaussianMean(section.TopDepth))
+                    .LastOrDefault();
+                if (deepestCasingSection is not null &&
+                    GetGaussianMean(deepestCasingSection.TopDepth) is double openHoleTopDepth)
+                {
+                    double casingEndMD = openHoleTopDepth +
+                        Math.Max(0.0, GetGaussianMean(deepestCasingSection.Length) ?? 0.0);
+                    AddOpenHoleIntervals(
+                        intervals,
+                        ResolveOpenHoleStartMD(deepestCasingSection, openHoleTopDepth, casingEndMD),
+                        architecture.OpenHoleSection);
+                }
             }
 
             return intervals
@@ -1549,7 +1564,6 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 }
             }
 
-            AddOpenHoleIntervals(intervals, ResolveOpenHoleStartMD(casingSection, topDepth, currentMD), casingSection?.OpenHoleSection);
         }
 
         private static double ResolveOpenHoleStartMD(CasingSection? casingSection, double topDepth, double fallbackStartMD)

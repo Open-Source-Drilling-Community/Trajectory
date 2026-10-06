@@ -1,6 +1,7 @@
 using OSDC.Drilling.Trajectory.ModelShared;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Common;
+using OSDC.DotnetLibraries.Drilling.SemanticCatalogue;
 using System.Collections.Generic;
 using System.Linq;
 using SurveyStation = OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation;
@@ -16,56 +17,67 @@ namespace OSDC.Drilling.Trajectory.Model
         /// <summary>
         /// The list of survey stations resulting from the interpolation.
         /// </summary>
+        [Semantic(Concepts.CalculationResult, Role = Concepts.ServerDerivedCalculationResult)]
         public List<SurveyStation>? SurveyStationList { get; set; }
 
         /// <summary>
         /// The interpolation step along the abscissa.
         /// </summary>
+        [Semantic(Concepts.CalculationSpecification, Role = Concepts.CalculationInput)]
         public double? InterpolationStep { get; set; }
 
         /// <summary>
         /// The depth reference to use for the interpolation step.
         /// </summary>
+        [Semantic(Concepts.CalculationSpecification, Role = Concepts.CalculationInput)]
         public double? InterpolationReferenceDepth { get; set; }
 
         /// <summary>
         /// The maximum accepted distance between the chord and the arc.
         /// </summary>
+        [Semantic(Concepts.CalculationSpecification, Role = Concepts.CalculationInput)]
         public double? MaximumChordArcDistance { get; set; }
 
         /// <summary>
         /// Flag indicating whether the first survey station of the source trajectory shall be included in the interpolation output.
         /// </summary>
+        [Semantic(Concepts.CalculationSpecification, Role = Concepts.CalculationInput)]
         public bool IncludeFirstSurvey { get; set; }
 
         /// <summary>
         /// Flag indicating whether the last survey station of the source trajectory shall be included in the interpolation output.
         /// </summary>
+        [Semantic(Concepts.CalculationSpecification, Role = Concepts.CalculationInput)]
         public bool IncludeLastSurvey { get; set; }
 
         /// <summary>
         /// Flag indicating whether interpolation shall be performed at casing and liner shoe depths.
         /// </summary>
+        [Semantic(Concepts.CalculationSpecification, Role = Concepts.CalculationInput)]
         public bool InterpolateAtCasingAndLinerShoeDepths { get; set; }
 
         /// <summary>
         /// Flag indicating whether interpolation shall be performed at liner hanger depths.
         /// </summary>
+        [Semantic(Concepts.CalculationSpecification, Role = Concepts.CalculationInput)]
         public bool InterpolateAtLinerHangerDepths { get; set; }
 
         /// <summary>
         /// Flag indicating whether interpolation shall be performed at casing change of diameter depths.
         /// </summary>
+        [Semantic(Concepts.CalculationSpecification, Role = Concepts.CalculationInput)]
         public bool InterpolateAtCasingChangeOfDiameter { get; set; }
 
         /// <summary>
         /// Additional abscissas, possibly associated with an annotation, where interpolation shall also be performed.
         /// </summary>
+        [Semantic(Concepts.CalculationSpecification, Role = Concepts.CalculationInput)]
         public List<AnnotatedAbscissa>? AdditionalAbscissaList { get; set; }
 
         /// <summary>
         /// Internally generated abscissas, possibly associated with an annotation, where interpolation shall also be performed.
         /// </summary>
+        [Semantic(Concepts.CalculationSpecification, Role = Concepts.CalculationInput)]
         public List<AnnotatedAbscissa>? InternalAdditionalAbscissaList { get; set; }
 
         /// <summary>

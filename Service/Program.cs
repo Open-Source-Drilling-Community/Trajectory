@@ -81,6 +81,7 @@ builder.Services.AddSwaggerGen(config =>
         : subType == typeof(AntiCollisionFeatureCondition) ? "Feature"
         : null);
     config.SchemaFilter<TrajectorySemanticSchemaFilter>();
+    config.OperationFilter<TrajectorySemanticOperationFilter>();
 });
 
 builder.Services.Configure<McpHubOptions>(builder.Configuration.GetSection(McpHubOptions.SectionName));

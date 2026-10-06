@@ -183,7 +183,7 @@
                                         @if (condition is AntiCollisionTrajectoryAgeCondition age)
                                         {
                                             <MudItem xs="12" md="3"><MudSelect T="AntiCollisionComparisonOperator" @bind-Value="age.Operator" Label="Comparison">@foreach (AntiCollisionComparisonOperator value in Enum.GetValues<AntiCollisionComparisonOperator>()) { <MudSelectItem Value="value">@value</MudSelectItem> }</MudSelect></MudItem>
-                                            <MudItem xs="12" md="5"><MudInputWithUnit QuantityName="DurationDrilling" QuantityLabel="Trajectory age" SIValueNullable="@age.AgeThresholdSeconds" SIValueNullableChanged="@(value => age.AgeThresholdSeconds = value ?? 0)" /></MudItem>
+                                            <MudItem xs="12" md="5"><MudInputWithUnit QuantityName="DurationDrilling" QuantityLabel="Trajectory age" SIValueNullable="@age.AgeThreshold" SIValueNullableChanged="@(value => age.AgeThreshold = value ?? 0)" /></MudItem>
                                         }
                                         else if (condition is AntiCollisionIdentityCondition identity)
                                         {
@@ -367,12 +367,12 @@
     }
 
     private void RemoveRule(AntiCollisionPolicyRule rule) => draft_?.Rules?.Remove(rule);
-    private void AddCondition(AntiCollisionPolicyRule rule) { rule.Conditions ??= []; rule.Conditions.Add(new AntiCollisionTrajectoryAgeCondition { ConditionID = Guid.NewGuid(), Operator = AntiCollisionComparisonOperator.GreaterThan, AgeThresholdSeconds = 365.25 * 86400 }); }
+    private void AddCondition(AntiCollisionPolicyRule rule) { rule.Conditions ??= []; rule.Conditions.Add(new AntiCollisionTrajectoryAgeCondition { ConditionID = Guid.NewGuid(), Operator = AntiCollisionComparisonOperator.GreaterThan, AgeThreshold = 365.25 * 86400 }); }
     private void RemoveCondition(AntiCollisionPolicyRule rule, AntiCollisionPolicyCondition condition) => rule.Conditions?.Remove(condition);
     private static string ConditionKind(AntiCollisionPolicyCondition value) => value switch { AntiCollisionTrajectoryAgeCondition => "Age", AntiCollisionIdentityCondition => "Identity", _ => "Feature" };
     private static string DescribeCondition(AntiCollisionPolicyCondition value) => value switch
     {
-        AntiCollisionTrajectoryAgeCondition age => $"Trajectory age {age.Operator}: {age.AgeThresholdSeconds:g} s",
+        AntiCollisionTrajectoryAgeCondition age => $"Trajectory age {age.Operator}: {age.AgeThreshold:g} s",
         AntiCollisionIdentityCondition identity => $"{identity.ResourceLevel} identity {identity.MatchOperator}: {identity.Pattern}",
         AntiCollisionFeatureCondition feature => $"{feature.ResourceLevel} feature ({feature.TemporalOperator}) · category {feature.FeatureCategoryID} · option {feature.FeatureOptionID}",
         _ => "Unknown condition"
@@ -385,7 +385,7 @@
         {
             "Identity" => new AntiCollisionIdentityCondition { ConditionID = id, Pattern = "*", MatchOperator = AntiCollisionIdentityMatchOperator.Glob },
             "Feature" => new AntiCollisionFeatureCondition { ConditionID = id, TemporalOperator = AntiCollisionFeatureTemporalOperator.ActiveAtEvaluationTime },
-            _ => new AntiCollisionTrajectoryAgeCondition { ConditionID = id, Operator = AntiCollisionComparisonOperator.GreaterThan, AgeThresholdSeconds = 365.25 * 86400 }
+            _ => new AntiCollisionTrajectoryAgeCondition { ConditionID = id, Operator = AntiCollisionComparisonOperator.GreaterThan, AgeThreshold = 365.25 * 86400 }
         };
     }
 
@@ -580,7 +580,7 @@
     private static AntiCollisionPolicyRule CloneRule(AntiCollisionPolicyRule x) => new() { RuleID = x.RuleID, Name = x.Name, Priority = x.Priority, AlertThreshold = x.AlertThreshold, AlarmThreshold = x.AlarmThreshold, Conditions = (x.Conditions ?? []).Select(CloneCondition).ToList() };
     private static AntiCollisionPolicyCondition CloneCondition(AntiCollisionPolicyCondition x) => x switch
     {
-        AntiCollisionTrajectoryAgeCondition a => new AntiCollisionTrajectoryAgeCondition { ConditionID = a.ConditionID, Operator = a.Operator, AgeThresholdSeconds = a.AgeThresholdSeconds },
+        AntiCollisionTrajectoryAgeCondition a => new AntiCollisionTrajectoryAgeCondition { ConditionID = a.ConditionID, Operator = a.Operator, AgeThreshold = a.AgeThreshold },
         AntiCollisionIdentityCondition i => new AntiCollisionIdentityCondition { ConditionID = i.ConditionID, ResourceLevel = i.ResourceLevel, IdentityDefinitionID = i.IdentityDefinitionID, MatchOperator = i.MatchOperator, Pattern = i.Pattern, CaseSensitive = i.CaseSensitive },
         AntiCollisionFeatureCondition f => new AntiCollisionFeatureCondition { ConditionID = f.ConditionID, ResourceLevel = f.ResourceLevel, FeatureCategoryID = f.FeatureCategoryID, FeatureOptionID = f.FeatureOptionID, TemporalOperator = f.TemporalOperator, SpecifiedTimeUtc = f.SpecifiedTimeUtc, SpecifiedFromUtc = f.SpecifiedFromUtc, SpecifiedToUtc = f.SpecifiedToUtc },
         _ => throw new InvalidOperationException("Unknown condition variant")

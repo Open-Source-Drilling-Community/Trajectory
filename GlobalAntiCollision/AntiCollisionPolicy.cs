@@ -80,7 +80,7 @@ public sealed class AntiCollisionTrajectoryAgeCondition : AntiCollisionPolicyCon
 {
     public AntiCollisionComparisonOperator Operator { get; set; }
     /// <summary>Age threshold in canonical SI seconds.</summary>
-    public double AgeThresholdSeconds { get; set; }
+    public double AgeThreshold { get; set; }
 }
 
 [JsonUnmappedMemberHandling(JsonUnmappedMemberHandling.Disallow)]
@@ -167,7 +167,7 @@ public sealed class AntiCollisionPolicyEvaluation
     public double? AlarmThreshold { get; set; }
     public DateTimeOffset? OldestEvidenceUtc { get; set; }
     public DateTimeOffset? NewestEvidenceUtc { get; set; }
-    public double? TrajectoryAgeSeconds { get; set; }
+    public double? TrajectoryAge { get; set; }
     public AntiCollisionClassification WorstClassification { get; set; } = AntiCollisionClassification.Indeterminate;
     public List<AntiCollisionResourceContextSnapshot> Context { get; set; } = [];
 }
@@ -222,7 +222,7 @@ public static class AntiCollisionPolicyValidation
     {
         switch (condition)
         {
-            case AntiCollisionTrajectoryAgeCondition age when !double.IsFinite(age.AgeThresholdSeconds) || age.AgeThresholdSeconds < 0:
+            case AntiCollisionTrajectoryAgeCondition age when !double.IsFinite(age.AgeThreshold) || age.AgeThreshold < 0:
                 errors.Add($"rule_{ruleId}_age_threshold_invalid");
                 break;
             case AntiCollisionIdentityCondition identity when identity.IdentityDefinitionID == Guid.Empty || string.IsNullOrWhiteSpace(identity.Pattern):

@@ -2,6 +2,8 @@
 
 `ModelSharedOut` manages generated shared models and client-side service contract types for consumers of the Trajectory service. Its generated namespace is `OSDC.Drilling.Trajectory.ModelShared`.
 
+The committed source and merged OpenAPI documents preserve the service's structured `x-osdc-semantic` extensions. Regenerate them after changing model bindings or the provider registry.
+
 ## Responsibility
 
 This project stores OpenAPI schemas and generates C# classes that are used by downstream consumers of the Trajectory API.

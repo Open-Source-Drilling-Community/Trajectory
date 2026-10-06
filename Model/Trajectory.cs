@@ -131,7 +131,7 @@ namespace OSDC.Drilling.Trajectory.Model
             return tieInStation;
         }
 
-        private static bool HasPositiveVariance(SymmetricMatrix3x3 covariance) =>
+        private static bool HasPositiveVariance(OSDC.DotnetLibraries.General.Math.SymmetricMatrix3x3 covariance) =>
             Enumerable.Range(0, 3).Any(index =>
                 covariance[index, index] is double variance && Numeric.GT(variance, 0.0));
     }

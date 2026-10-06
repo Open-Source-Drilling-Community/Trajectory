@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using OSDC.DotnetLibraries.Drilling.SemanticCatalogue;
 
 namespace OSDC.Drilling.Trajectory.ServiceTest;
 
@@ -72,7 +73,8 @@ public sealed class OpenApiConfidenceFactorContractTests
 
     private static void AssertQuantityAndLowerBound(JsonObject property)
     {
-        Assert.That(property["x-osdc-semantic"]!.GetValue<string>(), Is.EqualTo("ProportionStandard"));
+        Assert.That(property["x-osdc-semantic"]!["concept"]!.GetValue<string>(), Is.EqualTo(Concepts.ConfidenceFactor));
+        Assert.That(property["x-osdc-semantic"]!["catalogueVersion"]!.GetValue<string>(), Is.EqualTo("0.15.0"));
         Assert.That(property["x-si-unit"]!.GetValue<string>(), Is.EqualTo("1"));
         Assert.That(property["minimum"]!.GetValue<double>(), Is.Zero);
         Assert.That(property["exclusiveMinimum"]!.GetValue<bool>(), Is.True);

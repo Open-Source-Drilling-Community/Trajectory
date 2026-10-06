@@ -5,6 +5,7 @@ using System.Text.Json.Serialization;
 using Microsoft.AspNetCore.Mvc;
 using OSDC.Drilling.GlobalAntiCollision;
 using OSDC.Drilling.Trajectory.Model;
+using OSDC.DotnetLibraries.Drilling.SemanticCatalogue;
 
 namespace OSDC.Drilling.Trajectory.Service.Mcp.Tools;
 
@@ -196,6 +197,8 @@ internal static class TrajectoryMcpToolMetadata
         };
         ApplyInputOperationConstraints(controller, method.Name, definitions);
         if (definitions.Count > 0) result["$defs"] = definitions;
+        if (TrajectoryProviderSemantics.ForOperation(controller, method) is { } operationMetadata)
+            result[SemanticMetadata.ExtensionName] = operationMetadata;
         return result;
     }
 
@@ -680,6 +683,8 @@ internal static class TrajectoryMcpToolMetadata
             }
             ApplyDomainConstraints(type, property, schema, required);
             schema["description"] = DescribeProperty(type, property.Name);
+            if (TrajectoryProviderSemantics.ForProperty(property) is { } propertyMetadata)
+                schema[SemanticMetadata.ExtensionName] = propertyMetadata;
             properties[property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name] = schema;
         }
 
@@ -705,6 +710,8 @@ internal static class TrajectoryMcpToolMetadata
             ["properties"] = properties,
             ["additionalProperties"] = false
         };
+        if (TrajectoryProviderSemantics.ForType(type) is { } typeMetadata)
+            definition[SemanticMetadata.ExtensionName] = typeMetadata;
         if (required.Count > 0) definition["required"] = required;
         if (type == typeof(AntiCollisionFeatureCondition))
         {
@@ -853,7 +860,7 @@ internal static class TrajectoryMcpToolMetadata
         else if (declaringType == typeof(AntiCollisionTrajectoryAgeCondition))
         {
             required.Add(property.Name);
-            if (property.Name == nameof(AntiCollisionTrajectoryAgeCondition.AgeThresholdSeconds)) schema["minimum"] = 0.0;
+            if (property.Name == nameof(AntiCollisionTrajectoryAgeCondition.AgeThreshold)) schema["minimum"] = 0.0;
         }
         else if (declaringType == typeof(AntiCollisionIdentityCondition))
         {
@@ -1158,7 +1165,7 @@ internal static class TrajectoryMcpToolMetadata
                 ? "Positive combined length of the upstream and downstream steering sections, excluding LeadInLength, in SI metres."
                 : "Positive dimensionless upstream-to-downstream steering-section length ratio.";
         if (declaringType == typeof(AntiCollisionTrajectoryAgeCondition))
-            return name == nameof(AntiCollisionTrajectoryAgeCondition.AgeThresholdSeconds)
+            return name == nameof(AntiCollisionTrajectoryAgeCondition.AgeThreshold)
                 ? "Non-negative trajectory-age threshold in canonical SI seconds. Age uses the oldest defined contributing acquisition start or station measurement time."
                 : SplitWords(name) + ".";
         if (declaringType == typeof(AntiCollisionIdentityCondition))

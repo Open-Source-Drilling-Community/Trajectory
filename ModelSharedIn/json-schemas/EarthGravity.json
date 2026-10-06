@@ -1,9 +1,9 @@
 {
-  "openapi": "3.0.3",
+  "openapi": "3.0.4",
   "info": {
-    "title": "OSDC Earth Gravity distributed shared model",
-    "description": "Generated API client and DTO contract consumed by WebPages and ServiceTest.",
-    "version": "1.0"
+    "title": "OSDC Earth Gravity API",
+    "description": "Stateless EGM96 evaluation using OSDC SI and WGS84 conventions.",
+    "version": "v1"
   },
   "paths": {
     "/EarthGravity": {
@@ -20,7 +20,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EarthGravityModelInfo"
+                  "$ref": "#/components/schemas/OSDC.Drilling.EarthGravity.Model.EarthGravityModelInfo"
                 }
               }
             }
@@ -40,17 +40,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/EarthGravityEvaluationRequest"
+                "$ref": "#/components/schemas/OSDC.Drilling.EarthGravity.Model.EarthGravityEvaluationRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/EarthGravityEvaluationRequest"
+                "$ref": "#/components/schemas/OSDC.Drilling.EarthGravity.Model.EarthGravityEvaluationRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/EarthGravityEvaluationRequest"
+                "$ref": "#/components/schemas/OSDC.Drilling.EarthGravity.Model.EarthGravityEvaluationRequest"
               }
             }
           }
@@ -61,7 +61,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EarthGravityEvaluationResponse"
+                  "$ref": "#/components/schemas/OSDC.Drilling.EarthGravity.Model.EarthGravityEvaluationResponse"
                 }
               }
             }
@@ -71,7 +71,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EarthGravityValidationProblem"
+                  "$ref": "#/components/schemas/OSDC.Drilling.EarthGravity.Model.EarthGravityValidationProblem"
                 }
               }
             }
@@ -92,7 +92,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/EarthGravityModelInfo"
+                  "$ref": "#/components/schemas/OSDC.Drilling.EarthGravity.Model.EarthGravityModelInfo"
                 }
               }
             }
@@ -113,7 +113,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UsageStatisticsEarthGravity"
+                  "$ref": "#/components/schemas/OSDC.Drilling.EarthGravity.Model.UsageStatisticsEarthGravity"
                 }
               }
             }
@@ -124,7 +124,7 @@
   },
   "components": {
     "schemas": {
-      "EarthGravityEvaluationRequest": {
+      "OSDC.Drilling.EarthGravity.Model.EarthGravityEvaluationRequest": {
         "required": [
           "Positions"
         ],
@@ -134,79 +134,259 @@
             "minItems": 1,
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EarthGravityPosition"
+              "$ref": "#/components/schemas/OSDC.Drilling.EarthGravity.Model.EarthGravityPosition"
             },
-            "description": "Positions to evaluate. The entire request is rejected when any item is invalid."
+            "description": "Positions to evaluate. The entire request is rejected when any item is invalid.",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:geodetic-position",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "role": "urn:osdc:semantic:input-positions",
+              "reference": "urn:osdc:semantic:wgs84",
+              "requiredContext": [
+                "reference ellipsoid",
+                "angular units",
+                "vertical sign",
+                "reference meridian",
+                "vertical representation and sign"
+              ],
+              "constraints": [ ],
+              "referenceDefinition": "WGS84 geodetic latitude/longitude with Greenwich origin and ellipsoidal depth positive downward; not a fully specified terrestrial frame realization or epoch.",
+              "referenceRequiredContext": [ ]
+            }
           }
         },
-        "description": "A stateless synchronous EGM96 evaluation request."
+        "additionalProperties": false,
+        "description": "A stateless synchronous EGM96 evaluation request.",
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.15.0",
+          "concept": "urn:osdc:semantic:gravity-evaluation-request",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-model-attribute",
+          "requiredContext": [ ],
+          "constraints": [ ]
+        }
       },
-      "EarthGravityEvaluationResponse": {
+      "OSDC.Drilling.EarthGravity.Model.EarthGravityEvaluationResponse": {
         "type": "object",
         "properties": {
           "Model": {
-            "$ref": "#/components/schemas/EarthGravityModelInfo"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.Drilling.EarthGravity.Model.EarthGravityModelInfo"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:gravity-model-provenance",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "role": "urn:osdc:semantic:model-provenance",
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           },
           "Samples": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EarthGravitySample"
+              "$ref": "#/components/schemas/OSDC.Drilling.EarthGravity.Model.EarthGravitySample"
             },
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:gravity-sample",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "role": "urn:osdc:semantic:output-samples",
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           }
         },
-        "description": "EGM96 results in the same order as the request positions."
+        "additionalProperties": false,
+        "description": "EGM96 results in the same order as the request positions.",
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.15.0",
+          "concept": "urn:osdc:semantic:gravity-evaluation-response",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-model-attribute",
+          "requiredContext": [ ],
+          "constraints": [ ]
+        }
       },
-      "EarthGravityModelInfo": {
+      "OSDC.Drilling.EarthGravity.Model.EarthGravityModelInfo": {
         "type": "object",
         "properties": {
           "Name": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:model-name",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           },
           "ID": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:model-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           },
           "Publisher": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:model-publisher",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           },
           "ReleaseDate": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:model-release-date",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           },
           "DataVersion": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:coefficient-data-version",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           },
           "Degree": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:spherical-harmonic-degree",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           },
           "Order": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:spherical-harmonic-order",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           },
           "GeographicLibVersion": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:calculation-runtime-version",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           },
           "ReferenceEllipsoid": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:reference-ellipsoid",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           },
           "IncludesCentrifugalAcceleration": {
-            "type": "boolean"
+            "type": "boolean",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:includes-centrifugal-acceleration",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           },
           "CoefficientSHA256": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:coefficient-sha256",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [
+                "digest algorithm",
+                "source file and its purpose",
+                "digest representation"
+              ],
+              "constraints": [
+                "A digest is not a model version or proof of authenticity.",
+                "Compare digests only with compatible algorithms, input-byte scope and representations.",
+                "SHA-256 is the digest algorithm; the provider declares the encoding of its 256-bit output."
+              ]
+            }
           }
         },
-        "description": "Identity and provenance of the Earth gravity model used for an evaluation."
+        "additionalProperties": false,
+        "description": "Identity and provenance of the Earth gravity model used for an evaluation.",
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.15.0",
+          "concept": "urn:osdc:semantic:gravity-model-provenance",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-model-attribute",
+          "requiredContext": [ ],
+          "constraints": [ ]
+        }
       },
-      "EarthGravityPosition": {
+      "OSDC.Drilling.EarthGravity.Model.EarthGravityPosition": {
         "type": "object",
         "properties": {
           "Latitude": {
@@ -214,36 +394,180 @@
             "minimum": -1.5707963267948966,
             "type": "number",
             "description": "WGS84 geodetic latitude in SI radians, between -π/2 and π/2.",
-            "format": "double"
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:geodetic-latitude",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "reference": "urn:osdc:semantic:wgs84",
+              "siUnit": "rad",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion",
+                "id": "fc88c9ff-fa0a-4406-b397-015f3ca062bc",
+                "name": "PlaneAngleGeodesic",
+                "siUnitName": "radian"
+              },
+              "requiredContext": [
+                "reference",
+                "axis/sign convention"
+              ],
+              "constraints": [
+                "Positions are not additive extents."
+              ],
+              "referenceDefinition": "WGS84 geodetic latitude/longitude with Greenwich origin and ellipsoidal depth positive downward; not a fully specified terrestrial frame realization or epoch.",
+              "referenceRequiredContext": [ ]
+            }
           },
           "Longitude": {
             "maximum": 3.141592653589793,
             "minimum": -3.141592653589793,
             "type": "number",
             "description": "WGS84 geodetic longitude in SI radians, between -π and π.",
-            "format": "double"
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:geodetic-longitude",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "reference": "urn:osdc:semantic:wgs84",
+              "siUnit": "rad",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion",
+                "id": "fc88c9ff-fa0a-4406-b397-015f3ca062bc",
+                "name": "PlaneAngleGeodesic",
+                "siUnitName": "radian"
+              },
+              "requiredContext": [
+                "reference",
+                "axis/sign convention"
+              ],
+              "constraints": [
+                "Positions are not additive extents."
+              ],
+              "referenceDefinition": "WGS84 geodetic latitude/longitude with Greenwich origin and ellipsoidal depth positive downward; not a fully specified terrestrial frame realization or epoch.",
+              "referenceRequiredContext": [ ]
+            }
           },
           "Depth": {
             "type": "number",
             "description": "Depth in SI metres, positive downward, with zero at the WGS84 reference ellipsoid. A negative value is above the ellipsoid. This is not a mean-sea-level, geoid, seabed, rig, or local-datum depth.",
-            "format": "double"
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:ellipsoidal-depth",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "reference": "urn:osdc:semantic:wgs84",
+              "siUnit": "m",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "c0d965b2-a153-420a-9d03-7a2a272d619e",
+                "name": "DepthDrilling",
+                "siUnitName": "metre"
+              },
+              "requiredContext": [
+                "reference",
+                "axis/sign convention"
+              ],
+              "constraints": [
+                "Depth = -ellipsoidal height; not a geoid or mean-sea-level depth.",
+                "Positions are not additive extents.",
+                "A quantity of length does not make depth positions summable."
+              ],
+              "referenceDefinition": "WGS84 geodetic latitude/longitude with Greenwich origin and ellipsoidal depth positive downward; not a fully specified terrestrial frame realization or epoch.",
+              "referenceRequiredContext": [ ]
+            }
           }
         },
-        "description": "A position referred to the WGS84 reference ellipsoid and expressed using OSDC SI conventions."
+        "additionalProperties": false,
+        "description": "A position referred to the WGS84 reference ellipsoid and expressed using OSDC SI conventions.",
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.15.0",
+          "concept": "urn:osdc:semantic:geodetic-position",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-model-attribute",
+          "requiredContext": [
+            "reference ellipsoid",
+            "angular units",
+            "vertical sign",
+            "reference meridian",
+            "vertical representation and sign"
+          ],
+          "constraints": [ ]
+        }
       },
-      "EarthGravitySample": {
+      "OSDC.Drilling.EarthGravity.Model.EarthGravitySample": {
         "type": "object",
         "properties": {
           "Position": {
-            "$ref": "#/components/schemas/EarthGravityPosition"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.Drilling.EarthGravity.Model.EarthGravityPosition"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:geodetic-position",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "reference": "urn:osdc:semantic:wgs84",
+              "requiredContext": [
+                "reference ellipsoid",
+                "angular units",
+                "vertical sign",
+                "reference meridian",
+                "vertical representation and sign"
+              ],
+              "constraints": [ ],
+              "referenceDefinition": "WGS84 geodetic latitude/longitude with Greenwich origin and ellipsoidal depth positive downward; not a fully specified terrestrial frame realization or epoch.",
+              "referenceRequiredContext": [ ]
+            }
           },
           "Gravity": {
-            "$ref": "#/components/schemas/EarthGravityVector"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.Drilling.EarthGravity.Model.EarthGravityVector"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:gravity-evaluation-result",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "reference": "urn:osdc:semantic:local-north-east-down",
+              "requiredContext": [
+                "position",
+                "gravity model"
+              ],
+              "constraints": [ ],
+              "referenceDefinition": "Local north, east and downward axes at the evaluation position on WGS84; downward is opposite ellipsoidal up.",
+              "referenceRequiredContext": [ ]
+            }
           }
         },
-        "description": "An evaluated WGS84 position and its corresponding EGM96 gravity vector."
+        "additionalProperties": false,
+        "description": "An evaluated WGS84 position and its corresponding EGM96 acceleration and potential.",
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.15.0",
+          "concept": "urn:osdc:semantic:gravity-sample",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-model-attribute",
+          "requiredContext": [ ],
+          "constraints": [ ]
+        }
       },
-      "EarthGravityValidationError": {
+      "OSDC.Drilling.EarthGravity.Model.EarthGravityValidationError": {
         "type": "object",
         "properties": {
           "PositionIndex": {
@@ -263,9 +587,10 @@
             "type": "string",
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "EarthGravityValidationProblem": {
+      "OSDC.Drilling.EarthGravity.Model.EarthGravityValidationProblem": {
         "type": "object",
         "properties": {
           "Error": {
@@ -279,46 +604,191 @@
           "Errors": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/EarthGravityValidationError"
+              "$ref": "#/components/schemas/OSDC.Drilling.EarthGravity.Model.EarthGravityValidationError"
             },
             "nullable": true
           }
         },
+        "additionalProperties": false,
         "description": "Details returned when an evaluation request is rejected atomically."
       },
-      "EarthGravityVector": {
+      "OSDC.Drilling.EarthGravity.Model.EarthGravityVector": {
         "type": "object",
         "properties": {
           "North": {
             "type": "number",
             "description": "Northerly acceleration component in SI metres per second squared.",
-            "format": "double"
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:total-gravity-acceleration",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "role": "urn:osdc:semantic:north-component",
+              "reference": "urn:osdc:semantic:local-north-east-down",
+              "siUnit": "m/s^2",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "b6c99136-8e57-4eea-9a31-fb804bc8ae4b",
+                "name": "AccelerationDrilling",
+                "siUnitName": "metre per second squared"
+              },
+              "requiredContext": [
+                "component or magnitude role",
+                "position",
+                "local frame"
+              ],
+              "constraints": [
+                "Magnitude is nonnegative; signed components are not magnitudes."
+              ],
+              "referenceDefinition": "Local north, east and downward axes at the evaluation position on WGS84; downward is opposite ellipsoidal up.",
+              "referenceRequiredContext": [ ]
+            }
           },
           "East": {
             "type": "number",
             "description": "Easterly acceleration component in SI metres per second squared.",
-            "format": "double"
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:total-gravity-acceleration",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "role": "urn:osdc:semantic:east-component",
+              "reference": "urn:osdc:semantic:local-north-east-down",
+              "siUnit": "m/s^2",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "b6c99136-8e57-4eea-9a31-fb804bc8ae4b",
+                "name": "AccelerationDrilling",
+                "siUnitName": "metre per second squared"
+              },
+              "requiredContext": [
+                "component or magnitude role",
+                "position",
+                "local frame"
+              ],
+              "constraints": [
+                "Magnitude is nonnegative; signed components are not magnitudes."
+              ],
+              "referenceDefinition": "Local north, east and downward axes at the evaluation position on WGS84; downward is opposite ellipsoidal up.",
+              "referenceRequiredContext": [ ]
+            }
           },
           "Down": {
             "type": "number",
             "description": "Downward acceleration component in SI metres per second squared; normally positive.",
-            "format": "double"
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:total-gravity-acceleration",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "role": "urn:osdc:semantic:down-component",
+              "reference": "urn:osdc:semantic:local-north-east-down",
+              "siUnit": "m/s^2",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "b6c99136-8e57-4eea-9a31-fb804bc8ae4b",
+                "name": "AccelerationDrilling",
+                "siUnitName": "metre per second squared"
+              },
+              "requiredContext": [
+                "component or magnitude role",
+                "position",
+                "local frame"
+              ],
+              "constraints": [
+                "Magnitude is nonnegative; signed components are not magnitudes."
+              ],
+              "referenceDefinition": "Local north, east and downward axes at the evaluation position on WGS84; downward is opposite ellipsoidal up.",
+              "referenceRequiredContext": [ ]
+            }
           },
           "Magnitude": {
             "type": "number",
             "description": "Magnitude of the gravity vector in SI metres per second squared.",
             "format": "double",
-            "readOnly": true
+            "readOnly": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:total-gravity-acceleration",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "role": "urn:osdc:semantic:vector-magnitude",
+              "reference": "urn:osdc:semantic:local-north-east-down",
+              "siUnit": "m/s^2",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "b6c99136-8e57-4eea-9a31-fb804bc8ae4b",
+                "name": "AccelerationDrilling",
+                "siUnitName": "metre per second squared"
+              },
+              "requiredContext": [
+                "component or magnitude role",
+                "position",
+                "local frame"
+              ],
+              "constraints": [
+                "Magnitude is nonnegative; signed components are not magnitudes."
+              ],
+              "referenceDefinition": "Local north, east and downward axes at the evaluation position on WGS84; downward is opposite ellipsoidal up.",
+              "referenceRequiredContext": [ ]
+            }
           },
           "TotalPotential": {
             "type": "number",
             "description": "Total gravitational plus centrifugal potential in SI square metres per square second.",
-            "format": "double"
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:total-gravity-potential",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "siUnit": "m^2/s^2",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion",
+                "id": "61a8a54e-684a-4e72-bb46-b73d342bdb70",
+                "name": "EarthGravityPotential",
+                "siUnitName": "square metre per square second"
+              },
+              "requiredContext": [
+                "gravity model"
+              ],
+              "constraints": [
+                "Uses the geodetic sign convention: gravity is the gradient of total potential.",
+                "Includes gravitational and centrifugal contributions.",
+                "Meaningful precision of 0.01 m^2/s^2 is a display convention, not model accuracy."
+              ]
+            }
           }
         },
-        "description": "Total gravity acceleration in the local north-east-down frame."
+        "additionalProperties": false,
+        "description": "Gravity evaluation result containing local north-east-down acceleration and scalar total potential.",
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.15.0",
+          "concept": "urn:osdc:semantic:gravity-evaluation-result",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-model-attribute",
+          "requiredContext": [
+            "position",
+            "gravity model"
+          ],
+          "constraints": [ ]
+        }
       },
-      "UsageStatisticsEarthGravity": {
+      "OSDC.Drilling.EarthGravity.Model.UsageStatisticsEarthGravity": {
         "type": "object",
         "properties": {
           "StartedAt": {
@@ -361,7 +831,8 @@
             "format": "int64",
             "readOnly": true
           }
-        }
+        },
+        "additionalProperties": false
       }
     }
   }

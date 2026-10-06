@@ -394,6 +394,43 @@ public sealed class TrajectoryCatalogMigrationTests
         }
     }
 
+    [Test]
+    public void Version_nine_database_renames_unit_bearing_anti_collision_age_property()
+    {
+        string directory = Path.Combine(Path.GetTempPath(), "trajectory-policy-unit-migration", Guid.NewGuid().ToString("N"));
+        Directory.CreateDirectory(directory);
+        string mainPath = Path.Combine(directory, "Trajectory.db");
+        try
+        {
+            _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+            Execute(mainPath, """
+                INSERT INTO AntiCollisionPolicyRevisionTable(
+                    ID,PolicyID,RevisionNumber,Name,CreationDate,AntiCollisionPolicyRevision)
+                VALUES(
+                    'revision-id','policy-id',1,'Policy','2026-10-05 10:00:00',
+                    '{"Rules":[{"Conditions":[{"$type":"TrajectoryAge","AgeThresholdSeconds":86400}]}]}');
+                PRAGMA user_version=9;
+                """);
+
+            _ = new SqlConnectionManagerTrajectory(mainPath, NullLogger<SqlConnectionManagerTrajectory>.Instance);
+
+            using SqliteConnection main = Open(mainPath);
+            string document = Scalar<string>(main,
+                "SELECT AntiCollisionPolicyRevision FROM AntiCollisionPolicyRevisionTable WHERE ID='revision-id'");
+            Assert.Multiple(() =>
+            {
+                Assert.That(Scalar<long>(main, "PRAGMA user_version"), Is.EqualTo(SqlConnectionManagerTrajectory.TrajectorySchemaVersion));
+                Assert.That(document, Does.Contain("\"AgeThreshold\":86400"));
+                Assert.That(document, Does.Not.Contain("AgeThresholdSeconds"));
+            });
+        }
+        finally
+        {
+            SqliteConnection.ClearAllPools();
+            if (Directory.Exists(directory)) Directory.Delete(directory, true);
+        }
+    }
+
     private static void Execute(string path, string sql)
     {
         using SqliteConnection connection = Open(path);

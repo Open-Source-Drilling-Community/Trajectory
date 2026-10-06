@@ -1,8 +1,8 @@
 name: Update Docker Hub Description
 on:
   push:
-    branches:
-      - main
+    branches: [main]
+  workflow_dispatch:
 jobs:
   dockerHubDescription:
     runs-on: ubuntu-latest

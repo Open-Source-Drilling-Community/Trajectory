@@ -30,7 +30,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
     public class SqlConnectionManagerTrajectory : SqlConnectionManager
     {
         private const string DatabaseName = "Trajectory.db";
-        public const int TrajectorySchemaVersion = 9;
+        public const int TrajectorySchemaVersion = 10;
         internal const string TargetLandingLightCoveringIndexName = "TargetLandingCaseLightCoveringIndex";
 
         private static readonly string[] TrajectoryVersion6Columns =
@@ -383,6 +383,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 4 => TableStructureDictTrajectory.Keys.Except(targetLandingTables, StringComparer.Ordinal)
                     .Except(directionalControlTables, StringComparer.Ordinal).ToArray(),
                 >= 5 and <= 8 => TableStructureDictTrajectory.Keys.Except(directionalControlTables, StringComparer.Ordinal).ToArray(),
+                9 => TableStructureDictTrajectory.Keys.ToArray(),
                 _ => []
             };
             bool expectedShape = tables.Order().SequenceEqual(expectedBeforeMigration.Order(), StringComparer.Ordinal);
@@ -435,6 +436,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 CreateTargetLandingLightCoveringIndex(connection, transaction);
                 CreateDirectionalControlIndexes(connection, transaction);
 
+                if (version <= 9)
+                {
+                    RenameUnitBearingAntiCollisionProperties(connection, transaction);
+                }
+
                 if (importLegacyCatalog)
                 {
                     CopyLegacyCatalog(connection, transaction, "TrajectoryIdentityTable",
@@ -457,6 +463,23 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 throw;
             }
             return databasePath;
+        }
+
+        private static void RenameUnitBearingAntiCollisionProperties(
+            SqliteConnection connection,
+            SqliteTransaction transaction)
+        {
+            using SqliteCommand command = connection.CreateCommand();
+            command.Transaction = transaction;
+            command.CommandText = """
+                UPDATE AntiCollisionPolicyRevisionTable
+                SET AntiCollisionPolicyRevision = replace(
+                    AntiCollisionPolicyRevision,
+                    '"AgeThresholdSeconds":',
+                    '"AgeThreshold":')
+                WHERE instr(AntiCollisionPolicyRevision, '"AgeThresholdSeconds":') > 0
+                """;
+            command.ExecuteNonQuery();
         }
 
         private static IReadOnlyDictionary<string, string[]> CreateTrajectoryIndexDefinitions()

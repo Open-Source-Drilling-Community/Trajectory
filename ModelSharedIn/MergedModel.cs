@@ -6719,6 +6719,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Returns the list of Guid of all ErrorSource present in the microservice database at endpoint SurveyInstrument/api/ErrorSource
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllErrorSourceIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -6790,6 +6793,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Performs calculation on the given ErrorSource and adds it to the microservice database, at the endpoint SurveyInstrument/api/ErrorSource
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task PostErrorSourceAsync(ErrorSource body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -6859,6 +6865,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Returns the list of MetaInfo of all ErrorSource present in the microservice database, at endpoint SurveyInstrument/api/ErrorSource/MetaInfo
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllErrorSourceMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -6930,6 +6939,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Returns the ErrorSource identified by its Guid from the microservice database, at endpoint SurveyInstrument/api/ErrorSource/MetaInfo/id
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<ErrorSource> GetErrorSourceByIdAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -7005,6 +7017,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Performs calculation on the given ErrorSource and updates it in the microservice database, at the endpoint SurveyInstrument/api/ErrorSource/id
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task PutErrorSourceByIdAsync(System.Guid id, ErrorSource body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -7078,6 +7093,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Deletes the ErrorSource of given ID from the microservice database, at the endpoint SurveyInstrument/api/ErrorSource/id
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task DeleteErrorSourceByIdAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -7147,6 +7165,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Returns the list of all ErrorSource present in the microservice database, at endpoint SurveyInstrument/api/ErrorSource/HeavyData
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<ErrorSource>> GetAllErrorSourceAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -7218,6 +7239,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Returns the list of Guid of all SurveyInstrument present in the microservice database at endpoint SurveyInstrument/api/SurveyInstrument
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<System.Guid>> GetAllSurveyInstrumentIdAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -7289,6 +7313,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Performs calculation on the given SurveyInstrument and adds it to the microservice database, at the endpoint SurveyInstrument/api/SurveyInstrument
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task PostSurveyInstrumentAsync(SurveyInstrument body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -7358,6 +7385,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Returns the list of MetaInfo of all SurveyInstrument present in the microservice database, at endpoint SurveyInstrument/api/SurveyInstrument/MetaInfo
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<MetaInfo>> GetAllSurveyInstrumentMetaInfoAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -7429,6 +7459,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Returns the SurveyInstrument identified by its Guid from the microservice database, at endpoint SurveyInstrument/api/SurveyInstrument/MetaInfo/id
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<SurveyInstrument> GetSurveyInstrumentByIdAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -7504,6 +7537,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Performs calculation on the given SurveyInstrument and updates it in the microservice database, at the endpoint SurveyInstrument/api/SurveyInstrument/id
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task PutSurveyInstrumentByIdAsync(System.Guid id, SurveyInstrument body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -7577,6 +7613,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Deletes the SurveyInstrument of given ID from the microservice database, at the endpoint SurveyInstrument/api/SurveyInstrument/id
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task DeleteSurveyInstrumentByIdAsync(System.Guid id, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -7646,6 +7685,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Returns the list of all SurveyInstrumentLight present in the microservice database, at endpoint SurveyInstrument/api/SurveyInstrument/LightData
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<SurveyInstrumentLight>> GetAllSurveyInstrumentLightAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -7717,6 +7759,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Returns the list of all SurveyInstrument present in the microservice database, at endpoint SurveyInstrument/api/SurveyInstrument/HeavyData
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<System.Collections.Generic.ICollection<SurveyInstrument>> GetAllSurveyInstrumentAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -9000,6 +9045,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         }
 
         /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <summary>
+        /// Returns the usage statistics present in the microservice database at endpoint SurveyInstrument/api/SurveyInstrumentUsageStatistics
+        /// </summary>
         /// <returns>OK</returns>
         /// <exception cref="ApiException">A server side error occurred.</exception>
         public virtual async System.Threading.Tasks.Task<UsageStatisticsSurveyInstrument> GetSurveyInstrumentUsageStatisticsAsync(System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
@@ -17670,6 +17718,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class MetaInfo
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
@@ -17763,30 +17814,57 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class Cluster
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Human-readable descriptive text about a resource.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Description")]
         public string Description { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
+        /// <summary>
+        /// UUID of the referenced resource owned by the Field service.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FieldID")]
         public System.Guid? FieldID { get; set; }
 
+        /// <summary>
+        /// Boolean declaration that a cluster represents a single-well site rather than a multi-well grouping.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsSingleWell")]
         public bool IsSingleWell { get; set; }
 
+        /// <summary>
+        /// UUID of the associated resource owned by the Rig service.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("RigID")]
         public System.Guid? RigID { get; set; }
 
+        /// <summary>
+        /// Boolean declaration that a cluster is associated with a fixed platform rather than a floating or moveable rig.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsFixedPlatform")]
         public bool IsFixedPlatform { get; set; }
 
@@ -17796,12 +17874,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("ClusterFeatureAssignments")]
         public System.Collections.Generic.ICollection<ClusterFeatureAssignment> ClusterFeatureAssignments { get; set; }
 
+        /// <summary>
+        /// Position specified by geodetic latitude, longitude and ellipsoidal depth. Geographic angles use SI radians; linear coordinates and ellipsoidal depth use SI metres. X/Y are Riemannian north/east arc coordinates, not projected easting/northing. Reference: WGS84 ellipsoid convention.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ReferencePoint")]
         public Point3DGlobalCoordinates ReferencePoint { get; set; }
 
+        /// <summary>
+        /// Ellipsoidal depth of the ground surface or mud line at the cluster site, with the actual surface identified by site context. GaussianValue.Mean is the expected value in SI metres (m), referenced to the WGS84 ellipsoid. StandardDeviation is a non-negative standard uncertainty in SI metres (m); it has no coordinate origin. MinValue and MaxValue are provider domain-limit metadata in the mean's unit and reference, not confidence limits or instructions to truncate the Gaussian distribution.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("GroundMudLineDepth")]
         public GaussianDrillingProperty GroundMudLineDepth { get; set; }
 
+        /// <summary>
+        /// Ellipsoidal depth of the upper water surface at a site; distinct from water-column thickness and the depth of the seabed. GaussianValue.Mean is the expected value in SI metres (m), referenced to the WGS84 ellipsoid. StandardDeviation is a non-negative standard uncertainty in SI metres (m); it has no coordinate origin. MinValue and MaxValue are provider domain-limit metadata in the mean's unit and reference, not confidence limits or instructions to truncate the Gaussian distribution.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("TopWaterDepth")]
         public GaussianDrillingProperty TopWaterDepth { get; set; }
 
@@ -17850,12 +17937,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Catalog")]
         public string Catalog { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("SourceID")]
         public System.Guid SourceID { get; set; }
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LocalID")]
         public System.Guid LocalID { get; set; }
 
@@ -18013,9 +18109,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class ClusterBatchExternalReference
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("SourceID")]
         public System.Guid SourceID { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
@@ -18037,12 +18139,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Resource")]
         public string Resource { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("SourceID")]
         public System.Guid SourceID { get; set; }
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LocalID")]
         public System.Guid LocalID { get; set; }
 
@@ -18165,18 +18276,33 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class ClusterFeatureAssignment
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// UUID of the selected category in the owning service catalogue.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FeatureCategoryID")]
         public System.Guid? FeatureCategoryID { get; set; }
 
+        /// <summary>
+        /// UUID of an option belonging to the selected category.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FeatureOptionID")]
         public System.Guid? FeatureOptionID { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FromDate")]
         public System.DateTimeOffset? FromDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ToDate")]
         public System.DateTimeOffset? ToDate { get; set; }
 
@@ -18195,24 +18321,42 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class ClusterFeatureCategory
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Boolean rule declaring that at most one category assignment may be active on a resource at the same instant.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsExclusive")]
         public bool IsExclusive { get; set; }
 
+        /// <summary>
+        /// Boolean rule indicating whether assignments in a category may carry validity bounds.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("HasValidityPeriod")]
         public bool HasValidityPeriod { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
         public System.Collections.Generic.ICollection<ClusterFeatureOption> Options { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
@@ -18231,9 +18375,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class ClusterFeatureOption
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
@@ -18252,15 +18402,27 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class ClusterIdentity
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
@@ -18279,12 +18441,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class ClusterIdentityAssignment
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// UUID of the selected identity definition in the owning service catalogue.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IdentityID")]
         public System.Guid? IdentityID { get; set; }
 
+        /// <summary>
+        /// Value identifying a resource within a selected identification scheme; its interpretation and uniqueness depend on that scheme.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Value")]
         public string Value { get; set; }
 
@@ -18303,39 +18474,75 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class ClusterLight
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Human-readable descriptive text about a resource.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Description")]
         public string Description { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
+        /// <summary>
+        /// UUID of the referenced resource owned by the Field service.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FieldID")]
         public System.Guid? FieldID { get; set; }
 
+        /// <summary>
+        /// Boolean declaration that a cluster represents a single-well site rather than a multi-well grouping.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsSingleWell")]
         public bool IsSingleWell { get; set; }
 
+        /// <summary>
+        /// UUID of the associated resource owned by the Rig service.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("RigID")]
         public System.Guid? RigID { get; set; }
 
+        /// <summary>
+        /// Boolean declaration that a cluster is associated with a fixed platform rather than a floating or moveable rig.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsFixedPlatform")]
         public bool IsFixedPlatform { get; set; }
 
+        /// <summary>
+        /// Position specified by geodetic latitude, longitude and ellipsoidal depth. Geographic angles use SI radians; linear coordinates and ellipsoidal depth use SI metres. X/Y are Riemannian north/east arc coordinates, not projected easting/northing. Reference: WGS84 ellipsoid convention.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ReferencePoint")]
         public Point3DGlobalCoordinates ReferencePoint { get; set; }
 
+        /// <summary>
+        /// Ellipsoidal depth of the ground surface or mud line at the cluster site, with the actual surface identified by site context. GaussianValue.Mean is the expected value in SI metres (m), referenced to the WGS84 ellipsoid. StandardDeviation is a non-negative standard uncertainty in SI metres (m); it has no coordinate origin. MinValue and MaxValue are provider domain-limit metadata in the mean's unit and reference, not confidence limits or instructions to truncate the Gaussian distribution.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("GroundMudLineDepth")]
         public GaussianDrillingProperty GroundMudLineDepth { get; set; }
 
+        /// <summary>
+        /// Ellipsoidal depth of the upper water surface at a site; distinct from water-column thickness and the depth of the seabed. GaussianValue.Mean is the expected value in SI metres (m), referenced to the WGS84 ellipsoid. StandardDeviation is a non-negative standard uncertainty in SI metres (m); it has no coordinate origin. MinValue and MaxValue are provider domain-limit metadata in the mean's unit and reference, not confidence limits or instructions to truncate the Gaussian distribution.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("TopWaterDepth")]
         public GaussianDrillingProperty TopWaterDepth { get; set; }
 
@@ -18393,24 +18600,45 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class Slot
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Human-readable descriptive text about a resource.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Description")]
         public string Description { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
+        /// <summary>
+        /// Angle between the ellipsoid normal and the equatorial plane; north positive. GaussianValue.Mean is the expected value in SI radians (rad), referenced to the WGS84 ellipsoid. StandardDeviation is a non-negative standard uncertainty in SI radians (rad); it has no coordinate origin. MinValue and MaxValue are provider domain-limit metadata in the mean's unit and reference, not confidence limits or instructions to truncate the Gaussian distribution.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Latitude")]
         public GaussianDrillingProperty Latitude { get; set; }
 
+        /// <summary>
+        /// Angular position eastward from the reference meridian. GaussianValue.Mean is the expected value in SI radians (rad), referenced to the WGS84 ellipsoid. StandardDeviation is a non-negative standard uncertainty in SI radians (rad); it has no coordinate origin. MinValue and MaxValue are provider domain-limit metadata in the mean's unit and reference, not confidence limits or instructions to truncate the Gaussian distribution.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Longitude")]
         public GaussianDrillingProperty Longitude { get; set; }
 
@@ -18432,18 +18660,33 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class SlotFeatureAssignment
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// UUID of the selected category in the owning service catalogue.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FeatureCategoryID")]
         public System.Guid? FeatureCategoryID { get; set; }
 
+        /// <summary>
+        /// UUID of an option belonging to the selected category.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FeatureOptionID")]
         public System.Guid? FeatureOptionID { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FromDate")]
         public System.DateTimeOffset? FromDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ToDate")]
         public System.DateTimeOffset? ToDate { get; set; }
 
@@ -18462,24 +18705,42 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class SlotFeatureCategory
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Boolean rule declaring that at most one category assignment may be active on a resource at the same instant.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsExclusive")]
         public bool IsExclusive { get; set; }
 
+        /// <summary>
+        /// Boolean rule indicating whether assignments in a category may carry validity bounds.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("HasValidityPeriod")]
         public bool HasValidityPeriod { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
         public System.Collections.Generic.ICollection<SlotFeatureOption> Options { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
@@ -18498,9 +18759,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class SlotFeatureOption
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
@@ -18784,7 +19051,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     }
 
     /// <summary>
-    /// An evaluated WGS84 position and its corresponding EGM96 gravity vector.
+    /// An evaluated WGS84 position and its corresponding EGM96 acceleration and potential.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class EarthGravitySample
@@ -18862,7 +19129,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     }
 
     /// <summary>
-    /// Total gravity acceleration in the local north-east-down frame.
+    /// Gravity evaluation result containing local north-east-down acceleration and scalar total potential.
     /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class EarthGravityVector
@@ -19055,10 +19322,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public double? Declination { get; set; }
 
         /// <summary>
-        /// Inclination in SI radians, positive downward from horizontal; null when total intensity is zero.
+        /// Magnetic dip in SI radians, positive downward from horizontal; null when total intensity is zero.
         /// </summary>
-        [System.Text.Json.Serialization.JsonPropertyName("Inclination")]
-        public double? Inclination { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("MagneticDip")]
+        public double? MagneticDip { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -19175,60 +19442,117 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<EarthMagneticFieldModel>))]
         public EarthMagneticFieldModel Model { get; set; }
 
+        /// <summary>
+        /// Name of the installed scientific model.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Scientific model identifier, distinct from the provider selection token.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public string ID { get; set; }
 
+        /// <summary>
+        /// Human-readable description of the installed model.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Description")]
         public string Description { get; set; }
 
+        /// <summary>
+        /// Publication calendar date, serialized as a nullable date-time; not a UTC evaluation instant.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ReleaseDate")]
         public System.DateTimeOffset? ReleaseDate { get; set; }
 
+        /// <summary>
+        /// Inclusive lower bound of the supported evaluation-time domain, in UTC.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MinimumUtc")]
         public System.DateTimeOffset MinimumUtc { get; set; }
 
+        /// <summary>
+        /// Inclusive upper bound of the supported evaluation-time domain, in UTC.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MaximumUtc")]
         public System.DateTimeOffset MaximumUtc { get; set; }
 
+        /// <summary>
+        /// Inclusive lower bound of supported ellipsoidal depth in SI metres, positive down from WGS84.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MinimumDepth")]
         public double MinimumDepth { get; set; }
 
+        /// <summary>
+        /// Inclusive upper bound of supported ellipsoidal depth in SI metres, positive down from WGS84.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MaximumDepth")]
         public double MaximumDepth { get; set; }
 
+        /// <summary>
+        /// Maximum spherical-harmonic degree represented by the model; not an angle.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Degree")]
         public int Degree { get; set; }
 
+        /// <summary>
+        /// Maximum spherical-harmonic order represented by the model; not an angle.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Order")]
         public int Order { get; set; }
 
+        /// <summary>
+        /// Version of the calculation implementation used for reproducibility.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("GeographicLibVersion")]
         public string GeographicLibVersion { get; set; }
 
+        /// <summary>
+        /// Reference ellipsoid used for the geodetic position.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ReferenceEllipsoid")]
         public string ReferenceEllipsoid { get; set; }
 
+        /// <summary>
+        /// Local north-east-down frame; down is opposite ellipsoid-normal up.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CoordinateFrame")]
         public string CoordinateFrame { get; set; }
 
+        /// <summary>
+        /// Wire unit for magnetic flux density: tesla, not magnetic field strength in amperes per metre.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MagneticFluxDensityUnit")]
         public string MagneticFluxDensityUnit { get; set; }
 
+        /// <summary>
+        /// Wire unit for angles: radian.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("AngleUnit")]
         public string AngleUnit { get; set; }
 
+        /// <summary>
+        /// Depth increases downward from the reference ellipsoid.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("DepthPositiveDirection")]
         public string DepthPositiveDirection { get; set; }
 
+        /// <summary>
+        /// Whether the installed evaluator supports concurrent evaluations.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ConcurrentEvaluationEnabled")]
         public bool ConcurrentEvaluationEnabled { get; set; }
 
+        /// <summary>
+        /// SHA-256 digest of the complete model metadata file bytes, encoded as 64 lowercase hexadecimal characters.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetadataSHA256")]
         public string MetadataSHA256 { get; set; }
 
+        /// <summary>
+        /// SHA-256 digest of the complete coefficient file bytes, encoded as 64 lowercase hexadecimal characters.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CoefficientSHA256")]
         public string CoefficientSHA256 { get; set; }
 
@@ -20614,6 +20938,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
     }
 
+    /// <summary>
+    /// Closed ISCWSA/survey error-source vocabulary. Revision 5 axial-correction terms use MFIR and MFI_U/OS/OH/OI for total magnetic-field uncertainty in tesla, and MDIR and MDI_U/OS/OH/OI for magnetic-dip uncertainty in radians. R is random, U is Well-by-Well, and OS/OH/OI are Global crustal-omission terms for standard, high-definition, and in-field referencing models. AMIL is axial magnetic interference in tesla; AMID and the unsuffixed early OSDC axial terms are legacy read compatibility values and are rejected in new Revision 5 models.
+    /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public enum ErrorCode
     {
@@ -20861,10 +21188,169 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Runtime.Serialization.EnumMember(Value = @"GZ_RW")]
         GZ_RW = 80,
 
+        [System.Runtime.Serialization.EnumMember(Value = @"DSTS")]
+        DSTS = 81,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"XCLI1")]
+        XCLI1 = 82,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"XCLI2")]
+        XCLI2 = 83,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"AMIL")]
+        AMIL = 84,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ABIXY_TI1")]
+        ABIXY_TI1 = 85,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ABIXY_TI2")]
+        ABIXY_TI2 = 86,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ABIZ")]
+        ABIZ = 87,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASIXY_TI1")]
+        ASIXY_TI1 = 88,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASIXY_TI2")]
+        ASIXY_TI2 = 89,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASIXY_TI3")]
+        ASIXY_TI3 = 90,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASIZ")]
+        ASIZ = 91,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MBIXY_TI1")]
+        MBIXY_TI1 = 92,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MBIXY_TI2")]
+        MBIXY_TI2 = 93,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MSIXY_TI1")]
+        MSIXY_TI1 = 94,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MSIXY_TI2")]
+        MSIXY_TI2 = 95,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MSIXY_TI3")]
+        MSIXY_TI3 = 96,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MFI")]
+        MFI = 97,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MDI")]
+        MDI = 98,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"CNA")]
+        CNA = 99,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"CNI")]
+        CNI = 100,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ABXY_TI1")]
+        ABXY_TI1 = 101,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ABXY_TI2")]
+        ABXY_TI2 = 102,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASXY_TI1")]
+        ASXY_TI1 = 103,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASXY_TI2")]
+        ASXY_TI2 = 104,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASXY_TI3")]
+        ASXY_TI3 = 105,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"DEC")]
+        DEC = 106,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"DBH")]
+        DBH = 107,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASIXY_TI1S")]
+        ASIXY_TI1S = 108,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASIXY_TI2S")]
+        ASIXY_TI2S = 109,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASIXY_TI3S")]
+        ASIXY_TI3S = 110,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MBIXY_TI1S")]
+        MBIXY_TI1S = 111,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MBIXY_TI2S")]
+        MBIXY_TI2S = 112,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MSIXY_TI1S")]
+        MSIXY_TI1S = 113,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MSIXY_TI2S")]
+        MSIXY_TI2S = 114,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MSIXY_TI3S")]
+        MSIXY_TI3S = 115,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MDIR")]
+        MDIR = 116,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MFIR")]
+        MFIR = 117,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MFI_U")]
+        MFI_U = 118,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MFI_OS")]
+        MFI_OS = 119,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MFI_OH")]
+        MFI_OH = 120,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MFI_OI")]
+        MFI_OI = 121,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MDI_U")]
+        MDI_U = 122,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MDI_OS")]
+        MDI_OS = 123,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MDI_OH")]
+        MDI_OH = 124,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MDI_OI")]
+        MDI_OI = 125,
+
     }
 
+    /// <summary>
+    /// Mutually exclusive ISCWSA Revision 5 correlation mode: Random (R) is independent between survey stations; Systematic (S) is correlated between stations in the same survey leg but independent between legs; WellByWell (W) is correlated across legs within the same well but independent between wells; Global (G) is fully correlated across all survey stations, legs, and wells in the project or field. Null is reserved for readable legacy records whose mode is derived from the deprecated boolean flags.
+    /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
-    public partial class ErrorSource
+    public enum ErrorPropagationMode
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Random")]
+        Random = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Systematic")]
+        Systematic = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"WellByWell")]
+        WellByWell = 2,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Global")]
+        Global = 3,
+
+    }
+
+    /// <summary>
+    /// One ISCWSA survey error source. Magnitude is a finite, nonnegative one-sigma standard uncertainty in the SI unit identified by MagnitudeQuantity.
+    /// </summary>
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ErrorSource : object
     {
 
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
@@ -20877,56 +21363,87 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Description")]
         public string Description { get; set; }
 
+        /// <summary>
+        /// Implementation ordering field only; it has no independent physical meaning.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Index")]
         public int Index { get; set; }
 
+        [System.Text.Json.Serialization.JsonPropertyName("PropagationMode")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ErrorPropagationMode>))]
+        public ErrorPropagationMode PropagationMode { get; set; }
+
+        /// <summary>
+        /// Deprecated legacy compatibility flag. For current data use the single PropagationMode value.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsSystematic")]
         public bool IsSystematic { get; set; }
 
+        /// <summary>
+        /// Deprecated legacy compatibility flag. For current data use the single PropagationMode value.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsRandom")]
         public bool IsRandom { get; set; }
 
+        /// <summary>
+        /// Deprecated legacy compatibility flag. Global is a distinct PropagationMode, not a flag independent of Random or Systematic.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsGlobal")]
         public bool IsGlobal { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SingularIssues")]
         public bool SingularIssues { get; set; }
 
+        /// <summary>
+        /// Gyroscopic-tool operating-mode flag. Continuous and Stationary are mutually exclusive; both may be false when the distinction does not apply.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsContinuous")]
         public bool IsContinuous { get; set; }
 
+        /// <summary>
+        /// Gyroscopic-tool operating-mode flag. Stationary and Continuous are mutually exclusive; both may be false when the distinction does not apply.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsStationary")]
         public bool IsStationary { get; set; }
 
+        /// <summary>
+        /// Opaque legacy compatibility flag retained until its mathematical behavior and operating boundaries are formally defined.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("KOperatorImposed")]
         public bool KOperatorImposed { get; set; }
 
+        /// <summary>
+        /// Finite, nonnegative one-sigma standard uncertainty in the SI unit required by ErrorCode.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Magnitude")]
         public double? Magnitude { get; set; }
 
+        /// <summary>
+        /// Closed UnitConversion physical-quantity identifier defining Magnitude's dimension and canonical SI unit.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MagnitudeQuantity")]
         public string MagnitudeQuantity { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("UseInclinationInterval")]
         public bool UseInclinationInterval { get; set; }
 
+        /// <summary>
+        /// Start of the applicable inclination interval in radians.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("StartInclination")]
         public double? StartInclination { get; set; }
 
+        /// <summary>
+        /// End of the applicable inclination interval in radians.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("EndInclination")]
         public double? EndInclination { get; set; }
 
+        /// <summary>
+        /// Initial inclination used by the error source in radians when required by the model.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("InitInclination")]
         public double? InitInclination { get; set; }
-
-        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
-
-        [System.Text.Json.Serialization.JsonExtensionData]
-        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
-        {
-            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
-            set { _additionalProperties = value; }
-        }
 
     }
 
@@ -20948,6 +21465,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
     }
 
+    /// <summary>
+    /// Survey-instrument error model with canonical SI values and, for ISCWSA families, authoritative embedded error-source snapshots.
+    /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class SurveyInstrument
     {
@@ -20974,42 +21494,78 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("ErrorSourceList")]
         public System.Collections.Generic.ICollection<ErrorSource> ErrorSourceList { get; set; }
 
+        /// <summary>
+        /// Geomagnetic dip (inclination) in radians.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Dip")]
         public double Dip { get; set; }
 
+        /// <summary>
+        /// Geomagnetic declination, positive east of true north, in radians.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Declination")]
         public double Declination { get; set; }
 
+        /// <summary>
+        /// Local gravitational acceleration in metres per second squared.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Gravity")]
         public double Gravity { get; set; }
 
+        /// <summary>
+        /// Local total geomagnetic flux density in tesla.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("BField")]
         public double BField { get; set; }
 
+        /// <summary>
+        /// Grid convergence angle in radians.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Convergence")]
         public double Convergence { get; set; }
 
+        /// <summary>
+        /// Geodetic latitude in radians.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Latitude")]
         public double Latitude { get; set; }
 
+        /// <summary>
+        /// Earth angular velocity in radians per second.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("EarthRotRate")]
         public double EarthRotRate { get; set; }
 
+        /// <summary>
+        /// Planar angle in radians relative to the orthogonal body reference frame's transverse axes, perpendicular to the along-hole tool z-axis. Its sign remains positive while tool inclination is less than or equal to 90 degrees.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CantAngle")]
         public double CantAngle { get; set; }
 
+        /// <summary>
+        /// Optional gyroscope angular velocity in radians per second.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("GyroRunningSpeed")]
         public double? GyroRunningSpeed { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("ExtRefInitInc")]
         public double? ExtRefInitInc { get; set; }
 
+        /// <summary>
+        /// Optional dimensionless gyro switching parameter.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("GyroSwitching")]
         public double? GyroSwitching { get; set; }
 
+        /// <summary>
+        /// Optional minimum distance between gyro initializations in metres.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("GyroMinDist")]
         public double? GyroMinDist { get; set; }
 
+        /// <summary>
+        /// Optional dimensionless gyro noise-reduction factor at initialization.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("GyroNoiseRed")]
         public double? GyroNoiseRed { get; set; }
 
@@ -21580,27 +22136,51 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class Well
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Human-readable descriptive text about a resource.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Description")]
         public string Description { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
+        /// <summary>
+        /// UUID of a Slot owned by the associated Cluster.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("SlotID")]
         public System.Guid? SlotID { get; set; }
 
+        /// <summary>
+        /// UUID of the associated Cluster service resource.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ClusterID")]
         public System.Guid? ClusterID { get; set; }
 
+        /// <summary>
+        /// Boolean declaration that a cluster represents a single-well site rather than a multi-well grouping.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsSingleWell")]
         public bool IsSingleWell { get; set; }
 
@@ -21649,12 +22229,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Catalog")]
         public string Catalog { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("SourceID")]
         public System.Guid SourceID { get; set; }
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LocalID")]
         public System.Guid LocalID { get; set; }
 
@@ -21886,9 +22475,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellDetailsUpdate
     {
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Human-readable descriptive text about a resource.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Description")]
         public string Description { get; set; }
 
@@ -22011,12 +22606,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellExternalReferenceValidation
     {
 
+        /// <summary>
+        /// UUID of the referenced Well resource owned by the Well service.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("WellID")]
         public System.Guid WellID { get; set; }
 
+        /// <summary>
+        /// UUID of the associated Cluster service resource.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ClusterID")]
         public System.Guid? ClusterID { get; set; }
 
+        /// <summary>
+        /// UUID of a Slot owned by the associated Cluster.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("SlotID")]
         public System.Guid? SlotID { get; set; }
 
@@ -22066,18 +22670,33 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellFeatureAssignment
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// UUID of the selected category in the owning service catalogue.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FeatureCategoryID")]
         public System.Guid? FeatureCategoryID { get; set; }
 
+        /// <summary>
+        /// UUID of an option belonging to the selected category.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FeatureOptionID")]
         public System.Guid? FeatureOptionID { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FromDate")]
         public System.DateTimeOffset? FromDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ToDate")]
         public System.DateTimeOffset? ToDate { get; set; }
 
@@ -22096,24 +22715,42 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellFeatureCategory
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Boolean rule declaring that at most one category assignment may be active on a resource at the same instant.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsExclusive")]
         public bool IsExclusive { get; set; }
 
+        /// <summary>
+        /// Boolean rule indicating whether assignments in a category may carry validity bounds.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("HasValidityPeriod")]
         public bool HasValidityPeriod { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
         public System.Collections.Generic.ICollection<WellFeatureOption> Options { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
@@ -22132,9 +22769,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellFeatureOption
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
@@ -22153,15 +22796,27 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellIdentity
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
@@ -22180,12 +22835,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellIdentityAssignment
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// UUID of the selected identity definition in the owning service catalogue.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IdentityID")]
         public System.Guid? IdentityID { get; set; }
 
+        /// <summary>
+        /// Value identifying a resource within a selected identification scheme; its interpretation and uniqueness depend on that scheme.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Value")]
         public string Value { get; set; }
 
@@ -22204,12 +22868,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellLocationUpdate
     {
 
+        /// <summary>
+        /// UUID of the associated Cluster service resource.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ClusterID")]
         public System.Guid? ClusterID { get; set; }
 
+        /// <summary>
+        /// UUID of a Slot owned by the associated Cluster.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("SlotID")]
         public System.Guid? SlotID { get; set; }
 
+        /// <summary>
+        /// Boolean declaration that a cluster represents a single-well site rather than a multi-well grouping.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsSingleWell")]
         public bool IsSingleWell { get; set; }
 
@@ -22321,22 +22994,40 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class RigJob
     {
 
+        /// <summary>
+        /// Stable UUID of this job within the containing WellBore history.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("RigJobID")]
         public System.Guid RigJobID { get; set; }
 
+        /// <summary>
+        /// UUID of the associated resource owned by the Rig service.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("RigID")]
         public System.Guid RigID { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("StartDate")]
         public System.DateTimeOffset StartDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("EndDate")]
         public System.DateTimeOffset? EndDate { get; set; }
 
+        /// <summary>
+        /// Discriminator identifying whether the authoritative drill-floor depth belongs to the referenced rig or to the rig-job entry.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("DrillFloorDepthSource")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<DrillFloorDepthSource>))]
         public DrillFloorDepthSource DrillFloorDepthSource { get; set; }
 
+        /// <summary>
+        /// Vertical depth coordinate locating the drill floor relative to the declared vertical reference. GaussianValue.Mean is the expected value in SI metres (m), Relative to the WGS84 ellipsoid, positive downward. StandardDeviation is a non-negative standard uncertainty in SI metres (m); it has no coordinate origin. MinValue and MaxValue are provider domain-limit metadata in the mean's unit and reference, not confidence limits or instructions to truncate the Gaussian distribution.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("DrillFloorDepth")]
         public GaussianDrillingProperty DrillFloorDepth { get; set; }
 
@@ -22430,24 +23121,45 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBore
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Human-readable descriptive text about a resource.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Description")]
         public string Description { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
+        /// <summary>
+        /// UUID of the referenced Well resource owned by the Well service.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("WellID")]
         public System.Guid? WellID { get; set; }
 
+        /// <summary>
+        /// UUID of the associated resource owned by the Rig service.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("RigID")]
         [System.Obsolete]
         public System.Guid? RigID { get; set; }
@@ -22455,12 +23167,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("RigJobs")]
         public System.Collections.Generic.ICollection<RigJob> RigJobs { get; set; }
 
+        /// <summary>
+        /// Boolean declaration that a wellbore is a branch of a parent wellbore.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsSidetrack")]
         public bool IsSidetrack { get; set; }
 
+        /// <summary>
+        /// UUID of the referenced WellBore resource; ParentWellBoreID identifies the parent path for tie-in along-hole depth.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ParentWellBoreID")]
         public System.Guid? ParentWellBoreID { get; set; }
 
+        /// <summary>
+        /// Along-hole coordinate of a sidetrack tie-in on the parent wellbore path, using the applicable reference convention. GaussianValue.Mean is the expected value in SI metres (m), Along the parent wellbore identified by ParentWellBoreID, using the OSDC WGS84 path-intersection along-hole convention; this is not a vertical depth. StandardDeviation is a non-negative standard uncertainty in SI metres (m); it has no coordinate origin. MinValue and MaxValue are provider domain-limit metadata in the mean's unit and reference, not confidence limits or instructions to truncate the Gaussian distribution.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("TieInPointAlongHoleDepth")]
         public GaussianDrillingProperty TieInPointAlongHoleDepth { get; set; }
 
@@ -22513,12 +23234,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Catalog")]
         public string Catalog { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("SourceID")]
         public System.Guid SourceID { get; set; }
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LocalID")]
         public System.Guid LocalID { get; set; }
 
@@ -22750,9 +23480,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreDetailsUpdate
     {
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Human-readable descriptive text about a resource.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Description")]
         public string Description { get; set; }
 
@@ -22875,12 +23611,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreExternalReferenceValidation
     {
 
+        /// <summary>
+        /// UUID of the referenced WellBore resource; ParentWellBoreID identifies the parent path for tie-in along-hole depth.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("WellBoreID")]
         public System.Guid WellBoreID { get; set; }
 
+        /// <summary>
+        /// UUID of the referenced Well resource owned by the Well service.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("WellID")]
         public System.Guid? WellID { get; set; }
 
+        /// <summary>
+        /// UUID of the associated resource owned by the Rig service.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("RigID")]
         public System.Guid? RigID { get; set; }
 
@@ -22930,18 +23675,33 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreFeatureAssignment
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// UUID of the selected category in the owning service catalogue.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FeatureCategoryID")]
         public System.Guid? FeatureCategoryID { get; set; }
 
+        /// <summary>
+        /// UUID of an option belonging to the selected category.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FeatureOptionID")]
         public System.Guid? FeatureOptionID { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FromDate")]
         public System.DateTimeOffset? FromDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ToDate")]
         public System.DateTimeOffset? ToDate { get; set; }
 
@@ -22960,24 +23720,42 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreFeatureCategory
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Boolean rule declaring that at most one category assignment may be active on a resource at the same instant.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsExclusive")]
         public bool IsExclusive { get; set; }
 
+        /// <summary>
+        /// Boolean rule indicating whether assignments in a category may carry validity bounds.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("HasValidityPeriod")]
         public bool HasValidityPeriod { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
         public System.Collections.Generic.ICollection<WellBoreFeatureOption> Options { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
@@ -22996,9 +23774,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreFeatureOption
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
@@ -23017,15 +23801,27 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreIdentity
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone. Reference: Coordinated Universal Time.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
@@ -23044,12 +23840,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreIdentityAssignment
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// UUID of the selected identity definition in the owning service catalogue.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IdentityID")]
         public System.Guid? IdentityID { get; set; }
 
+        /// <summary>
+        /// Value identifying a resource within a selected identification scheme; its interpretation and uniqueness depend on that scheme.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Value")]
         public string Value { get; set; }
 
@@ -23146,9 +23951,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreTopologyUpdate
     {
 
+        /// <summary>
+        /// UUID of the referenced Well resource owned by the Well service.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("WellID")]
         public System.Guid? WellID { get; set; }
 
+        /// <summary>
+        /// UUID of the associated resource owned by the Rig service.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("RigID")]
         [System.Obsolete]
         public System.Guid? RigID { get; set; }
@@ -23156,12 +23967,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("RigJobs")]
         public System.Collections.Generic.ICollection<RigJob> RigJobs { get; set; }
 
+        /// <summary>
+        /// Boolean declaration that a wellbore is a branch of a parent wellbore.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsSidetrack")]
         public bool IsSidetrack { get; set; }
 
+        /// <summary>
+        /// UUID of the referenced WellBore resource; ParentWellBoreID identifies the parent path for tie-in along-hole depth.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ParentWellBoreID")]
         public System.Guid? ParentWellBoreID { get; set; }
 
+        /// <summary>
+        /// Along-hole coordinate of a sidetrack tie-in on the parent wellbore path, using the applicable reference convention. GaussianValue.Mean is the expected value in SI metres (m), Along the parent wellbore identified by ParentWellBoreID, using the OSDC WGS84 path-intersection along-hole convention; this is not a vertical depth. StandardDeviation is a non-negative standard uncertainty in SI metres (m); it has no coordinate origin. MinValue and MaxValue are provider domain-limit metadata in the mean's unit and reference, not confidence limits or instructions to truncate the Gaussian distribution.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("TieInPointAlongHoleDepth")]
         [System.ComponentModel.DataAnnotations.Required]
         public GaussianDrillingProperty TieInPointAlongHoleDepth { get; set; } = new GaussianDrillingProperty();
@@ -23228,12 +24048,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class BoreHoleSize
     {
 
+        /// <summary>
+        /// Stable component UUID scoped to the containing architecture; not a physical dimension.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ComponentID")]
         public System.Guid ComponentID { get; set; }
 
+        /// <summary>
+        /// Diameter of the borehole over the applicable interval. Physical quantity: DiameterPipeDrilling; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("HoleSize")]
         public GaussianDrillingProperty HoleSize { get; set; }
 
+        /// <summary>
+        /// Additive geometric extent of a physical interval; distinct from a position coordinate. Extent of the interval to which a borehole diameter applies. Physical quantity: LengthStandard; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Length")]
         public GaussianDrillingProperty Length { get; set; }
 
@@ -23252,15 +24081,27 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class CasingSection
     {
 
+        /// <summary>
+        /// Stable component UUID scoped to the containing architecture; not a physical dimension.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ComponentID")]
         public System.Guid ComponentID { get; set; }
 
+        /// <summary>
+        /// Curvilinear abscissa along an oriented wellbore path, expressed as accumulated arc length from the origin established by the applicable reference convention. It may be planned, calculated, interpolated or measured. Along-hole location of the casing top; bind to AlongHoleDepth under the canonical drilling profile. Physical quantity: DepthDrilling; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions. Zero along-hole depth is the intersection of the oriented wellbore path, or its defined extension, with the WGS84 ellipsoid. The coordinate is signed accumulated arc length from that intersection along the declared path orientation. It is not obtained by adding or subtracting a vertical elevation offset. This reference applies to canonical storage and APIs; supported user-selected presentation references remain allowed.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("TopDepth")]
         public GaussianDrillingProperty TopDepth { get; set; }
 
+        /// <summary>
+        /// Additive geometric extent of a physical interval; distinct from a position coordinate. Extent of the specified construction section or component interval. Physical quantity: LengthStandard; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Length")]
         public GaussianDrillingProperty Length { get; set; }
 
+        /// <summary>
+        /// Curvilinear abscissa along an oriented wellbore path, expressed as accumulated arc length from the origin established by the applicable reference convention. It may be planned, calculated, interpolated or measured. Along-hole location of the top of cement; bind to AlongHoleDepth under the canonical drilling profile. Physical quantity: DepthDrilling; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions. Zero along-hole depth is the intersection of the oriented wellbore path, or its defined extension, with the WGS84 ellipsoid. The coordinate is signed accumulated arc length from that intersection along the declared path orientation. It is not obtained by adding or subtracting a vertical elevation offset. This reference applies to canonical storage and APIs; supported user-selected presentation references remain allowed.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("TopCementDepth")]
         public GaussianDrillingProperty TopCementDepth { get; set; }
 
@@ -23269,9 +24110,6 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("CasingSectionSizeTable")]
         public System.Collections.Generic.ICollection<BoreHoleSize> CasingSectionSizeTable { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("OpenHoleSection")]
-        public OpenHoleSection OpenHoleSection { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -23288,57 +24126,111 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class CasingSectionElement
     {
 
+        /// <summary>
+        /// Stable component UUID scoped to the containing architecture; not a physical dimension.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ComponentID")]
         public System.Guid ComponentID { get; set; }
 
+        /// <summary>
+        /// Diameter of a tubular or component body with an explicit inner, outer or envelope role. Diameter of the exterior body. Physical quantity: DiameterPipeDrilling; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("BodyOD")]
         public GaussianDrillingProperty BodyOD { get; set; }
 
+        /// <summary>
+        /// Diameter of a tubular or component body with an explicit inner, outer or envelope role. Diameter of the interior opening; SideElement.ID denotes this dimension, not an identifier. Physical quantity: DiameterPipeDrilling; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("BodyID")]
         public GaussianDrillingProperty BodyID { get; set; }
 
+        /// <summary>
+        /// Diameter of a tubular or component body with an explicit inner, outer or envelope role. Exterior diameter at the collar. Physical quantity: DiameterPipeDrilling; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CollarOD")]
         public GaussianDrillingProperty CollarOD { get; set; }
 
+        /// <summary>
+        /// Additive geometric extent of a physical interval; distinct from a position coordinate. Extent of a casing joint. Physical quantity: LengthStandard; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("JointLength")]
         public GaussianDrillingProperty JointLength { get; set; }
 
+        /// <summary>
+        /// Additive geometric extent of a physical interval; distinct from a position coordinate. Extent of the specified construction section or component interval. Physical quantity: LengthStandard; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("SectionLength")]
         public GaussianDrillingProperty SectionLength { get; set; }
 
+        /// <summary>
+        /// Maximum allowable path curvature for the applicable component, not a survey angle or observed curvature. Physical quantity: CurvatureDrilling; SI unit: radians per metre (rad/m). The SI value is stored at DiracDistributionValue.Value; MinValue/MaxValue are domain bounds in the same unit and reference.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MaxDLS")]
         public ScalarDrillingProperty MaxDLS { get; set; }
 
+        /// <summary>
+        /// Textual connection or thread specification; distinct from network connectivity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ConnectionType")]
         public string ConnectionType { get; set; }
 
+        /// <summary>
+        /// Material grade designation interpreted within its material and applicable standard; text alone does not determine a strength value.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Grade")]
         public string Grade { get; set; }
 
+        /// <summary>
+        /// Mass density of component material; not inferred from an environmental fluid classification. Physical quantity: MassDensityDrilling; SI unit: kg/m³. GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MaterialDensity")]
         public GaussianDrillingProperty MaterialDensity { get; set; }
 
+        /// <summary>
+        /// Young modulus describing elastic stiffness of material, not absolute pressure. Physical quantity: ElasticModulus; SI unit: pascals (Pa). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("YoungModulus")]
         public GaussianDrillingProperty YoungModulus { get; set; }
 
+        /// <summary>
+        /// Mass per unit length, including collars where specified; not force per length. Physical quantity: MassGradientPerLengthDrilling; SI unit: kilograms per metre (kg/m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LinearWeight")]
         public GaussianDrillingProperty LinearWeight { get; set; }
 
+        /// <summary>
+        /// Material tensile strength expressed as stress, distinct from component axial force capacity. Physical quantity: DrillStemMaterialStrengthDrilling; SI unit: pascals (Pa). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("TensileStrength")]
         public GaussianDrillingProperty TensileStrength { get; set; }
 
+        /// <summary>
+        /// Torque limit of a specified component or connection; not shear stress. Physical quantity: TorqueDrilling; SI unit: N·m. GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("TorsionalStrength")]
         public GaussianDrillingProperty TorsionalStrength { get; set; }
 
+        /// <summary>
+        /// Limiting internal-minus-external pressure difference for the specified component and burst criterion. Physical quantity: PressureDrilling; SI unit: pascals (Pa). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("BurstPressure")]
         public GaussianDrillingProperty BurstPressure { get; set; }
 
+        /// <summary>
+        /// Limiting external-minus-internal pressure difference for the specified component and collapse criterion. Physical quantity: PressureDrilling; SI unit: pascals (Pa). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CollapsePressure")]
         public GaussianDrillingProperty CollapsePressure { get; set; }
 
+        /// <summary>
+        /// Material stress at the stated yield criterion; distinct from ultimate tensile strength. Physical quantity: DrillStemMaterialStrengthDrilling; SI unit: pascals (Pa). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("YieldStress")]
         public GaussianDrillingProperty YieldStress { get; set; }
 
+        /// <summary>
+        /// Recommended assembly make-up torque for the specified connection; not torsional failure capacity. Physical quantity: TorqueDrilling; SI unit: N·m. The SI value is stored at DiracDistributionValue.Value; MinValue/MaxValue are domain bounds in the same unit and reference.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MakeUpTorqueRecommended")]
         public ScalarDrillingProperty MakeUpTorqueRecommended { get; set; }
 
@@ -23357,12 +24249,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class ElementConnectivity
     {
 
+        /// <summary>
+        /// Stable component UUID scoped to the containing architecture; not a physical dimension.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ComponentID")]
         public System.Guid ComponentID { get; set; }
 
+        /// <summary>
+        /// Pipe, hose, valve, choke or pump forming part of a side-circuit network.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("UpstreamElement")]
         public SideElement UpstreamElement { get; set; }
 
+        /// <summary>
+        /// Pipe, hose, valve, choke or pump forming part of a side-circuit network.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("DownstreamElement")]
         public SideElement DownstreamElement { get; set; }
 
@@ -23393,6 +24294,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class OpenHoleSection
     {
 
+        /// <summary>
+        /// Stable component UUID scoped to the containing architecture; not a physical dimension.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ComponentID")]
         public System.Guid ComponentID { get; set; }
 
@@ -23414,12 +24318,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class SideConnector
     {
 
+        /// <summary>
+        /// Stable component UUID scoped to the containing architecture; not a physical dimension.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ComponentID")]
         public System.Guid ComponentID { get; set; }
 
+        /// <summary>
+        /// Curvilinear position along the host component from its top, increasing downward along the host; not a global wellbore depth. Physical quantity: LengthStandard; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions. Zero is the top of the identified host component; the coordinate increases downward along its path. This reference applies to canonical storage and APIs; supported user-selected presentation references remain allowed.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Position")]
         public GaussianDrillingProperty Position { get; set; }
 
+        /// <summary>
+        /// Negative ellipsoidal height measured along the ellipsoid normal: positive inward from the reference ellipsoid. Vertical location of a side connector; bind to EllipsoidalDepth under the canonical drilling profile. Physical quantity: DepthDrilling; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions. WGS84 geodetic latitude/longitude with Greenwich origin and ellipsoidal depth positive downward; not a fully specified terrestrial frame realization or epoch. This reference applies to canonical storage and APIs; supported user-selected presentation references remain allowed.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("VerticalDepth")]
         public GaussianDrillingProperty VerticalDepth { get; set; }
 
@@ -23444,25 +24357,46 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class SideElement
     {
 
+        /// <summary>
+        /// Stable component UUID scoped to the containing architecture; not a physical dimension.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ComponentID")]
         public System.Guid ComponentID { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Finite classification of side circuit element kind.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Type")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SideElementType>))]
         public SideElementType Type { get; set; }
 
+        /// <summary>
+        /// Additive geometric extent of a physical interval; distinct from a position coordinate. Extent of the specified construction section or component interval. Physical quantity: LengthStandard; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Length")]
         public GaussianDrillingProperty Length { get; set; }
 
+        /// <summary>
+        /// Negative ellipsoidal height measured along the ellipsoid normal: positive inward from the reference ellipsoid. Role of the shallower vertical depth limit of a delineated domain; distinct from measured depth along a borehole. Physical quantity: DepthDrilling; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions. WGS84 geodetic latitude/longitude with Greenwich origin and ellipsoidal depth positive downward; not a fully specified terrestrial frame realization or epoch. This reference applies to canonical storage and APIs; supported user-selected presentation references remain allowed.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("TopVerticalDepth")]
         public GaussianDrillingProperty TopVerticalDepth { get; set; }
 
+        /// <summary>
+        /// Diameter of a tubular or component body with an explicit inner, outer or envelope role. Diameter of the exterior body. Physical quantity: DiameterPipeDrilling; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("OD")]
         public GaussianDrillingProperty OD { get; set; }
 
+        /// <summary>
+        /// Diameter of a tubular or component body with an explicit inner, outer or envelope role. Diameter of the interior opening; SideElement.ID denotes this dimension, not an identifier. Physical quantity: DiameterPipeDrilling; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public GaussianDrillingProperty ID { get; set; }
 
@@ -23505,49 +24439,94 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class SurfaceSection
     {
 
+        /// <summary>
+        /// Stable component UUID scoped to the containing architecture; not a physical dimension.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ComponentID")]
         public System.Guid ComponentID { get; set; }
 
+        /// <summary>
+        /// Finite classification of surface section kind.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Type")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<SurfaceSectionType>))]
         public SurfaceSectionType Type { get; set; }
 
+        /// <summary>
+        /// Additive geometric extent of a physical interval; distinct from a position coordinate. Extent of the specified construction section or component interval. Physical quantity: LengthStandard; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("SectionLength")]
         public GaussianDrillingProperty SectionLength { get; set; }
 
+        /// <summary>
+        /// Diameter of a tubular or component body with an explicit inner, outer or envelope role. Diameter of the exterior body. Physical quantity: DiameterPipeDrilling; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("BodyOD")]
         public GaussianDrillingProperty BodyOD { get; set; }
 
+        /// <summary>
+        /// Diameter of a tubular or component body with an explicit inner, outer or envelope role. Diameter of the interior opening; SideElement.ID denotes this dimension, not an identifier. Physical quantity: DiameterPipeDrilling; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("BodyID")]
         public GaussianDrillingProperty BodyID { get; set; }
 
+        /// <summary>
+        /// Textual connection or thread specification; distinct from network connectivity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ConnectionType")]
         public string ConnectionType { get; set; }
 
+        /// <summary>
+        /// Material grade designation interpreted within its material and applicable standard; text alone does not determine a strength value.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Grade")]
         public string Grade { get; set; }
 
+        /// <summary>
+        /// Mass density of component material; not inferred from an environmental fluid classification. Physical quantity: MassDensityDrilling; SI unit: kg/m³. GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MaterialDensity")]
         public GaussianDrillingProperty MaterialDensity { get; set; }
 
+        /// <summary>
+        /// Young modulus describing elastic stiffness of material, not absolute pressure. Physical quantity: ElasticModulus; SI unit: pascals (Pa). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("YoungModulus")]
         public GaussianDrillingProperty YoungModulus { get; set; }
 
+        /// <summary>
+        /// Mass per unit length, including collars where specified; not force per length. Physical quantity: MassGradientPerLengthDrilling; SI unit: kilograms per metre (kg/m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LinearWeight")]
         public GaussianDrillingProperty LinearWeight { get; set; }
 
+        /// <summary>
+        /// Material tensile strength expressed as stress, distinct from component axial force capacity. Physical quantity: DrillStemMaterialStrengthDrilling; SI unit: pascals (Pa). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("TensileStrength")]
         public GaussianDrillingProperty TensileStrength { get; set; }
 
+        /// <summary>
+        /// Limiting internal-minus-external pressure difference for the specified component and burst criterion. Physical quantity: PressureDrilling; SI unit: pascals (Pa). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("BurstPressure")]
         public GaussianDrillingProperty BurstPressure { get; set; }
 
+        /// <summary>
+        /// Limiting external-minus-internal pressure difference for the specified component and collapse criterion. Physical quantity: PressureDrilling; SI unit: pascals (Pa). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CollapsePressure")]
         public GaussianDrillingProperty CollapsePressure { get; set; }
 
+        /// <summary>
+        /// Material stress at the stated yield criterion; distinct from ultimate tensile strength. Physical quantity: DrillStemMaterialStrengthDrilling; SI unit: pascals (Pa). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("YieldStress")]
         public GaussianDrillingProperty YieldStress { get; set; }
 
+        /// <summary>
+        /// Recommended assembly make-up torque for the specified connection; not torsional failure capacity. Physical quantity: TorqueDrilling; SI unit: N·m. The SI value is stored at DiracDistributionValue.Value; MinValue/MaxValue are domain bounds in the same unit and reference.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MakeUpTorqueRecommended")]
         public ScalarDrillingProperty MakeUpTorqueRecommended { get; set; }
 
@@ -23647,18 +24626,33 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreArchitecture
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Human-readable descriptive text about a resource.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Description")]
         public string Description { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// Server-owned last-modification timestamp and optimistic-concurrency token; echo exactly on update or delete.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
@@ -23668,6 +24662,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("WellBoreArchitectureFeatureAssignments")]
         public System.Collections.Generic.ICollection<WellBoreArchitectureFeatureAssignment> WellBoreArchitectureFeatureAssignments { get; set; }
 
+        /// <summary>
+        /// UUID of the externally owned WellBore resource to which this architecture belongs; not an embedded path or architecture UUID.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("WellBoreID")]
         public System.Guid? WellBoreID { get; set; }
 
@@ -23682,6 +24679,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("CasingSections")]
         public System.Collections.Generic.ICollection<CasingSection> CasingSections { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("OpenHoleSection")]
+        public OpenHoleSection OpenHoleSection { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
@@ -24069,6 +25069,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("WellBoreArchitectureID")]
         public System.Guid WellBoreArchitectureID { get; set; }
 
+        /// <summary>
+        /// UUID of the externally owned WellBore resource to which this architecture belongs; not an embedded path or architecture UUID.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("WellBoreID")]
         public System.Guid? WellBoreID { get; set; }
 
@@ -24115,18 +25118,33 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreArchitectureFeatureAssignment
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FeatureCategoryID")]
         public System.Guid? FeatureCategoryID { get; set; }
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FeatureOptionID")]
         public System.Guid? FeatureOptionID { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("FromDate")]
         public System.DateTimeOffset? FromDate { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ToDate")]
         public System.DateTimeOffset? ToDate { get; set; }
 
@@ -24145,24 +25163,42 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreArchitectureFeatureCategory
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Boolean rule declaring that at most one category assignment may be active on a resource at the same instant.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IsExclusive")]
         public bool IsExclusive { get; set; }
 
+        /// <summary>
+        /// Boolean rule indicating whether assignments in a category may carry validity bounds.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("HasValidityPeriod")]
         public bool HasValidityPeriod { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Options")]
         public System.Collections.Generic.ICollection<WellBoreArchitectureFeatureOption> Options { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// Server-owned last-modification timestamp and optimistic-concurrency token; echo exactly on update or delete.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
@@ -24181,9 +25217,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreArchitectureFeatureOption
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
@@ -24202,10 +25244,16 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreArchitectureFluid
     {
 
+        /// <summary>
+        /// Finite classification of environmental fluid kind.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Fluid")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<FluidType>))]
         public FluidType Fluid { get; set; }
 
+        /// <summary>
+        /// Negative ellipsoidal height measured along the ellipsoid normal: positive inward from the reference ellipsoid. Top boundary of an environmental fluid layer, represented by vertical EllipsoidalDepth. Physical quantity: DepthDrilling; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions. WGS84 geodetic latitude/longitude with Greenwich origin and ellipsoidal depth positive downward; not a fully specified terrestrial frame realization or epoch. This reference applies to canonical storage and APIs; supported user-selected presentation references remain allowed.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Depth")]
         public GaussianDrillingProperty Depth { get; set; }
 
@@ -24224,15 +25272,27 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreArchitectureIdentity
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// Server-owned last-modification timestamp and optimistic-concurrency token; echo exactly on update or delete.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
@@ -24251,12 +25311,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreArchitectureIdentityAssignment
     {
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("ID")]
         public System.Guid ID { get; set; }
 
+        /// <summary>
+        /// A UUID identifying a resource, nested object, catalogue definition, option or assignment in a declared ownership and type scope.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("IdentityID")]
         public System.Guid? IdentityID { get; set; }
 
+        /// <summary>
+        /// Value identifying a resource within a selected identification scheme; its interpretation and uniqueness depend on that scheme.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Value")]
         public string Value { get; set; }
 
@@ -24275,18 +25344,33 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellBoreArchitectureLight
     {
 
+        /// <summary>
+        /// Identity and service-location metadata accompanying a managed resource; a locator is not the semantic identity.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MetaInfo")]
         public MetaInfo MetaInfo { get; set; }
 
+        /// <summary>
+        /// Human-readable name of a resource, definition or option; not necessarily unique or stable.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Name")]
         public string Name { get; set; }
 
+        /// <summary>
+        /// Human-readable descriptive text about a resource.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Description")]
         public string Description { get; set; }
 
+        /// <summary>
+        /// A position on a time axis identified using a declared time scale and representation. Neither elapsed duration nor a calendar date alone.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CreationDate")]
         public System.DateTimeOffset? CreationDate { get; set; }
 
+        /// <summary>
+        /// Server-owned last-modification timestamp and optimistic-concurrency token; echo exactly on update or delete.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("LastModificationDate")]
         public System.DateTimeOffset? LastModificationDate { get; set; }
 
@@ -24305,18 +25389,33 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class WellHead
     {
 
+        /// <summary>
+        /// Diameter of a tubular or component body with an explicit inner, outer or envelope role. Maximum outside diameter of the wellhead geometric envelope, not a statistical upper bound. Physical quantity: DiameterPipeDrilling; SI unit: metres (m). The SI value is stored at DiracDistributionValue.Value; MinValue/MaxValue are domain bounds in the same unit and reference.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MaxOD")]
         public ScalarDrillingProperty MaxOD { get; set; }
 
+        /// <summary>
+        /// Diameter of a tubular or component body with an explicit inner, outer or envelope role. Minimum outside diameter of the wellhead geometric envelope, not a statistical lower bound. Physical quantity: DiameterPipeDrilling; SI unit: metres (m). The SI value is stored at DiracDistributionValue.Value; MinValue/MaxValue are domain bounds in the same unit and reference.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MinOD")]
         public ScalarDrillingProperty MinOD { get; set; }
 
+        /// <summary>
+        /// Negative ellipsoidal height measured along the ellipsoid normal: positive inward from the reference ellipsoid. Vertical location of the wellhead; bind to EllipsoidalDepth under the canonical drilling profile. Physical quantity: DepthDrilling; SI unit: metres (m). GaussianValue.Mean is the expected value; StandardDeviation is nonnegative uncertainty in the same SI unit, with no origin offset. Null deviation is unspecified, not zero. MinValue/MaxValue are domain bounds in the mean's unit and reference, not confidence limits or truncation instructions. WGS84 geodetic latitude/longitude with Greenwich origin and ellipsoidal depth positive downward; not a fully specified terrestrial frame realization or epoch. This reference applies to canonical storage and APIs; supported user-selected presentation references remain allowed.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Depth")]
         public GaussianDrillingProperty Depth { get; set; }
 
+        /// <summary>
+        /// Negative ellipsoidal height measured along the ellipsoid normal: positive inward from the reference ellipsoid. Vertical location of the casing hanger; bind to EllipsoidalDepth under the canonical drilling profile. Physical quantity: DepthDrilling; SI unit: metres (m). The SI value is stored at DiracDistributionValue.Value; MinValue/MaxValue are domain bounds in the same unit and reference. WGS84 geodetic latitude/longitude with Greenwich origin and ellipsoidal depth positive downward; not a fully specified terrestrial frame realization or epoch. This reference applies to canonical storage and APIs; supported user-selected presentation references remain allowed.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("CasingHangerDepth")]
         public ScalarDrillingProperty CasingHangerDepth { get; set; }
 
+        /// <summary>
+        /// Negative ellipsoidal height measured along the ellipsoid normal: positive inward from the reference ellipsoid. Vertical location of the tubing hanger; bind to EllipsoidalDepth under the canonical drilling profile. Physical quantity: DepthDrilling; SI unit: metres (m). The SI value is stored at DiracDistributionValue.Value; MinValue/MaxValue are domain bounds in the same unit and reference. WGS84 geodetic latitude/longitude with Greenwich origin and ellipsoidal depth positive downward; not a fully specified terrestrial frame realization or epoch. This reference applies to canonical storage and APIs; supported user-selected presentation references remain allowed.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("TubingHangerDepth")]
         public ScalarDrillingProperty TubingHangerDepth { get; set; }
 

@@ -2,6 +2,7 @@ using Microsoft.OpenApi.Any;
 using Microsoft.OpenApi.Models;
 using OSDC.Drilling.Trajectory.Model;
 using OSDC.Drilling.GlobalAntiCollision;
+using OSDC.DotnetLibraries.Drilling.SemanticCatalogue;
 using Swashbuckle.AspNetCore.SwaggerGen;
 using System.Globalization;
 
@@ -22,6 +23,12 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
 
     public void Apply(OpenApiSchema schema, SchemaFilterContext context)
     {
+        if (TrajectoryProviderSemantics.ForType(context.Type) is { } typeMetadata)
+            schema.Extensions[SemanticMetadata.ExtensionName] = OpenApiAnyFactory.CreateFromJson(typeMetadata.ToJsonString());
+        foreach (var modelProperty in context.Type.GetProperties())
+            if (schema.Properties.TryGetValue(modelProperty.Name, out var target) && TrajectoryProviderSemantics.ForProperty(modelProperty) is { } propertyMetadata)
+                AttachSemantic(target, OpenApiAnyFactory.CreateFromJson(propertyMetadata.ToJsonString()));
+
         if (context.Type == typeof(TrajectoryExtrapolationCase) &&
             schema.Properties.TryGetValue("Specification", out OpenApiSchema? specification))
         {
@@ -148,7 +155,7 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
         }
 
         if (context.Type == typeof(AntiCollisionTrajectoryAgeCondition))
-            Describe(schema, "AgeThresholdSeconds", "Comparison trajectory age threshold in canonical SI seconds, evaluated from the oldest defined contributing survey-run acquisition start or station measurement time.", "Duration", "s");
+            Describe(schema, "AgeThreshold", "Comparison trajectory age threshold in canonical SI seconds, evaluated from the oldest defined contributing survey-run acquisition start or station measurement time.", "Duration", "s");
         if (context.Type == typeof(AntiCollisionPolicyRule))
         {
             SetMinimum(schema, "Priority", 1);
@@ -216,9 +223,9 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
         }
         if (context.Type == typeof(SurveyMeasurementCorrection))
         {
-            Describe(schema, "AppliedInclinationCorrection", "Signed canonical-minus-observed inclination correction in SI radians.", "PlaneAngle", "rad");
-            Describe(schema, "AppliedAzimuthCorrection", "Shortest signed canonical-minus-observed azimuth correction in SI radians.", "PlaneAngle", "rad");
-            Describe(schema, "MagneticDeclination", "Evaluated magnetic declination clockwise from geodetic true north in SI radians.", "PlaneAngle", "rad");
+            Describe(schema, "AppliedInclinationCorrection", "Signed canonical-minus-observed inclination correction in SI radians.", "AppliedInclinationCorrection", "rad");
+            Describe(schema, "AppliedAzimuthCorrection", "Shortest signed canonical-minus-observed azimuth correction in SI radians.", "AppliedAzimuthCorrection", "rad");
+            Describe(schema, "MagneticDeclination", "Evaluated magnetic declination clockwise from geodetic true north in SI radians.", "MagneticDeclination", "rad");
             Describe(schema, "GravityNorth", "North component of total gravity in the local WGS84 north-east-down frame, in SI metres per second squared.", "Acceleration", "m/s2");
             Describe(schema, "GravityEast", "East component of total gravity in the local WGS84 north-east-down frame, in SI metres per second squared.", "Acceleration", "m/s2");
             Describe(schema, "GravityDown", "Down component of total gravity in the local WGS84 north-east-down frame, in SI metres per second squared.", "Acceleration", "m/s2");
@@ -231,13 +238,23 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
         }
     }
 
+    private static void AttachSemantic(OpenApiSchema target, IOpenApiAny metadata)
+    {
+        // OpenAPI ignores siblings of $ref. Preserve the reference through allOf so
+        // the property-level semantic extension remains visible to REST/MCP clients.
+        WrapReferenceForOpenApi30Annotations(target);
+        target.Extensions[SemanticMetadata.ExtensionName] = metadata;
+    }
+
     private static void RestrictRunDefault(OpenApiSchema schema, string propertyName, string description)
     {
         if (!schema.Properties.TryGetValue(propertyName, out OpenApiSchema? property)) return;
         WrapReferenceForOpenApi30Annotations(property);
         property.Description = description + " InheritRun is forbidden for a run-level default.";
         property.Not = new OpenApiSchema { Enum = [new OpenApiString("InheritRun")] };
-        property.Extensions["x-osdc-semantic"] = new OpenApiString("RunLevelReferenceDefault");
+        string binding = propertyName.Contains("Inclination", StringComparison.Ordinal) ? "SurveyInclinationReference" : "SurveyAzimuthReference";
+        if (TrajectoryProviderSemantics.For(binding) is { } metadata)
+            property.Extensions[SemanticMetadata.ExtensionName] = OpenApiAnyFactory.CreateFromJson(metadata.ToJsonString());
     }
 
     private static void SetMinimum(OpenApiSchema schema, string propertyName, decimal minimum)
@@ -278,7 +295,8 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
         if (!schema.Properties.TryGetValue(propertyName, out OpenApiSchema? property)) return;
         WrapReferenceForOpenApi30Annotations(property);
         property.Description = description;
-        if (semantic != null) property.Extensions["x-osdc-semantic"] = new OpenApiString(semantic);
+        if (semantic != null && TrajectoryProviderSemantics.For(semantic) is { } metadata)
+            property.Extensions[SemanticMetadata.ExtensionName] = OpenApiAnyFactory.CreateFromJson(metadata.ToJsonString());
         if (siUnit != null) property.Extensions["x-si-unit"] = new OpenApiString(siUnit);
     }
 

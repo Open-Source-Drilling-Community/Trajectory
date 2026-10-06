@@ -16,7 +16,7 @@ public sealed class AntiCollisionPolicyTests
         AntiCollisionPolicyRevision policy = Policy();
         policy.Rules[0].AlarmThreshold = policy.Rules[0].AlertThreshold;
         policy.Rules.Add(new AntiCollisionPolicyRule { RuleID = Guid.NewGuid(), Name = "Age", Priority = 200, AlertThreshold = 2, AlarmThreshold = 1,
-            Conditions = [new AntiCollisionTrajectoryAgeCondition { AgeThresholdSeconds = 10 }] });
+            Conditions = [new AntiCollisionTrajectoryAgeCondition { AgeThreshold = 10 }] });
 
         List<string> errors = AntiCollisionPolicyValidation.Validate(policy);
 
@@ -80,7 +80,7 @@ public sealed class AntiCollisionPolicyTests
         policy.Rules.Insert(0, new AntiCollisionPolicyRule
         {
             RuleID = Guid.NewGuid(), Name = "Age", Priority = 1, AlertThreshold = 3, AlarmThreshold = 2,
-            Conditions = [new AntiCollisionTrajectoryAgeCondition { Operator = AntiCollisionComparisonOperator.GreaterThan, AgeThresholdSeconds = 1 }]
+            Conditions = [new AntiCollisionTrajectoryAgeCondition { Operator = AntiCollisionComparisonOperator.GreaterThan, AgeThreshold = 1 }]
         });
 
         AntiCollisionPolicyEvaluation result = AntiCollisionPolicyEvaluator.Evaluate(policy, Guid.NewGuid(), DateTimeOffset.UtcNow,

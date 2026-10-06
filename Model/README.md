@@ -2,6 +2,10 @@
 
 `Model` contains the main Trajectory domain model and trajectory calculation logic used by the service under `OSDC.Drilling.Trajectory.Model`.
 
+The model references SemanticCatalogue 0.15.0; the service's reviewed provider registry supplies bindings for inherited and generated types that cannot carry local attributes.
+
+Calculation-case light models are status projections; calculation state, progress and diagnostic fields describe execution; and large server-derived outputs may be represented by manifests or chunks. The service registry applies those 0.15.0 roles consistently to generated REST and MCP schemas.
+
 ## Responsibility
 
 This project defines the core model types and computational behavior for trajectory data and related interpolation and calculation workflows.

@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using OSDC.DotnetLibraries.Drilling.SemanticCatalogue;
 
 namespace OSDC.Drilling.Trajectory.ServiceTest;
 
@@ -25,7 +26,8 @@ public sealed class OpenApiTrajectoryExtrapolationContractTests
             Assert.That(extent["discriminator"]!["mapping"]!.AsObject(), Has.Count.EqualTo(2));
             Assert.That(extent["discriminator"]!["propertyName"]!.GetValue<string>(), Is.EqualTo("ExtentType"));
             Assert.That(geosteering["required"]!.AsArray().Select(node => node!.GetValue<string>()), Does.Contain("Extent"));
-            Assert.That(geosteering["properties"]!["TargetVerticalDepth"]!["x-osdc-semantic"]!.GetValue<string>(), Is.EqualTo("Wgs84Depth"));
+            Assert.That(geosteering["properties"]!["TargetVerticalDepth"]!["x-osdc-semantic"]!["concept"]!.GetValue<string>(), Is.EqualTo(Concepts.EllipsoidalDepth));
+            Assert.That(geosteering["properties"]!["TargetVerticalDepth"]!["x-osdc-semantic"]!["reference"]!.GetValue<string>(), Is.EqualTo(Concepts.Wgs84));
             Assert.That(geosteering["properties"]!["TargetVerticalDepth"]!["x-si-unit"]!.GetValue<string>(), Is.EqualTo("m"));
             Assert.That(geosteering["properties"]!["LeadInLength"]!["minimum"]!.GetValue<double>(), Is.Zero);
             Assert.That(geosteering["properties"]!["EndInclination"]!["maximum"]!.GetValue<double>(), Is.EqualTo(Math.PI).Within(1e-12));

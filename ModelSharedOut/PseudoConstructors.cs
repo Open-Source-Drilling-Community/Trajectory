@@ -44,7 +44,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				HorizontalIntensity = 0.0,
 				TotalIntensity = 0.0,
 				Declination = null,
-				Inclination = null,
+				MagneticDip = null,
 			};
 		}
 		public static EarthMagneticFieldServiceInfo ConstructEarthMagneticFieldServiceInfo()
@@ -257,7 +257,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				ID = "Default ID",
 				Description = "Default Description",
 				DataDateTime = DateTimeOffset.UtcNow,
-				GridResolutionMinutes = 0.0,
+				AngularGridSpacing = 0.0,
 				Interpolation = "Default Interpolation",
 				MaximumInterpolationError = 0.0,
 				RMSInterpolationError = 0.0,
@@ -3704,6 +3704,18 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				Limit = 0,
 			};
 		}
+		public static RigJob ConstructRigJob()
+		{
+			return new RigJob
+			{
+				RigJobID = new Guid(),
+				RigID = new Guid(),
+				StartDate = DateTimeOffset.UtcNow,
+				EndDate = DateTimeOffset.UtcNow,
+				DrillFloorDepthSource = (DrillFloorDepthSource)0,
+				DrillFloorDepth = ConstructGaussianDrillingProperty(),
+			};
+		}
 		public static UsageStatisticsWellBore ConstructUsageStatisticsWellBore()
 		{
 			return new UsageStatisticsWellBore
@@ -4059,7 +4071,6 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					{
 						ConstructBoreHoleSize(),
 					},
-				OpenHoleSection = ConstructOpenHoleSection(),
 			};
 		}
 		public static CasingSectionElement ConstructCasingSectionElement()
@@ -4199,6 +4210,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					{
 						ConstructCasingSection(),
 					},
+				OpenHoleSection = ConstructOpenHoleSection(),
 			};
 		}
 		public static WellBoreArchitectureBatchCatalogDependencies ConstructWellBoreArchitectureBatchCatalogDependencies()
@@ -5770,6 +5782,673 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				DeleteFutureFieldAntiCollisionPolicyAssignmentByIdPerDay = ConstructHistory(),
 			};
 		}
+		public static CurvilinearPoint3D ConstructCurvilinearPoint3D()
+		{
+			return new CurvilinearPoint3D
+			{
+				X = null,
+				Y = null,
+				Z = null,
+				RiemannianNorth = null,
+				RiemannianEast = null,
+				Latitude = null,
+				Longitude = null,
+				TVD = null,
+				Abscissa = null,
+				Inclination = null,
+				Azimuth = null,
+			};
+		}
+		public static AntiCollisionFeatureCondition ConstructAntiCollisionFeatureCondition()
+		{
+			return new AntiCollisionFeatureCondition
+			{
+				ResourceLevel = (AntiCollisionHierarchyLevel)0,
+				FeatureCategoryID = new Guid(),
+				FeatureOptionID = new Guid(),
+				TemporalOperator = (AntiCollisionFeatureTemporalOperator)0,
+				SpecifiedTimeUtc = DateTimeOffset.UtcNow,
+				SpecifiedFromUtc = DateTimeOffset.UtcNow,
+				SpecifiedToUtc = DateTimeOffset.UtcNow,
+				ConditionID = new Guid(),
+			};
+		}
+		public static AntiCollisionFeatureValueSnapshot ConstructAntiCollisionFeatureValueSnapshot()
+		{
+			return new AntiCollisionFeatureValueSnapshot
+			{
+				FeatureCategoryID = new Guid(),
+				FeatureOptionID = new Guid(),
+				FromUtc = DateTimeOffset.UtcNow,
+				ToUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static AntiCollisionIdentityCondition ConstructAntiCollisionIdentityCondition()
+		{
+			return new AntiCollisionIdentityCondition
+			{
+				ResourceLevel = (AntiCollisionHierarchyLevel)0,
+				IdentityDefinitionID = new Guid(),
+				MatchOperator = (AntiCollisionIdentityMatchOperator)0,
+				Pattern = "Default Pattern",
+				CaseSensitive = false,
+				ConditionID = new Guid(),
+			};
+		}
+		public static AntiCollisionIdentityValueSnapshot ConstructAntiCollisionIdentityValueSnapshot()
+		{
+			return new AntiCollisionIdentityValueSnapshot
+			{
+				IdentityDefinitionID = new Guid(),
+				Value = "Default Value",
+			};
+		}
+		public static AntiCollisionPolicyCondition ConstructAntiCollisionPolicyCondition()
+		{
+			return new AntiCollisionPolicyCondition
+			{
+				ConditionID = new Guid(),
+			};
+		}
+		public static AntiCollisionPolicyEvaluation ConstructAntiCollisionPolicyEvaluation()
+		{
+			return new AntiCollisionPolicyEvaluation
+			{
+				ComparisonTrajectoryID = new Guid(),
+				State = (AntiCollisionPolicyEvaluationState)0,
+				Message = "Default Message",
+				MatchedRuleID = null,
+				MatchedRulePriority = null,
+				AlertThreshold = null,
+				AlarmThreshold = null,
+				OldestEvidenceUtc = DateTimeOffset.UtcNow,
+				NewestEvidenceUtc = DateTimeOffset.UtcNow,
+				TrajectoryAge = null,
+				WorstClassification = (AntiCollisionClassification)0,
+				Context = new List<AntiCollisionResourceContextSnapshot>
+					{
+						ConstructAntiCollisionResourceContextSnapshot(),
+					},
+			};
+		}
+		public static AntiCollisionPolicyRevision ConstructAntiCollisionPolicyRevision()
+		{
+			return new AntiCollisionPolicyRevision
+			{
+				MetaInfo = ConstructMetaInfo(),
+				PolicyID = new Guid(),
+				RevisionNumber = 0,
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				ConfidenceFactor = 0.0,
+				Rules = new List<AntiCollisionPolicyRule>
+					{
+						ConstructAntiCollisionPolicyRule(),
+					},
+			};
+		}
+		public static AntiCollisionPolicyRevisionCreate ConstructAntiCollisionPolicyRevisionCreate()
+		{
+			return new AntiCollisionPolicyRevisionCreate
+			{
+				MetaInfo = ConstructMetaInfo(),
+				PolicyID = new Guid(),
+				Name = "Default Name",
+				Description = "Default Description",
+				ConfidenceFactor = 0.0,
+				Rules = new List<AntiCollisionPolicyRule>
+					{
+						ConstructAntiCollisionPolicyRule(),
+					},
+			};
+		}
+		public static AntiCollisionPolicyRule ConstructAntiCollisionPolicyRule()
+		{
+			return new AntiCollisionPolicyRule
+			{
+				RuleID = new Guid(),
+				Name = "Default Name",
+				Priority = 0,
+				AlertThreshold = 0.0,
+				AlarmThreshold = 0.0,
+				Conditions = new List<AntiCollisionPolicyCondition>
+					{
+						ConstructAntiCollisionPolicyCondition(),
+					},
+			};
+		}
+		public static AntiCollisionResourceContextSnapshot ConstructAntiCollisionResourceContextSnapshot()
+		{
+			return new AntiCollisionResourceContextSnapshot
+			{
+				ResourceLevel = (AntiCollisionHierarchyLevel)0,
+				ResourceID = new Guid(),
+				Name = "Default Name",
+				IsAvailable = false,
+				Identities = new List<AntiCollisionIdentityValueSnapshot>
+					{
+						ConstructAntiCollisionIdentityValueSnapshot(),
+					},
+				Features = new List<AntiCollisionFeatureValueSnapshot>
+					{
+						ConstructAntiCollisionFeatureValueSnapshot(),
+					},
+				IdentityCatalogAvailable = false,
+				UnavailableReason = "Default UnavailableReason",
+			};
+		}
+		public static AntiCollisionTrajectoryAgeCondition ConstructAntiCollisionTrajectoryAgeCondition()
+		{
+			return new AntiCollisionTrajectoryAgeCondition
+			{
+				Operator = (AntiCollisionComparisonOperator)0,
+				AgeThreshold = 0.0,
+				ConditionID = new Guid(),
+			};
+		}
+		public static FieldAntiCollisionPolicyAssignment ConstructFieldAntiCollisionPolicyAssignment()
+		{
+			return new FieldAntiCollisionPolicyAssignment
+			{
+				MetaInfo = ConstructMetaInfo(),
+				FieldID = new Guid(),
+				PolicyRevisionID = new Guid(),
+				ValidFromUtc = DateTimeOffset.UtcNow,
+				ValidToUtc = DateTimeOffset.UtcNow,
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldAntiCollisionPolicyAssignmentMutation ConstructFieldAntiCollisionPolicyAssignmentMutation()
+		{
+			return new FieldAntiCollisionPolicyAssignmentMutation
+			{
+				MetaInfo = ConstructMetaInfo(),
+				FieldID = new Guid(),
+				PolicyRevisionID = new Guid(),
+				ValidFromUtc = DateTimeOffset.UtcNow,
+				ValidToUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static CircularArcWellPathSectionSpecification ConstructCircularArcWellPathSectionSpecification()
+		{
+			return new CircularArcWellPathSectionSpecification
+			{
+				Curvature = null,
+				StartToolface = null,
+				SectionID = new Guid(),
+				Length = null,
+				EndInclination = null,
+				EndAzimuth = null,
+				EndVerticalDepth = null,
+				EndNorth = null,
+				EndEast = null,
+			};
+		}
+		public static ConstantBuildAndTurnWellPathSectionSpecification ConstructConstantBuildAndTurnWellPathSectionSpecification()
+		{
+			return new ConstantBuildAndTurnWellPathSectionSpecification
+			{
+				BuildRate = null,
+				TurnRate = null,
+				SectionID = new Guid(),
+				Length = null,
+				EndInclination = null,
+				EndAzimuth = null,
+				EndVerticalDepth = null,
+				EndNorth = null,
+				EndEast = null,
+			};
+		}
+		public static ConstantCurvatureAndToolfaceWellPathSectionSpecification ConstructConstantCurvatureAndToolfaceWellPathSectionSpecification()
+		{
+			return new ConstantCurvatureAndToolfaceWellPathSectionSpecification
+			{
+				Curvature = null,
+				Toolface = null,
+				SectionID = new Guid(),
+				Length = null,
+				EndInclination = null,
+				EndAzimuth = null,
+				EndVerticalDepth = null,
+				EndNorth = null,
+				EndEast = null,
+			};
+		}
+		public static DepartureGeosteeringExtentConstraint ConstructDepartureGeosteeringExtentConstraint()
+		{
+			return new DepartureGeosteeringExtentConstraint
+			{
+				DepartureDistance = 0.0,
+				DepartureBearing = 0.0,
+			};
+		}
+		public static DirectionalControlDistributionSummary ConstructDirectionalControlDistributionSummary()
+		{
+			return new DirectionalControlDistributionSummary
+			{
+				Count = 0,
+				P10 = 0.0,
+				P50 = 0.0,
+				P90 = 0.0,
+				Mean = 0.0,
+				StandardDeviation = 0.0,
+				MedianAbsoluteDeviation = 0.0,
+				Minimum = 0.0,
+				Maximum = 0.0,
+				IsCircular = false,
+				Histogram = new List<DirectionalControlHistogramBin>
+					{
+						ConstructDirectionalControlHistogramBin(),
+					},
+			};
+		}
+		public static DirectionalControlEvaluationBundle ConstructDirectionalControlEvaluationBundle()
+		{
+			return new DirectionalControlEvaluationBundle
+			{
+				BundleID = new Guid(),
+				BundleIndex = 0,
+				StartActualMD = 0.0,
+				EndActualMD = 0.0,
+				AttemptedSampleCount = 0,
+				ValidSampleCount = 0,
+				InvalidSampleCount = 0,
+				ValidCoverageRatio = 0.0,
+				MaximumInvalidGap = 0.0,
+				CurvatureResidual = ConstructDirectionalControlDistributionSummary(),
+				ToolfaceResidual = ConstructDirectionalControlDistributionSummary(),
+				BuildRateResidual = ConstructDirectionalControlDistributionSummary(),
+				TurnRateResidual = ConstructDirectionalControlDistributionSummary(),
+			};
+		}
+		public static DirectionalControlEvaluationCase ConstructDirectionalControlEvaluationCase()
+		{
+			return new DirectionalControlEvaluationCase
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				ReferenceTrajectoryID = new Guid(),
+				ActualTrajectoryID = new Guid(),
+				CurveType = (ExtrapolationCurveType)0,
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				IsStale = false,
+				EvaluationInterval = 0.0,
+				StartActualMD = null,
+				EndActualMD = null,
+				ReferenceMDAdvance = 0.0,
+				JunctionCurvatureRatio = 0.0,
+				MaximumInvalidGap = 0.0,
+				MinimumBundleLength = 0.0,
+				MinimumBundleSampleCount = 0,
+				BundlingPenalty = 0.0,
+				ReferenceTrajectoryRevision = DateTimeOffset.UtcNow,
+				ActualTrajectoryRevision = DateTimeOffset.UtcNow,
+				CalculationFingerprint = "Default CalculationFingerprint",
+				SampleList = new List<DirectionalControlEvaluationSample>
+					{
+						ConstructDirectionalControlEvaluationSample(),
+					},
+				BundleList = new List<DirectionalControlEvaluationBundle>
+					{
+						ConstructDirectionalControlEvaluationBundle(),
+					},
+			};
+		}
+		public static DirectionalControlEvaluationSample ConstructDirectionalControlEvaluationSample()
+		{
+			return new DirectionalControlEvaluationSample
+			{
+				SampleID = new Guid(),
+				ActualMD = 0.0,
+				ActualEndMD = 0.0,
+				ClosestReferenceMD = null,
+				TargetReferenceMD = null,
+				IsValid = false,
+				FailureCode = "Default FailureCode",
+				FailureMessage = "Default FailureMessage",
+				ExpectedCurvature = null,
+				ActualCurvature = null,
+				CurvatureResidual = null,
+				ExpectedToolface = null,
+				ActualToolface = null,
+				ToolfaceResidual = null,
+				ExpectedBuildRate = null,
+				ActualBuildRate = null,
+				BuildRateResidual = null,
+				ExpectedTurnRate = null,
+				ActualTurnRate = null,
+				TurnRateResidual = null,
+			};
+		}
+		public static DirectionalControlEvaluationSampleChunk ConstructDirectionalControlEvaluationSampleChunk()
+		{
+			return new DirectionalControlEvaluationSampleChunk
+			{
+				ChunkIndex = 0,
+				SampleCount = 0,
+				StartActualMD = null,
+				EndActualMD = null,
+				SampleList = new List<DirectionalControlEvaluationSample>
+					{
+						ConstructDirectionalControlEvaluationSample(),
+					},
+			};
+		}
+		public static DirectionalControlHistogramBin ConstructDirectionalControlHistogramBin()
+		{
+			return new DirectionalControlHistogramBin
+			{
+				LowerBound = 0.0,
+				UpperBound = 0.0,
+				Count = 0,
+			};
+		}
+		public static DrilledLengthGeosteeringExtentConstraint ConstructDrilledLengthGeosteeringExtentConstraint()
+		{
+			return new DrilledLengthGeosteeringExtentConstraint
+			{
+				SteeringLength = 0.0,
+				SteeringLengthRatio = 0.0,
+			};
+		}
+		public static FixedLengthExtrapolationSpecification ConstructFixedLengthExtrapolationSpecification()
+		{
+			return new FixedLengthExtrapolationSpecification
+			{
+				Length = 0.0,
+				ExtensionType = (FixedLengthExtrapolationType)0,
+			};
+		}
+		public static GeosteeringExtentConstraint ConstructGeosteeringExtentConstraint()
+		{
+			return new GeosteeringExtentConstraint
+			{
+			};
+		}
+		public static GeosteeringTrajectoryExtrapolationSpecification ConstructGeosteeringTrajectoryExtrapolationSpecification()
+		{
+			return new GeosteeringTrajectoryExtrapolationSpecification
+			{
+				LeadInLength = 0.0,
+				TargetVerticalDepth = 0.0,
+				EndInclination = 0.0,
+				EndAzimuth = 0.0,
+				CurveType = (ExtrapolationCurveType)0,
+				AzimuthBranch = 0,
+				Extent = ConstructGeosteeringExtentConstraint(),
+			};
+		}
+		public static ReconnectTrajectoryExtrapolationSpecification ConstructReconnectTrajectoryExtrapolationSpecification()
+		{
+			return new ReconnectTrajectoryExtrapolationSpecification
+			{
+				ReferenceTrajectoryID = new Guid(),
+				ReferenceMDAdvance = 0.0,
+				CurveType = (ExtrapolationCurveType)0,
+				AzimuthBranch = 0,
+				JunctionCurvatureRatio = 0.0,
+				LeadInLength = 0.0,
+			};
+		}
+		public static SurveyMeasurementCorrection ConstructSurveyMeasurementCorrection()
+		{
+			return new SurveyMeasurementCorrection
+			{
+				Source = (SurveyCorrectionSource)0,
+				Status = (SurveyCorrectionStatus)0,
+				Message = "Default Message",
+				AppliedInclinationCorrection = null,
+				AppliedAzimuthCorrection = null,
+				MagneticDeclination = null,
+				GravityNorth = null,
+				GravityEast = null,
+				GravityDown = null,
+				EvaluatedLatitude = null,
+				EvaluatedLongitude = null,
+				EvaluatedDepthWgs84 = null,
+				EvaluationTimeUtc = DateTimeOffset.UtcNow,
+				TimeMethod = (SurveyCorrectionTimeMethod)0,
+				GravityModelID = "Default GravityModelID",
+				GravityModelVersion = "Default GravityModelVersion",
+				GravityCoefficientSHA256 = "Default GravityCoefficientSHA256",
+				GeomagneticModelID = "Default GeomagneticModelID",
+				GeomagneticMetadataSHA256 = "Default GeomagneticMetadataSHA256",
+				GeomagneticCoefficientSHA256 = "Default GeomagneticCoefficientSHA256",
+				AlgorithmVersion = "Default AlgorithmVersion",
+			};
+		}
+		public static SurveyRunBitExtrapolation ConstructSurveyRunBitExtrapolation()
+		{
+			return new SurveyRunBitExtrapolation
+			{
+				Mode = (SurveyRunBitExtrapolationMode)0,
+				MeasurementToolToBitDistance = 0.0,
+			};
+		}
+		public static TargetLandingCase ConstructTargetLandingCase()
+		{
+			return new TargetLandingCase
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				SourceTrajectoryID = new Guid(),
+				TargetType = (TargetLandingTargetType)0,
+				CurveType = (ExtrapolationCurveType)0,
+				AttitudeMode = (TargetLandingAttitudeMode)0,
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				IsStale = false,
+				Target = ConstructTargetPlaneDefinition(),
+				LeadLength = 0.0,
+				ConfidenceFactor = 0.0,
+				MaximumLandingCurvature = null,
+				SourceTrajectoryRevision = DateTimeOffset.UtcNow,
+				CalculationFingerprint = "Default CalculationFingerprint",
+				SourceEndStation = ConstructSurveyStation(),
+				LeadSurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+				SteeringStartStation = ConstructSurveyStation(),
+				GeologicalTargetBoundary = new List<TargetPlanePoint>
+					{
+						ConstructTargetPlanePoint(),
+					},
+				DrillerTargetBoundary = new List<TargetPlanePoint>
+					{
+						ConstructTargetPlanePoint(),
+					},
+				ReachableTargetBoundary = new List<TargetPlanePoint>
+					{
+						ConstructTargetPlanePoint(),
+					},
+				DrillerTargetContourList = new List<List<TargetPlanePoint>>
+					{
+						new List<TargetPlanePoint>
+						{
+							ConstructTargetPlanePoint(),
+						}
+					},
+				ReachableTargetContourList = new List<List<TargetPlanePoint>>
+					{
+						new List<TargetPlanePoint>
+						{
+							ConstructTargetPlanePoint(),
+						}
+					},
+				SampleList = new List<TargetLandingSample>
+					{
+						ConstructTargetLandingSample(),
+					},
+				MeshTriangleList = new List<TargetLandingMeshTriangle>
+					{
+						ConstructTargetLandingMeshTriangle(),
+					},
+			};
+		}
+		public static TargetLandingControlPoint ConstructTargetLandingControlPoint()
+		{
+			return new TargetLandingControlPoint
+			{
+				NormalizedLength = 0.0,
+				Inclination = null,
+				Curvature = 0.0,
+				Toolface = 0.0,
+				BuildRate = 0.0,
+				TurnRate = 0.0,
+			};
+		}
+		public static TargetLandingMeshTriangle ConstructTargetLandingMeshTriangle()
+		{
+			return new TargetLandingMeshTriangle
+			{
+				FirstSampleID = new Guid(),
+				SecondSampleID = new Guid(),
+				ThirdSampleID = new Guid(),
+			};
+		}
+		public static TargetLandingSample ConstructTargetLandingSample()
+		{
+			return new TargetLandingSample
+			{
+				SampleID = new Guid(),
+				PlaneX = 0.0,
+				PlaneY = 0.0,
+				PolarRadius = 0.0,
+				PolarAngle = 0.0,
+				North = 0.0,
+				East = 0.0,
+				TVD = 0.0,
+				State = (TargetLandingSampleState)0,
+				IsUncertaintySafe = null,
+				Message = "Default Message",
+				TotalLandingLength = null,
+				PeakLandingCurvature = null,
+				LandingStation = ConstructSurveyStation(),
+				LandingEllipseInTargetPlane = ConstructSurveyStationEllipse(),
+				SolvedSectionList = new List<TrajectoryExtrapolationSolvedSection>
+					{
+						ConstructTrajectoryExtrapolationSolvedSection(),
+					},
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+				ControlPointList = new List<TargetLandingControlPoint>
+					{
+						ConstructTargetLandingControlPoint(),
+					},
+			};
+		}
+		public static TargetPlaneDefinition ConstructTargetPlaneDefinition()
+		{
+			return new TargetPlaneDefinition
+			{
+				Plane = ConstructCurvilinearPoint3D(),
+				Polygon = new List<TargetPlanePoint>
+					{
+						ConstructTargetPlanePoint(),
+					},
+			};
+		}
+		public static TargetPlanePoint ConstructTargetPlanePoint()
+		{
+			return new TargetPlanePoint
+			{
+				X = 0.0,
+				Y = 0.0,
+			};
+		}
+		public static TrajectoryExtrapolationCase ConstructTrajectoryExtrapolationCase()
+		{
+			return new TrajectoryExtrapolationCase
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				SourceTrajectoryID = new Guid(),
+				Mode = (TrajectoryExtrapolationMode)0,
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				InterpolationInterval = 0.0,
+				Specification = ConstructTrajectoryExtrapolationSpecification(),
+				StartStation = ConstructSurveyStation(),
+				TargetStation = ConstructSurveyStation(),
+				ClosestReferenceMD = null,
+				TargetReferenceMD = null,
+				SourceTrajectoryRevision = DateTimeOffset.UtcNow,
+				ReferenceTrajectoryRevision = DateTimeOffset.UtcNow,
+				SolvedSectionList = new List<TrajectoryExtrapolationSolvedSection>
+					{
+						ConstructTrajectoryExtrapolationSolvedSection(),
+					},
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+			};
+		}
+		public static TrajectoryExtrapolationSolvedSection ConstructTrajectoryExtrapolationSolvedSection()
+		{
+			return new TrajectoryExtrapolationSolvedSection
+			{
+				SectionID = new Guid(),
+				SectionIndex = 0,
+				Role = (TrajectoryExtrapolationSectionRole)0,
+				CurveType = (ExtrapolationCurveType)0,
+				StartMD = 0.0,
+				EndMD = 0.0,
+				Length = 0.0,
+				Start = ConstructSurveyStation(),
+				End = ConstructSurveyStation(),
+				CircularArcCurvature = null,
+				CircularArcStartToolface = null,
+				ConstantBuildRate = null,
+				ConstantTurnRate = null,
+				ConstantCurvature = null,
+				ConstantToolface = null,
+			};
+		}
+		public static TrajectoryExtrapolationSpecification ConstructTrajectoryExtrapolationSpecification()
+		{
+			return new TrajectoryExtrapolationSpecification
+			{
+			};
+		}
+		public static WellPathExtrapolationSpecification ConstructWellPathExtrapolationSpecification()
+		{
+			return new WellPathExtrapolationSpecification
+			{
+				SectionList = new List<WellPathSectionSpecification>(),
+			};
+		}
+		public static WellPathSectionSpecification ConstructWellPathSectionSpecification()
+		{
+			return new WellPathSectionSpecification
+			{
+				SectionID = new Guid(),
+				Length = null,
+				EndInclination = null,
+				EndAzimuth = null,
+				EndVerticalDepth = null,
+				EndNorth = null,
+				EndEast = null,
+			};
+		}
 		public static SurveyInstrumentBatchCatalogDependencies ConstructSurveyInstrumentBatchCatalogDependencies()
 		{
 			return new SurveyInstrumentBatchCatalogDependencies
@@ -6584,685 +7263,6 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				PositionsTransformed = 0,
 				CatalogReads = 0,
 				CatalogWrites = 0,
-			};
-		}
-		public static CurvilinearPoint3D ConstructCurvilinearPoint3D()
-		{
-			return new CurvilinearPoint3D
-			{
-				X = null,
-				Y = null,
-				Z = null,
-				RiemannianNorth = null,
-				RiemannianEast = null,
-				Latitude = null,
-				Longitude = null,
-				TVD = null,
-				Abscissa = null,
-				Inclination = null,
-				Azimuth = null,
-			};
-		}
-		public static AntiCollisionFeatureCondition ConstructAntiCollisionFeatureCondition()
-		{
-			return new AntiCollisionFeatureCondition
-			{
-				ResourceLevel = (AntiCollisionHierarchyLevel)0,
-				FeatureCategoryID = new Guid(),
-				FeatureOptionID = new Guid(),
-				TemporalOperator = (AntiCollisionFeatureTemporalOperator)0,
-				SpecifiedTimeUtc = DateTimeOffset.UtcNow,
-				SpecifiedFromUtc = DateTimeOffset.UtcNow,
-				SpecifiedToUtc = DateTimeOffset.UtcNow,
-				ConditionID = new Guid(),
-			};
-		}
-		public static AntiCollisionFeatureValueSnapshot ConstructAntiCollisionFeatureValueSnapshot()
-		{
-			return new AntiCollisionFeatureValueSnapshot
-			{
-				FeatureCategoryID = new Guid(),
-				FeatureOptionID = new Guid(),
-				FromUtc = DateTimeOffset.UtcNow,
-				ToUtc = DateTimeOffset.UtcNow,
-			};
-		}
-		public static AntiCollisionIdentityCondition ConstructAntiCollisionIdentityCondition()
-		{
-			return new AntiCollisionIdentityCondition
-			{
-				ResourceLevel = (AntiCollisionHierarchyLevel)0,
-				IdentityDefinitionID = new Guid(),
-				MatchOperator = (AntiCollisionIdentityMatchOperator)0,
-				Pattern = "Default Pattern",
-				CaseSensitive = false,
-				ConditionID = new Guid(),
-			};
-		}
-		public static AntiCollisionIdentityValueSnapshot ConstructAntiCollisionIdentityValueSnapshot()
-		{
-			return new AntiCollisionIdentityValueSnapshot
-			{
-				IdentityDefinitionID = new Guid(),
-				Value = "Default Value",
-			};
-		}
-		public static AntiCollisionPolicyCondition ConstructAntiCollisionPolicyCondition()
-		{
-			return new AntiCollisionPolicyCondition
-			{
-				ConditionID = new Guid(),
-			};
-		}
-		public static AntiCollisionPolicyEvaluation ConstructAntiCollisionPolicyEvaluation()
-		{
-			return new AntiCollisionPolicyEvaluation
-			{
-				ComparisonTrajectoryID = new Guid(),
-				State = (AntiCollisionPolicyEvaluationState)0,
-				Message = "Default Message",
-				MatchedRuleID = null,
-				MatchedRulePriority = null,
-				AlertThreshold = null,
-				AlarmThreshold = null,
-				OldestEvidenceUtc = DateTimeOffset.UtcNow,
-				NewestEvidenceUtc = DateTimeOffset.UtcNow,
-				TrajectoryAgeSeconds = null,
-				WorstClassification = (AntiCollisionClassification)0,
-				Context = new List<AntiCollisionResourceContextSnapshot>
-					{
-						ConstructAntiCollisionResourceContextSnapshot(),
-					},
-			};
-		}
-		public static AntiCollisionPolicyRevision ConstructAntiCollisionPolicyRevision()
-		{
-			return new AntiCollisionPolicyRevision
-			{
-				MetaInfo = ConstructMetaInfo(),
-				PolicyID = new Guid(),
-				RevisionNumber = 0,
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				ConfidenceFactor = 0.0,
-				Rules = new List<AntiCollisionPolicyRule>
-					{
-						ConstructAntiCollisionPolicyRule(),
-					},
-			};
-		}
-		public static AntiCollisionPolicyRevisionCreate ConstructAntiCollisionPolicyRevisionCreate()
-		{
-			return new AntiCollisionPolicyRevisionCreate
-			{
-				MetaInfo = ConstructMetaInfo(),
-				PolicyID = new Guid(),
-				Name = "Default Name",
-				Description = "Default Description",
-				ConfidenceFactor = 0.0,
-				Rules = new List<AntiCollisionPolicyRule>
-					{
-						ConstructAntiCollisionPolicyRule(),
-					},
-			};
-		}
-		public static AntiCollisionPolicyRule ConstructAntiCollisionPolicyRule()
-		{
-			return new AntiCollisionPolicyRule
-			{
-				RuleID = new Guid(),
-				Name = "Default Name",
-				Priority = 0,
-				AlertThreshold = 0.0,
-				AlarmThreshold = 0.0,
-				Conditions = new List<AntiCollisionPolicyCondition>
-					{
-						ConstructAntiCollisionPolicyCondition(),
-					},
-			};
-		}
-		public static AntiCollisionResourceContextSnapshot ConstructAntiCollisionResourceContextSnapshot()
-		{
-			return new AntiCollisionResourceContextSnapshot
-			{
-				ResourceLevel = (AntiCollisionHierarchyLevel)0,
-				ResourceID = new Guid(),
-				Name = "Default Name",
-				IsAvailable = false,
-				Identities = new List<AntiCollisionIdentityValueSnapshot>
-					{
-						ConstructAntiCollisionIdentityValueSnapshot(),
-					},
-				Features = new List<AntiCollisionFeatureValueSnapshot>
-					{
-						ConstructAntiCollisionFeatureValueSnapshot(),
-					},
-				IdentityCatalogAvailable = false,
-				UnavailableReason = "Default UnavailableReason",
-			};
-		}
-		public static AntiCollisionTrajectoryAgeCondition ConstructAntiCollisionTrajectoryAgeCondition()
-		{
-			return new AntiCollisionTrajectoryAgeCondition
-			{
-				Operator = (AntiCollisionComparisonOperator)0,
-				AgeThresholdSeconds = 0.0,
-				ConditionID = new Guid(),
-			};
-		}
-		public static FieldAntiCollisionPolicyAssignment ConstructFieldAntiCollisionPolicyAssignment()
-		{
-			return new FieldAntiCollisionPolicyAssignment
-			{
-				MetaInfo = ConstructMetaInfo(),
-				FieldID = new Guid(),
-				PolicyRevisionID = new Guid(),
-				ValidFromUtc = DateTimeOffset.UtcNow,
-				ValidToUtc = DateTimeOffset.UtcNow,
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static FieldAntiCollisionPolicyAssignmentMutation ConstructFieldAntiCollisionPolicyAssignmentMutation()
-		{
-			return new FieldAntiCollisionPolicyAssignmentMutation
-			{
-				MetaInfo = ConstructMetaInfo(),
-				FieldID = new Guid(),
-				PolicyRevisionID = new Guid(),
-				ValidFromUtc = DateTimeOffset.UtcNow,
-				ValidToUtc = DateTimeOffset.UtcNow,
-			};
-		}
-		public static CircularArcWellPathSectionSpecification ConstructCircularArcWellPathSectionSpecification()
-		{
-			return new CircularArcWellPathSectionSpecification
-			{
-				Curvature = null,
-				StartToolface = null,
-				SectionID = new Guid(),
-				Length = null,
-				EndInclination = null,
-				EndAzimuth = null,
-				EndVerticalDepth = null,
-				EndNorth = null,
-				EndEast = null,
-			};
-		}
-		public static ConstantBuildAndTurnWellPathSectionSpecification ConstructConstantBuildAndTurnWellPathSectionSpecification()
-		{
-			return new ConstantBuildAndTurnWellPathSectionSpecification
-			{
-				BuildRate = null,
-				TurnRate = null,
-				SectionID = new Guid(),
-				Length = null,
-				EndInclination = null,
-				EndAzimuth = null,
-				EndVerticalDepth = null,
-				EndNorth = null,
-				EndEast = null,
-			};
-		}
-		public static ConstantCurvatureAndToolfaceWellPathSectionSpecification ConstructConstantCurvatureAndToolfaceWellPathSectionSpecification()
-		{
-			return new ConstantCurvatureAndToolfaceWellPathSectionSpecification
-			{
-				Curvature = null,
-				Toolface = null,
-				SectionID = new Guid(),
-				Length = null,
-				EndInclination = null,
-				EndAzimuth = null,
-				EndVerticalDepth = null,
-				EndNorth = null,
-				EndEast = null,
-			};
-		}
-		public static DepartureGeosteeringExtentConstraint ConstructDepartureGeosteeringExtentConstraint()
-		{
-			return new DepartureGeosteeringExtentConstraint
-			{
-				DepartureDistance = 0.0,
-				DepartureBearing = 0.0,
-			};
-		}
-		public static DirectionalControlDistributionSummary ConstructDirectionalControlDistributionSummary()
-		{
-			return new DirectionalControlDistributionSummary
-			{
-				Count = 0,
-				P10 = 0.0,
-				P50 = 0.0,
-				P90 = 0.0,
-				Mean = 0.0,
-				StandardDeviation = 0.0,
-				MedianAbsoluteDeviation = 0.0,
-				Minimum = 0.0,
-				Maximum = 0.0,
-				IsCircular = false,
-				Histogram = new List<DirectionalControlHistogramBin>
-					{
-						ConstructDirectionalControlHistogramBin(),
-					},
-			};
-		}
-		public static DirectionalControlEvaluationBundle ConstructDirectionalControlEvaluationBundle()
-		{
-			return new DirectionalControlEvaluationBundle
-			{
-				BundleID = new Guid(),
-				BundleIndex = 0,
-				StartActualMD = 0.0,
-				EndActualMD = 0.0,
-				AttemptedSampleCount = 0,
-				ValidSampleCount = 0,
-				InvalidSampleCount = 0,
-				ValidCoverageRatio = 0.0,
-				MaximumInvalidGap = 0.0,
-				CurvatureResidual = ConstructDirectionalControlDistributionSummary(),
-				ToolfaceResidual = ConstructDirectionalControlDistributionSummary(),
-				BuildRateResidual = ConstructDirectionalControlDistributionSummary(),
-				TurnRateResidual = ConstructDirectionalControlDistributionSummary(),
-			};
-		}
-		public static DirectionalControlEvaluationCase ConstructDirectionalControlEvaluationCase()
-		{
-			return new DirectionalControlEvaluationCase
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				ReferenceTrajectoryID = new Guid(),
-				ActualTrajectoryID = new Guid(),
-				CurveType = (ExtrapolationCurveType)0,
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				IsStale = false,
-				EvaluationInterval = 0.0,
-				StartActualMD = null,
-				EndActualMD = null,
-				ReferenceMDAdvance = 0.0,
-				JunctionCurvatureRatio = 0.0,
-				MaximumInvalidGap = 0.0,
-				MinimumBundleLength = 0.0,
-				MinimumBundleSampleCount = 0,
-				BundlingPenalty = 0.0,
-				ReferenceTrajectoryRevision = DateTimeOffset.UtcNow,
-				ActualTrajectoryRevision = DateTimeOffset.UtcNow,
-				CalculationFingerprint = "Default CalculationFingerprint",
-				SampleList = new List<DirectionalControlEvaluationSample>
-					{
-						ConstructDirectionalControlEvaluationSample(),
-					},
-				BundleList = new List<DirectionalControlEvaluationBundle>
-					{
-						ConstructDirectionalControlEvaluationBundle(),
-					},
-			};
-		}
-		public static DirectionalControlEvaluationSample ConstructDirectionalControlEvaluationSample()
-		{
-			return new DirectionalControlEvaluationSample
-			{
-				SampleID = new Guid(),
-				ActualMD = 0.0,
-				ActualEndMD = 0.0,
-				ClosestReferenceMD = null,
-				TargetReferenceMD = null,
-				IsValid = false,
-				FailureCode = "Default FailureCode",
-				FailureMessage = "Default FailureMessage",
-				ExpectedCurvature = null,
-				ActualCurvature = null,
-				CurvatureResidual = null,
-				ExpectedToolface = null,
-				ActualToolface = null,
-				ToolfaceResidual = null,
-				ExpectedBuildRate = null,
-				ActualBuildRate = null,
-				BuildRateResidual = null,
-				ExpectedTurnRate = null,
-				ActualTurnRate = null,
-				TurnRateResidual = null,
-			};
-		}
-		public static DirectionalControlEvaluationSampleChunk ConstructDirectionalControlEvaluationSampleChunk()
-		{
-			return new DirectionalControlEvaluationSampleChunk
-			{
-				ChunkIndex = 0,
-				SampleCount = 0,
-				StartActualMD = null,
-				EndActualMD = null,
-				SampleList = new List<DirectionalControlEvaluationSample>
-					{
-						ConstructDirectionalControlEvaluationSample(),
-					},
-			};
-		}
-		public static DirectionalControlHistogramBin ConstructDirectionalControlHistogramBin()
-		{
-			return new DirectionalControlHistogramBin
-			{
-				LowerBound = 0.0,
-				UpperBound = 0.0,
-				Count = 0,
-			};
-		}
-		public static DrilledLengthGeosteeringExtentConstraint ConstructDrilledLengthGeosteeringExtentConstraint()
-		{
-			return new DrilledLengthGeosteeringExtentConstraint
-			{
-				SteeringLength = 0.0,
-				SteeringLengthRatio = 0.0,
-			};
-		}
-		public static FixedLengthExtrapolationSpecification ConstructFixedLengthExtrapolationSpecification()
-		{
-			return new FixedLengthExtrapolationSpecification
-			{
-				Length = 0.0,
-				ExtensionType = (FixedLengthExtrapolationType)0,
-			};
-		}
-		public static GeosteeringExtentConstraint ConstructGeosteeringExtentConstraint()
-		{
-			return new GeosteeringExtentConstraint
-			{
-			};
-		}
-		public static GeosteeringTrajectoryExtrapolationSpecification ConstructGeosteeringTrajectoryExtrapolationSpecification()
-		{
-			return new GeosteeringTrajectoryExtrapolationSpecification
-			{
-				LeadInLength = 0.0,
-				TargetVerticalDepth = 0.0,
-				EndInclination = 0.0,
-				EndAzimuth = 0.0,
-				CurveType = (ExtrapolationCurveType)0,
-				AzimuthBranch = 0,
-				Extent = ConstructGeosteeringExtentConstraint(),
-			};
-		}
-		public static ReconnectTrajectoryExtrapolationSpecification ConstructReconnectTrajectoryExtrapolationSpecification()
-		{
-			return new ReconnectTrajectoryExtrapolationSpecification
-			{
-				ReferenceTrajectoryID = new Guid(),
-				ReferenceMDAdvance = 0.0,
-				CurveType = (ExtrapolationCurveType)0,
-				AzimuthBranch = 0,
-				JunctionCurvatureRatio = 0.0,
-				LeadInLength = 0.0,
-			};
-		}
-		public static SurveyMeasurementCorrection ConstructSurveyMeasurementCorrection()
-		{
-			return new SurveyMeasurementCorrection
-			{
-				Source = (SurveyCorrectionSource)0,
-				Status = (SurveyCorrectionStatus)0,
-				Message = "Default Message",
-				AppliedInclinationCorrection = null,
-				AppliedAzimuthCorrection = null,
-				MagneticDeclination = null,
-				GravityNorth = null,
-				GravityEast = null,
-				GravityDown = null,
-				EvaluatedLatitude = null,
-				EvaluatedLongitude = null,
-				EvaluatedDepthWgs84 = null,
-				EvaluationTimeUtc = DateTimeOffset.UtcNow,
-				TimeMethod = (SurveyCorrectionTimeMethod)0,
-				GravityModelID = "Default GravityModelID",
-				GravityModelVersion = "Default GravityModelVersion",
-				GravityCoefficientSHA256 = "Default GravityCoefficientSHA256",
-				GeomagneticModelID = "Default GeomagneticModelID",
-				GeomagneticMetadataSHA256 = "Default GeomagneticMetadataSHA256",
-				GeomagneticCoefficientSHA256 = "Default GeomagneticCoefficientSHA256",
-				AlgorithmVersion = "Default AlgorithmVersion",
-			};
-		}
-		public static SurveyRunBitExtrapolation ConstructSurveyRunBitExtrapolation()
-		{
-			return new SurveyRunBitExtrapolation
-			{
-				Mode = (SurveyRunBitExtrapolationMode)0,
-				MeasurementToolToBitDistance = 0.0,
-			};
-		}
-		public static TargetLandingCase ConstructTargetLandingCase()
-		{
-			return new TargetLandingCase
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				SourceTrajectoryID = new Guid(),
-				TargetType = (TargetLandingTargetType)0,
-				CurveType = (ExtrapolationCurveType)0,
-				AttitudeMode = (TargetLandingAttitudeMode)0,
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				IsStale = false,
-				Target = ConstructTargetPlaneDefinition(),
-				LeadLength = 0.0,
-				ConfidenceFactor = 0.0,
-				MaximumLandingCurvature = null,
-				SourceTrajectoryRevision = DateTimeOffset.UtcNow,
-				CalculationFingerprint = "Default CalculationFingerprint",
-				SourceEndStation = ConstructSurveyStation(),
-				LeadSurveyStationList = new List<SurveyStation>
-					{
-						ConstructSurveyStation(),
-					},
-				SteeringStartStation = ConstructSurveyStation(),
-				GeologicalTargetBoundary = new List<TargetPlanePoint>
-					{
-						ConstructTargetPlanePoint(),
-					},
-				DrillerTargetBoundary = new List<TargetPlanePoint>
-					{
-						ConstructTargetPlanePoint(),
-					},
-				ReachableTargetBoundary = new List<TargetPlanePoint>
-					{
-						ConstructTargetPlanePoint(),
-					},
-				DrillerTargetContourList = new List<List<TargetPlanePoint>>
-					{
-						new List<TargetPlanePoint>
-						{
-							ConstructTargetPlanePoint(),
-						}
-					},
-				ReachableTargetContourList = new List<List<TargetPlanePoint>>
-					{
-						new List<TargetPlanePoint>
-						{
-							ConstructTargetPlanePoint(),
-						}
-					},
-				SampleList = new List<TargetLandingSample>
-					{
-						ConstructTargetLandingSample(),
-					},
-				MeshTriangleList = new List<TargetLandingMeshTriangle>
-					{
-						ConstructTargetLandingMeshTriangle(),
-					},
-			};
-		}
-		public static TargetLandingControlPoint ConstructTargetLandingControlPoint()
-		{
-			return new TargetLandingControlPoint
-			{
-				NormalizedLength = 0.0,
-				Inclination = null,
-				Curvature = 0.0,
-				Toolface = 0.0,
-				BuildRate = 0.0,
-				TurnRate = 0.0,
-			};
-		}
-		public static TargetLandingMeshTriangle ConstructTargetLandingMeshTriangle()
-		{
-			return new TargetLandingMeshTriangle
-			{
-				FirstSampleID = new Guid(),
-				SecondSampleID = new Guid(),
-				ThirdSampleID = new Guid(),
-			};
-		}
-		public static TargetLandingSample ConstructTargetLandingSample()
-		{
-			return new TargetLandingSample
-			{
-				SampleID = new Guid(),
-				PlaneX = 0.0,
-				PlaneY = 0.0,
-				PolarRadius = 0.0,
-				PolarAngle = 0.0,
-				North = 0.0,
-				East = 0.0,
-				TVD = 0.0,
-				State = (TargetLandingSampleState)0,
-				IsUncertaintySafe = null,
-				Message = "Default Message",
-				TotalLandingLength = null,
-				PeakLandingCurvature = null,
-				LandingStation = ConstructSurveyStation(),
-				LandingEllipseInTargetPlane = ConstructSurveyStationEllipse(),
-				SolvedSectionList = new List<TrajectoryExtrapolationSolvedSection>
-					{
-						ConstructTrajectoryExtrapolationSolvedSection(),
-					},
-				SurveyStationList = new List<SurveyStation>
-					{
-						ConstructSurveyStation(),
-					},
-				ControlPointList = new List<TargetLandingControlPoint>
-					{
-						ConstructTargetLandingControlPoint(),
-					},
-			};
-		}
-		public static TargetPlaneDefinition ConstructTargetPlaneDefinition()
-		{
-			return new TargetPlaneDefinition
-			{
-				Plane = ConstructCurvilinearPoint3D(),
-				Polygon = new List<TargetPlanePoint>
-					{
-						ConstructTargetPlanePoint(),
-					},
-			};
-		}
-		public static TargetPlanePoint ConstructTargetPlanePoint()
-		{
-			return new TargetPlanePoint
-			{
-				X = 0.0,
-				Y = 0.0,
-			};
-		}
-		public static TrajectoryExtrapolationCase ConstructTrajectoryExtrapolationCase()
-		{
-			return new TrajectoryExtrapolationCase
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				SourceTrajectoryID = new Guid(),
-				Mode = (TrajectoryExtrapolationMode)0,
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				InterpolationInterval = 0.0,
-				Specification = ConstructTrajectoryExtrapolationSpecification(),
-				StartStation = ConstructSurveyStation(),
-				TargetStation = ConstructSurveyStation(),
-				ClosestReferenceMD = null,
-				TargetReferenceMD = null,
-				SourceTrajectoryRevision = DateTimeOffset.UtcNow,
-				ReferenceTrajectoryRevision = DateTimeOffset.UtcNow,
-				SolvedSectionList = new List<TrajectoryExtrapolationSolvedSection>
-					{
-						ConstructTrajectoryExtrapolationSolvedSection(),
-					},
-				SurveyStationList = new List<SurveyStation>
-					{
-						ConstructSurveyStation(),
-					},
-			};
-		}
-		public static TrajectoryExtrapolationSolvedSection ConstructTrajectoryExtrapolationSolvedSection()
-		{
-			return new TrajectoryExtrapolationSolvedSection
-			{
-				SectionID = new Guid(),
-				SectionIndex = 0,
-				Role = (TrajectoryExtrapolationSectionRole)0,
-				CurveType = (ExtrapolationCurveType)0,
-				StartMD = 0.0,
-				EndMD = 0.0,
-				Length = 0.0,
-				Start = ConstructSurveyStation(),
-				End = ConstructSurveyStation(),
-				CircularArcCurvature = null,
-				CircularArcStartToolface = null,
-				ConstantBuildRate = null,
-				ConstantTurnRate = null,
-				ConstantCurvature = null,
-				ConstantToolface = null,
-			};
-		}
-		public static TrajectoryExtrapolationSpecification ConstructTrajectoryExtrapolationSpecification()
-		{
-			return new TrajectoryExtrapolationSpecification
-			{
-			};
-		}
-		public static WellPathExtrapolationSpecification ConstructWellPathExtrapolationSpecification()
-		{
-			return new WellPathExtrapolationSpecification
-			{
-				SectionList = new List<WellPathSectionSpecification>(),
-			};
-		}
-		public static WellPathSectionSpecification ConstructWellPathSectionSpecification()
-		{
-			return new WellPathSectionSpecification
-			{
-				SectionID = new Guid(),
-				Length = null,
-				EndInclination = null,
-				EndAzimuth = null,
-				EndVerticalDepth = null,
-				EndNorth = null,
-				EndEast = null,
-			};
-		}
-		public static RigJob ConstructRigJob()
-		{
-			return new RigJob
-			{
-				RigJobID = new Guid(),
-				RigID = new Guid(),
-				StartDate = DateTimeOffset.UtcNow,
-				EndDate = DateTimeOffset.UtcNow,
-				DrillFloorDepthSource = (DrillFloorDepthSource)0,
-				DrillFloorDepth = ConstructGaussianDrillingProperty(),
 			};
 		}
 	}

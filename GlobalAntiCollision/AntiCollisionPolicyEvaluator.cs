@@ -31,7 +31,7 @@ public static class AntiCollisionPolicyEvaluator
                 result.Message = "The oldest trajectory evidence is later than the policy evaluation time.";
                 return result;
             }
-            result.TrajectoryAgeSeconds = age;
+            result.TrajectoryAge = age;
         }
 
         foreach (AntiCollisionPolicyRule rule in policy.Rules.OrderBy(rule => rule.Priority))
@@ -41,7 +41,7 @@ public static class AntiCollisionPolicyEvaluator
             foreach (AntiCollisionPolicyCondition condition in rule.Conditions)
             {
                 (AntiCollisionPolicyEvaluationState state, string? message) = EvaluateCondition(
-                    condition, evaluationUtc, result.TrajectoryAgeSeconds, oldestEvidenceUtc, newestEvidenceUtc, context);
+                    condition, evaluationUtc, result.TrajectoryAge, oldestEvidenceUtc, newestEvidenceUtc, context);
                 if (state == AntiCollisionPolicyEvaluationState.NoMatch) { noMatch = true; break; }
                 if (state == AntiCollisionPolicyEvaluationState.Indeterminate) indeterminate ??= message;
             }
@@ -79,7 +79,7 @@ public static class AntiCollisionPolicyEvaluator
         {
             case AntiCollisionTrajectoryAgeCondition age:
                 if (!ageSeconds.HasValue) return (AntiCollisionPolicyEvaluationState.Indeterminate, "No survey acquisition or measurement date is available.");
-                return (Compare(ageSeconds.Value, age.AgeThresholdSeconds, age.Operator)
+                return (Compare(ageSeconds.Value, age.AgeThreshold, age.Operator)
                     ? AntiCollisionPolicyEvaluationState.Matched : AntiCollisionPolicyEvaluationState.NoMatch, null);
 
             case AntiCollisionIdentityCondition identity:

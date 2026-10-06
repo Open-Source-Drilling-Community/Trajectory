@@ -1,4 +1,5 @@
 using OSDC.DotnetLibraries.General.DataManagement;
+using OSDC.DotnetLibraries.Drilling.SemanticCatalogue;
 using System;
 
 namespace OSDC.Drilling.Trajectory.Model
@@ -32,9 +33,13 @@ namespace OSDC.Drilling.Trajectory.Model
         /// <summary>
         /// the ID of the wellbore associated to the trajectory
         /// </summary>
+        [Semantic(Concepts.CalculationSpecification, Role = Concepts.CalculationInput)]
         public Guid TrajectoryID { get; set; }
+        [Semantic(Concepts.CalculationState)]
         public CalculationState CalculationState { get; set; } = CalculationState.Completed;
+        [Semantic(Concepts.CalculationProgress)]
         public double CalculationProgress { get; set; } = 1.0;
+        [Semantic(Concepts.CalculationDiagnosticMessage)]
         public string? CalculationMessage { get; set; }
         /// <summary>
         /// default constructor required for parsing the data model as a json file

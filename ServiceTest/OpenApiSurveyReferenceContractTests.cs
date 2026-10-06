@@ -1,4 +1,5 @@
 using System.Text.Json.Nodes;
+using OSDC.DotnetLibraries.Drilling.SemanticCatalogue;
 
 namespace OSDC.Drilling.Trajectory.ServiceTest;
 
@@ -26,7 +27,8 @@ public sealed class OpenApiSurveyReferenceContractTests
             Assert.That(run["properties"]!["DefaultInclinationReference"]!["not"]!["enum"]![0]!.GetValue<string>(),
                 Is.EqualTo("InheritRun"));
             Assert.That(measurement["properties"]!["Inclination"]!["x-si-unit"]!.GetValue<string>(), Is.EqualTo("rad"));
-            Assert.That(measurement["properties"]!["Azimuth"]!["x-osdc-semantic"]!.GetValue<string>(), Is.EqualTo("TrueNorthAzimuth"));
+            Assert.That(measurement["properties"]!["Azimuth"]!["x-osdc-semantic"]!["concept"]!.GetValue<string>(), Is.EqualTo(Concepts.WellboreAzimuth));
+            Assert.That(measurement["properties"]!["Azimuth"]!["x-osdc-semantic"]!["reference"]!.GetValue<string>(), Is.EqualTo(Concepts.TrueNorthClockwise));
             Assert.That(correction["properties"]!["GravityNorth"]!["x-si-unit"]!.GetValue<string>(), Is.EqualTo("m/s2"));
             Assert.That(correction["properties"]!["EvaluatedDepthWgs84"]!["description"]!.GetValue<string>(),
                 Does.Contain("positive downward"));
