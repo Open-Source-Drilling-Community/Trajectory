@@ -49315,6 +49315,141 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Runtime.Serialization.EnumMember(Value = @"GZ_RW")]
         GZ_RW = 80,
 
+        [System.Runtime.Serialization.EnumMember(Value = @"DSTS")]
+        DSTS = 81,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"XCLI1")]
+        XCLI1 = 82,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"XCLI2")]
+        XCLI2 = 83,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"AMIL")]
+        AMIL = 84,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ABIXY_TI1")]
+        ABIXY_TI1 = 85,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ABIXY_TI2")]
+        ABIXY_TI2 = 86,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ABIZ")]
+        ABIZ = 87,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASIXY_TI1")]
+        ASIXY_TI1 = 88,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASIXY_TI2")]
+        ASIXY_TI2 = 89,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASIXY_TI3")]
+        ASIXY_TI3 = 90,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASIZ")]
+        ASIZ = 91,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MBIXY_TI1")]
+        MBIXY_TI1 = 92,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MBIXY_TI2")]
+        MBIXY_TI2 = 93,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MSIXY_TI1")]
+        MSIXY_TI1 = 94,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MSIXY_TI2")]
+        MSIXY_TI2 = 95,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MSIXY_TI3")]
+        MSIXY_TI3 = 96,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MFI")]
+        MFI = 97,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MDI")]
+        MDI = 98,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"CNA")]
+        CNA = 99,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"CNI")]
+        CNI = 100,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ABXY_TI1")]
+        ABXY_TI1 = 101,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ABXY_TI2")]
+        ABXY_TI2 = 102,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASXY_TI1")]
+        ASXY_TI1 = 103,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASXY_TI2")]
+        ASXY_TI2 = 104,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASXY_TI3")]
+        ASXY_TI3 = 105,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"DEC")]
+        DEC = 106,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"DBH")]
+        DBH = 107,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASIXY_TI1S")]
+        ASIXY_TI1S = 108,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASIXY_TI2S")]
+        ASIXY_TI2S = 109,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"ASIXY_TI3S")]
+        ASIXY_TI3S = 110,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MBIXY_TI1S")]
+        MBIXY_TI1S = 111,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MBIXY_TI2S")]
+        MBIXY_TI2S = 112,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MSIXY_TI1S")]
+        MSIXY_TI1S = 113,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MSIXY_TI2S")]
+        MSIXY_TI2S = 114,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MSIXY_TI3S")]
+        MSIXY_TI3S = 115,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MDIR")]
+        MDIR = 116,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MFIR")]
+        MFIR = 117,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MFI_U")]
+        MFI_U = 118,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MFI_OS")]
+        MFI_OS = 119,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MFI_OH")]
+        MFI_OH = 120,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MFI_OI")]
+        MFI_OI = 121,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MDI_U")]
+        MDI_U = 122,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MDI_OS")]
+        MDI_OS = 123,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MDI_OH")]
+        MDI_OH = 124,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"MDI_OI")]
+        MDI_OI = 125,
+
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
@@ -49333,6 +49468,10 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("Index")]
         public int Index { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("PropagationMode")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<ErrorPropagationMode>))]
+        public ErrorPropagationMode PropagationMode { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("IsSystematic")]
         public bool IsSystematic { get; set; }
@@ -49518,29 +49657,14 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class SurveyPoint
     {
 
-        [System.Text.Json.Serialization.JsonPropertyName("Z")]
-        public double? Z { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("Abscissa")]
-        public double? Abscissa { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("Inclination")]
-        public double? Inclination { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("Azimuth")]
-        public double? Azimuth { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("MD")]
-        public double? MD { get; set; }
-
         [System.Text.Json.Serialization.JsonPropertyName("X")]
         public double? X { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Y")]
         public double? Y { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("TVD")]
-        public double? TVD { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("Z")]
+        public double? Z { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("RiemannianNorth")]
         public double? RiemannianNorth { get; set; }
@@ -49553,6 +49677,18 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("Longitude")]
         public double? Longitude { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("TVD")]
+        public double? TVD { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Abscissa")]
+        public double? Abscissa { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Inclination")]
+        public double? Inclination { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Azimuth")]
+        public double? Azimuth { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Curvature")]
         public double? Curvature { get; set; }
@@ -49568,6 +49704,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("VerticalSection")]
         public double? VerticalSection { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("MD")]
+        public double? MD { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Annotation")]
         public string Annotation { get; set; }
@@ -49587,29 +49726,14 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class SurveyStation
     {
 
-        [System.Text.Json.Serialization.JsonPropertyName("Z")]
-        public double? Z { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("Abscissa")]
-        public double? Abscissa { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("Inclination")]
-        public double? Inclination { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("Azimuth")]
-        public double? Azimuth { get; set; }
-
-        [System.Text.Json.Serialization.JsonPropertyName("MD")]
-        public double? MD { get; set; }
-
         [System.Text.Json.Serialization.JsonPropertyName("X")]
         public double? X { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Y")]
         public double? Y { get; set; }
 
-        [System.Text.Json.Serialization.JsonPropertyName("TVD")]
-        public double? TVD { get; set; }
+        [System.Text.Json.Serialization.JsonPropertyName("Z")]
+        public double? Z { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("RiemannianNorth")]
         public double? RiemannianNorth { get; set; }
@@ -49622,6 +49746,18 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("Longitude")]
         public double? Longitude { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("TVD")]
+        public double? TVD { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Abscissa")]
+        public double? Abscissa { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Inclination")]
+        public double? Inclination { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Azimuth")]
+        public double? Azimuth { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Curvature")]
         public double? Curvature { get; set; }
@@ -49637,6 +49773,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("VerticalSection")]
         public double? VerticalSection { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("MD")]
+        public double? MD { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("Annotation")]
         public string Annotation { get; set; }
@@ -55478,9 +55617,6 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
     }
 
-    /// <summary>
-    /// Mutually exclusive ISCWSA Revision 5 correlation mode: Random (R) is independent between survey stations; Systematic (S) is correlated between stations in the same survey leg but independent between legs; WellByWell (W) is correlated across legs within the same well but independent between wells; Global (G) is fully correlated across all survey stations, legs, and wells in the project or field. Null is reserved for readable legacy records whose mode is derived from the deprecated boolean flags.
-    /// </summary>
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public enum ErrorPropagationMode
     {

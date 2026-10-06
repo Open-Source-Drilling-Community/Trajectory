@@ -4,6 +4,7 @@ using Microsoft.Data.Sqlite;
 using System.Linq;
 using OSDC.Drilling.GlobalAntiCollision;
 using OSDC.DotnetLibraries.General.Common;
+using OSDC.DotnetLibraries.General.Math;
 using OSDC.DotnetLibraries.General.Octree;
 using System;
 using System.Buffers.Binary;
@@ -158,10 +159,25 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     {
                         IEnumerable<SurveyPoint> points = (ellipses[ellipseIndex].EllipseVertices ?? [])
                             .Concat(ellipses[ellipseIndex + 1].EllipseVertices ?? []);
-                        List<SurveyPoint> boundedPoints = points
-                            .Where(point => point.Latitude is double latitude && double.IsFinite(latitude) &&
-                                            point.Longitude is double longitude && double.IsFinite(longitude) &&
-                                            point.TVD is double tvd && double.IsFinite(tvd))
+                        // UncertaintyEllipse.DiscretizeEllipse emits Riemannian coordinates
+                        // (X = north, Y = east, Z = TVD). Convert them to the geodetic axes used
+                        // by this globe-wide octree before deriving the swept AABB.
+                        var boundedPoints = points
+                            .Where(point => point.X is double north && double.IsFinite(north) &&
+                                            point.Y is double east && double.IsFinite(east) &&
+                                            point.Z is double tvd && double.IsFinite(tvd))
+                            .Select(point =>
+                            {
+                                double latitude = Point3DGlobalCoordinates.LatitudeFromMeridianDistance(point.X!.Value);
+                                double parallelRadius = Point3DGlobalCoordinates.ParallelRadius(latitude);
+                                double longitude = Numeric.EQ(parallelRadius, 0.0)
+                                    ? 0.0
+                                    : point.Y!.Value / parallelRadius;
+                                return (Latitude: latitude, Longitude: longitude, TVD: point.Z!.Value);
+                            })
+                            .Where(point => double.IsFinite(point.Latitude) &&
+                                            double.IsFinite(point.Longitude) &&
+                                            double.IsFinite(point.TVD))
                             .ToList();
                         if (boundedPoints.Count == 0)
                         {
@@ -169,12 +185,12 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                         }
 
                         AddPaddedAabbCodes(
-                            boundedPoints.Min(point => point.Latitude!.Value),
-                            boundedPoints.Max(point => point.Latitude!.Value),
-                            boundedPoints.Min(point => point.Longitude!.Value),
-                            boundedPoints.Max(point => point.Longitude!.Value),
-                            boundedPoints.Min(point => point.TVD!.Value),
-                            boundedPoints.Max(point => point.TVD!.Value),
+                            boundedPoints.Min(point => point.Latitude),
+                            boundedPoints.Max(point => point.Latitude),
+                            boundedPoints.Min(point => point.Longitude),
+                            boundedPoints.Max(point => point.Longitude),
+                            boundedPoints.Min(point => point.TVD),
+                            boundedPoints.Max(point => point.TVD),
                             latitudeCellSize,
                             longitudeCellSize,
                             verticalCellSize,

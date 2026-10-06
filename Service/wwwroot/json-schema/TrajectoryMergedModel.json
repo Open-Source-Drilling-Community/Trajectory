@@ -50626,7 +50626,52 @@
           "GXY_GD",
           "GXY_RW",
           "GZ_GD",
-          "GZ_RW"
+          "GZ_RW",
+          "DSTS",
+          "XCLI1",
+          "XCLI2",
+          "AMIL",
+          "ABIXY_TI1",
+          "ABIXY_TI2",
+          "ABIZ",
+          "ASIXY_TI1",
+          "ASIXY_TI2",
+          "ASIXY_TI3",
+          "ASIZ",
+          "MBIXY_TI1",
+          "MBIXY_TI2",
+          "MSIXY_TI1",
+          "MSIXY_TI2",
+          "MSIXY_TI3",
+          "MFI",
+          "MDI",
+          "CNA",
+          "CNI",
+          "ABXY_TI1",
+          "ABXY_TI2",
+          "ASXY_TI1",
+          "ASXY_TI2",
+          "ASXY_TI3",
+          "DEC",
+          "DBH",
+          "ASIXY_TI1S",
+          "ASIXY_TI2S",
+          "ASIXY_TI3S",
+          "MBIXY_TI1S",
+          "MBIXY_TI2S",
+          "MSIXY_TI1S",
+          "MSIXY_TI2S",
+          "MSIXY_TI3S",
+          "MDIR",
+          "MFIR",
+          "MFI_U",
+          "MFI_OS",
+          "MFI_OH",
+          "MFI_OI",
+          "MDI_U",
+          "MDI_OS",
+          "MDI_OH",
+          "MDI_OI"
         ],
         "type": "string"
       },
@@ -50637,7 +50682,22 @@
             "$ref": "#/components/schemas/MetaInfo"
           },
           "ErrorCode": {
-            "$ref": "#/components/schemas/ErrorCode"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ErrorCode"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:survey-error-source-code",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [
+                "error-model version"
+              ],
+              "constraints": [ ]
+            }
           },
           "Description": {
             "type": "string",
@@ -50645,7 +50705,36 @@
           },
           "Index": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:error-source-ordering-index",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [ ],
+              "constraints": [
+                "Do not use this index as the error-source identity."
+              ]
+            }
+          },
+          "PropagationMode": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/ErrorPropagationMode"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:error-propagation-mode",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [ ],
+              "constraints": [
+                "Random, Systematic, Global and Well-by-Well are distinct modes."
+              ]
+            }
           },
           "IsSystematic": {
             "type": "boolean"
@@ -50672,10 +50761,11 @@
               "catalogueVersion": "0.15.0",
               "concept": "urn:osdc:semantic:k-operator-imposed",
               "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
+              "assertionSource": "provider-model-attribute",
               "requiredContext": [
                 "specific ISCWSA implementation"
-              ]
+              ],
+              "constraints": [ ]
             }
           },
           "Magnitude": {
@@ -50685,15 +50775,40 @@
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
               "catalogueVersion": "0.15.0",
-              "concept": "urn:osdc:semantic:vector-magnitude",
+              "concept": "urn:osdc:semantic:survey-error-magnitude",
               "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [ ]
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [
+                "error-source code",
+                "magnitude physical quantity",
+                "underlying measurand",
+                "distribution",
+                "physical quantity and units"
+              ],
+              "constraints": [
+                "The physical quantity is determined by the error-source definition.",
+                "This is not a signed correction or coordinate.",
+                "Uses the same unit dimension as the scalar measurand, not its squared unit.",
+                "A reference surface does not offset a standard deviation."
+              ]
             }
           },
           "MagnitudeQuantity": {
             "type": "string",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:error-magnitude-quantity-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [
+                "error-source code"
+              ],
+              "constraints": [
+                "The identifier must be compatible with the selected error-source code."
+              ]
+            }
           },
           "UseInclinationInterval": {
             "type": "boolean"
@@ -50740,7 +50855,23 @@
             "nullable": true
           },
           "ModelType": {
-            "$ref": "#/components/schemas/SurveyInstrumentModelType"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/SurveyInstrumentModelType"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:survey-instrument-model",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [
+                "tool family",
+                "position uncertainty model"
+              ],
+              "constraints": [ ]
+            }
           },
           "ErrorSourceList": {
             "type": "array",
@@ -50815,16 +50946,76 @@
           },
           "EarthRotRate": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:earth-angular-velocity",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "siUnit": "rad/s",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "046cb449-8cab-4d0c-bb28-3e2060f292e5",
+                "name": "AngularVelocityDrilling",
+                "siUnitName": "radian per second"
+              },
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           },
           "CantAngle": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:survey-instrument-cant-angle",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "reference": "urn:osdc:semantic:orthogonal-body-frame-cant-convention",
+              "siUnit": "rad",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "94ad3e73-2a44-4c60-bbca-188b941f3357",
+                "name": "PlaneAngleDrilling",
+                "siUnitName": "radian"
+              },
+              "requiredContext": [
+                "tool body frame",
+                "tool inclination",
+                "K-operator treatment above 90 degrees"
+              ],
+              "constraints": [ ],
+              "referenceDefinition": "Cant is measured in the orthogonal tool body frame about the along-hole z axis; the declared positive convention applies for tool inclination less than or equal to 90 degrees.",
+              "referenceRequiredContext": [
+                "K-operator treatment above 90 degrees"
+              ]
+            }
           },
           "GyroRunningSpeed": {
             "type": "number",
             "format": "double",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:survey-tool-running-speed",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "siUnit": "m/s",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion",
+                "id": "b3fd17fe-ce71-4ef3-ac99-cf4f5756e81a",
+                "name": "Velocity",
+                "siUnitName": "metre per second"
+              },
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           },
           "ExtRefInitInc": {
             "type": "number",
@@ -50834,17 +51025,75 @@
           "GyroSwitching": {
             "type": "number",
             "format": "double",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:gyro-switching-parameter",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "siUnit": "1",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion",
+                "id": "97555d61-9fc3-4769-9143-6bc2bf51b2d7",
+                "name": "ProportionStandard",
+                "siUnitName": "proportion"
+              },
+              "requiredContext": [
+                "gyro model",
+                "cant-angle convention"
+              ],
+              "constraints": [
+                "Permitted values are +1 and -1."
+              ]
+            }
           },
           "GyroMinDist": {
             "type": "number",
             "format": "double",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:gyro-reinitialization-distance",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "siUnit": "m",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion",
+                "id": "3716ad37-2b0c-4c0b-8936-6c9cdb47ad1d",
+                "name": "LengthStandard",
+                "siUnitName": "metre"
+              },
+              "requiredContext": [ ],
+              "constraints": [
+                "This is an interval extent, not a depth coordinate."
+              ]
+            }
           },
           "GyroNoiseRed": {
             "type": "number",
             "format": "double",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:gyro-noise-reduction-factor",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "siUnit": "1",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion",
+                "id": "97555d61-9fc3-4769-9143-6bc2bf51b2d7",
+                "name": "ProportionStandard",
+                "siUnitName": "proportion"
+              },
+              "requiredContext": [ ],
+              "constraints": [ ]
+            }
           },
           "UseRelDepthError": {
             "type": "boolean"
@@ -50919,52 +51168,6 @@
       "SurveyPoint": {
         "type": "object",
         "properties": {
-          "Z": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Abscissa": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Inclination": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "x-osdc-semantic": {
-              "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.15.0",
-              "concept": "urn:osdc:semantic:wellbore-inclination",
-              "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [
-                "evaluation position",
-                "reference",
-                "axis/sign convention"
-              ],
-              "reference": "urn:osdc:semantic:wgs84-downward-normal",
-              "siUnit": "rad",
-              "physicalQuantityStatus": "resolved",
-              "physicalQuantity": {
-                "catalogue": "Conversion.DrillingEngineering",
-                "id": "94ad3e73-2a44-4c60-bbca-188b941f3357",
-                "name": "PlaneAngleDrilling",
-                "siUnitName": "radian"
-              }
-            }
-          },
-          "Azimuth": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "MD": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
           "X": {
             "type": "number",
             "format": "double",
@@ -50975,7 +51178,7 @@
             "format": "double",
             "nullable": true
           },
-          "TVD": {
+          "Z": {
             "type": "number",
             "format": "double",
             "nullable": true
@@ -51081,6 +51284,47 @@
               }
             }
           },
+          "TVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Abscissa": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Inclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:wellbore-inclination",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "evaluation position",
+                "reference",
+                "axis/sign convention"
+              ],
+              "reference": "urn:osdc:semantic:wgs84-downward-normal",
+              "siUnit": "rad",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "94ad3e73-2a44-4c60-bbca-188b941f3357",
+                "name": "PlaneAngleDrilling",
+                "siUnitName": "radian"
+              }
+            }
+          },
+          "Azimuth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
           "Curvature": {
             "type": "number",
             "format": "double",
@@ -51137,6 +51381,11 @@
             "nullable": true
           },
           "VerticalSection": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "MD": {
             "type": "number",
             "format": "double",
             "nullable": true
@@ -51150,52 +51399,6 @@
       "SurveyStation": {
         "type": "object",
         "properties": {
-          "Z": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Abscissa": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "Inclination": {
-            "type": "number",
-            "format": "double",
-            "nullable": true,
-            "x-osdc-semantic": {
-              "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.15.0",
-              "concept": "urn:osdc:semantic:wellbore-inclination",
-              "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [
-                "evaluation position",
-                "reference",
-                "axis/sign convention"
-              ],
-              "reference": "urn:osdc:semantic:wgs84-downward-normal",
-              "siUnit": "rad",
-              "physicalQuantityStatus": "resolved",
-              "physicalQuantity": {
-                "catalogue": "Conversion.DrillingEngineering",
-                "id": "94ad3e73-2a44-4c60-bbca-188b941f3357",
-                "name": "PlaneAngleDrilling",
-                "siUnitName": "radian"
-              }
-            }
-          },
-          "Azimuth": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
-          "MD": {
-            "type": "number",
-            "format": "double",
-            "nullable": true
-          },
           "X": {
             "type": "number",
             "format": "double",
@@ -51206,7 +51409,7 @@
             "format": "double",
             "nullable": true
           },
-          "TVD": {
+          "Z": {
             "type": "number",
             "format": "double",
             "nullable": true
@@ -51312,6 +51515,47 @@
               }
             }
           },
+          "TVD": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Abscissa": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "Inclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.15.0",
+              "concept": "urn:osdc:semantic:wellbore-inclination",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "evaluation position",
+                "reference",
+                "axis/sign convention"
+              ],
+              "reference": "urn:osdc:semantic:wgs84-downward-normal",
+              "siUnit": "rad",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "94ad3e73-2a44-4c60-bbca-188b941f3357",
+                "name": "PlaneAngleDrilling",
+                "siUnitName": "radian"
+              }
+            }
+          },
+          "Azimuth": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
           "Curvature": {
             "type": "number",
             "format": "double",
@@ -51368,6 +51612,11 @@
             "nullable": true
           },
           "VerticalSection": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "MD": {
             "type": "number",
             "format": "double",
             "nullable": true
@@ -60464,7 +60713,14 @@
           "Global"
         ],
         "type": "string",
-        "description": "Mutually exclusive ISCWSA Revision 5 correlation mode: Random (R) is independent between survey stations; Systematic (S) is correlated between stations in the same survey leg but independent between legs; WellByWell (W) is correlated across legs within the same well but independent between wells; Global (G) is fully correlated across all survey stations, legs, and wells in the project or field. Null is reserved for readable legacy records whose mode is derived from the deprecated boolean flags."
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.15.0",
+          "concept": "urn:osdc:semantic:error-propagation-mode",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-binding-registry",
+          "requiredContext": [ ]
+        }
       },
       "SurveyInstrumentBatchCatalogDependencies": {
         "type": "object",
