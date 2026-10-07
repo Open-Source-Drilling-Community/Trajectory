@@ -96,6 +96,7 @@ internal static class TrajectoryProviderSemantics
                     ? Concepts.ImmediateCalculationSubmission
                     : Concepts.QueuedCalculationSubmission,
             _ when action.StartsWith("Put", StringComparison.Ordinal) => Concepts.QueuedCalculationReplacement,
+            _ when action.StartsWith("Delete", StringComparison.Ordinal) => Concepts.CalculationCaseDeletion,
             "GetStatus" => Concepts.CalculationStatusRetrieval,
             _ when action.Contains("Chunk", StringComparison.Ordinal) &&
                    !action.Contains("ChunkCount", StringComparison.Ordinal) => Concepts.CalculationResultChunkRetrieval,

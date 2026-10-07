@@ -652,6 +652,7 @@ public sealed class McpToolRegistrationTests
     {
         TrajectoryMcpEndpoint targetPost = Endpoint("target_landing_case_post");
         TrajectoryMcpEndpoint targetStatus = Endpoint("target_landing_case_get_status");
+        TrajectoryMcpEndpoint targetDelete = Endpoint("target_landing_case_delete");
         TrajectoryMcpEndpoint ellipsePost = Endpoint("survey_station_ellipse_calculation_post_survey_station_ellipse_calculation");
         TrajectoryMcpEndpoint interpolationPost = Endpoint("interpolated_trajectory_post_interpolated_trajectory");
         TrajectoryMcpEndpoint interpolationChunk = TrajectoryRestMcpToolRegistrations.Endpoints.Single(value =>
@@ -662,6 +663,7 @@ public sealed class McpToolRegistrationTests
         {
             AssertSemantic(targetPost, Concepts.TargetLandingCase, Concepts.QueuedCalculationSubmission);
             AssertSemantic(targetStatus, Concepts.TargetLandingCase, Concepts.CalculationStatusRetrieval);
+            AssertSemantic(targetDelete, Concepts.TargetLandingCase, Concepts.CalculationCaseDeletion);
             AssertSemantic(ellipsePost, Concepts.SurveyStationEllipseCalculation, Concepts.ImmediateCalculationSubmission);
             AssertSemantic(interpolationPost, Concepts.InterpolatedTrajectory, Concepts.QueuedCalculationSubmission);
             AssertSemantic(interpolationChunk, Concepts.InterpolatedTrajectory, Concepts.CalculationResultChunkRetrieval);
@@ -671,7 +673,7 @@ public sealed class McpToolRegistrationTests
     private static void AssertSemantic(TrajectoryMcpEndpoint endpoint, string concept, string role)
     {
         JsonObject semantic = endpoint.InputSchema["x-osdc-semantic"]!.AsObject();
-        Assert.That(semantic["catalogueVersion"]!.GetValue<string>(), Is.EqualTo("0.15.0"), endpoint.Name);
+        Assert.That(semantic["catalogueVersion"]!.GetValue<string>(), Is.EqualTo("0.16.0"), endpoint.Name);
         Assert.That(semantic["concept"]!.GetValue<string>(), Is.EqualTo(concept), endpoint.Name);
         Assert.That(semantic["role"]!.GetValue<string>(), Is.EqualTo(role), endpoint.Name);
     }

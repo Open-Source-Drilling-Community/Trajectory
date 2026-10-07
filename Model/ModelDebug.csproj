@@ -19,8 +19,9 @@
 	</ItemGroup>
 
 	<ItemGroup>
-	  <ProjectReference Include="..\..\DotNetLibraries\OSDC.DotnetLibraries.General\OSDC.DotnetLibraries.Drilling.Section\OSDC.DotnetLibraries.Drilling.SectionDebug.csproj" />
-	  <ProjectReference Include="..\..\DotNetLibraries\OSDC.DotnetLibraries.General\OSDC.DotnetLibraries.Drilling.Surveying\OSDC.DotnetLibraries.Drilling.SurveyingDebug.csproj" />
+	  <PackageReference Include="OSDC.DotnetLibraries.Drilling.Section" Version="1.2.5" />
+	  <PackageReference Include="OSDC.DotnetLibraries.Drilling.Surveying" Version="1.3.6" />
+	  <ProjectReference Include="..\GlobalAntiCollision\GlobalAntiCollisionDebug.csproj" />
 	  <ProjectReference Include="..\ModelSharedIn\ModelSharedIn.csproj" />
 	</ItemGroup>
 
