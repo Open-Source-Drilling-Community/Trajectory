@@ -158,3 +158,5 @@ dotnet build .\Trajectory.sln --no-restore
 Public-contract changes require rebuilding `Service` to refresh `ModelSharedOut/json-schemas/TrajectoryFullName.json`, then running `ModelSharedOut` and accepting its overwrite prompt. This regenerates `TrajectoryMergedModel.cs`, `PseudoConstructors.cs`, and `Service/wwwroot/json-schema/TrajectoryMergedModel.json`; generated client files must not be repaired by hand.
 
 Self-contained service tests can run without a server. The generated-client and MCP transport integration tests expect the service at `http://localhost:8080/` with its `/Trajectory/api` path base. See the project READMEs for the precise commands and isolation requirements.
+
+Trajectory REST and MCP contracts now explicitly bind survey MD/Abscissa, WGS84 TVD/Z, Riemannian coordinates, metadata, UUID lookup arguments and relationship identifiers to SemanticCatalogue 0.16.0. See [semantic bindings](SEMANTIC-BINDINGS.md) for aliases, reference conventions and discovery scope.

@@ -49657,18 +49657,33 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class SurveyPoint
     {
 
+        /// <summary>
+        /// WGS84 Riemannian north coordinate in SI metres: signed meridian arc from the equator, north positive. X and RiemannianNorth are aliases; this is not an arbitrary projected northing.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("X")]
         public double? X { get; set; }
 
+        /// <summary>
+        /// WGS84 Riemannian east coordinate in SI metres: signed arc along the latitude parallel from Greenwich, east positive. Y and RiemannianEast are aliases; this is not an arbitrary projected easting.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Y")]
         public double? Y { get; set; }
 
+        /// <summary>
+        /// True vertical depth (TVD) in SI metres, positive downward relative to the WGS84 ellipsoid in persisted Trajectory survey data. Z and TVD are aliases; this is not measured depth or an elevation.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Z")]
         public double? Z { get; set; }
 
+        /// <summary>
+        /// WGS84 Riemannian north coordinate in SI metres: signed meridian arc from the equator, north positive. X and RiemannianNorth are aliases; this is not an arbitrary projected northing.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("RiemannianNorth")]
         public double? RiemannianNorth { get; set; }
 
+        /// <summary>
+        /// WGS84 Riemannian east coordinate in SI metres: signed arc along the latitude parallel from Greenwich, east positive. Y and RiemannianEast are aliases; this is not an arbitrary projected easting.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("RiemannianEast")]
         public double? RiemannianEast { get; set; }
 
@@ -49678,9 +49693,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Longitude")]
         public double? Longitude { get; set; }
 
+        /// <summary>
+        /// True vertical depth (TVD) in SI metres, positive downward relative to the WGS84 ellipsoid in persisted Trajectory survey data. Z and TVD are aliases; this is not measured depth or an elevation.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("TVD")]
         public double? TVD { get; set; }
 
+        /// <summary>
+        /// Measured depth (MD), the curvilinear coordinate along this trajectory/survey run, in SI metres from its declared MD origin. MD and Abscissa are aliases. This is not true vertical depth; a vertical datum offset alone does not change an MD origin.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Abscissa")]
         public double? Abscissa { get; set; }
 
@@ -49705,6 +49726,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("VerticalSection")]
         public double? VerticalSection { get; set; }
 
+        /// <summary>
+        /// Measured depth (MD), the curvilinear coordinate along this trajectory/survey run, in SI metres from its declared MD origin. MD and Abscissa are aliases. This is not true vertical depth; a vertical datum offset alone does not change an MD origin.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MD")]
         public double? MD { get; set; }
 
@@ -49726,18 +49750,33 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class SurveyStation
     {
 
+        /// <summary>
+        /// WGS84 Riemannian north coordinate in SI metres: signed meridian arc from the equator, north positive. X and RiemannianNorth are aliases; this is not an arbitrary projected northing.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("X")]
         public double? X { get; set; }
 
+        /// <summary>
+        /// WGS84 Riemannian east coordinate in SI metres: signed arc along the latitude parallel from Greenwich, east positive. Y and RiemannianEast are aliases; this is not an arbitrary projected easting.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Y")]
         public double? Y { get; set; }
 
+        /// <summary>
+        /// True vertical depth (TVD) in SI metres, positive downward relative to the WGS84 ellipsoid in persisted Trajectory survey data. Z and TVD are aliases; this is not measured depth or an elevation.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Z")]
         public double? Z { get; set; }
 
+        /// <summary>
+        /// WGS84 Riemannian north coordinate in SI metres: signed meridian arc from the equator, north positive. X and RiemannianNorth are aliases; this is not an arbitrary projected northing.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("RiemannianNorth")]
         public double? RiemannianNorth { get; set; }
 
+        /// <summary>
+        /// WGS84 Riemannian east coordinate in SI metres: signed arc along the latitude parallel from Greenwich, east positive. Y and RiemannianEast are aliases; this is not an arbitrary projected easting.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("RiemannianEast")]
         public double? RiemannianEast { get; set; }
 
@@ -49747,9 +49786,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Longitude")]
         public double? Longitude { get; set; }
 
+        /// <summary>
+        /// True vertical depth (TVD) in SI metres, positive downward relative to the WGS84 ellipsoid in persisted Trajectory survey data. Z and TVD are aliases; this is not measured depth or an elevation.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("TVD")]
         public double? TVD { get; set; }
 
+        /// <summary>
+        /// Measured depth (MD), the curvilinear coordinate along this trajectory/survey run, in SI metres from its declared MD origin. MD and Abscissa are aliases. This is not true vertical depth; a vertical datum offset alone does not change an MD origin.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Abscissa")]
         public double? Abscissa { get; set; }
 
@@ -49774,6 +49819,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("VerticalSection")]
         public double? VerticalSection { get; set; }
 
+        /// <summary>
+        /// Measured depth (MD), the curvilinear coordinate along this trajectory/survey run, in SI metres from its declared MD origin. MD and Abscissa are aliases. This is not true vertical depth; a vertical datum offset alone does not change an MD origin.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("MD")]
         public double? MD { get; set; }
 
@@ -53447,18 +53495,33 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class CurvilinearPoint3D
     {
 
+        /// <summary>
+        /// WGS84 Riemannian north coordinate in SI metres: signed meridian arc from the equator, north positive. X and RiemannianNorth are aliases; this is not an arbitrary projected northing.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("X")]
         public double? X { get; set; }
 
+        /// <summary>
+        /// WGS84 Riemannian east coordinate in SI metres: signed arc along the latitude parallel from Greenwich, east positive. Y and RiemannianEast are aliases; this is not an arbitrary projected easting.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Y")]
         public double? Y { get; set; }
 
+        /// <summary>
+        /// True vertical depth (TVD) in SI metres, positive downward relative to the WGS84 ellipsoid in persisted Trajectory survey data. Z and TVD are aliases; this is not measured depth or an elevation.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("Z")]
         public double? Z { get; set; }
 
+        /// <summary>
+        /// WGS84 Riemannian north coordinate in SI metres: signed meridian arc from the equator, north positive. X and RiemannianNorth are aliases; this is not an arbitrary projected northing.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("RiemannianNorth")]
         public double? RiemannianNorth { get; set; }
 
+        /// <summary>
+        /// WGS84 Riemannian east coordinate in SI metres: signed arc along the latitude parallel from Greenwich, east positive. Y and RiemannianEast are aliases; this is not an arbitrary projected easting.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("RiemannianEast")]
         public double? RiemannianEast { get; set; }
 
@@ -53468,6 +53531,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("Longitude")]
         public double? Longitude { get; set; }
 
+        /// <summary>
+        /// True vertical depth (TVD) in SI metres, positive downward relative to the WGS84 ellipsoid in persisted Trajectory survey data. Z and TVD are aliases; this is not measured depth or an elevation.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("TVD")]
         public double? TVD { get; set; }
 

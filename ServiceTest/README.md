@@ -87,3 +87,5 @@ dotnet test ServiceTest/ServiceTest.csproj --filter "FullyQualifiedName~SqlConne
 ```
 
 The service must be available at the test base URL (port 8080 in the current local setup) before running the MCP HTTP tests.
+
+Semantic contract tests validate MD/TVD aliases and SI quantities, identifier lookup and relationship scope, discovery metadata, catalogue noun/role/reference kinds, and the absence of a WGS84-depth annotation on an arbitrary vector Z. REST/merged schema tests verify that generation preserves these bindings.

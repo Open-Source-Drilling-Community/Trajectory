@@ -171,6 +171,8 @@ internal static class TrajectoryMcpToolMetadata
             string name = parameter.Name!;
             JsonObject schema = SchemaFor(parameter.ParameterType, definitions, building);
             schema["description"] = DescribeParameter(controller, method.Name, parameter);
+            if (TrajectoryProviderSemantics.ForParameter(controller, parameter) is { } parameterMetadata)
+                TrajectoryProviderSemantics.AttachMcpPropertyMetadata(schema, parameterMetadata, parameter.ParameterType);
             if (name == "chunkIndex") schema["minimum"] = 0;
             if (name == "offset") schema["minimum"] = 0;
             if (name == "limit")
@@ -222,6 +224,14 @@ internal static class TrajectoryMcpToolMetadata
             : SchemaFor(payloadType, definitions, building);
         data["description"] = "Successful response payload when the controller returns a body.";
         properties["data"] = data;
+        string? controller = method.DeclaringType?.Name.Replace("Controller", "", StringComparison.Ordinal);
+        if (controller != null && TrajectoryProviderSemantics.ResourceForController(controller) is { } resource)
+        {
+            var payload = data["items"] as JsonObject ?? data;
+            if (payload["format"]?.ToString() == "uuid")
+                payload[SemanticMetadata.ExtensionName] = TrajectoryProviderSemantics.IdentifierForResource(resource);
+            payload["x-osdc-resource-type"] = resource;
+        }
 
         var result = new JsonObject
         {
@@ -682,9 +692,9 @@ internal static class TrajectoryMcpToolMetadata
                 schema = AllowNull(schema);
             }
             ApplyDomainConstraints(type, property, schema, required);
-            schema["description"] = DescribeProperty(type, property.Name);
+            schema["description"] = TrajectoryProviderSemantics.PropertyDescription(type, property.Name) ?? DescribeProperty(type, property.Name);
             if (TrajectoryProviderSemantics.ForProperty(property) is { } propertyMetadata)
-                schema[SemanticMetadata.ExtensionName] = propertyMetadata;
+                TrajectoryProviderSemantics.AttachMcpPropertyMetadata(schema, propertyMetadata, property.PropertyType);
             properties[property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name] = schema;
         }
 

@@ -184,3 +184,5 @@ Catalogs are stored in `Trajectory.db`, like the sibling DigiWells microservices
 ### Target-landing uncertainty display
 
 `GET TargetLandingCase/{id}/UncertaintyDisplayData` is the lazy companion to the compact target-landing display projection. It calculates only MD-keyed perpendicular ellipse parameters for the source trajectory and sampled lead at the case confidence. It omits duplicate stations, horizontal and vertical ellipses, and extreme paths; landing endpoints already carry their target-plane projected ellipse in the ordinary display result.
+
+Survey geometric bindings are type-scoped and shared by REST and MCP. MD/Abscissa use reviewed along-hole-depth; Z/TVD use true-vertical-depth with WGS84 and DepthDrilling metadata. Resource metadata, UUID parameters and relationship identifiers are bound explicitly. See [semantic bindings](../SEMANTIC-BINDINGS.md).

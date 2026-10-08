@@ -102,3 +102,5 @@ If a realization attempt cannot be completed, the model draws a new realization 
 This project also contains DocFX-related files used for documentation generation.
 
 `SurveyStationEllipseCalculation.CalculatePerpendicularOnly` supports compact three-dimensional uncertainty displays without calculating unused horizontal, vertical, or extreme-TVD results.
+
+The provider describes inherited SurveyStation/SurveyPoint aliases through its shared semantic registry, without replacing package-owned domain classes. MD retains its declared path origin, while persisted TVD is positive downward relative to WGS84. See [semantic bindings](../SEMANTIC-BINDINGS.md).

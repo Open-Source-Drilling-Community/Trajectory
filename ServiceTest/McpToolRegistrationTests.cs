@@ -678,6 +678,74 @@ public sealed class McpToolRegistrationTests
         Assert.That(semantic["role"]!.GetValue<string>(), Is.EqualTo(role), endpoint.Name);
     }
 
+    [Test]
+    public void Survey_station_aliases_have_explicit_depth_coordinate_and_quantity_bindings()
+    {
+        var endpoint=Endpoint("trajectory_get_trajectory_by_id");
+        var properties=endpoint.OutputSchema["$defs"]!["SurveyStation"]!["properties"]!;
+        void Check(string name,string concept,string? reference,string? alias=null)
+        {
+            var metadata=properties[name]![SemanticMetadata.ExtensionName]!;
+            Assert.That(metadata["concept"]!.ToString(),Is.EqualTo(concept),name);
+            Assert.That(metadata["reference"]?.ToString(),Is.EqualTo(reference),name);
+            Assert.That(metadata["siUnit"]!.ToString(),Is.EqualTo("m"),name);
+            Assert.That(metadata["physicalQuantity"]?["id"],Is.Not.Null,name);
+            Assert.That(metadata["valueAliasOf"]?.ToString(),Is.EqualTo(alias),name);
+        }
+        Check("Abscissa",Concepts.AlongHoleDepth,null);
+        Check("MD",Concepts.AlongHoleDepth,null,"Abscissa");
+        Check("Z",Concepts.TrueVerticalDepth,Concepts.Wgs84);
+        Check("TVD",Concepts.TrueVerticalDepth,Concepts.Wgs84,"Z");
+        Check("X",Concepts.RiemannianNorth,Concepts.Wgs84RiemannianCoordinates);
+        Check("Y",Concepts.RiemannianEast,Concepts.Wgs84RiemannianCoordinates);
+        Assert.That(properties["Abscissa"]!["description"]!.ToString(),Does.Contain("declared MD origin"));
+        Assert.That(properties["Z"]!["description"]!.ToString(),Does.Contain("positive downward"));
+    }
+
+    [Test]
+    public void Discovery_and_uuid_arguments_expose_resource_identity_and_relationship_scope()
+    {
+        var endpoint=Endpoint("trajectory_get_trajectory_by_id");
+        var id=endpoint.InputSchema["properties"]!["id"]![SemanticMetadata.ExtensionName]!;
+        Assert.That(id["concept"]!.ToString(),Is.EqualTo(Concepts.ResourceIdentifier));
+        Assert.That(id["resourceType"]!.ToString(),Is.EqualTo(Concepts.Trajectory));
+        var metadata=Endpoint("trajectory_get_all_trajectory_meta_info").OutputSchema["$defs"]!["MetaInfo"]!;
+        Assert.That(metadata[SemanticMetadata.ExtensionName]!["concept"]!.ToString(),Is.EqualTo(Concepts.ResourceMetadata));
+        Assert.That(metadata["properties"]!["ID"]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),Is.EqualTo(Concepts.ResourceIdentifier));
+        var trajectory=endpoint.OutputSchema["$defs"]!["Trajectory"]!["properties"]!;
+        Assert.That(trajectory["Name"]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),Is.EqualTo(Concepts.ResourceName));
+        Assert.That(trajectory["WellBoreID"]![SemanticMetadata.ExtensionName]!["resourceType"]!.ToString(),Is.EqualTo(Concepts.WellBore));
+        Assert.That(trajectory["CalculationType"]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),Is.EqualTo(Concepts.TrajectoryCalculationMethod));
+    }
+
+    [Test]
+    public void All_published_value_bindings_are_catalogue_nouns_and_roles_are_roles()
+    {
+        void Check(JsonNode? node)
+        {
+            if(node is JsonObject obj)
+            {
+                if(obj[SemanticMetadata.ExtensionName] is JsonObject metadata)
+                {
+                    Assert.That(SemanticCatalogue.Default.Get(metadata["concept"]!.ToString()).Kind,Is.EqualTo(SemanticKind.Noun));
+                    if(metadata["role"] is {} role)Assert.That(SemanticCatalogue.Default.Get(role.ToString()).Kind,Is.EqualTo(SemanticKind.Role));
+                    if(metadata["reference"] is {} reference)Assert.That(SemanticCatalogue.Default.Get(reference.ToString()).Kind,Is.EqualTo(SemanticKind.Reference));
+                    if(metadata["resourceType"] is {} resource)Assert.That(SemanticCatalogue.Default.Get(resource.ToString()).Kind,Is.EqualTo(SemanticKind.Noun));
+                }
+                foreach(var pair in obj)Check(pair.Value);
+            }
+            else if(node is JsonArray array)foreach(var value in array)Check(value);
+        }
+        foreach(var endpoint in TrajectoryRestMcpToolRegistrations.Endpoints){Check(endpoint.InputSchema);Check(endpoint.OutputSchema);}
+    }
+
+    [Test]
+    public void Arbitrary_vector_z_is_not_declared_as_a_wgs84_vertical_depth()
+    {
+        var property=typeof(OSDC.DotnetLibraries.General.Math.Vector3D).GetProperty("Z")!;
+        Assert.That(OSDC.Drilling.Trajectory.Service.TrajectoryProviderSemantics.ForProperty(property),Is.Null);
+    }
+
     private static TrajectoryMcpEndpoint Endpoint(string name) =>
         TrajectoryRestMcpToolRegistrations.Endpoints.Single(endpoint => endpoint.Name == name);
 }

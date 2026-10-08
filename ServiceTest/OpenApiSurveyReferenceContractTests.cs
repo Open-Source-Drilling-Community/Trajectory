@@ -7,6 +7,26 @@ namespace OSDC.Drilling.Trajectory.ServiceTest;
 public sealed class OpenApiSurveyReferenceContractTests
 {
     [Test]
+    public void Generated_rest_and_merged_contracts_preserve_station_and_lookup_bindings()
+    {
+        string root=Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,"..","..","..",".."));
+        foreach(var (path,type) in new[]{
+            (Path.Combine(root,"ModelSharedOut","json-schemas","TrajectoryFullName.json"),"OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation"),
+            (Path.Combine(root,"Service","wwwroot","json-schema","TrajectoryMergedModel.json"),"SurveyStation")})
+        {
+            var document=JsonNode.Parse(File.ReadAllText(path))!;
+            var properties=document["components"]!["schemas"]![type]!["properties"]!;
+            Assert.That(properties["Abscissa"]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),Is.EqualTo(Concepts.AlongHoleDepth),path);
+            Assert.That(properties["Z"]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),Is.EqualTo(Concepts.TrueVerticalDepth),path);
+            Assert.That(properties["Z"]![SemanticMetadata.ExtensionName]!["reference"]!.ToString(),Is.EqualTo(Concepts.Wgs84),path);
+            Assert.That(properties["Z"]![SemanticMetadata.ExtensionName]!["physicalQuantity"]!["name"]!.ToString(),Is.EqualTo("DepthDrilling"),path);
+            var id=document["paths"]!["/Trajectory/{id}"]!["get"]!["parameters"]!.AsArray().Single(p=>p!["name"]!.ToString()=="id")!;
+            Assert.That(id[SemanticMetadata.ExtensionName]!["concept"]!.ToString(),Is.EqualTo(Concepts.ResourceIdentifier),path);
+            Assert.That(id[SemanticMetadata.ExtensionName]!["resourceType"]!.ToString(),Is.EqualTo(Concepts.Trajectory),path);
+        }
+    }
+
+    [Test]
     public void Generated_openapi_exposes_reference_semantics_units_and_run_default_constraints()
     {
         string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,

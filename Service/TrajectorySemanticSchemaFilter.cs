@@ -26,8 +26,16 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
         if (TrajectoryProviderSemantics.ForType(context.Type) is { } typeMetadata)
             schema.Extensions[SemanticMetadata.ExtensionName] = OpenApiAnyFactory.CreateFromJson(typeMetadata.ToJsonString());
         foreach (var modelProperty in context.Type.GetProperties())
+        {
             if (schema.Properties.TryGetValue(modelProperty.Name, out var target) && TrajectoryProviderSemantics.ForProperty(modelProperty) is { } propertyMetadata)
-                AttachSemantic(target, OpenApiAnyFactory.CreateFromJson(propertyMetadata.ToJsonString()));
+                AttachSemantic(TrajectoryProviderSemantics.IsIdentifierCollection(modelProperty.PropertyType) && target.Items is not null ? target.Items : target,
+                    OpenApiAnyFactory.CreateFromJson(propertyMetadata.ToJsonString()));
+            if (schema.Properties.TryGetValue(modelProperty.Name, out var described) && TrajectoryProviderSemantics.PropertyDescription(context.Type, modelProperty.Name) is { } description)
+            {
+                WrapReferenceForOpenApi30Annotations(described);
+                described.Description = description;
+            }
+        }
 
         if (context.Type == typeof(TrajectoryExtrapolationCase) &&
             schema.Properties.TryGetValue("Specification", out OpenApiSchema? specification))

@@ -1,5 +1,8 @@
 using System.Reflection;
 using System.Text.Json.Nodes;
+using OSDC.DotnetLibraries.Drilling.Surveying;
+using OSDC.DotnetLibraries.General.Math;
+using OSDC.Drilling.Trajectory.Model;
 using OSDC.DotnetLibraries.Drilling.SemanticCatalogue;
 using Catalogue = OSDC.DotnetLibraries.Drilling.SemanticCatalogue.SemanticCatalogue;
 
@@ -11,7 +14,7 @@ internal static class TrajectoryProviderSemantics
     private static readonly IReadOnlyDictionary<string, (string Concept, string? Role, string? Reference)> Aliases =
         new Dictionary<string, (string, string?, string?)>(StringComparer.Ordinal)
         {
-            ["DrilledLength"] = (Concepts.MeasuredDepth, null, null),
+            ["DrilledLength"] = (Concepts.AlongHoleDepth, null, null),
             ["Wgs84Depth"] = (Concepts.EllipsoidalDepth, null, Concepts.Wgs84),
             ["GeodeticInclination"] = (Concepts.WellboreInclination, null, Concepts.Wgs84DownwardNormal),
             ["TrueNorthAzimuth"] = (Concepts.WellboreAzimuth, null, Concepts.TrueNorthClockwise),
@@ -26,6 +29,17 @@ internal static class TrajectoryProviderSemantics
             ["AppliedAzimuthCorrection"] = (Concepts.AppliedAzimuthCorrection, null, null),
             ["MagneticDeclination"] = (Concepts.MagneticDeclination, null, null),
             ["Acceleration"] = (Concepts.GravityAcceleration, null, null),
+            ["MetaInfo"] = (Concepts.ResourceMetadata, null, null),
+            ["Name"] = (Concepts.ResourceName, null, null),
+            ["Description"] = (Concepts.ResourceDescription, null, null),
+            ["CreationDate"] = (Concepts.Instant, Concepts.CreationTime, Concepts.Utc),
+            ["LastModificationDate"] = (Concepts.Instant, Concepts.LastModificationTime, Concepts.Utc),
+            ["CalculationType"] = (Concepts.TrajectoryCalculationMethod, null, null),
+            ["MDStep"] = (Concepts.InterpolationInterval, null, null),
+            ["StartAbscissa"] = (Concepts.AlongHoleDepth, null, null),
+            ["DLS"] = (Concepts.WellboreCurvature, null, null),
+            ["BUR"] = (Concepts.BuildRate, null, null),
+            ["TUR"] = (Concepts.TurnRate, null, null),
             ["GeodeticLatitude"] = (Concepts.Latitude, null, Concepts.Wgs84),
             ["GeodeticLongitude"] = (Concepts.Longitude, null, Concepts.Wgs84),
             ["CalculationMessage"] = (Concepts.CalculationDiagnosticMessage, null, null),
@@ -76,18 +90,129 @@ internal static class TrajectoryProviderSemantics
             if (!ConceptsByName.TryGetValue(binding, out string? concept)) return null;
             value = (concept, null, null);
         }
+        if (Catalogue.Default.Get(value.Concept).Kind != SemanticKind.Noun) return null;
         return Metadata(value.Concept, value.Role, value.Reference);
     }
 
     public static JsonObject? ForType(Type type) =>
+        typeof(TrajectoryLight).IsAssignableFrom(type) ? Metadata(Concepts.Trajectory, null, null) :
+        typeof(SurveyRunLight).IsAssignableFrom(type) ? Metadata(Concepts.SurveyRun, null, null) :
+        type == typeof(TrajectoryCalculationType) ? Metadata(Concepts.TrajectoryCalculationMethod, null, null) :
         SemanticMetadata.For(type) ?? For(type.Name);
 
-    public static JsonObject? ForProperty(PropertyInfo property) =>
-        SemanticMetadata.For(property) ?? For(property.Name);
+    public static JsonObject? ForProperty(PropertyInfo property)
+    {
+        // ReflectedType retains the actual survey context for inherited X/Y/Z/Abscissa.
+        // The same CLR names on an arbitrary vector or curvilinear object do not establish a datum.
+        Type? owner = property.ReflectedType ?? property.DeclaringType;
+        if (owner != null && typeof(Point3DGlobalCoordinates).IsAssignableFrom(owner))
+        {
+            var binding = property.Name switch
+            {
+                "Abscissa" or "MD" when typeof(SurveyPoint).IsAssignableFrom(owner) => (Concepts.AlongHoleDepth, (string?)null),
+                "X" or "RiemannianNorth" => (Concepts.RiemannianNorth, Concepts.Wgs84RiemannianCoordinates),
+                "Y" or "RiemannianEast" => (Concepts.RiemannianEast, Concepts.Wgs84RiemannianCoordinates),
+                "Z" or "TVD" => (Concepts.TrueVerticalDepth, Concepts.Wgs84),
+                "Latitude" => (Concepts.Latitude, Concepts.Wgs84),
+                "Longitude" => (Concepts.Longitude, Concepts.Wgs84),
+                "Inclination" => (Concepts.WellboreInclination, Concepts.Wgs84DownwardNormal),
+                "Azimuth" => (Concepts.WellboreAzimuth, Concepts.TrueNorthClockwise),
+                _ => ((string?)null, (string?)null)
+            };
+            if (binding.Item1 is { } concept)
+            {
+                var result = Metadata(concept, null, binding.Item2);
+                if (property.Name is "MD" or "TVD" or "RiemannianNorth" or "RiemannianEast")
+                    result["valueAliasOf"] = property.Name switch { "MD" => "Abscissa", "TVD" => "Z", "RiemannianNorth" => "X", _ => "Y" };
+                return result;
+            }
+        }
+        if (owner == typeof(SurveyMeasurement) && property.Name == "MD") return Metadata(Concepts.AlongHoleDepth, null, null);
+        if (owner == typeof(InterpolatedTrajectory) && property.Name == "InterpolationStep")
+            return Metadata(Concepts.InterpolationInterval, Concepts.CalculationInput, null);
+        if (owner == typeof(SurveyStationEllipse))
+        {
+            if (property.Name is "SemiMajorAxis" or "SemiMinorAxis")
+                return Metadata(Concepts.PhysicalLengthExtent, property.Name == "SemiMajorAxis" ? Concepts.SemiMajorAxis : Concepts.SemiMinorAxis, null);
+        }
+        if (property.PropertyType == typeof(Guid) || property.PropertyType == typeof(Guid?) || IsIdentifierCollection(property.PropertyType))
+        {
+            string? resource = ResourceForIdentifier(property.Name);
+            return Identifier(resource);
+        }
+        return SemanticMetadata.For(property) ?? For(property.Name);
+    }
+
+    public static JsonObject? ForParameter(string controller, ParameterInfo parameter)
+    {
+        string? resource = parameter.Name == "id" ? ResourceForController(controller) : ResourceForIdentifier(parameter.Name ?? "");
+        if ((parameter.ParameterType == typeof(Guid) || parameter.ParameterType == typeof(Guid?) || IsIdentifierCollection(parameter.ParameterType)) && resource != null)
+            return Identifier(resource);
+        if (parameter.Name == "expectedModifiedUtc")
+            return Metadata(Concepts.Instant, Concepts.LastModificationTime, Concepts.Utc);
+        return null;
+    }
+
+    public static string? ResourceForController(string controller) => controller switch
+    {
+        "Trajectory" => Concepts.Trajectory,
+        "SurveyRun" => Concepts.SurveyRun,
+        _ => CalculationConceptsByController.GetValueOrDefault(controller)
+    };
+
+    private static string? ResourceForIdentifier(string name) => name switch
+    {
+        "TrajectoryID" or "SourceTrajectoryID" or "ReferenceTrajectoryID" or "ComparisonTrajectoryID" or "trajectoryId" or "TrajectoryIDs" or "ComparisonTrajectoryIDs" or "trajectoryIds" => Concepts.Trajectory,
+        "SurveyRunID" or "ParentSurveyRunID" or "surveyRunId" or "SurveyRunIDs" or "surveyRunIds" => Concepts.SurveyRun,
+        "WellBoreID" or "wellBoreId" => Concepts.WellBore,
+        "WellID" or "wellId" => Concepts.Well,
+        "FieldID" or "fieldId" => Concepts.Field,
+        "ClusterID" or "clusterId" => Concepts.WellCluster,
+        _ => null
+    };
+
+    private static JsonObject Identifier(string? resource)
+    {
+        var metadata = Metadata(Concepts.ResourceIdentifier, null, null);
+        // A typed UUID remains an identifier noun, not a resource object or a datum.
+        if (resource != null) metadata["resourceType"] = resource;
+        return metadata;
+    }
+
+    public static JsonObject IdentifierForResource(string resource) => Identifier(resource);
+
+    public static bool IsIdentifierCollection(Type type) => type != typeof(string) &&
+        type.GetInterfaces().Append(type).Any(t => t.IsGenericType && t.GetGenericTypeDefinition() == typeof(IEnumerable<>) && t.GetGenericArguments()[0] == typeof(Guid));
+
+    public static void AttachMcpPropertyMetadata(JsonObject schema, JsonObject metadata, Type type)
+    {
+        var target = schema;
+        if (IsIdentifierCollection(type))
+        {
+            var array = schema["type"]?.ToString() == "array" ? schema :
+                (schema["anyOf"] as JsonArray)?.OfType<JsonObject>().SingleOrDefault(v => v["type"]?.ToString() == "array");
+            if (array?["items"] is JsonObject item) target = item;
+        }
+        target[SemanticMetadata.ExtensionName] = metadata;
+    }
+
+    public static string? PropertyDescription(Type owner, string name)
+    {
+        if (typeof(Point3DGlobalCoordinates).IsAssignableFrom(owner)) return name switch
+        {
+            "Abscissa" or "MD" when typeof(SurveyPoint).IsAssignableFrom(owner) => "Measured depth (MD), the curvilinear coordinate along this trajectory/survey run, in SI metres from its declared MD origin. MD and Abscissa are aliases. This is not true vertical depth; a vertical datum offset alone does not change an MD origin.",
+            "Z" or "TVD" => "True vertical depth (TVD) in SI metres, positive downward relative to the WGS84 ellipsoid in persisted Trajectory survey data. Z and TVD are aliases; this is not measured depth or an elevation.",
+            "X" or "RiemannianNorth" => "WGS84 Riemannian north coordinate in SI metres: signed meridian arc from the equator, north positive. X and RiemannianNorth are aliases; this is not an arbitrary projected northing.",
+            "Y" or "RiemannianEast" => "WGS84 Riemannian east coordinate in SI metres: signed arc along the latitude parallel from Greenwich, east positive. Y and RiemannianEast are aliases; this is not an arbitrary projected easting.",
+            _ => null
+        };
+        return null;
+    }
 
     public static JsonObject? ForOperation(string controller, MethodInfo method)
     {
-        if (!CalculationConceptsByController.TryGetValue(controller, out string? concept)) return null;
+        if (!CalculationConceptsByController.TryGetValue(controller, out string? concept))
+            return ResourceForController(controller) is { } resource ? Metadata(resource, null, null) : null;
         string action = method.Name;
         string? role = action switch
         {
@@ -113,6 +238,7 @@ internal static class TrajectoryProviderSemantics
     {
         var catalogue = Catalogue.Default;
         var definition = catalogue.Get(concept);
+        if (definition.Kind != SemanticKind.Noun) throw new InvalidOperationException("A value binding must identify a noun: " + concept);
         var result = new JsonObject
         {
             ["catalogue"] = catalogue.Document.Id,

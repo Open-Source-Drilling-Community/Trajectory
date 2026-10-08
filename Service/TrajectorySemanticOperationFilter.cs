@@ -16,5 +16,16 @@ internal sealed class TrajectorySemanticOperationFilter : IOperationFilter
         if (TrajectoryProviderSemantics.ForOperation(controller, context.MethodInfo) is { } metadata)
             operation.Extensions[SemanticMetadata.ExtensionName] =
                 OpenApiAnyFactory.CreateFromJson(metadata.ToJsonString());
+        foreach (var parameter in context.MethodInfo.GetParameters())
+            if (TrajectoryProviderSemantics.ForParameter(controller, parameter) is { } parameterMetadata &&
+                operation.Parameters.FirstOrDefault(p => p.Name == parameter.Name) is { } target)
+            {
+                target.Extensions[SemanticMetadata.ExtensionName] = OpenApiAnyFactory.CreateFromJson(parameterMetadata.ToJsonString());
+                if (target.Schema is not null)
+                {
+                    var schema = TrajectoryProviderSemantics.IsIdentifierCollection(parameter.ParameterType) && target.Schema.Items is not null ? target.Schema.Items : target.Schema;
+                    schema.Extensions[SemanticMetadata.ExtensionName] = OpenApiAnyFactory.CreateFromJson(parameterMetadata.ToJsonString());
+                }
+            }
     }
 }
