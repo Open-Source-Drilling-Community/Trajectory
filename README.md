@@ -162,3 +162,6 @@ Self-contained service tests can run without a server. The generated-client and 
 Trajectory REST and MCP contracts now explicitly bind survey MD/Abscissa, WGS84 TVD/Z, Riemannian coordinates, metadata, UUID lookup arguments and relationship identifiers to SemanticCatalogue 0.16.0. See [semantic bindings](SEMANTIC-BINDINGS.md) for aliases, reference conventions and discovery scope.
 
 `GET Trajectory/{id}/Station?alongHoleDepth=486` evaluates a complete station at the supplied MD in SI metres using the stored trajectory's calculation method. It is read-only, requires a completed trajectory and rejects extrapolation. The corresponding MCP tool exposes the typed trajectory UUID and along-hole-depth key; consumers can project any declared station quantity rather than use a separate operation for TVD, inclination or azimuth.
+
+
+Station evaluation synchronizes the geographic coordinate cache from canonical Riemannian north/east through the shared WGS84 implementation. Latitude/longitude can therefore feed downstream spatial-field queries even when interpolation populated only X/Y/Z.

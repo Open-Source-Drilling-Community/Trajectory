@@ -12,8 +12,14 @@ internal static class TrajectoryStationEvaluation
         if(depths.Any(d => d is null || !double.IsFinite(d.Value)) ||
             depths.Zip(depths.Skip(1)).Any(p => p.First >= p.Second) ||
             alongHoleDepth < depths[0] || alongHoleDepth > depths[^1]) return false;
-        return SurveyStation.InterpolateAtAbscissa(stations, alongHoleDepth, out station, trajectory.CalculationType) &&
-            station is not null && (station.MD ?? station.Abscissa) is {} evaluated &&
-            double.IsFinite(evaluated) && Math.Abs(evaluated - alongHoleDepth) <= 1e-8;
+        if(!SurveyStation.InterpolateAtAbscissa(stations, alongHoleDepth, out station, trajectory.CalculationType) ||
+            station is null || (station.MD ?? station.Abscissa) is not {} evaluated ||
+            !double.IsFinite(evaluated) || Math.Abs(evaluated - alongHoleDepth)>1e-8)return false;
+        // Survey interpolation may populate canonical Riemannian X/Y without
+        // updating its optional geographic cache. Expose the equivalent WGS84
+        // coordinates using the authoritative shared conversion implementation.
+        if(station.X is {} north && station.Y is {} east && double.IsFinite(north) && double.IsFinite(east))
+            station.SetLatitudeLongitude(north,east);
+        return true;
     }
 }
