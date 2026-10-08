@@ -145,6 +145,8 @@ internal static class TrajectoryProviderSemantics
 
     public static JsonObject? ForParameter(string controller, ParameterInfo parameter)
     {
+        if(controller == "Trajectory" && parameter.Member.Name == "GetTrajectoryStationAtAlongHoleDepth" && parameter.Name == "alongHoleDepth")
+            return Metadata(Concepts.AlongHoleDepth, null, null);
         string? resource = parameter.Name == "id" ? ResourceForController(controller) : ResourceForIdentifier(parameter.Name ?? "");
         if ((parameter.ParameterType == typeof(Guid) || parameter.ParameterType == typeof(Guid?) || IsIdentifierCollection(parameter.ParameterType)) && resource != null)
             return Identifier(resource);

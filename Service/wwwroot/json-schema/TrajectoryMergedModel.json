@@ -22017,6 +22017,132 @@
           }
         }
       }
+    },
+    "/Trajectory/{id}/Station": {
+      "get": {
+        "tags": [
+          "Trajectory"
+        ],
+        "operationId": "GetTrajectoryStationAtAlongHoleDepth",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.16.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:wellbore-trajectory"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.16.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:wellbore-trajectory"
+            }
+          },
+          {
+            "name": "alongHoleDepth",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.16.0",
+                "concept": "urn:osdc:semantic:along-hole-depth",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "wellbore path and applicable realization",
+                  "reference",
+                  "axis/sign convention",
+                  "axis or path",
+                  "coordinate origin",
+                  "increasing direction",
+                  "physical quantity specialization"
+                ],
+                "siUnit": "m",
+                "physicalQuantityStatus": "resolved",
+                "physicalQuantity": {
+                  "catalogue": "Conversion.DrillingEngineering",
+                  "id": "c0d965b2-a153-420a-9d03-7a2a272d619e",
+                  "name": "DepthDrilling",
+                  "siUnitName": "metre"
+                }
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.16.0",
+              "concept": "urn:osdc:semantic:along-hole-depth",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "wellbore path and applicable realization",
+                "reference",
+                "axis/sign convention",
+                "axis or path",
+                "coordinate origin",
+                "increasing direction",
+                "physical quantity specialization"
+              ],
+              "siUnit": "m",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "c0d965b2-a153-420a-9d03-7a2a272d619e",
+                "name": "DepthDrilling",
+                "siUnitName": "metre"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/SurveyStation"
+                }
+              }
+            }
+          }
+        },
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.16.0",
+          "concept": "urn:osdc:semantic:wellbore-trajectory",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-binding-registry",
+          "requiredContext": [
+            "wellbore",
+            "trajectory type",
+            "calculation method",
+            "owning service",
+            "resource type"
+          ]
+        }
+      }
     }
   },
   "components": {

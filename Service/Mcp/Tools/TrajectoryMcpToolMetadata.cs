@@ -135,6 +135,8 @@ internal static class TrajectoryMcpToolMetadata
             detail = DescribeCreate(controller, resource);
         else if ((controller is "TrajectoryIdentity" or "TrajectoryFeatureCategory") && action.StartsWith("Put", StringComparison.Ordinal))
             detail = $"Replace an existing {resource}. Supply expectedModifiedUtc from the latest LastModificationDate; stale writes return a conflict. Definitions currently referenced by survey runs or trajectories remain protected.";
+        else if (controller == "Trajectory" && action == "GetTrajectoryStationAtAlongHoleDepth")
+            detail = "Read-only evaluation of a complete station at alongHoleDepth (MD in SI metres) in the identified trajectory. Uses its authoritative calculation method and station interpolation, including associated station data. Rejects depths outside its calculated range. No persisted calculation case is created. Project any declared station quantity, including WGS84 TVD, inclination or true-north azimuth, from the response.";
         else if (action.StartsWith("Put", StringComparison.Ordinal))
             detail = $"Replace an existing instance of {resource}. The route id must be a non-empty UUID and must exactly match data.MetaInfo.ID; the target must already exist. Supply expectedModifiedUtc copied exactly from the latest LastModificationDate; stale writes return conflict. Supply a complete representation because this is a full update, not a partial patch.";
         else if ((controller is "TrajectoryIdentity" or "TrajectoryFeatureCategory") && action.StartsWith("Delete", StringComparison.Ordinal))

@@ -13,6 +13,8 @@
     Survey MD and Abscissa describe the same along-hole coordinate from the run or trajectory's declared origin;
     Z and TVD describe the same positive-down WGS84 vertical coordinate. Their REST and MCP contracts carry
     explicit semantic quantity, reference and unit metadata.
+    A read-only station evaluation can return a complete station at a supplied MD using the trajectory's
+    calculation method. It rejects extrapolation and unfinished calculations and creates no stored calculation case.
     Creation and initial modification timestamps are assigned by the service for every persisted resource and
     calculation case; submitted timestamp values are not authoritative.
 </MudText>

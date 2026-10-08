@@ -22,4 +22,6 @@ The catalogue deprecates `measured-depth` in favour of the broader reviewed `alo
 
 Bindings for inherited geometric coordinates are selected using their reflected survey/global-coordinate type. An arbitrary vector's Z is not labelled as a WGS84 TVD. Catalogue roles and references are not accepted as quantity nouns through name coincidence.
 
+The read-only station evaluation operation binds its UUID to `resource-identifier` with `resourceType=wellbore-trajectory`, and its required numerical MD key to `along-hole-depth` in SI metres. Its complete SurveyStation response carries the existing quantity/reference bindings and aliases. It uses the stored calculation method, rejects extrapolation and unfinished calculations, and creates no persisted case. No new catalogue concepts were needed.
+
 Both the full REST schema and merged schema/client have been regenerated through the repository's existing Swagger and ModelSharedOut workflows. Routes, serialized property names, values, persistence, safety annotations and calculations are unchanged. Publishing the new service image and refreshing discovered MCP contracts are required before a running consumer sees these descriptions. These contracts provide inputs for generic traversal/interpolation; they do not themselves implement those DrillWeaver operators.

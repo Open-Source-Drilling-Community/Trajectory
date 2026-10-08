@@ -16,7 +16,7 @@ public sealed class McpToolRegistrationTests
     {
         var endpoints = TrajectoryRestMcpToolRegistrations.Endpoints;
 
-        Assert.That(endpoints, Has.Count.EqualTo(176));
+        Assert.That(endpoints, Has.Count.EqualTo(177));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Is.Unique);
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("."));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Does.Contain("trajectory_usage_statistics_get_trajectory_usage_statistics"));
@@ -54,7 +54,7 @@ public sealed class McpToolRegistrationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(tools, Has.Length.EqualTo(176));
+            Assert.That(tools, Has.Length.EqualTo(177));
             Assert.That(tools.All(tool => !string.IsNullOrWhiteSpace(tool.ProtocolTool.Title)), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema.HasValue), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.Annotations is not null), Is.True);
@@ -77,6 +77,17 @@ public sealed class McpToolRegistrationTests
             Assert.That(endpoint.Behavior.ReadOnlyHint, Is.True);
             Assert.That(endpoint.Behavior.DestructiveHint, Is.False);
         });
+    }
+
+    [Test] public void Station_evaluation_is_read_only_with_a_typed_identity_and_md_key()
+    {
+        var endpoint=Endpoint("trajectory_get_trajectory_station_at_along_hole_depth");
+        Assert.That(endpoint.Behavior.ReadOnlyHint,Is.True);
+        Assert.That(endpoint.Behavior.DestructiveHint,Is.False);
+        Assert.That(endpoint.InputSchema["properties"]!["id"]!["x-osdc-semantic"]!["resourceType"]!.ToString(),Is.EqualTo(Concepts.Trajectory));
+        Assert.That(endpoint.InputSchema["properties"]!["alongHoleDepth"]!["x-osdc-semantic"]!["concept"]!.ToString(),Is.EqualTo(Concepts.AlongHoleDepth));
+        Assert.That(endpoint.InputSchema["properties"]!["alongHoleDepth"]!["x-osdc-semantic"]!["siUnit"]!.ToString(),Is.EqualTo("m"));
+        Assert.That(endpoint.Description,Does.Contain("Read-only evaluation").And.Contain("Rejects depths outside"));
     }
 
     [Test]
@@ -291,7 +302,7 @@ public sealed class McpToolRegistrationTests
             Assert.That(surveyRunSearch.InputSchema!["properties"]!["offset"]!["default"]!.GetValue<int>(), Is.Zero);
             Assert.That(endpoints.Any(value => value.Name == "trajectory_get_all_trajectory"), Is.False);
             Assert.That(endpoints.Any(value => value.Name == "survey_run_get_all_survey_run"), Is.False);
-            Assert.That(endpoints, Has.Count.EqualTo(176));
+            Assert.That(endpoints, Has.Count.EqualTo(177));
         });
     }
 

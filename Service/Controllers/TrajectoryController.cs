@@ -140,6 +140,20 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             }
         }
 
+        /// <summary>Evaluate a complete station at an along-hole depth using the stored
+        /// trajectory's calculation method. Read-only; no extrapolation or persisted case.</summary>
+        [HttpGet("{id}/Station", Name = "GetTrajectoryStationAtAlongHoleDepth")]
+        public ActionResult<OSDC.DotnetLibraries.Drilling.Surveying.SurveyStation> GetTrajectoryStationAtAlongHoleDepth(
+            Guid id, [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] double alongHoleDepth)
+        {
+            if(id == Guid.Empty || !double.IsFinite(alongHoleDepth)) return BadRequest();
+            var trajectory = _trajectoryManager.GetTrajectoryById(id, includeCalculatedStations: true);
+            if(trajectory is null) return NotFound();
+            if(!TrajectoryStationEvaluation.TryEvaluate(trajectory, alongHoleDepth, out var station))
+                return UnprocessableEntity("The trajectory has no complete station at this MD within its calculated range.");
+            return Ok(station);
+        }
+
         [HttpGet("{id}/SurveyStations/ChunkCount", Name = "GetTrajectorySurveyStationChunkCount")]
         public ActionResult<int> GetSurveyStationChunkCount(Guid id)
         {

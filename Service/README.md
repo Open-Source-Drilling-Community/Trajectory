@@ -181,6 +181,10 @@ The databases and usage history are relative to the service working directory an
 
 Catalogs are stored in `Trajectory.db`, like the sibling DigiWells microservices. This gives resource and catalog restore genuine all-or-nothing SQLite transaction semantics. On the first version-2 startup, definitions from the former `TrajectoryCatalog.db` are copied without removing or modifying that file.
 
+### Read-only station evaluation
+
+`GET Trajectory/{id}/Station?alongHoleDepth=486` returns a complete authoritative station evaluated at MD 486 m. The route UUID and query key are required. Missing trajectories return 404; incomplete calculations, invalid station ordering and depths outside the calculated range return 422. Invalid/nonfinite inputs return 400. The operation uses `SurveyStation.InterpolateAtAbscissa` with the trajectory's stored calculation method and creates no persisted case. Values retain canonical SI units and WGS84/true-north references. The MCP operation is `trajectory_get_trajectory_station_at_along_hole_depth` and is marked read-only.
+
 ### Target-landing uncertainty display
 
 `GET TargetLandingCase/{id}/UncertaintyDisplayData` is the lazy companion to the compact target-landing display projection. It calculates only MD-keyed perpendicular ellipse parameters for the source trajectory and sampled lead at the case confidence. It omits duplicate stations, horizontal and vertical ellipses, and extreme paths; landing endpoints already carry their target-plane projected ellipse in the ordinary display result.
