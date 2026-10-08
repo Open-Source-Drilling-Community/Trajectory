@@ -35623,6 +35623,178 @@ namespace OSDC.Drilling.Trajectory.ModelShared
             }
         }
 
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<ReferencedTrajectoryStation> GetReferencedTrajectoryStationAsync(System.Guid id, double alongHoleDepth, double originWgs84Depth, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        {
+            if (id == null)
+                throw new System.ArgumentNullException("id");
+
+            if (alongHoleDepth == null)
+                throw new System.ArgumentNullException("alongHoleDepth");
+
+            if (originWgs84Depth == null)
+                throw new System.ArgumentNullException("originWgs84Depth");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "Trajectory/{id}/ReferencedStation"
+                    urlBuilder_.Append("Trajectory/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/ReferencedStation");
+                    urlBuilder_.Append('?');
+                    urlBuilder_.Append(System.Uri.EscapeDataString("alongHoleDepth")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(alongHoleDepth, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    urlBuilder_.Append(System.Uri.EscapeDataString("originWgs84Depth")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(originWgs84Depth, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    urlBuilder_.Length--;
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<ReferencedTrajectoryStation>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<TrajectoryVerticalEllipseEvaluation> GetTrajectoryVerticalEllipseAsync(System.Guid id, double alongHoleDepth, double confidenceFactor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        {
+            if (id == null)
+                throw new System.ArgumentNullException("id");
+
+            if (alongHoleDepth == null)
+                throw new System.ArgumentNullException("alongHoleDepth");
+
+            if (confidenceFactor == null)
+                throw new System.ArgumentNullException("confidenceFactor");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "Trajectory/{id}/VerticalEllipse"
+                    urlBuilder_.Append("Trajectory/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/VerticalEllipse");
+                    urlBuilder_.Append('?');
+                    urlBuilder_.Append(System.Uri.EscapeDataString("alongHoleDepth")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(alongHoleDepth, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    urlBuilder_.Append(System.Uri.EscapeDataString("confidenceFactor")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(confidenceFactor, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    urlBuilder_.Length--;
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<TrajectoryVerticalEllipseEvaluation>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
         protected struct ObjectResponseResult<T>
         {
             public ObjectResponseResult(T responseObject, string responseText)
@@ -58050,6 +58222,96 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("CatalogWrites")]
         public long CatalogWrites { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class ReferencedTrajectoryStation
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("AlongHoleDepth")]
+        public double AlongHoleDepth { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("OriginWgs84Depth")]
+        public double OriginWgs84Depth { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("OriginNativeAlongHoleDepth")]
+        public double OriginNativeAlongHoleDepth { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Station")]
+        public SurveyStation Station { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class TrajectoryVerticalEllipseEvaluation
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("AlongHoleDepth")]
+        public double AlongHoleDepth { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ConfidenceFactor")]
+        public double ConfidenceFactor { get; set; }
+
+        /// <summary>
+        /// True-north-clockwise section azimuth in radians, selected from the first to the last horizontally separated source trajectory stations. The full source path determines the plane, including when sampling one MD.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("VerticalSectionAzimuth")]
+        public double VerticalSectionAzimuth { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("VerticalEllipse")]
+        public VerticalSurveyUncertaintyEllipse VerticalEllipse { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class VerticalSurveyUncertaintyEllipse
+    {
+
+        /// <summary>
+        /// Full major-axis diameter, twice the shared uncertainty ellipse semi-major axis, in SI metres.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("MajorAxis")]
+        public double MajorAxis { get; set; }
+
+        /// <summary>
+        /// Full minor-axis diameter, twice the shared uncertainty ellipse semi-minor axis, in SI metres.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("MinorAxis")]
+        public double MinorAxis { get; set; }
+
+        /// <summary>
+        /// Radians in the fixed vertical-section ellipse axis convention: major-axis direction (-sin(phi),cos(phi)) in (section distance, positive-down TVD). An axis is unoriented, modulo pi. This is not an azimuth relative to north or the wellbore tangent.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("OrientationAngle")]
+        public double OrientationAngle { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 

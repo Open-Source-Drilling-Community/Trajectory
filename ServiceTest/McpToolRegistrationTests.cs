@@ -11,12 +11,22 @@ namespace ServiceTest;
 [TestFixture]
 public sealed class McpToolRegistrationTests
 {
+    [Test] public void Reference_and_ellipse_reads_publish_complete_semantic_contracts() {
+        var referenced=Endpoint("trajectory_get_referenced_trajectory_station");
+        Assert.That(referenced.InputSchema!["properties"]!["originWgs84Depth"]!["x-osdc-semantic"]!["keyOriginFor"]!.ToString(),Is.EqualTo("/alongHoleDepth"));
+        Assert.That(referenced.Behavior.ReadOnlyHint,Is.True);
+        var ellipse=Endpoint("trajectory_get_trajectory_vertical_ellipse");
+        var output=ellipse.OutputSchema!.ToJsonString();
+        Assert.That(output,Does.Contain(Concepts.VerticalUncertaintyEllipse).And.Contain(Concepts.MajorAxis).And.Contain(Concepts.MinorAxis).And.Contain(Concepts.UncertaintyEllipseOrientation).And.Contain(Concepts.VerticalEllipseAxisConvention));
+        Assert.That(ellipse.InputSchema!["properties"]!["confidenceFactor"]!["x-osdc-semantic"]!["concept"]!.ToString(),Is.EqualTo(Concepts.ConfidenceFactor));
+    }
+
     [Test]
     public void Registration_exposes_all_supported_actions_with_underscore_names()
     {
         var endpoints = TrajectoryRestMcpToolRegistrations.Endpoints;
 
-        Assert.That(endpoints, Has.Count.EqualTo(177));
+        Assert.That(endpoints, Has.Count.EqualTo(179));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Is.Unique);
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Has.None.Contains("."));
         Assert.That(endpoints.Select(endpoint => endpoint.Name), Does.Contain("trajectory_usage_statistics_get_trajectory_usage_statistics"));
@@ -54,7 +64,7 @@ public sealed class McpToolRegistrationTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(tools, Has.Length.EqualTo(177));
+            Assert.That(tools, Has.Length.EqualTo(179));
             Assert.That(tools.All(tool => !string.IsNullOrWhiteSpace(tool.ProtocolTool.Title)), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.OutputSchema.HasValue), Is.True);
             Assert.That(tools.All(tool => tool.ProtocolTool.Annotations is not null), Is.True);
@@ -302,7 +312,7 @@ public sealed class McpToolRegistrationTests
             Assert.That(surveyRunSearch.InputSchema!["properties"]!["offset"]!["default"]!.GetValue<int>(), Is.Zero);
             Assert.That(endpoints.Any(value => value.Name == "trajectory_get_all_trajectory"), Is.False);
             Assert.That(endpoints.Any(value => value.Name == "survey_run_get_all_survey_run"), Is.False);
-            Assert.That(endpoints, Has.Count.EqualTo(177));
+            Assert.That(endpoints, Has.Count.EqualTo(179));
         });
     }
 
@@ -684,7 +694,7 @@ public sealed class McpToolRegistrationTests
     private static void AssertSemantic(TrajectoryMcpEndpoint endpoint, string concept, string role)
     {
         JsonObject semantic = endpoint.InputSchema["x-osdc-semantic"]!.AsObject();
-        Assert.That(semantic["catalogueVersion"]!.GetValue<string>(), Is.EqualTo("0.16.0"), endpoint.Name);
+        Assert.That(semantic["catalogueVersion"]!.GetValue<string>(), Is.EqualTo("0.17.0"), endpoint.Name);
         Assert.That(semantic["concept"]!.GetValue<string>(), Is.EqualTo(concept), endpoint.Name);
         Assert.That(semantic["role"]!.GetValue<string>(), Is.EqualTo(role), endpoint.Name);
     }
@@ -703,8 +713,8 @@ public sealed class McpToolRegistrationTests
             Assert.That(metadata["physicalQuantity"]?["id"],Is.Not.Null,name);
             Assert.That(metadata["valueAliasOf"]?.ToString(),Is.EqualTo(alias),name);
         }
-        Check("Abscissa",Concepts.AlongHoleDepth,null);
-        Check("MD",Concepts.AlongHoleDepth,null,"Abscissa");
+        Check("Abscissa",Concepts.AlongHoleDepth,Concepts.Wgs84AlongHoleOrigin);
+        Check("MD",Concepts.AlongHoleDepth,Concepts.Wgs84AlongHoleOrigin,"Abscissa");
         Check("Z",Concepts.TrueVerticalDepth,Concepts.Wgs84);
         Check("TVD",Concepts.TrueVerticalDepth,Concepts.Wgs84,"Z");
         Check("X",Concepts.RiemannianNorth,Concepts.Wgs84RiemannianCoordinates);

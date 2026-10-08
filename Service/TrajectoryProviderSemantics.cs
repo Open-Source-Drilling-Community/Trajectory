@@ -109,7 +109,7 @@ internal static class TrajectoryProviderSemantics
         {
             var binding = property.Name switch
             {
-                "Abscissa" or "MD" when typeof(SurveyPoint).IsAssignableFrom(owner) => (Concepts.AlongHoleDepth, (string?)null),
+                "Abscissa" or "MD" when typeof(SurveyPoint).IsAssignableFrom(owner) => (Concepts.AlongHoleDepth, Concepts.Wgs84AlongHoleOrigin),
                 "X" or "RiemannianNorth" => (Concepts.RiemannianNorth, Concepts.Wgs84RiemannianCoordinates),
                 "Y" or "RiemannianEast" => (Concepts.RiemannianEast, Concepts.Wgs84RiemannianCoordinates),
                 "Z" or "TVD" => (Concepts.TrueVerticalDepth, Concepts.Wgs84),
@@ -130,8 +130,14 @@ internal static class TrajectoryProviderSemantics
         if (owner == typeof(SurveyMeasurement) && property.Name == "MD") return Metadata(Concepts.AlongHoleDepth, null, null);
         if (owner == typeof(InterpolatedTrajectory) && property.Name == "InterpolationStep")
             return Metadata(Concepts.InterpolationInterval, Concepts.CalculationInput, null);
+        if (owner == typeof(SurveyStationEllipseResult)) return property.Name switch {
+            "MD" => Metadata(Concepts.AlongHoleDepth, null, Concepts.Wgs84AlongHoleOrigin),
+            "HorizontalEllipse" => Metadata(Concepts.HorizontalUncertaintyEllipse, null, null),
+            "VerticalEllipse" => Metadata(Concepts.VerticalUncertaintyEllipse, null, null),
+            "PerpendicularEllipse" => Metadata(Concepts.PerpendicularUncertaintyEllipse, null, null), _ => null };
         if (owner == typeof(SurveyStationEllipse))
         {
+            if (property.Name == "OrientationAngle")return Metadata(Concepts.UncertaintyEllipseOrientation, null, null);
             if (property.Name is "SemiMajorAxis" or "SemiMinorAxis")
                 return Metadata(Concepts.PhysicalLengthExtent, property.Name == "SemiMajorAxis" ? Concepts.SemiMajorAxis : Concepts.SemiMinorAxis, null);
         }
@@ -145,8 +151,15 @@ internal static class TrajectoryProviderSemantics
 
     public static JsonObject? ForParameter(string controller, ParameterInfo parameter)
     {
-        if(controller == "Trajectory" && parameter.Member.Name == "GetTrajectoryStationAtAlongHoleDepth" && parameter.Name == "alongHoleDepth")
-            return Metadata(Concepts.AlongHoleDepth, null, null);
+        if(controller == "Trajectory") {
+            if(parameter.Name == "alongHoleDepth")return Metadata(Concepts.AlongHoleDepth, null,
+                parameter.Member.Name=="GetReferencedTrajectoryStation"?null:Concepts.Wgs84AlongHoleOrigin);
+            if(parameter.Name == "confidenceFactor")return Metadata(Concepts.ConfidenceFactor, null, null);
+            if(parameter.Name == "originWgs84Depth") {
+                var origin=Metadata(Concepts.EllipsoidalDepth, Concepts.SourceReference, Concepts.Wgs84);
+                origin["keyOriginFor"]="/alongHoleDepth";return origin;
+            }
+        }
         string? resource = parameter.Name == "id" ? ResourceForController(controller) : ResourceForIdentifier(parameter.Name ?? "");
         if ((parameter.ParameterType == typeof(Guid) || parameter.ParameterType == typeof(Guid?) || IsIdentifierCollection(parameter.ParameterType)) && resource != null)
             return Identifier(resource);
@@ -200,6 +213,11 @@ internal static class TrajectoryProviderSemantics
 
     public static string? PropertyDescription(Type owner, string name)
     {
+        if(owner==typeof(VerticalSurveyUncertaintyEllipse))return name switch {
+            "MajorAxis"=>"Full major-axis diameter, twice the shared uncertainty ellipse semi-major axis, in SI metres.",
+            "MinorAxis"=>"Full minor-axis diameter, twice the shared uncertainty ellipse semi-minor axis, in SI metres.",
+            "OrientationAngle"=>"Radians in the fixed vertical-section ellipse axis convention: major-axis direction (-sin(phi),cos(phi)) in (section distance, positive-down TVD). An axis is unoriented, modulo pi. This is not an azimuth relative to north or the wellbore tangent.",_=>null};
+        if(owner==typeof(TrajectoryVerticalEllipseEvaluation) && name=="VerticalSectionAzimuth")return "True-north-clockwise section azimuth in radians, selected from the first to the last horizontally separated source trajectory stations. The full source path determines the plane, including when sampling one MD.";
         if (typeof(Point3DGlobalCoordinates).IsAssignableFrom(owner)) return name switch
         {
             "Abscissa" or "MD" when typeof(SurveyPoint).IsAssignableFrom(owner) => "Measured depth (MD), the curvilinear coordinate along this trajectory/survey run, in SI metres from its declared MD origin. MD and Abscissa are aliases. This is not true vertical depth; a vertical datum offset alone does not change an MD origin.",

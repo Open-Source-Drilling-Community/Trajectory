@@ -336,7 +336,7 @@ namespace OSDC.Drilling.Trajectory.Model
             return previous.CompleteFromXYZ(target) ? target : null;
         }
 
-        private static double? ResolveVerticalSectionAzimuth(IReadOnlyList<SurveyStation> stations)
+        public static double? ResolveVerticalSectionAzimuth(IReadOnlyList<SurveyStation> stations)
         {
             SurveyStation? origin = stations.FirstOrDefault(HasHorizontalPosition);
             if (origin == null)

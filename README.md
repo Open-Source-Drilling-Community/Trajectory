@@ -165,3 +165,9 @@ Trajectory REST and MCP contracts now explicitly bind survey MD/Abscissa, WGS84 
 
 
 Station evaluation synchronizes the geographic coordinate cache from canonical Riemannian north/east through the shared WGS84 implementation. Latitude/longitude can therefore feed downstream spatial-field queries even when interpolation populated only X/Y/Z.
+
+## Read-only reference and uncertainty evaluation
+
+`GET Trajectory/{id}/ReferencedStation?alongHoleDepth=350&originWgs84Depth=...` evaluates signed path length from a verified WGS84-depth surface intersection. The path must be complete, monotone in vertical depth and contain both the intersection and requested station. The service uses the stored calculation method and shared survey interpolation; it assumes no path extension. Requested MD, origin depth, native intersection MD and complete canonical station are returned separately.
+
+`GET Trajectory/{id}/VerticalEllipse?alongHoleDepth=500&confidenceFactor=0.95` reconstructs authoritative survey-run uncertainty lineage without persisting a case. It returns full major/minor diameters (SI metres), orientation (SI radians), confidence probability and the selected vertical-section azimuth. The stable section uses the source path's first/last horizontally separated stations. The major-axis direction is `(-sin(phi),cos(phi))` in `(section distance, positive-down TVD)`; axes are unoriented modulo pi. These parameters have explicit REST/MCP catalogue bindings, including quantity and reference conventions.

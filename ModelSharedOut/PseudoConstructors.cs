@@ -7266,5 +7266,34 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CatalogWrites = 0,
 			};
 		}
+		public static ReferencedTrajectoryStation ConstructReferencedTrajectoryStation()
+		{
+			return new ReferencedTrajectoryStation
+			{
+				AlongHoleDepth = 0.0,
+				OriginWgs84Depth = 0.0,
+				OriginNativeAlongHoleDepth = 0.0,
+				Station = ConstructSurveyStation(),
+			};
+		}
+		public static TrajectoryVerticalEllipseEvaluation ConstructTrajectoryVerticalEllipseEvaluation()
+		{
+			return new TrajectoryVerticalEllipseEvaluation
+			{
+				AlongHoleDepth = 0.0,
+				ConfidenceFactor = 0.0,
+				VerticalSectionAzimuth = 0.0,
+				VerticalEllipse = ConstructVerticalSurveyUncertaintyEllipse(),
+			};
+		}
+		public static VerticalSurveyUncertaintyEllipse ConstructVerticalSurveyUncertaintyEllipse()
+		{
+			return new VerticalSurveyUncertaintyEllipse
+			{
+				MajorAxis = 0.0,
+				MinorAxis = 0.0,
+				OrientationAngle = 0.0,
+			};
+		}
 	}
 }
