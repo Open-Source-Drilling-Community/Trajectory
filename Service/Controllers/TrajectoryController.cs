@@ -179,7 +179,7 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
                 confidenceFactor <= 0 || confidenceFactor > Model.SurveyStationEllipseCalculation.MaximumConfidenceFactor) return BadRequest();
             var source = _trajectoryManager.GetTrajectoryById(id);
             if (source is null) return NotFound();
-            source = await _trajectoryManager.CalculateTrajectoryAsync(source, recalculateSurveyRunUncertainty: true);
+            source = await _trajectoryManager.GetTrajectoryWithRecalculatedUncertaintyAsync(id);
             return source is not null && TrajectoryStationEvaluation.TryEvaluateVerticalEllipse(source, alongHoleDepth, confidenceFactor, out var result)
                 ? Ok(result) : UnprocessableEntity("The authoritative trajectory uncertainty lineage or requested ellipse could not be verified.");
         }

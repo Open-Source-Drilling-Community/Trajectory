@@ -1,4 +1,5 @@
 using OSDC.Drilling.Trajectory.Service;
+using OSDC.Drilling.Trajectory.Service.Managers;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 
 namespace ServiceTest;
@@ -7,6 +8,18 @@ public class TrajectoryStationEvaluationTests
 {
     private static OSDC.Drilling.Trajectory.Model.Trajectory Vertical()=>new(){CalculationType=TrajectoryCalculationType.MinimumCurvatureMethod,
         SurveyStationList=[new(){MD=0,Inclination=0,Azimuth=0,X=0,Y=0,Z=0},new(){MD=100,Inclination=0,Azimuth=0,X=0,Y=0,Z=100}]};
+
+    [Test] public void ReplayedUncertaintyIsAppliedOnlyToMatchingCalculatedGeometry()
+    {
+        var calculated=new List<SurveyStation>{new(){MD=0,Inclination=0,Azimuth=0},new(){MD=100,Inclination=.1,Azimuth=.2},new(){MD=200,Inclination=.2,Azimuth=.3}};
+        var replayed=calculated.Select(station=>new SurveyStation(station){Covariance=new(),SurveyTool=new()}).ToList();
+
+        Assert.That(TrajectoryManager.TryApplyRecalculatedUncertainty(calculated,replayed),Is.True);
+        Assert.That(calculated,Has.All.Property(nameof(SurveyStation.Covariance)).Not.Null);
+
+        replayed[1].Inclination=.11;
+        Assert.That(TrajectoryManager.TryApplyRecalculatedUncertainty(calculated,replayed),Is.False);
+    }
     [Test] public void EvaluatesACompleteStationWithTheAuthoritativeMethod() {
         var trajectory=Vertical();
         Assert.That(TrajectoryStationEvaluation.TryEvaluate(trajectory,50,out var station),Is.True);

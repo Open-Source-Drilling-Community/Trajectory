@@ -937,6 +937,69 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 recalculateSurveyRunUncertainty,
                 []);
 
+        /// <summary>
+        /// Returns the persisted calculated trajectory geometry with uncertainty replayed from
+        /// its authoritative SurveyRun sections. Geometry is retained only when every replayed
+        /// station has the same ordered MD, inclination and azimuth as the persisted result.
+        /// </summary>
+        public async Task<Model.Trajectory?> GetTrajectoryWithRecalculatedUncertaintyAsync(Guid id)
+        {
+            Model.Trajectory? trajectory = GetTrajectoryById(id, includeCalculatedStations: true);
+            if (trajectory?.CalculationState != CalculationState.Completed ||
+                trajectory.SurveyStationList is not { Count: > 2 } calculatedStations)
+            {
+                return null;
+            }
+
+            List<SurveyStation> retainedGeometry = calculatedStations.Select(CloneSurveyStation).ToList();
+            if (!await MaterializeSurveyRunSectionsAsync(trajectory, recalculateSurveyRunUncertainty: true) ||
+                trajectory.SurveyStationList is not { } replayedUncertainty ||
+                !TryApplyRecalculatedUncertainty(retainedGeometry, replayedUncertainty))
+            {
+                return null;
+            }
+
+            trajectory.SurveyStationList = retainedGeometry;
+            return trajectory;
+        }
+
+        internal static bool TryApplyRecalculatedUncertainty(
+            IReadOnlyList<SurveyStation> calculatedStations,
+            IReadOnlyList<SurveyStation> replayedStations)
+        {
+            if (calculatedStations.Count != replayedStations.Count || calculatedStations.Count < 3)
+            {
+                return false;
+            }
+
+            for (int index = 0; index < calculatedStations.Count; index++)
+            {
+                SurveyStation calculated = calculatedStations[index];
+                SurveyStation replayed = replayedStations[index];
+                if ((calculated.MD ?? calculated.Abscissa) is not double calculatedMd ||
+                    (replayed.MD ?? replayed.Abscissa) is not double replayedMd ||
+                    calculated.Inclination is not double calculatedInclination ||
+                    replayed.Inclination is not double replayedInclination ||
+                    calculated.Azimuth is not double calculatedAzimuth ||
+                    replayed.Azimuth is not double replayedAzimuth ||
+                    !Numeric.EQ(calculatedMd, replayedMd) ||
+                    !Numeric.EQ(calculatedInclination, replayedInclination) ||
+                    !Numeric.EQ(calculatedAzimuth, replayedAzimuth) ||
+                    replayed.Covariance is null)
+                {
+                    return false;
+                }
+
+                calculated.Covariance = replayed.Covariance;
+                calculated.Bias = replayed.Bias;
+                calculated.EigenValues = replayed.EigenValues;
+                calculated.EigenVectors = replayed.EigenVectors;
+                calculated.SurveyTool = replayed.SurveyTool;
+            }
+
+            return true;
+        }
+
         private async Task<Model.Trajectory?> CalculateTrajectoryAsync(
             Model.Trajectory? trajectory,
             bool recalculateSurveyRunUncertainty,
