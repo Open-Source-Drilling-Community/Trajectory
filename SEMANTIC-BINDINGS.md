@@ -1,6 +1,6 @@
 # Trajectory semantic bindings
 
-`Service/TrajectoryProviderSemantics.cs` is the shared binding source for REST/OpenAPI and MCP. Bindings use the published SemanticCatalogue 0.16.0 concepts and its authoritative physical-quantity and SI-unit metadata. No new vocabulary terms or package version are needed for this update.
+`Service/TrajectoryProviderSemantics.cs` is the shared binding source for REST/OpenAPI and MCP. Bindings use the published SemanticCatalogue 0.18.0 concepts, generic operation profiles, calculation states, and authoritative physical-quantity and SI-unit metadata.
 
 | Values | Catalogue noun | Reference / meaning |
 | --- | --- | --- |

@@ -6,7 +6,7 @@
 
 This project exercises the Trajectory service through its generated client and also contains self-contained persistence, validation, and MCP-contract tests.
 
-Tests in `Tests.cs` and `McpServerHttpTests.cs` are integration-style and require a running service. The remaining fixtures construct their own collaborators or isolated databases and do not require the HTTP service.
+Tests in `Tests.cs` and `McpServerHttpTests.cs` are integration-style and host the real REST and Streamable HTTP MCP pipelines in process. The remaining fixtures construct their own collaborators or isolated databases.
 
 Service-level tests cover SurveyRun and Trajectory persistence/contracts, catalog and backup rules, every durable calculation family, light-data polling, asynchronous calculation state changes, chunked results, external references, anti-collision indexing/policies, and REST/MCP parity.
 
@@ -18,31 +18,15 @@ Service-level tests cover SurveyRun and Trajectory persistence/contracts, catalo
 - `NUnit`
 - `Microsoft.NET.Test.Sdk`
 
-## Runtime Expectation
-
-The tests expect a Trajectory service instance to be running locally at:
-
-`http://localhost:8080/`
-
-The test code configures the generated client against:
-
-`http://localhost:8080/Trajectory/api/`
-
 ## Running Tests
 
-Start the service first, then run:
+Run the self-contained suite directly:
 
 ```bash
 dotnet test ServiceTest/ServiceTest.csproj
 ```
 
-Run self-contained tests while the service is stopped with:
-
-```powershell
-dotnet test .\ServiceTest\ServiceTest.csproj --filter "FullyQualifiedName!~ServiceTest.Tests&FullyQualifiedName!~McpServerHttpTests"
-```
-
-For the full suite, launch `Service` at port 8080 from an isolated working directory whose sibling `home` directory contains disposable test databases, then run the unfiltered command. This avoids touching the repository's `home` data or any deployed persistent volume.
+The integration fixtures reset legacy process-wide manager caches before creating their hosts so persistence tests cannot leave stale database bindings behind.
 
 ## Solution Role
 
@@ -52,7 +36,7 @@ For the full suite, launch `Service` at port 8080 from an isolated working direc
 
 ## MCP coverage
 
-`McpServerHttpTests.cs` exercises MCP initialization, tool discovery, successful structured/text responses, and representative calls against a running service. It also verifies that missing inputs, unknown arguments, missing resources, an empty planned/actual octree selection, and caller-supplied separation-factor calculation state produce stable sanitized MCP errors.
+`McpServerHttpTests.cs` exercises MCP initialization, tool discovery, successful structured/text responses, and representative calls against the in-process service. It also verifies that missing inputs, unknown arguments, missing resources, an empty planned/actual octree selection, and caller-supplied separation-factor calculation state produce stable sanitized MCP errors.
 
 `McpToolRegistrationTests.cs` runs without a live service and guards the MCP contract: 176 REST-backed tools including read-only usage statistics, underscore-only unique names, strict input and success-output schemas, titles and safety annotations, non-empty UUIDs, unknown-argument rejection, optimistic concurrency on durable core mutations, explicit catalog-mapping restore policy, bounded primary-resource search and external-reference audits, chunk-upload/commit guidance, and asynchronous calculation semantics. It checks the resource-specific lineage-aware ellipse tools, all four trajectory-extrapolation discriminators, the target-landing edit/display projections and closed mutation/result boundary, the closed same-WellBore directional-control submission and chunk workflow, the geosteering departure/drilled-length extent, and the anti-collision policy age/identity/feature discriminator, effective-dated assignment workflow, server-derived policy-result exclusion, scan-to-separation-factor handoff, terminal result schemas, SI measured-depth ranges, and dimensionless separation factors.
 

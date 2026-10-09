@@ -68,9 +68,9 @@ Trajectory realization cases are defined from a reference trajectory and a reque
 
 ## Semantic contract
 
-Trajectory references `OSDC.DotnetLibraries.Drilling.SemanticCatalogue` 0.16.0. The service applies an explicit provider binding registry to public trajectory, survey, uncertainty, target-landing, extrapolation, directional-control, and anti-collision types. REST/OpenAPI and MCP publish the same structured `x-osdc-semantic` objects, including stable concept URNs, applicable role/reference URNs, catalogue version, and physical-quantity/SI representation where defined. Provider fields remain the authoritative wire contract; semantic metadata describes them and does not alter JSON names, validation, or canonical SI values.
+Trajectory references `OSDC.DotnetLibraries.Drilling.SemanticCatalogue` 0.18.0. The service applies an explicit provider binding registry to public trajectory, survey, uncertainty, target-landing, extrapolation, directional-control, and anti-collision types. REST/OpenAPI and MCP publish the same structured `x-osdc-semantic` objects, including stable concept URNs, applicable role/reference URNs, catalogue version, and physical-quantity/SI representation where defined. Provider fields remain the authoritative wire contract; semantic metadata describes them and does not alter JSON names, validation, or canonical SI values.
 
-Persisted calculation tools additionally expose the 0.16.0 lifecycle vocabulary. Aggregation, realization, extrapolation, target landing, directional-control evaluation, minimum-distance calculations, global anti-collision, and interpolated trajectories identify queued submission/replacement, case deletion, case retrieval, light status retrieval, and result/chunk retrieval as applicable. Survey-station ellipse calculation identifies its synchronous submission separately. The same reviewed operation roles are generated for REST and Trajectory MCP tools.
+Persisted calculation tools additionally expose the 0.18.0 lifecycle vocabulary and its generic calculation-operation parents. Aggregation, realization, extrapolation, target landing, directional-control evaluation, minimum-distance calculations, global anti-collision, and interpolated trajectories identify queued submission/replacement, case deletion, case retrieval, light status retrieval, complete result retrieval, and result/chunk retrieval as applicable. Survey-station ellipse calculation identifies its synchronous submission separately. Calculation-state enum values identify queued, running, completed, failed and cancelled states. The same reviewed operation roles are generated for REST and Trajectory MCP tools.
 
 ## Security and Confidentiality
 
@@ -159,7 +159,7 @@ Public-contract changes require rebuilding `Service` to refresh `ModelSharedOut/
 
 Self-contained service tests can run without a server. The generated-client and MCP transport integration tests expect the service at `http://localhost:8080/` with its `/Trajectory/api` path base. See the project READMEs for the precise commands and isolation requirements.
 
-Trajectory REST and MCP contracts now explicitly bind survey MD/Abscissa, WGS84 TVD/Z, Riemannian coordinates, metadata, UUID lookup arguments and relationship identifiers to SemanticCatalogue 0.16.0. See [semantic bindings](SEMANTIC-BINDINGS.md) for aliases, reference conventions and discovery scope.
+Trajectory REST and MCP contracts now explicitly bind survey MD/Abscissa, WGS84 TVD/Z, Riemannian coordinates, metadata, UUID lookup arguments and relationship identifiers to SemanticCatalogue 0.18.0. See [semantic bindings](SEMANTIC-BINDINGS.md) for aliases, reference conventions and discovery scope.
 
 `GET Trajectory/{id}/Station?alongHoleDepth=486` evaluates a complete station at the supplied MD in SI metres using the stored trajectory's calculation method. It is read-only, requires a completed trajectory and rejects extrapolation. The corresponding MCP tool exposes the typed trajectory UUID and along-hole-depth key; consumers can project any declared station quantity rather than use a separate operation for TVD, inclination or azimuth.
 

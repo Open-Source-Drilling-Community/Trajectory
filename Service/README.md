@@ -2,7 +2,7 @@
 
 `Service` is the ASP.NET Core microservice for Trajectory. Its code namespace root is `OSDC.Drilling.Trajectory.Service`.
 
-`TrajectoryProviderSemantics` is the single provider binding source used to add structured SemanticCatalogue 0.16.0 metadata to both Swagger/OpenAPI and MCP schemas.
+`TrajectoryProviderSemantics` is the single provider binding source used to add structured SemanticCatalogue 0.18.0 metadata to both Swagger/OpenAPI and MCP schemas. MCP input roots publish generic resource operations and calculation lifecycle roles; calculation-state enum values identify queued, running, completed, failed and cancelled states.
 
 That registry also describes persisted calculation-case lifecycles. It assigns concrete calculation concepts and operation roles for queued case submission/replacement, case deletion, full case retrieval, light status retrieval, complete result retrieval, and chunk retrieval. Interpolated trajectories participate in the same background lifecycle. Survey-station ellipse submission is explicitly marked immediate. These annotations describe existing behavior and do not alter routes or response payloads.
 

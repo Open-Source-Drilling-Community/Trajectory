@@ -701,6 +701,25 @@ internal static class TrajectoryMcpToolMetadata
             schema["description"] = TrajectoryProviderSemantics.PropertyDescription(type, property.Name) ?? DescribeProperty(type, property.Name);
             if (TrajectoryProviderSemantics.ForProperty(property) is { } propertyMetadata)
                 TrajectoryProviderSemantics.AttachMcpPropertyMetadata(schema, propertyMetadata, property.PropertyType);
+            if (property.Name == "CalculationState" && schema[SemanticMetadata.ExtensionName] is JsonObject stateMetadata && schema["enum"] is JsonArray states)
+            {
+                var valueConcepts = new JsonObject();
+                foreach (JsonNode? state in states)
+                {
+                    string? value = state?.GetValue<string>();
+                    string? concept = value switch
+                    {
+                        "Queued" => Concepts.CalculationQueuedState,
+                        "Running" => Concepts.CalculationRunningState,
+                        "Completed" => Concepts.CalculationCompletedState,
+                        "Failed" => Concepts.CalculationFailedState,
+                        "Cancelled" or "Canceled" => Concepts.CalculationCancelledState,
+                        _ => null
+                    };
+                    if (value is not null && concept is not null) valueConcepts[value] = concept;
+                }
+                stateMetadata["valueConcepts"] = valueConcepts;
+            }
             properties[property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name] = schema;
         }
 

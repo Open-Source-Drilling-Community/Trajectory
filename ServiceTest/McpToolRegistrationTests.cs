@@ -691,10 +691,20 @@ public sealed class McpToolRegistrationTests
         });
     }
 
+    [Test]
+    public void Resource_tools_publish_generic_operation_roles()
+    {
+        AssertSemantic(Endpoint("trajectory_get_all_trajectory_id"), Concepts.Trajectory, Concepts.ResourceCollectionRetrieval);
+        AssertSemantic(Endpoint("trajectory_get_trajectory_by_id"), Concepts.Trajectory, Concepts.ResourceRetrieval);
+        AssertSemantic(Endpoint("trajectory_post_trajectory"), Concepts.Trajectory, Concepts.ResourceCreation);
+        AssertSemantic(Endpoint("trajectory_put_trajectory_by_id"), Concepts.Trajectory, Concepts.ResourceReplacement);
+        AssertSemantic(Endpoint("trajectory_delete_trajectory_by_id"), Concepts.Trajectory, Concepts.ResourceDeletion);
+    }
+
     private static void AssertSemantic(TrajectoryMcpEndpoint endpoint, string concept, string role)
     {
         JsonObject semantic = endpoint.InputSchema["x-osdc-semantic"]!.AsObject();
-        Assert.That(semantic["catalogueVersion"]!.GetValue<string>(), Is.EqualTo("0.17.0"), endpoint.Name);
+        Assert.That(semantic["catalogueVersion"]!.GetValue<string>(), Is.EqualTo("0.18.0"), endpoint.Name);
         Assert.That(semantic["concept"]!.GetValue<string>(), Is.EqualTo(concept), endpoint.Name);
         Assert.That(semantic["role"]!.GetValue<string>(), Is.EqualTo(role), endpoint.Name);
     }

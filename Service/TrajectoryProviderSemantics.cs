@@ -232,7 +232,22 @@ internal static class TrajectoryProviderSemantics
     public static JsonObject? ForOperation(string controller, MethodInfo method)
     {
         if (!CalculationConceptsByController.TryGetValue(controller, out string? concept))
-            return ResourceForController(controller) is { } resource ? Metadata(resource, null, null) : null;
+        {
+            if (ResourceForController(controller) is not { } resource) return null;
+            string resourceAction = method.Name;
+            string resourceRole = resourceAction.Contains("Station", StringComparison.Ordinal) || resourceAction.Contains("Interpolate", StringComparison.Ordinal) ||
+                          resourceAction.Contains("Validate", StringComparison.Ordinal) || resourceAction.Contains("Audit", StringComparison.Ordinal)
+                ? Concepts.StatelessEvaluation
+                : resourceAction.Contains("GetAll", StringComparison.Ordinal) || resourceAction.Contains("Search", StringComparison.Ordinal)
+                    ? Concepts.ResourceCollectionRetrieval
+                    : resourceAction.StartsWith("Get", StringComparison.Ordinal) ? Concepts.ResourceRetrieval
+                    : resourceAction.StartsWith("Post", StringComparison.Ordinal) ? Concepts.ResourceCreation
+                    : resourceAction.StartsWith("Put", StringComparison.Ordinal) ? Concepts.ResourceReplacement
+                    : resourceAction.StartsWith("Patch", StringComparison.Ordinal) ? Concepts.ResourcePartialUpdate
+                    : resourceAction.StartsWith("Delete", StringComparison.Ordinal) ? Concepts.ResourceDeletion
+                    : Concepts.ResourceOperation;
+            return Metadata(resource, resourceRole, null);
+        }
         string action = method.Name;
         string? role = action switch
         {

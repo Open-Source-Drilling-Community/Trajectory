@@ -157,7 +157,7 @@ app.UseRouting();
 string relativeSwaggerPath = "/swagger/merged/swagger.json";
 string fullSwaggerPath = $"{basePath}{relativeSwaggerPath}";
 string customVersion = "Merged API Version 1";
-string exposedModel = "wwwroot/json-schema/TrajectoryMergedModel.json";
+string exposedModel = System.IO.Path.Combine(app.Environment.ContentRootPath, "wwwroot", "json-schema", "TrajectoryMergedModel.json");
 if (File.Exists(exposedModel))
 {
     var mergedDoc = SwaggerMiddlewareExtensions.ReadOpenApiDocument(exposedModel);
@@ -182,4 +182,6 @@ app.MapControllers();
 app.MapFallbackToFile("index.html");
 
 app.Run();
+
+public partial class Program { }
 
