@@ -5,6 +5,8 @@ namespace OSDC.Drilling.Trajectory.Model;
 [Semantic(Concepts.SurveyStationUncertaintyEllipse)]
 public sealed class TrajectoryVerticalEllipseEvaluation
 {
+    [Semantic(Concepts.UncertaintyProjectionPlane)]
+    public UncertaintyProjectionPlane Projection { get; set; } = UncertaintyProjectionPlane.Vertical;
     [Semantic(Concepts.AlongHoleDepth, Reference = Concepts.Wgs84AlongHoleOrigin)]
     public double AlongHoleDepth { get; set; }
     [Semantic(Concepts.ConfidenceFactor)]
@@ -18,6 +20,10 @@ public sealed class TrajectoryVerticalEllipseEvaluation
 [Semantic(Concepts.VerticalUncertaintyEllipse)]
 public sealed class VerticalSurveyUncertaintyEllipse
 {
+    [Semantic(Concepts.PhysicalLengthExtent, Role = Concepts.SemiMajorAxis)]
+    public double SemiMajorAxis { get; set; }
+    [Semantic(Concepts.PhysicalLengthExtent, Role = Concepts.SemiMinorAxis)]
+    public double SemiMinorAxis { get; set; }
     [Semantic(Concepts.PhysicalLengthExtent, Role = Concepts.MajorAxis)]
     public double MajorAxis { get; set; }
     [Semantic(Concepts.PhysicalLengthExtent, Role = Concepts.MinorAxis)]
@@ -29,6 +35,8 @@ public sealed class VerticalSurveyUncertaintyEllipse
 [Semantic(Concepts.SurveyStationUncertaintyEllipse)]
 public sealed class TrajectoryHorizontalEllipseEvaluation
 {
+    [Semantic(Concepts.UncertaintyProjectionPlane)]
+    public UncertaintyProjectionPlane Projection { get; set; } = UncertaintyProjectionPlane.Horizontal;
     [Semantic(Concepts.AlongHoleDepth, Reference = Concepts.Wgs84AlongHoleOrigin)]
     public double AlongHoleDepth { get; set; }
     [Semantic(Concepts.ConfidenceFactor)]
@@ -40,6 +48,10 @@ public sealed class TrajectoryHorizontalEllipseEvaluation
 [Semantic(Concepts.HorizontalUncertaintyEllipse)]
 public sealed class HorizontalSurveyUncertaintyEllipse
 {
+    [Semantic(Concepts.PhysicalLengthExtent, Role = Concepts.SemiMajorAxis)]
+    public double SemiMajorAxis { get; set; }
+    [Semantic(Concepts.PhysicalLengthExtent, Role = Concepts.SemiMinorAxis)]
+    public double SemiMinorAxis { get; set; }
     [Semantic(Concepts.PhysicalLengthExtent, Role = Concepts.MajorAxis)]
     public double MajorAxis { get; set; }
     [Semantic(Concepts.PhysicalLengthExtent, Role = Concepts.MinorAxis)]

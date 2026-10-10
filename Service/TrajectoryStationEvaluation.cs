@@ -49,7 +49,7 @@ internal static class TrajectoryStationEvaluation
         if (ellipse?.SemiMajorAxis is not double major || ellipse.SemiMinorAxis is not double minor || ellipse.OrientationAngle is not double angle ||
             !double.IsFinite(major) || !double.IsFinite(minor) || !double.IsFinite(angle) || major < minor || minor < 0) return false;
         result = new() { AlongHoleDepth = depth, ConfidenceFactor = confidence, VerticalSectionAzimuth = plane.Value,
-            VerticalEllipse = new() { MajorAxis = 2 * major, MinorAxis = 2 * minor, OrientationAngle = angle } };
+            VerticalEllipse = new() { SemiMajorAxis = major, SemiMinorAxis = minor, MajorAxis = 2 * major, MinorAxis = 2 * minor, OrientationAngle = angle } };
         return true;
     }
 
@@ -66,7 +66,7 @@ internal static class TrajectoryStationEvaluation
         if (ellipse?.EllipseRadii?.X is not double major || ellipse.EllipseRadii.Y is not double minor || ellipse.EllipseOrientationAngle is not double angle ||
             !double.IsFinite(major) || !double.IsFinite(minor) || !double.IsFinite(angle) || major < minor || minor < 0) return false;
         result = new() { AlongHoleDepth = depth, ConfidenceFactor = confidence,
-            HorizontalEllipse = new() { MajorAxis = 2 * major, MinorAxis = 2 * minor, OrientationAngle = angle } };
+            HorizontalEllipse = new() { SemiMajorAxis = major, SemiMinorAxis = minor, MajorAxis = 2 * major, MinorAxis = 2 * minor, OrientationAngle = angle } };
         return true;
     }
 

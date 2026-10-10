@@ -72,6 +72,8 @@ internal static class TrajectoryMcpToolMetadata
             detail = action == "GetTrajectoryVerticalEllipse"
                 ? "Read-only vertical uncertainty ellipse at canonical MD in SI metres and confidenceFactor as a probability (95% is 0.95 after unit conversion). Reconstructs the complete source uncertainty lineage without storing a case. Returns full major/minor diameters, orientation in the fixed vertical-section convention and the provider-selected true-north section azimuth. The user need not choose an orientation frame."
                 : "Read-only horizontal uncertainty ellipse at canonical MD in SI metres and confidenceFactor as a probability (95% is 0.95 after unit conversion). Reconstructs the complete source uncertainty lineage without storing a case. Returns full major/minor diameters and major-axis orientation clockwise from true north.";
+        else if (controller == "UncertaintyEnvelope" && action == "Evaluate")
+            detail = "Read-only stateless geometry evaluation. Orthogonally project the circular borehole cross-section into the selected horizontal, vertical-section or tangent-perpendicular plane, then combine it with the supplied uncertainty ellipse using the declared minimum-determinant member of a conservative ellipsoidal outer-bound family. Inputs and outputs use SI metres and radians; a vertical projection requires verticalSectionAzimuth.";
         else if (controller == "SurveyRun" && action == "PutSurveyMeasurementChunk")
             detail = "Upload or replace one staged measurement chunk. Use a zero-based chunkIndex; chunk.SurveyRunID must equal id and chunk.ChunkIndex must equal chunkIndex. Measurements use MD in metres and Inclination/Azimuth in radians. Upload every chunk, then call the commit tool once to assemble the run and start recalculation.";
         else if (controller == "SurveyRun" && action == "CommitSurveyMeasurementChunks")
@@ -533,6 +535,7 @@ internal static class TrajectoryMcpToolMetadata
         string[] methods = verbs.Split('/', StringSplitOptions.RemoveEmptyEntries | StringSplitOptions.TrimEntries);
         bool readOnly = (methods.Length > 0 && methods.All(value => value == "GET")) ||
                         (controller == "Trajectory" && method.Name == "BatchExport") ||
+                        (controller == "UncertaintyEnvelope" && method.Name == "Evaluate") ||
                         method.Name == "AuditExternalReferences";
         bool destructive = methods.Contains("DELETE", StringComparer.Ordinal) ||
                            (controller == "Trajectory" && method.Name == "BatchRestore");

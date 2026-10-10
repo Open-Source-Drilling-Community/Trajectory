@@ -2,7 +2,7 @@
 
 `Service` is the ASP.NET Core microservice for Trajectory. Its code namespace root is `OSDC.Drilling.Trajectory.Service`.
 
-`TrajectoryProviderSemantics` is the single provider binding source used to add structured SemanticCatalogue 0.18.0 metadata to both Swagger/OpenAPI and MCP schemas. MCP input roots publish generic resource operations and calculation lifecycle roles; calculation-state enum values identify queued, running, completed, failed and cancelled states.
+`TrajectoryProviderSemantics` is the single provider binding source used to add structured SemanticCatalogue 0.19.0 metadata to both Swagger/OpenAPI and MCP schemas. MCP input roots publish generic resource operations, stateless evaluations and calculation lifecycle roles; calculation-state enum values identify queued, running, completed, failed and cancelled states.
 
 That registry also describes persisted calculation-case lifecycles. It assigns concrete calculation concepts and operation roles for queued case submission/replacement, case deletion, full case retrieval, light status retrieval, complete result retrieval, and chunk retrieval. Interpolated trajectories participate in the same background lifecycle. Survey-station ellipse submission is explicitly marked immediate. These annotations describe existing behavior and do not alter routes or response payloads.
 
@@ -84,6 +84,8 @@ The REST/OpenAPI and MCP contracts carry the same reference-frame semantics and 
 Ellipse calculations intended for a stored resource use `POST SurveyStationEllipseCalculation/SurveyRun/{surveyRunId}` or `POST SurveyStationEllipseCalculation/Trajectory/{trajectoryId}`. These routes rebuild authoritative SurveyRun uncertainty from the complete parent chain, rematerialize trajectories from those corrected runs, and replace submitted covariance at exact or interpolated display depths. The original station-only route remains available for genuinely standalone complete histories, but rejects partial Wolff-de Wardt or ISCWSA covariance because the missing propagation state cannot be recovered. Trajectory realizations use the same lineage-aware rematerialization and fail rather than silently restarting at a slot or tie-in.
 
 Within each ellipse calculation, every vertical ellipse uses the same first-to-last vertical-section curtain. It does not follow the instantaneous station azimuth, avoiding false changes in projected semi-axis size when azimuth becomes ill-conditioned near vertical inclination.
+
+`POST /UncertaintyEnvelope/Evaluate` directly combines a supplied positional uncertainty ellipse with the projected circular borehole cross-section. Horizontal projection uses inclination and azimuth, vertical projection additionally requires the vertical-section azimuth, and the perpendicular projection is circular. The evaluator returns the projected borehole ellipse and a conservative enclosing physical envelope with its declared approximation convention. It creates no persisted case and is published as read-only through MCP.
 
 ## Related Projects
 

@@ -235,6 +235,8 @@ internal static class TrajectoryProviderSemantics
 
     public static JsonObject? ForOperation(string controller, MethodInfo method)
     {
+        if (controller == "UncertaintyEnvelope" && method.Name == "Evaluate")
+            return Metadata(Concepts.CircularlyDilatedUncertaintyEnvelope, Concepts.CircularUncertaintyEnvelopeDilation, null);
         if (!CalculationConceptsByController.TryGetValue(controller, out string? concept))
         {
             if (ResourceForController(controller) is not { } resource) return null;
