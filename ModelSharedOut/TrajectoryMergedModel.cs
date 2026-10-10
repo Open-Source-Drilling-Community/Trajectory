@@ -35795,6 +35795,167 @@ namespace OSDC.Drilling.Trajectory.ModelShared
             }
         }
 
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<TrajectoryHorizontalEllipseEvaluation> GetTrajectoryHorizontalEllipseAsync(System.Guid id, double alongHoleDepth, double confidenceFactor, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        {
+            if (id == null)
+                throw new System.ArgumentNullException("id");
+
+            if (alongHoleDepth == null)
+                throw new System.ArgumentNullException("alongHoleDepth");
+
+            if (confidenceFactor == null)
+                throw new System.ArgumentNullException("confidenceFactor");
+
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    request_.Method = new System.Net.Http.HttpMethod("GET");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "Trajectory/{id}/HorizontalEllipse"
+                    urlBuilder_.Append("Trajectory/");
+                    urlBuilder_.Append(System.Uri.EscapeDataString(ConvertToString(id, System.Globalization.CultureInfo.InvariantCulture)));
+                    urlBuilder_.Append("/HorizontalEllipse");
+                    urlBuilder_.Append('?');
+                    urlBuilder_.Append(System.Uri.EscapeDataString("alongHoleDepth")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(alongHoleDepth, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    urlBuilder_.Append(System.Uri.EscapeDataString("confidenceFactor")).Append('=').Append(System.Uri.EscapeDataString(ConvertToString(confidenceFactor, System.Globalization.CultureInfo.InvariantCulture))).Append('&');
+                    urlBuilder_.Length--;
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<TrajectoryHorizontalEllipseEvaluation>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
+        /// <param name="cancellationToken">A cancellation token that can be used by other objects or threads to receive notice of cancellation.</param>
+        /// <returns>OK</returns>
+        /// <exception cref="ApiException">A server side error occurred.</exception>
+        public virtual async System.Threading.Tasks.Task<PhysicalUncertaintyEnvelopeEvaluation> EvaluatePhysicalUncertaintyEnvelopeAsync(PhysicalUncertaintyEnvelopeRequest body = null, System.Threading.CancellationToken cancellationToken = default(System.Threading.CancellationToken))
+        {
+            var client_ = _httpClient;
+            var disposeClient_ = false;
+            try
+            {
+                using (var request_ = new System.Net.Http.HttpRequestMessage())
+                {
+                    var json_ = System.Text.Json.JsonSerializer.SerializeToUtf8Bytes(body, JsonSerializerSettings);
+                    var content_ = new System.Net.Http.ByteArrayContent(json_);
+                    content_.Headers.ContentType = System.Net.Http.Headers.MediaTypeHeaderValue.Parse("application/json");
+                    request_.Content = content_;
+                    request_.Method = new System.Net.Http.HttpMethod("POST");
+                    request_.Headers.Accept.Add(System.Net.Http.Headers.MediaTypeWithQualityHeaderValue.Parse("application/json"));
+
+                    var urlBuilder_ = new System.Text.StringBuilder();
+                    if (!string.IsNullOrEmpty(_baseUrl)) urlBuilder_.Append(_baseUrl);
+                    // Operation Path: "UncertaintyEnvelope/Evaluate"
+                    urlBuilder_.Append("UncertaintyEnvelope/Evaluate");
+
+                    PrepareRequest(client_, request_, urlBuilder_);
+
+                    var url_ = urlBuilder_.ToString();
+                    request_.RequestUri = new System.Uri(url_, System.UriKind.RelativeOrAbsolute);
+
+                    PrepareRequest(client_, request_, url_);
+
+                    var response_ = await client_.SendAsync(request_, System.Net.Http.HttpCompletionOption.ResponseHeadersRead, cancellationToken).ConfigureAwait(false);
+                    var disposeResponse_ = true;
+                    try
+                    {
+                        var headers_ = new System.Collections.Generic.Dictionary<string, System.Collections.Generic.IEnumerable<string>>();
+                        foreach (var item_ in response_.Headers)
+                            headers_[item_.Key] = item_.Value;
+                        if (response_.Content != null && response_.Content.Headers != null)
+                        {
+                            foreach (var item_ in response_.Content.Headers)
+                                headers_[item_.Key] = item_.Value;
+                        }
+
+                        ProcessResponse(client_, response_);
+
+                        var status_ = (int)response_.StatusCode;
+                        if (status_ == 200)
+                        {
+                            var objectResponse_ = await ReadObjectResponseAsync<PhysicalUncertaintyEnvelopeEvaluation>(response_, headers_, cancellationToken).ConfigureAwait(false);
+                            if (objectResponse_.Object == null)
+                            {
+                                throw new ApiException("Response was null which was not expected.", status_, objectResponse_.Text, headers_, null);
+                            }
+                            return objectResponse_.Object;
+                        }
+                        else
+                        {
+                            var responseData_ = response_.Content == null ? null : await ReadAsStringAsync(response_.Content, cancellationToken).ConfigureAwait(false);
+                            throw new ApiException("The HTTP status code of the response was not expected (" + status_ + ").", status_, responseData_, headers_, null);
+                        }
+                    }
+                    finally
+                    {
+                        if (disposeResponse_)
+                            response_.Dispose();
+                    }
+                }
+            }
+            finally
+            {
+                if (disposeClient_)
+                    client_.Dispose();
+            }
+        }
+
         protected struct ObjectResponseResult<T>
         {
             public ObjectResponseResult(T responseObject, string responseText)
@@ -58235,6 +58396,146 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class HorizontalSurveyUncertaintyEllipse
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("SemiMajorAxis")]
+        public double SemiMajorAxis { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("SemiMinorAxis")]
+        public double SemiMinorAxis { get; set; }
+
+        /// <summary>
+        /// Full major-axis diameter, twice the shared uncertainty ellipse semi-major axis, in SI metres.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("MajorAxis")]
+        public double MajorAxis { get; set; }
+
+        /// <summary>
+        /// Full minor-axis diameter, twice the shared uncertainty ellipse semi-minor axis, in SI metres.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("MinorAxis")]
+        public double MinorAxis { get; set; }
+
+        /// <summary>
+        /// Radians clockwise from true north toward east for the horizontal ellipse major axis. An axis is unoriented, modulo pi.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("OrientationAngle")]
+        public double OrientationAngle { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class PhysicalUncertaintyEnvelopeEvaluation
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("Projection")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<UncertaintyProjectionPlane>))]
+        public UncertaintyProjectionPlane Projection { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ProjectedBoreholeCrossSection")]
+        public PlanarEllipse ProjectedBoreholeCrossSection { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("CombinedEnvelope")]
+        public PlanarEllipse CombinedEnvelope { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("AppliedOutermostKnownPhysicalEnvelopeDiameter")]
+        public double AppliedOutermostKnownPhysicalEnvelopeDiameter { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ApproximationConvention")]
+        public string ApproximationConvention { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class PhysicalUncertaintyEnvelopeRequest
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("Projection")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<UncertaintyProjectionPlane>))]
+        public UncertaintyProjectionPlane Projection { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("UncertaintySemiMajorAxis")]
+        public double UncertaintySemiMajorAxis { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("UncertaintySemiMinorAxis")]
+        public double UncertaintySemiMinorAxis { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("UncertaintyOrientationAngle")]
+        public double UncertaintyOrientationAngle { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Inclination")]
+        public double Inclination { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("Azimuth")]
+        public double Azimuth { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("VerticalSectionAzimuth")]
+        public double? VerticalSectionAzimuth { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("OutermostKnownPhysicalEnvelopeDiameter")]
+        public double OutermostKnownPhysicalEnvelopeDiameter { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class PlanarEllipse
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("SemiMajorAxis")]
+        public double SemiMajorAxis { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("SemiMinorAxis")]
+        public double SemiMinorAxis { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("MajorAxis")]
+        public double MajorAxis { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("MinorAxis")]
+        public double MinorAxis { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("OrientationAngle")]
+        public double OrientationAngle { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class ReferencedTrajectoryStation
     {
 
@@ -58262,8 +58563,40 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class TrajectoryHorizontalEllipseEvaluation
+    {
+
+        [System.Text.Json.Serialization.JsonPropertyName("Projection")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<UncertaintyProjectionPlane>))]
+        public UncertaintyProjectionPlane Projection { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("AlongHoleDepth")]
+        public double AlongHoleDepth { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("ConfidenceFactor")]
+        public double ConfidenceFactor { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("HorizontalEllipse")]
+        public HorizontalSurveyUncertaintyEllipse HorizontalEllipse { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class TrajectoryVerticalEllipseEvaluation
     {
+
+        [System.Text.Json.Serialization.JsonPropertyName("Projection")]
+        [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<UncertaintyProjectionPlane>))]
+        public UncertaintyProjectionPlane Projection { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("AlongHoleDepth")]
         public double AlongHoleDepth { get; set; }
@@ -58292,8 +58625,29 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public enum UncertaintyProjectionPlane
+    {
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Horizontal")]
+        Horizontal = 0,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Vertical")]
+        Vertical = 1,
+
+        [System.Runtime.Serialization.EnumMember(Value = @"Perpendicular")]
+        Perpendicular = 2,
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class VerticalSurveyUncertaintyEllipse
     {
+
+        [System.Text.Json.Serialization.JsonPropertyName("SemiMajorAxis")]
+        public double SemiMajorAxis { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("SemiMinorAxis")]
+        public double SemiMinorAxis { get; set; }
 
         /// <summary>
         /// Full major-axis diameter, twice the shared uncertainty ellipse semi-major axis, in SI metres.

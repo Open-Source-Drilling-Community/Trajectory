@@ -70,7 +70,7 @@ public sealed class PhysicalUncertaintyEnvelopeEvaluatorTests
         double major, double minor, double angle, double diameter) => new()
     {
         Projection = projection, UncertaintySemiMajorAxis = major, UncertaintySemiMinorAxis = minor,
-        UncertaintyOrientationAngle = angle, Inclination = .6, Azimuth = .8, BoreholeDiameter = diameter
+        UncertaintyOrientationAngle = angle, Inclination = .6, Azimuth = .8, OutermostKnownPhysicalEnvelopeDiameter = diameter
     };
 
     private static void AssertContains(PhysicalUncertaintyEnvelopeRequest request, PhysicalUncertaintyEnvelopeEvaluation result)

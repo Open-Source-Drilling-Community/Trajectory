@@ -12,9 +12,9 @@ internal static class PhysicalUncertaintyEnvelopeEvaluator
         result = null;
         error = null;
         if (request is null || !Finite(request.UncertaintySemiMajorAxis, request.UncertaintySemiMinorAxis,
-                request.UncertaintyOrientationAngle, request.Inclination, request.Azimuth, request.BoreholeDiameter) ||
+                request.UncertaintyOrientationAngle, request.Inclination, request.Azimuth, request.OutermostKnownPhysicalEnvelopeDiameter) ||
             request.UncertaintySemiMajorAxis <= 0 || request.UncertaintySemiMinorAxis <= 0 ||
-            request.UncertaintySemiMajorAxis < request.UncertaintySemiMinorAxis || request.BoreholeDiameter < 0)
+            request.UncertaintySemiMajorAxis < request.UncertaintySemiMinorAxis || request.OutermostKnownPhysicalEnvelopeDiameter < 0)
         {
             error = "Ellipse axes, station attitude and borehole diameter must be finite; axes must be positive and ordered and diameter nonnegative.";
             return false;
@@ -35,7 +35,7 @@ internal static class PhysicalUncertaintyEnvelopeEvaluator
         result = new PhysicalUncertaintyEnvelopeEvaluation
         {
             Projection = request.Projection,
-            AppliedBoreholeDiameter = request.BoreholeDiameter,
+            AppliedOutermostKnownPhysicalEnvelopeDiameter = request.OutermostKnownPhysicalEnvelopeDiameter,
             ProjectedBoreholeCrossSection = new PlanarEllipse
             {
                 SemiMajorAxis = projected.Major, SemiMinorAxis = projected.Minor,
@@ -53,7 +53,7 @@ internal static class PhysicalUncertaintyEnvelopeEvaluator
 
     private static (double Major, double Minor, double Angle) ProjectCrossSection(PhysicalUncertaintyEnvelopeRequest request)
     {
-        double radius = request.BoreholeDiameter / 2;
+        double radius = request.OutermostKnownPhysicalEnvelopeDiameter / 2;
         return request.Projection switch
         {
             UncertaintyProjectionPlane.Horizontal =>

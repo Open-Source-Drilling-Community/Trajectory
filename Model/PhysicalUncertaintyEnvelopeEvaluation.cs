@@ -22,8 +22,8 @@ public sealed class PhysicalUncertaintyEnvelopeRequest
     public double Azimuth { get; set; }
     [Semantic(Concepts.VerticalSectionAzimuth, Reference = Concepts.TrueNorthClockwise)]
     public double? VerticalSectionAzimuth { get; set; }
-    [Semantic(Concepts.BoreholeDiameter)]
-    public double BoreholeDiameter { get; set; }
+    [Semantic(Concepts.OutermostKnownPhysicalEnvelopeDiameter)]
+    public double OutermostKnownPhysicalEnvelopeDiameter { get; set; }
 }
 
 [Semantic(Concepts.CircularlyDilatedUncertaintyEnvelope)]
@@ -35,8 +35,8 @@ public sealed class PhysicalUncertaintyEnvelopeEvaluation
     public PlanarEllipse ProjectedBoreholeCrossSection { get; set; } = new();
     [Semantic(Concepts.CircularlyDilatedUncertaintyEnvelope)]
     public PlanarEllipse CombinedEnvelope { get; set; } = new();
-    [Semantic(Concepts.BoreholeDiameter)]
-    public double AppliedBoreholeDiameter { get; set; }
+    [Semantic(Concepts.OutermostKnownPhysicalEnvelopeDiameter)]
+    public double AppliedOutermostKnownPhysicalEnvelopeDiameter { get; set; }
     public string ApproximationConvention { get; set; } = Concepts.MinimumDeterminantEllipsoidalOuterBoundConvention;
 }
 

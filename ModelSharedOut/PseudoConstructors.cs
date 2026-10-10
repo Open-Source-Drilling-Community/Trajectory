@@ -7266,6 +7266,53 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CatalogWrites = 0,
 			};
 		}
+		public static HorizontalSurveyUncertaintyEllipse ConstructHorizontalSurveyUncertaintyEllipse()
+		{
+			return new HorizontalSurveyUncertaintyEllipse
+			{
+				SemiMajorAxis = 0.0,
+				SemiMinorAxis = 0.0,
+				MajorAxis = 0.0,
+				MinorAxis = 0.0,
+				OrientationAngle = 0.0,
+			};
+		}
+		public static PhysicalUncertaintyEnvelopeEvaluation ConstructPhysicalUncertaintyEnvelopeEvaluation()
+		{
+			return new PhysicalUncertaintyEnvelopeEvaluation
+			{
+				Projection = (UncertaintyProjectionPlane)0,
+				ProjectedBoreholeCrossSection = ConstructPlanarEllipse(),
+				CombinedEnvelope = ConstructPlanarEllipse(),
+				AppliedOutermostKnownPhysicalEnvelopeDiameter = 0.0,
+				ApproximationConvention = "Default ApproximationConvention",
+			};
+		}
+		public static PhysicalUncertaintyEnvelopeRequest ConstructPhysicalUncertaintyEnvelopeRequest()
+		{
+			return new PhysicalUncertaintyEnvelopeRequest
+			{
+				Projection = (UncertaintyProjectionPlane)0,
+				UncertaintySemiMajorAxis = 0.0,
+				UncertaintySemiMinorAxis = 0.0,
+				UncertaintyOrientationAngle = 0.0,
+				Inclination = 0.0,
+				Azimuth = 0.0,
+				VerticalSectionAzimuth = null,
+				OutermostKnownPhysicalEnvelopeDiameter = 0.0,
+			};
+		}
+		public static PlanarEllipse ConstructPlanarEllipse()
+		{
+			return new PlanarEllipse
+			{
+				SemiMajorAxis = 0.0,
+				SemiMinorAxis = 0.0,
+				MajorAxis = 0.0,
+				MinorAxis = 0.0,
+				OrientationAngle = 0.0,
+			};
+		}
 		public static ReferencedTrajectoryStation ConstructReferencedTrajectoryStation()
 		{
 			return new ReferencedTrajectoryStation
@@ -7276,10 +7323,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				Station = ConstructSurveyStation(),
 			};
 		}
+		public static TrajectoryHorizontalEllipseEvaluation ConstructTrajectoryHorizontalEllipseEvaluation()
+		{
+			return new TrajectoryHorizontalEllipseEvaluation
+			{
+				Projection = (UncertaintyProjectionPlane)0,
+				AlongHoleDepth = 0.0,
+				ConfidenceFactor = 0.0,
+				HorizontalEllipse = ConstructHorizontalSurveyUncertaintyEllipse(),
+			};
+		}
 		public static TrajectoryVerticalEllipseEvaluation ConstructTrajectoryVerticalEllipseEvaluation()
 		{
 			return new TrajectoryVerticalEllipseEvaluation
 			{
+				Projection = (UncertaintyProjectionPlane)0,
 				AlongHoleDepth = 0.0,
 				ConfidenceFactor = 0.0,
 				VerticalSectionAzimuth = 0.0,
@@ -7290,6 +7348,8 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new VerticalSurveyUncertaintyEllipse
 			{
+				SemiMajorAxis = 0.0,
+				SemiMinorAxis = 0.0,
 				MajorAxis = 0.0,
 				MinorAxis = 0.0,
 				OrientationAngle = 0.0,
