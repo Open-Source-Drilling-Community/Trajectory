@@ -79,4 +79,16 @@ public class TrajectoryStationEvaluationTests
     }
     [TestCase(0)] [TestCase(1)] [TestCase(95)]
     public void EllipseRejectsInvalidProbabilities(double confidence)=>Assert.That(TrajectoryStationEvaluation.TryEvaluateVerticalEllipse(Vertical(),50,confidence,out _),Is.False);
+
+    [Test] public void HorizontalEllipseUsesFullDiametersAndTrueNorthOrientation() {
+        var t=Vertical();foreach(var p in t.SurveyStationList!){
+            p.Covariance=new OSDC.DotnetLibraries.General.Math.SymmetricMatrix3x3();
+            p.Covariance[0,0]=9;p.Covariance[1,1]=4;p.Covariance[2,2]=1;
+            p.Covariance[0,1]=p.Covariance[0,2]=p.Covariance[1,2]=0;
+        }
+        Assert.That(TrajectoryStationEvaluation.TryEvaluateHorizontalEllipse(t,50,0.95,out var result),Is.True);
+        Assert.That(result!.HorizontalEllipse.MajorAxis/result.HorizontalEllipse.MinorAxis,Is.EqualTo(1.5).Within(1e-8));
+        Assert.That(result.HorizontalEllipse.MajorAxis,Is.EqualTo(2*Math.Sqrt(9*OSDC.DotnetLibraries.General.Statistics.Statistics.GetChiSquare3D(0.95))).Within(1e-8));
+        Assert.That(result.HorizontalEllipse.OrientationAngle%Math.PI,Is.EqualTo(0).Within(1e-8));
+    }
 }

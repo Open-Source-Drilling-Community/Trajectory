@@ -25,3 +25,25 @@ public sealed class VerticalSurveyUncertaintyEllipse
     [Semantic(Concepts.UncertaintyEllipseOrientation, Reference = Concepts.VerticalEllipseAxisConvention)]
     public double OrientationAngle { get; set; }
 }
+
+[Semantic(Concepts.SurveyStationUncertaintyEllipse)]
+public sealed class TrajectoryHorizontalEllipseEvaluation
+{
+    [Semantic(Concepts.AlongHoleDepth, Reference = Concepts.Wgs84AlongHoleOrigin)]
+    public double AlongHoleDepth { get; set; }
+    [Semantic(Concepts.ConfidenceFactor)]
+    public double ConfidenceFactor { get; set; }
+    [Semantic(Concepts.HorizontalUncertaintyEllipse)]
+    public HorizontalSurveyUncertaintyEllipse HorizontalEllipse { get; set; } = new();
+}
+
+[Semantic(Concepts.HorizontalUncertaintyEllipse)]
+public sealed class HorizontalSurveyUncertaintyEllipse
+{
+    [Semantic(Concepts.PhysicalLengthExtent, Role = Concepts.MajorAxis)]
+    public double MajorAxis { get; set; }
+    [Semantic(Concepts.PhysicalLengthExtent, Role = Concepts.MinorAxis)]
+    public double MinorAxis { get; set; }
+    [Semantic(Concepts.UncertaintyEllipseOrientation, Reference = Concepts.TrueNorthClockwise)]
+    public double OrientationAngle { get; set; }
+}

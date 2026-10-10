@@ -53,6 +53,23 @@ internal static class TrajectoryStationEvaluation
         return true;
     }
 
+    internal static bool TryEvaluateHorizontalEllipse(Model.Trajectory trajectory, double depth, double confidence,
+        out Model.TrajectoryHorizontalEllipseEvaluation? result)
+    {
+        result = null;
+        if (!double.IsFinite(confidence) || confidence <= 0 || confidence > Model.SurveyStationEllipseCalculation.MaximumConfidenceFactor ||
+            !TryEvaluate(trajectory, depth, out var station)) return false;
+        var ellipsoid = new UncertaintyEllipsoid { EllipsoidSurveyStation = station, ConfidenceFactor = confidence, ScalingFactor = 1.0,
+            CalculateHorizontalEllipse = true };
+        if (!ellipsoid.CalculateHorizontalEllipseParameters()) return false;
+        var ellipse = ellipsoid.HorizontalEllipse;
+        if (ellipse?.EllipseRadii?.X is not double major || ellipse.EllipseRadii.Y is not double minor || ellipse.EllipseOrientationAngle is not double angle ||
+            !double.IsFinite(major) || !double.IsFinite(minor) || !double.IsFinite(angle) || major < minor || minor < 0) return false;
+        result = new() { AlongHoleDepth = depth, ConfidenceFactor = confidence,
+            HorizontalEllipse = new() { MajorAxis = 2 * major, MinorAxis = 2 * minor, OrientationAngle = angle } };
+        return true;
+    }
+
     internal static bool TryEvaluate(Model.Trajectory trajectory, double alongHoleDepth, out SurveyStation? station)
     {
         station = null;

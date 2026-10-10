@@ -184,6 +184,22 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
                 ? Ok(result) : UnprocessableEntity("The authoritative trajectory uncertainty lineage or requested ellipse could not be verified.");
         }
 
+        /// <summary>Read the horizontal uncertainty ellipse at MD and confidence probability,
+        /// reconstructing complete source uncertainty lineage. Does not persist a case.</summary>
+        [HttpGet("{id}/HorizontalEllipse", Name = "GetTrajectoryHorizontalEllipse")]
+        public async Task<ActionResult<Model.TrajectoryHorizontalEllipseEvaluation>> GetTrajectoryHorizontalEllipse(Guid id,
+            [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] double alongHoleDepth,
+            [FromQuery, Microsoft.AspNetCore.Mvc.ModelBinding.BindRequired] double confidenceFactor)
+        {
+            if (id == Guid.Empty || !double.IsFinite(alongHoleDepth) || !double.IsFinite(confidenceFactor) ||
+                confidenceFactor <= 0 || confidenceFactor > Model.SurveyStationEllipseCalculation.MaximumConfidenceFactor) return BadRequest();
+            var source = _trajectoryManager.GetTrajectoryById(id);
+            if (source is null) return NotFound();
+            source = await _trajectoryManager.GetTrajectoryWithRecalculatedUncertaintyAsync(id);
+            return source is not null && TrajectoryStationEvaluation.TryEvaluateHorizontalEllipse(source, alongHoleDepth, confidenceFactor, out var result)
+                ? Ok(result) : UnprocessableEntity("The authoritative trajectory uncertainty lineage or requested ellipse could not be verified.");
+        }
+
         [HttpGet("{id}/SurveyStations/ChunkCount", Name = "GetTrajectorySurveyStationChunkCount")]
         public ActionResult<int> GetSurveyStationChunkCount(Guid id)
         {

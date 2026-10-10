@@ -7200,6 +7200,176 @@
         }
       }
     },
+    "/Trajectory/{id}/HorizontalEllipse": {
+      "get": {
+        "tags": [
+          "Trajectory"
+        ],
+        "operationId": "GetTrajectoryHorizontalEllipse",
+        "parameters": [
+          {
+            "name": "id",
+            "in": "path",
+            "required": true,
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.18.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:wellbore-trajectory"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.18.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:wellbore-trajectory"
+            }
+          },
+          {
+            "name": "alongHoleDepth",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.18.0",
+                "concept": "urn:osdc:semantic:along-hole-depth",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "wellbore path and applicable realization",
+                  "reference",
+                  "axis/sign convention",
+                  "axis or path",
+                  "coordinate origin",
+                  "increasing direction",
+                  "physical quantity specialization"
+                ],
+                "reference": "urn:osdc:semantic:wgs84-along-hole-origin",
+                "siUnit": "m",
+                "physicalQuantityStatus": "resolved",
+                "physicalQuantity": {
+                  "catalogue": "Conversion.DrillingEngineering",
+                  "id": "c0d965b2-a153-420a-9d03-7a2a272d619e",
+                  "name": "DepthDrilling",
+                  "siUnitName": "metre"
+                }
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.18.0",
+              "concept": "urn:osdc:semantic:along-hole-depth",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "wellbore path and applicable realization",
+                "reference",
+                "axis/sign convention",
+                "axis or path",
+                "coordinate origin",
+                "increasing direction",
+                "physical quantity specialization"
+              ],
+              "reference": "urn:osdc:semantic:wgs84-along-hole-origin",
+              "siUnit": "m",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "c0d965b2-a153-420a-9d03-7a2a272d619e",
+                "name": "DepthDrilling",
+                "siUnitName": "metre"
+              }
+            }
+          },
+          {
+            "name": "confidenceFactor",
+            "in": "query",
+            "required": true,
+            "schema": {
+              "type": "number",
+              "format": "double",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.18.0",
+                "concept": "urn:osdc:semantic:confidence-factor",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [ ],
+                "siUnit": "1",
+                "physicalQuantityStatus": "resolved",
+                "physicalQuantity": {
+                  "catalogue": "Conversion",
+                  "id": "97555d61-9fc3-4769-9143-6bc2bf51b2d7",
+                  "name": "ProportionStandard",
+                  "siUnitName": "proportion"
+                }
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.18.0",
+              "concept": "urn:osdc:semantic:confidence-factor",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ],
+              "siUnit": "1",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion",
+                "id": "97555d61-9fc3-4769-9143-6bc2bf51b2d7",
+                "name": "ProportionStandard",
+                "siUnitName": "proportion"
+              }
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryHorizontalEllipseEvaluation"
+                }
+              }
+            }
+          }
+        },
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.18.0",
+          "concept": "urn:osdc:semantic:wellbore-trajectory",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-binding-registry",
+          "requiredContext": [
+            "wellbore",
+            "trajectory type",
+            "calculation method",
+            "owning service",
+            "resource type"
+          ],
+          "role": "urn:osdc:semantic:resource-retrieval"
+        }
+      }
+    },
     "/Trajectory/{id}/SurveyStations/ChunkCount": {
       "get": {
         "tags": [
@@ -16455,6 +16625,108 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.Trajectory.Model.HorizontalSurveyUncertaintyEllipse": {
+        "type": "object",
+        "properties": {
+          "MajorAxis": {
+            "type": "number",
+            "description": "Full major-axis diameter, twice the shared uncertainty ellipse semi-major axis, in SI metres.",
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.18.0",
+              "concept": "urn:osdc:semantic:physical-length-extent",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "role": "urn:osdc:semantic:major-axis",
+              "siUnit": "m",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion",
+                "id": "3716ad37-2b0c-4c0b-8936-6c9cdb47ad1d",
+                "name": "LengthStandard",
+                "siUnitName": "metre"
+              },
+              "requiredContext": [
+                "applicable interval and geometry"
+              ],
+              "constraints": [
+                "Aggregation requires non-overlapping coverage of the same interval.",
+                "Do not sum extents from overlapping construction descriptions or substitute coordinate positions.",
+                "Missing coverage is unknown unless an explicit domain rule states otherwise."
+              ]
+            }
+          },
+          "MinorAxis": {
+            "type": "number",
+            "description": "Full minor-axis diameter, twice the shared uncertainty ellipse semi-minor axis, in SI metres.",
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.18.0",
+              "concept": "urn:osdc:semantic:physical-length-extent",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "role": "urn:osdc:semantic:minor-axis",
+              "siUnit": "m",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion",
+                "id": "3716ad37-2b0c-4c0b-8936-6c9cdb47ad1d",
+                "name": "LengthStandard",
+                "siUnitName": "metre"
+              },
+              "requiredContext": [
+                "applicable interval and geometry"
+              ],
+              "constraints": [
+                "Aggregation requires non-overlapping coverage of the same interval.",
+                "Do not sum extents from overlapping construction descriptions or substitute coordinate positions.",
+                "Missing coverage is unknown unless an explicit domain rule states otherwise."
+              ]
+            }
+          },
+          "OrientationAngle": {
+            "type": "number",
+            "description": "Radians clockwise from true north toward east for the horizontal ellipse major axis. An axis is unoriented, modulo pi.",
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.18.0",
+              "concept": "urn:osdc:semantic:uncertainty-ellipse-orientation",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "reference": "urn:osdc:semantic:true-north-clockwise",
+              "siUnit": "rad",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "94ad3e73-2a44-4c60-bbca-188b941f3357",
+                "name": "PlaneAngleDrilling",
+                "siUnitName": "radian"
+              },
+              "requiredContext": [ ],
+              "constraints": [ ],
+              "referenceDefinition": "Zero is local true/geodetic north; angles increase clockwise toward east about the downward local normal. Canonical azimuth is in [0, 2*pi) radians; magnetic north and grid north are different references.",
+              "referenceRequiredContext": [ ]
+            }
+          }
+        },
+        "additionalProperties": false,
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.18.0",
+          "concept": "urn:osdc:semantic:horizontal-survey-uncertainty-ellipse",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-model-attribute",
+          "requiredContext": [
+            "ellipse plane",
+            "confidence factor",
+            "orientation convention"
+          ],
+          "constraints": [ ]
+        }
+      },
       "OSDC.Drilling.Trajectory.Model.InterpolatedTrajectory": {
         "type": "object",
         "properties": {
@@ -24058,6 +24330,113 @@
           }
         },
         "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryHorizontalEllipseEvaluation": {
+        "type": "object",
+        "properties": {
+          "AlongHoleDepth": {
+            "type": "number",
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.18.0",
+              "concept": "urn:osdc:semantic:along-hole-depth",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "reference": "urn:osdc:semantic:wgs84-along-hole-origin",
+              "siUnit": "m",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "c0d965b2-a153-420a-9d03-7a2a272d619e",
+                "name": "DepthDrilling",
+                "siUnitName": "metre"
+              },
+              "requiredContext": [
+                "wellbore path and applicable realization",
+                "reference",
+                "axis/sign convention",
+                "axis or path",
+                "coordinate origin",
+                "increasing direction",
+                "physical quantity specialization"
+              ],
+              "constraints": [
+                "Not a vertical depth or an additive segment length.",
+                "Acquisition provenance is independent of the coordinate concept.",
+                "OSDC canonical storage and API values use the WGS84 reference convention; display/import references require explicit conversion.",
+                "Positions are not additive extents.",
+                "Differences require the same path, origin and direction.",
+                "A curve coordinate does not imply a vertical datum.",
+                "A quantity of length does not make depth positions summable.",
+                "This denotes a position coordinate, not an additive segment extent."
+              ],
+              "referenceDefinition": "Zero along-hole depth is the intersection of the oriented wellbore path, or its defined extension, with the WGS84 ellipsoid. The coordinate is signed accumulated arc length from that intersection along the declared path orientation. It is not obtained by adding or subtracting a vertical elevation offset.",
+              "referenceRequiredContext": [
+                "wellbore path and extension model",
+                "selected intersection when multiple intersections exist",
+                "increasing path direction"
+              ]
+            }
+          },
+          "ConfidenceFactor": {
+            "type": "number",
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.18.0",
+              "concept": "urn:osdc:semantic:confidence-factor",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "siUnit": "1",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion",
+                "id": "97555d61-9fc3-4769-9143-6bc2bf51b2d7",
+                "name": "ProportionStandard",
+                "siUnitName": "proportion"
+              },
+              "requiredContext": [ ],
+              "constraints": [
+                "The admissible interval and statistical interpretation are defined by the consuming calculation."
+              ]
+            }
+          },
+          "HorizontalEllipse": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.HorizontalSurveyUncertaintyEllipse"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.18.0",
+              "concept": "urn:osdc:semantic:horizontal-survey-uncertainty-ellipse",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-model-attribute",
+              "requiredContext": [
+                "ellipse plane",
+                "confidence factor",
+                "orientation convention"
+              ],
+              "constraints": [ ]
+            }
+          }
+        },
+        "additionalProperties": false,
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.18.0",
+          "concept": "urn:osdc:semantic:survey-station-uncertainty-ellipse",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-model-attribute",
+          "requiredContext": [
+            "ellipse plane",
+            "confidence factor",
+            "orientation convention"
+          ],
+          "constraints": [ ]
+        }
       },
       "OSDC.Drilling.Trajectory.Model.TrajectoryIdentity": {
         "type": "object",

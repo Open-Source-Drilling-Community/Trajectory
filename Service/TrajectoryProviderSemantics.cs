@@ -217,6 +217,10 @@ internal static class TrajectoryProviderSemantics
             "MajorAxis"=>"Full major-axis diameter, twice the shared uncertainty ellipse semi-major axis, in SI metres.",
             "MinorAxis"=>"Full minor-axis diameter, twice the shared uncertainty ellipse semi-minor axis, in SI metres.",
             "OrientationAngle"=>"Radians in the fixed vertical-section ellipse axis convention: major-axis direction (-sin(phi),cos(phi)) in (section distance, positive-down TVD). An axis is unoriented, modulo pi. This is not an azimuth relative to north or the wellbore tangent.",_=>null};
+        if(owner==typeof(HorizontalSurveyUncertaintyEllipse))return name switch {
+            "MajorAxis"=>"Full major-axis diameter, twice the shared uncertainty ellipse semi-major axis, in SI metres.",
+            "MinorAxis"=>"Full minor-axis diameter, twice the shared uncertainty ellipse semi-minor axis, in SI metres.",
+            "OrientationAngle"=>"Radians clockwise from true north toward east for the horizontal ellipse major axis. An axis is unoriented, modulo pi.",_=>null};
         if(owner==typeof(TrajectoryVerticalEllipseEvaluation) && name=="VerticalSectionAzimuth")return "True-north-clockwise section azimuth in radians, selected from the first to the last horizontally separated source trajectory stations. The full source path determines the plane, including when sampling one MD.";
         if (typeof(Point3DGlobalCoordinates).IsAssignableFrom(owner)) return name switch
         {

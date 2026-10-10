@@ -51,7 +51,7 @@ public sealed class McpServerHttpTests
     public async Task Http_endpoint_publishes_all_179_rest_backed_tools_and_ping()
     {
         string[] remote = (await _client.ListToolsAsync(cancellationToken: CancellationToken.None)).Select(tool => tool.Name).ToArray();
-        Assert.That(remote, Has.Length.EqualTo(180));
+        Assert.That(remote, Has.Length.EqualTo(181));
         Assert.That(remote, Is.Unique);
         Assert.That(remote, Does.Contain("trajectory_usage_statistics_get_trajectory_usage_statistics"));
     }
