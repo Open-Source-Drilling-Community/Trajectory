@@ -87,15 +87,18 @@ public static class APIUtils
         try
         {
             WellBore? wellBore = await APIUtils.ClientWellBore.GetWellBoreByIdAsync(wellBoreId);
+            if(wellBore!=null)OSDC.Drilling.Trajectory.Service.UncertaintyDependencies.Track("WellBore",wellBoreId,wellBore);
             // We cascade up to the slot it is connected to retrieve the reference point coordinates of the tie-in Gaussian geodetic point
             if (wellBore?.WellID is Guid wellId && wellId != Guid.Empty)
             {
                 Well? well = await APIUtils.ClientWell.GetWellByIdAsync(wellId);
+                if(well!=null)OSDC.Drilling.Trajectory.Service.UncertaintyDependencies.Track("Well",wellId,well);
                 if (well is not null &&
                     well.ClusterID is Guid clusterId && clusterId != Guid.Empty &&
                     well.SlotID is Guid slotId && slotId != Guid.Empty)
                 {
                     Cluster? cluster = await APIUtils.ClientCluster.GetClusterByIdAsync(clusterId);
+                    if(cluster!=null)OSDC.Drilling.Trajectory.Service.UncertaintyDependencies.Track("Cluster",clusterId,cluster);
                     if (cluster?.Slots is { } slots &&
                         slots.TryGetValue(slotId.ToString(), out var slot) &&
                         slot is not null &&
@@ -211,16 +214,17 @@ public static class APIUtils
         longitudeShifted.SetRiemannianNorthEast(latitude, longitude + longitudeStdDev);
         double northStdDev = latitudeShifted.RiemannianNorth!.Value - nominal.RiemannianNorth!.Value;
         double eastStdDev = longitudeShifted.RiemannianEast!.Value - nominal.RiemannianEast!.Value;
-        if (!double.IsFinite(northStdDev * northStdDev) || !double.IsFinite(eastStdDev * eastStdDev) ||
+        double eastFromLatitude=latitudeShifted.RiemannianEast!.Value-nominal.RiemannianEast!.Value;
+        if (!double.IsFinite(eastFromLatitude*eastFromLatitude)||!double.IsFinite(northStdDev * northStdDev) || !double.IsFinite(eastStdDev * eastStdDev) ||
             !double.IsFinite(tvdStdDev * tvdStdDev))
             throw new ArgumentException("The coordinate variances must be finite.");
 
         SymmetricMatrix3x3 covariance = new();
         covariance[0, 0] = northStdDev * northStdDev;
-        covariance[0, 1] = 0.0;
+        covariance[0, 1] = northStdDev * eastFromLatitude;
         covariance[0, 2] = 0.0;
-        covariance[1, 0] = 0.0;
-        covariance[1, 1] = eastStdDev * eastStdDev;
+        covariance[1, 0] = northStdDev * eastFromLatitude;
+        covariance[1, 1] = eastStdDev * eastStdDev + eastFromLatitude * eastFromLatitude;
         covariance[1, 2] = 0.0;
         covariance[2, 0] = 0.0;
         covariance[2, 1] = 0.0;

@@ -81,6 +81,7 @@ builder.Services.AddSwaggerGen(config =>
         : subType == typeof(AntiCollisionFeatureCondition) ? "Feature"
         : null);
     config.SchemaFilter<TrajectorySemanticSchemaFilter>();
+    config.SchemaFilter<MatrixSchemaFilter>();
     config.OperationFilter<TrajectorySemanticOperationFilter>();
 });
 
@@ -139,6 +140,17 @@ if (!String.IsNullOrEmpty(builder.Configuration["EarthGravityHostURL"]))
     ServiceConfiguration.EarthGravityHostURL = builder.Configuration["EarthGravityHostURL"];
 if (!String.IsNullOrEmpty(builder.Configuration["EarthMagneticFieldHostURL"]))
     ServiceConfiguration.EarthMagneticFieldHostURL = builder.Configuration["EarthMagneticFieldHostURL"];
+
+if (args.Contains("--repair-covariance"))
+{
+    string Value(string flag)=>args[Array.IndexOf(args,flag)+1];
+    string database=Value("--repair-database"),audit=Value("--repair-audit");
+    if(!Path.GetFullPath(database).StartsWith("/home/",StringComparison.Ordinal))throw new InvalidOperationException("Repair database must remain in the persistent cluster volume.");
+    var db=new SqlConnectionManagerTrajectory(database,app.Services.GetRequiredService<ILogger<SqlConnectionManagerTrajectory>>());
+    var receipt=await CovarianceRepair.RunAsync(db,args.Contains("--repair-apply"),audit);
+    Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(receipt));
+    return;
+}
 
 if (builder.Environment.IsDevelopment())
 {

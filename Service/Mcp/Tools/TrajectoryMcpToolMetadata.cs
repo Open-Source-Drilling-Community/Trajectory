@@ -677,6 +677,8 @@ internal static class TrajectoryMcpToolMetadata
 
     private static JsonObject BuildObjectDefinition(Type type, JsonObject definitions, HashSet<Type> building)
     {
+        if(type==typeof(OSDC.DotnetLibraries.General.Math.SymmetricMatrix3x3)||type==typeof(OSDC.DotnetLibraries.General.Math.Matrix3x3))
+            return JsonNode.Parse("""{"type":"object","properties":{"ColumnCount":{"const":3},"RowCount":{"const":3},"FormatVersion":{"const":1},"Values":{"type":"array","minItems":9,"maxItems":9,"items":{"type":["number","null"]},"description":"Nine row-major entries; covariance in square metres of N/E/depth, eigenvectors dimensionless."}},"additionalProperties":false}""")!.AsObject();
         JsonDerivedTypeAttribute[] derivedTypes = type.GetCustomAttributes<JsonDerivedTypeAttribute>().ToArray();
         if (derivedTypes.Length > 0)
         {

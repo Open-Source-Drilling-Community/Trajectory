@@ -53156,6 +53156,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("ColumnCount")]
         public int ColumnCount { get; set; }
 
+        /// <summary>
+        /// Version 1 lossless matrix. Missing Values denotes unavailable legacy matrix entries.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("FormatVersion")]
+        [System.ComponentModel.DataAnnotations.Range(1, 1)]
+        public int FormatVersion { get; set; }
+
+        /// <summary>
+        /// Nine row-major entries. Covariance uses square metres in north/east/depth axes; eigenvector entries are dimensionless. Legacy dimension-only payloads remain readable.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("Values")]
+        [System.ComponentModel.DataAnnotations.MinLength(9)]
+        [System.ComponentModel.DataAnnotations.MaxLength(9)]
+        public System.Collections.Generic.List<double?> Values { get; set; }
+
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 
         [System.Text.Json.Serialization.JsonExtensionData]
@@ -53176,6 +53191,21 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("RowCount")]
         public int RowCount { get; set; }
+
+        /// <summary>
+        /// Version 1 lossless matrix. Missing Values denotes unavailable legacy matrix entries.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("FormatVersion")]
+        [System.ComponentModel.DataAnnotations.Range(1, 1)]
+        public int FormatVersion { get; set; }
+
+        /// <summary>
+        /// Nine row-major entries. Covariance uses square metres in north/east/depth axes; eigenvector entries are dimensionless. Legacy dimension-only payloads remain readable.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("Values")]
+        [System.ComponentModel.DataAnnotations.MinLength(9)]
+        [System.ComponentModel.DataAnnotations.MaxLength(9)]
+        public System.Collections.Generic.List<double?> Values { get; set; }
 
         private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
 

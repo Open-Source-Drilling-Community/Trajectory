@@ -302,7 +302,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             DateTimeOffset calculationVersion = DateTimeOffset.UtcNow;
             surveyRun.LastModificationDate = calculationVersion;
             MarkCalculationState(surveyRun, CalculationState.Running, 0.0, "Calculation queued");
-            bool saved = InsertOrUpdateSurveyRun(surveyRun, true);
+            bool saved = InsertOrUpdateSurveyRun(surveyRun, true, preserveCalculatedStations: true);
             if (saved)
             {
                 _ = Task.Run(() => RecalculateSurveyRunAsync(id, calculationVersion));
@@ -491,8 +491,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                         ?? "Survey run calculation failed";
                     MarkCalculationState(surveyRun, CalculationState.Failed, 0.0, failureMessage);
                     surveyRun.LastModificationDate = DateTimeOffset.UtcNow;
-                    InsertOrUpdateSurveyRun(surveyRun, true);
-                    DeleteSurveyStationChunks(surveyRunId);
+                    InsertOrUpdateSurveyRun(surveyRun, true, preserveCalculatedStations: true);
+
                     return;
                 }
 
@@ -505,7 +505,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 if (!InsertOrUpdateSurveyRun(surveyRun, true))
                 {
                     UpdateSurveyRunCalculationState(surveyRunId, CalculationState.Failed, 0.0, "Survey run calculation failed while saving");
-                    DeleteSurveyStationChunks(surveyRunId);
+
                 }
             }
             catch (Exception ex)
@@ -514,7 +514,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 if (IsCurrentCalculationRequest(surveyRunId, calculationVersion))
                 {
                     UpdateSurveyRunCalculationState(surveyRunId, CalculationState.Failed, 0.0, "Survey run calculation failed");
-                    DeleteSurveyStationChunks(surveyRunId);
+
                 }
             }
         }
@@ -541,6 +541,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 return false;
             }
 
+            if(surveyInstrument!=null)UncertaintyDependencies.Track("SurveyInstrument",surveyRun.SurveyInstrumentID,surveyInstrument);
             if (surveyInstrument == null)
             {
                 _logger.LogWarning("The SurveyInstrument for SurveyRun {SurveyRunId} can not be retrieved", surveyRun.MetaInfo?.ID);
@@ -582,6 +583,19 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
                     _ => false
                 };
+                if(success)
+                {
+                    Model.SurveyRun root=surveyRun;var visited=new HashSet<Guid>();
+                    while(root.ParentSurveyRunID is Guid parent&&parent!=Guid.Empty)
+                    {
+                        if(!visited.Add(parent)||GetSurveyRunById(parent) is not {} next)return false;
+                        root=next;
+                    }
+                    var (reference,_,_)=await APIUtils.GetReferencePointAsync(root.WellBoreID);
+                    if(reference?.Covariance is not {} referenceCovariance||!UncertaintyPropagation.AddIndependentReference(uncertaintyStations,referenceCovariance))return false;
+                    // Keep geometry frozen; only the reference covariance is refreshed on the tie-in.
+                    if(surveyRun.TieInPoint!=null)surveyRun.TieInPoint.Covariance=uncertaintyStations[0].Covariance;
+                }
                 if (success && hasTerminalExtrapolation)
                 {
                     CopyTerminalUncertainty(uncertaintyStations[^1], stations[^1]);
@@ -609,12 +623,15 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
 
             SurveyRun? surveyRun = GetSurveyRunById(surveyRunId);
+            List<SurveyStation>? retained=surveyRun?.SurveyStationList?.Select(CloneSurveyStation).ToList();
             if (surveyRun?.SurveyStationList is not { Count: > 0 } ||
                 !await CalculateSurveyRunUncertaintyAsync(surveyRun))
             {
                 return null;
             }
 
+            if(retained is null||!UncertaintyPropagation.CopyToRetainedGeometry(retained,surveyRun.SurveyStationList!))return null;
+            surveyRun.SurveyStationList=retained;
             return surveyRun;
         }
 
@@ -1242,7 +1259,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 };
         }
 
-        private bool InsertOrUpdateSurveyRun(SurveyRun surveyRun, bool update)
+        private bool InsertOrUpdateSurveyRun(SurveyRun surveyRun, bool update, bool preserveCalculatedStations = false)
         {
             using SqliteConnection? connection = _connectionManager.GetConnection();
             if (connection == null)
@@ -1258,6 +1275,12 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 List<SurveyStation>? calculatedStationList = surveyRun.SurveyStationList;
                 surveyRun.SurveyMeasurementList = null;
                 surveyRun.SurveyStationList = null;
+                if(preserveCalculatedStations)
+                {
+                    using var previous=connection.CreateCommand();previous.Transaction=transaction;
+                    previous.CommandText="SELECT SurveyRun FROM SurveyRunTable WHERE ID=@id";previous.Parameters.AddWithValue("@id",surveyRun.MetaInfo!.ID.ToString());
+                    if(previous.ExecuteScalar() is string old)surveyRun.SurveyStationList=JsonSerializer.Deserialize<SurveyRun>(old,JsonSettings.Options)?.SurveyStationList;
+                }
                 string metaInfo = JsonSerializer.Serialize(surveyRun.MetaInfo, JsonSettings.Options);
                 string? creationDate = surveyRun.CreationDate?.ToString(SqlConnectionManager.DATE_TIME_FORMAT);
                 string? lastModificationDate = surveyRun.LastModificationDate?.ToString(SqlConnectionManager.DATE_TIME_FORMAT);
@@ -1302,7 +1325,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 {
                     success = ReplaceSurveyMeasurementChunks(connection, transaction, surveyRun.MetaInfo!.ID, measurementList);
                 }
-                if (success)
+                if (success && !preserveCalculatedStations)
                 {
                     success = SurveyStationChunkStore.ReplaceChunks(connection, transaction, surveyRun.MetaInfo!.ID, SurveyStationOwnerType, calculatedStationList);
                 }
@@ -1476,7 +1499,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             MarkCalculationState(surveyRun, CalculationState.Running, 0.0, "Calculation queued");
             DateTimeOffset calculationVersion = DateTimeOffset.UtcNow;
             surveyRun.LastModificationDate = calculationVersion;
-            bool saved = InsertOrUpdateSurveyRun(surveyRun, true);
+            bool saved = InsertOrUpdateSurveyRun(surveyRun, true, preserveCalculatedStations: true);
             if (saved)
             {
                 _ = Task.Run(() => RecalculateSurveyRunAsync(surveyRunId, calculationVersion));
@@ -1570,7 +1593,6 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             try
             {
                 surveyRun.SurveyMeasurementList = null;
-                surveyRun.SurveyStationList = null;
                 string data = JsonSerializer.Serialize(surveyRun, JsonSettings.Options);
                 SqliteCommand command = connection.CreateCommand();
                 command.CommandText = "UPDATE SurveyRunTable SET CalculationState = @calculationState, CalculationProgress = @calculationProgress, CalculationMessage = @calculationMessage, SurveyRun = @surveyRun WHERE ID = @id";

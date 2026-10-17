@@ -118,3 +118,5 @@ Contract checks cover removed heavy routes/tools, bounded pagination and strict 
 `DiscoveryConcurrencyTests` verifies WAL discovery during an active writer and target-landing discovery through indexed metadata, including filters, pagination, and source-revision staleness without parsing engineering documents.
 
 `TrajectoryRecalculationSafetyTests` covers explicit geographic-to-Riemannian wellhead conversion, horizontal covariance against WGS84 scale factors, invalid inputs, main-wellbore and sidetrack calculation with/without uncertainty replay, preservation of chunked and inline geometry on calculation/save failure, atomic successful replacement, and a failed first calculation without fabricated results.
+
+Lossless-matrix tests cover native/generated-client round trips, legacy unavailable entries, malformed/asymmetric payload rejection and independent reference covariance. Repair tests cover dry-run immutability, application idempotence and atomic rollback on a station-write failure. SurveyRun regression cases retain both inline and chunk-only geometry when saving a recalculation fails.

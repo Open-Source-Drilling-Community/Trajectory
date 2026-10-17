@@ -53,6 +53,12 @@ public sealed class StoredTrajectoryEllipseTests
                             TrueInclination = .005, ReferenceError = .01, DrillStringMag = .002
                         });
                     }
+                    else if(context.Request.Url!.AbsolutePath.StartsWith("/WellBore/"))
+                        await JsonSerializer.SerializeAsync(context.Response.OutputStream,new { WellID=Guid.Parse("11111111-1111-1111-1111-111111111111") });
+                    else if(context.Request.Url!.AbsolutePath.StartsWith("/Well/"))
+                        await JsonSerializer.SerializeAsync(context.Response.OutputStream,new { ClusterID=Guid.Parse("11111111-1111-1111-1111-111111111111"), SlotID=Guid.Parse("11111111-1111-1111-1111-111111111111") });
+                    else if(context.Request.Url!.AbsolutePath.StartsWith("/Cluster/"))
+                        await JsonSerializer.SerializeAsync(context.Response.OutputStream,new { FieldID=Guid.NewGuid(),ReferencePoint=new { TVD=0 },Slots=new Dictionary<string,object>{["11111111-1111-1111-1111-111111111111"]=new { Latitude=new { GaussianValue=new { Mean=0,StandardDeviation=1e-8 } },Longitude=new { GaussianValue=new { Mean=0,StandardDeviation=1e-8 } } }} });
                     else context.Response.StatusCode = 404;
                     context.Response.Close();
                 }

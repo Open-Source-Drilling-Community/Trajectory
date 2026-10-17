@@ -99,3 +99,5 @@ This is a breaking REST/MCP contract change: update generated clients, UIs, and 
 
 
 Regenerate from the owning service's freshly compiled OpenAPI, refresh dependent schema snapshots, then regenerate consuming clients/DTOs. Do not edit generated C# to restore removed methods. Keep the hand-authored discovery client extensions alongside generated clients: they iterate bounded light pages when a complete name/reference list is needed. Reference projections are partial display/context objects; retrieve a selected complete record before full-replacement writes or engineering calculations. Schema-name normalization must also rewrite discriminator mappings.
+
+Matrix contracts now include a numeric `FormatVersion` (1) and nine nullable row-major `Values`. Covariance is in square metres; eigenvectors are dimensionless. Use the regenerated client or preserve these JSON members when exporting/restoring complete data; legacy dimension-only matrices contain no usable covariance. The version stays numeric under the client string-enum convention.

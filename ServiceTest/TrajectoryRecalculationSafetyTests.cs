@@ -25,6 +25,7 @@ public sealed class TrajectoryRecalculationSafetyTests
         double e2 = f * (2 - f), q = 1 - e2 * Math.Pow(Math.Sin(latitude), 2);
         double northSigma = a * (1 - e2) / Math.Pow(q, 1.5) * sigma;
         double eastSigma = a * Math.Cos(latitude) / Math.Sqrt(q) * sigma;
+        double eastFromLat = longitude * sigma * (-a*Math.Sin(latitude)/Math.Sqrt(q)+a*e2*Math.Cos(latitude)*Math.Cos(latitude)*Math.Sin(latitude)/Math.Pow(q,1.5));
         Assert.Multiple(() =>
         {
             Assert.That(point.X, Is.Not.Null);
@@ -33,7 +34,7 @@ public sealed class TrajectoryRecalculationSafetyTests
             Assert.That(point.Longitude, Is.EqualTo(longitude));
             Assert.That(point.Z, Is.EqualTo(-91.2));
             Assert.That(point.Covariance![0, 0], Is.EqualTo(northSigma * northSigma).Within(1e-6));
-            Assert.That(point.Covariance[1, 1], Is.EqualTo(eastSigma * eastSigma).Within(1e-6));
+            Assert.That(point.Covariance[1, 1], Is.EqualTo(eastSigma * eastSigma + eastFromLat * eastFromLat).Within(1e-6));
             Assert.That(APIUtils.CreateWellheadCovariance(latitude, longitude, 0, 0, 2)[2, 2], Is.EqualTo(4));
             Assert.That(APIUtils.CreateWellheadCovariance(latitude, longitude, 0, 0, 0)[0, 0], Is.Zero);
         });
@@ -114,6 +115,58 @@ public sealed class TrajectoryRecalculationSafetyTests
         Assert.That(fixture.Manager.GetTrajectoryById(fixture.TrajectoryId, true)!.SurveyStationList, Is.Null);
     }
 
+    [Test]
+    public async Task Repair_dry_run_preserves_source_rows_and_pins_dependencies()
+    {
+        await using var fixture = new Fixture();fixture.SeedCompleted(false);
+        string before=fixture.GeometryJson(false);
+        var result=await CovarianceRepair.RunAsync(fixture.Database,false,fixture.AuditDirectory);
+        var json=JsonSerializer.SerializeToNode(result)!;
+        Assert.Multiple(()=>{Assert.That(json["passed"]!.GetValue<bool>(),Is.True);Assert.That(json["geometryAndMeasurementsUnchanged"]!.GetValue<bool>(),Is.True);Assert.That(json["changedRows"]!.GetValue<int>(),Is.GreaterThan(0));Assert.That(fixture.GeometryJson(false),Is.EqualTo(before));});
+    }
+
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task SurveyRun_failure_retains_legacy_or_chunked_geometry(bool inline)
+    {
+        await using var fixture=new Fixture();
+        using(var connection=fixture.Database.GetConnection()!)
+        {
+            using var tx=connection.BeginTransaction();
+            if(!inline)Assert.That(SurveyStationChunkStore.ReplaceChunks(connection,tx,fixture.RunId,"SurveyRun",Fixture.Stations()),Is.True);
+            tx.Commit();
+        }
+        var manager=SurveyRunManager.GetInstance(NullLogger<SurveyRunManager>.Instance,fixture.Database);
+        if(!inline)fixture.Execute($"UPDATE SurveyRunTable SET SurveyRun=json_set(SurveyRun,'$.SurveyStationList',NULL) WHERE ID='{fixture.RunId}';");
+        var before=manager.GetSurveyRunById(fixture.RunId)!.SurveyStationList!;string hash=JsonSerializer.Serialize(before,JsonSettings.Options);
+        var update=manager.GetSurveyRunById(fixture.RunId)!;update.SurveyStationList=null;
+        update.SurveyMeasurementList=[new(){MD=0,Inclination=.2,Azimuth=.3},new(){MD=30,Inclination=.25,Azimuth=.3},new(){MD=60,Inclination=.3,Azimuth=.3}];
+        // Fail only the result insertion after the metadata UPDATE and station DELETE.
+        fixture.Execute($"CREATE TRIGGER RejectRunGeometry BEFORE INSERT ON SurveyStationChunkTable WHEN NEW.OwnerID='{fixture.RunId}' AND NEW.OwnerType='SurveyRun' BEGIN SELECT RAISE(ABORT,'injected run result save failure'); END;");
+        Assert.That(await manager.UpdateSurveyRunById(fixture.RunId,update),Is.True);
+        for(int i=0;i<200&&manager.GetSurveyRunById(fixture.RunId)!.CalculationState!=CalculationState.Failed;i++)await Task.Delay(25);
+        var retained=manager.GetSurveyRunById(fixture.RunId)!;
+        Assert.That(retained.CalculationState,Is.EqualTo(CalculationState.Failed));
+        Assert.That(JsonSerializer.Serialize(retained.SurveyStationList,JsonSettings.Options),Is.EqualTo(hash));
+    }
+
+    [Test]
+    public async Task Repair_apply_is_idempotent_and_preserves_geometry()
+    {
+        await using var fixture=new Fixture();fixture.SeedCompleted(false);
+        var first=JsonSerializer.SerializeToNode(await CovarianceRepair.RunCoreAsync(fixture.Database,true,fixture.AuditDirectory))!;
+        var second=JsonSerializer.SerializeToNode(await CovarianceRepair.RunCoreAsync(fixture.Database,true,fixture.AuditDirectory))!;
+        Assert.Multiple(()=>{Assert.That(first["geometryAndMeasurementsUnchanged"]!.GetValue<bool>(),Is.True);Assert.That(second["changedRows"]!.GetValue<int>(),Is.Zero);Assert.That(fixture.Manager.GetTrajectoryById(fixture.TrajectoryId,true)!.SurveyStationList![0].X,Is.EqualTo(1234));});
+    }
+    [Test]
+    public async Task Repair_transaction_rolls_back_all_records_on_chunk_failure()
+    {
+        await using var fixture=new Fixture();fixture.SeedCompleted(false);string before=fixture.GeometryJson(false);
+        fixture.Execute("CREATE TRIGGER RejectRepair BEFORE UPDATE ON SurveyStationChunkTable BEGIN SELECT RAISE(ABORT,'injected repair failure'); END;");
+        Assert.ThrowsAsync<SqliteException>(async()=>await CovarianceRepair.RunCoreAsync(fixture.Database,true,fixture.AuditDirectory));
+        Assert.That(fixture.GeometryJson(false),Is.EqualTo(before));
+    }
+
     private sealed class Fixture : IAsyncDisposable
     {
         private readonly string directory = Path.Combine(Path.GetTempPath(), "TrajectorySafety_" + Guid.NewGuid().ToString("N"));
@@ -123,8 +176,11 @@ public sealed class TrajectoryRecalculationSafetyTests
         private readonly Dictionary<OSDC.Drilling.Trajectory.ModelShared.Client, string> urls;
         private readonly SqlConnectionManagerTrajectory database;
         public Guid TrajectoryId { get; } = Guid.NewGuid();
-        private readonly Guid runId = Guid.NewGuid(), wellBoreId = Guid.NewGuid(), wellId = Guid.NewGuid(), clusterId = Guid.NewGuid(), slotId = Guid.NewGuid(), parentWellBoreId = Guid.NewGuid();
+        private readonly Guid runId = Guid.NewGuid(), wellBoreId = Guid.NewGuid(), wellId = Guid.NewGuid(), clusterId = Guid.NewGuid(), slotId = Guid.NewGuid(), fieldId = Guid.NewGuid(), parentWellBoreId = Guid.NewGuid();
         public TrajectoryManager Manager { get; }
+        public SqlConnectionManagerTrajectory Database => database;
+        public string AuditDirectory => Path.Combine(directory,"audit");
+        public Guid RunId => runId;
 
         public Fixture(bool sidetrack = false)
         {
@@ -149,7 +205,7 @@ public sealed class TrajectoryRecalculationSafetyTests
                         object value = path.StartsWith("/SurveyInstrument/") ? new { ModelType = "MWD_WolffDeWardt", Misalignment = .01, RelDepthError = .001, TrueInclination = .005, ReferenceError = .01, DrillStringMag = .002 }
                             : path.StartsWith("/WellBore/") ? (object)new { WellID = wellId, IsSidetrack = sidetrack && path.Contains(wellBoreId.ToString()), ParentWellBoreID = parentWellBoreId, TieInPointAlongHoleDepth = new { GaussianValue = new { Mean = 30.0 } } }
                             : path.StartsWith("/Well/") ? new { ClusterID = clusterId, SlotID = slotId }
-                            : path.StartsWith("/Cluster/") ? new { FieldID = Guid.NewGuid(), ReferencePoint = new { TVD = 0 }, Slots = new Dictionary<string, object> { [slotId.ToString()] = new { Latitude = new { GaussianValue = new { Mean = 1, StandardDeviation = 1e-8 } }, Longitude = new { GaussianValue = new { Mean = .1, StandardDeviation = 1e-8 } } } } }
+                            : path.StartsWith("/Cluster/") ? new { FieldID = fieldId, ReferencePoint = new { TVD = 0 }, Slots = new Dictionary<string, object> { [slotId.ToString()] = new { Latitude = new { GaussianValue = new { Mean = 1, StandardDeviation = 1e-8 } }, Longitude = new { GaussianValue = new { Mean = .1, StandardDeviation = 1e-8 } } } } }
                             : new { Items = Array.Empty<object>(), TotalCount = 0 };
                         context.Response.ContentType = "application/json";
                         await JsonSerializer.SerializeAsync(context.Response.OutputStream, value);
@@ -161,7 +217,7 @@ public sealed class TrajectoryRecalculationSafetyTests
             ServiceTestHost.ResetManagerSingletons();
             database = new SqlConnectionManagerTrajectory(Path.Combine(directory, "Trajectory.db"), NullLogger<SqlConnectionManagerTrajectory>.Instance);
             Manager = TrajectoryManager.GetInstance(NullLogger<TrajectoryManager>.Instance, database);
-            var run = new SurveyRun { MetaInfo = new MetaInfo { ID = runId }, WellBoreID = wellBoreId, SurveyInstrumentID = Guid.NewGuid(), SurveyStationList = Stations() };
+            var run = new SurveyRun { MetaInfo = new MetaInfo { ID = runId }, WellBoreID = wellBoreId, SurveyInstrumentID = Guid.NewGuid(), CalculationState = CalculationState.Completed, SurveyStationList = Stations() };
             Insert("SurveyRun", runId, run);
             if (sidetrack)
             {
@@ -173,7 +229,7 @@ public sealed class TrajectoryRecalculationSafetyTests
                 Insert("Trajectory", parent.MetaInfo.ID, parent);
             }
         }
-        private static List<SurveyStation> Stations() => [new() { MD = 0, Inclination = .2, Azimuth = .3, X = 1234, Y = 5678, Z = 0 }, new() { MD = 30, Inclination = .25, Azimuth = .3, X = 1240, Y = 5680, Z = 29 }, new() { MD = 60, Inclination = .3, Azimuth = .3, X = 1247, Y = 5682, Z = 58 }];
+        public static List<SurveyStation> Stations() => [new() { MD = 0, Inclination = .2, Azimuth = .3, X = 1234, Y = 5678, Z = 0 }, new() { MD = 30, Inclination = .25, Azimuth = .3, X = 1240, Y = 5680, Z = 29 }, new() { MD = 60, Inclination = .3, Azimuth = .3, X = 1247, Y = 5682, Z = 58 }];
         public T Input() => new() { MetaInfo = new MetaInfo { ID = TrajectoryId }, WellBoreID = wellBoreId, MDStep = 10, SurveyRunSectionList = [new() { SurveyRunID = runId, StartAbscissa = 0 }] };
         public void SeedCompleted(bool inline)
         {
