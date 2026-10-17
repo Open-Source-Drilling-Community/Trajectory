@@ -114,3 +114,5 @@ This is a breaking REST/MCP contract change: update generated clients, UIs, and 
 
 
 Contract checks cover removed heavy routes/tools, bounded pagination and strict invalid-argument rejection, and omission of engineering collections from discovery. Persistence tests exercise ordering, filters, totals, continuation, empty results, and retained selected reads. Run transport tests against isolated test storage.
+
+`DiscoveryConcurrencyTests` verifies WAL discovery during an active writer and target-landing discovery through indexed metadata, including filters, pagination, and source-revision staleness without parsing engineering documents.

@@ -3,6 +3,8 @@ using System.Collections.Generic;
 using System.Linq;
 using System.Text.Json;
 using Microsoft.Data.Sqlite;
+using OSDC.Drilling.Trajectory.Model;
+using OSDC.Drilling.Trajectory.Service.Managers;
 
 namespace OSDC.Drilling.Trajectory.Service;
 
@@ -14,8 +16,11 @@ internal static class DiscoveryRecords
     {
         if (connection == null) throw new InvalidOperationException("Discovery storage is unavailable.");
         using (connection)
-        using (var transaction = connection.BeginTransaction())
+        using (var transaction = connection.BeginTransaction(deferred: true))
         {
+            if (typeof(T) == typeof(TargetLandingCaseLight) && table == "TargetLandingCaseTable")
+                return ReadTargetLandingPage(connection, transaction, offset, limit, name, filters, out total)
+                    .Cast<T>().ToList();
             var columns = new HashSet<string>(StringComparer.Ordinal);
             using (var schema = connection.CreateCommand())
             {
@@ -81,6 +86,44 @@ internal static class DiscoveryRecords
             }
             return items;
         }
+    }
+
+    private static List<TargetLandingCaseLight> ReadTargetLandingPage(SqliteConnection connection,
+        SqliteTransaction transaction, int offset, int limit, string? name,
+        IDictionary<string, object?> filters, out int total)
+    {
+        connection.CreateFunction<string?, string?, bool>("discovery_name_contains", (value, query) =>
+            value?.Contains(query ?? "", StringComparison.OrdinalIgnoreCase) == true);
+        var clauses = new List<string>();
+        var parameters = new Dictionary<string, object>();
+        if (!string.IsNullOrWhiteSpace(name))
+        {
+            clauses.Add("discovery_name_contains(c.Name, $name)");
+            parameters["$name"] = name;
+        }
+        foreach (var filter in filters.Where(pair => pair.Value != null))
+        {
+            if (filter.Key != "SourceTrajectoryID" || filter.Value is not Guid sourceId)
+                throw new InvalidOperationException("Unsupported target landing discovery filter.");
+            clauses.Add("c.SourceTrajectoryID=$source COLLATE NOCASE");
+            parameters["$source"] = sourceId.ToString();
+        }
+        string where = clauses.Count == 0 ? "" : " WHERE " + string.Join(" AND ", clauses);
+        using var count = connection.CreateCommand();
+        count.Transaction = transaction;
+        count.CommandText = "SELECT COUNT(*) FROM TargetLandingCaseTable c INDEXED BY TargetLandingCaseLightCoveringIndex" + where;
+        foreach (var parameter in parameters) count.Parameters.AddWithValue(parameter.Key, parameter.Value);
+        total = checked((int)(long)count.ExecuteScalar()!);
+        using var query = connection.CreateCommand();
+        query.Transaction = transaction;
+        query.CommandText = TargetLandingCaseManager.LightSelect + where + " ORDER BY c.ID COLLATE BINARY LIMIT $limit OFFSET $offset";
+        foreach (var parameter in parameters) query.Parameters.AddWithValue(parameter.Key, parameter.Value);
+        query.Parameters.AddWithValue("$limit", limit);
+        query.Parameters.AddWithValue("$offset", offset);
+        var records = new List<TargetLandingCaseLight>();
+        using var reader = query.ExecuteReader();
+        while (reader.Read()) records.Add(TargetLandingCaseManager.ReadLight(reader));
+        return records;
     }
 
     private static string Projection<T>(string document)

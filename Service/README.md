@@ -226,3 +226,5 @@ Pages contain `Items`, `Offset`, `Limit`, `TotalCount`, and `NextOffset`; `NextO
 Single-record reads, result/chunk reads, and deliberate backup/export/restore operations are preserved. Backups can still contain complete resources and should be treated as explicit bulk operations.
 
 This is a breaking REST/MCP contract change: update generated clients, UIs, and external integrations together with the service release. Removed heavy-list names are not compatibility aliases. No persisted engineering shapes, database names, or storage volumes are changed. Historical usage counters are retained; bounded discovery has a separate additive `DiscoveryRequestsPerDay` history in resource services.
+
+Discovery count and page queries use a deferred read transaction so they can read a consistent WAL snapshot while calculations write. Target-landing discovery reads the existing covering metadata index and source revisions, including computed staleness, without loading the potentially large engineering result document.

@@ -217,7 +217,7 @@ public sealed class TargetLandingCaseManager
         LEFT JOIN TrajectoryTable t ON t.ID=c.SourceTrajectoryID
         """;
 
-    private static TargetLandingCaseLight ReadLight(SqliteDataReader reader)
+    internal static TargetLandingCaseLight ReadLight(SqliteDataReader reader)
     {
         CalculationState state = Enum.TryParse(reader.GetString(7), out CalculationState parsedState) ? parsedState : CalculationState.NotCalculated;
         DateTimeOffset? sourceRevision = ReadJsonDate(reader, 12);
