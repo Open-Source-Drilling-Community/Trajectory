@@ -630,7 +630,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 UpdateTrajectoryCalculationState(trajectoryId, CalculationState.Running, 0.25, "Calculating trajectory");
                 if (await CalculateTrajectoryAsync(trajectory) == null)
                 {
-                    UpdateTrajectoryCalculationState(trajectoryId, CalculationState.Failed, 0.0, "Trajectory calculation failed");
+                    UpdateTrajectoryCalculationState(trajectoryId, CalculationState.Failed, 0.0, trajectory.CalculationMessage ?? "Trajectory calculation failed");
                     return;
                 }
 
@@ -1000,29 +1000,35 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             bool recalculateSurveyRunUncertainty,
             HashSet<Guid> visitedTrajectoryIds)
         {
+            Model.Trajectory? Failed(string reason)
+            {
+                if (trajectory != null) trajectory.CalculationMessage = "Trajectory calculation failed: " + reason;
+                return null;
+            }
+
             try
             {
                 if (trajectory == null || trajectory.MetaInfo == null || trajectory.WellBoreID == Guid.Empty)
                 {
                     _logger.LogWarning("The Trajectory or its WellBoreID is null or empty");
-                    return null;
+                    return Failed("Trajectory or WellBoreID is missing.");
                 }
                 if (trajectory.MetaInfo.ID != Guid.Empty && !visitedTrajectoryIds.Add(trajectory.MetaInfo.ID))
                 {
                     _logger.LogWarning("A cycle was detected while reconstructing the Trajectory uncertainty lineage");
-                    return null;
+                    return Failed("A cycle was detected in the trajectory lineage.");
                 }
                 if (!await MaterializeSurveyRunSectionsAsync(trajectory, recalculateSurveyRunUncertainty))
                 {
                     _logger.LogWarning("Impossible to materialize survey run sections for the given Trajectory");
-                    return null;
+                    return Failed("SurveyRun sections could not be materialized.");
                 }
                 // retrieve the slot position
                 (SurveyStation? referencePoint, WellBore? wellBore, string msg) = await APIUtils.GetReferencePointAsync(trajectory);
                 if (wellBore is null || referencePoint is null)
                 {
                     _logger.LogError(msg);
-                    return null;
+                    return Failed("Wellhead reference coordinates could not be resolved.");
                 }
 
                 _logger.LogInformation(msg);
@@ -1034,7 +1040,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                         visitedTrajectoryIds) is not { } tieInPoint)
                 {
                     _logger.LogError("The tie-in point coordinates can not be evaluated");
-                    return null;
+                    return Failed("Tie-in point or parent trajectory could not be resolved.");
                 }
 
                 tieInPoint = NormalizeSidetrackTieInPointAbscissa(trajectory, wellBore, tieInPoint);
@@ -1042,7 +1048,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 if (!trajectory.Calculate())
                 {
                     _logger.LogWarning("Impossible to calculate outputs for the given Trajectory");
-                    return null;
+                    return Failed("Geometry completion or measured-depth-step validation failed.");
                 }
 
                 await EnsureBoreholeRadiiAsync(trajectory);
@@ -1052,7 +1058,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error during trajectory calculation");
-                return null;
+                return Failed("Unexpected calculation error; see service logs.");
             }
         }
 

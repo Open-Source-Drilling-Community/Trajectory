@@ -87,7 +87,7 @@ public sealed class TrajectoryRecalculationSafetyTests
             var retained = fixture.Manager.GetTrajectoryById(fixture.TrajectoryId, includeCalculatedStations: true)!;
             Assert.That(retained.SurveyStationList, Has.Count.EqualTo(3));
             Assert.That(retained.SurveyStationList![0].X, Is.EqualTo(1234));
-            Assert.That(retained.CalculationMessage, Does.Contain(failSave ? "saving" : "failed"));
+            Assert.That(retained.CalculationMessage, Does.Contain(failSave ? "saving" : "SurveyRun sections"));
         });
     }
 
