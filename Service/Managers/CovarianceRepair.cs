@@ -61,7 +61,12 @@ public static class CovarianceRepair
                     foreach (var station in chunk.node["SurveyStationList"]!.AsArray()) { if (index >= candidate.Count) throw new InvalidOperationException("Station count mismatch"); Patch(station!.AsObject(), candidate[index++]); }
                     string json = chunk.node.ToJsonString(); changed |= Normalize(JsonNode.Parse(json), false)!.ToJsonString() != Normalize(JsonNode.Parse(chunk.row.Json), false)!.ToJsonString(); planned[chunk.row.Table + "/" + chunk.row.Id] = chunk.row with { Json = json };
                 }
-            else if (metadata["SurveyStationList"] is JsonArray inline) foreach (var station in inline) { if (index >= candidate.Count) throw new InvalidOperationException("Station count mismatch"); Patch(station!.AsObject(), candidate[index++]); }
+            if (metadata["SurveyStationList"] is JsonArray inline)
+            {
+                int inlineIndex=0;foreach(var station in inline){if(inlineIndex>=candidate.Count)throw new InvalidOperationException("Inline station count mismatch");Patch(station!.AsObject(),candidate[inlineIndex++]);}
+                if(inlineIndex!=candidate.Count)throw new InvalidOperationException("Inline station count mismatch");
+                if(chunks.Count==0)index=inlineIndex;
+            }
             if (index != candidate.Count) throw new InvalidOperationException("Retained station count mismatch");
             if (metadata["TieInPoint"] is JsonObject tie) Patch(tie, candidate[0]);
             string updated = metadata.ToJsonString(); changed |= Normalize(JsonNode.Parse(updated), false)!.ToJsonString() != Normalize(JsonNode.Parse(row.Json), false)!.ToJsonString();

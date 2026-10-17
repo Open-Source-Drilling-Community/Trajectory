@@ -148,6 +148,22 @@ if (args.Contains("--repair-covariance"))
     if(!Path.GetFullPath(database).StartsWith("/home/",StringComparison.Ordinal))throw new InvalidOperationException("Repair database must remain in the persistent cluster volume.");
     var db=new SqlConnectionManagerTrajectory(database,app.Services.GetRequiredService<ILogger<SqlConnectionManagerTrajectory>>());
     var receipt=await CovarianceRepair.RunAsync(db,args.Contains("--repair-apply"),audit);
+    if(args.Contains("--repair-rebuild-octrees"))
+    {
+        string octreePath=Value("--repair-octree-database");
+        if(!Path.GetFullPath(octreePath).StartsWith("/home/",StringComparison.Ordinal))throw new InvalidOperationException("Octree repair must remain in-cluster.");
+        var octreeDb=new SqlConnectionManagerOctree(octreePath,app.Services.GetRequiredService<ILogger<SqlConnectionManagerOctree>>());
+        var octree=OctreeManager.GetInstance(app.Services.GetRequiredService<ILogger<OctreeManager>>(),octreeDb);
+        var manager=TrajectoryManager.GetInstance(app.Services.GetRequiredService<ILogger<TrajectoryManager>>(),db);int rebuilt=0;
+        foreach(Guid id in manager.GetAllTrajectoryId()??[])
+        {
+            var trajectory=manager.GetTrajectoryById(id,includeCalculatedStations:true);
+            if(trajectory?.CalculationState!=CalculationState.Completed||trajectory.SurveyStationList is not {Count:>=2})continue;
+            if(!octree.Rebuild(trajectory))throw new InvalidOperationException("Cannot rebuild repaired trajectory octree: "+id);
+            rebuilt++;
+        }
+        File.WriteAllText(Path.Combine(audit,"uncertainty-octree-rebuild.json"),System.Text.Json.JsonSerializer.Serialize(new{passed=true,rebuilt}));
+    }
     Console.WriteLine(System.Text.Json.JsonSerializer.Serialize(receipt));
     return;
 }

@@ -150,10 +150,12 @@ public sealed class TrajectoryRecalculationSafetyTests
         Assert.That(JsonSerializer.Serialize(retained.SurveyStationList,JsonSettings.Options),Is.EqualTo(hash));
     }
 
-    [Test]
-    public async Task Repair_apply_is_idempotent_and_preserves_geometry()
+    [TestCase(false)]
+    [TestCase(true)]
+    public async Task Repair_apply_is_idempotent_and_preserves_geometry(bool duplicateInline)
     {
         await using var fixture=new Fixture();fixture.SeedCompleted(false);
+        if(duplicateInline)fixture.Execute($"UPDATE TrajectoryTable SET Trajectory=json_set(Trajectory,'$.SurveyStationList',json((SELECT json_extract(SurveyStationChunk,'$.SurveyStationList') FROM SurveyStationChunkTable WHERE OwnerID='{fixture.TrajectoryId}' AND OwnerType='Trajectory'))) WHERE ID='{fixture.TrajectoryId}'");
         var first=JsonSerializer.SerializeToNode(await CovarianceRepair.RunCoreAsync(fixture.Database,true,fixture.AuditDirectory))!;
         var second=JsonSerializer.SerializeToNode(await CovarianceRepair.RunCoreAsync(fixture.Database,true,fixture.AuditDirectory))!;
         Assert.Multiple(()=>{Assert.That(first["geometryAndMeasurementsUnchanged"]!.GetValue<bool>(),Is.True);Assert.That(second["changedRows"]!.GetValue<int>(),Is.Zero);Assert.That(fixture.Manager.GetTrajectoryById(fixture.TrajectoryId,true)!.SurveyStationList![0].X,Is.EqualTo(1234));});
