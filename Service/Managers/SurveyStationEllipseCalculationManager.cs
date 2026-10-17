@@ -262,10 +262,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
             if (sourceTrajectoryId is Guid trajectoryId && trajectoryId != Guid.Empty)
             {
-                Model.Trajectory? source = _trajectoryManager.GetTrajectoryById(trajectoryId);
-                source = await _trajectoryManager.CalculateTrajectoryAsync(
-                    source,
-                    recalculateSurveyRunUncertainty: true);
+                Model.Trajectory? source = await _trajectoryManager.GetTrajectoryWithRecalculatedUncertaintyAsync(trajectoryId);
                 if (source?.SurveyStationList is not { Count: > 0 } stations)
                 {
                     calculation.SetCalculationMessage("The source Trajectory uncertainty lineage could not be reconstructed.");

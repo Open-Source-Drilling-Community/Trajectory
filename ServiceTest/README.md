@@ -6,6 +6,8 @@
 
 This project exercises the Trajectory service through its generated client and also contains self-contained persistence, validation, and MCP-contract tests.
 
+`StoredTrajectoryEllipseTests` uses isolated SQLite data and a local instrument stub to verify that 0.95-confidence ellipses retain completed geometry while replaying authoritative uncertainty, and reject changed source attitudes.
+
 Tests in `Tests.cs` and `McpServerHttpTests.cs` are integration-style and host the real REST and Streamable HTTP MCP pipelines in process. The remaining fixtures construct their own collaborators or isolated databases.
 
 Service-level tests cover SurveyRun and Trajectory persistence/contracts, catalog and backup rules, every durable calculation family, light-data polling, asynchronous calculation state changes, chunked results, external references, anti-collision indexing/policies, and REST/MCP parity.
