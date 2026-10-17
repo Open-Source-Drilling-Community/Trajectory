@@ -124,8 +124,8 @@ The host embeds the following current WebPages packages. Publish these versions 
 
 | Package | Version |
 | --- | --- |
-| `OSDC.Drilling.Cluster.WebPages` | `2.0.0` |
-| `OSDC.Drilling.Cluster.WebPages` | `2.0.0` |
+| `OSDC.Drilling.Cluster.WebPages` | `2.0.2` |
+| `OSDC.Drilling.Cluster.WebPages` | `2.0.2` |
 | `OSDC.Drilling.EarthCartographicProjection.WebPages` | `2.0.0` |
 | `OSDC.Drilling.EarthCartographicProjection.WebPages` | `2.0.0` |
 | `OSDC.Drilling.EarthGeodesy.WebPages` | `2.0.0` |
@@ -141,13 +141,15 @@ The host embeds the following current WebPages packages. Publish these versions 
 | `OSDC.Drilling.Rig.WebPages` | `2.0.0` |
 | `OSDC.Drilling.SurveyInstrument.WebPages` | `2.0.0` |
 | `OSDC.Drilling.SurveyInstrument.WebPages` | `2.0.0` |
-| `OSDC.Drilling.Well.WebPages` | `2.0.0` |
-| `OSDC.Drilling.Well.WebPages` | `2.0.0` |
-| `OSDC.Drilling.WellBore.WebPages` | `2.0.0` |
-| `OSDC.Drilling.WellBore.WebPages` | `2.0.0` |
+| `OSDC.Drilling.Well.WebPages` | `2.0.2` |
+| `OSDC.Drilling.Well.WebPages` | `2.0.2` |
+| `OSDC.Drilling.WellBore.WebPages` | `2.0.2` |
+| `OSDC.Drilling.WellBore.WebPages` | `2.0.2` |
 | `OSDC.Drilling.WellBoreArchitecture.WebPages` | `2.0.0` |
 | `OSDC.Drilling.WellBoreArchitecture.WebPages` | `2.0.0` |
 | `OSDC.UnitConversion.WebPages` | `4.0.0` |
 | `OSDC.UnitConversion.WebPages` | `4.0.0` |
 
 Package releases with a new major version use the bounded light discovery contracts. Selected full-record reads and dedicated backup operations remain available.
+
+The Cluster, Well and WellBore trajectory/SurveyRun views use WebPages 2.0.2, which submits each complete plot frame in one update, including all ellipses.

@@ -36,15 +36,15 @@
     <PackageReference Include="Microsoft.VisualStudio.Azure.Containers.Tools.Targets" Version="1.23.0" />
     <PackageReference Include="MudBlazor" Version="9.9.0" />
     <PackageReference Include="OSDC.Drilling.EarthCartographicProjection.WebPages" Version="2.0.0" />
-    <PackageReference Include="OSDC.Drilling.Cluster.WebPages" Version="2.0.0" />
+    <PackageReference Include="OSDC.Drilling.Cluster.WebPages" Version="2.0.2" />
     <PackageReference Include="OSDC.Drilling.EarthMagneticField.WebPages" Version="1.0.4" />
     <PackageReference Include="OSDC.Drilling.EarthGeodesy.WebPages" Version="2.0.0" />
     <PackageReference Include="OSDC.Drilling.EarthGravity.WebPages" Version="1.0.4" />
     <PackageReference Include="OSDC.Drilling.Rig.WebPages" Version="2.0.0" />
     <PackageReference Include="OSDC.Drilling.SurveyInstrument.WebPages" Version="2.0.0" />
     <PackageReference Include="OSDC.Drilling.EarthVerticalDatum.WebPages" Version="1.1.4" />
-    <PackageReference Include="OSDC.Drilling.Well.WebPages" Version="2.0.0" />
-    <PackageReference Include="OSDC.Drilling.WellBore.WebPages" Version="2.0.0" />
+    <PackageReference Include="OSDC.Drilling.Well.WebPages" Version="2.0.2" />
+    <PackageReference Include="OSDC.Drilling.WellBore.WebPages" Version="2.0.2" />
     <PackageReference Include="OSDC.Drilling.WellBoreArchitecture.WebPages" Version="2.0.0" />
     <PackageReference Include="OSDC.UnitConversion.WebPages" Version="4.0.0" />
   </ItemGroup>
