@@ -64,7 +64,7 @@ Trajectory realization cases are defined from a reference trajectory and a reque
 | Trajectories | Multi-SurveyRun composition; calculation; bounded discovery; identities/features; external-reference validation/audit; dependency-closed backup/restore |
 | Design and analysis | Interpolation; compact aggregation; stochastic realization; station ellipses; SurveyRun/Trajectory minimum distance; extrapolation; target landing; directional-control evaluation |
 | Anti-collision | Automatically reconciled uncertainty-volume octrees; asynchronous candidate scans; separation-factor profiles; immutable policy revisions and effective-dated Field assignments |
-| Interfaces | REST/OpenAPI, 181 REST-backed MCP tools plus `ping`, reusable Razor pages, and the standalone Blazor WebApp |
+| Interfaces | REST/OpenAPI, the current MCP tools plus `ping`, reusable Razor pages, and the standalone Blazor WebApp |
 
 ## Semantic contract
 
@@ -129,7 +129,7 @@ The current work has been funded by the [Research Council of Norway](https://www
 
 - The service exposes its REST operations through MCP over streamable HTTP at `/trajectory/api/mcp` and WebSocket at `/trajectory/api/mcp/ws`.
 - Persisted Trajectory resources and calculation cases receive server-owned creation and initial modification timestamps; caller-provided values are not authoritative. Legacy trajectories without timestamps expose a deterministic effective revision.
-- MCP exposes 181 REST-backed tools plus `ping`, including read-only usage statistics and the physical uncertainty-envelope evaluator. The unbounded full-list operations for trajectories and survey runs remain in REST for compatibility but are replaced in MCP by deterministic bounded searches. Target-landing editing and visualization use dedicated projections so clients do not transfer the full mesh-sampling aggregate. Trajectory extrapolation, target-landing, directional-control evaluation, and anti-collision policy tools publish closed inputs; calculated samples, statistics, revisions, and bundles remain server-derived. Policy mutations expose immutable revisions and optimistic-concurrency-protected, effective-dated Field assignments. Every tool publishes a title, strict input and success-output schemas, safety annotations, and operation-specific workflow guidance. Survey-run schemas distinguish observed gravity/geodetic and magnetic/true-north references from canonical WGS84-geodetic inclination and true-north azimuth. Resource-specific ellipse tools rebuild authoritative SurveyRun ancestry before projecting uncertainty onto requested display stations. Octree candidate discovery uses its queued scan/status/result workflow. Separation-factor submissions reject server-derived state, policy snapshots, classifications, and results; callers poll lightweight status and retrieve terminal profiles with SI measured-depth ranges and dimensionless separation factors.
+- MCP exposes the REST-backed tools plus `ping`, including read-only usage statistics and the physical uncertainty-envelope evaluator. Unbounded full-list operations are removed from both REST and MCP. Bounded light discovery and deterministic searches replace them. Target-landing editing and visualization use dedicated projections so clients do not transfer the full mesh-sampling aggregate. Trajectory extrapolation, target-landing, directional-control evaluation, and anti-collision policy tools publish closed inputs; calculated samples, statistics, revisions, and bundles remain server-derived. Policy mutations expose immutable revisions and optimistic-concurrency-protected, effective-dated Field assignments. Every tool publishes a title, strict input and success-output schemas, safety annotations, and operation-specific workflow guidance. Survey-run schemas distinguish observed gravity/geodetic and magnetic/true-north references from canonical WGS84-geodetic inclination and true-north azimuth. Resource-specific ellipse tools rebuild authoritative SurveyRun ancestry before projecting uncertainty onto requested display stations. Octree candidate discovery uses its queued scan/status/result workflow. Separation-factor submissions reject server-derived state, policy snapshots, classifications, and results; callers poll lightweight status and retrieve terminal profiles with SI measured-depth ranges and dimensionless separation factors.
 - The trajectory editor supports mean-sea-level depth references through the Vertical Datum integration.
 - Survey runs and trajectories share extensible identity and feature catalogs. Both editors support assignments; catalog definitions are managed from the `TrajectoryIdentities` and `TrajectoryFeatures` pages.
 - The Backup / Restore page creates versioned JSON backups. Survey runs may be selected independently; selecting a trajectory automatically includes its referenced survey runs and their parent chains. Schema version 2 also carries the complete immutable anti-collision policy library and historical Field assignments; version-1 documents remain restorable. Restore validates the dependency graph, policy revisions, non-overlapping assignment history, and catalogs before one atomic commit. Catalog UUIDs are matched exactly by default; normalized-name mapping requires an explicit opt-in.
@@ -173,3 +173,34 @@ Station evaluation synchronizes the geographic coordinate cache from canonical R
 `GET Trajectory/{id}/ReferencedStation?alongHoleDepth=350&originWgs84Depth=...` evaluates signed path length from a verified WGS84-depth surface intersection. The path must be complete, monotone in vertical depth and contain both the intersection and requested station. The service uses the stored calculation method and shared survey interpolation; it assumes no path extension. Requested MD, origin depth, native intersection MD and complete canonical station are returned separately.
 
 `GET Trajectory/{id}/VerticalEllipse?alongHoleDepth=500&confidenceFactor=0.95` reconstructs authoritative survey-run uncertainty lineage without persisting a case. It returns full major/minor diameters (SI metres), orientation (SI radians), confidence probability and the selected vertical-section azimuth. The stable section uses the source path's first/last horizontally separated stations. The major-axis direction is `(-sin(phi),cos(phi))` in `(section distance, positive-down TVD)`; axes are unoriented modulo pi. These parameters have explicit REST/MCP catalogue bindings, including quantity and reference conventions.
+
+## Bounded light discovery
+
+Resource and catalog discovery returns light pages, with `offset` defaulting to 0 and `limit` defaulting to 50 (allowed range 1–200). Names and relevant resource-reference filters are evaluated on the server. Unbounded full-object `HeavyData` routes and tools, including filtered full-object lists, have been removed. Existing UUID and HTTP-metadata listings remain available; use named light pages for routine discovery.
+
+REST routes and MCP tool names (relative to the service's existing API path base):
+
+- `/AntiCollisionPolicyRevision/LightData` / `anti_collision_policy_revision_discover`
+- `/DirectionalControlEvaluationCase/LightData` / `directional_control_evaluation_case_discover`
+- `/InterpolatedTrajectory/LightData` / `interpolated_trajectory_discover`
+- `/SurveyRunBatchImport/LightData` / `survey_run_batch_import_discover`
+- `/SurveyRun/LightData` / `survey_run_discover`
+- `/SurveyRunMinimumDistanceCalculation/LightData` / `survey_run_minimum_distance_calculation_discover`
+- `/TargetLandingCase/LightData` / `target_landing_case_discover`
+- `/TrajectoryAggregationCase/LightData` / `trajectory_aggregation_case_discover`
+- `/Trajectory/LightData` / `trajectory_discover`
+- `/TrajectoryExtrapolationCase/LightData` / `trajectory_extrapolation_case_discover`
+- `/TrajectoryFeatureCategory/LightData` / `trajectory_feature_category_discover`
+- `/TrajectoryIdentity/LightData` / `trajectory_identity_discover`
+- `/TrajectoryMinimumDistanceCalculation/LightData` / `trajectory_minimum_distance_calculation_discover`
+- `/TrajectoryRealizationCase/LightData` / `trajectory_realization_case_discover`
+- `/SurveyStationEllipseCalculation/LightData` / `survey_station_ellipse_calculation_discover`
+- `/FieldAntiCollisionPolicyAssignment/LightData` / `field_anti_collision_policy_assignment_discover`
+- `/GlobalAntiCollisions/LightData` / `global_anti_collisions_discover`
+- `/Octrees/LightData` / `octrees_discover`
+
+Pages contain `Items`, `Offset`, `Limit`, `TotalCount`, and `NextOffset`; `NextOffset` is null on the final page. Offset pages are individually consistent reads, not a snapshot spanning requests: concurrent inserts/deletes can change later pages. Refresh discovery when the underlying collection changes. EarthGeodesy's existing search pages instead expose `Items[].Value`, `Offset`, `Limit`, and `TotalCount`.
+
+Single-record reads, result/chunk reads, and deliberate backup/export/restore operations are preserved. Backups can still contain complete resources and should be treated as explicit bulk operations.
+
+This is a breaking REST/MCP contract change: update generated clients, UIs, and external integrations together with the service release. Removed heavy-list names are not compatibility aliases. No persisted engineering shapes, database names, or storage volumes are changed. Historical usage counters are retained; bounded discovery has a separate additive `DiscoveryRequestsPerDay` history in resource services.

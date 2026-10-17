@@ -622,7 +622,7 @@
     {
         try
         {
-            var calculationTask = Api.ClientTrajectory.GetAllTrajectoryMinimumDistanceCalculationLightAsync();
+            var calculationTask = Api.ClientTrajectory.ListTrajectoryMinimumDistanceCalculationLightAsync();
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
 
             await Task.WhenAll(calculationTask, referenceDataTask);
@@ -683,7 +683,7 @@
             while (!cancellationToken.IsCancellationRequested)
             {
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-                calculationLightList_ = ((ICollection<TrajectoryMinimumDistanceCalculationLight>)await Api.ClientTrajectory.GetAllTrajectoryMinimumDistanceCalculationLightAsync()).OrderBy(x => x.Name).ToList();
+                calculationLightList_ = ((ICollection<TrajectoryMinimumDistanceCalculationLight>)await Api.ClientTrajectory.ListTrajectoryMinimumDistanceCalculationLightAsync()).OrderBy(x => x.Name).ToList();
                 if (currentCalculation_?.MetaInfo?.ID is Guid id)
                 {
                     currentCalculation_ = await Api.ClientTrajectory.GetTrajectoryMinimumDistanceCalculationByIdAsync(id);
@@ -1444,6 +1444,7 @@
 
     private async Task ApplyTrajectoryReferenceValuesAsync()
     {
+        await ReferenceDetailsLoader.EnsureAsync(Api, trajectoryLightList_?.FirstOrDefault(value => value.MetaInfo?.ID == selectedReferenceTrajectoryId_)?.WellBoreID, wellBoreList_, wellList_, clusterList_);
         DataUtils.ApplyTrajectoryReferenceValues(
             selectedReferenceTrajectoryId_, trajectoryLightList_, wellBoreList_, wellList_, clusterList_, rigList_, fieldList_,
             selectedRigJobId_, referenceTrajectoryDate_);

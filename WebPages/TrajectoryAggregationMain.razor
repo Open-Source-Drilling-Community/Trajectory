@@ -113,7 +113,7 @@
             aggregationCaseIdBeingEdited = null;
             selectedAggregationCaseList = [];
 
-            var aggregationTask = Api.ClientTrajectory.GetAllTrajectoryAggregationCaseLightAsync();
+            var aggregationTask = Api.ClientTrajectory.ListTrajectoryAggregationCaseLightAsync();
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
 
             await Task.WhenAll(aggregationTask, referenceDataTask);
@@ -172,7 +172,7 @@
             while (!cancellationToken.IsCancellationRequested)
             {
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-                aggregationCaseList = ((ICollection<TrajectoryAggregationCaseLight>)await Api.ClientTrajectory.GetAllTrajectoryAggregationCaseLightAsync()).OrderBy(x => x.Name).ToList();
+                aggregationCaseList = ((ICollection<TrajectoryAggregationCaseLight>)await Api.ClientTrajectory.ListTrajectoryAggregationCaseLightAsync()).OrderBy(x => x.Name).ToList();
                 _gridKey++;
                 await InvokeAsync(StateHasChanged);
                 if (!aggregationCaseList.Any(IsCalculationActive))

@@ -74,7 +74,7 @@
         polling?.Cancel();
         try
         {
-            Task<List<DirectionalControlEvaluationCaseLight>> caseTask = Api.ClientTrajectory.GetAllDirectionalControlEvaluationCaseLightAsync();
+            Task<List<DirectionalControlEvaluationCaseLight>> caseTask = Api.ClientTrajectory.ListDirectionalControlEvaluationCaseLightAsync();
             Task<TrajectoryReferenceDataSnapshot> referenceTask = ReferenceData.GetSnapshotAsync();
             await Task.WhenAll(caseTask, referenceTask);
             cases = (await caseTask).OrderBy(value => value.Name).ToList();
@@ -116,7 +116,7 @@
             while (!token.IsCancellationRequested && cases.Any(Active))
             {
                 await Task.Delay(TimeSpan.FromSeconds(2), token);
-                cases = (await Api.ClientTrajectory.GetAllDirectionalControlEvaluationCaseLightAsync(token)).OrderBy(value => value.Name).ToList();
+                cases = (await Api.ClientTrajectory.ListDirectionalControlEvaluationCaseLightAsync(token)).OrderBy(value => value.Name).ToList();
                 await InvokeAsync(StateHasChanged);
             }
         }

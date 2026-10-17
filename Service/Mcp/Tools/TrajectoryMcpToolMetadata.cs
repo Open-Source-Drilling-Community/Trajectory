@@ -44,7 +44,9 @@ internal static class TrajectoryMcpToolMetadata
         string route = $"REST operation: {verbs} {controller}{(string.IsNullOrWhiteSpace(template) ? string.Empty : "/" + template)}.";
         string detail;
 
-        if (controller == "Trajectory" && action == "BatchExport")
+        if (action.StartsWith("Discover", StringComparison.Ordinal))
+            detail = "Return one UUID-ordered page of light discovery records. offset defaults to 0; limit defaults to 50 and is capped at 200. NextOffset is null at the end. Retrieve selected full records with the corresponding get-by-ID operation.";
+        else if (controller == "Trajectory" && action == "BatchExport")
             detail = "Create a versioned JSON backup of all records or an explicit selection. A selected trajectory automatically includes all survey runs referenced by its sections, and every selected survey run includes its parent chain. The document also carries the identity and feature definitions needed by those records.";
         else if (controller == "Trajectory" && action == "BatchRestore")
             detail = "Restore a versioned dependency-closed backup. The service validates the complete document, matches catalog definitions and options by exact UUID by default, optionally creates missing definitions, writes survey runs before dependent trajectories, and atomically commits record changes without recalculation. Normalized-name mapping of compatible definitions with different UUIDs occurs only when AllowNormalizedNameMapping is explicitly true. Use FailIfExists for a non-destructive import or ReplaceExisting explicitly.";
@@ -188,7 +190,7 @@ internal static class TrajectoryMcpToolMetadata
             if (name == "limit")
             {
                 schema["minimum"] = 1;
-                schema["maximum"] = method.Name == "AuditExternalReferences" ? 100 : 500;
+                schema["maximum"] = method.Name.StartsWith("Discover", StringComparison.Ordinal) ? 200 : method.Name == "AuditExternalReferences" ? 100 : 500;
             }
             if (name == "id" && parameter.ParameterType == typeof(string)) schema["minLength"] = 1;
             properties[name] = schema;
@@ -698,6 +700,7 @@ internal static class TrajectoryMcpToolMetadata
                      .OrderBy(property => property.MetadataToken))
         {
             JsonObject schema = SchemaFor(property.PropertyType, definitions, building);
+            if (type.Name.EndsWith("DiscoveryPage", StringComparison.Ordinal) && property.Name == "Items") schema["maxItems"] = 200;
             if (IsNullable(property))
             {
                 schema = AllowNull(schema);

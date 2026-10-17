@@ -1,3 +1,4 @@
+using OSDC.Drilling.Trajectory.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -19,6 +20,28 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
     [ApiController]
     public class TrajectoryExtrapolationCaseController : ControllerBase
     {
+        private readonly SqlConnectionManager _discoveryConnections;
+
+        /// <summary>Discover TrajectoryExtrapolationCase resources as bounded light records; retrieve selected full records by ID.</summary>
+        [HttpGet("LightData", Name = "DiscoverTrajectoryExtrapolationCase")]
+        public ActionResult<OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCaseDiscoveryPage> DiscoverTrajectoryExtrapolationCase([FromQuery] int offset = 0, [FromQuery] int limit = 50, [FromQuery] string? name = null, [FromQuery] System.Guid? sourceTrajectoryId = null)
+        {
+            OSDC.Drilling.Trajectory.Model.UsageStatisticsTrajectory.Instance.IncrementDiscoveryRequestsPerDay();
+            if (offset < 0 || limit < 1 || limit > 200 || name?.Length > 200 || sourceTrajectoryId == System.Guid.Empty)
+                return BadRequest(new { error = "invalid_discovery_query", message = "Offset must be non-negative, limit 1–200, name at most 200 characters, and UUID filters non-empty." });
+            try
+            {
+                var records = DiscoveryRecords.ReadPage<OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCaseLight>(_discoveryConnections.GetConnection(), "TrajectoryExtrapolationCaseTable", "TrajectoryExtrapolationCase", offset, limit, name,
+                    new System.Collections.Generic.Dictionary<string, object?> { ["SourceTrajectoryID"] = sourceTrajectoryId }, out int total);
+                return Ok(new OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCaseDiscoveryPage { Items = records, Offset = offset, Limit = limit, TotalCount = total,
+                    NextOffset = offset < total && records.Count < total - offset ? offset + records.Count : null });
+            }
+            catch (System.Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or System.Text.Json.JsonException or System.InvalidOperationException)
+            {
+                return StatusCode(500, new { error = "discovery_failed" });
+            }
+        }
+
         private readonly ILogger<TrajectoryExtrapolationCaseManager> logger_;
         private readonly TrajectoryExtrapolationCaseManager manager_;
 
@@ -26,6 +49,7 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             ILogger<TrajectoryExtrapolationCaseManager> logger,
             SqlConnectionManager connectionManager)
         {
+            _discoveryConnections = connectionManager;
             logger_ = logger;
             manager_ = TrajectoryExtrapolationCaseManager.GetInstance(logger, connectionManager);
         }
@@ -48,8 +72,7 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             return values != null ? Ok(values) : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
-        [HttpGet("LightData", Name = "GetAllTrajectoryExtrapolationCaseLight")]
-        [ProducesResponseType<IEnumerable<TrajectoryExtrapolationCaseLight>>(StatusCodes.Status200OK)]
+        [NonAction]
         public ActionResult<IEnumerable<TrajectoryExtrapolationCaseLight>> GetAllLight()
         {
             UsageStatisticsTrajectory.Instance.IncrementTrajectoryExtrapolationOperation("GetAllTrajectoryExtrapolationCaseLight");
@@ -57,8 +80,7 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             return values != null ? Ok(values) : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
-        [HttpGet("HeavyData", Name = "GetAllTrajectoryExtrapolationCase")]
-        [ProducesResponseType<IEnumerable<TrajectoryExtrapolationCase>>(StatusCodes.Status200OK)]
+        [NonAction]
         public ActionResult<IEnumerable<TrajectoryExtrapolationCase>> GetAll()
         {
             UsageStatisticsTrajectory.Instance.IncrementTrajectoryExtrapolationOperation("GetAllTrajectoryExtrapolationCase");

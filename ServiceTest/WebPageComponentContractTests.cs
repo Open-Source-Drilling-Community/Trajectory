@@ -191,7 +191,7 @@ public sealed class WebPageComponentContractTests
         {
             Assert.That(loadData, Does.Contain("referenceData.SurveyRuns")
                 .And.Not.Contain("GetAllSurveyRunLightAsync"));
-            Assert.That(loadData, Does.Not.Contain("GetAllSurveyRunAsync("),
+            Assert.That(loadData, Does.Not.Contain("ListSurveyRunReferencesAsync("),
                 "The list page must defer calculated-station data until an editor needs parent candidates.");
             Assert.That(loadData, Does.Contain("ReferenceData.GetSnapshotAsync()"));
             Assert.That(loadData, Does.Contain("await InvokeAsync(StateHasChanged)"));

@@ -1,3 +1,4 @@
+using OSDC.Drilling.Trajectory.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -14,11 +15,34 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
     [ApiController]
     public class TrajectoryRealizationCaseController : ControllerBase
     {
+        private readonly SqlConnectionManager _discoveryConnections;
+
+        /// <summary>Discover TrajectoryRealizationCase resources as bounded light records; retrieve selected full records by ID.</summary>
+        [HttpGet("LightData", Name = "DiscoverTrajectoryRealizationCase")]
+        public ActionResult<OSDC.Drilling.Trajectory.Model.TrajectoryRealizationCaseDiscoveryPage> DiscoverTrajectoryRealizationCase([FromQuery] int offset = 0, [FromQuery] int limit = 50, [FromQuery] string? name = null, [FromQuery] System.Guid? trajectoryId = null)
+        {
+            OSDC.Drilling.Trajectory.Model.UsageStatisticsTrajectory.Instance.IncrementDiscoveryRequestsPerDay();
+            if (offset < 0 || limit < 1 || limit > 200 || name?.Length > 200 || trajectoryId == System.Guid.Empty)
+                return BadRequest(new { error = "invalid_discovery_query", message = "Offset must be non-negative, limit 1–200, name at most 200 characters, and UUID filters non-empty." });
+            try
+            {
+                var records = DiscoveryRecords.ReadPage<OSDC.Drilling.Trajectory.Model.TrajectoryRealizationCaseLight>(_discoveryConnections.GetConnection(), "TrajectoryRealizationCaseTable", "TrajectoryRealizationCase", offset, limit, name,
+                    new System.Collections.Generic.Dictionary<string, object?> { ["TrajectoryID"] = trajectoryId }, out int total);
+                return Ok(new OSDC.Drilling.Trajectory.Model.TrajectoryRealizationCaseDiscoveryPage { Items = records, Offset = offset, Limit = limit, TotalCount = total,
+                    NextOffset = offset < total && records.Count < total - offset ? offset + records.Count : null });
+            }
+            catch (System.Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or System.Text.Json.JsonException or System.InvalidOperationException)
+            {
+                return StatusCode(500, new { error = "discovery_failed" });
+            }
+        }
+
         private readonly ILogger<TrajectoryRealizationCaseManager> _logger;
         private readonly TrajectoryRealizationCaseManager _manager;
 
         public TrajectoryRealizationCaseController(ILogger<TrajectoryRealizationCaseManager> logger, SqlConnectionManager connectionManager)
         {
+            _discoveryConnections = connectionManager;
             _logger = logger;
             _manager = TrajectoryRealizationCaseManager.GetInstance(logger, connectionManager);
         }
@@ -49,14 +73,14 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             return value != null ? Ok(value) : NotFound();
         }
 
-        [HttpGet("LightData", Name = "GetAllTrajectoryRealizationCaseLight")]
+        [NonAction]
         public ActionResult<IEnumerable<Model.TrajectoryRealizationCaseLight>> GetAllTrajectoryRealizationCaseLight()
         {
             List<Model.TrajectoryRealizationCaseLight>? values = _manager.GetAllTrajectoryRealizationCaseLight();
             return values != null ? Ok(values) : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
-        [HttpGet("HeavyData", Name = "GetAllTrajectoryRealizationCase")]
+        [NonAction]
         public ActionResult<IEnumerable<Model.TrajectoryRealizationCase?>> GetAllTrajectoryRealizationCase()
         {
             List<Model.TrajectoryRealizationCase?>? values = _manager.GetAllTrajectoryRealizationCase();

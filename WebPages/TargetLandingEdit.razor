@@ -457,6 +457,7 @@
     private Task<DateTimeOffset?> ResolveSourceTrajectoryDateAsync(Guid? trajectoryId) => TrajectoryRigJobDateResolver.ResolveAsync(Api, trajectoryId, trajectories, surveyRuns, logger);
     private async Task UpdateSourceReferenceValuesAsync()
     {
+        await ReferenceDetailsLoader.EnsureAsync(Api, trajectories?.FirstOrDefault(value => value.MetaInfo?.ID == SourceTrajectoryId)?.WellBoreID, wellBores, wells, clusters);
         DataUtils.ApplyTrajectoryReferenceValues(SourceTrajectoryId, trajectories, wellBores, wells, clusters, rigs, fields, selectedRigJobId, sourceReferenceDate);
         await CartographicPositionReferenceUtils.ApplyForTrajectoryAsync(Api, SourceTrajectoryId, trajectories, clusters, fields, logger);
         try { TrajectoryReferenceDatumUtils.Apply(await TrajectoryReferenceDatumUtils.ResolveForTrajectoryAsync(Api, SourceTrajectoryId, trajectories, wellBores, wells, clusters)); }

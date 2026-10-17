@@ -74,8 +74,8 @@
                             </HeaderContent>
                             <RowTemplate>
                                 <MudTd DataLabel="Revision">@context.RevisionNumber</MudTd>
-                                <MudTd DataLabel="Description">@(string.IsNullOrWhiteSpace(context.Description) ? "—" : context.Description)</MudTd>
-                                <MudTd DataLabel="Created">@(string.IsNullOrEmpty(DateTimeReference.Format(context.CreationDate)) ? "—" : DateTimeReference.Format(context.CreationDate))</MudTd>
+                                <MudTd DataLabel="Description">@(string.IsNullOrWhiteSpace(context.Description) ? "â€”" : context.Description)</MudTd>
+                                <MudTd DataLabel="Created">@(string.IsNullOrEmpty(DateTimeReference.Format(context.CreationDate)) ? "â€”" : DateTimeReference.Format(context.CreationDate))</MudTd>
                                 <MudTd DataLabel="Rules">@(context.Rules?.Count ?? 0)</MudTd>
                             </RowTemplate>
                         </MudTable>
@@ -88,9 +88,9 @@
                     <MudPaper Outlined="true" Class="pa-4">
                         <div class="d-flex align-center justify-space-between flex-wrap gap-2">
                             <div>
-                                <MudText Typo="Typo.h6">@selectedRevision_.Name · revision @selectedRevision_.RevisionNumber</MudText>
+                                <MudText Typo="Typo.h6">@selectedRevision_.Name Â· revision @selectedRevision_.RevisionNumber</MudText>
                                 <MudText Typo="Typo.body2" Color="Color.Secondary">
-                                    Created @(string.IsNullOrEmpty(DateTimeReference.Format(selectedRevision_.CreationDate)) ? "—" : DateTimeReference.Format(selectedRevision_.CreationDate))
+                                    Created @(string.IsNullOrEmpty(DateTimeReference.Format(selectedRevision_.CreationDate)) ? "â€”" : DateTimeReference.Format(selectedRevision_.CreationDate))
                                 </MudText>
                             </div>
                             @if (IsLatestRevision(selectedRevision_))
@@ -108,7 +108,7 @@
                         <MudGrid Class="mt-2">
                             <MudItem xs="12" md="7">
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">Description</MudText>
-                                <MudText Typo="Typo.body1">@(string.IsNullOrWhiteSpace(selectedRevision_.Description) ? "—" : selectedRevision_.Description)</MudText>
+                                <MudText Typo="Typo.body1">@(string.IsNullOrWhiteSpace(selectedRevision_.Description) ? "â€”" : selectedRevision_.Description)</MudText>
                             </MudItem>
                             <MudItem xs="12" md="5">
                                 <MudText Typo="Typo.caption" Color="Color.Secondary">Confidence factor</MudText>
@@ -312,11 +312,11 @@
         Guid? selectedRevisionId = selectedRevision_?.MetaInfo?.ID;
         try
         {
-            revisions_ = (await Api.ClientTrajectory.GetAllAntiCollisionPolicyRevisionAsync()).OrderBy(x => x.Name).ThenByDescending(x => x.RevisionNumber).ToList();
+            revisions_ = (await Api.ClientTrajectory.ListAntiCollisionPolicyRevisionReferencesAsync()).OrderBy(x => x.Name).ThenByDescending(x => x.RevisionNumber).ToList();
             selectedRevision_ = selectedRevisionId == null
                 ? selectedRevision_
                 : revisions_.FirstOrDefault(revision => revision.MetaInfo?.ID == selectedRevisionId);
-            assignments_ = (await Api.ClientTrajectory.GetAllFieldAntiCollisionPolicyAssignmentAsync()).OrderByDescending(x => x.ValidFromUtc).ToList();
+            assignments_ = (await Api.ClientTrajectory.ListFieldAntiCollisionPolicyAssignmentReferencesAsync()).OrderByDescending(x => x.ValidFromUtc).ToList();
             fields_ = (await ReferenceData.GetSnapshotAsync()).Fields.ToList();
         }
         catch (Exception ex)
@@ -333,9 +333,9 @@
         draft_ = NewDraft(Guid.NewGuid(), "New anti-collision policy");
     }
 
-    private void OnRevisionRowClicked(TableRowClickEventArgs<AntiCollisionPolicyRevision> args)
+    private async Task OnRevisionRowClicked(TableRowClickEventArgs<AntiCollisionPolicyRevision> args)
     {
-        selectedRevision_ = args.Item;
+        selectedRevision_ = await Api.ClientTrajectory.GetAntiCollisionPolicyRevisionByIdAsync(args.Item.MetaInfo.ID);
         draft_ = null;
     }
 
@@ -343,10 +343,10 @@
         revision.RevisionNumber == revisions_.Where(candidate => candidate.PolicyID == revision.PolicyID)
             .Max(candidate => candidate.RevisionNumber);
 
-    private void BeginEditingSelectedRevision()
+    private async Task BeginEditingSelectedRevision()
     {
         if (selectedRevision_ == null || !IsLatestRevision(selectedRevision_)) return;
-        AntiCollisionPolicyRevision source = selectedRevision_;
+        AntiCollisionPolicyRevision source = await Api.ClientTrajectory.GetAntiCollisionPolicyRevisionByIdAsync(selectedRevision_.MetaInfo.ID);
         draftHeading_ = $"New revision after {source.RevisionNumber}";
         draft_ = new AntiCollisionPolicyRevisionCreate
         {
@@ -374,7 +374,7 @@
     {
         AntiCollisionTrajectoryAgeCondition age => $"Trajectory age {age.Operator}: {age.AgeThreshold:g} s",
         AntiCollisionIdentityCondition identity => $"{identity.ResourceLevel} identity {identity.MatchOperator}: {identity.Pattern}",
-        AntiCollisionFeatureCondition feature => $"{feature.ResourceLevel} feature ({feature.TemporalOperator}) · category {feature.FeatureCategoryID} · option {feature.FeatureOptionID}",
+        AntiCollisionFeatureCondition feature => $"{feature.ResourceLevel} feature ({feature.TemporalOperator}) Â· category {feature.FeatureCategoryID} Â· option {feature.FeatureOptionID}",
         _ => "Unknown condition"
     };
     private static void ReplaceCondition(AntiCollisionPolicyRule rule, AntiCollisionPolicyCondition old, string kind)
@@ -522,7 +522,7 @@
     {
         if (id is not Guid revisionId) return string.Empty;
         AntiCollisionPolicyRevision? revision = revisions_.FirstOrDefault(candidate => candidate.MetaInfo?.ID == revisionId);
-        return revision == null ? "Unknown revision" : $"Revision {revision.RevisionNumber} · {revision.Description ?? "No description"}";
+        return revision == null ? "Unknown revision" : $"Revision {revision.RevisionNumber} Â· {revision.Description ?? "No description"}";
     }
 
     private static string RevisionSearchText(AntiCollisionPolicyRevision revision) =>
@@ -573,7 +573,7 @@
             }
         }
     }
-    private string RevisionName(Guid id) { AntiCollisionPolicyRevision? x = revisions_.FirstOrDefault(x => x.MetaInfo?.ID == id); return x == null ? id.ToString() : $"{x.Name} · revision {x.RevisionNumber}"; }
+    private string RevisionName(Guid id) { AntiCollisionPolicyRevision? x = revisions_.FirstOrDefault(x => x.MetaInfo?.ID == id); return x == null ? id.ToString() : $"{x.Name} Â· revision {x.RevisionNumber}"; }
     private MetaInfo NewMeta(string endpoint) => new() { ID = Guid.NewGuid(), HttpHostName = Api.HostNameTrajectory, HttpHostBasePath = Api.HostBasePathTrajectory, HttpEndPoint = endpoint };
     private static FieldAntiCollisionPolicyAssignmentMutation NewAssignment() => new() { MetaInfo = new MetaInfo { ID = Guid.NewGuid(), HttpEndPoint = "FieldAntiCollisionPolicyAssignment/" } };
     private AntiCollisionPolicyRevisionCreate NewDraft(Guid policyId, string name) => new() { MetaInfo = NewMeta("AntiCollisionPolicyRevision/"), PolicyID = policyId, Name = name, ConfidenceFactor = .95, Rules = [new AntiCollisionPolicyRule { RuleID = Guid.NewGuid(), Name = "Default", Priority = 1, AlertThreshold = 1.5, AlarmThreshold = 1, Conditions = [] }] };

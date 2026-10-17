@@ -1,3 +1,5 @@
+using OSDC.Drilling.Trajectory.Service;
+using OSDC.Drilling.Trajectory.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -15,6 +17,22 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
     [ApiController]
     public class OctreesController : ControllerBase
     {
+        /// <summary>Returns one bounded page of light records, retaining single-record and result reads.</summary>
+        [HttpGet("LightData", Name = "DiscoverOctrees")]
+        public ActionResult<OctreesDiscoveryPage> DiscoverOctrees([FromQuery] int offset = 0, [FromQuery] int limit = 50, [FromQuery] Model.TrajectoryType? trajectoryType = null, [FromQuery] bool? isDefinitive = null)
+        {
+            OSDC.Drilling.Trajectory.Model.UsageStatisticsTrajectory.Instance.IncrementDiscoveryRequestsPerDay();
+            if (trajectoryType is { } trajectoryTypeValue && !System.Enum.IsDefined(trajectoryTypeValue))
+                return BadRequest(new { error = "invalid_discovery_query", message = "Invalid discovery enum value." });
+
+            if (offset < 0 || limit is < 1 or > 200) return BadRequest(new { error = "invalid_discovery_query" });
+            var ids = _octreeManager.GetIDs(trajectoryType, isDefinitive).OrderBy(id => id.ToString(), StringComparer.Ordinal).ToList();
+            int total = ids.Count;
+            var records = ids.Skip(offset).Take(limit).Select(id => new OctreeLight { ID = id }).ToList();
+            return Ok(new OctreesDiscoveryPage { Items = records, Offset = offset, Limit = limit, TotalCount = total,
+                NextOffset = offset < total && records.Count < total - offset ? offset + records.Count : null });
+        }
+
         private readonly ILogger<TrajectoryManager> _loggerTrajectory;
         private readonly ILogger<OctreeManager> _loggerOctree;
         private readonly TrajectoryManager _trajectoryManager;

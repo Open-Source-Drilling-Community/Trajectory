@@ -48,10 +48,25 @@ public sealed class McpServerHttpTests
     }
 
     [Test]
+    public async Task Removed_heavy_route_returns_404_and_light_discovery_returns_a_bounded_page()
+    {
+        using var retired = await _httpClient.GetAsync("Trajectory/api/Trajectory/HeavyData");
+        Assert.That(retired.StatusCode, Is.AnyOf(System.Net.HttpStatusCode.NotFound, System.Net.HttpStatusCode.BadRequest));
+        using var discovery = await _httpClient.GetAsync("Trajectory/api/Trajectory/LightData?offset=0&limit=1");
+        Assert.That(discovery.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.OK));
+        var page = JsonNode.Parse(await discovery.Content.ReadAsStringAsync())!;
+        Assert.That(page["Items"]!.AsArray().Count, Is.LessThanOrEqualTo(1));
+        Assert.That(page["Limit"]!.GetValue<int>(), Is.EqualTo(1));
+        Assert.That(page.AsObject().ContainsKey("NextOffset"), Is.True);
+        using var invalid = await _httpClient.GetAsync("Trajectory/api/Trajectory/LightData?limit=201");
+        Assert.That(invalid.StatusCode, Is.EqualTo(System.Net.HttpStatusCode.BadRequest));
+    }
+
+    [Test]
     public async Task Http_endpoint_publishes_all_179_rest_backed_tools_and_ping()
     {
         string[] remote = (await _client.ListToolsAsync(cancellationToken: CancellationToken.None)).Select(tool => tool.Name).ToArray();
-        Assert.That(remote, Has.Length.EqualTo(182));
+        Assert.That(remote, Has.Length.EqualTo(OSDC.Drilling.Trajectory.Service.Mcp.Tools.TrajectoryRestMcpToolRegistrations.Endpoints.Count + 1));
         Assert.That(remote, Is.Unique);
         Assert.That(remote, Does.Contain("trajectory_usage_statistics_get_trajectory_usage_statistics"));
     }

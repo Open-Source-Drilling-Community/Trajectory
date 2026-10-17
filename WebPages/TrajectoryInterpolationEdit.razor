@@ -1,4 +1,4 @@
-﻿@inject ILogger<TrajectoryInterpolationEdit> logger
+@inject ILogger<TrajectoryInterpolationEdit> logger
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject IJSRuntime JSRuntime
@@ -665,6 +665,7 @@
     private string AdditionalDepthReferenceRenderKey => Parent?.DepthReferenceName ?? DataUtils.UnitAndReferenceParameters.DepthReferenceName ?? "DepthReference";
     private async Task UpdateReferenceSourcesAsync()
     {
+        await ReferenceDetailsLoader.EnsureAsync(Api, TrajectoryList?.FirstOrDefault(value => value.MetaInfo?.ID == selectedTrajectoryId)?.WellBoreID, WellBoreList, WellList, ClusterList);
         DataUtils.ApplyTrajectoryReferenceValues(selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList, RigList, FieldList,
             selectedRigJobId, trajectoryReferenceDate);
         await CartographicPositionReferenceUtils.ApplyForTrajectoryAsync(Api, selectedTrajectoryId, TrajectoryList, ClusterList, FieldList, logger);
@@ -746,6 +747,8 @@
         {
             await EnsureWellBoreArchitectureDataLoadedAsync();
             architecture = GetSelectedWellBoreArchitecture(selectedTrajectory);
+            if (architecture?.MetaInfo?.ID is Guid architectureId)
+                architecture = await Api.ClientWellBoreArchitecture.GetWellBoreArchitectureByIdAsync(architectureId);
         }
 
         if (currentInterpolatedTrajectory.IncludeFirstSurvey)
@@ -984,7 +987,7 @@
         try
         {
             isLoadingWellBoreArchitectureData = true;
-            wellBoreArchitectureHeavyList = (List<WellBoreArchitecture>)await Api.ClientWellBoreArchitecture.GetAllWellBoreArchitectureAsync();
+            wellBoreArchitectureHeavyList = (List<WellBoreArchitecture>)await Api.ClientWellBoreArchitecture.ListWellBoreArchitectureReferencesAsync();
         }
         finally
         {

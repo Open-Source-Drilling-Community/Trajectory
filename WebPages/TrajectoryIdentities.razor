@@ -17,7 +17,7 @@
 @code {
     private List<TrajectoryIdentity> items = [];
     protected override async Task OnInitializedAsync() => await ReloadAsync();
-    private async Task ReloadAsync() => items = (await Api.ClientTrajectory.GetAllTrajectoryIdentityAsync()).ToList();
+    private async Task ReloadAsync() => items = (await Api.ClientTrajectory.ListTrajectoryIdentityReferencesAsync()).ToList();
     private void Add() => items.Add(new() { MetaInfo = new() { ID = Guid.NewGuid() } });
     private async Task SaveAsync()
     {

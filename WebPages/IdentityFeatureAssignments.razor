@@ -33,14 +33,18 @@
     private List<TrajectoryFeatureCategory> categories = [];
     protected override async Task OnInitializedAsync()
     {
-        identities = (await Api.ClientTrajectory.GetAllTrajectoryIdentityAsync()).ToList();
-        categories = (await Api.ClientTrajectory.GetAllTrajectoryFeatureCategoryAsync()).ToList();
+        identities = (await Api.ClientTrajectory.ListTrajectoryIdentityReferencesAsync()).ToList();
+        categories = (await Api.ClientTrajectory.ListTrajectoryFeatureCategoryReferencesAsync()).ToList();
+        foreach (Guid id in FeatureAssignments.Where(value => value.FeatureCategoryID.HasValue).Select(value => value.FeatureCategoryID!.Value).Distinct())
+            await Api.ClientTrajectory.LoadTrajectoryFeatureCategoryDetailsAsync(categories, id);
     }
     private void AddIdentity() => IdentityAssignments.Add(new() { ID = Guid.NewGuid() });
     private void AddFeature() => FeatureAssignments.Add(new() { ID = Guid.NewGuid() });
     private IEnumerable<TrajectoryFeatureOption> OptionsFor(TrajectoryFeatureAssignment assignment) => categories.FirstOrDefault(category => category.MetaInfo.ID == assignment.FeatureCategoryID)?.Options ?? [];
     private bool HasValidity(TrajectoryFeatureAssignment assignment) => categories.FirstOrDefault(category => category.MetaInfo.ID == assignment.FeatureCategoryID)?.HasValidityPeriod == true;
-    private void SetCategory(TrajectoryFeatureAssignment assignment, Guid? categoryId) { assignment.FeatureCategoryID = categoryId; assignment.FeatureOptionID = null; if (!HasValidity(assignment)) { assignment.FromDate = null; assignment.ToDate = null; } }
+    private async Task SetCategory(TrajectoryFeatureAssignment assignment, Guid? categoryId) {
+        if (categoryId is Guid categoryUuid) await Api.ClientTrajectory.LoadTrajectoryFeatureCategoryDetailsAsync(categories, categoryUuid);
+ assignment.FeatureCategoryID = categoryId; assignment.FeatureOptionID = null; if (!HasValidity(assignment)) { assignment.FromDate = null; assignment.ToDate = null; } }
     private static DateTime? ToDateTime(DateTimeOffset? value) => value is { } defined ? DateTimeReference.ToDisplayDateTime(defined) : null;
     private static DateTimeOffset? ToOffset(DateTime? value) => value.HasValue ? DateTimeReference.ToCanonicalUtc(value.Value) : null;
 }

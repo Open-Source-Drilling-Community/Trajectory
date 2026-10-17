@@ -483,7 +483,17 @@ internal static class Program
             return;
         }
 
-        ICollection<WellBoreArchitecture> architectures = await APIUtils.ClientWellBoreArchitecture.GetAllWellBoreArchitectureAsync();
+        // This explicit radius-reconstruction operation needs complete selected definitions.
+        List<WellBoreArchitecture> architectures = [];
+        int architectureOffset = 0;
+        while (true)
+        {
+            var page = await APIUtils.ClientWellBoreArchitecture.DiscoverWellBoreArchitectureAsync(offset: architectureOffset, limit: 200);
+            foreach (var summary in page.Items)
+                architectures.Add(await APIUtils.ClientWellBoreArchitecture.GetWellBoreArchitectureByIdAsync(summary.MetaInfo.ID));
+            if (page.NextOffset is not int next) break;
+            architectureOffset = next;
+        }
         Dictionary<Guid, WellBoreArchitecture> architecturesByWellBoreId = architectures
             .Where(architecture => architecture?.WellBoreID is Guid wellBoreId && wellBoreId != Guid.Empty)
             .GroupBy(architecture => architecture.WellBoreID!.Value)

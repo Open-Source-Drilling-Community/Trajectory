@@ -29,13 +29,13 @@ public sealed class DirectTrajectoryReferenceDataProvider(
         await refreshLock_.WaitAsync(cancellationToken);
         try
         {
-            var fieldTask = api.ClientField.GetAllFieldAsync(cancellationToken);
-            var clusterTask = api.ClientCluster.GetAllClusterAsync(cancellationToken);
-            var wellTask = api.ClientWell.GetAllWellAsync(cancellationToken);
-            var wellBoreTask = api.ClientWellBore.GetAllWellBoreAsync(cancellationToken);
+            var fieldTask = api.ClientField.ListFieldReferencesAsync(cancellationToken);
+            var clusterTask = api.ClientCluster.ListClusterReferencesAsync(cancellationToken);
+            var wellTask = api.ClientWell.ListWellReferencesAsync(cancellationToken);
+            var wellBoreTask = api.ClientWellBore.ListWellBoreReferencesAsync(cancellationToken);
             var rigTask = api.GetAllRigReferencesAsync(cancellationToken);
-            var surveyInstrumentTask = api.ClientSurveyInstrument.GetAllSurveyInstrumentLightAsync(cancellationToken);
-            var wellBoreArchitectureTask = api.ClientWellBoreArchitecture.GetAllWellBoreArchitectureLightAsync(cancellationToken);
+            var surveyInstrumentTask = api.ClientSurveyInstrument.ListSurveyInstrumentLightAsync(cancellationToken);
+            var wellBoreArchitectureTask = api.ClientWellBoreArchitecture.ListWellBoreArchitectureLightAsync(cancellationToken);
             Task<IReadOnlyList<TrajectoryLight>> trajectoryTask = LoadTrajectoriesAsync(cancellationToken);
             Task<IReadOnlyList<SurveyRunLight>> surveyRunTask = LoadSurveyRunsAsync(cancellationToken);
 
@@ -115,13 +115,13 @@ public sealed class DirectTrajectoryReferenceDataProvider(
     }
 
     private async Task<IReadOnlyList<TrajectoryLight>> LoadTrajectoriesAsync(CancellationToken cancellationToken) =>
-        (await api.ClientTrajectory.GetAllTrajectoryLightAsync(cancellationToken: cancellationToken))
+        (await api.ClientTrajectory.ListTrajectoryLightAsync(cancellationToken: cancellationToken))
             .Where(item => item?.MetaInfo != null)
             .OrderBy(item => item.Name)
             .ToArray();
 
     private async Task<IReadOnlyList<SurveyRunLight>> LoadSurveyRunsAsync(CancellationToken cancellationToken) =>
-        (await api.ClientTrajectory.GetAllSurveyRunLightAsync(cancellationToken: cancellationToken))
+        (await api.ClientTrajectory.ListSurveyRunLightAsync(cancellationToken: cancellationToken))
             .Where(item => item?.MetaInfo != null)
             .OrderBy(item => item.Name)
             .ToArray();

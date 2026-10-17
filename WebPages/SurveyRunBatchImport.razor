@@ -482,7 +482,7 @@ else
             currentBatchImport_ = CreateEmptyBatchImport();
 
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
-            var surveyRunHeavyTask = Api.ClientTrajectory.GetAllSurveyRunAsync();
+            var surveyRunHeavyTask = Api.ClientTrajectory.ListSurveyRunReferencesAsync();
             Task<List<SharedSurveyRunBatchImportLight>?> batchImportTask = GetStoredBatchImportsLightAsync();
 
             await Task.WhenAll(referenceDataTask, surveyRunHeavyTask, batchImportTask);
@@ -531,7 +531,7 @@ else
 
     private async Task<List<SharedSurveyRunBatchImportLight>?> GetStoredBatchImportsLightAsync()
     {
-        return (await Api.ClientTrajectory.GetAllSurveyRunBatchImportLightAsync()).ToList();
+        return (await Api.ClientTrajectory.ListSurveyRunBatchImportLightAsync()).ToList();
     }
 
     private async Task<SharedSurveyRunBatchImport?> GetStoredBatchImportByIdAsync(Guid id)

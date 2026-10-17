@@ -1,8 +1,9 @@
+using OSDC.Drilling.Trajectory.Service;
+using OSDC.Drilling.Trajectory.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using OSDC.Drilling.GlobalAntiCollision;
 using OSDC.Drilling.Trajectory.Service.Managers;
-using OSDC.Drilling.Trajectory.Model;
 
 namespace OSDC.Drilling.Trajectory.Service.Controllers;
 
@@ -11,7 +12,22 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers;
 [ApiController]
 public sealed class FieldAntiCollisionPolicyAssignmentController(AntiCollisionPolicyManager manager) : ControllerBase
 {
-    [HttpGet(Name = "GetAllFieldAntiCollisionPolicyAssignment")]
+        /// <summary>Returns one bounded page of light records, retaining single-record and result reads.</summary>
+        [HttpGet("LightData", Name = "DiscoverFieldAntiCollisionPolicyAssignment")]
+        public ActionResult<FieldAntiCollisionPolicyAssignmentDiscoveryPage> DiscoverFieldAntiCollisionPolicyAssignment([FromQuery] int offset = 0, [FromQuery] int limit = 50, [FromQuery] Guid? fieldId = null)
+        {
+            OSDC.Drilling.Trajectory.Model.UsageStatisticsTrajectory.Instance.IncrementDiscoveryRequestsPerDay();
+            if (offset < 0 || limit is < 1 or > 200 || fieldId == Guid.Empty) return BadRequest(new { error = "invalid_discovery_query" });
+            List<FieldAntiCollisionPolicyAssignment> records;
+            int total;
+            try { records = DiscoveryRecords.ReadPage<FieldAntiCollisionPolicyAssignment>(manager.DiscoveryConnections.GetConnection(), "FieldAntiCollisionPolicyAssignmentTable", "FieldAntiCollisionPolicyAssignment", offset, limit, null, new Dictionary<string, object?> { ["FieldID"] = fieldId }, out total); }
+            catch (Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or System.Text.Json.JsonException or InvalidOperationException)
+            { return StatusCode(500, new { error = "discovery_failed" }); }
+            return Ok(new FieldAntiCollisionPolicyAssignmentDiscoveryPage { Items = records, Offset = offset, Limit = limit, TotalCount = total,
+                NextOffset = offset < total && records.Count < total - offset ? offset + records.Count : null });
+        }
+
+    [NonAction]
     public ActionResult<IEnumerable<FieldAntiCollisionPolicyAssignment>> GetAll([FromQuery] Guid? fieldId = null)
     {
         UsageStatisticsTrajectory.Instance.IncrementOperation("GetAllFieldAntiCollisionPolicyAssignment");

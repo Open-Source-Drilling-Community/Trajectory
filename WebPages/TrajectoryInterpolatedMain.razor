@@ -113,7 +113,7 @@
             interpolatedTrajectoryIdBeingEdited = null;
             selectedInterpolatedTrajectoryList = [];
 
-            var interpolatedTask = Api.ClientTrajectory.GetAllInterpolatedTrajectoryLightAsync();
+            var interpolatedTask = Api.ClientTrajectory.ListInterpolatedTrajectoryLightAsync();
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
 
             await Task.WhenAll(interpolatedTask, referenceDataTask);
@@ -172,7 +172,7 @@
             while (!cancellationToken.IsCancellationRequested)
             {
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-                interpolatedTrajectoryList = ((ICollection<InterpolatedTrajectoryLight>)await Api.ClientTrajectory.GetAllInterpolatedTrajectoryLightAsync()).OrderBy(x => x.Name).ToList();
+                interpolatedTrajectoryList = ((ICollection<InterpolatedTrajectoryLight>)await Api.ClientTrajectory.ListInterpolatedTrajectoryLightAsync()).OrderBy(x => x.Name).ToList();
                 _gridKey++;
                 await InvokeAsync(StateHasChanged);
                 if (!interpolatedTrajectoryList.Any(IsCalculationActive))

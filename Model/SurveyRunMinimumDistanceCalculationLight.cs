@@ -6,6 +6,8 @@ namespace OSDC.Drilling.Trajectory.Model
 {
     public class SurveyRunMinimumDistanceCalculationLight
     {
+        public System.Guid? GlobalMinimumComparisonSurveyRunID { get; set; }
+
         public MetaInfo? MetaInfo { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }

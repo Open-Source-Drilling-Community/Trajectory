@@ -145,7 +145,7 @@ The 176-tool contract covers every controller action except the two unbounded pr
 
 The descriptions explain the service workflows as well as individual calls. In particular, survey-measurement chunks are uploaded with zero-based indexes and then committed; calculation cases are created and polled through `CalculationState`/`CalculationProgress`; large station, realization, minimum-distance, and aggregation results are retrieved through chunk-count and chunk tools. Octree indexes are maintained automatically by trajectory writes and startup reconciliation. Spatial-index algorithm version 3 represents the 99.9%-confidence uncertainty volume with a compact, one-cell-padded conservative swept-AABB cover at detailed depth 22. Filling the swept interiors and end regions closes the former strict-containment and open-end blind spots; AABB corner space can deliberately yield false-positive candidates that the separation-factor narrow phase rejects. Compaction never crosses the cache depth, preserving exact bucket lookup. Existing trajectory data is untouched, while prior derived indexes become stale by provenance hash and are rebuilt automatically. `GET Octrees/{id}/Status` exposes `Missing`, `NotIndexable`, `Stale`, or `Current` plus algorithm/calculation provenance and compact counts; the list operation can filter indexed UUIDs by `TrajectoryType` and `IsDefinitive`. Octree candidate discovery is asynchronous only: `octrees_queue_search` queues it, `octrees_get_search_status` reports actual bucket-loading and exact-intersection progress, `octrees_get_search_result` transfers unique candidate UUIDs only after completion, and `octrees_delete_search` removes the transient job. The MCP request schema rejects an empty planned/actual selection. The fixed 0.999 index confidence is a conservative superset of every downstream confidence accepted by the API, whose maximum is also 0.999. Jobs expire one hour after reaching a terminal state and may be safely resubmitted after a service restart. Searches combine planned/actual selection with an optional definitive-only restriction, exclude the reference trajectory, and refuse a non-current reference index. POST/PUT index actions are documented as operational repairs and return the resulting status, while DELETE explicitly removes only rebuildable derived data. Unless a field explicitly says otherwise, lengths, depths, coordinates, and distances are metres, angles are radians, and curvature is radians per metre. Octree and mesh-refinement maximum depths are dimensionless subdivision/recursion levels, not physical depths.
 
-MCP discovery for the two primary resources uses bounded `trajectory_search_trajectory` and `survey_run_search_survey_run` tools, returning deterministic lightweight pages with a total count, default limit 100, and maximum limit 500. Their unbounded full-list REST actions remain available for existing clients but are deliberately not registered as MCP tools.
+MCP discovery for the two primary resources uses bounded `trajectory_search_trajectory` and `survey_run_search_survey_run` tools, returning deterministic lightweight pages with a total count, default limit 100, and maximum limit 500. The unbounded full-list REST actions and MCP tools are removed; use the bounded discovery/search contracts and selected reads.
 
 Trajectory extrapolation MCP submissions use the same `Mode` and `CurveType` discriminators as REST/OpenAPI. The closed mutation schema excludes server-derived timestamps, state, endpoint snapshots, revisions, solved sections, and sampled stations. Agents poll `trajectory_extrapolation_case_get_status` and retrieve completed samples through the chunk-count and zero-based chunk tools.
 
@@ -195,3 +195,34 @@ Survey geometric bindings are type-scoped and shared by REST and MCP. MD/Absciss
 
 
 After station interpolation, geographic coordinates are synchronized from the canonical Riemannian position using the authoritative shared library. This populates WGS84 latitude/longitude without changing MD, X/Y/Z or directional values.
+
+## Bounded light discovery
+
+Resource and catalog discovery returns light pages, with `offset` defaulting to 0 and `limit` defaulting to 50 (allowed range 1–200). Names and relevant resource-reference filters are evaluated on the server. Unbounded full-object `HeavyData` routes and tools, including filtered full-object lists, have been removed. Existing UUID and HTTP-metadata listings remain available; use named light pages for routine discovery.
+
+REST routes and MCP tool names (relative to the service's existing API path base):
+
+- `/AntiCollisionPolicyRevision/LightData` / `anti_collision_policy_revision_discover`
+- `/DirectionalControlEvaluationCase/LightData` / `directional_control_evaluation_case_discover`
+- `/InterpolatedTrajectory/LightData` / `interpolated_trajectory_discover`
+- `/SurveyRunBatchImport/LightData` / `survey_run_batch_import_discover`
+- `/SurveyRun/LightData` / `survey_run_discover`
+- `/SurveyRunMinimumDistanceCalculation/LightData` / `survey_run_minimum_distance_calculation_discover`
+- `/TargetLandingCase/LightData` / `target_landing_case_discover`
+- `/TrajectoryAggregationCase/LightData` / `trajectory_aggregation_case_discover`
+- `/Trajectory/LightData` / `trajectory_discover`
+- `/TrajectoryExtrapolationCase/LightData` / `trajectory_extrapolation_case_discover`
+- `/TrajectoryFeatureCategory/LightData` / `trajectory_feature_category_discover`
+- `/TrajectoryIdentity/LightData` / `trajectory_identity_discover`
+- `/TrajectoryMinimumDistanceCalculation/LightData` / `trajectory_minimum_distance_calculation_discover`
+- `/TrajectoryRealizationCase/LightData` / `trajectory_realization_case_discover`
+- `/SurveyStationEllipseCalculation/LightData` / `survey_station_ellipse_calculation_discover`
+- `/FieldAntiCollisionPolicyAssignment/LightData` / `field_anti_collision_policy_assignment_discover`
+- `/GlobalAntiCollisions/LightData` / `global_anti_collisions_discover`
+- `/Octrees/LightData` / `octrees_discover`
+
+Pages contain `Items`, `Offset`, `Limit`, `TotalCount`, and `NextOffset`; `NextOffset` is null on the final page. Offset pages are individually consistent reads, not a snapshot spanning requests: concurrent inserts/deletes can change later pages. Refresh discovery when the underlying collection changes. EarthGeodesy's existing search pages instead expose `Items[].Value`, `Offset`, `Limit`, and `TotalCount`.
+
+Single-record reads, result/chunk reads, and deliberate backup/export/restore operations are preserved. Backups can still contain complete resources and should be treated as explicit bulk operations.
+
+This is a breaking REST/MCP contract change: update generated clients, UIs, and external integrations together with the service release. Removed heavy-list names are not compatibility aliases. No persisted engineering shapes, database names, or storage volumes are changed. Historical usage counters are retained; bounded discovery has a separate additive `DiscoveryRequestsPerDay` history in resource services.

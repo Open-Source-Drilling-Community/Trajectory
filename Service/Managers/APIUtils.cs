@@ -160,8 +160,12 @@ public static class APIUtils
 
         try
         {
-            ICollection<WellBoreArchitecture> architectures = await APIUtils.ClientWellBoreArchitecture.GetAllWellBoreArchitectureAsync();
-            return architectures.FirstOrDefault(architecture => architecture?.WellBoreID == wellBoreId);
+            var page = await APIUtils.ClientWellBoreArchitecture.DiscoverWellBoreArchitectureAsync(
+                offset: 0, limit: 1, wellBoreId: wellBoreId);
+            Guid? architectureId = page.Items.FirstOrDefault()?.MetaInfo?.ID;
+            return architectureId is Guid id
+                ? await APIUtils.ClientWellBoreArchitecture.GetWellBoreArchitectureByIdAsync(id)
+                : null;
         }
         catch
         {

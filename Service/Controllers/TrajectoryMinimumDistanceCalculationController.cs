@@ -1,3 +1,4 @@
+using OSDC.Drilling.Trajectory.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -14,11 +15,34 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
     [ApiController]
     public class TrajectoryMinimumDistanceCalculationController : ControllerBase
     {
+        private readonly SqlConnectionManager _discoveryConnections;
+
+        /// <summary>Discover TrajectoryMinimumDistanceCalculation resources as bounded light records; retrieve selected full records by ID.</summary>
+        [HttpGet("LightData", Name = "DiscoverTrajectoryMinimumDistanceCalculation")]
+        public ActionResult<OSDC.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculationDiscoveryPage> DiscoverTrajectoryMinimumDistanceCalculation([FromQuery] int offset = 0, [FromQuery] int limit = 50, [FromQuery] string? name = null, [FromQuery] System.Guid? referenceTrajectoryId = null, [FromQuery] System.Guid? globalMinimumComparisonTrajectoryId = null)
+        {
+            OSDC.Drilling.Trajectory.Model.UsageStatisticsTrajectory.Instance.IncrementDiscoveryRequestsPerDay();
+            if (offset < 0 || limit < 1 || limit > 200 || name?.Length > 200 || referenceTrajectoryId == System.Guid.Empty || globalMinimumComparisonTrajectoryId == System.Guid.Empty)
+                return BadRequest(new { error = "invalid_discovery_query", message = "Offset must be non-negative, limit 1–200, name at most 200 characters, and UUID filters non-empty." });
+            try
+            {
+                var records = DiscoveryRecords.ReadPage<OSDC.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculationLight>(_discoveryConnections.GetConnection(), "TrajectoryMinimumDistanceCalculationTable", "TrajectoryMinimumDistanceCalculation", offset, limit, name,
+                    new System.Collections.Generic.Dictionary<string, object?> { ["ReferenceTrajectoryID"] = referenceTrajectoryId, ["GlobalMinimumComparisonTrajectoryID"] = globalMinimumComparisonTrajectoryId }, out int total);
+                return Ok(new OSDC.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculationDiscoveryPage { Items = records, Offset = offset, Limit = limit, TotalCount = total,
+                    NextOffset = offset < total && records.Count < total - offset ? offset + records.Count : null });
+            }
+            catch (System.Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or System.Text.Json.JsonException or System.InvalidOperationException)
+            {
+                return StatusCode(500, new { error = "discovery_failed" });
+            }
+        }
+
         private readonly ILogger<TrajectoryMinimumDistanceCalculationManager> _logger;
         private readonly TrajectoryMinimumDistanceCalculationManager _manager;
 
         public TrajectoryMinimumDistanceCalculationController(ILogger<TrajectoryMinimumDistanceCalculationManager> logger, SqlConnectionManager connectionManager)
         {
+            _discoveryConnections = connectionManager;
             _logger = logger;
             _manager = TrajectoryMinimumDistanceCalculationManager.GetInstance(_logger, connectionManager);
         }
@@ -72,14 +96,14 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             return value != null ? Ok(value) : NotFound();
         }
 
-        [HttpGet("LightData", Name = "GetAllTrajectoryMinimumDistanceCalculationLight")]
+        [NonAction]
         public ActionResult<IEnumerable<Model.TrajectoryMinimumDistanceCalculationLight>> GetAllTrajectoryMinimumDistanceCalculationLight()
         {
             List<Model.TrajectoryMinimumDistanceCalculationLight>? values = _manager.GetAllTrajectoryMinimumDistanceCalculationLight();
             return values != null ? Ok(values) : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
-        [HttpGet("HeavyData", Name = "GetAllTrajectoryMinimumDistanceCalculation")]
+        [NonAction]
         public ActionResult<IEnumerable<Model.TrajectoryMinimumDistanceCalculation?>> GetAllTrajectoryMinimumDistanceCalculation()
         {
             List<Model.TrajectoryMinimumDistanceCalculation?>? values = _manager.GetAllTrajectoryMinimumDistanceCalculation();

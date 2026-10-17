@@ -1,3 +1,4 @@
+using OSDC.Drilling.Trajectory.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -14,11 +15,34 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
     [ApiController]
     public class TrajectoryAggregationCaseController : ControllerBase
     {
+        private readonly SqlConnectionManager _discoveryConnections;
+
+        /// <summary>Discover TrajectoryAggregationCase resources as bounded light records; retrieve selected full records by ID.</summary>
+        [HttpGet("LightData", Name = "DiscoverTrajectoryAggregationCase")]
+        public ActionResult<OSDC.Drilling.Trajectory.Model.TrajectoryAggregationCaseDiscoveryPage> DiscoverTrajectoryAggregationCase([FromQuery] int offset = 0, [FromQuery] int limit = 50, [FromQuery] string? name = null)
+        {
+            OSDC.Drilling.Trajectory.Model.UsageStatisticsTrajectory.Instance.IncrementDiscoveryRequestsPerDay();
+            if (offset < 0 || limit < 1 || limit > 200 || name?.Length > 200)
+                return BadRequest(new { error = "invalid_discovery_query", message = "Offset must be non-negative, limit 1–200, name at most 200 characters, and UUID filters non-empty." });
+            try
+            {
+                var records = DiscoveryRecords.ReadPage<OSDC.Drilling.Trajectory.Model.TrajectoryAggregationCaseLight>(_discoveryConnections.GetConnection(), "TrajectoryAggregationCaseTable", "TrajectoryAggregationCase", offset, limit, name,
+                    new System.Collections.Generic.Dictionary<string, object?> {  }, out int total);
+                return Ok(new OSDC.Drilling.Trajectory.Model.TrajectoryAggregationCaseDiscoveryPage { Items = records, Offset = offset, Limit = limit, TotalCount = total,
+                    NextOffset = offset < total && records.Count < total - offset ? offset + records.Count : null });
+            }
+            catch (System.Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or System.Text.Json.JsonException or System.InvalidOperationException)
+            {
+                return StatusCode(500, new { error = "discovery_failed" });
+            }
+        }
+
         private readonly ILogger<TrajectoryAggregationCaseManager> _logger;
         private readonly TrajectoryAggregationCaseManager _manager;
 
         public TrajectoryAggregationCaseController(ILogger<TrajectoryAggregationCaseManager> logger, SqlConnectionManager connectionManager)
         {
+            _discoveryConnections = connectionManager;
             _logger = logger;
             _manager = TrajectoryAggregationCaseManager.GetInstance(_logger, connectionManager);
         }
@@ -130,14 +154,14 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             return val != null ? Ok(val) : NotFound();
         }
 
-        [HttpGet("LightData", Name = "GetAllTrajectoryAggregationCaseLight")]
+        [NonAction]
         public ActionResult<IEnumerable<Model.TrajectoryAggregationCaseLight>> GetAllTrajectoryAggregationCaseLight()
         {
             var vals = _manager.GetAllTrajectoryAggregationCaseLight();
             return vals != null ? Ok(vals) : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
-        [HttpGet("HeavyData", Name = "GetAllTrajectoryAggregationCase")]
+        [NonAction]
         public ActionResult<IEnumerable<Model.TrajectoryAggregationCase?>> GetAllTrajectoryAggregationCase()
         {
             var vals = _manager.GetAllTrajectoryAggregationCase();

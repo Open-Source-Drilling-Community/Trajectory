@@ -5,6 +5,61 @@
     "version": "1.0"
   },
   "paths": {
+    "/AntiCollisionPolicyRevision/LightData": {
+      "get": {
+        "tags": [
+          "AntiCollisionPolicyRevision"
+        ],
+        "operationId": "DiscoverAntiCollisionPolicyRevision",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "policyId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.AntiCollisionPolicyRevisionDiscoveryPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/AntiCollisionPolicyRevision": {
       "get": {
         "tags": [
@@ -59,39 +114,6 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRevision"
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/AntiCollisionPolicyRevision/HeavyData": {
-      "get": {
-        "tags": [
-          "AntiCollisionPolicyRevision"
-        ],
-        "operationId": "GetAllAntiCollisionPolicyRevision",
-        "parameters": [
-          {
-            "name": "policyId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyRevision"
-                  }
                 }
               }
             }
@@ -166,6 +188,69 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/Microsoft.AspNetCore.Mvc.ProblemDetails"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/DirectionalControlEvaluationCase/LightData": {
+      "get": {
+        "tags": [
+          "DirectionalControlEvaluationCase"
+        ],
+        "operationId": "DiscoverDirectionalControlEvaluationCase",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "referenceTrajectoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "actualTrajectoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCaseDiscoveryPage"
                 }
               }
             }
@@ -255,41 +340,6 @@
             "resource type"
           ],
           "role": "urn:osdc:semantic:queued-calculation-submission"
-        }
-      }
-    },
-    "/DirectionalControlEvaluationCase/LightData": {
-      "get": {
-        "tags": [
-          "DirectionalControlEvaluationCase"
-        ],
-        "operationId": "GetAllDirectionalControlEvaluationCaseLight",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCaseLight"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:directional-control-evaluation-case",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-status-retrieval"
         }
       }
     },
@@ -783,13 +833,31 @@
         }
       }
     },
-    "/FieldAntiCollisionPolicyAssignment": {
+    "/FieldAntiCollisionPolicyAssignment/LightData": {
       "get": {
         "tags": [
           "FieldAntiCollisionPolicyAssignment"
         ],
-        "operationId": "GetAllFieldAntiCollisionPolicyAssignment",
+        "operationId": "DiscoverFieldAntiCollisionPolicyAssignment",
         "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
           {
             "name": "fieldId",
             "in": "query",
@@ -829,47 +897,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignment"
-                  }
-                }
-              }
-            }
-          }
-        }
-      },
-      "post": {
-        "tags": [
-          "FieldAntiCollisionPolicyAssignment"
-        ],
-        "operationId": "PostFieldAntiCollisionPolicyAssignment",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignmentMutation"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignmentMutation"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignmentMutation"
-              }
-            }
-          }
-        },
-        "responses": {
-          "201": {
-            "description": "Created",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignment"
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.FieldAntiCollisionPolicyAssignmentDiscoveryPage"
                 }
               }
             }
@@ -1114,6 +1142,85 @@
               "application/json": {
                 "schema": {
                   "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignment"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/FieldAntiCollisionPolicyAssignment": {
+      "post": {
+        "tags": [
+          "FieldAntiCollisionPolicyAssignment"
+        ],
+        "operationId": "PostFieldAntiCollisionPolicyAssignment",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignmentMutation"
+              }
+            }
+          }
+        },
+        "responses": {
+          "201": {
+            "description": "Created",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignment"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/GlobalAntiCollisions/LightData": {
+      "get": {
+        "tags": [
+          "GlobalAntiCollisions"
+        ],
+        "operationId": "DiscoverGlobalAntiCollisions",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.GlobalAntiCollisionsDiscoveryPage"
                 }
               }
             }
@@ -1372,6 +1479,85 @@
             "resource type"
           ],
           "role": "urn:osdc:semantic:calculation-status-retrieval"
+        }
+      }
+    },
+    "/InterpolatedTrajectory/LightData": {
+      "get": {
+        "tags": [
+          "InterpolatedTrajectory"
+        ],
+        "operationId": "DiscoverInterpolatedTrajectory",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trajectoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.20.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:wellbore-trajectory"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:wellbore-trajectory"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.InterpolatedTrajectoryDiscoveryPage"
+                }
+              }
+            }
+          }
         }
       }
     },
@@ -1979,73 +2165,57 @@
         }
       }
     },
-    "/InterpolatedTrajectory/LightData": {
+    "/Octrees/LightData": {
       "get": {
         "tags": [
-          "InterpolatedTrajectory"
+          "Octrees"
         ],
-        "operationId": "GetAllInterpolatedTrajectoryLight",
+        "operationId": "DiscoverOctrees",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "trajectoryType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryType"
+            }
+          },
+          {
+            "name": "isDefinitive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.InterpolatedTrajectoryLight"
-                  }
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.OctreesDiscoveryPage"
                 }
               }
             }
           }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:interpolated-trajectory",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-status-retrieval"
-        }
-      }
-    },
-    "/InterpolatedTrajectory/HeavyData": {
-      "get": {
-        "tags": [
-          "InterpolatedTrajectory"
-        ],
-        "operationId": "GetAllInterpolatedTrajectory",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.InterpolatedTrajectory"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:interpolated-trajectory",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-case-retrieval"
         }
       }
     },
@@ -2354,141 +2524,38 @@
         }
       }
     },
-    "/SurveyRun": {
-      "get": {
-        "tags": [
-          "SurveyRun"
-        ],
-        "operationId": "GetAllSurveyRunId",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "type": "string",
-                    "format": "uuid"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:survey-run",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "wellbore",
-            "survey instrument",
-            "calculation method",
-            "inclination reference",
-            "azimuth reference",
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:resource-collection-retrieval"
-        }
-      },
-      "post": {
-        "tags": [
-          "SurveyRun"
-        ],
-        "operationId": "PostSurveyRun",
-        "requestBody": {
-          "content": {
-            "application/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRun"
-              }
-            },
-            "text/json": {
-              "schema": {
-                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRun"
-              }
-            },
-            "application/*+json": {
-              "schema": {
-                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRun"
-              }
-            }
-          }
-        },
-        "responses": {
-          "200": {
-            "description": "OK"
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:survey-run",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "wellbore",
-            "survey instrument",
-            "calculation method",
-            "inclination reference",
-            "azimuth reference",
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:resource-creation"
-        }
-      }
-    },
-    "/SurveyRun/MetaInfo": {
-      "get": {
-        "tags": [
-          "SurveyRun"
-        ],
-        "operationId": "GetAllSurveyRunMetaInfo",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:survey-run",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "wellbore",
-            "survey instrument",
-            "calculation method",
-            "inclination reference",
-            "azimuth reference",
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:resource-collection-retrieval"
-        }
-      }
-    },
     "/SurveyRun/LightData": {
       "get": {
         "tags": [
           "SurveyRun"
         ],
-        "operationId": "GetAllSurveyRunLight",
+        "operationId": "DiscoverSurveyRun",
         "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
           {
             "name": "fieldId",
             "in": "query",
@@ -2626,6 +2693,14 @@
             }
           },
           {
+            "name": "parentSurveyRunId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
             "name": "surveyRunType",
             "in": "query",
             "schema": {
@@ -2639,9 +2714,134 @@
             "content": {
               "application/json": {
                 "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunDiscoveryPage"
+                }
+              }
+            }
+          }
+        },
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.20.0",
+          "concept": "urn:osdc:semantic:survey-run",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-binding-registry",
+          "requiredContext": [
+            "wellbore",
+            "survey instrument",
+            "calculation method",
+            "inclination reference",
+            "azimuth reference",
+            "owning service",
+            "resource type"
+          ],
+          "role": "urn:osdc:semantic:resource-operation"
+        }
+      }
+    },
+    "/SurveyRun": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetAllSurveyRunId",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunLight"
+                    "type": "string",
+                    "format": "uuid"
+                  }
+                }
+              }
+            }
+          }
+        },
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.20.0",
+          "concept": "urn:osdc:semantic:survey-run",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-binding-registry",
+          "requiredContext": [
+            "wellbore",
+            "survey instrument",
+            "calculation method",
+            "inclination reference",
+            "azimuth reference",
+            "owning service",
+            "resource type"
+          ],
+          "role": "urn:osdc:semantic:resource-collection-retrieval"
+        }
+      },
+      "post": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "PostSurveyRun",
+        "requestBody": {
+          "content": {
+            "application/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRun"
+              }
+            },
+            "text/json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRun"
+              }
+            },
+            "application/*+json": {
+              "schema": {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRun"
+              }
+            }
+          }
+        },
+        "responses": {
+          "200": {
+            "description": "OK"
+          }
+        },
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.20.0",
+          "concept": "urn:osdc:semantic:survey-run",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-binding-registry",
+          "requiredContext": [
+            "wellbore",
+            "survey instrument",
+            "calculation method",
+            "inclination reference",
+            "azimuth reference",
+            "owning service",
+            "resource type"
+          ],
+          "role": "urn:osdc:semantic:resource-creation"
+        }
+      }
+    },
+    "/SurveyRun/MetaInfo": {
+      "get": {
+        "tags": [
+          "SurveyRun"
+        ],
+        "operationId": "GetAllSurveyRunMetaInfo",
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "type": "array",
+                  "items": {
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
                   }
                 }
               }
@@ -3039,191 +3239,6 @@
             "resource type"
           ],
           "role": "urn:osdc:semantic:stateless-evaluation"
-        }
-      }
-    },
-    "/SurveyRun/HeavyData": {
-      "get": {
-        "tags": [
-          "SurveyRun"
-        ],
-        "operationId": "GetAllSurveyRun",
-        "parameters": [
-          {
-            "name": "fieldId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "x-osdc-semantic": {
-                "catalogue": "urn:osdc:semantic-catalogue",
-                "catalogueVersion": "0.20.0",
-                "concept": "urn:osdc:semantic:resource-identifier",
-                "curationStatus": "Reviewed",
-                "assertionSource": "provider-binding-registry",
-                "requiredContext": [
-                  "identified object type",
-                  "owning service or containing resource"
-                ],
-                "resourceType": "urn:osdc:semantic:drilling-field"
-              }
-            },
-            "x-osdc-semantic": {
-              "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.20.0",
-              "concept": "urn:osdc:semantic:resource-identifier",
-              "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [
-                "identified object type",
-                "owning service or containing resource"
-              ],
-              "resourceType": "urn:osdc:semantic:drilling-field"
-            }
-          },
-          {
-            "name": "clusterId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "x-osdc-semantic": {
-                "catalogue": "urn:osdc:semantic-catalogue",
-                "catalogueVersion": "0.20.0",
-                "concept": "urn:osdc:semantic:resource-identifier",
-                "curationStatus": "Reviewed",
-                "assertionSource": "provider-binding-registry",
-                "requiredContext": [
-                  "identified object type",
-                  "owning service or containing resource"
-                ],
-                "resourceType": "urn:osdc:semantic:well-cluster"
-              }
-            },
-            "x-osdc-semantic": {
-              "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.20.0",
-              "concept": "urn:osdc:semantic:resource-identifier",
-              "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [
-                "identified object type",
-                "owning service or containing resource"
-              ],
-              "resourceType": "urn:osdc:semantic:well-cluster"
-            }
-          },
-          {
-            "name": "wellId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "x-osdc-semantic": {
-                "catalogue": "urn:osdc:semantic-catalogue",
-                "catalogueVersion": "0.20.0",
-                "concept": "urn:osdc:semantic:resource-identifier",
-                "curationStatus": "Reviewed",
-                "assertionSource": "provider-binding-registry",
-                "requiredContext": [
-                  "identified object type",
-                  "owning service or containing resource"
-                ],
-                "resourceType": "urn:osdc:semantic:well"
-              }
-            },
-            "x-osdc-semantic": {
-              "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.20.0",
-              "concept": "urn:osdc:semantic:resource-identifier",
-              "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [
-                "identified object type",
-                "owning service or containing resource"
-              ],
-              "resourceType": "urn:osdc:semantic:well"
-            }
-          },
-          {
-            "name": "wellBoreId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "x-osdc-semantic": {
-                "catalogue": "urn:osdc:semantic-catalogue",
-                "catalogueVersion": "0.20.0",
-                "concept": "urn:osdc:semantic:resource-identifier",
-                "curationStatus": "Reviewed",
-                "assertionSource": "provider-binding-registry",
-                "requiredContext": [
-                  "identified object type",
-                  "owning service or containing resource"
-                ],
-                "resourceType": "urn:osdc:semantic:wellbore"
-              }
-            },
-            "x-osdc-semantic": {
-              "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.20.0",
-              "concept": "urn:osdc:semantic:resource-identifier",
-              "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [
-                "identified object type",
-                "owning service or containing resource"
-              ],
-              "resourceType": "urn:osdc:semantic:wellbore"
-            }
-          },
-          {
-            "name": "surveyInstrumentId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid"
-            }
-          },
-          {
-            "name": "surveyRunType",
-            "in": "query",
-            "schema": {
-              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunType"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRun"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:survey-run",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "wellbore",
-            "survey instrument",
-            "calculation method",
-            "inclination reference",
-            "azimuth reference",
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:resource-collection-retrieval"
         }
       }
     },
@@ -4059,6 +4074,77 @@
         }
       }
     },
+    "/SurveyRunBatchImport/LightData": {
+      "get": {
+        "tags": [
+          "SurveyRunBatchImport"
+        ],
+        "operationId": "DiscoverSurveyRunBatchImport",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "selectedFieldId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "selectedClusterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "selectedWellId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunBatchImportDiscoveryPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/SurveyRunBatchImport": {
       "get": {
         "tags": [
@@ -4128,52 +4214,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/SurveyRunBatchImport/LightData": {
-      "get": {
-        "tags": [
-          "SurveyRunBatchImport"
-        ],
-        "operationId": "GetAllSurveyRunBatchImportLight",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunBatchImportLight"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/SurveyRunBatchImport/HeavyData": {
-      "get": {
-        "tags": [
-          "SurveyRunBatchImport"
-        ],
-        "operationId": "GetAllSurveyRunBatchImport",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunBatchImport"
                   }
                 }
               }
@@ -4342,6 +4382,69 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/SurveyRunMinimumDistanceCalculation/LightData": {
+      "get": {
+        "tags": [
+          "SurveyRunMinimumDistanceCalculation"
+        ],
+        "operationId": "DiscoverSurveyRunMinimumDistanceCalculation",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "referenceSurveyRunId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "globalMinimumComparisonSurveyRunId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculationDiscoveryPage"
+                }
+              }
+            }
           }
         }
       }
@@ -4883,73 +4986,50 @@
         }
       }
     },
-    "/SurveyRunMinimumDistanceCalculation/LightData": {
+    "/SurveyStationEllipseCalculation/LightData": {
       "get": {
         "tags": [
-          "SurveyRunMinimumDistanceCalculation"
+          "SurveyStationEllipseCalculation"
         ],
-        "operationId": "GetAllSurveyRunMinimumDistanceCalculationLight",
+        "operationId": "DiscoverSurveyStationEllipseCalculation",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculationLight"
-                  }
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyStationEllipseCalculationDiscoveryPage"
                 }
               }
             }
           }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:minimum-distance-calculation",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-status-retrieval"
-        }
-      }
-    },
-    "/SurveyRunMinimumDistanceCalculation/HeavyData": {
-      "get": {
-        "tags": [
-          "SurveyRunMinimumDistanceCalculation"
-        ],
-        "operationId": "GetAllSurveyRunMinimumDistanceCalculation",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculation"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:minimum-distance-calculation",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-case-retrieval"
         }
       }
     },
@@ -5405,6 +5485,61 @@
         }
       }
     },
+    "/TargetLandingCase/LightData": {
+      "get": {
+        "tags": [
+          "TargetLandingCase"
+        ],
+        "operationId": "DiscoverTargetLandingCase",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceTrajectoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCaseDiscoveryPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/TargetLandingCase": {
       "get": {
         "tags": [
@@ -5505,76 +5640,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:target-landing-case",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-case-retrieval"
-        }
-      }
-    },
-    "/TargetLandingCase/LightData": {
-      "get": {
-        "tags": [
-          "TargetLandingCase"
-        ],
-        "operationId": "GetAllTargetLandingCaseLight",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCaseLight"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:target-landing-case",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-status-retrieval"
-        }
-      }
-    },
-    "/TargetLandingCase/HeavyData": {
-      "get": {
-        "tags": [
-          "TargetLandingCase"
-        ],
-        "operationId": "GetAllTargetLandingCase",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCase"
                   }
                 }
               }
@@ -6139,6 +6204,210 @@
             "resource type"
           ],
           "role": "urn:osdc:semantic:calculation-status-retrieval"
+        }
+      }
+    },
+    "/Trajectory/LightData": {
+      "get": {
+        "tags": [
+          "Trajectory"
+        ],
+        "operationId": "DiscoverTrajectory",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "fieldId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.20.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:drilling-field"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:drilling-field"
+            }
+          },
+          {
+            "name": "clusterId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.20.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:well-cluster"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:well-cluster"
+            }
+          },
+          {
+            "name": "wellId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.20.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:well"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:well"
+            }
+          },
+          {
+            "name": "wellBoreId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.20.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:wellbore"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:wellbore"
+            }
+          },
+          {
+            "name": "trajectoryType",
+            "in": "query",
+            "schema": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryType"
+            }
+          },
+          {
+            "name": "isDefinitive",
+            "in": "query",
+            "schema": {
+              "type": "boolean"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryDiscoveryPage"
+                }
+              }
+            }
+          }
+        },
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.20.0",
+          "concept": "urn:osdc:semantic:wellbore-trajectory",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-binding-registry",
+          "requiredContext": [
+            "wellbore",
+            "trajectory type",
+            "calculation method",
+            "owning service",
+            "resource type"
+          ],
+          "role": "urn:osdc:semantic:resource-operation"
         }
       }
     },
@@ -7520,188 +7789,6 @@
         }
       }
     },
-    "/Trajectory/LightData": {
-      "get": {
-        "tags": [
-          "Trajectory"
-        ],
-        "operationId": "GetAllTrajectoryLight",
-        "parameters": [
-          {
-            "name": "fieldId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "x-osdc-semantic": {
-                "catalogue": "urn:osdc:semantic-catalogue",
-                "catalogueVersion": "0.20.0",
-                "concept": "urn:osdc:semantic:resource-identifier",
-                "curationStatus": "Reviewed",
-                "assertionSource": "provider-binding-registry",
-                "requiredContext": [
-                  "identified object type",
-                  "owning service or containing resource"
-                ],
-                "resourceType": "urn:osdc:semantic:drilling-field"
-              }
-            },
-            "x-osdc-semantic": {
-              "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.20.0",
-              "concept": "urn:osdc:semantic:resource-identifier",
-              "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [
-                "identified object type",
-                "owning service or containing resource"
-              ],
-              "resourceType": "urn:osdc:semantic:drilling-field"
-            }
-          },
-          {
-            "name": "clusterId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "x-osdc-semantic": {
-                "catalogue": "urn:osdc:semantic-catalogue",
-                "catalogueVersion": "0.20.0",
-                "concept": "urn:osdc:semantic:resource-identifier",
-                "curationStatus": "Reviewed",
-                "assertionSource": "provider-binding-registry",
-                "requiredContext": [
-                  "identified object type",
-                  "owning service or containing resource"
-                ],
-                "resourceType": "urn:osdc:semantic:well-cluster"
-              }
-            },
-            "x-osdc-semantic": {
-              "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.20.0",
-              "concept": "urn:osdc:semantic:resource-identifier",
-              "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [
-                "identified object type",
-                "owning service or containing resource"
-              ],
-              "resourceType": "urn:osdc:semantic:well-cluster"
-            }
-          },
-          {
-            "name": "wellId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "x-osdc-semantic": {
-                "catalogue": "urn:osdc:semantic-catalogue",
-                "catalogueVersion": "0.20.0",
-                "concept": "urn:osdc:semantic:resource-identifier",
-                "curationStatus": "Reviewed",
-                "assertionSource": "provider-binding-registry",
-                "requiredContext": [
-                  "identified object type",
-                  "owning service or containing resource"
-                ],
-                "resourceType": "urn:osdc:semantic:well"
-              }
-            },
-            "x-osdc-semantic": {
-              "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.20.0",
-              "concept": "urn:osdc:semantic:resource-identifier",
-              "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [
-                "identified object type",
-                "owning service or containing resource"
-              ],
-              "resourceType": "urn:osdc:semantic:well"
-            }
-          },
-          {
-            "name": "wellBoreId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "x-osdc-semantic": {
-                "catalogue": "urn:osdc:semantic-catalogue",
-                "catalogueVersion": "0.20.0",
-                "concept": "urn:osdc:semantic:resource-identifier",
-                "curationStatus": "Reviewed",
-                "assertionSource": "provider-binding-registry",
-                "requiredContext": [
-                  "identified object type",
-                  "owning service or containing resource"
-                ],
-                "resourceType": "urn:osdc:semantic:wellbore"
-              }
-            },
-            "x-osdc-semantic": {
-              "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.20.0",
-              "concept": "urn:osdc:semantic:resource-identifier",
-              "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [
-                "identified object type",
-                "owning service or containing resource"
-              ],
-              "resourceType": "urn:osdc:semantic:wellbore"
-            }
-          },
-          {
-            "name": "trajectoryType",
-            "in": "query",
-            "schema": {
-              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryType"
-            }
-          },
-          {
-            "name": "isDefinitive",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
-            }
-          }
-        ],
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryLight"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:wellbore-trajectory",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "wellbore",
-            "trajectory type",
-            "calculation method",
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:resource-collection-retrieval"
-        }
-      }
-    },
     "/Trajectory/Search": {
       "get": {
         "tags": [
@@ -8070,153 +8157,36 @@
         }
       }
     },
-    "/Trajectory/HeavyData": {
+    "/TrajectoryAggregationCase/LightData": {
       "get": {
         "tags": [
-          "Trajectory"
+          "TrajectoryAggregationCase"
         ],
-        "operationId": "GetAllTrajectory",
+        "operationId": "DiscoverTrajectoryAggregationCase",
         "parameters": [
           {
-            "name": "fieldId",
+            "name": "offset",
             "in": "query",
             "schema": {
-              "type": "string",
-              "format": "uuid",
-              "x-osdc-semantic": {
-                "catalogue": "urn:osdc:semantic-catalogue",
-                "catalogueVersion": "0.20.0",
-                "concept": "urn:osdc:semantic:resource-identifier",
-                "curationStatus": "Reviewed",
-                "assertionSource": "provider-binding-registry",
-                "requiredContext": [
-                  "identified object type",
-                  "owning service or containing resource"
-                ],
-                "resourceType": "urn:osdc:semantic:drilling-field"
-              }
-            },
-            "x-osdc-semantic": {
-              "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.20.0",
-              "concept": "urn:osdc:semantic:resource-identifier",
-              "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [
-                "identified object type",
-                "owning service or containing resource"
-              ],
-              "resourceType": "urn:osdc:semantic:drilling-field"
+              "type": "integer",
+              "format": "int32",
+              "default": 0
             }
           },
           {
-            "name": "clusterId",
+            "name": "limit",
             "in": "query",
             "schema": {
-              "type": "string",
-              "format": "uuid",
-              "x-osdc-semantic": {
-                "catalogue": "urn:osdc:semantic-catalogue",
-                "catalogueVersion": "0.20.0",
-                "concept": "urn:osdc:semantic:resource-identifier",
-                "curationStatus": "Reviewed",
-                "assertionSource": "provider-binding-registry",
-                "requiredContext": [
-                  "identified object type",
-                  "owning service or containing resource"
-                ],
-                "resourceType": "urn:osdc:semantic:well-cluster"
-              }
-            },
-            "x-osdc-semantic": {
-              "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.20.0",
-              "concept": "urn:osdc:semantic:resource-identifier",
-              "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [
-                "identified object type",
-                "owning service or containing resource"
-              ],
-              "resourceType": "urn:osdc:semantic:well-cluster"
+              "type": "integer",
+              "format": "int32",
+              "default": 50
             }
           },
           {
-            "name": "wellId",
+            "name": "name",
             "in": "query",
             "schema": {
-              "type": "string",
-              "format": "uuid",
-              "x-osdc-semantic": {
-                "catalogue": "urn:osdc:semantic-catalogue",
-                "catalogueVersion": "0.20.0",
-                "concept": "urn:osdc:semantic:resource-identifier",
-                "curationStatus": "Reviewed",
-                "assertionSource": "provider-binding-registry",
-                "requiredContext": [
-                  "identified object type",
-                  "owning service or containing resource"
-                ],
-                "resourceType": "urn:osdc:semantic:well"
-              }
-            },
-            "x-osdc-semantic": {
-              "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.20.0",
-              "concept": "urn:osdc:semantic:resource-identifier",
-              "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [
-                "identified object type",
-                "owning service or containing resource"
-              ],
-              "resourceType": "urn:osdc:semantic:well"
-            }
-          },
-          {
-            "name": "wellBoreId",
-            "in": "query",
-            "schema": {
-              "type": "string",
-              "format": "uuid",
-              "x-osdc-semantic": {
-                "catalogue": "urn:osdc:semantic-catalogue",
-                "catalogueVersion": "0.20.0",
-                "concept": "urn:osdc:semantic:resource-identifier",
-                "curationStatus": "Reviewed",
-                "assertionSource": "provider-binding-registry",
-                "requiredContext": [
-                  "identified object type",
-                  "owning service or containing resource"
-                ],
-                "resourceType": "urn:osdc:semantic:wellbore"
-              }
-            },
-            "x-osdc-semantic": {
-              "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.20.0",
-              "concept": "urn:osdc:semantic:resource-identifier",
-              "curationStatus": "Reviewed",
-              "assertionSource": "provider-binding-registry",
-              "requiredContext": [
-                "identified object type",
-                "owning service or containing resource"
-              ],
-              "resourceType": "urn:osdc:semantic:wellbore"
-            }
-          },
-          {
-            "name": "trajectoryType",
-            "in": "query",
-            "schema": {
-              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryType"
-            }
-          },
-          {
-            "name": "isDefinitive",
-            "in": "query",
-            "schema": {
-              "type": "boolean"
+              "type": "string"
             }
           }
         ],
@@ -8226,29 +8196,11 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.Trajectory"
-                  }
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryAggregationCaseDiscoveryPage"
                 }
               }
             }
           }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:wellbore-trajectory",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "wellbore",
-            "trajectory type",
-            "calculation method",
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:resource-collection-retrieval"
         }
       }
     },
@@ -9215,73 +9167,58 @@
         }
       }
     },
-    "/TrajectoryAggregationCase/LightData": {
+    "/TrajectoryExtrapolationCase/LightData": {
       "get": {
         "tags": [
-          "TrajectoryAggregationCase"
+          "TrajectoryExtrapolationCase"
         ],
-        "operationId": "GetAllTrajectoryAggregationCaseLight",
+        "operationId": "DiscoverTrajectoryExtrapolationCase",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "sourceTrajectoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryAggregationCaseLight"
-                  }
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCaseDiscoveryPage"
                 }
               }
             }
           }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:trajectory-aggregation-case",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-status-retrieval"
-        }
-      }
-    },
-    "/TrajectoryAggregationCase/HeavyData": {
-      "get": {
-        "tags": [
-          "TrajectoryAggregationCase"
-        ],
-        "operationId": "GetAllTrajectoryAggregationCase",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryAggregationCase"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:trajectory-aggregation-case",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-case-retrieval"
         }
       }
     },
@@ -9405,76 +9342,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:trajectory-extrapolation-case",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-case-retrieval"
-        }
-      }
-    },
-    "/TrajectoryExtrapolationCase/LightData": {
-      "get": {
-        "tags": [
-          "TrajectoryExtrapolationCase"
-        ],
-        "operationId": "GetAllTrajectoryExtrapolationCaseLight",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCaseLight"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:trajectory-extrapolation-case",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-status-retrieval"
-        }
-      }
-    },
-    "/TrajectoryExtrapolationCase/HeavyData": {
-      "get": {
-        "tags": [
-          "TrajectoryExtrapolationCase"
-        ],
-        "operationId": "GetAllTrajectoryExtrapolationCase",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCase"
                   }
                 }
               }
@@ -10033,6 +9900,53 @@
         }
       }
     },
+    "/TrajectoryFeatureCategory/LightData": {
+      "get": {
+        "tags": [
+          "TrajectoryFeatureCategory"
+        ],
+        "operationId": "DiscoverTrajectoryFeatureCategory",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryFeatureCategoryDiscoveryPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/TrajectoryFeatureCategory": {
       "get": {
         "tags": [
@@ -10102,29 +10016,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/TrajectoryFeatureCategory/HeavyData": {
-      "get": {
-        "tags": [
-          "TrajectoryFeatureCategory"
-        ],
-        "operationId": "GetAllTrajectoryFeatureCategory",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryFeatureCategory"
                   }
                 }
               }
@@ -10297,6 +10188,53 @@
         }
       }
     },
+    "/TrajectoryIdentity/LightData": {
+      "get": {
+        "tags": [
+          "TrajectoryIdentity"
+        ],
+        "operationId": "DiscoverTrajectoryIdentity",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryIdentityDiscoveryPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/TrajectoryIdentity": {
       "get": {
         "tags": [
@@ -10366,29 +10304,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/TrajectoryIdentity/HeavyData": {
-      "get": {
-        "tags": [
-          "TrajectoryIdentity"
-        ],
-        "operationId": "GetAllTrajectoryIdentity",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryIdentity"
                   }
                 }
               }
@@ -10557,6 +10472,69 @@
         "responses": {
           "200": {
             "description": "OK"
+          }
+        }
+      }
+    },
+    "/TrajectoryMinimumDistanceCalculation/LightData": {
+      "get": {
+        "tags": [
+          "TrajectoryMinimumDistanceCalculation"
+        ],
+        "operationId": "DiscoverTrajectoryMinimumDistanceCalculation",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "referenceTrajectoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          },
+          {
+            "name": "globalMinimumComparisonTrajectoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculationDiscoveryPage"
+                }
+              }
+            }
           }
         }
       }
@@ -11098,73 +11076,82 @@
         }
       }
     },
-    "/TrajectoryMinimumDistanceCalculation/LightData": {
+    "/TrajectoryRealizationCase/LightData": {
       "get": {
         "tags": [
-          "TrajectoryMinimumDistanceCalculation"
+          "TrajectoryRealizationCase"
         ],
-        "operationId": "GetAllTrajectoryMinimumDistanceCalculationLight",
+        "operationId": "DiscoverTrajectoryRealizationCase",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          },
+          {
+            "name": "trajectoryId",
+            "in": "query",
+            "schema": {
+              "type": "string",
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.20.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:wellbore-trajectory"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:wellbore-trajectory"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculationLight"
-                  }
+                  "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryRealizationCaseDiscoveryPage"
                 }
               }
             }
           }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:minimum-distance-calculation",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-status-retrieval"
-        }
-      }
-    },
-    "/TrajectoryMinimumDistanceCalculation/HeavyData": {
-      "get": {
-        "tags": [
-          "TrajectoryMinimumDistanceCalculation"
-        ],
-        "operationId": "GetAllTrajectoryMinimumDistanceCalculation",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculation"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:minimum-distance-calculation",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-case-retrieval"
         }
       }
     },
@@ -11558,76 +11545,6 @@
             "resource type"
           ],
           "role": "urn:osdc:semantic:calculation-case-deletion"
-        }
-      }
-    },
-    "/TrajectoryRealizationCase/LightData": {
-      "get": {
-        "tags": [
-          "TrajectoryRealizationCase"
-        ],
-        "operationId": "GetAllTrajectoryRealizationCaseLight",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryRealizationCaseLight"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:trajectory-realization-case",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-status-retrieval"
-        }
-      }
-    },
-    "/TrajectoryRealizationCase/HeavyData": {
-      "get": {
-        "tags": [
-          "TrajectoryRealizationCase"
-        ],
-        "operationId": "GetAllTrajectoryRealizationCase",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryRealizationCase"
-                  }
-                }
-              }
-            }
-          }
-        },
-        "x-osdc-semantic": {
-          "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.20.0",
-          "concept": "urn:osdc:semantic:trajectory-realization-case",
-          "curationStatus": "Reviewed",
-          "assertionSource": "provider-binding-registry",
-          "requiredContext": [
-            "owning service",
-            "resource type"
-          ],
-          "role": "urn:osdc:semantic:calculation-case-retrieval"
         }
       }
     },
@@ -15235,6 +15152,141 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.Trajectory.Model.AntiCollisionPolicyRevisionDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.AntiCollisionPolicyRevisionLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.AntiCollisionPolicyRevisionLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-metadata",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ]
+            }
+          },
+          "PolicyID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ]
+            }
+          },
+          "RevisionNumber": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-name",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ]
+            }
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-description",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ]
+            }
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:instant",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "time scale",
+                "timestamp representation"
+              ],
+              "role": "urn:osdc:semantic:creation-time",
+              "reference": "urn:osdc:semantic:utc"
+            }
+          },
+          "ConfidenceFactor": {
+            "type": "number",
+            "format": "double",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:confidence-factor",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ],
+              "siUnit": "1",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion",
+                "id": "97555d61-9fc3-4769-9143-6bc2bf51b2d7",
+                "name": "ProportionStandard",
+                "siUnitName": "proportion"
+              }
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.CalculationState": {
         "enum": [
           "Completed",
@@ -15933,6 +15985,36 @@
           ]
         }
       },
+      "OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCaseDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCaseLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.DirectionalControlEvaluationCaseLight": {
         "type": "object",
         "properties": {
@@ -16461,6 +16543,36 @@
         ],
         "type": "string"
       },
+      "OSDC.Drilling.Trajectory.Model.FieldAntiCollisionPolicyAssignmentDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.GlobalAntiCollision.FieldAntiCollisionPolicyAssignment"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.FixedLengthExtrapolationSpecification": {
         "type": "object",
         "allOf": [
@@ -16663,6 +16775,97 @@
               }
             ],
             "description": "Exactly one constraint: overall Departure from the final source-trajectory station, or SteeringLength for the two steering sections.",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.GlobalAntiCollisionLight": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "nullable": true
+          },
+          "ReferenceTrajectoryID": {
+            "type": "string",
+            "format": "uuid",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:wellbore-trajectory"
+            }
+          },
+          "ReferenceWellPathID": {
+            "type": "string",
+            "format": "uuid",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ]
+            }
+          },
+          "ConfidenceFactor": {
+            "type": "number",
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:confidence-factor",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ],
+              "siUnit": "1",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion",
+                "id": "97555d61-9fc3-4769-9143-6bc2bf51b2d7",
+                "name": "ProportionStandard",
+                "siUnitName": "proportion"
+              }
+            }
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.GlobalAntiCollisionsDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.GlobalAntiCollisionLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
             "nullable": true
           }
         },
@@ -17192,6 +17395,36 @@
           ]
         }
       },
+      "OSDC.Drilling.Trajectory.Model.InterpolatedTrajectoryDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.InterpolatedTrajectoryLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.InterpolatedTrajectoryLight": {
         "type": "object",
         "properties": {
@@ -17526,6 +17759,27 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.Trajectory.Model.OctreeLight": {
+        "type": "object",
+        "properties": {
+          "ID": {
+            "type": "string",
+            "format": "uuid",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ]
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.OctreeSearchJobRequest": {
         "type": "object",
         "properties": {
@@ -17706,6 +17960,36 @@
           "CompletedUtc": {
             "type": "string",
             "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.OctreesDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.OctreeLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
             "nullable": true
           }
         },
@@ -19697,9 +19981,87 @@
           ]
         }
       },
+      "OSDC.Drilling.Trajectory.Model.SurveyRunBatchImportDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunBatchImportLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.SurveyRunBatchImportLight": {
         "type": "object",
         "properties": {
+          "SelectedFieldId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ]
+            }
+          },
+          "SelectedClusterId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ]
+            }
+          },
+          "SelectedWellId": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ]
+            }
+          },
           "MetaInfo": {
             "allOf": [
               {
@@ -19933,6 +20295,36 @@
           "LastStationAlreadyExtrapolated"
         ],
         "type": "string"
+      },
+      "OSDC.Drilling.Trajectory.Model.SurveyRunDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "OSDC.Drilling.Trajectory.Model.SurveyRunExternalReferenceAuditRequest": {
         "required": [
@@ -20730,9 +21122,55 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculationDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculationLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculationLight": {
         "type": "object",
         "properties": {
+          "GlobalMinimumComparisonSurveyRunID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ]
+            }
+          },
           "MetaInfo": {
             "allOf": [
               {
@@ -21537,6 +21975,165 @@
           ]
         }
       },
+      "OSDC.Drilling.Trajectory.Model.SurveyStationEllipseCalculationDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.SurveyStationEllipseCalculationLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.SurveyStationEllipseCalculationLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-metadata",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ]
+            }
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-name",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ]
+            }
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-description",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ]
+            }
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:instant",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "time scale",
+                "timestamp representation"
+              ],
+              "role": "urn:osdc:semantic:creation-time",
+              "reference": "urn:osdc:semantic:utc"
+            }
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:instant",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "time scale",
+                "timestamp representation"
+              ],
+              "role": "urn:osdc:semantic:last-modification-time",
+              "reference": "urn:osdc:semantic:utc"
+            }
+          },
+          "ConfidenceFactor": {
+            "type": "number",
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:confidence-factor",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ],
+              "siUnit": "1",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion",
+                "id": "97555d61-9fc3-4769-9143-6bc2bf51b2d7",
+                "name": "ProportionStandard",
+                "siUnitName": "proportion"
+              }
+            }
+          },
+          "SurveyInstrumentID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ]
+            }
+          },
+          "CalculationMessage": {
+            "type": "string",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:calculation-diagnostic-message",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ]
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.SurveyStationEllipseResult": {
         "type": "object",
         "properties": {
@@ -22021,6 +22618,36 @@
             "resource type"
           ]
         }
+      },
+      "OSDC.Drilling.Trajectory.Model.TargetLandingCaseDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TargetLandingCaseLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "OSDC.Drilling.Trajectory.Model.TargetLandingCaseLight": {
         "type": "object",
@@ -23197,6 +23824,36 @@
           ]
         }
       },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryAggregationCaseDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryAggregationCaseLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.TrajectoryAggregationCaseLight": {
         "type": "object",
         "properties": {
@@ -24037,6 +24694,36 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.TrajectoryExternalReferenceAuditRequest": {
         "required": [
           "Scope"
@@ -24457,6 +25144,36 @@
             "resource type"
           ]
         }
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCaseDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCaseLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
       },
       "OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationCaseLight": {
         "type": "object",
@@ -24900,6 +25617,111 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryFeatureCategoryDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryFeatureCategoryLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryFeatureCategoryLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-metadata",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ]
+            }
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-name",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ]
+            }
+          },
+          "IsExclusive": {
+            "type": "boolean"
+          },
+          "HasValidityPeriod": {
+            "type": "boolean"
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:instant",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "time scale",
+                "timestamp representation"
+              ],
+              "role": "urn:osdc:semantic:creation-time",
+              "reference": "urn:osdc:semantic:utc"
+            }
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:instant",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "time scale",
+                "timestamp representation"
+              ],
+              "role": "urn:osdc:semantic:last-modification-time",
+              "reference": "urn:osdc:semantic:utc"
+            }
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.TrajectoryFeatureOption": {
         "type": "object",
         "properties": {
@@ -25164,6 +25986,105 @@
           "Value": {
             "type": "string",
             "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryIdentityDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryIdentityLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryIdentityLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-metadata",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ]
+            }
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-name",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ]
+            }
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:instant",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "time scale",
+                "timestamp representation"
+              ],
+              "role": "urn:osdc:semantic:creation-time",
+              "reference": "urn:osdc:semantic:utc"
+            }
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:instant",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "time scale",
+                "timestamp representation"
+              ],
+              "role": "urn:osdc:semantic:last-modification-time",
+              "reference": "urn:osdc:semantic:utc"
+            }
           }
         },
         "additionalProperties": false
@@ -25654,9 +26575,55 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculationDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculationLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.TrajectoryMinimumDistanceCalculationLight": {
         "type": "object",
         "properties": {
+          "GlobalMinimumComparisonTrajectoryID": {
+            "type": "string",
+            "format": "uuid",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.20.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ]
+            }
+          },
           "MetaInfo": {
             "allOf": [
               {
@@ -26308,6 +27275,36 @@
           ]
         }
       },
+      "OSDC.Drilling.Trajectory.Model.TrajectoryRealizationCaseDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryRealizationCaseLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.Trajectory.Model.TrajectoryRealizationCaseLight": {
         "type": "object",
         "properties": {
@@ -26815,6 +27812,9 @@
       "OSDC.Drilling.Trajectory.Model.UsageStatisticsTrajectory": {
         "type": "object",
         "properties": {
+          "DiscoveryRequestsPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.History"
+          },
           "LastSaved": {
             "type": "string",
             "format": "date-time"

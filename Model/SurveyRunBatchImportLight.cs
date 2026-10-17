@@ -8,6 +8,10 @@ namespace OSDC.Drilling.Trajectory.Model
     /// </summary>
     public class SurveyRunBatchImportLight
     {
+        public System.Guid? SelectedFieldId { get; set; }
+        public System.Guid? SelectedClusterId { get; set; }
+        public System.Guid? SelectedWellId { get; set; }
+
         public MetaInfo? MetaInfo { get; set; }
         public string? Name { get; set; }
         public string? Description { get; set; }

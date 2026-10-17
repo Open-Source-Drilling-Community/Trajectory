@@ -1,11 +1,58 @@
 {
-  "openapi": "3.0.3",
+  "openapi": "3.0.4",
   "info": {
-    "title": "ModelShared (Service)",
-    "description": "Data model containing model dependencies of the clients of the current microservice (WebApp, ServiceTest)",
+    "title": "Service, Version=1.0.0.0, Culture=neutral, PublicKeyToken=null",
     "version": "1.0"
   },
   "paths": {
+    "/ErrorSource/LightData": {
+      "get": {
+        "tags": [
+          "ErrorSource"
+        ],
+        "summary": "Discover ErrorSource resources as bounded light records; retrieve selected full records by ID.",
+        "operationId": "DiscoverErrorSource",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.ErrorSourceDiscoveryPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/ErrorSource": {
       "get": {
         "tags": [
@@ -40,17 +87,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ErrorSource"
+                "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.ErrorSource"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ErrorSource"
+                "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.ErrorSource"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ErrorSource"
+                "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.ErrorSource"
               }
             }
           }
@@ -77,7 +124,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MetaInfo"
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
                   }
                 }
               }
@@ -110,7 +157,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/ErrorSource"
+                  "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.ErrorSource"
                 }
               }
             }
@@ -138,17 +185,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/ErrorSource"
+                "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.ErrorSource"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/ErrorSource"
+                "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.ErrorSource"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/ErrorSource"
+                "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.ErrorSource"
               }
             }
           }
@@ -183,23 +230,47 @@
         }
       }
     },
-    "/ErrorSource/HeavyData": {
+    "/SurveyInstrument/LightData": {
       "get": {
         "tags": [
-          "ErrorSource"
+          "SurveyInstrument"
         ],
-        "summary": "Returns the list of all ErrorSource present in the microservice database, at endpoint SurveyInstrument/api/ErrorSource/HeavyData",
-        "operationId": "GetAllErrorSource",
+        "summary": "Discover SurveyInstrument resources as bounded light records; retrieve selected full records by ID.",
+        "operationId": "DiscoverSurveyInstrument",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/ErrorSource"
-                  }
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentDiscoveryPage"
                 }
               }
             }
@@ -241,17 +312,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrument"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrument"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrument"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrument"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrument"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrument"
               }
             }
           }
@@ -278,7 +349,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MetaInfo"
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
                   }
                 }
               }
@@ -311,7 +382,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SurveyInstrument"
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrument"
                 }
               }
             }
@@ -339,17 +410,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrument"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrument"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrument"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrument"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrument"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrument"
               }
             }
           }
@@ -384,54 +455,6 @@
         }
       }
     },
-    "/SurveyInstrument/LightData": {
-      "get": {
-        "tags": [
-          "SurveyInstrument"
-        ],
-        "summary": "Returns the list of all SurveyInstrumentLight present in the microservice database, at endpoint SurveyInstrument/api/SurveyInstrument/LightData",
-        "operationId": "GetAllSurveyInstrumentLight",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SurveyInstrumentLight"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/SurveyInstrument/HeavyData": {
-      "get": {
-        "tags": [
-          "SurveyInstrument"
-        ],
-        "summary": "Returns the list of all SurveyInstrument present in the microservice database, at endpoint SurveyInstrument/api/SurveyInstrument/HeavyData",
-        "operationId": "GetAllSurveyInstrument",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SurveyInstrument"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/SurveyInstrument/BatchExport": {
       "post": {
         "tags": [
@@ -442,17 +465,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentBatchExportRequest"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchExportRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentBatchExportRequest"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchExportRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentBatchExportRequest"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchExportRequest"
               }
             }
           }
@@ -463,7 +486,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SurveyInstrumentBatchExportDocument"
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchExportDocument"
                 }
               }
             }
@@ -473,7 +496,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SurveyInstrumentBatchErrorEnvelope"
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchErrorEnvelope"
                 }
               }
             }
@@ -483,7 +506,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SurveyInstrumentBatchErrorEnvelope"
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchErrorEnvelope"
                 }
               }
             }
@@ -501,17 +524,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentBatchRestoreRequest"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchRestoreRequest"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentBatchRestoreRequest"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchRestoreRequest"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentBatchRestoreRequest"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchRestoreRequest"
               }
             }
           }
@@ -522,7 +545,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SurveyInstrumentBatchRestoreResponse"
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchRestoreResponse"
                 }
               }
             }
@@ -532,7 +555,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SurveyInstrumentBatchErrorEnvelope"
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchErrorEnvelope"
                 }
               }
             }
@@ -542,7 +565,55 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SurveyInstrumentBatchErrorEnvelope"
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchErrorEnvelope"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
+    "/SurveyInstrumentFeatureCategory/LightData": {
+      "get": {
+        "tags": [
+          "SurveyInstrumentFeatureCategory"
+        ],
+        "summary": "Discover SurveyInstrumentFeatureCategory resources as bounded light records; retrieve selected full records by ID.",
+        "operationId": "DiscoverSurveyInstrumentFeatureCategory",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategoryDiscoveryPage"
                 }
               }
             }
@@ -582,17 +653,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentFeatureCategory"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategory"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentFeatureCategory"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategory"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentFeatureCategory"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategory"
               }
             }
           }
@@ -618,30 +689,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MetaInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/SurveyInstrumentFeatureCategory/HeavyData": {
-      "get": {
-        "tags": [
-          "SurveyInstrumentFeatureCategory"
-        ],
-        "operationId": "GetAllSurveyInstrumentFeatureCategory",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SurveyInstrumentFeatureCategory"
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
                   }
                 }
               }
@@ -673,7 +721,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SurveyInstrumentFeatureCategory"
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategory"
                 }
               }
             }
@@ -708,17 +756,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentFeatureCategory"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategory"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentFeatureCategory"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategory"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentFeatureCategory"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategory"
               }
             }
           }
@@ -760,6 +808,54 @@
         }
       }
     },
+    "/SurveyInstrumentIdentity/LightData": {
+      "get": {
+        "tags": [
+          "SurveyInstrumentIdentity"
+        ],
+        "summary": "Discover SurveyInstrumentIdentity resources as bounded light records; retrieve selected full records by ID.",
+        "operationId": "DiscoverSurveyInstrumentIdentity",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentityDiscoveryPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/SurveyInstrumentIdentity": {
       "get": {
         "tags": [
@@ -792,17 +888,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentIdentity"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentity"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentIdentity"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentity"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentIdentity"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentity"
               }
             }
           }
@@ -828,30 +924,7 @@
                 "schema": {
                   "type": "array",
                   "items": {
-                    "$ref": "#/components/schemas/MetaInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/SurveyInstrumentIdentity/HeavyData": {
-      "get": {
-        "tags": [
-          "SurveyInstrumentIdentity"
-        ],
-        "operationId": "GetAllSurveyInstrumentIdentity",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/SurveyInstrumentIdentity"
+                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
                   }
                 }
               }
@@ -883,7 +956,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/SurveyInstrumentIdentity"
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentity"
                 }
               }
             }
@@ -918,17 +991,17 @@
           "content": {
             "application/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentIdentity"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentity"
               }
             },
             "text/json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentIdentity"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentity"
               }
             },
             "application/*+json": {
               "schema": {
-                "$ref": "#/components/schemas/SurveyInstrumentIdentity"
+                "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentity"
               }
             }
           }
@@ -983,7 +1056,7 @@
             "content": {
               "application/json": {
                 "schema": {
-                  "$ref": "#/components/schemas/UsageStatisticsSurveyInstrument"
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.UsageStatisticsSurveyInstrument"
                 }
               }
             }
@@ -994,7 +1067,7 @@
   },
   "components": {
     "schemas": {
-      "ErrorCode": {
+      "OSDC.DotnetLibraries.Drilling.Surveying.ErrorCode": {
         "enum": [
           "XYM1",
           "XYM2",
@@ -1126,7 +1199,7 @@
         "type": "string",
         "description": "Closed ISCWSA/survey error-source vocabulary. Revision 5 axial-correction terms use MFIR and MFI_U/OS/OH/OI for total magnetic-field uncertainty in tesla, and MDIR and MDI_U/OS/OH/OI for magnetic-dip uncertainty in radians. R is random, U is Well-by-Well, and OS/OH/OI are Global crustal-omission terms for standard, high-definition, and in-field referencing models. AMIL is axial magnetic interference in tesla; AMID and the unsuffixed early OSDC axial terms are legacy read compatibility values and are rejected in new Revision 5 models."
       },
-      "ErrorPropagationMode": {
+      "OSDC.DotnetLibraries.Drilling.Surveying.ErrorPropagationMode": {
         "enum": [
           "Random",
           "Systematic",
@@ -1136,7 +1209,7 @@
         "type": "string",
         "description": "Mutually exclusive ISCWSA Revision 5 correlation mode: Random (R) is independent between survey stations; Systematic (S) is correlated between stations in the same survey leg but independent between legs; WellByWell (W) is correlated across legs within the same well but independent between wells; Global (G) is fully correlated across all survey stations, legs, and wells in the project or field. Null is reserved for readable legacy records whose mode is derived from the deprecated boolean flags."
       },
-      "ErrorSource": {
+      "OSDC.DotnetLibraries.Drilling.Surveying.ErrorSource": {
         "type": "object",
         "allOf": [
           {
@@ -1162,10 +1235,10 @@
         ],
         "properties": {
           "MetaInfo": {
-            "$ref": "#/components/schemas/MetaInfo"
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
           },
           "ErrorCode": {
-            "$ref": "#/components/schemas/ErrorCode"
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.ErrorCode"
           },
           "Description": {
             "type": "string",
@@ -1177,7 +1250,7 @@
             "format": "int32",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:error-source-ordering-index",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1185,7 +1258,23 @@
             }
           },
           "PropagationMode": {
-            "$ref": "#/components/schemas/ErrorPropagationMode"
+            "enum": [
+              "Random",
+              "Systematic",
+              "WellByWell",
+              "Global"
+            ],
+            "type": "string",
+            "description": "Mutually exclusive ISCWSA Revision 5 correlation mode: Random (R) is independent between survey stations; Systematic (S) is correlated between stations in the same survey leg but independent between legs; WellByWell (W) is correlated across legs within the same well but independent between wells; Global (G) is fully correlated across all survey stations, legs, and wells in the project or field. Null is reserved for readable legacy records whose mode is derived from the deprecated boolean flags.",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.18.0",
+              "concept": "urn:osdc:semantic:error-propagation-mode",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ]
+            }
           },
           "IsSystematic": {
             "type": "boolean",
@@ -1215,7 +1304,7 @@
             "description": "Opaque legacy compatibility flag retained until its mathematical behavior and operating boundaries are formally defined.",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:k-operator-imposed",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1231,7 +1320,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:survey-error-magnitude",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1250,7 +1339,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:error-magnitude-quantity-identifier",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1269,7 +1358,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:wellbore-inclination",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1297,7 +1386,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:wellbore-inclination",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1325,7 +1414,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:wellbore-inclination",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1347,17 +1436,18 @@
             "x-si-unit": "rad"
           }
         },
+        "additionalProperties": false,
         "description": "One ISCWSA survey error source. Magnitude is a finite, nonnegative one-sigma standard uncertainty in the SI unit identified by MagnitudeQuantity.",
         "x-osdc-semantic": {
           "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.16.0",
+          "catalogueVersion": "0.18.0",
           "concept": "urn:osdc:semantic:survey-error-source",
           "curationStatus": "Reviewed",
           "assertionSource": "provider-binding-registry",
           "requiredContext": [ ]
         }
       },
-      "SurveyInstrumentModelType": {
+      "OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrumentModelType": {
         "enum": [
           "MWD_WolffDeWardt",
           "Gyro_WolffDeWardt",
@@ -1366,7 +1456,7 @@
         ],
         "type": "string"
       },
-      "MetaInfo": {
+      "OSDC.DotnetLibraries.General.DataManagement.MetaInfo": {
         "type": "object",
         "properties": {
           "ID": {
@@ -1385,9 +1475,10 @@
             "type": "string",
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "CountPerDay": {
+      "OSDC.Drilling.SurveyInstrument.Model.CountPerDay": {
         "type": "object",
         "properties": {
           "Date": {
@@ -1398,25 +1489,135 @@
             "type": "integer",
             "format": "int64"
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "History": {
+      "OSDC.Drilling.SurveyInstrument.Model.ErrorSourceDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.ErrorSourceLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.SurveyInstrument.Model.ErrorSourceLight": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "ErrorCode": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.ErrorCode"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "Index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "PropagationMode": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsSystematic": {
+            "type": "boolean"
+          },
+          "IsRandom": {
+            "type": "boolean"
+          },
+          "IsGlobal": {
+            "type": "boolean"
+          },
+          "SingularIssues": {
+            "type": "boolean"
+          },
+          "IsContinuous": {
+            "type": "boolean"
+          },
+          "IsStationary": {
+            "type": "boolean"
+          },
+          "KOperatorImposed": {
+            "type": "boolean"
+          },
+          "Magnitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "MagnitudeQuantity": {
+            "type": "string",
+            "nullable": true
+          },
+          "UseInclinationInterval": {
+            "type": "boolean"
+          },
+          "StartInclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndInclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "InitInclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.SurveyInstrument.Model.History": {
         "type": "object",
         "properties": {
           "Data": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/CountPerDay"
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.CountPerDay"
             },
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "SurveyInstrument": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrument": {
         "type": "object",
         "properties": {
           "MetaInfo": {
-            "$ref": "#/components/schemas/MetaInfo"
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
           },
           "Name": {
             "type": "string",
@@ -1437,12 +1638,12 @@
             "nullable": true
           },
           "ModelType": {
-            "$ref": "#/components/schemas/SurveyInstrumentModelType"
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrumentModelType"
           },
           "ErrorSourceList": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ErrorSource"
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.ErrorSource"
             },
             "nullable": true
           },
@@ -1452,7 +1653,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:magnetic-dip",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1483,7 +1684,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:magnetic-declination",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1510,7 +1711,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:total-gravity-acceleration",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1536,7 +1737,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:earth-magnetic-flux-density",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1564,7 +1765,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:grid-convergence",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1593,7 +1794,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:geodetic-latitude",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1619,7 +1820,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:earth-angular-velocity",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1641,7 +1842,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:survey-instrument-cant-angle",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1669,7 +1870,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:survey-tool-running-speed",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1697,7 +1898,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:gyro-switching-parameter",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1723,7 +1924,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:gyro-reinitialization-distance",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1746,7 +1947,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:gyro-noise-reduction-factor",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1813,22 +2014,23 @@
           "SurveyInstrumentIdentityAssignments": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/SurveyInstrumentIdentityAssignment"
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentityAssignment"
             },
             "nullable": true
           },
           "SurveyInstrumentFeatureAssignments": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/SurveyInstrumentFeatureAssignment"
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureAssignment"
             },
             "nullable": true
           }
         },
+        "additionalProperties": false,
         "description": "Survey-instrument error model with canonical SI values and, for ISCWSA families, authoritative embedded error-source snapshots.",
         "x-osdc-semantic": {
           "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.16.0",
+          "catalogueVersion": "0.18.0",
           "concept": "urn:osdc:semantic:survey-instrument",
           "curationStatus": "Reviewed",
           "assertionSource": "provider-binding-registry",
@@ -1838,33 +2040,34 @@
           ]
         }
       },
-      "SurveyInstrumentBatchCatalogDependencies": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchCatalogDependencies": {
         "type": "object",
         "properties": {
           "ErrorSourceTemplates": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/ErrorSource"
+              "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.ErrorSource"
             },
             "nullable": true
           },
           "Identities": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/SurveyInstrumentIdentity"
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentity"
             },
             "nullable": true
           },
           "FeatureCategories": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/SurveyInstrumentFeatureCategory"
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategory"
             },
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "SurveyInstrumentBatchCatalogRestorePolicy": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchCatalogRestorePolicy": {
         "enum": [
           "Unspecified",
           "MapExisting",
@@ -1872,7 +2075,7 @@
         ],
         "type": "string"
       },
-      "SurveyInstrumentBatchError": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchError": {
         "type": "object",
         "properties": {
           "PositionIndex": {
@@ -1892,9 +2095,10 @@
             "type": "string",
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "SurveyInstrumentBatchErrorEnvelope": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchErrorEnvelope": {
         "type": "object",
         "properties": {
           "Error": {
@@ -1908,13 +2112,14 @@
           "Errors": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/SurveyInstrumentBatchError"
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchError"
             },
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "SurveyInstrumentBatchExportDocument": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchExportDocument": {
         "type": "object",
         "properties": {
           "FormatIdentifier": {
@@ -1930,22 +2135,23 @@
             "format": "date-time"
           },
           "CatalogDependencies": {
-            "$ref": "#/components/schemas/SurveyInstrumentBatchCatalogDependencies"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchCatalogDependencies"
           },
           "SurveyInstruments": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/SurveyInstrument"
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrument"
             },
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "SurveyInstrumentBatchExportRequest": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchExportRequest": {
         "type": "object",
         "properties": {
           "Scope": {
-            "$ref": "#/components/schemas/SurveyInstrumentBatchExportScope"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchExportScope"
           },
           "SurveyInstrumentIDs": {
             "type": "array",
@@ -1955,9 +2161,10 @@
             },
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "SurveyInstrumentBatchExportScope": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchExportScope": {
         "enum": [
           "Unspecified",
           "All",
@@ -1965,7 +2172,7 @@
         ],
         "type": "string"
       },
-      "SurveyInstrumentBatchRestoreConflictPolicy": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchRestoreConflictPolicy": {
         "enum": [
           "Unspecified",
           "FailIfExists",
@@ -1973,21 +2180,22 @@
         ],
         "type": "string"
       },
-      "SurveyInstrumentBatchRestoreRequest": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchRestoreRequest": {
         "type": "object",
         "properties": {
           "ConflictPolicy": {
-            "$ref": "#/components/schemas/SurveyInstrumentBatchRestoreConflictPolicy"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchRestoreConflictPolicy"
           },
           "CatalogPolicy": {
-            "$ref": "#/components/schemas/SurveyInstrumentBatchCatalogRestorePolicy"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchCatalogRestorePolicy"
           },
           "Document": {
-            "$ref": "#/components/schemas/SurveyInstrumentBatchExportDocument"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchExportDocument"
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "SurveyInstrumentBatchRestoreResponse": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentBatchRestoreResponse": {
         "type": "object",
         "properties": {
           "RestoredAtUtc": {
@@ -2014,9 +2222,40 @@
             },
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "SurveyInstrumentFeatureAssignment": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureAssignment": {
         "type": "object",
         "properties": {
           "ID": {
@@ -2043,13 +2282,14 @@
             "format": "date-time",
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "SurveyInstrumentFeatureCategory": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategory": {
         "type": "object",
         "properties": {
           "MetaInfo": {
-            "$ref": "#/components/schemas/MetaInfo"
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
           },
           "Name": {
             "type": "string",
@@ -2064,7 +2304,7 @@
           "Options": {
             "type": "array",
             "items": {
-              "$ref": "#/components/schemas/SurveyInstrumentFeatureOption"
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureOption"
             },
             "nullable": true
           },
@@ -2078,9 +2318,69 @@
             "format": "date-time",
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "SurveyInstrumentFeatureOption": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategoryDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategoryLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategoryLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsExclusive": {
+            "type": "boolean"
+          },
+          "HasValidityPeriod": {
+            "type": "boolean"
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureOption": {
         "type": "object",
         "properties": {
           "ID": {
@@ -2091,13 +2391,14 @@
             "type": "string",
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "SurveyInstrumentIdentity": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentity": {
         "type": "object",
         "properties": {
           "MetaInfo": {
-            "$ref": "#/components/schemas/MetaInfo"
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
           },
           "Name": {
             "type": "string",
@@ -2113,9 +2414,10 @@
             "format": "date-time",
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "SurveyInstrumentIdentityAssignment": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentityAssignment": {
         "type": "object",
         "properties": {
           "ID": {
@@ -2131,20 +2433,74 @@
             "type": "string",
             "nullable": true
           }
-        }
+        },
+        "additionalProperties": false
       },
-      "SurveyInstrumentLight": {
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentityDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentityLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentityLight": {
         "type": "object",
         "properties": {
           "MetaInfo": {
-            "$ref": "#/components/schemas/MetaInfo"
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
           },
           "Name": {
             "type": "string",
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:resource-name",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-model-attribute",
@@ -2157,7 +2513,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:resource-description",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-model-attribute",
@@ -2171,7 +2527,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:instant",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-model-attribute",
@@ -2192,7 +2548,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:instant",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-model-attribute",
@@ -2208,9 +2564,10 @@
             }
           }
         },
+        "additionalProperties": false,
         "x-osdc-semantic": {
           "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.16.0",
+          "catalogueVersion": "0.18.0",
           "concept": "urn:osdc:semantic:survey-instrument",
           "curationStatus": "Reviewed",
           "assertionSource": "provider-model-attribute",
@@ -2221,9 +2578,12 @@
           "constraints": [ ]
         }
       },
-      "UsageStatisticsSurveyInstrument": {
+      "OSDC.Drilling.SurveyInstrument.Model.UsageStatisticsSurveyInstrument": {
         "type": "object",
         "properties": {
+          "DiscoveryRequestsPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
+          },
           "LastSaved": {
             "type": "string",
             "format": "date-time"
@@ -2233,51 +2593,52 @@
             "format": "date-span"
           },
           "GetAllSurveyInstrumentIdPerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           },
           "GetAllSurveyInstrumentMetaInfoPerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           },
           "GetSurveyInstrumentByIdPerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           },
           "GetAllSurveyInstrumentLightPerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           },
           "GetAllSurveyInstrumentPerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           },
           "PostSurveyInstrumentPerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           },
           "PutSurveyInstrumentByIdPerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           },
           "DeleteSurveyInstrumentByIdPerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           },
           "GetAllErrorSourceIdPerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           },
           "GetAllErrorSourceMetaInfoPerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           },
           "GetErrorSourceByIdPerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           },
           "GetAllErrorSourcePerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           },
           "PostErrorSourcePerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           },
           "PutErrorSourceByIdPerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           },
           "DeleteErrorSourceByIdPerDay": {
-            "$ref": "#/components/schemas/History"
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
           }
-        }
+        },
+        "additionalProperties": false
       }
     }
   }

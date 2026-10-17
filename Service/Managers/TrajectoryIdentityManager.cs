@@ -6,6 +6,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers;
 
 public sealed class TrajectoryIdentityManager
 {
+    internal SqlConnectionManager DiscoveryConnections { get { EnsureDefaults(); return mainDatabase; } }
+
     private static readonly string[] Defaults =
         ["NameForPlanning", "NameForCompanyReporting", "NameForRegulatoryReporting", "Nickname", "NameForOperationReporting"];
     private readonly TrajectoryCatalogStore<Model.TrajectoryIdentity> store;

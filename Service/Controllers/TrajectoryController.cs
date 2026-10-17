@@ -1,3 +1,4 @@
+using OSDC.Drilling.Trajectory.Service;
 using System;
 using System.Collections.Generic;
 using Microsoft.AspNetCore.Http;
@@ -16,6 +17,31 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
     [ApiController]
     public class TrajectoryController : ControllerBase
     {
+        private readonly SqlConnectionManager _discoveryConnections;
+
+        /// <summary>Discover Trajectory resources as bounded light records; retrieve selected full records by ID.</summary>
+        [HttpGet("LightData", Name = "DiscoverTrajectory")]
+        public ActionResult<OSDC.Drilling.Trajectory.Model.TrajectoryDiscoveryPage> DiscoverTrajectory([FromQuery] int offset = 0, [FromQuery] int limit = 50, [FromQuery] string? name = null, [FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null, [FromQuery] TrajectoryType? trajectoryType = null, [FromQuery] bool? isDefinitive = null)
+        {
+            OSDC.Drilling.Trajectory.Model.UsageStatisticsTrajectory.Instance.IncrementDiscoveryRequestsPerDay();
+            if (trajectoryType is { } trajectoryTypeValue && !System.Enum.IsDefined(trajectoryTypeValue))
+                return BadRequest(new { error = "invalid_discovery_query", message = "Invalid discovery enum value." });
+
+            if (offset < 0 || limit < 1 || limit > 200 || name?.Length > 200 || fieldId == System.Guid.Empty || clusterId == System.Guid.Empty || wellId == System.Guid.Empty || wellBoreId == System.Guid.Empty)
+                return BadRequest(new { error = "invalid_discovery_query", message = "Offset must be non-negative, limit 1–200, name at most 200 characters, and UUID filters non-empty." });
+            try
+            {
+                var records = DiscoveryRecords.ReadPage<OSDC.Drilling.Trajectory.Model.TrajectoryLight>(_discoveryConnections.GetConnection(), "TrajectoryTable", "Trajectory", offset, limit, name,
+                    new System.Collections.Generic.Dictionary<string, object?> { ["FieldID"] = fieldId, ["ClusterID"] = clusterId, ["WellID"] = wellId, ["WellBoreID"] = wellBoreId, ["TrajectoryType"] = trajectoryType, ["IsDefinitive"] = isDefinitive }, out int total);
+                return Ok(new OSDC.Drilling.Trajectory.Model.TrajectoryDiscoveryPage { Items = records, Offset = offset, Limit = limit, TotalCount = total,
+                    NextOffset = offset < total && records.Count < total - offset ? offset + records.Count : null });
+            }
+            catch (System.Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or System.Text.Json.JsonException or System.InvalidOperationException)
+            {
+                return StatusCode(500, new { error = "discovery_failed" });
+            }
+        }
+
         private readonly ILogger<TrajectoryManager> _logger;
         private readonly TrajectoryManager _trajectoryManager;
         private readonly TrajectoryAssignmentValidator _assignmentValidator;
@@ -26,6 +52,7 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             TrajectoryAssignmentValidator assignmentValidator, TrajectoryBatchService batchService,
             ITrajectoryExternalReferenceValidator? externalReferenceValidator = null)
         {
+            _discoveryConnections = connectionManager;
             _logger = logger;
             _trajectoryManager = TrajectoryManager.GetInstance(_logger, connectionManager, octreeManager);
             _assignmentValidator = assignmentValidator;
@@ -227,7 +254,7 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         /// Returns the list of all TrajectoryLight present in the microservice database, at endpoint Trajectory/api/Trajectory/LightData
         /// </summary>
         /// <returns>the list of all TrajectoryLight present in the microservice database, at endpoint Trajectory/api/Trajectory/LightData</returns>
-        [HttpGet("LightData", Name = "GetAllTrajectoryLight")]
+        [NonAction]
         public ActionResult<IEnumerable<Model.TrajectoryLight>> GetAllTrajectoryLight([FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null, [FromQuery] TrajectoryType? trajectoryType = null, [FromQuery] bool? isDefinitive = null)
         {
             UsageStatisticsTrajectory.Instance.IncrementGetAllTrajectoryLightPerDay();
@@ -341,7 +368,7 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
         /// Returns the list of all Trajectory present in the microservice database, at endpoint Trajectory/api/Trajectory/HeavyData
         /// </summary>
         /// <returns>the list of all Trajectory present in the microservice database, at endpoint Trajectory/api/Trajectory/HeavyData</returns>
-        [HttpGet("HeavyData", Name = "GetAllTrajectory")]
+        [NonAction]
         public ActionResult<IEnumerable<Model.Trajectory?>> GetAllTrajectory([FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null, [FromQuery] TrajectoryType? trajectoryType = null, [FromQuery] bool? isDefinitive = null)
         {
             UsageStatisticsTrajectory.Instance.IncrementGetAllTrajectoryPerDay();

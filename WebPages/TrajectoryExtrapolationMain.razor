@@ -81,7 +81,7 @@
         polling?.Cancel();
         try
         {
-            Task<List<TrajectoryExtrapolationCaseLight>> caseTask = Api.ClientTrajectory.GetAllTrajectoryExtrapolationCaseLightAsync();
+            Task<List<TrajectoryExtrapolationCaseLight>> caseTask = Api.ClientTrajectory.ListTrajectoryExtrapolationCaseLightAsync();
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
             await Task.WhenAll(caseTask, referenceDataTask);
             cases = (await caseTask).OrderBy(x => x.Name).ToList();
@@ -125,7 +125,7 @@
             while (!token.IsCancellationRequested && cases.Any(Active))
             {
                 await Task.Delay(TimeSpan.FromSeconds(2), token);
-                cases = (await Api.ClientTrajectory.GetAllTrajectoryExtrapolationCaseLightAsync(token)).OrderBy(x => x.Name).ToList();
+                cases = (await Api.ClientTrajectory.ListTrajectoryExtrapolationCaseLightAsync(token)).OrderBy(x => x.Name).ToList();
                 await InvokeAsync(StateHasChanged);
             }
         }

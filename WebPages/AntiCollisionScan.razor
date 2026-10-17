@@ -380,8 +380,8 @@
         try
         {
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
-            Task<List<AntiCollisionPolicyRevision>> policyRevisionTask = Api.ClientTrajectory.GetAllAntiCollisionPolicyRevisionAsync();
-            Task<List<FieldAntiCollisionPolicyAssignment>> policyAssignmentTask = Api.ClientTrajectory.GetAllFieldAntiCollisionPolicyAssignmentAsync();
+            Task<List<AntiCollisionPolicyRevision>> policyRevisionTask = Api.ClientTrajectory.ListAntiCollisionPolicyRevisionReferencesAsync();
+            Task<List<FieldAntiCollisionPolicyAssignment>> policyAssignmentTask = Api.ClientTrajectory.ListFieldAntiCollisionPolicyAssignmentReferencesAsync();
             await Task.WhenAll(referenceDataTask, policyRevisionTask, policyAssignmentTask);
 
             TrajectoryReferenceDataSnapshot referenceData = await referenceDataTask;
@@ -461,6 +461,7 @@
 
     private async Task OnReferenceTrajectoryChanged(Guid? value)
     {
+        await ReferenceDetailsLoader.EnsureAsync(Api, trajectories_?.FirstOrDefault(item => item.MetaInfo?.ID == value)?.WellBoreID, wellBores_, wells_, clusters_);
         selectedReferenceTrajectoryId_ = value;
         referenceTrajectoryDate_ = await ResolveTrajectoryDateAsync(value);
         selectedRigJobId_ = null;

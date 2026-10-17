@@ -6,6 +6,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers;
 
 public sealed class TrajectoryFeatureCategoryManager
 {
+    internal SqlConnectionManager DiscoveryConnections { get { EnsureDefaults(); return mainDatabase; } }
+
     private static readonly (string Name, bool Exclusive, bool Validity, string[] Options)[] Defaults =
     [
         ("SurveyContext", false, false, ["InitialSurvey", "RoutineSurvey", "Resurvey", "CheckSurvey", "TieInSurvey", "GyroTieIn", "FinalSurvey", "DefinitiveSurvey", "PostRunSurvey", "MemorySurvey", "AntiCollisionSurvey", "ReliefWellSurvey", "SidetrackSurvey", "CasingExitSurvey", "MultilateralJunctionSurvey", "PlugbackSurvey", "AbandonmentSurvey", "Unknown"]),

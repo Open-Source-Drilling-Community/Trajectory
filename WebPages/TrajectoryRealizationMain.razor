@@ -116,7 +116,7 @@
             caseIdBeingEdited = null;
             selectedCaseList = [];
 
-            var caseTask = Api.ClientTrajectory.GetAllTrajectoryRealizationCaseLightAsync();
+            var caseTask = Api.ClientTrajectory.ListTrajectoryRealizationCaseLightAsync();
             Task<TrajectoryReferenceDataSnapshot> referenceDataTask = ReferenceData.GetSnapshotAsync();
 
             await Task.WhenAll(caseTask, referenceDataTask);
@@ -175,7 +175,7 @@
             while (!cancellationToken.IsCancellationRequested)
             {
                 await Task.Delay(TimeSpan.FromSeconds(2), cancellationToken);
-                caseList = ((ICollection<TrajectoryRealizationCaseLight>)await Api.ClientTrajectory.GetAllTrajectoryRealizationCaseLightAsync()).OrderBy(x => x.Name).ToList();
+                caseList = ((ICollection<TrajectoryRealizationCaseLight>)await Api.ClientTrajectory.ListTrajectoryRealizationCaseLightAsync()).OrderBy(x => x.Name).ToList();
                 gridKey++;
                 await InvokeAsync(StateHasChanged);
                 if (!caseList.Any(IsCalculationActive))

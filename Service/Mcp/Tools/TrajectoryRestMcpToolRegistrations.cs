@@ -44,14 +44,10 @@ public static class TrajectoryRestMcpToolRegistrations
             {
                 bool overloaded = actions.Count(candidate => candidate.Name == method.Name) > 1;
                 string controllerName = controllerType.Name[..^"Controller".Length];
-                // Bounded search supersedes these two potentially very large MCP lists. The
-                // REST endpoints remain available for compatibility with existing non-MCP clients.
-                if ((controllerName == "Trajectory" && method.Name == "GetAllTrajectory") ||
-                    (controllerName == "SurveyRun" && method.Name == "GetAllSurveyRun"))
-                    continue;
                 string? template = method.GetCustomAttributes(true).OfType<IRouteTemplateProvider>()
                     .Select(attribute => attribute.Template).FirstOrDefault(value => value is not null);
                 string actionName = ToSnakeCase(method.Name);
+                if (method.Name.StartsWith("Discover", StringComparison.Ordinal)) actionName = "discover";
                 if (overloaded && method.GetParameters().Length > 0)
                     actionName += "_by_" + string.Join("_and_", method.GetParameters().Select(parameter => ToSnakeCase(parameter.Name!)));
 
@@ -133,6 +129,13 @@ public static class TrajectoryRestMcpToolRegistrations
             }
             try
             {
+                Type parameterType = Nullable.GetUnderlyingType(parameter.ParameterType) ?? parameter.ParameterType;
+                if (method.Name.StartsWith("Discover", StringComparison.Ordinal) && parameterType.IsEnum &&
+                    (node is not JsonValue enumValue || !enumValue.TryGetValue<string>(out _)))
+                {
+                    error = McpToolResponses.Validation($"Argument '{name}' must be a named enum value.");
+                    return false;
+                }
                 values[index] = node.Deserialize(parameter.ParameterType, JsonSettings.Options);
                 if (values[index] is null && parameter.GetCustomAttribute<FromBodyAttribute>() is not null)
                     throw new JsonException();
@@ -159,6 +162,22 @@ public static class TrajectoryRestMcpToolRegistrations
     private static bool ValidateOperationArguments(MethodInfo method, JsonObject? arguments, out JsonNode? error)
     {
         error = null;
+        if (method.Name.StartsWith("Discover", StringComparison.Ordinal))
+        {
+            int offset = 0, limit = 50;
+            if ((arguments?.ContainsKey("offset") == true && (arguments["offset"] is not JsonValue offsetNode || !offsetNode.TryGetValue<int>(out offset))) ||
+                (arguments?.ContainsKey("limit") == true && (arguments["limit"] is not JsonValue limitNode || !limitNode.TryGetValue<int>(out limit))) ||
+                offset < 0 || limit is < 1 or > 200)
+            {
+                error = McpToolResponses.Validation("Offset must be a non-negative integer and limit must be an integer between 1 and 200.");
+                return false;
+            }
+            if (arguments?["name"] is JsonValue name && name.TryGetValue<string>(out string? text) && text?.Length > 200)
+            {
+                error = McpToolResponses.Validation("Name must be at most 200 characters.");
+                return false;
+            }
+        }
         if (method.DeclaringType == typeof(TrajectoryExtrapolationCaseController) &&
             method.Name is "Post" or "Put" && arguments?["value"] is JsonObject extrapolation)
         {

@@ -106,7 +106,7 @@ namespace ServiceTest
             List<TrajectoryLight> trajectoryLightList = [];
             try
             {
-                trajectoryLightList = (List<TrajectoryLight>)await nSwagClient.GetAllTrajectoryLightAsync();
+                trajectoryLightList = (List<TrajectoryLight>)await nSwagClient.ListTrajectoryLightAsync();
             }
             catch (ApiException ex)
             {
@@ -126,7 +126,7 @@ namespace ServiceTest
             List<Trajectory> trajectoryList = new();
             try
             {
-                trajectoryList = (List<Trajectory>)await nSwagClient.GetAllTrajectoryAsync();
+                trajectoryList = (List<Trajectory>)await nSwagClient.ListTrajectoryReferencesAsync();
             }
             catch (ApiException ex)
             {

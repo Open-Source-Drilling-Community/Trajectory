@@ -1,4 +1,4 @@
-﻿@inject ILogger<TrajectoryEdit> logger
+@inject ILogger<TrajectoryEdit> logger
 @inject ISnackbar Snackbar
 @inject IDialogService DialogService
 @inject IJSRuntime JSRuntime
@@ -1066,6 +1066,7 @@
 
     private async Task UpdateReferenceSourcesAsync()
     {
+        await ReferenceDetailsLoader.EnsureAsync(Api, selectedWellBoreId, WellBoreList, WellList, ClusterList);
         TrajectoryLight context = new()
         {
             MetaInfo = currentTrajectory.MetaInfo,
@@ -1988,7 +1989,7 @@
         try
         {
             isLoadingWellBoreArchitectureData = true;
-            wellBoreArchitectureHeavyList = (List<WellBoreArchitecture>)await Api.ClientWellBoreArchitecture.GetAllWellBoreArchitectureAsync();
+            wellBoreArchitectureHeavyList = (List<WellBoreArchitecture>)await Api.ClientWellBoreArchitecture.ListWellBoreArchitectureReferencesAsync();
             await InvokeAsync(StateHasChanged);
         }
         catch (Exception ex)

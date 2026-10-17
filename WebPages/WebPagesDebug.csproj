@@ -37,6 +37,6 @@
 
   <!-- Include generated DTO source files directly from ModelSharedOut -->
   <ItemGroup>
-    <Compile Include="..\ModelSharedOut\TrajectoryMergedModel.cs;..\ModelSharedOut\PseudoConstructors.cs;..\ModelSharedOut\AnnotatedAbscissa.cs" Link="GeneratedDtos\%(RecursiveDir)%(Filename)%(Extension)" />
+    <Compile Include="..\ModelSharedOut\TrajectoryMergedModel.cs;..\ModelSharedOut\PseudoConstructors.cs;..\ModelSharedOut\AnnotatedAbscissa.cs;..\ModelSharedOut\DiscoveryClientExtensions.cs;..\ModelSharedOut\SlotDiscoveryClientExtensions.cs" Link="GeneratedDtos\%(RecursiveDir)%(Filename)%(Extension)" />
   </ItemGroup>
 </Project>

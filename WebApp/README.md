@@ -52,7 +52,7 @@ Survey Calculations also includes Directional Control Evaluation. Its reusable p
 
 Trajectory and survey-run visualizations expose `Field` and `Cartographic` position references when the selected hierarchy resolves to a Field with a persisted reference point. Cartographic coordinates are resolved through the Field coordinate-conversion API; unavailable reference values fall back to WGS84.
 
-The Home page is the user-facing capability index. It documents the canonical SI/WGS84 contract, links directly to every owned workflow, explains queued calculations and chunked results, and identifies REST/OpenAPI, the 176 REST-backed MCP tools plus `ping`, and the reusable Razor package as equivalent access paths to the same persisted service state.
+The Home page is the user-facing capability index. It documents the canonical SI/WGS84 contract, links directly to every owned workflow, explains queued calculations and chunked results, and identifies REST/OpenAPI, the the current MCP tools plus `ping`, and the reusable Razor package as equivalent access paths to the same persisted service state.
 
 ## Funding
 
@@ -83,3 +83,37 @@ dotnet run --project .\WebApp\WebApp.csproj
 ```
 
 The application always uses `/trajectory/webapp` as its path base, so test links beneath that prefix rather than only at the site root.
+
+## Bounded light discovery
+
+Resource and catalog discovery returns light pages, with `offset` defaulting to 0 and `limit` defaulting to 50 (allowed range 1–200). Names and relevant resource-reference filters are evaluated on the server. Unbounded full-object `HeavyData` routes and tools, including filtered full-object lists, have been removed. Existing UUID and HTTP-metadata listings remain available; use named light pages for routine discovery.
+
+REST routes and MCP tool names (relative to the service's existing API path base):
+
+- `/AntiCollisionPolicyRevision/LightData` / `anti_collision_policy_revision_discover`
+- `/DirectionalControlEvaluationCase/LightData` / `directional_control_evaluation_case_discover`
+- `/InterpolatedTrajectory/LightData` / `interpolated_trajectory_discover`
+- `/SurveyRunBatchImport/LightData` / `survey_run_batch_import_discover`
+- `/SurveyRun/LightData` / `survey_run_discover`
+- `/SurveyRunMinimumDistanceCalculation/LightData` / `survey_run_minimum_distance_calculation_discover`
+- `/TargetLandingCase/LightData` / `target_landing_case_discover`
+- `/TrajectoryAggregationCase/LightData` / `trajectory_aggregation_case_discover`
+- `/Trajectory/LightData` / `trajectory_discover`
+- `/TrajectoryExtrapolationCase/LightData` / `trajectory_extrapolation_case_discover`
+- `/TrajectoryFeatureCategory/LightData` / `trajectory_feature_category_discover`
+- `/TrajectoryIdentity/LightData` / `trajectory_identity_discover`
+- `/TrajectoryMinimumDistanceCalculation/LightData` / `trajectory_minimum_distance_calculation_discover`
+- `/TrajectoryRealizationCase/LightData` / `trajectory_realization_case_discover`
+- `/SurveyStationEllipseCalculation/LightData` / `survey_station_ellipse_calculation_discover`
+- `/FieldAntiCollisionPolicyAssignment/LightData` / `field_anti_collision_policy_assignment_discover`
+- `/GlobalAntiCollisions/LightData` / `global_anti_collisions_discover`
+- `/Octrees/LightData` / `octrees_discover`
+
+Pages contain `Items`, `Offset`, `Limit`, `TotalCount`, and `NextOffset`; `NextOffset` is null on the final page. Offset pages are individually consistent reads, not a snapshot spanning requests: concurrent inserts/deletes can change later pages. Refresh discovery when the underlying collection changes. EarthGeodesy's existing search pages instead expose `Items[].Value`, `Offset`, `Limit`, and `TotalCount`.
+
+Single-record reads, result/chunk reads, and deliberate backup/export/restore operations are preserved. Backups can still contain complete resources and should be treated as explicit bulk operations.
+
+This is a breaking REST/MCP contract change: update generated clients, UIs, and external integrations together with the service release. Removed heavy-list names are not compatibility aliases. No persisted engineering shapes, database names, or storage volumes are changed. Historical usage counters are retained; bounded discovery has a separate additive `DiscoveryRequestsPerDay` history in resource services.
+
+
+Tables/selectors use light discovery. Editors retrieve the selected complete resource; category options load only for chosen or already assigned definitions. Slot context uses paginated light locations, and rig-history context reads the selected wellbore. Backup selection uses discovery while the dedicated export/restore APIs retain full backup semantics.

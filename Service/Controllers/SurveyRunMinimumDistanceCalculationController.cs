@@ -1,3 +1,4 @@
+using OSDC.Drilling.Trajectory.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -14,11 +15,34 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
     [ApiController]
     public class SurveyRunMinimumDistanceCalculationController : ControllerBase
     {
+        private readonly SqlConnectionManager _discoveryConnections;
+
+        /// <summary>Discover SurveyRunMinimumDistanceCalculation resources as bounded light records; retrieve selected full records by ID.</summary>
+        [HttpGet("LightData", Name = "DiscoverSurveyRunMinimumDistanceCalculation")]
+        public ActionResult<OSDC.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculationDiscoveryPage> DiscoverSurveyRunMinimumDistanceCalculation([FromQuery] int offset = 0, [FromQuery] int limit = 50, [FromQuery] string? name = null, [FromQuery] System.Guid? referenceSurveyRunId = null, [FromQuery] System.Guid? globalMinimumComparisonSurveyRunId = null)
+        {
+            OSDC.Drilling.Trajectory.Model.UsageStatisticsTrajectory.Instance.IncrementDiscoveryRequestsPerDay();
+            if (offset < 0 || limit < 1 || limit > 200 || name?.Length > 200 || referenceSurveyRunId == System.Guid.Empty || globalMinimumComparisonSurveyRunId == System.Guid.Empty)
+                return BadRequest(new { error = "invalid_discovery_query", message = "Offset must be non-negative, limit 1–200, name at most 200 characters, and UUID filters non-empty." });
+            try
+            {
+                var records = DiscoveryRecords.ReadPage<OSDC.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculationLight>(_discoveryConnections.GetConnection(), "SurveyRunMinimumDistanceCalculationTable", "SurveyRunMinimumDistanceCalculation", offset, limit, name,
+                    new System.Collections.Generic.Dictionary<string, object?> { ["ReferenceSurveyRunID"] = referenceSurveyRunId, ["GlobalMinimumComparisonSurveyRunID"] = globalMinimumComparisonSurveyRunId }, out int total);
+                return Ok(new OSDC.Drilling.Trajectory.Model.SurveyRunMinimumDistanceCalculationDiscoveryPage { Items = records, Offset = offset, Limit = limit, TotalCount = total,
+                    NextOffset = offset < total && records.Count < total - offset ? offset + records.Count : null });
+            }
+            catch (System.Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or System.Text.Json.JsonException or System.InvalidOperationException)
+            {
+                return StatusCode(500, new { error = "discovery_failed" });
+            }
+        }
+
         private readonly ILogger<SurveyRunMinimumDistanceCalculationManager> _logger;
         private readonly SurveyRunMinimumDistanceCalculationManager _manager;
 
         public SurveyRunMinimumDistanceCalculationController(ILogger<SurveyRunMinimumDistanceCalculationManager> logger, SqlConnectionManager connectionManager)
         {
+            _discoveryConnections = connectionManager;
             _logger = logger;
             _manager = SurveyRunMinimumDistanceCalculationManager.GetInstance(_logger, connectionManager);
         }
@@ -72,14 +96,14 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             return value != null ? Ok(value) : NotFound();
         }
 
-        [HttpGet("LightData", Name = "GetAllSurveyRunMinimumDistanceCalculationLight")]
+        [NonAction]
         public ActionResult<IEnumerable<Model.SurveyRunMinimumDistanceCalculationLight>> GetAllSurveyRunMinimumDistanceCalculationLight()
         {
             List<Model.SurveyRunMinimumDistanceCalculationLight>? values = _manager.GetAllSurveyRunMinimumDistanceCalculationLight();
             return values != null ? Ok(values) : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
-        [HttpGet("HeavyData", Name = "GetAllSurveyRunMinimumDistanceCalculation")]
+        [NonAction]
         public ActionResult<IEnumerable<Model.SurveyRunMinimumDistanceCalculation?>> GetAllSurveyRunMinimumDistanceCalculation()
         {
             List<Model.SurveyRunMinimumDistanceCalculation?>? values = _manager.GetAllSurveyRunMinimumDistanceCalculation();

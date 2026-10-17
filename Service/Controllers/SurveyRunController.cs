@@ -1,3 +1,4 @@
+using OSDC.Drilling.Trajectory.Service;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
@@ -16,6 +17,31 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
     [ApiController]
     public class SurveyRunController : ControllerBase
     {
+        private readonly SqlConnectionManager _discoveryConnections;
+
+        /// <summary>Discover SurveyRun resources as bounded light records; retrieve selected full records by ID.</summary>
+        [HttpGet("LightData", Name = "DiscoverSurveyRun")]
+        public ActionResult<OSDC.Drilling.Trajectory.Model.SurveyRunDiscoveryPage> DiscoverSurveyRun([FromQuery] int offset = 0, [FromQuery] int limit = 50, [FromQuery] string? name = null, [FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null, [FromQuery] Guid? surveyInstrumentId = null, [FromQuery] System.Guid? parentSurveyRunId = null, [FromQuery] SurveyRunType? surveyRunType = null)
+        {
+            OSDC.Drilling.Trajectory.Model.UsageStatisticsTrajectory.Instance.IncrementDiscoveryRequestsPerDay();
+            if (surveyRunType is { } surveyRunTypeValue && !System.Enum.IsDefined(surveyRunTypeValue))
+                return BadRequest(new { error = "invalid_discovery_query", message = "Invalid discovery enum value." });
+
+            if (offset < 0 || limit < 1 || limit > 200 || name?.Length > 200 || fieldId == System.Guid.Empty || clusterId == System.Guid.Empty || wellId == System.Guid.Empty || wellBoreId == System.Guid.Empty || surveyInstrumentId == System.Guid.Empty || parentSurveyRunId == System.Guid.Empty)
+                return BadRequest(new { error = "invalid_discovery_query", message = "Offset must be non-negative, limit 1–200, name at most 200 characters, and UUID filters non-empty." });
+            try
+            {
+                var records = DiscoveryRecords.ReadPage<OSDC.Drilling.Trajectory.Model.SurveyRunLight>(_discoveryConnections.GetConnection(), "SurveyRunTable", "SurveyRun", offset, limit, name,
+                    new System.Collections.Generic.Dictionary<string, object?> { ["FieldID"] = fieldId, ["ClusterID"] = clusterId, ["WellID"] = wellId, ["WellBoreID"] = wellBoreId, ["SurveyInstrumentID"] = surveyInstrumentId, ["ParentSurveyRunID"] = parentSurveyRunId, ["SurveyRunType"] = surveyRunType }, out int total);
+                return Ok(new OSDC.Drilling.Trajectory.Model.SurveyRunDiscoveryPage { Items = records, Offset = offset, Limit = limit, TotalCount = total,
+                    NextOffset = offset < total && records.Count < total - offset ? offset + records.Count : null });
+            }
+            catch (System.Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or System.Text.Json.JsonException or System.InvalidOperationException)
+            {
+                return StatusCode(500, new { error = "discovery_failed" });
+            }
+        }
+
         private readonly ILogger<SurveyRunManager> _logger;
         private readonly SurveyRunManager _manager;
         private readonly TrajectoryAssignmentValidator _assignmentValidator;
@@ -25,6 +51,7 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             TrajectoryAssignmentValidator assignmentValidator,
             ITrajectoryExternalReferenceValidator? externalReferenceValidator = null)
         {
+            _discoveryConnections = connectionManager;
             _logger = logger;
             _manager = SurveyRunManager.GetInstance(logger, connectionManager);
             _assignmentValidator = assignmentValidator;
@@ -45,7 +72,7 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             return values != null ? Ok(values) : StatusCode(StatusCodes.Status500InternalServerError);
         }
 
-        [HttpGet("LightData", Name = "GetAllSurveyRunLight")]
+        [NonAction]
         public ActionResult<IEnumerable<SurveyRunLight>> GetAllSurveyRunLight([FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null, [FromQuery] Guid? surveyInstrumentId = null, [FromQuery] SurveyRunType? surveyRunType = null)
         {
             List<SurveyRunLight>? values = _manager.GetAllSurveyRunLight(fieldId, clusterId, wellId, wellBoreId, surveyInstrumentId, surveyRunType);
@@ -148,7 +175,7 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
             });
         }
 
-        [HttpGet("HeavyData", Name = "GetAllSurveyRun")]
+        [NonAction]
         public ActionResult<IEnumerable<SurveyRun>> GetAllSurveyRun([FromQuery] Guid? fieldId = null, [FromQuery] Guid? clusterId = null, [FromQuery] Guid? wellId = null, [FromQuery] Guid? wellBoreId = null, [FromQuery] Guid? surveyInstrumentId = null, [FromQuery] SurveyRunType? surveyRunType = null)
         {
             List<SurveyRun>? values = _manager.GetAllSurveyRun(fieldId, clusterId, wellId, wellBoreId, surveyInstrumentId, surveyRunType);

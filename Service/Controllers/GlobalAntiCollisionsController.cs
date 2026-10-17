@@ -1,3 +1,5 @@
+using OSDC.Drilling.Trajectory.Service;
+using OSDC.Drilling.Trajectory.Model;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.AspNetCore.Http;
 using Microsoft.Extensions.Logging;
@@ -11,6 +13,23 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers;
 [ApiController]
 public class GlobalAntiCollisionsController : ControllerBase
 {
+        /// <summary>Returns one bounded page of light records, retaining single-record and result reads.</summary>
+        [HttpGet("LightData", Name = "DiscoverGlobalAntiCollisions")]
+        public ActionResult<GlobalAntiCollisionsDiscoveryPage> DiscoverGlobalAntiCollisions([FromQuery] int offset = 0, [FromQuery] int limit = 50)
+        {
+            OSDC.Drilling.Trajectory.Model.UsageStatisticsTrajectory.Instance.IncrementDiscoveryRequestsPerDay();
+            if (offset < 0 || limit is < 1 or > 200) return BadRequest(new { error = "invalid_discovery_query" });
+            List<GlobalAntiCollisionLight> records;
+            int total;
+            try { records = DiscoveryRecords.ReadPage<GlobalAntiCollisionLight>(_discoveryConnections.GetConnection(), "SeparationFactorResults", "DataSet", offset, limit, null, new Dictionary<string, object?> {  }, out total); }
+            catch (Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or System.Text.Json.JsonException or InvalidOperationException)
+            { return StatusCode(500, new { error = "discovery_failed" }); }
+            return Ok(new GlobalAntiCollisionsDiscoveryPage { Items = records, Offset = offset, Limit = limit, TotalCount = total,
+                NextOffset = offset < total && records.Count < total - offset ? offset + records.Count : null });
+        }
+
+        private readonly SqlConnectionManagerSeparationFactorResults _discoveryConnections;
+
     private readonly ILogger<GlobalAntiCollisionManager> logger_;
     private readonly GlobalAntiCollisionManager manager_;
     private readonly GlobalAntiCollisionCalculationWorker worker_;
@@ -20,6 +39,7 @@ public class GlobalAntiCollisionsController : ControllerBase
         SqlConnectionManagerSeparationFactorResults connectionManager,
         GlobalAntiCollisionCalculationWorker worker)
     {
+            _discoveryConnections = connectionManager;
         logger_ = logger;
         manager_ = GlobalAntiCollisionManager.GetInstance(logger_, connectionManager);
         worker_ = worker;

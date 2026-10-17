@@ -56,7 +56,7 @@ class Program
     static async Task Main()
     {
         bool finished = false;
-        Console.Clear();
+        if (!Console.IsOutputRedirected) Console.Clear();
         Console.BackgroundColor = ConsoleColor.Black;
         do
         {
@@ -193,7 +193,7 @@ class Program
                         var code = generator.GenerateFile();
                         using (StreamWriter writer = new StreamWriter(modelSharedDir + Path.DirectorySeparatorChar + CSHARP_MODEL))
                         {
-                            writer.WriteLine(code);
+                            writer.WriteLine(string.Join(Environment.NewLine, code.Split('\n').Select(line => line.TrimEnd())));
                         }
                         error = false;
                         PrettyPrint(PRETTY_STRING, "C# client and base classes have been generated successfully!");

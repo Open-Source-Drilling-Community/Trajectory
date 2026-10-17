@@ -847,7 +847,7 @@
             .Where(surveyRun =>
                 surveyRun?.MetaInfo?.ID is Guid surveyRunId &&
                 surveyRunId != currentSurveyRun_?.MetaInfo?.ID &&
-                IsParentSurveyRunCandidate(surveyRun))
+                (!IsSelectedWellBoreSidetrack() || surveyRun.WellBoreID == GetSelectedWellBore()?.ParentWellBoreID))
             .OrderBy(surveyRun => surveyRun.Name)
             .ToList() ?? [];
 
@@ -1764,8 +1764,17 @@
         selectedSurveyInstrumentId_ = surveyInstrumentId;
     }
 
-    private void OnEditorParentSurveyRunChanged(Guid? parentSurveyRunId)
+    private async Task OnEditorParentSurveyRunChanged(Guid? parentSurveyRunId)
     {
+        if (parentSurveyRunId is Guid id && allSurveyRunHeavyList_ != null)
+        {
+            var parent = await Api.ClientTrajectory.LoadSurveyRunDetailsAsync(allSurveyRunHeavyList_, id);
+            if (!IsParentSurveyRunCandidate(parent))
+            {
+                Snackbar.Add("The selected parent survey run does not cover the required tie-in point.", Severity.Warning);
+                parentSurveyRunId = null;
+            }
+        }
         selectedParentSurveyRunId_ = parentSurveyRunId;
         ClearCalculatedSurveyRunData();
         UpdatePlots();
@@ -2122,6 +2131,7 @@
 
     private async Task UpdateSelectedSurveyRunReferenceSourceAsync()
     {
+        await ReferenceDetailsLoader.EnsureAsync(Api, selectedWellBoreId_, wellBoreList_, wellList_, clusterList_);
         DataUtils.GroundMudLineDepthReferenceSource.GroundMudLineDepthReference = 0;
         DataUtils.MeanSeaLevelDepthReferenceSource.MeanSeaLevelDepthReference = null;
         DataUtils.SeaWaterLevelDepthReferenceSource.SeaWaterLevelDepthReference = 0;
@@ -2354,11 +2364,13 @@
         Guid? wellBoreFilter = IsSelectedWellBoreSidetrack()
             ? GetSelectedWellBore()?.ParentWellBoreID
             : null;
-        allSurveyRunHeavyList_ = ((IEnumerable<SurveyRun>)await Api.ClientTrajectory.GetAllSurveyRunAsync(
+        allSurveyRunHeavyList_ = ((IEnumerable<SurveyRun>)await Api.ClientTrajectory.ListSurveyRunReferencesAsync(
                 wellBoreId: wellBoreFilter))
             .Where(item => item?.MetaInfo != null)
             .OrderBy(item => item.Name)
             .ToList();
+        if (selectedParentSurveyRunId_ is Guid parentId)
+            await Api.ClientTrajectory.LoadSurveyRunDetailsAsync(allSurveyRunHeavyList_, parentId);
     }
 
     private void OnObservedAzimuthChanged(SurveyMeasurement measurement, double? value)

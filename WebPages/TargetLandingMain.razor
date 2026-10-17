@@ -94,7 +94,7 @@ else
         loading = true;
         try
         {
-            cases = (await Api.ClientTrajectory.GetAllTargetLandingCaseLightAsync()).OrderBy(x => x.Name).ToList();
+            cases = (await Api.ClientTrajectory.ListTargetLandingCaseLightAsync()).OrderBy(x => x.Name).ToList();
             StartPollingIfNeeded();
         }
         catch (Exception ex) { logger.LogError(ex, "Unable to load target landing cases"); Snackbar.Add("Unable to load target landing cases.", Severity.Error); }

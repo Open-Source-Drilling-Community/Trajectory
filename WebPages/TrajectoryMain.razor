@@ -621,6 +621,7 @@
     }
     private async Task UpdateSelectedTrajectoryDepthReferenceSourceAsync()
     {
+        await ReferenceDetailsLoader.EnsureAsync(Api, allTrajectoryList?.FirstOrDefault(value => value.MetaInfo?.ID == trajectoryIdBeingEdited)?.WellBoreID, wellBoreList, wellList, clusterList);
         DataUtils.ApplyTrajectoryReferenceValues(trajectoryIdBeingEdited, allTrajectoryList, wellBoreList, wellList, clusterList, rigList, fieldList);
         await CartographicPositionReferenceUtils.ApplyForTrajectoryAsync(Api, trajectoryIdBeingEdited, allTrajectoryList, clusterList, fieldList, logger);
         TrajectoryReferenceDatumUtils.Apply(

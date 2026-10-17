@@ -859,6 +859,7 @@
 
     private async Task UpdateSourceReferenceValuesAsync()
     {
+        await ReferenceDetailsLoader.EnsureAsync(Api, trajectories?.FirstOrDefault(value => value.MetaInfo?.ID == SelectedSourceTrajectoryId)?.WellBoreID, wellBores, wells, clusters);
         Guid? trajectoryId = SelectedSourceTrajectoryId;
         DataUtils.ApplyTrajectoryReferenceValues(trajectoryId, trajectories, wellBores, wells, clusters, rigs, fields,
             selectedRigJobId, sourceReferenceDate);

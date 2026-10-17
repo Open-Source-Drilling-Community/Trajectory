@@ -1,7 +1,8 @@
+using OSDC.Drilling.Trajectory.Service;
+using OSDC.Drilling.Trajectory.Model;
 using Microsoft.AspNetCore.Http;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.Extensions.Logging;
-using OSDC.Drilling.Trajectory.Model;
 using OSDC.Drilling.Trajectory.Service.Managers;
 using OSDC.DotnetLibraries.General.DataManagement;
 using System;
@@ -15,11 +16,29 @@ namespace OSDC.Drilling.Trajectory.Service.Controllers
     [ApiController]
     public class SurveyStationEllipseCalculationController : ControllerBase
     {
+        /// <summary>Returns one bounded page of light records, retaining single-record and result reads.</summary>
+        [HttpGet("LightData", Name = "DiscoverSurveyStationEllipseCalculation")]
+        public ActionResult<SurveyStationEllipseCalculationDiscoveryPage> DiscoverSurveyStationEllipseCalculation([FromQuery] int offset = 0, [FromQuery] int limit = 50, [FromQuery] string? name = null)
+        {
+            OSDC.Drilling.Trajectory.Model.UsageStatisticsTrajectory.Instance.IncrementDiscoveryRequestsPerDay();
+            if (offset < 0 || limit is < 1 or > 200 || name?.Length > 200) return BadRequest(new { error = "invalid_discovery_query" });
+            List<SurveyStationEllipseCalculationLight> records;
+            int total;
+            try { records = DiscoveryRecords.ReadPage<SurveyStationEllipseCalculationLight>(_discoveryConnections.GetConnection(), "SurveyStationEllipseCalculationTable", "SurveyStationEllipseCalculation", offset, limit, name, new Dictionary<string, object?> {  }, out total); }
+            catch (Exception ex) when (ex is Microsoft.Data.Sqlite.SqliteException or System.Text.Json.JsonException or InvalidOperationException)
+            { return StatusCode(500, new { error = "discovery_failed" }); }
+            return Ok(new SurveyStationEllipseCalculationDiscoveryPage { Items = records, Offset = offset, Limit = limit, TotalCount = total,
+                NextOffset = offset < total && records.Count < total - offset ? offset + records.Count : null });
+        }
+
+        private readonly SqlConnectionManager _discoveryConnections;
+
         private readonly ILogger<SurveyStationEllipseCalculationManager> _logger;
         private readonly SurveyStationEllipseCalculationManager _manager;
 
         public SurveyStationEllipseCalculationController(ILogger<SurveyStationEllipseCalculationManager> logger, SqlConnectionManager connectionManager)
         {
+            _discoveryConnections = connectionManager;
             _logger = logger;
             _manager = SurveyStationEllipseCalculationManager.GetInstance(logger, connectionManager);
         }

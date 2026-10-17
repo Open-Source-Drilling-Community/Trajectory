@@ -373,6 +373,7 @@ else
             ? value.ActualTrajectoryID
             : value.ReferenceTrajectoryID;
         DateTimeOffset? referenceDate = trajectories.FirstOrDefault(item => item.MetaInfo?.ID == contextId)?.LastModificationDate;
+        await ReferenceDetailsLoader.EnsureAsync(Api, trajectories.FirstOrDefault(item => item.MetaInfo?.ID == contextId)?.WellBoreID, wellBores, wells, clusters);
         DataUtils.ApplyTrajectoryReferenceValues(contextId == Guid.Empty ? null : contextId,
             trajectories, wellBores, wells, clusters, rigs, fields, referenceDate: referenceDate);
         try

@@ -708,6 +708,7 @@
 
     private async Task UpdateReferenceSourcesAsync()
     {
+        await ReferenceDetailsLoader.EnsureAsync(Api, TrajectoryList?.FirstOrDefault(value => value.MetaInfo?.ID == selectedTrajectoryId)?.WellBoreID, WellBoreList, WellList, ClusterList);
         DataUtils.ApplyTrajectoryReferenceValues(selectedTrajectoryId, TrajectoryList, WellBoreList, WellList, ClusterList, RigList, FieldList,
             selectedRigJobId, trajectoryReferenceDate);
         await CartographicPositionReferenceUtils.ApplyForTrajectoryAsync(Api, selectedTrajectoryId, TrajectoryList, ClusterList, FieldList, logger);

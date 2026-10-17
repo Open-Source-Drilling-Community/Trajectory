@@ -5,6 +5,54 @@
     "version": "1.0"
   },
   "paths": {
+    "/ErrorSource/LightData": {
+      "get": {
+        "tags": [
+          "ErrorSource"
+        ],
+        "summary": "Discover ErrorSource resources as bounded light records; retrieve selected full records by ID.",
+        "operationId": "DiscoverErrorSource",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.ErrorSourceDiscoveryPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/ErrorSource": {
       "get": {
         "tags": [
@@ -182,23 +230,47 @@
         }
       }
     },
-    "/ErrorSource/HeavyData": {
+    "/SurveyInstrument/LightData": {
       "get": {
         "tags": [
-          "ErrorSource"
+          "SurveyInstrument"
         ],
-        "summary": "Returns the list of all ErrorSource present in the microservice database, at endpoint SurveyInstrument/api/ErrorSource/HeavyData",
-        "operationId": "GetAllErrorSource",
+        "summary": "Discover SurveyInstrument resources as bounded light records; retrieve selected full records by ID.",
+        "operationId": "DiscoverSurveyInstrument",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
         "responses": {
           "200": {
             "description": "OK",
             "content": {
               "application/json": {
                 "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.ErrorSource"
-                  }
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentDiscoveryPage"
                 }
               }
             }
@@ -383,54 +455,6 @@
         }
       }
     },
-    "/SurveyInstrument/LightData": {
-      "get": {
-        "tags": [
-          "SurveyInstrument"
-        ],
-        "summary": "Returns the list of all SurveyInstrumentLight present in the microservice database, at endpoint SurveyInstrument/api/SurveyInstrument/LightData",
-        "operationId": "GetAllSurveyInstrumentLight",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentLight"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/SurveyInstrument/HeavyData": {
-      "get": {
-        "tags": [
-          "SurveyInstrument"
-        ],
-        "summary": "Returns the list of all SurveyInstrument present in the microservice database, at endpoint SurveyInstrument/api/SurveyInstrument/HeavyData",
-        "operationId": "GetAllSurveyInstrument",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrument"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
     "/SurveyInstrument/BatchExport": {
       "post": {
         "tags": [
@@ -549,6 +573,54 @@
         }
       }
     },
+    "/SurveyInstrumentFeatureCategory/LightData": {
+      "get": {
+        "tags": [
+          "SurveyInstrumentFeatureCategory"
+        ],
+        "summary": "Discover SurveyInstrumentFeatureCategory resources as bounded light records; retrieve selected full records by ID.",
+        "operationId": "DiscoverSurveyInstrumentFeatureCategory",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategoryDiscoveryPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/SurveyInstrumentFeatureCategory": {
       "get": {
         "tags": [
@@ -618,29 +690,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/SurveyInstrumentFeatureCategory/HeavyData": {
-      "get": {
-        "tags": [
-          "SurveyInstrumentFeatureCategory"
-        ],
-        "operationId": "GetAllSurveyInstrumentFeatureCategory",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategory"
                   }
                 }
               }
@@ -759,6 +808,54 @@
         }
       }
     },
+    "/SurveyInstrumentIdentity/LightData": {
+      "get": {
+        "tags": [
+          "SurveyInstrumentIdentity"
+        ],
+        "summary": "Discover SurveyInstrumentIdentity resources as bounded light records; retrieve selected full records by ID.",
+        "operationId": "DiscoverSurveyInstrumentIdentity",
+        "parameters": [
+          {
+            "name": "offset",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 0
+            }
+          },
+          {
+            "name": "limit",
+            "in": "query",
+            "schema": {
+              "type": "integer",
+              "format": "int32",
+              "default": 50
+            }
+          },
+          {
+            "name": "name",
+            "in": "query",
+            "schema": {
+              "type": "string"
+            }
+          }
+        ],
+        "responses": {
+          "200": {
+            "description": "OK",
+            "content": {
+              "application/json": {
+                "schema": {
+                  "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentityDiscoveryPage"
+                }
+              }
+            }
+          }
+        }
+      }
+    },
     "/SurveyInstrumentIdentity": {
       "get": {
         "tags": [
@@ -828,29 +925,6 @@
                   "type": "array",
                   "items": {
                     "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
-                  }
-                }
-              }
-            }
-          }
-        }
-      }
-    },
-    "/SurveyInstrumentIdentity/HeavyData": {
-      "get": {
-        "tags": [
-          "SurveyInstrumentIdentity"
-        ],
-        "operationId": "GetAllSurveyInstrumentIdentity",
-        "responses": {
-          "200": {
-            "description": "OK",
-            "content": {
-              "application/json": {
-                "schema": {
-                  "type": "array",
-                  "items": {
-                    "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentity"
                   }
                 }
               }
@@ -1176,7 +1250,7 @@
             "format": "int32",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:error-source-ordering-index",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1184,7 +1258,23 @@
             }
           },
           "PropagationMode": {
-            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.ErrorPropagationMode"
+            "enum": [
+              "Random",
+              "Systematic",
+              "WellByWell",
+              "Global"
+            ],
+            "type": "string",
+            "description": "Mutually exclusive ISCWSA Revision 5 correlation mode: Random (R) is independent between survey stations; Systematic (S) is correlated between stations in the same survey leg but independent between legs; WellByWell (W) is correlated across legs within the same well but independent between wells; Global (G) is fully correlated across all survey stations, legs, and wells in the project or field. Null is reserved for readable legacy records whose mode is derived from the deprecated boolean flags.",
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.18.0",
+              "concept": "urn:osdc:semantic:error-propagation-mode",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ]
+            }
           },
           "IsSystematic": {
             "type": "boolean",
@@ -1214,7 +1304,7 @@
             "description": "Opaque legacy compatibility flag retained until its mathematical behavior and operating boundaries are formally defined.",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:k-operator-imposed",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1230,7 +1320,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:survey-error-magnitude",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1249,7 +1339,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:error-magnitude-quantity-identifier",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1268,7 +1358,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:wellbore-inclination",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1296,7 +1386,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:wellbore-inclination",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1324,7 +1414,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:wellbore-inclination",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1350,7 +1440,7 @@
         "description": "One ISCWSA survey error source. Magnitude is a finite, nonnegative one-sigma standard uncertainty in the SI unit identified by MagnitudeQuantity.",
         "x-osdc-semantic": {
           "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.16.0",
+          "catalogueVersion": "0.18.0",
           "concept": "urn:osdc:semantic:survey-error-source",
           "curationStatus": "Reviewed",
           "assertionSource": "provider-binding-registry",
@@ -1398,6 +1488,114 @@
           "Count": {
             "type": "integer",
             "format": "int64"
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.SurveyInstrument.Model.ErrorSourceDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.ErrorSourceLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.SurveyInstrument.Model.ErrorSourceLight": {
+        "type": "object",
+        "properties": {
+          "Name": {
+            "type": "string",
+            "nullable": true,
+            "readOnly": true
+          },
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "ErrorCode": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.Drilling.Surveying.ErrorCode"
+          },
+          "Description": {
+            "type": "string",
+            "nullable": true
+          },
+          "Index": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          },
+          "PropagationMode": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsSystematic": {
+            "type": "boolean"
+          },
+          "IsRandom": {
+            "type": "boolean"
+          },
+          "IsGlobal": {
+            "type": "boolean"
+          },
+          "SingularIssues": {
+            "type": "boolean"
+          },
+          "IsContinuous": {
+            "type": "boolean"
+          },
+          "IsStationary": {
+            "type": "boolean"
+          },
+          "KOperatorImposed": {
+            "type": "boolean"
+          },
+          "Magnitude": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "MagnitudeQuantity": {
+            "type": "string",
+            "nullable": true
+          },
+          "UseInclinationInterval": {
+            "type": "boolean"
+          },
+          "StartInclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "EndInclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
+          },
+          "InitInclination": {
+            "type": "number",
+            "format": "double",
+            "nullable": true
           }
         },
         "additionalProperties": false
@@ -1455,7 +1653,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:magnetic-dip",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1486,7 +1684,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:magnetic-declination",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1513,7 +1711,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:total-gravity-acceleration",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1539,7 +1737,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:earth-magnetic-flux-density",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1567,7 +1765,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:grid-convergence",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1596,7 +1794,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:geodetic-latitude",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1622,7 +1820,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:earth-angular-velocity",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1644,7 +1842,7 @@
             "format": "double",
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:survey-instrument-cant-angle",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1672,7 +1870,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:survey-tool-running-speed",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1700,7 +1898,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:gyro-switching-parameter",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1726,7 +1924,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:gyro-reinitialization-distance",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1749,7 +1947,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:gyro-noise-reduction-factor",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-binding-registry",
@@ -1832,7 +2030,7 @@
         "description": "Survey-instrument error model with canonical SI values and, for ISCWSA families, authoritative embedded error-source snapshots.",
         "x-osdc-semantic": {
           "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.16.0",
+          "catalogueVersion": "0.18.0",
           "concept": "urn:osdc:semantic:survey-instrument",
           "curationStatus": "Reviewed",
           "assertionSource": "provider-binding-registry",
@@ -2027,6 +2225,36 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureAssignment": {
         "type": "object",
         "properties": {
@@ -2079,6 +2307,65 @@
               "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureOption"
             },
             "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategoryDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategoryLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentFeatureCategoryLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "IsExclusive": {
+            "type": "boolean"
+          },
+          "HasValidityPeriod": {
+            "type": "boolean"
           },
           "CreationDate": {
             "type": "string",
@@ -2149,6 +2436,59 @@
         },
         "additionalProperties": false
       },
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentityDiscoveryPage": {
+        "type": "object",
+        "properties": {
+          "Items": {
+            "type": "array",
+            "items": {
+              "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentityLight"
+            },
+            "nullable": true
+          },
+          "Offset": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "Limit": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "TotalCount": {
+            "type": "integer",
+            "format": "int32"
+          },
+          "NextOffset": {
+            "type": "integer",
+            "format": "int32",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
+      "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentIdentityLight": {
+        "type": "object",
+        "properties": {
+          "MetaInfo": {
+            "$ref": "#/components/schemas/OSDC.DotnetLibraries.General.DataManagement.MetaInfo"
+          },
+          "Name": {
+            "type": "string",
+            "nullable": true
+          },
+          "CreationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          },
+          "LastModificationDate": {
+            "type": "string",
+            "format": "date-time",
+            "nullable": true
+          }
+        },
+        "additionalProperties": false
+      },
       "OSDC.Drilling.SurveyInstrument.Model.SurveyInstrumentLight": {
         "type": "object",
         "properties": {
@@ -2160,7 +2500,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:resource-name",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-model-attribute",
@@ -2173,7 +2513,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:resource-description",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-model-attribute",
@@ -2187,7 +2527,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:instant",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-model-attribute",
@@ -2208,7 +2548,7 @@
             "nullable": true,
             "x-osdc-semantic": {
               "catalogue": "urn:osdc:semantic-catalogue",
-              "catalogueVersion": "0.16.0",
+              "catalogueVersion": "0.18.0",
               "concept": "urn:osdc:semantic:instant",
               "curationStatus": "Reviewed",
               "assertionSource": "provider-model-attribute",
@@ -2227,7 +2567,7 @@
         "additionalProperties": false,
         "x-osdc-semantic": {
           "catalogue": "urn:osdc:semantic-catalogue",
-          "catalogueVersion": "0.16.0",
+          "catalogueVersion": "0.18.0",
           "concept": "urn:osdc:semantic:survey-instrument",
           "curationStatus": "Reviewed",
           "assertionSource": "provider-model-attribute",
@@ -2241,6 +2581,9 @@
       "OSDC.Drilling.SurveyInstrument.Model.UsageStatisticsSurveyInstrument": {
         "type": "object",
         "properties": {
+          "DiscoveryRequestsPerDay": {
+            "$ref": "#/components/schemas/OSDC.Drilling.SurveyInstrument.Model.History"
+          },
           "LastSaved": {
             "type": "string",
             "format": "date-time"

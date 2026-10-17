@@ -20,6 +20,8 @@ public sealed class AntiCollisionPolicyManager(
     ILogger<AntiCollisionPolicyManager> logger,
     SqlConnectionManager connectionManager)
 {
+    internal SqlConnectionManager DiscoveryConnections => connectionManager;
+
     public List<Guid>? GetRevisionIds()
     {
         using SqliteConnection? connection = connectionManager.GetConnection();
