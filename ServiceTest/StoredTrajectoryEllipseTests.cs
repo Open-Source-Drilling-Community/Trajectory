@@ -30,7 +30,8 @@ public sealed class StoredTrajectoryEllipseTests
         listener.Start();
         var configuration = typeof(ServiceConfiguration).GetProperties(BindingFlags.Public | BindingFlags.Static);
         var originalConfiguration = configuration.ToDictionary(property => property, property => property.GetValue(null));
-        foreach (var property in configuration) property.SetValue(null, address);
+        foreach (var property in configuration)
+            if (property.GetValue(null) is null) property.SetValue(null, "http://localhost/");
         var clients = typeof(APIUtils).GetFields(BindingFlags.Public | BindingFlags.Static)
             .Where(field => field.FieldType == typeof(OSDC.Drilling.Trajectory.ModelShared.Client))
             .Select(field => (OSDC.Drilling.Trajectory.ModelShared.Client)field.GetValue(null)!).ToArray();
