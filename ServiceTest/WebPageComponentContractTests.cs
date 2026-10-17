@@ -1,4 +1,5 @@
 using System.Text.RegularExpressions;
+using System.Xml.Linq;
 
 namespace OSDC.Drilling.Trajectory.ServiceTest;
 
@@ -90,7 +91,12 @@ public sealed class WebPageComponentContractTests
             Assert.That(dataUtils, Does.Contain("DateReferenceName { get; set; } = \"Local Time\";"));
             Assert.That(surveyRun, Does.Not.Contain("Label=\"Acquisition start (UTC)\"").And.Not.Contain("DataLabel=\"Measurement time (UTC)\""));
             Assert.That(batchImport, Does.Not.Contain("Label=\"UTC time column").And.Not.Contain("DataLabel=\"Acquired from (UTC)\""));
-            Assert.That(project, Does.Contain("OSDC.UnitConversion.DrillingRazorMudComponents\" Version=\"3.4.7\""));
+            string? selectorVersion = XDocument.Parse(project).Descendants("PackageReference")
+                .Single(reference => (string?)reference.Attribute("Include") == "OSDC.UnitConversion.DrillingRazorMudComponents")
+                .Attribute("Version")?.Value;
+            Assert.That(Version.TryParse(selectorVersion, out Version? version), Is.True);
+            Assert.That(version, Is.GreaterThanOrEqualTo(new Version(3, 4, 9)),
+                "The shared selector must support time references and paginated unit-system discovery.");
         });
     }
 
