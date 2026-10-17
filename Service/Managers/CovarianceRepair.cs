@@ -75,9 +75,15 @@ public static class CovarianceRepair
         }
         var final = original.Select(r => planned[r.Table + "/" + r.Id]).ToList(); if (Hash(final, true) != beforeGeometry) throw new InvalidOperationException("Geometry or measurements changed in the repair plan"); await dependencies.RevalidateAsync();
         var plan = new { algorithmVersion = AlgorithmVersion, beforeGeometryHash = beforeGeometry, sourceHashes = dependencies.Hashes, records = details }; File.WriteAllText(Path.Combine(auditDirectory, "uncertainty-repair-plan.json"), JsonSerializer.Serialize(plan, new JsonSerializerOptions { WriteIndented = true }));
+        File.WriteAllText(Path.Combine(auditDirectory,"uncertainty-source-snapshots.json"),JsonSerializer.Serialize(new{algorithmVersion=AlgorithmVersion,hashes=dependencies.Hashes,sources=dependencies.Snapshots}));
         if (apply)
         {
             using var connection = db.GetConnection()!; using var tx = connection.BeginTransaction();
+            foreach(string table in new[]{"SurveyRunTable","TrajectoryTable","SurveyStationChunkTable","SurveyRunMeasurementChunkTable"})
+            {
+                using var count=connection.CreateCommand();count.Transaction=tx;count.CommandText="SELECT COUNT(*) FROM "+table;
+                if(Convert.ToInt64(count.ExecuteScalar())!=original.Count(r=>r.Table==table))throw new InvalidOperationException("Source row set changed during repair");
+            }
             // Compare every retained input/result row under the write lock before changing any record.
             foreach (var row in original) { using var check = connection.CreateCommand(); check.Transaction = tx; check.CommandText = $"SELECT {row.Column} FROM {row.Table} WHERE ID=@id"; check.Parameters.AddWithValue("@id", row.Id); if (check.ExecuteScalar() as string != row.Json) throw new InvalidOperationException("A source row changed during repair"); }
             foreach (var row in final)
