@@ -190,7 +190,7 @@ public sealed class WebPageComponentContractTests
         Assert.Multiple(() =>
         {
             Assert.That(loadData, Does.Contain("referenceData.SurveyRuns")
-                .And.Not.Contain("GetAllSurveyRunLightAsync"));
+                .And.Not.Contain("ListSurveyRunLightAsync"));
             Assert.That(loadData, Does.Not.Contain("ListSurveyRunReferencesAsync("),
                 "The list page must defer calculated-station data until an editor needs parent candidates.");
             Assert.That(loadData, Does.Contain("ReferenceData.GetSnapshotAsync()"));
@@ -221,7 +221,7 @@ public sealed class WebPageComponentContractTests
         {
             Assert.That(loadData, Does.Contain("ReferenceData.GetSnapshotAsync()")
                 .And.Contain("referenceData.Trajectories")
-                .And.Not.Contain("GetAllTrajectoryLightAsync"));
+                .And.Not.Contain("ListTrajectoryLightAsync"));
             Assert.That(loadData, Does.Contain("await EditTrajectory(queuedTrajectoryId)"));
             Assert.That(Regex.Matches(loadData, "_gridKey\\+\\+").Count, Is.EqualTo(1),
                 "Completing reference loading must not remount the grid and discard its selection.");
@@ -273,8 +273,8 @@ public sealed class WebPageComponentContractTests
             Assert.That(cache, Does.Contain("retaining the last successful snapshot"));
             Assert.That(cache, Does.Contain("LoadTrajectoriesAsync")
                 .And.Contain("LoadSurveyRunsAsync")
-                .And.Contain("GetAllWellBoreArchitectureLightAsync")
-                .And.Contain("GetAllSurveyInstrumentLightAsync")
+                .And.Contain("ListWellBoreArchitectureLightAsync")
+                .And.Contain("ListSurveyInstrumentLightAsync")
                 .And.Contain("GetAllRigReferencesAsync"));
             Assert.That(cacheContract, Does.Contain("IReadOnlyList<TrajectoryLight> Trajectories")
                 .And.Contain("IReadOnlyList<SurveyRunLight> SurveyRuns")
@@ -284,10 +284,10 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("TryAddScoped")
                 .And.Contain("DirectTrajectoryReferenceDataProvider"));
             Assert.That(directProvider, Does.Contain("await RefreshAsync(cancellationToken)")
-                .And.Contain("GetAllTrajectoryLightAsync")
-                .And.Contain("GetAllSurveyRunLightAsync")
-                .And.Contain("GetAllWellBoreArchitectureLightAsync")
-                .And.Contain("GetAllSurveyInstrumentLightAsync")
+                .And.Contain("ListTrajectoryLightAsync")
+                .And.Contain("ListSurveyRunLightAsync")
+                .And.Contain("ListWellBoreArchitectureLightAsync")
+                .And.Contain("ListSurveyInstrumentLightAsync")
                 .And.Contain("GetAllRigReferencesAsync"));
             Assert.That(program.IndexOf("AddSingleton<ITrajectoryReferenceDataCache>", StringComparison.Ordinal),
                 Is.LessThan(program.IndexOf("AddTrajectoryWebPages()", StringComparison.Ordinal)),
@@ -304,8 +304,8 @@ public sealed class WebPageComponentContractTests
 
             string allPages = string.Join('\n', Directory.GetFiles(Path.Combine(repositoryRoot, "WebPages"), "*.razor")
                 .Select(File.ReadAllText));
-            Assert.That(allPages, Does.Not.Contain("GetAllTrajectoryLightAsync")
-                .And.Not.Contain("GetAllSurveyRunLightAsync"),
+            Assert.That(allPages, Does.Not.Contain("ListTrajectoryLightAsync")
+                .And.Not.Contain("ListSurveyRunLightAsync"),
                 "Web pages must use the shared snapshots for trajectory and survey-run light lists.");
         });
     }
@@ -322,7 +322,7 @@ public sealed class WebPageComponentContractTests
 
         Assert.Multiple(() =>
         {
-            Assert.That(loadCases, Does.Contain("GetAllTargetLandingCaseLightAsync")
+            Assert.That(loadCases, Does.Contain("ListTargetLandingCaseLightAsync")
                 .And.Not.Contain("GetSnapshotAsync")
                 .And.Not.Contain("GetTrajectoriesAsync"));
             Assert.That(loadCases, Does.Contain("StartPollingIfNeeded()"));
@@ -896,7 +896,7 @@ public sealed class WebPageComponentContractTests
             Assert.That(main, Does.Contain("CartographicProjectionDatumGeodeticReferenceSource=\"@DataUtils.CartographicProjectionDatumGeodeticReferenceSource\""));
             Assert.That(referenceSelectorEnd, Is.GreaterThanOrEqualTo(0).And.LessThan(listGridStart),
                 "The list must render without waiting for the editor-only unit and reference selector.");
-            Assert.That(listLoad, Does.Contain("GetAllTargetLandingCaseLightAsync")
+            Assert.That(listLoad, Does.Contain("ListTargetLandingCaseLightAsync")
                 .And.Contain("StartPollingIfNeeded()")
                 .And.Not.Contain("GetSnapshotAsync")
                 .And.Not.Contain("GetTrajectoriesAsync"),
@@ -909,8 +909,8 @@ public sealed class WebPageComponentContractTests
                 .And.Contain("cases[index] = persisted")
                 .And.Contain("StartPollingIfNeeded()")
                 .And.Not.Contain("LoadAsync")
-                .And.Not.Contain("GetAllTargetLandingCaseLightAsync")
-                .And.Not.Contain("GetAllTrajectoryLightAsync"),
+                .And.Not.Contain("ListTargetLandingCaseLightAsync")
+                .And.Not.Contain("ListTrajectoryLightAsync"),
                 "Closing the editor must merge its persisted light record locally instead of repeating the case and trajectory list requests.");
             Assert.That(editor, Does.Contain("EventCallback<TargetLandingCaseLight?> ValueChanged")
                 .And.Contain("ValueChanged.InvokeAsync(persistedLight)")
