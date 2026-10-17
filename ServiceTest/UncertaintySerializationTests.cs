@@ -29,5 +29,7 @@ public class UncertaintySerializationTests
   var reference=new SymmetricMatrix3x3();var relative=new SymmetricMatrix3x3();for(int r=0;r<3;r++)for(int c=0;c<3;c++){reference[c,r]=c==r?100:0;relative[c,r]=c==r?4:0;}
   var station=new SurveyStation{Covariance=relative};Assert.That(UncertaintyPropagation.AddIndependentReference([station],reference),Is.True);Assert.That(station.Covariance![0,0],Is.EqualTo(104));Assert.That(reference[0,0],Is.EqualTo(100));Assert.That(relative[0,0],Is.EqualTo(4));
   var invalid=new SymmetricMatrix3x3();invalid[0,0]=-1;Assert.That(UncertaintyPropagation.IsUsable(invalid),Is.False);
+  for(int r=0;r<3;r++)for(int c=0;c<3;c++)invalid[c,r]=r==c?1e-6:2e-6;
+  Assert.That(UncertaintyPropagation.IsUsable(invalid),Is.False,"PSD tolerance must scale to small covariance magnitudes too.");
  }
 }
