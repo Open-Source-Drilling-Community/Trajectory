@@ -109,15 +109,7 @@ public static class APIUtils
                             (cluster.ReferencePoint?.TVD ?? cluster.ReferencePoint?.Z) is { } refTVD)
                         {
                             msg = "cluster, slot, and wellbore successfully retrieved";
-                            SurveyStation surveyPoint = new SurveyStation();
-                            surveyPoint.Latitude = refLat;
-                            surveyPoint.Longitude = refLon;
-                            surveyPoint.TVD = refTVD;
-                            surveyPoint.MD = refTVD;
-                            surveyPoint.Abscissa = refTVD;
-                            surveyPoint.Inclination = 0;
-                            surveyPoint.Azimuth = 0;
-                            surveyPoint.Covariance = CreateWellheadCovariance(refLat, refLon, refLatStd, refLonStd, 0.0);
+                            SurveyStation surveyPoint = CreateWellheadReferencePoint(refLat, refLon, refTVD, refLatStd, refLonStd);
                             return (surveyPoint, wellBore, msg);
                         }
                         else
@@ -173,8 +165,31 @@ public static class APIUtils
         }
     }
 
-    private static SymmetricMatrix3x3 CreateWellheadCovariance(double latitude, double longitude, double latitudeStdDev, double longitudeStdDev, double tvdStdDev)
+    internal static SurveyStation CreateWellheadReferencePoint(double latitude, double longitude, double tvd,
+        double latitudeStdDev, double longitudeStdDev)
     {
+        if (!double.IsFinite(tvd)) throw new ArgumentOutOfRangeException(nameof(tvd));
+        SurveyStation point = new()
+        {
+            Latitude = latitude, Longitude = longitude, TVD = tvd, MD = tvd,
+            Inclination = 0, Azimuth = 0,
+            Covariance = CreateWellheadCovariance(latitude, longitude, latitudeStdDev, longitudeStdDev, 0.0)
+        };
+        // Curvilinear points deliberately do not synchronize geodetic and Riemannian coordinates.
+        point.SetRiemannianNorthEast(latitude, longitude);
+        if (point.X is not double north || !double.IsFinite(north) ||
+            point.Y is not double east || !double.IsFinite(east))
+            throw new ArgumentException("The wellhead coordinates cannot be converted to Riemannian north/east.");
+        return point;
+    }
+
+    internal static SymmetricMatrix3x3 CreateWellheadCovariance(double latitude, double longitude, double latitudeStdDev, double longitudeStdDev, double tvdStdDev)
+    {
+        if (!double.IsFinite(latitude) || System.Math.Abs(latitude) > System.Math.PI / 2 || !double.IsFinite(longitude))
+            throw new ArgumentOutOfRangeException(nameof(latitude));
+        foreach (double deviation in new[] { latitudeStdDev, longitudeStdDev, tvdStdDev })
+            if (!double.IsFinite(deviation) || deviation < 0)
+                throw new ArgumentOutOfRangeException(nameof(latitudeStdDev), "Coordinate standard deviations must be finite and non-negative.");
         SurveyPoint nominal = new()
         {
             Latitude = latitude,
@@ -191,12 +206,14 @@ public static class APIUtils
             Longitude = longitude + longitudeStdDev
         };
 
-        double northStdDev = (nominal.RiemannianNorth is { } north && latitudeShifted.RiemannianNorth is { } shiftedNorth)
-            ? shiftedNorth - north
-            : 0.0;
-        double eastStdDev = (nominal.RiemannianEast is { } east && longitudeShifted.RiemannianEast is { } shiftedEast)
-            ? shiftedEast - east
-            : 0.0;
+        nominal.SetRiemannianNorthEast(latitude, longitude);
+        latitudeShifted.SetRiemannianNorthEast(latitude + latitudeStdDev, longitude);
+        longitudeShifted.SetRiemannianNorthEast(latitude, longitude + longitudeStdDev);
+        double northStdDev = latitudeShifted.RiemannianNorth!.Value - nominal.RiemannianNorth!.Value;
+        double eastStdDev = longitudeShifted.RiemannianEast!.Value - nominal.RiemannianEast!.Value;
+        if (!double.IsFinite(northStdDev * northStdDev) || !double.IsFinite(eastStdDev * eastStdDev) ||
+            !double.IsFinite(tvdStdDev * tvdStdDev))
+            throw new ArgumentException("The coordinate variances must be finite.");
 
         SymmetricMatrix3x3 covariance = new();
         covariance[0, 0] = northStdDev * northStdDev;

@@ -571,7 +571,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     trajectory.CreationDate = stored?.CreationDate ?? trajectory.CreationDate;
                     trajectory.LastModificationDate = DateTimeOffset.UtcNow;
                     MarkCalculationState(trajectory, CalculationState.Running, 0.0, "Calculation queued");
-                    bool saved = InsertOrUpdateTrajectoryRecord(trajectory, true, null);
+                    bool saved = InsertOrUpdateTrajectoryRecord(trajectory, true, null, preserveCalculatedStations: true);
                     if (saved)
                     {
                         InvalidateOctree(guid);
@@ -631,7 +631,6 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 if (await CalculateTrajectoryAsync(trajectory) == null)
                 {
                     UpdateTrajectoryCalculationState(trajectoryId, CalculationState.Failed, 0.0, "Trajectory calculation failed");
-                    DeleteSurveyStationChunks(trajectoryId);
                     return;
                 }
 
@@ -641,7 +640,6 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 if (!InsertOrUpdateTrajectoryRecord(trajectory, true, calculatedStations))
                 {
                     UpdateTrajectoryCalculationState(trajectoryId, CalculationState.Failed, 0.0, "Trajectory calculation failed while saving");
-                    DeleteSurveyStationChunks(trajectoryId);
                 }
                 else if (_octreeManager != null)
                 {
@@ -657,11 +655,11 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             {
                 _logger.LogError(ex, "Unexpected error during background Trajectory calculation");
                 UpdateTrajectoryCalculationState(trajectoryId, CalculationState.Failed, 0.0, "Trajectory calculation failed");
-                DeleteSurveyStationChunks(trajectoryId);
             }
         }
 
-        private bool InsertOrUpdateTrajectoryRecord(Model.Trajectory trajectory, bool update, List<SurveyStation>? calculatedStationList)
+        private bool InsertOrUpdateTrajectoryRecord(Model.Trajectory trajectory, bool update, List<SurveyStation>? calculatedStationList,
+            bool preserveCalculatedStations = false)
         {
             using SqliteConnection? connection = _connectionManager.GetConnection();
             if (connection == null)
@@ -678,6 +676,16 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 string? creationDate = trajectory.CreationDate?.ToString(SqlConnectionManager.DATE_TIME_FORMAT);
                 string? lastModificationDate = trajectory.LastModificationDate?.ToString(SqlConnectionManager.DATE_TIME_FORMAT);
                 trajectory.SurveyStationList = null;
+                if (preserveCalculatedStations)
+                {
+                    // Keep legacy inline geometry too; queued inputs must never erase the last result.
+                    using SqliteCommand previous = connection.CreateCommand();
+                    previous.Transaction = transaction;
+                    previous.CommandText = "SELECT Trajectory FROM TrajectoryTable WHERE ID = @id";
+                    previous.Parameters.AddWithValue("@id", trajectory.MetaInfo!.ID.ToString());
+                    if (previous.ExecuteScalar() is string previousData)
+                        trajectory.SurveyStationList = JsonSerializer.Deserialize<Model.Trajectory>(previousData, JsonSettings.Options)?.SurveyStationList;
+                }
                 string data = JsonSerializer.Serialize(trajectory, JsonSettings.Options);
 
                 SqliteCommand command = connection.CreateCommand();
@@ -719,7 +727,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     success = UnsetOtherDefinitiveTrajectories(connection, transaction, trajectory.MetaInfo.ID,
                         trajectory.WellBoreID, trajectory.TrajectoryType, trajectoriesMadeTemporary);
                 }
-                if (success)
+                if (success && !preserveCalculatedStations)
                 {
                     success = SurveyStationChunkStore.ReplaceChunks(connection, transaction, trajectory.MetaInfo.ID, SurveyStationOwnerType, calculatedStationList);
                 }
@@ -793,19 +801,6 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 _logger.LogError(ex, "Impossible to update Trajectory calculation state");
                 return false;
             }
-        }
-
-        private void DeleteSurveyStationChunks(Guid trajectoryId)
-        {
-            using SqliteConnection? connection = _connectionManager.GetConnection();
-            if (connection == null)
-            {
-                return;
-            }
-
-            using SqliteTransaction transaction = connection.BeginTransaction();
-            SurveyStationChunkStore.DeleteChunks(connection, transaction, trajectoryId, SurveyStationOwnerType);
-            transaction.Commit();
         }
 
         private bool UnsetOtherDefinitiveTrajectories(SqliteConnection connection, SqliteTransaction transaction,
