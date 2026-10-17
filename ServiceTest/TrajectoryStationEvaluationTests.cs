@@ -6,6 +6,34 @@ namespace ServiceTest;
 
 public class TrajectoryStationEvaluationTests
 {
+    [Test]
+    public void A_later_source_station_does_not_invalidate_an_unchanged_trajectory_prefix()
+    {
+        var calculated = new List<SurveyStation>
+        {
+            new() { MD = 0, Inclination = 0, Azimuth = 0, X = 10, Y = 20, Z = 30 },
+            new() { MD = 100, Inclination = .1, Azimuth = .2 },
+            new() { MD = 200, Inclination = .2, Azimuth = .3 }
+        };
+        var replayed = calculated.Select(station => new SurveyStation(station)
+        {
+            Covariance = new(), SurveyTool = new()
+        }).ToList();
+        replayed.Add(new SurveyStation { MD = 250, Inclination = .3, Azimuth = .4, Covariance = new() });
+
+        Assert.That(TrajectoryManager.TryApplyRecalculatedUncertainty(calculated, replayed), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(calculated, Has.Count.EqualTo(3));
+            Assert.That(calculated[^1].MD, Is.EqualTo(200));
+            Assert.That(calculated[0].X, Is.EqualTo(10));
+            Assert.That(calculated[0].Covariance, Is.SameAs(replayed[0].Covariance));
+        });
+        Assert.That(TrajectoryManager.TryApplyRecalculatedUncertainty(calculated, replayed.Take(2).ToList()), Is.False);
+        replayed[1].MD = 99;
+        Assert.That(TrajectoryManager.TryApplyRecalculatedUncertainty(calculated, replayed), Is.False);
+    }
+
     private static OSDC.Drilling.Trajectory.Model.Trajectory Vertical()=>new(){CalculationType=TrajectoryCalculationType.MinimumCurvatureMethod,
         SurveyStationList=[new(){MD=0,Inclination=0,Azimuth=0,X=0,Y=0,Z=0},new(){MD=100,Inclination=0,Azimuth=0,X=0,Y=0,Z=100}]};
 

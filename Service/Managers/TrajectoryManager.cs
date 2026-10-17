@@ -939,8 +939,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
         /// <summary>
         /// Returns the persisted calculated trajectory geometry with uncertainty replayed from
-        /// its authoritative SurveyRun sections. Geometry is retained only when every replayed
-        /// station has the same ordered MD, inclination and azimuth as the persisted result.
+        /// its authoritative SurveyRun sections. Geometry is retained only when every stored station matches the ordered
+        /// authoritative MD, inclination and azimuth prefix; later source stations do not extend it.
         /// </summary>
         public async Task<Model.Trajectory?> GetTrajectoryWithRecalculatedUncertaintyAsync(Guid id)
         {
@@ -967,7 +967,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             IReadOnlyList<SurveyStation> calculatedStations,
             IReadOnlyList<SurveyStation> replayedStations)
         {
-            if (calculatedStations.Count != replayedStations.Count || calculatedStations.Count < 3)
+            if (replayedStations.Count < calculatedStations.Count || calculatedStations.Count < 3)
             {
                 return false;
             }
