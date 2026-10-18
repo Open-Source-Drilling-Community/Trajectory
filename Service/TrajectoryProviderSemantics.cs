@@ -51,6 +51,13 @@ internal static class TrajectoryProviderSemantics
             ["TrajectoryMinimumDistanceCalculationLight"] = (Concepts.MinimumDistanceCalculation, Concepts.CalculationStatusProjection, null),
             ["SurveyRunMinimumDistanceCalculationLight"] = (Concepts.MinimumDistanceCalculation, Concepts.CalculationStatusProjection, null),
             ["GlobalAntiCollisionCalculationStatus"] = (Concepts.GlobalAntiCollisionCalculation, Concepts.CalculationStatusProjection, null),
+            ["SeparationFactorResult"] = (Concepts.AntiCollisionComparisonResult, Concepts.ServerDerivedCalculationResult, null),
+            ["AntiCollisionPolicyEvaluation"] = (Concepts.AntiCollisionPolicyEvaluation, Concepts.ServerDerivedCalculationResult, null),
+            ["AntiCollisionPolicyEvaluationState"] = (Concepts.AntiCollisionPolicyEvaluationState, null, null),
+            ["AntiCollisionClassification"] = (Concepts.AntiCollisionSafetyClassification, null, null),
+            ["OctreeSearchJobRequest"] = (Concepts.OctreeCandidateSearch, Concepts.CalculationInput, null),
+            ["OctreeSearchJobStatus"] = (Concepts.OctreeCandidateSearch, Concepts.CalculationStatusProjection, null),
+            ["OctreeSearchJobResult"] = (Concepts.OctreeCandidateSearch, Concepts.ServerDerivedCalculationResult, null),
             ["InterpolatedTrajectoryLight"] = (Concepts.InterpolatedTrajectory, Concepts.CalculationStatusProjection, null),
             ["InterpolatedTrajectory"] = (Concepts.InterpolatedTrajectory, null, null),
             ["DirectionalControlEvaluationSampleChunk"] = (Concepts.CalculationResultChunk, Concepts.ServerDerivedCalculationResult, null),
@@ -128,6 +135,32 @@ internal static class TrajectoryProviderSemantics
             }
         }
         if (owner == typeof(SurveyMeasurement) && property.Name == "MD") return Metadata(Concepts.AlongHoleDepth, null, null);
+        if (property.Name == "ReferenceTrajectoryID") return Identifier(Concepts.Trajectory, Concepts.ReferenceResource);
+        if (property.Name is "ComparisonTrajectoryID" or "ComparisonTrajectoryIDs" or "CandidateTrajectoryIDs")
+            return Identifier(Concepts.Trajectory, Concepts.ComparisonResource);
+        if (property.Name == "RequestedPolicyAssignmentID")
+        {
+            var policy = Identifier(Concepts.FieldAntiCollisionPolicyAssignment);
+            policy["requiredFor"] = new JsonArray(
+                Concepts.AntiCollisionPolicyEvaluation,
+                Concepts.AntiCollisionPolicyEvaluationState,
+                Concepts.AntiCollisionSafetyClassification);
+            return policy;
+        }
+        if (owner == typeof(OSDC.Drilling.GlobalAntiCollision.AntiCollisionPolicyEvaluation)) return property.Name switch
+        {
+            "State" => Metadata(Concepts.AntiCollisionPolicyEvaluationState, null, null),
+            "AlertThreshold" => Metadata(Concepts.AntiCollisionAlertThreshold, null, null),
+            "AlarmThreshold" => Metadata(Concepts.AntiCollisionAlarmThreshold, null, null),
+            "WorstClassification" => Metadata(Concepts.AntiCollisionSafetyClassification, null, null),
+            _ => null
+        };
+        if (owner is not null && (owner == typeof(OctreeSearchJobStatus) && property.Name == nameof(OctreeSearchJobStatus.JobID) ||
+            owner == typeof(OctreeSearchJobResult) && property.Name == nameof(OctreeSearchJobResult.JobID)))
+            return Identifier(Concepts.OctreeCandidateSearch);
+        if (owner is not null && (owner == typeof(OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision) && property.Name == "ID" ||
+            owner == typeof(OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollisionCalculationStatus) && property.Name == "ID"))
+            return Identifier(Concepts.GlobalAntiCollisionCalculation);
         if (owner == typeof(InterpolatedTrajectory) && property.Name == "InterpolationStep")
             return Metadata(Concepts.InterpolationInterval, Concepts.CalculationInput, null);
         if (owner == typeof(SurveyStationEllipseResult)) return property.Name switch {
@@ -151,6 +184,15 @@ internal static class TrajectoryProviderSemantics
 
     public static JsonObject? ForParameter(string controller, ParameterInfo parameter)
     {
+        if (controller == "Octrees")
+        {
+            if (parameter.Name == "jobId") return Identifier(Concepts.OctreeCandidateSearch);
+            if (parameter.Name == "id") return Identifier(Concepts.Trajectory);
+        }
+        if (controller == "GlobalAntiCollisions" && parameter.Name == "id")
+            return Identifier(Concepts.GlobalAntiCollisionCalculation);
+        if (controller == "FieldAntiCollisionPolicyAssignment" && parameter.Name == "atUtc")
+            return Metadata(Concepts.Instant, null, Concepts.Utc);
         if(controller == "Trajectory") {
             if(parameter.Name == "alongHoleDepth")return Metadata(Concepts.AlongHoleDepth, null,
                 parameter.Member.Name=="GetReferencedTrajectoryStation"?null:Concepts.Wgs84AlongHoleOrigin);
@@ -172,23 +214,27 @@ internal static class TrajectoryProviderSemantics
     {
         "Trajectory" => Concepts.Trajectory,
         "SurveyRun" => Concepts.SurveyRun,
+        "Octrees" => Concepts.OctreeTrajectoryIndex,
         _ => CalculationConceptsByController.GetValueOrDefault(controller)
     };
 
     private static string? ResourceForIdentifier(string name) => name switch
     {
-        "TrajectoryID" or "SourceTrajectoryID" or "ReferenceTrajectoryID" or "ComparisonTrajectoryID" or "trajectoryId" or "TrajectoryIDs" or "ComparisonTrajectoryIDs" or "trajectoryIds" => Concepts.Trajectory,
+        "TrajectoryID" or "SourceTrajectoryID" or "ReferenceTrajectoryID" or "ComparisonTrajectoryID" or "trajectoryId" or "TrajectoryIDs" or "ComparisonTrajectoryIDs" or "CandidateTrajectoryIDs" or "trajectoryIds" => Concepts.Trajectory,
         "SurveyRunID" or "ParentSurveyRunID" or "surveyRunId" or "SurveyRunIDs" or "surveyRunIds" => Concepts.SurveyRun,
         "WellBoreID" or "wellBoreId" => Concepts.WellBore,
         "WellID" or "wellId" => Concepts.Well,
         "FieldID" or "fieldId" => Concepts.Field,
+        "RequestedPolicyAssignmentID" => Concepts.FieldAntiCollisionPolicyAssignment,
+        "PolicyAssignmentID" => Concepts.FieldAntiCollisionPolicyAssignment,
+        "PolicyRevisionID" => Concepts.AntiCollisionPolicyRevision,
         "ClusterID" or "clusterId" => Concepts.WellCluster,
         _ => null
     };
 
-    private static JsonObject Identifier(string? resource)
+    private static JsonObject Identifier(string? resource,string? role=null)
     {
-        var metadata = Metadata(Concepts.ResourceIdentifier, null, null);
+        var metadata = Metadata(Concepts.ResourceIdentifier, role, null);
         // A typed UUID remains an identifier noun, not a resource object or a datum.
         if (resource != null) metadata["resourceType"] = resource;
         return metadata;
@@ -235,6 +281,19 @@ internal static class TrajectoryProviderSemantics
 
     public static JsonObject? ForOperation(string controller, MethodInfo method)
     {
+        if (controller == "Octrees")
+        {
+            string? octreeSearchRole = method.Name switch
+            {
+                "QueueSearch" => Concepts.QueuedCalculationSubmission,
+                "GetSearchStatus" => Concepts.CalculationStatusRetrieval,
+                "GetSearchResult" => Concepts.CalculationResultRetrieval,
+                "DeleteSearch" => Concepts.CalculationCaseDeletion,
+                _ => null
+            };
+            if (octreeSearchRole is not null)
+                return Metadata(Concepts.OctreeCandidateSearch, octreeSearchRole, null);
+        }
         if (controller == "UncertaintyEnvelope" && method.Name == "Evaluate")
             return Metadata(Concepts.CircularlyDilatedUncertaintyEnvelope, Concepts.CircularUncertaintyEnvelopeDilation, null);
         if (!CalculationConceptsByController.TryGetValue(controller, out string? concept))

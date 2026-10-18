@@ -254,7 +254,7 @@ public static class TrajectoryRestMcpToolRegistrations
             error = McpToolResponses.Validation($"'{suppliedDerivedField}' is server-derived and must not be submitted.");
             return false;
         }
-        string[] allowedCalculationFields = ["ID", "ConfidenceFactor", "ReferenceWellPathID", "ReferenceTrajectoryID", "ComparisonTrajectoryIDs"];
+        string[] allowedCalculationFields = ["ID", "ConfidenceFactor", "RequestedPolicyAssignmentID", "ReferenceWellPathID", "ReferenceTrajectoryID", "ComparisonTrajectoryIDs"];
         string? unexpectedCalculationField = calculation.Select(item => item.Key)
             .FirstOrDefault(name => !allowedCalculationFields.Contains(name, StringComparer.Ordinal));
         if (unexpectedCalculationField is not null)
@@ -296,6 +296,13 @@ public static class TrajectoryRestMcpToolRegistrations
         if (calculation["ComparisonTrajectoryIDs"] is not JsonArray comparisons || comparisons.Count == 0)
         {
             error = McpToolResponses.Validation("ComparisonTrajectoryIDs must contain at least one UUID selected for comparison.");
+            return false;
+        }
+
+        if (calculation["RequestedPolicyAssignmentID"] is JsonValue policyNode &&
+            (!policyNode.TryGetValue(out string? policyText) || !Guid.TryParse(policyText, out Guid policyId) || policyId == Guid.Empty))
+        {
+            error = McpToolResponses.Validation("RequestedPolicyAssignmentID must be a non-empty UUID when supplied.");
             return false;
         }
 

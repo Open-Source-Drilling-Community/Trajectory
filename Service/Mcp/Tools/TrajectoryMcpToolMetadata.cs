@@ -730,6 +730,23 @@ internal static class TrajectoryMcpToolMetadata
                 }
                 stateMetadata["valueConcepts"] = valueConcepts;
             }
+            if (type == typeof(AntiCollisionPolicyEvaluation) && property.Name == nameof(AntiCollisionPolicyEvaluation.State) &&
+                schema[SemanticMetadata.ExtensionName] is JsonObject evaluationStateMetadata)
+                evaluationStateMetadata["valueConcepts"] = new JsonObject
+                {
+                    [nameof(AntiCollisionPolicyEvaluationState.Matched)] = Concepts.AntiCollisionPolicyMatchedState,
+                    [nameof(AntiCollisionPolicyEvaluationState.NoMatch)] = Concepts.AntiCollisionPolicyNoMatchState,
+                    [nameof(AntiCollisionPolicyEvaluationState.Indeterminate)] = Concepts.AntiCollisionPolicyIndeterminateState
+                };
+            if (type == typeof(AntiCollisionPolicyEvaluation) && property.Name == nameof(AntiCollisionPolicyEvaluation.WorstClassification) &&
+                schema[SemanticMetadata.ExtensionName] is JsonObject classificationMetadata)
+                classificationMetadata["valueConcepts"] = new JsonObject
+                {
+                    [nameof(AntiCollisionClassification.Normal)] = Concepts.AntiCollisionNormalClassification,
+                    [nameof(AntiCollisionClassification.Alert)] = Concepts.AntiCollisionAlertClassification,
+                    [nameof(AntiCollisionClassification.Alarm)] = Concepts.AntiCollisionAlarmClassification,
+                    [nameof(AntiCollisionClassification.Indeterminate)] = Concepts.AntiCollisionIndeterminateClassification
+                };
             properties[property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name] = schema;
         }
 
@@ -987,6 +1004,8 @@ internal static class TrajectoryMcpToolMetadata
             schema["maximum"] = declaringType == typeof(SurveyStationEllipseCalculation)
                 ? SurveyStationEllipseCalculation.MaximumConfidenceFactor
                 : GlobalAntiCollision.GlobalAntiCollision.MaximumConfidenceFactor;
+            if (declaringType == typeof(GlobalAntiCollision.GlobalAntiCollision))
+                schema["default"] = GlobalAntiCollision.GlobalAntiCollision.DefaultConfidenceFactor;
         }
         else if (property.Name.EndsWith("Count", StringComparison.Ordinal))
         {

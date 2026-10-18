@@ -45,11 +45,12 @@ public sealed class FieldAntiCollisionPolicyAssignmentController(AntiCollisionPo
     }
 
     [HttpGet("Effective/{fieldId}", Name = "GetEffectiveFieldAntiCollisionPolicyAssignment")]
-    public ActionResult<FieldAntiCollisionPolicyAssignment> GetEffective(Guid fieldId, [FromQuery] DateTimeOffset atUtc)
+    public ActionResult<FieldAntiCollisionPolicyAssignment> GetEffective(Guid fieldId, [FromQuery] DateTimeOffset? atUtc = null)
     {
         UsageStatisticsTrajectory.Instance.IncrementOperation("GetEffectiveFieldAntiCollisionPolicyAssignment");
-        if (fieldId == Guid.Empty || atUtc == default) return BadRequest(Error("invalid_query", "A Field UUID and UTC evaluation instant are required."));
-        FieldAntiCollisionPolicyAssignment? value = manager.GetEffectiveAssignment(fieldId, atUtc);
+        if (fieldId == Guid.Empty) return BadRequest(Error("invalid_query", "A non-empty Field UUID is required."));
+        DateTimeOffset evaluationUtc = atUtc ?? DateTimeOffset.UtcNow;
+        FieldAntiCollisionPolicyAssignment? value = manager.GetEffectiveAssignment(fieldId, evaluationUtc);
         return value != null ? Ok(value) : NotFound(Error("not_found", "No policy assignment is effective at that instant."));
     }
 

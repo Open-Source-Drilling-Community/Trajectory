@@ -423,6 +423,8 @@ public sealed class McpToolRegistrationTests
                 Does.Contain("ReferenceTrajectoryID"));
             Assert.That(searchRequest["properties"]!["ReferenceTrajectoryID"]!["not"]!["const"]!.GetValue<string>(),
                 Is.EqualTo(Guid.Empty.ToString()));
+            Assert.That(searchRequest["properties"]!["ReferenceTrajectoryID"]!["x-osdc-semantic"]!["resourceType"]!.GetValue<string>(),
+                Is.EqualTo(Concepts.Trajectory));
             Assert.That(searchRequest["not"]!["required"]!.AsArray().Select(value => value!.GetValue<string>()),
                 Is.EquivalentTo(new[] { "IncludePlanned", "IncludeActual" }));
             Assert.That(queueSearch.Description, Does.Contain("cannot both be false"));
@@ -436,6 +438,16 @@ public sealed class McpToolRegistrationTests
             Assert.That(searchResult.Description, Does.Contain("may contain false positives"));
             Assert.That(searchResult.Description, Does.Contain("only the separation-factor calculation determines"));
             Assert.That(searchResultDefinition["properties"]!["CandidateTrajectoryIDs"]!["uniqueItems"]!.GetValue<bool>(), Is.True);
+            Assert.That(searchResultDefinition["properties"]!["JobID"]!["x-osdc-semantic"]!["resourceType"]!.GetValue<string>(),
+                Is.EqualTo(Concepts.OctreeCandidateSearch));
+            Assert.That(searchResultDefinition["properties"]!["CandidateTrajectoryIDs"]!["items"]!["x-osdc-semantic"]!["resourceType"]!.GetValue<string>(),
+                Is.EqualTo(Concepts.Trajectory));
+            Assert.That(searchResultDefinition["properties"]!["CandidateTrajectoryIDs"]!["items"]!["x-osdc-semantic"]!["role"]!.GetValue<string>(),
+                Is.EqualTo(Concepts.ComparisonResource));
+            Assert.That(searchResultDefinition["x-osdc-semantic"]!["concept"]!.GetValue<string>(),
+                Is.EqualTo(Concepts.OctreeCandidateSearch));
+            Assert.That(searchStatus.InputSchema["properties"]!["jobId"]!["x-osdc-semantic"]!["resourceType"]!.GetValue<string>(),
+                Is.EqualTo(Concepts.OctreeCandidateSearch));
             Assert.That(deleteSearch.Description, Does.Contain("does not modify trajectory data"));
             Assert.That(deleteSearch.Behavior.DestructiveHint, Is.True);
             Assert.That(rebuild.Description, Does.Contain("automatically"));
@@ -456,14 +468,32 @@ public sealed class McpToolRegistrationTests
         JsonObject properties = definition["properties"]!.AsObject();
         JsonObject outputDefinition = get.OutputSchema["$defs"]!["GlobalAntiCollision"]!.AsObject();
         JsonObject resultDefinition = get.OutputSchema["$defs"]!["SeparationFactorResult"]!.AsObject();
+        JsonObject evaluationDefinition = get.OutputSchema["$defs"]!["AntiCollisionPolicyEvaluation"]!.AsObject();
 
         Assert.Multiple(() =>
         {
             Assert.That(definition["required"]!.AsArray().Select(value => value!.GetValue<string>()),
                 Is.EquivalentTo(new[] { "ID", "ConfidenceFactor", "ComparisonTrajectoryIDs" }));
             Assert.That(properties["ID"]!["minLength"]!.GetValue<int>(), Is.EqualTo(1));
+            Assert.That(properties["ID"]!["x-osdc-semantic"]!["resourceType"]!.GetValue<string>(),
+                Is.EqualTo(Concepts.GlobalAntiCollisionCalculation));
+            Assert.That(properties["ConfidenceFactor"]!["default"]!.GetValue<double>(),
+                Is.EqualTo(OSDC.Drilling.GlobalAntiCollision.GlobalAntiCollision.DefaultConfidenceFactor));
             Assert.That(properties["ComparisonTrajectoryIDs"]!["minItems"]!.GetValue<int>(), Is.EqualTo(1));
             Assert.That(properties["ComparisonTrajectoryIDs"]!["uniqueItems"]!.GetValue<bool>(), Is.True);
+            Assert.That(properties["ReferenceTrajectoryID"]!["x-osdc-semantic"]!["role"]!.GetValue<string>(),
+                Is.EqualTo(Concepts.ReferenceResource));
+            Assert.That(properties["ComparisonTrajectoryIDs"]!["items"]!["x-osdc-semantic"]!["role"]!.GetValue<string>(),
+                Is.EqualTo(Concepts.ComparisonResource));
+            Assert.That(properties["RequestedPolicyAssignmentID"]!["x-osdc-semantic"]!["resourceType"]!.GetValue<string>(),
+                Is.EqualTo(Concepts.FieldAntiCollisionPolicyAssignment));
+            Assert.That(properties["RequestedPolicyAssignmentID"]!["x-osdc-semantic"]!["requiredFor"]!.AsArray()
+                .Select(value=>value!.GetValue<string>()),Is.EquivalentTo(new[]
+                {
+                    Concepts.AntiCollisionPolicyEvaluation,
+                    Concepts.AntiCollisionPolicyEvaluationState,
+                    Concepts.AntiCollisionSafetyClassification
+                }));
             Assert.That(definition["oneOf"]!.AsArray(), Has.Count.EqualTo(2));
             Assert.That(properties.ContainsKey("CalculationState"), Is.False);
             Assert.That(properties.ContainsKey("CalculationProgress"), Is.False);
@@ -487,6 +517,14 @@ public sealed class McpToolRegistrationTests
             Assert.That(resultDefinition["properties"]!["ReferenceMDRange"]!["anyOf"]!.AsArray(), Has.Count.EqualTo(2));
             Assert.That(resultDefinition["properties"]!["SeparationFactorProfile"]!["description"]!.GetValue<string>(),
                 Does.Contain("non-contiguous"));
+            Assert.That(resultDefinition["x-osdc-semantic"]!["concept"]!.GetValue<string>(),
+                Is.EqualTo(Concepts.AntiCollisionComparisonResult));
+            Assert.That(evaluationDefinition["x-osdc-semantic"]!["concept"]!.GetValue<string>(),
+                Is.EqualTo(Concepts.AntiCollisionPolicyEvaluation));
+            Assert.That(evaluationDefinition["properties"]!["WorstClassification"]!["x-osdc-semantic"]!["valueConcepts"]!["Alarm"]!.GetValue<string>(),
+                Is.EqualTo(Concepts.AntiCollisionAlarmClassification));
+            Assert.That(evaluationDefinition["properties"]!["State"]!["x-osdc-semantic"]!["valueConcepts"]!["Indeterminate"]!.GetValue<string>(),
+                Is.EqualTo(Concepts.AntiCollisionPolicyIndeterminateState));
             Assert.That(create.Description, Does.Contain("returns immediately"));
             Assert.That(create.Description, Does.Contain("relevant measured-depth intervals"));
             Assert.That(create.Description, Does.Contain("RequestedPolicyAssignmentID").And.Contain("no policy classification"));
@@ -681,6 +719,10 @@ public sealed class McpToolRegistrationTests
         TrajectoryMcpEndpoint interpolationChunk = TrajectoryRestMcpToolRegistrations.Endpoints.Single(value =>
             value.ControllerType.Name == "InterpolatedTrajectoryController" &&
             value.Method.Name == "GetSurveyStationChunk");
+        TrajectoryMcpEndpoint octreeSubmit = Endpoint("octrees_queue_search");
+        TrajectoryMcpEndpoint octreeStatus = Endpoint("octrees_get_search_status");
+        TrajectoryMcpEndpoint octreeResult = Endpoint("octrees_get_search_result");
+        TrajectoryMcpEndpoint octreeDelete = Endpoint("octrees_delete_search");
 
         Assert.Multiple(() =>
         {
@@ -690,6 +732,10 @@ public sealed class McpToolRegistrationTests
             AssertSemantic(ellipsePost, Concepts.SurveyStationEllipseCalculation, Concepts.ImmediateCalculationSubmission);
             AssertSemantic(interpolationPost, Concepts.InterpolatedTrajectory, Concepts.QueuedCalculationSubmission);
             AssertSemantic(interpolationChunk, Concepts.InterpolatedTrajectory, Concepts.CalculationResultChunkRetrieval);
+            AssertSemantic(octreeSubmit, Concepts.OctreeCandidateSearch, Concepts.QueuedCalculationSubmission);
+            AssertSemantic(octreeStatus, Concepts.OctreeCandidateSearch, Concepts.CalculationStatusRetrieval);
+            AssertSemantic(octreeResult, Concepts.OctreeCandidateSearch, Concepts.CalculationResultRetrieval);
+            AssertSemantic(octreeDelete, Concepts.OctreeCandidateSearch, Concepts.CalculationCaseDeletion);
         });
     }
 
@@ -706,7 +752,7 @@ public sealed class McpToolRegistrationTests
     private static void AssertSemantic(TrajectoryMcpEndpoint endpoint, string concept, string role)
     {
         JsonObject semantic = endpoint.InputSchema["x-osdc-semantic"]!.AsObject();
-        Assert.That(semantic["catalogueVersion"]!.GetValue<string>(), Is.EqualTo("0.20.0"), endpoint.Name);
+        Assert.That(semantic["catalogueVersion"]!.GetValue<string>(), Is.EqualTo("0.21.0"), endpoint.Name);
         Assert.That(semantic["concept"]!.GetValue<string>(), Is.EqualTo(concept), endpoint.Name);
         Assert.That(semantic["role"]!.GetValue<string>(), Is.EqualTo(role), endpoint.Name);
     }
