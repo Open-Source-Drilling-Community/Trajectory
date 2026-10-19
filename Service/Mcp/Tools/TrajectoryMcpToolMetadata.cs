@@ -803,14 +803,6 @@ internal static class TrajectoryMcpToolMetadata
                     [nameof(TrajectoryAggregationSectionType.ConstantBuildAndTurn)] = Concepts.ConstantBuildTurnSection,
                     [nameof(TrajectoryAggregationSectionType.ConstantCurvatureAndToolface)] = Concepts.ConstantCurvatureToolfaceSection
                 };
-            if (type == typeof(ReconnectTrajectoryExtrapolationSpecification) && property.Name == nameof(ReconnectTrajectoryExtrapolationSpecification.CurveType) &&
-                schema[SemanticMetadata.ExtensionName] is JsonObject reconnectCurveMetadata)
-                reconnectCurveMetadata["valueConcepts"] = new JsonObject
-                {
-                    [nameof(ExtrapolationCurveType.CircularArc)] = Concepts.CircularArcSection,
-                    [nameof(ExtrapolationCurveType.ConstantBuildAndTurn)] = Concepts.ConstantBuildTurnSection,
-                    [nameof(ExtrapolationCurveType.ConstantCurvatureAndToolface)] = Concepts.ConstantCurvatureToolfaceSection
-                };
             if (type == typeof(TrajectoryExtrapolationCase) && property.Name == nameof(TrajectoryExtrapolationCase.Mode) &&
                 schema[SemanticMetadata.ExtensionName] is JsonObject extrapolationModeMetadata)
                 extrapolationModeMetadata["valueConcepts"] = new JsonObject
@@ -819,22 +811,6 @@ internal static class TrajectoryMcpToolMetadata
                     [nameof(TrajectoryExtrapolationMode.ReconnectToTrajectory)] = Concepts.ReconnectTrajectoryExtrapolation,
                     [nameof(TrajectoryExtrapolationMode.WellPath)] = Concepts.WellPathTrajectoryExtrapolation,
                     [nameof(TrajectoryExtrapolationMode.Geosteering)] = Concepts.GeosteeringTrajectoryExtrapolation
-                };
-            if (type == typeof(TrajectoryExtrapolationSolvedSection) && property.Name == nameof(TrajectoryExtrapolationSolvedSection.CurveType) &&
-                schema[SemanticMetadata.ExtensionName] is JsonObject solvedCurveMetadata)
-                solvedCurveMetadata["valueConcepts"] = new JsonObject
-                {
-                    [nameof(ExtrapolationCurveType.CircularArc)] = Concepts.CircularArcSection,
-                    [nameof(ExtrapolationCurveType.ConstantBuildAndTurn)] = Concepts.ConstantBuildTurnSection,
-                    [nameof(ExtrapolationCurveType.ConstantCurvatureAndToolface)] = Concepts.ConstantCurvatureToolfaceSection
-                };
-            if (type == typeof(TrajectoryExtrapolationSolvedSection) && property.Name == nameof(TrajectoryExtrapolationSolvedSection.Role) &&
-                schema[SemanticMetadata.ExtensionName] is JsonObject solvedRoleMetadata)
-                solvedRoleMetadata["valueConcepts"] = new JsonObject
-                {
-                    [nameof(TrajectoryExtrapolationSectionRole.LeadInContinuation)] = Concepts.LeadInLength,
-                    [nameof(TrajectoryExtrapolationSectionRole.UpstreamSteeringSection)] = Concepts.Upstream,
-                    [nameof(TrajectoryExtrapolationSectionRole.DownstreamSteeringSection)] = Concepts.Downstream
                 };
             properties[property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name] = schema;
         }

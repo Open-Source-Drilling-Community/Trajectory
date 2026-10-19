@@ -619,10 +619,10 @@ public sealed class McpToolRegistrationTests
                 Is.EqualTo("complete"));
             Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.SectionIndex)]![SemanticMetadata.ExtensionName]!["role"]!.ToString(),
                 Is.EqualTo(Concepts.SequencePosition));
-            Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.Role)]![SemanticMetadata.ExtensionName]!["valueConcepts"]![nameof(TrajectoryExtrapolationSectionRole.UpstreamSteeringSection)]!.ToString(),
-                Is.EqualTo(Concepts.Upstream));
-            Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.CurveType)]![SemanticMetadata.ExtensionName]!["valueConcepts"]![nameof(ExtrapolationCurveType.ConstantCurvatureAndToolface)]!.ToString(),
-                Is.EqualTo(Concepts.ConstantCurvatureToolfaceSection));
+            Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.Role)]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),
+                Is.EqualTo(Concepts.SolvedTrajectorySection));
+            Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.CurveType)]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),
+                Is.EqualTo(Concepts.TrajectoryCalculationMethod));
             Assert.That(geosteering["properties"]!["LeadInLength"]!["minimum"]!.GetValue<double>(), Is.Zero);
             Assert.That(geosteering["properties"]!["EndInclination"]!["maximum"]!.GetValue<double>(), Is.EqualTo(Math.PI).Within(1e-12));
             Assert.That(departure["properties"]!["DepartureDistance"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
@@ -878,6 +878,14 @@ public sealed class McpToolRegistrationTests
                 if(obj[SemanticMetadata.ExtensionName] is JsonObject metadata)
                 {
                     Assert.That(SemanticCatalogue.Default.Get(metadata["concept"]!.ToString()).Kind,Is.EqualTo(SemanticKind.Noun));
+                    if(metadata["valueConcepts"] is JsonObject valueConcepts)
+                        foreach(var valueConcept in valueConcepts)
+                        {
+                            Assert.That(SemanticCatalogue.Default.Get(valueConcept.Value!.ToString()).Kind,
+                                Is.EqualTo(SemanticKind.Noun));
+                            Assert.That(SemanticCatalogue.Default.IsA(valueConcept.Value!.ToString(),metadata["concept"]!.ToString()),
+                                Is.True,$"{valueConcept.Key} must specialize {metadata["concept"]}");
+                        }
                     if(metadata["role"] is {} role)Assert.That(SemanticCatalogue.Default.Get(role.ToString()).Kind,Is.EqualTo(SemanticKind.Role));
                     if(metadata["reference"] is {} reference)Assert.That(SemanticCatalogue.Default.Get(reference.ToString()).Kind,Is.EqualTo(SemanticKind.Reference));
                     if(metadata["resourceType"] is {} resource)Assert.That(SemanticCatalogue.Default.Get(resource.ToString()).Kind,Is.EqualTo(SemanticKind.Noun));
