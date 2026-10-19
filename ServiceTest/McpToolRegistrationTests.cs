@@ -740,6 +740,38 @@ public sealed class McpToolRegistrationTests
     }
 
     [Test]
+    public void Aggregation_contract_exposes_scalar_tolerances_and_complete_ordered_sections()
+    {
+        TrajectoryMcpEndpoint submit = Endpoint("trajectory_aggregation_case_post_trajectory_aggregation_case");
+        JsonObject caseDefinition = submit.InputSchema["$defs"]![nameof(TrajectoryAggregationCase)]!.AsObject();
+        JsonObject caseProperties = caseDefinition["properties"]!.AsObject();
+
+        TrajectoryMcpEndpoint result = Endpoint("trajectory_aggregation_case_get_trajectory_aggregation_by_case_and_trajectory_id");
+        JsonObject aggregation = result.OutputSchema["$defs"]![nameof(TrajectoryAggregation)]!.AsObject();
+        JsonObject aggregationProperties = aggregation["properties"]!.AsObject();
+        JsonObject section = result.OutputSchema["$defs"]![nameof(TrajectoryAggregationSection)]!.AsObject();
+        JsonObject sectionProperties = section["properties"]!.AsObject();
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(caseProperties[nameof(TrajectoryAggregationCase.EpsilonL)]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),
+                Is.EqualTo(Concepts.TrajectoryAggregationCentreCoordinateConstancyTolerance));
+            Assert.That(caseProperties[nameof(TrajectoryAggregationCase.EpsilonL)]![SemanticMetadata.ExtensionName]!["siUnit"]!.ToString(), Is.EqualTo("m"));
+            Assert.That(caseProperties[nameof(TrajectoryAggregationCase.EpsilonKappa)]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),
+                Is.EqualTo(Concepts.TrajectoryAggregationCurvatureConstancyTolerance));
+            Assert.That(caseProperties[nameof(TrajectoryAggregationCase.EpsilonKappa)]![SemanticMetadata.ExtensionName]!["siUnit"]!.ToString(), Is.EqualTo("rad/m"));
+            Assert.That(aggregationProperties[nameof(TrajectoryAggregation.SectionCount)]![SemanticMetadata.ExtensionName]!["role"]!.ToString(),
+                Is.EqualTo(Concepts.ExactCollectionCardinality));
+            Assert.That(aggregationProperties[nameof(TrajectoryAggregation.SectionList)]![SemanticMetadata.ExtensionName]!["collectionCompleteness"]!.ToString(),
+                Is.EqualTo("complete"));
+            Assert.That(sectionProperties[nameof(TrajectoryAggregationSection.SectionIndex)]![SemanticMetadata.ExtensionName]!["role"]!.ToString(),
+                Is.EqualTo(Concepts.SequencePosition));
+            Assert.That(sectionProperties[nameof(TrajectoryAggregationSection.SectionType)]![SemanticMetadata.ExtensionName]!["valueConcepts"]![nameof(TrajectoryAggregationSectionType.ConstantCurvatureAndToolface)]!.ToString(),
+                Is.EqualTo(Concepts.ConstantCurvatureToolfaceSection));
+        });
+    }
+
+    [Test]
     public void Resource_tools_publish_generic_operation_roles()
     {
         AssertSemantic(Endpoint("trajectory_get_all_trajectory_id"), Concepts.Trajectory, Concepts.ResourceCollectionRetrieval);
@@ -752,7 +784,7 @@ public sealed class McpToolRegistrationTests
     private static void AssertSemantic(TrajectoryMcpEndpoint endpoint, string concept, string role)
     {
         JsonObject semantic = endpoint.InputSchema["x-osdc-semantic"]!.AsObject();
-        Assert.That(semantic["catalogueVersion"]!.GetValue<string>(), Is.EqualTo("0.21.0"), endpoint.Name);
+        Assert.That(semantic["catalogueVersion"]!.GetValue<string>(), Is.EqualTo("0.22.0"), endpoint.Name);
         Assert.That(semantic["concept"]!.GetValue<string>(), Is.EqualTo(concept), endpoint.Name);
         Assert.That(semantic["role"]!.GetValue<string>(), Is.EqualTo(role), endpoint.Name);
     }

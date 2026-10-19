@@ -44,6 +44,9 @@ internal static class TrajectoryProviderSemantics
             ["GeodeticLongitude"] = (Concepts.Longitude, null, Concepts.Wgs84),
             ["CalculationMessage"] = (Concepts.CalculationDiagnosticMessage, null, null),
             ["TrajectoryAggregationCaseLight"] = (Concepts.TrajectoryAggregationCase, Concepts.CalculationStatusProjection, null),
+            ["TrajectoryAggregationCase"] = (Concepts.TrajectoryAggregationCase, null, null),
+            ["TrajectoryAggregation"] = (Concepts.TrajectoryAggregation, Concepts.ServerDerivedCalculationResult, null),
+            ["TrajectoryAggregationSection"] = (Concepts.AggregatedTrajectorySection, Concepts.ServerDerivedCalculationResult, null),
             ["TrajectoryRealizationCaseLight"] = (Concepts.TrajectoryRealizationCase, Concepts.CalculationStatusProjection, null),
             ["TrajectoryExtrapolationCaseLight"] = (Concepts.TrajectoryExtrapolationCase, Concepts.CalculationStatusProjection, null),
             ["TargetLandingCaseLight"] = (Concepts.TargetLandingCase, Concepts.CalculationStatusProjection, null),
@@ -104,14 +107,54 @@ internal static class TrajectoryProviderSemantics
     public static JsonObject? ForType(Type type) =>
         typeof(TrajectoryLight).IsAssignableFrom(type) ? Metadata(Concepts.Trajectory, null, null) :
         typeof(SurveyRunLight).IsAssignableFrom(type) ? Metadata(Concepts.SurveyRun, null, null) :
+        type == typeof(TrajectoryAggregation) ? Metadata(Concepts.TrajectoryAggregation, Concepts.ServerDerivedCalculationResult, null) :
+        type == typeof(TrajectoryAggregationSection) ? CompleteOrderedSectionCollection() :
         type == typeof(TrajectoryCalculationType) ? Metadata(Concepts.TrajectoryCalculationMethod, null, null) :
         SemanticMetadata.For(type) ?? For(type.Name);
+
+    private static JsonObject CompleteOrderedSectionCollection()
+    {
+        JsonObject result=Metadata(Concepts.AggregatedTrajectorySection,Concepts.ServerDerivedCalculationResult,null);
+        result["collectionCompleteness"]="complete";
+        result["orderedBy"]=nameof(TrajectoryAggregationSection.SectionIndex);
+        return result;
+    }
 
     public static JsonObject? ForProperty(PropertyInfo property)
     {
         // ReflectedType retains the actual survey context for inherited X/Y/Z/Abscissa.
         // The same CLR names on an arbitrary vector or curvilinear object do not establish a datum.
         Type? owner = property.ReflectedType ?? property.DeclaringType;
+        if (owner is not null && typeof(TrajectoryAggregationCaseLight).IsAssignableFrom(owner))
+        {
+            if (property.Name == nameof(TrajectoryAggregationCaseLight.EpsilonL))
+                return Metadata(Concepts.TrajectoryAggregationCentreCoordinateConstancyTolerance, Concepts.CalculationInput, null);
+            if (property.Name == nameof(TrajectoryAggregationCaseLight.EpsilonKappa))
+                return Metadata(Concepts.TrajectoryAggregationCurvatureConstancyTolerance, Concepts.CalculationInput, null);
+        }
+        if (owner == typeof(TrajectoryAggregation))
+        {
+            if (property.Name == nameof(TrajectoryAggregation.SectionCount))
+                return Metadata(Concepts.AggregatedTrajectorySection, Concepts.ExactCollectionCardinality, null);
+            if (property.Name == nameof(TrajectoryAggregation.SectionList))
+            {
+                JsonObject result = Metadata(Concepts.AggregatedTrajectorySection, Concepts.ServerDerivedCalculationResult, null);
+                result["collectionCompleteness"] = "complete";
+                result["orderedBy"] = nameof(TrajectoryAggregationSection.SectionIndex);
+                return result;
+            }
+        }
+        if (owner == typeof(TrajectoryAggregationSection))
+        {
+            if (property.Name == nameof(TrajectoryAggregationSection.SectionIndex))
+            {
+                JsonObject result = Metadata(Concepts.AggregatedTrajectorySection, Concepts.SequencePosition, null);
+                result["ordinalBase"] = 0;
+                return result;
+            }
+            if (property.Name == nameof(TrajectoryAggregationSection.SectionType))
+                return Metadata(Concepts.AggregatedTrajectorySection, null, null);
+        }
         if (owner != null && typeof(Point3DGlobalCoordinates).IsAssignableFrom(owner))
         {
             var binding = property.Name switch
@@ -259,6 +302,24 @@ internal static class TrajectoryProviderSemantics
 
     public static string? PropertyDescription(Type owner, string name)
     {
+        if (typeof(TrajectoryAggregationCaseLight).IsAssignableFrom(owner)) return name switch
+        {
+            nameof(TrajectoryAggregationCaseLight.EpsilonL) => "SI metres. Constancy tolerance applied independently to smoothed osculating-circle centre coordinate series during section classification; not a final position-error bound.",
+            nameof(TrajectoryAggregationCaseLight.EpsilonKappa) => "SI radians per metre. Constancy tolerance applied to smoothed curvature, build-rate and turn-rate series during section classification; not a final position-error bound.",
+            _ => null
+        };
+        if (owner == typeof(TrajectoryAggregation)) return name switch
+        {
+            nameof(TrajectoryAggregation.SectionCount) => "Exact number of elements in the complete SectionList for this aggregation result.",
+            nameof(TrajectoryAggregation.SectionList) => "Complete ordered list of aggregation sections, in ascending zero-based SectionIndex order.",
+            _ => null
+        };
+        if (owner == typeof(TrajectoryAggregationSection)) return name switch
+        {
+            nameof(TrajectoryAggregationSection.SectionIndex) => "Zero-based position in the complete ordered aggregation section list.",
+            nameof(TrajectoryAggregationSection.SectionType) => "Finite drilling-curve type used by this aggregation section.",
+            _ => null
+        };
         if(owner==typeof(VerticalSurveyUncertaintyEllipse))return name switch {
             "MajorAxis"=>"Full major-axis diameter, twice the shared uncertainty ellipse semi-major axis, in SI metres.",
             "MinorAxis"=>"Full minor-axis diameter, twice the shared uncertainty ellipse semi-minor axis, in SI metres.",

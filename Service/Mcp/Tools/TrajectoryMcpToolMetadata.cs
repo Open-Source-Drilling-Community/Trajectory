@@ -747,6 +747,14 @@ internal static class TrajectoryMcpToolMetadata
                     [nameof(AntiCollisionClassification.Alarm)] = Concepts.AntiCollisionAlarmClassification,
                     [nameof(AntiCollisionClassification.Indeterminate)] = Concepts.AntiCollisionIndeterminateClassification
                 };
+            if (type == typeof(TrajectoryAggregationSection) && property.Name == nameof(TrajectoryAggregationSection.SectionType) &&
+                schema[SemanticMetadata.ExtensionName] is JsonObject sectionTypeMetadata)
+                sectionTypeMetadata["valueConcepts"] = new JsonObject
+                {
+                    [nameof(TrajectoryAggregationSectionType.CircularArc)] = Concepts.CircularArcSection,
+                    [nameof(TrajectoryAggregationSectionType.ConstantBuildAndTurn)] = Concepts.ConstantBuildTurnSection,
+                    [nameof(TrajectoryAggregationSectionType.ConstantCurvatureAndToolface)] = Concepts.ConstantCurvatureToolfaceSection
+                };
             properties[property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name] = schema;
         }
 
