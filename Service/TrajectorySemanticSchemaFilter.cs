@@ -46,6 +46,8 @@ internal sealed class TrajectorySemanticSchemaFilter : ISchemaFilter
                 Id = typeof(TrajectoryExtrapolationSpecification).FullName,
                 Type = ReferenceType.Schema
             };
+            if (schema.Properties.TryGetValue(nameof(TrajectoryExtrapolationCase.InterpolationInterval), out OpenApiSchema? interval))
+                interval.Default = new OpenApiDouble(TrajectoryExtrapolationCase.DefaultInterpolationInterval);
         }
 
         if (context.Type == typeof(WellPathExtrapolationSpecification) &&

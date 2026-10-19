@@ -613,6 +613,8 @@ public sealed class McpToolRegistrationTests
                 Is.EqualTo(Concepts.LeadInLength));
             Assert.That(properties[nameof(TrajectoryExtrapolationCase.Mode)]![SemanticMetadata.ExtensionName]!["valueConcepts"]![nameof(TrajectoryExtrapolationMode.ReconnectToTrajectory)]!.ToString(),
                 Is.EqualTo(Concepts.ReconnectTrajectoryExtrapolation));
+            Assert.That(properties[nameof(TrajectoryExtrapolationCase.InterpolationInterval)]!["default"]!.GetValue<double>(),
+                Is.EqualTo(TrajectoryExtrapolationCase.DefaultInterpolationInterval));
             Assert.That(definitions[nameof(MetaInfo)]!["properties"]![nameof(MetaInfo.ID)]![SemanticMetadata.ExtensionName]!["resourceType"]!.ToString(),
                 Is.EqualTo(Concepts.TrajectoryExtrapolationCase));
             Assert.That(resultCase["properties"]![nameof(TrajectoryExtrapolationCase.SolvedSectionList)]![SemanticMetadata.ExtensionName]!["collectionCompleteness"]!.ToString(),

@@ -373,6 +373,8 @@ internal static class TrajectoryMcpToolMetadata
                 nameof(TrajectoryExtrapolationCase.InterpolationInterval),
                 nameof(TrajectoryExtrapolationCase.Specification));
             extrapolation["description"] = "Closed submission for an asynchronous trajectory extrapolation. The server derives timestamps, source/target snapshots, solved sections, calculation state and sampled stations.";
+            if (extrapolationProperties[nameof(TrajectoryExtrapolationCase.InterpolationInterval)] is JsonObject interpolationInterval)
+                interpolationInterval["default"] = TrajectoryExtrapolationCase.DefaultInterpolationInterval;
             if (extrapolationMetaInfoProperties[nameof(MetaInfo.ID)] is JsonObject id)
                 TrajectoryProviderSemantics.AttachMcpPropertyMetadata(id,
                     TrajectoryProviderSemantics.IdentifierForResource(Concepts.TrajectoryExtrapolationCase), typeof(Guid));
