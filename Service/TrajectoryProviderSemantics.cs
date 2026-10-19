@@ -134,6 +134,8 @@ internal static class TrajectoryProviderSemantics
         }
         if (owner == typeof(TrajectoryAggregation))
         {
+            if (property.Name == nameof(TrajectoryAggregation.TrajectoryID))
+                return Identifier(Concepts.Trajectory, Concepts.ReferenceResource);
             if (property.Name == nameof(TrajectoryAggregation.SectionCount))
                 return Metadata(Concepts.AggregatedTrajectorySection, Concepts.ExactCollectionCardinality, null);
             if (property.Name == nameof(TrajectoryAggregation.SectionList))
@@ -227,6 +229,11 @@ internal static class TrajectoryProviderSemantics
 
     public static JsonObject? ForParameter(string controller, ParameterInfo parameter)
     {
+        if (controller == "TrajectoryAggregationCase")
+        {
+            if (parameter.Name == "caseId") return Identifier(Concepts.TrajectoryAggregationCase);
+            if (parameter.Name == "trajectoryId") return Identifier(Concepts.Trajectory, Concepts.ReferenceResource);
+        }
         if (controller == "Octrees")
         {
             if (parameter.Name == "jobId") return Identifier(Concepts.OctreeCandidateSearch);
@@ -357,6 +364,13 @@ internal static class TrajectoryProviderSemantics
         }
         if (controller == "UncertaintyEnvelope" && method.Name == "Evaluate")
             return Metadata(Concepts.CircularlyDilatedUncertaintyEnvelope, Concepts.CircularUncertaintyEnvelopeDilation, null);
+        if (controller == "TrajectoryAggregationCase")
+        {
+            if (method.Name == "GetTrajectoryAggregationCaseById")
+                return Metadata(Concepts.TrajectoryAggregationCase, Concepts.CalculationStatusRetrieval, null);
+            if (method.Name == "GetTrajectoryAggregationByCaseAndTrajectoryId")
+                return Metadata(Concepts.TrajectoryAggregationCase, Concepts.CalculationResultRetrieval, null);
+        }
         if (!CalculationConceptsByController.TryGetValue(controller, out string? concept))
         {
             if (ResourceForController(controller) is not { } resource) return null;

@@ -8827,7 +8827,7 @@
             "owning service",
             "resource type"
           ],
-          "role": "urn:osdc:semantic:calculation-case-retrieval"
+          "role": "urn:osdc:semantic:calculation-status-retrieval"
         }
       },
       "put": {
@@ -9049,7 +9049,31 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.22.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:trajectory-aggregation-case"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:trajectory-aggregation-case"
             }
           },
           {
@@ -9069,6 +9093,7 @@
                   "identified object type",
                   "owning service or containing resource"
                 ],
+                "role": "urn:osdc:semantic:reference-resource",
                 "resourceType": "urn:osdc:semantic:wellbore-trajectory"
               }
             },
@@ -9082,6 +9107,7 @@
                 "identified object type",
                 "owning service or containing resource"
               ],
+              "role": "urn:osdc:semantic:reference-resource",
               "resourceType": "urn:osdc:semantic:wellbore-trajectory"
             }
           },
@@ -9116,7 +9142,7 @@
             "owning service",
             "resource type"
           ],
-          "role": "urn:osdc:semantic:calculation-case-retrieval"
+          "role": "urn:osdc:semantic:calculation-result-retrieval"
         }
       }
     },
@@ -9133,7 +9159,31 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.22.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:trajectory-aggregation-case"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:trajectory-aggregation-case"
             }
           },
           {
@@ -9153,6 +9203,7 @@
                   "identified object type",
                   "owning service or containing resource"
                 ],
+                "role": "urn:osdc:semantic:reference-resource",
                 "resourceType": "urn:osdc:semantic:wellbore-trajectory"
               }
             },
@@ -9166,6 +9217,7 @@
                 "identified object type",
                 "owning service or containing resource"
               ],
+              "role": "urn:osdc:semantic:reference-resource",
               "resourceType": "urn:osdc:semantic:wellbore-trajectory"
             }
           }
@@ -9210,7 +9262,31 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.22.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:trajectory-aggregation-case"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:trajectory-aggregation-case"
             }
           },
           {
@@ -9230,6 +9306,7 @@
                   "identified object type",
                   "owning service or containing resource"
                 ],
+                "role": "urn:osdc:semantic:reference-resource",
                 "resourceType": "urn:osdc:semantic:wellbore-trajectory"
               }
             },
@@ -9243,6 +9320,7 @@
                 "identified object type",
                 "owning service or containing resource"
               ],
+              "role": "urn:osdc:semantic:reference-resource",
               "resourceType": "urn:osdc:semantic:wellbore-trajectory"
             }
           },
@@ -9295,7 +9373,31 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.22.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:trajectory-aggregation-case"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:trajectory-aggregation-case"
             }
           },
           {
@@ -9315,6 +9417,7 @@
                   "identified object type",
                   "owning service or containing resource"
                 ],
+                "role": "urn:osdc:semantic:reference-resource",
                 "resourceType": "urn:osdc:semantic:wellbore-trajectory"
               }
             },
@@ -9328,6 +9431,7 @@
                 "identified object type",
                 "owning service or containing resource"
               ],
+              "role": "urn:osdc:semantic:reference-resource",
               "resourceType": "urn:osdc:semantic:wellbore-trajectory"
             }
           }
@@ -9372,7 +9476,31 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.22.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:trajectory-aggregation-case"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:trajectory-aggregation-case"
             }
           },
           {
@@ -9392,6 +9520,7 @@
                   "identified object type",
                   "owning service or containing resource"
                 ],
+                "role": "urn:osdc:semantic:reference-resource",
                 "resourceType": "urn:osdc:semantic:wellbore-trajectory"
               }
             },
@@ -9405,6 +9534,7 @@
                 "identified object type",
                 "owning service or containing resource"
               ],
+              "role": "urn:osdc:semantic:reference-resource",
               "resourceType": "urn:osdc:semantic:wellbore-trajectory"
             }
           },
@@ -9457,7 +9587,31 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.22.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:trajectory-aggregation-case"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:trajectory-aggregation-case"
             }
           },
           {
@@ -9477,6 +9631,7 @@
                   "identified object type",
                   "owning service or containing resource"
                 ],
+                "role": "urn:osdc:semantic:reference-resource",
                 "resourceType": "urn:osdc:semantic:wellbore-trajectory"
               }
             },
@@ -9490,6 +9645,7 @@
                 "identified object type",
                 "owning service or containing resource"
               ],
+              "role": "urn:osdc:semantic:reference-resource",
               "resourceType": "urn:osdc:semantic:wellbore-trajectory"
             }
           }
@@ -9534,7 +9690,31 @@
             "required": true,
             "schema": {
               "type": "string",
-              "format": "uuid"
+              "format": "uuid",
+              "x-osdc-semantic": {
+                "catalogue": "urn:osdc:semantic-catalogue",
+                "catalogueVersion": "0.22.0",
+                "concept": "urn:osdc:semantic:resource-identifier",
+                "curationStatus": "Reviewed",
+                "assertionSource": "provider-binding-registry",
+                "requiredContext": [
+                  "identified object type",
+                  "owning service or containing resource"
+                ],
+                "resourceType": "urn:osdc:semantic:trajectory-aggregation-case"
+              }
+            },
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:resource-identifier",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "identified object type",
+                "owning service or containing resource"
+              ],
+              "resourceType": "urn:osdc:semantic:trajectory-aggregation-case"
             }
           },
           {
@@ -9554,6 +9734,7 @@
                   "identified object type",
                   "owning service or containing resource"
                 ],
+                "role": "urn:osdc:semantic:reference-resource",
                 "resourceType": "urn:osdc:semantic:wellbore-trajectory"
               }
             },
@@ -9567,6 +9748,7 @@
                 "identified object type",
                 "owning service or containing resource"
               ],
+              "role": "urn:osdc:semantic:reference-resource",
               "resourceType": "urn:osdc:semantic:wellbore-trajectory"
             }
           },
@@ -24171,6 +24353,7 @@
                 "identified object type",
                 "owning service or containing resource"
               ],
+              "role": "urn:osdc:semantic:reference-resource",
               "resourceType": "urn:osdc:semantic:wellbore-trajectory"
             }
           },
@@ -25089,7 +25272,9 @@
             "section order",
             "curve type"
           ],
-          "role": "urn:osdc:semantic:server-derived-calculation-result"
+          "role": "urn:osdc:semantic:server-derived-calculation-result",
+          "collectionCompleteness": "complete",
+          "orderedBy": "SectionIndex"
         }
       },
       "OSDC.Drilling.Trajectory.Model.TrajectoryAggregationSectionType": {

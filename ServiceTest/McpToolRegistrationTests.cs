@@ -2,6 +2,7 @@ using System.Text.Json.Nodes;
 using Microsoft.Extensions.DependencyInjection;
 using ModelContextProtocol.Server;
 using OSDC.DotnetLibraries.Drilling.SemanticCatalogue;
+using OSDC.DotnetLibraries.General.DataManagement;
 using OSDC.Drilling.Trajectory.Model;
 using OSDC.Drilling.Trajectory.Service.Mcp;
 using OSDC.Drilling.Trajectory.Service.Mcp.Tools;
@@ -747,6 +748,7 @@ public sealed class McpToolRegistrationTests
         JsonObject caseProperties = caseDefinition["properties"]!.AsObject();
 
         TrajectoryMcpEndpoint result = Endpoint("trajectory_aggregation_case_get_trajectory_aggregation_by_case_and_trajectory_id");
+        TrajectoryMcpEndpoint status = Endpoint("trajectory_aggregation_case_get_trajectory_aggregation_case_by_id");
         JsonObject aggregation = result.OutputSchema["$defs"]![nameof(TrajectoryAggregation)]!.AsObject();
         JsonObject aggregationProperties = aggregation["properties"]!.AsObject();
         JsonObject section = result.OutputSchema["$defs"]![nameof(TrajectoryAggregationSection)]!.AsObject();
@@ -768,6 +770,14 @@ public sealed class McpToolRegistrationTests
                 Is.EqualTo(Concepts.SequencePosition));
             Assert.That(sectionProperties[nameof(TrajectoryAggregationSection.SectionType)]![SemanticMetadata.ExtensionName]!["valueConcepts"]![nameof(TrajectoryAggregationSectionType.ConstantCurvatureAndToolface)]!.ToString(),
                 Is.EqualTo(Concepts.ConstantCurvatureToolfaceSection));
+            AssertSemantic(status, Concepts.TrajectoryAggregationCase, Concepts.CalculationStatusRetrieval);
+            AssertSemantic(result, Concepts.TrajectoryAggregationCase, Concepts.CalculationResultRetrieval);
+            Assert.That(caseDefinition["required"]!.AsArray().Select(value => value!.ToString()),
+                Does.Contain(nameof(TrajectoryAggregationCase.TrajectoryAggregationList)));
+            Assert.That(submit.InputSchema["$defs"]![nameof(MetaInfo)]!["properties"]![nameof(MetaInfo.ID)]!
+                [SemanticMetadata.ExtensionName]!["resourceType"]!.ToString(), Is.EqualTo(Concepts.TrajectoryAggregationCase));
+            Assert.That(caseProperties[nameof(TrajectoryAggregationCase.TrajectoryAggregationList)]!["anyOf"]!.AsArray()
+                .OfType<JsonObject>().Single(value => value["type"]?.ToString() == "array")["minItems"]!.GetValue<int>(), Is.EqualTo(1));
         });
     }
 

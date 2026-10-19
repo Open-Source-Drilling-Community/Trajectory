@@ -6,6 +6,7 @@ using Microsoft.AspNetCore.Mvc;
 using OSDC.Drilling.GlobalAntiCollision;
 using OSDC.Drilling.Trajectory.Model;
 using OSDC.DotnetLibraries.Drilling.SemanticCatalogue;
+using OSDC.DotnetLibraries.General.DataManagement;
 
 namespace OSDC.Drilling.Trajectory.Service.Mcp.Tools;
 
@@ -260,6 +261,47 @@ internal static class TrajectoryMcpToolMetadata
 
     private static void ApplyInputOperationConstraints(string controller, string action, JsonObject definitions)
     {
+        if (controller == "TrajectoryAggregationCase" && action == "PostTrajectoryAggregationCase" &&
+            definitions[nameof(TrajectoryAggregationCase)] is JsonObject aggregationCase &&
+            aggregationCase["properties"] is JsonObject aggregationCaseProperties &&
+            definitions[nameof(TrajectoryAggregation)] is JsonObject aggregation &&
+            aggregation["properties"] is JsonObject aggregationProperties &&
+            definitions[nameof(MetaInfo)] is JsonObject metaInfo &&
+            metaInfo["properties"] is JsonObject metaInfoProperties)
+        {
+            // Publish the calculation request as a closed, constructible submission.
+            // The case UUID is client generated and therefore acts as the lifecycle
+            // correlation token even though the legacy POST response has no body.
+            string[] serverDerived =
+            [
+                nameof(TrajectoryAggregationCase.CreationDate),
+                nameof(TrajectoryAggregationCase.LastModificationDate),
+                nameof(TrajectoryAggregationCase.CalculationState),
+                nameof(TrajectoryAggregationCase.CalculationProgress),
+                nameof(TrajectoryAggregationCase.CalculationMessage)
+            ];
+            foreach (string propertyName in serverDerived) aggregationCaseProperties.Remove(propertyName);
+            aggregationCase["required"] = new JsonArray(
+                nameof(TrajectoryAggregationCase.MetaInfo),
+                nameof(TrajectoryAggregationCase.EpsilonL),
+                nameof(TrajectoryAggregationCase.EpsilonKappa),
+                nameof(TrajectoryAggregationCase.TrajectoryAggregationList));
+            aggregationCase["description"] = "Closed queued aggregation submission. The caller supplies one case UUID, one or more reference trajectory UUIDs and the aggregation tolerances; the service derives state, progress and results.";
+
+            if (metaInfoProperties[nameof(MetaInfo.ID)] is JsonObject id)
+                TrajectoryProviderSemantics.AttachMcpPropertyMetadata(id,
+                    TrajectoryProviderSemantics.IdentifierForResource(Concepts.TrajectoryAggregationCase), typeof(Guid));
+            metaInfo["required"] = new JsonArray(nameof(MetaInfo.ID));
+
+            aggregation["required"] = new JsonArray(nameof(TrajectoryAggregation.TrajectoryID));
+            if (aggregationCaseProperties[nameof(TrajectoryAggregationCase.TrajectoryAggregationList)] is JsonObject list)
+            {
+                JsonObject? array = list["type"]?.ToString() == "array" ? list :
+                    (list["anyOf"] as JsonArray)?.OfType<JsonObject>().SingleOrDefault(value => value["type"]?.ToString() == "array");
+                if (array is not null) array["minItems"] = 1;
+            }
+        }
+
         if (controller == "SurveyRun" && action is "PostSurveyRun" or "PutSurveyRunById" &&
             definitions[nameof(SurveyRun)] is JsonObject surveyRun &&
             surveyRun["properties"] is JsonObject surveyRunProperties)
