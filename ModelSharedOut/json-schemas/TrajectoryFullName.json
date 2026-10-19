@@ -19339,10 +19339,40 @@
           },
           "ReferenceMDAdvance": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:reference-trajectory-advance",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ],
+              "role": "urn:osdc:semantic:calculation-input",
+              "siUnit": "m",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "c0d965b2-a153-420a-9d03-7a2a272d619e",
+                "name": "DepthDrilling",
+                "siUnitName": "metre"
+              }
+            }
           },
           "CurveType": {
-            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExtrapolationCurveType"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExtrapolationCurveType"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:trajectory-calculation-method",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ],
+              "role": "urn:osdc:semantic:calculation-input"
+            }
           },
           "AzimuthBranch": {
             "type": "integer",
@@ -26001,7 +26031,23 @@
             }
           },
           "Mode": {
-            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationMode"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationMode"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:trajectory-extrapolation-case",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "owning service",
+                "resource type"
+              ],
+              "role": "urn:osdc:semantic:calculation-input"
+            }
           },
           "CalculationState": {
             "allOf": [
@@ -26104,7 +26150,22 @@
             "items": {
               "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSolvedSection"
             },
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:solved-trajectory-section",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "section role",
+                "curve type",
+                "ordered section index"
+              ],
+              "role": "urn:osdc:semantic:server-derived-calculation-result",
+              "collectionCompleteness": "complete",
+              "orderedBy": "SectionIndex"
+            }
           },
           "SurveyStationList": {
             "type": "array",
@@ -26356,21 +26417,113 @@
           },
           "SectionIndex": {
             "type": "integer",
-            "format": "int32"
+            "format": "int32",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:solved-trajectory-section",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "section role",
+                "curve type",
+                "ordered section index"
+              ],
+              "role": "urn:osdc:semantic:sequence-position",
+              "ordinalBase": 0
+            }
           },
           "Role": {
-            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSectionRole"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSectionRole"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:solved-trajectory-section",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "section role",
+                "curve type",
+                "ordered section index"
+              ]
+            }
           },
           "CurveType": {
-            "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExtrapolationCurveType"
+            "allOf": [
+              {
+                "$ref": "#/components/schemas/OSDC.Drilling.Trajectory.Model.ExtrapolationCurveType"
+              }
+            ],
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:trajectory-calculation-method",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ]
+            }
           },
           "StartMD": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:along-hole-depth",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "wellbore path and applicable realization",
+                "reference",
+                "axis/sign convention",
+                "axis or path",
+                "coordinate origin",
+                "increasing direction",
+                "physical quantity specialization"
+              ],
+              "role": "urn:osdc:semantic:interval-start-coordinate",
+              "siUnit": "m",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "c0d965b2-a153-420a-9d03-7a2a272d619e",
+                "name": "DepthDrilling",
+                "siUnitName": "metre"
+              }
+            }
           },
           "EndMD": {
             "type": "number",
-            "format": "double"
+            "format": "double",
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:along-hole-depth",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "wellbore path and applicable realization",
+                "reference",
+                "axis/sign convention",
+                "axis or path",
+                "coordinate origin",
+                "increasing direction",
+                "physical quantity specialization"
+              ],
+              "role": "urn:osdc:semantic:interval-end-coordinate",
+              "siUnit": "m",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "c0d965b2-a153-420a-9d03-7a2a272d619e",
+                "name": "DepthDrilling",
+                "siUnitName": "metre"
+              }
+            }
           },
           "Length": {
             "type": "number",
@@ -26413,25 +26566,110 @@
           "ConstantBuildRate": {
             "type": "number",
             "format": "double",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:build-rate",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "inclination sign convention"
+              ],
+              "siUnit": "rad/m",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "0e41ce3a-a0e4-44a3-bf6e-6c2a70f4a28b",
+                "name": "CurvatureDrilling",
+                "siUnitName": "radian per metre"
+              }
+            }
           },
           "ConstantTurnRate": {
             "type": "number",
             "format": "double",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:turn-rate",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "azimuth convention",
+                "inclination"
+              ],
+              "siUnit": "rad/m",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "0e41ce3a-a0e4-44a3-bf6e-6c2a70f4a28b",
+                "name": "CurvatureDrilling",
+                "siUnitName": "radian per metre"
+              }
+            }
           },
           "ConstantCurvature": {
             "type": "number",
             "format": "double",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:wellbore-curvature",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [ ],
+              "siUnit": "rad/m",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "0e41ce3a-a0e4-44a3-bf6e-6c2a70f4a28b",
+                "name": "CurvatureDrilling",
+                "siUnitName": "radian per metre"
+              }
+            }
           },
           "ConstantToolface": {
             "type": "number",
             "format": "double",
-            "nullable": true
+            "nullable": true,
+            "x-osdc-semantic": {
+              "catalogue": "urn:osdc:semantic-catalogue",
+              "catalogueVersion": "0.22.0",
+              "concept": "urn:osdc:semantic:toolface",
+              "curationStatus": "Reviewed",
+              "assertionSource": "provider-binding-registry",
+              "requiredContext": [
+                "toolface zero direction",
+                "positive rotation convention"
+              ],
+              "siUnit": "rad",
+              "physicalQuantityStatus": "resolved",
+              "physicalQuantity": {
+                "catalogue": "Conversion.DrillingEngineering",
+                "id": "94ad3e73-2a44-4c60-bbca-188b941f3357",
+                "name": "PlaneAngleDrilling",
+                "siUnitName": "radian"
+              }
+            }
           }
         },
-        "additionalProperties": false
+        "additionalProperties": false,
+        "x-osdc-semantic": {
+          "catalogue": "urn:osdc:semantic-catalogue",
+          "catalogueVersion": "0.22.0",
+          "concept": "urn:osdc:semantic:solved-trajectory-section",
+          "curationStatus": "Reviewed",
+          "assertionSource": "provider-binding-registry",
+          "requiredContext": [
+            "section role",
+            "curve type",
+            "ordered section index"
+          ],
+          "role": "urn:osdc:semantic:server-derived-calculation-result"
+        }
       },
       "OSDC.Drilling.Trajectory.Model.TrajectoryExtrapolationSpecification": {
         "required": [

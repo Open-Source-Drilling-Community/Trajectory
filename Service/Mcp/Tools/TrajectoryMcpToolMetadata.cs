@@ -345,7 +345,9 @@ internal static class TrajectoryMcpToolMetadata
 
         if (controller == "TrajectoryExtrapolationCase" && action is "Post" or "Put" &&
             definitions[nameof(TrajectoryExtrapolationCase)] is JsonObject extrapolation &&
-            extrapolation["properties"] is JsonObject extrapolationProperties)
+            extrapolation["properties"] is JsonObject extrapolationProperties &&
+            definitions[nameof(MetaInfo)] is JsonObject extrapolationMetaInfo &&
+            extrapolationMetaInfo["properties"] is JsonObject extrapolationMetaInfoProperties)
         {
             string[] serverDerived =
             [
@@ -371,6 +373,10 @@ internal static class TrajectoryMcpToolMetadata
                 nameof(TrajectoryExtrapolationCase.InterpolationInterval),
                 nameof(TrajectoryExtrapolationCase.Specification));
             extrapolation["description"] = "Closed submission for an asynchronous trajectory extrapolation. The server derives timestamps, source/target snapshots, solved sections, calculation state and sampled stations.";
+            if (extrapolationMetaInfoProperties[nameof(MetaInfo.ID)] is JsonObject id)
+                TrajectoryProviderSemantics.AttachMcpPropertyMetadata(id,
+                    TrajectoryProviderSemantics.IdentifierForResource(Concepts.TrajectoryExtrapolationCase), typeof(Guid));
+            extrapolationMetaInfo["required"] = new JsonArray(nameof(MetaInfo.ID));
         }
 
         if (controller == "TargetLandingCase" && action is "Post" or "Put" &&
@@ -797,6 +803,39 @@ internal static class TrajectoryMcpToolMetadata
                     [nameof(TrajectoryAggregationSectionType.ConstantBuildAndTurn)] = Concepts.ConstantBuildTurnSection,
                     [nameof(TrajectoryAggregationSectionType.ConstantCurvatureAndToolface)] = Concepts.ConstantCurvatureToolfaceSection
                 };
+            if (type == typeof(ReconnectTrajectoryExtrapolationSpecification) && property.Name == nameof(ReconnectTrajectoryExtrapolationSpecification.CurveType) &&
+                schema[SemanticMetadata.ExtensionName] is JsonObject reconnectCurveMetadata)
+                reconnectCurveMetadata["valueConcepts"] = new JsonObject
+                {
+                    [nameof(ExtrapolationCurveType.CircularArc)] = Concepts.CircularArcSection,
+                    [nameof(ExtrapolationCurveType.ConstantBuildAndTurn)] = Concepts.ConstantBuildTurnSection,
+                    [nameof(ExtrapolationCurveType.ConstantCurvatureAndToolface)] = Concepts.ConstantCurvatureToolfaceSection
+                };
+            if (type == typeof(TrajectoryExtrapolationCase) && property.Name == nameof(TrajectoryExtrapolationCase.Mode) &&
+                schema[SemanticMetadata.ExtensionName] is JsonObject extrapolationModeMetadata)
+                extrapolationModeMetadata["valueConcepts"] = new JsonObject
+                {
+                    [nameof(TrajectoryExtrapolationMode.FixedLength)] = Concepts.FixedLengthExtrapolation,
+                    [nameof(TrajectoryExtrapolationMode.ReconnectToTrajectory)] = Concepts.ReconnectTrajectoryExtrapolation,
+                    [nameof(TrajectoryExtrapolationMode.WellPath)] = Concepts.WellPathTrajectoryExtrapolation,
+                    [nameof(TrajectoryExtrapolationMode.Geosteering)] = Concepts.GeosteeringTrajectoryExtrapolation
+                };
+            if (type == typeof(TrajectoryExtrapolationSolvedSection) && property.Name == nameof(TrajectoryExtrapolationSolvedSection.CurveType) &&
+                schema[SemanticMetadata.ExtensionName] is JsonObject solvedCurveMetadata)
+                solvedCurveMetadata["valueConcepts"] = new JsonObject
+                {
+                    [nameof(ExtrapolationCurveType.CircularArc)] = Concepts.CircularArcSection,
+                    [nameof(ExtrapolationCurveType.ConstantBuildAndTurn)] = Concepts.ConstantBuildTurnSection,
+                    [nameof(ExtrapolationCurveType.ConstantCurvatureAndToolface)] = Concepts.ConstantCurvatureToolfaceSection
+                };
+            if (type == typeof(TrajectoryExtrapolationSolvedSection) && property.Name == nameof(TrajectoryExtrapolationSolvedSection.Role) &&
+                schema[SemanticMetadata.ExtensionName] is JsonObject solvedRoleMetadata)
+                solvedRoleMetadata["valueConcepts"] = new JsonObject
+                {
+                    [nameof(TrajectoryExtrapolationSectionRole.LeadInContinuation)] = Concepts.LeadInLength,
+                    [nameof(TrajectoryExtrapolationSectionRole.UpstreamSteeringSection)] = Concepts.Upstream,
+                    [nameof(TrajectoryExtrapolationSectionRole.DownstreamSteeringSection)] = Concepts.Downstream
+                };
             properties[property.GetCustomAttribute<JsonPropertyNameAttribute>()?.Name ?? property.Name] = schema;
         }
 
@@ -813,6 +852,20 @@ internal static class TrajectoryMcpToolMetadata
                 ["const"] = discriminatorValue,
                 ["description"] = $"Selects the {discriminatorValue} variant."
             };
+            if (polymorphicBase == typeof(TrajectoryExtrapolationSpecification))
+            {
+                var discriminator=properties[discriminatorName]!.AsObject();
+                var modeProperty=typeof(TrajectoryExtrapolationCase).GetProperty(nameof(TrajectoryExtrapolationCase.Mode))!;
+                TrajectoryProviderSemantics.AttachMcpPropertyMetadata(discriminator,
+                    TrajectoryProviderSemantics.ForProperty(modeProperty)!,typeof(TrajectoryExtrapolationMode));
+                discriminator[SemanticMetadata.ExtensionName]!["valueConcepts"] = new JsonObject
+                {
+                    [nameof(TrajectoryExtrapolationMode.FixedLength)] = Concepts.FixedLengthExtrapolation,
+                    [nameof(TrajectoryExtrapolationMode.ReconnectToTrajectory)] = Concepts.ReconnectTrajectoryExtrapolation,
+                    [nameof(TrajectoryExtrapolationMode.WellPath)] = Concepts.WellPathTrajectoryExtrapolation,
+                    [nameof(TrajectoryExtrapolationMode.Geosteering)] = Concepts.GeosteeringTrajectoryExtrapolation
+                };
+            }
             required.Add(discriminatorName);
         }
         var definition = new JsonObject
@@ -1008,11 +1061,21 @@ internal static class TrajectoryMcpToolMetadata
                 schema["maximum"] = Math.PI;
             }
         }
-        else if (declaringType == typeof(ReconnectTrajectoryExtrapolationSpecification) &&
-                 property.Name == nameof(ReconnectTrajectoryExtrapolationSpecification.LeadInLength))
+        else if (declaringType == typeof(ReconnectTrajectoryExtrapolationSpecification))
         {
-            required.Add(property.Name);
-            schema["minimum"] = 0.0;
+            if (property.Name is not (nameof(ReconnectTrajectoryExtrapolationSpecification.AzimuthBranch) or
+                nameof(ReconnectTrajectoryExtrapolationSpecification.JunctionCurvatureRatio))) required.Add(property.Name);
+            if (property.Name == nameof(ReconnectTrajectoryExtrapolationSpecification.LeadInLength))
+                schema["minimum"] = 0.0;
+            else if (property.Name == nameof(ReconnectTrajectoryExtrapolationSpecification.ReferenceMDAdvance))
+                schema["exclusiveMinimum"] = 0.0;
+            else if (property.Name == nameof(ReconnectTrajectoryExtrapolationSpecification.AzimuthBranch))
+                schema["default"] = 0;
+            else if (property.Name == nameof(ReconnectTrajectoryExtrapolationSpecification.JunctionCurvatureRatio))
+            {
+                schema["exclusiveMinimum"] = 0.0;
+                schema["default"] = 1.0;
+            }
         }
         else if (declaringType == typeof(DepartureGeosteeringExtentConstraint))
         {

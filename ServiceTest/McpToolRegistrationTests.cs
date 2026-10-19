@@ -574,6 +574,7 @@ public sealed class McpToolRegistrationTests
     {
         TrajectoryMcpEndpoint create = Endpoint("trajectory_extrapolation_case_post");
         TrajectoryMcpEndpoint status = Endpoint("trajectory_extrapolation_case_get_status");
+        TrajectoryMcpEndpoint result = Endpoint("trajectory_extrapolation_case_get_by_id");
         TrajectoryMcpEndpoint chunk = Endpoint("trajectory_extrapolation_case_get_survey_station_chunk");
         JsonObject definitions = create.InputSchema["$defs"]!.AsObject();
         JsonObject caseDefinition = definitions["TrajectoryExtrapolationCase"]!.AsObject();
@@ -581,8 +582,12 @@ public sealed class McpToolRegistrationTests
         JsonObject specification = definitions["TrajectoryExtrapolationSpecification"]!.AsObject();
         JsonObject section = definitions["WellPathSectionSpecification"]!.AsObject();
         JsonObject geosteering = definitions["GeosteeringTrajectoryExtrapolationSpecification"]!.AsObject();
+        JsonObject reconnect = definitions[nameof(ReconnectTrajectoryExtrapolationSpecification)]!.AsObject();
+        JsonObject reconnectProperties = reconnect["properties"]!.AsObject();
         JsonObject departure = definitions["DepartureGeosteeringExtentConstraint"]!.AsObject();
         JsonObject drilledLength = definitions["DrilledLengthGeosteeringExtentConstraint"]!.AsObject();
+        JsonObject resultCase = result.OutputSchema["$defs"]![nameof(TrajectoryExtrapolationCase)]!.AsObject();
+        JsonObject solvedSection = result.OutputSchema["$defs"]![nameof(TrajectoryExtrapolationSolvedSection)]!.AsObject();
 
         Assert.Multiple(() =>
         {
@@ -594,6 +599,30 @@ public sealed class McpToolRegistrationTests
             Assert.That(definitions["DepartureGeosteeringExtentConstraint"]!["properties"]!["ExtentType"]!["const"]!.GetValue<string>(), Is.EqualTo("Departure"));
             Assert.That(definitions["CircularArcWellPathSectionSpecification"]!["properties"]!["CurveType"]!["const"]!.GetValue<string>(), Is.EqualTo("CircularArc"));
             Assert.That(geosteering["required"]!.AsArray().Select(node => node!.GetValue<string>()), Does.Contain("Extent"));
+            Assert.That(reconnect["required"]!.AsArray().Select(node => node!.GetValue<string>()), Is.EquivalentTo(new[]
+            {
+                "Mode", nameof(ReconnectTrajectoryExtrapolationSpecification.ReferenceTrajectoryID),
+                nameof(ReconnectTrajectoryExtrapolationSpecification.ReferenceMDAdvance), nameof(ReconnectTrajectoryExtrapolationSpecification.CurveType),
+                nameof(ReconnectTrajectoryExtrapolationSpecification.LeadInLength)
+            }));
+            Assert.That(reconnectProperties[nameof(ReconnectTrajectoryExtrapolationSpecification.ReferenceTrajectoryID)]![SemanticMetadata.ExtensionName]!["role"]!.ToString(),
+                Is.EqualTo(Concepts.ReferenceResource));
+            Assert.That(reconnectProperties[nameof(ReconnectTrajectoryExtrapolationSpecification.ReferenceMDAdvance)]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),
+                Is.EqualTo(Concepts.ReferenceTrajectoryAdvance));
+            Assert.That(reconnectProperties[nameof(ReconnectTrajectoryExtrapolationSpecification.LeadInLength)]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),
+                Is.EqualTo(Concepts.LeadInLength));
+            Assert.That(properties[nameof(TrajectoryExtrapolationCase.Mode)]![SemanticMetadata.ExtensionName]!["valueConcepts"]![nameof(TrajectoryExtrapolationMode.ReconnectToTrajectory)]!.ToString(),
+                Is.EqualTo(Concepts.ReconnectTrajectoryExtrapolation));
+            Assert.That(definitions[nameof(MetaInfo)]!["properties"]![nameof(MetaInfo.ID)]![SemanticMetadata.ExtensionName]!["resourceType"]!.ToString(),
+                Is.EqualTo(Concepts.TrajectoryExtrapolationCase));
+            Assert.That(resultCase["properties"]![nameof(TrajectoryExtrapolationCase.SolvedSectionList)]![SemanticMetadata.ExtensionName]!["collectionCompleteness"]!.ToString(),
+                Is.EqualTo("complete"));
+            Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.SectionIndex)]![SemanticMetadata.ExtensionName]!["role"]!.ToString(),
+                Is.EqualTo(Concepts.SequencePosition));
+            Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.Role)]![SemanticMetadata.ExtensionName]!["valueConcepts"]![nameof(TrajectoryExtrapolationSectionRole.UpstreamSteeringSection)]!.ToString(),
+                Is.EqualTo(Concepts.Upstream));
+            Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.CurveType)]![SemanticMetadata.ExtensionName]!["valueConcepts"]![nameof(ExtrapolationCurveType.ConstantCurvatureAndToolface)]!.ToString(),
+                Is.EqualTo(Concepts.ConstantCurvatureToolfaceSection));
             Assert.That(geosteering["properties"]!["LeadInLength"]!["minimum"]!.GetValue<double>(), Is.Zero);
             Assert.That(geosteering["properties"]!["EndInclination"]!["maximum"]!.GetValue<double>(), Is.EqualTo(Math.PI).Within(1e-12));
             Assert.That(departure["properties"]!["DepartureDistance"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);

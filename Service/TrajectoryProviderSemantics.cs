@@ -109,6 +109,7 @@ internal static class TrajectoryProviderSemantics
         typeof(SurveyRunLight).IsAssignableFrom(type) ? Metadata(Concepts.SurveyRun, null, null) :
         type == typeof(TrajectoryAggregation) ? Metadata(Concepts.TrajectoryAggregation, Concepts.ServerDerivedCalculationResult, null) :
         type == typeof(TrajectoryAggregationSection) ? CompleteOrderedSectionCollection() :
+        type == typeof(TrajectoryExtrapolationSolvedSection) ? Metadata(Concepts.SolvedTrajectorySection, Concepts.ServerDerivedCalculationResult, null) :
         type == typeof(TrajectoryCalculationType) ? Metadata(Concepts.TrajectoryCalculationMethod, null, null) :
         SemanticMetadata.For(type) ?? For(type.Name);
 
@@ -156,6 +157,56 @@ internal static class TrajectoryProviderSemantics
             }
             if (property.Name == nameof(TrajectoryAggregationSection.SectionType))
                 return Metadata(Concepts.AggregatedTrajectorySection, null, null);
+        }
+        if (owner == typeof(TrajectoryExtrapolationCase))
+        {
+            if (property.Name == nameof(TrajectoryExtrapolationCase.SourceTrajectoryID))
+                return Identifier(Concepts.Trajectory);
+            if (property.Name == nameof(TrajectoryExtrapolationCase.Mode))
+                return Metadata(Concepts.TrajectoryExtrapolationCase, Concepts.CalculationInput, null);
+            if (property.Name == nameof(TrajectoryExtrapolationCase.SolvedSectionList))
+            {
+                JsonObject result = Metadata(Concepts.SolvedTrajectorySection, Concepts.ServerDerivedCalculationResult, null);
+                result["collectionCompleteness"] = "complete";
+                result["orderedBy"] = nameof(TrajectoryExtrapolationSolvedSection.SectionIndex);
+                return result;
+            }
+        }
+        if (owner == typeof(ReconnectTrajectoryExtrapolationSpecification))
+        {
+            if (property.Name == nameof(ReconnectTrajectoryExtrapolationSpecification.ReferenceTrajectoryID))
+                return Identifier(Concepts.Trajectory, Concepts.ReferenceResource);
+            if (property.Name == nameof(ReconnectTrajectoryExtrapolationSpecification.ReferenceMDAdvance))
+                return Metadata(Concepts.ReferenceTrajectoryAdvance, Concepts.CalculationInput, null);
+            if (property.Name == nameof(ReconnectTrajectoryExtrapolationSpecification.LeadInLength))
+                return Metadata(Concepts.LeadInLength, Concepts.CalculationInput, null);
+            if (property.Name == nameof(ReconnectTrajectoryExtrapolationSpecification.CurveType))
+                return Metadata(Concepts.TrajectoryCalculationMethod, Concepts.CalculationInput, null);
+        }
+        if (owner == typeof(TrajectoryExtrapolationSolvedSection))
+        {
+            if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.SectionIndex))
+            {
+                JsonObject result = Metadata(Concepts.SolvedTrajectorySection, Concepts.SequencePosition, null);
+                result["ordinalBase"] = 0;
+                return result;
+            }
+            if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.Role))
+                return Metadata(Concepts.SolvedTrajectorySection, null, null);
+            if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.CurveType))
+                return Metadata(Concepts.TrajectoryCalculationMethod, null, null);
+            if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.StartMD))
+                return Metadata(Concepts.AlongHoleDepth, Concepts.IntervalStartCoordinate, null);
+            if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.EndMD))
+                return Metadata(Concepts.AlongHoleDepth, Concepts.IntervalEndCoordinate, null);
+            if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.ConstantBuildRate))
+                return Metadata(Concepts.BuildRate, null, null);
+            if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.ConstantTurnRate))
+                return Metadata(Concepts.TurnRate, null, null);
+            if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.ConstantCurvature))
+                return Metadata(Concepts.WellboreCurvature, null, null);
+            if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.ConstantToolface))
+                return Metadata(Concepts.Toolface, null, null);
         }
         if (owner != null && typeof(Point3DGlobalCoordinates).IsAssignableFrom(owner))
         {
