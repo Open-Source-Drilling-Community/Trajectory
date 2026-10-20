@@ -38,7 +38,7 @@ namespace ServiceTest
         {
             #region post a Trajectory
             // Create instance of Trajectory
-            Trajectory trajectory = PseudoConstructors.ConstructTrajectory();
+            Trajectory trajectory = ConstructTrajectoryForCrud();
             trajectory.WellBoreID = Guid.NewGuid();
             trajectory.MDStep = 10;
             trajectory.SurveyStationList = ConstructSurveyStationList();
@@ -170,7 +170,7 @@ namespace ServiceTest
         {
             #region trying to post an empty guid
             // Create instance of trajectory
-            Trajectory trajectory = PseudoConstructors.ConstructTrajectory();
+            Trajectory trajectory = ConstructTrajectoryForCrud();
             trajectory.WellBoreID = Guid.NewGuid();
             trajectory.MDStep = 10;
             trajectory.MetaInfo.ID = Guid.Empty;
@@ -286,7 +286,7 @@ namespace ServiceTest
         {
             #region posting a new ID
             // Create instance of trajectory
-            Trajectory trajectory = PseudoConstructors.ConstructTrajectory();
+            Trajectory trajectory = ConstructTrajectoryForCrud();
             trajectory.WellBoreID = Guid.NewGuid();
             trajectory.MDStep = 10;
             trajectory.SurveyStationList = ConstructSurveyStationList();
@@ -371,7 +371,7 @@ namespace ServiceTest
         {
             #region posting a new ID
             // Create instance of trajectory
-            Trajectory trajectory = PseudoConstructors.ConstructTrajectory();
+            Trajectory trajectory = ConstructTrajectoryForCrud();
             trajectory.WellBoreID = Guid.NewGuid();
             trajectory.MDStep = 10;
             trajectory.SurveyStationList = ConstructSurveyStationList();
@@ -486,7 +486,10 @@ namespace ServiceTest
             {
                 foreach (var station in list)
                 {
-                    SurveyStation surveyStation = PseudoConstructors.ConstructSurveyStation();
+                    // Keep optional uncertainty and survey-instrument payloads absent. The generated
+                    // pseudo-constructor deliberately materializes every nested type, but its placeholder
+                    // matrices are not valid 3x3 measurements and must not be sent by this CRUD fixture.
+                    SurveyStation surveyStation = new();
                     surveyStation.MD = station.MD;
                     surveyStation.Azimuth = station.Azimuth;
                     surveyStation.Inclination = station.Inclination;
@@ -497,6 +500,18 @@ namespace ServiceTest
                 }
             }
             return surveyStationList;
+        }
+
+        private static Trajectory ConstructTrajectoryForCrud()
+        {
+            Trajectory trajectory = PseudoConstructors.ConstructTrajectory();
+            // Pseudo constructors materialize every optional branch for UI examples. A CRUD request
+            // should omit branches that have no real data instead of posting placeholder matrices or
+            // a placeholder survey-run relationship.
+            trajectory.TieInPoint = null!;
+            trajectory.SurveyRunSectionList = [];
+            trajectory.SurveyStationList = [];
+            return trajectory;
         }
 
         private static List<SurveyStation> ConstructCorruptedSurveyStationList()
@@ -528,7 +543,9 @@ namespace ServiceTest
             var list = JsonSerializer.Deserialize<List<SurveyStation>>(jsonString, JsonSettings.Options);
             if (list is { })
             {
-                SurveyStation surveyStation = PseudoConstructors.ConstructSurveyStation();
+                // This fixture corrupts the station geometry intentionally; unrelated optional nested
+                // values remain absent so request validation reaches the intended calculation failure.
+                SurveyStation surveyStation = new();
                 foreach (var station in list)
                 {
                     surveyStation.Abscissa = station.Abscissa;
