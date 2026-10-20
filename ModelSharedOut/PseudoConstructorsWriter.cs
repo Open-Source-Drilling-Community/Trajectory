@@ -317,7 +317,9 @@ namespace OSDC.Drilling.Trajectory.PseudoConstructorsWriter
                                     }
                                     identationList = IDENTATION + identationList;
                                     //Radical is the "left side" of the constructor 
-                                    string listRadical = $"List<{propBaseName}>";
+                                    Type elementType=p.PropertyType;
+                                    for(int i=0;i<listStacks;i++)elementType=elementType.GenericTypeArguments[0];
+                                    string listRadical = $"List<{ReturnFullType(elementType)}>";
                                     //listInnerInitializer contains the the code that is contained within the "{ }", e.g.: { new List<double> { new double()} }                      
                                     string listInnerInitializer = listRadical + identationList + "{" + identationList + "\t" + defaultValueString + identationList + "}";
                                     for (int i = listStacks - 1; i > 0; i--)

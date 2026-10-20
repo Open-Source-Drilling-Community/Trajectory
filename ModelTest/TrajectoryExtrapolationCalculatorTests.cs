@@ -454,6 +454,11 @@ public class TrajectoryExtrapolationCalculatorTests
         Assert.That(calculation.ClosestReferenceMD, Is.EqualTo(100).Within(1e-5));
         Assert.That(calculation.TargetReferenceMD, Is.EqualTo(200).Within(1e-5));
         Assert.That(calculation.SolvedSectionList, Has.Count.EqualTo(2));
+        Assert.That(calculation.CurvatureCharacteristics, Is.Not.Null);
+        Assert.That(calculation.CurvatureCharacteristics!.MinimumCurvature,
+            Is.EqualTo(calculation.CurvatureCharacteristics.JunctionCurvature).Within(1e-12));
+        Assert.That(calculation.CurvatureCharacteristics.MaximumCurvature,
+            Is.EqualTo(calculation.CurvatureCharacteristics.JunctionCurvature).Within(1e-12));
         Assert.That(calculation.SurveyStationList![^1].RiemannianNorth, Is.EqualTo(0).Within(1e-6));
         Assert.That(calculation.SurveyStationList[^1].TVD, Is.EqualTo(1200).Within(1e-6));
         Assert.That(calculation.SurveyStationList[^1].Inclination, Is.EqualTo(0).Within(1e-6));
@@ -494,6 +499,55 @@ public class TrajectoryExtrapolationCalculatorTests
             Is.EqualTo(TrajectoryExtrapolationSectionRole.LeadInContinuation));
         Assert.That(calculation.SolvedSectionList[1].Role,
             Is.EqualTo(TrajectoryExtrapolationSectionRole.UpstreamSteeringSection));
+        Assert.That(calculation.CurvatureCharacteristics, Is.Not.Null);
+        Assert.That(calculation.SolvedSectionList[0].CircularArcCurvature,Is.Not.Null);
+        Assert.That(calculation.CurvatureCharacteristics!.MaximumCurvature,
+            Is.GreaterThan(calculation.SolvedSectionList[0].CircularArcCurvature!.Value));
+    }
+
+    [Test]
+    public void ReconnectCurvatureCharacteristicsVaryWithReferenceAdvanceInsteadOfReportingLeadInCurvature()
+    {
+        TrajectoryModel source = SourceTrajectory(
+            Station(0, 0, 0, 1000, -50, 0),
+            Station(100, 0, 0, 1100, -50, 0));
+        TrajectoryModel reference = SourceTrajectory(
+            Station(0, 0, 0, 1000, 0, 0),
+            Station(500, 0, 0, 1500, 0, 0));
+        Guid referenceId = reference.MetaInfo!.ID;
+
+        TrajectoryExtrapolationCase Solve(double advance)
+        {
+            TrajectoryExtrapolationCase calculation = Case(
+                TrajectoryExtrapolationMode.ReconnectToTrajectory,
+                new ReconnectTrajectoryExtrapolationSpecification
+                {
+                    ReferenceTrajectoryID = referenceId,
+                    ReferenceMDAdvance = advance,
+                    LeadInLength = 30,
+                    CurveType = ExtrapolationCurveType.CircularArc
+                });
+            Assert.That(TrajectoryExtrapolationCalculator.Calculate(calculation, source,
+                id => id == referenceId ? reference : null), Is.True, calculation.CalculationMessage);
+            return calculation;
+        }
+
+        TrajectoryExtrapolationCase shortAdvance = Solve(30);
+        TrajectoryExtrapolationCase longAdvance = Solve(120);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(shortAdvance.CurvatureCharacteristics, Is.Not.Null);
+            Assert.That(longAdvance.CurvatureCharacteristics, Is.Not.Null);
+            Assert.That(shortAdvance.CurvatureCharacteristics!.JunctionCurvature,
+                Is.EqualTo(shortAdvance.CurvatureCharacteristics.MaximumCurvature).Within(1e-12));
+            Assert.That(longAdvance.CurvatureCharacteristics!.JunctionCurvature,
+                Is.EqualTo(longAdvance.CurvatureCharacteristics.MaximumCurvature).Within(1e-12));
+            Assert.That(shortAdvance.CurvatureCharacteristics.MaximumCurvature,
+                Is.GreaterThan(longAdvance.CurvatureCharacteristics.MaximumCurvature));
+            Assert.That(shortAdvance.CurvatureCharacteristics.MaximumCurvature,
+                Is.Not.EqualTo(shortAdvance.SolvedSectionList![0].CircularArcCurvature).Within(1e-12));
+        });
     }
 
     [Test]

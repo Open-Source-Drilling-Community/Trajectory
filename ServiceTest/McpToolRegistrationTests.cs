@@ -588,6 +588,7 @@ public sealed class McpToolRegistrationTests
         JsonObject drilledLength = definitions["DrilledLengthGeosteeringExtentConstraint"]!.AsObject();
         JsonObject resultCase = result.OutputSchema["$defs"]![nameof(TrajectoryExtrapolationCase)]!.AsObject();
         JsonObject solvedSection = result.OutputSchema["$defs"]![nameof(TrajectoryExtrapolationSolvedSection)]!.AsObject();
+        JsonObject curvatureCharacteristics = result.OutputSchema["$defs"]![nameof(CurveCurvatureCharacteristics)]!.AsObject();
 
         Assert.Multiple(() =>
         {
@@ -619,12 +620,30 @@ public sealed class McpToolRegistrationTests
                 Is.EqualTo(Concepts.TrajectoryExtrapolationCase));
             Assert.That(resultCase["properties"]![nameof(TrajectoryExtrapolationCase.SolvedSectionList)]![SemanticMetadata.ExtensionName]!["collectionCompleteness"]!.ToString(),
                 Is.EqualTo("complete"));
+            Assert.That(resultCase["properties"]![nameof(TrajectoryExtrapolationCase.CurvatureCharacteristics)]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),
+                Is.EqualTo(Concepts.CurveCurvatureCharacteristics));
+            Assert.That(curvatureCharacteristics[SemanticMetadata.ExtensionName]!["concept"]!.ToString(),
+                Is.EqualTo(Concepts.CurveCurvatureCharacteristics));
+            Assert.That(curvatureCharacteristics["properties"]![nameof(CurveCurvatureCharacteristics.MinimumCurvature)]![SemanticMetadata.ExtensionName]!["role"]!.ToString(),
+                Is.EqualTo(Concepts.MinimumValue));
+            Assert.That(curvatureCharacteristics["properties"]![nameof(CurveCurvatureCharacteristics.JunctionCurvature)]![SemanticMetadata.ExtensionName]!["role"]!.ToString(),
+                Is.EqualTo(Concepts.JunctionValue));
+            Assert.That(curvatureCharacteristics["properties"]![nameof(CurveCurvatureCharacteristics.MaximumCurvature)]![SemanticMetadata.ExtensionName]!["role"]!.ToString(),
+                Is.EqualTo(Concepts.MaximumValue));
             Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.SectionIndex)]![SemanticMetadata.ExtensionName]!["role"]!.ToString(),
                 Is.EqualTo(Concepts.SequencePosition));
             Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.Role)]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),
                 Is.EqualTo(Concepts.SolvedTrajectorySection));
+            Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.Role)]![SemanticMetadata.ExtensionName]!["valueConcepts"]![nameof(TrajectoryExtrapolationSectionRole.LeadInContinuation)]!.ToString(),
+                Is.EqualTo(Concepts.LeadInContinuationSection));
+            Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.Role)]![SemanticMetadata.ExtensionName]!["valueConcepts"]![nameof(TrajectoryExtrapolationSectionRole.UpstreamSteeringSection)]!.ToString(),
+                Is.EqualTo(Concepts.UpstreamSteeringSection));
             Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.CurveType)]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),
                 Is.EqualTo(Concepts.TrajectoryCalculationMethod));
+            Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.CircularArcCurvature)]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),
+                Is.EqualTo(Concepts.WellboreCurvature));
+            Assert.That(solvedSection["properties"]![nameof(TrajectoryExtrapolationSolvedSection.CircularArcStartToolface)]![SemanticMetadata.ExtensionName]!["concept"]!.ToString(),
+                Is.EqualTo(Concepts.Toolface));
             Assert.That(geosteering["properties"]!["LeadInLength"]!["minimum"]!.GetValue<double>(), Is.Zero);
             Assert.That(geosteering["properties"]!["EndInclination"]!["maximum"]!.GetValue<double>(), Is.EqualTo(Math.PI).Within(1e-12));
             Assert.That(departure["properties"]!["DepartureDistance"]!["exclusiveMinimum"]!.GetValue<double>(), Is.Zero);
@@ -825,7 +844,7 @@ public sealed class McpToolRegistrationTests
     private static void AssertSemantic(TrajectoryMcpEndpoint endpoint, string concept, string role)
     {
         JsonObject semantic = endpoint.InputSchema["x-osdc-semantic"]!.AsObject();
-        Assert.That(semantic["catalogueVersion"]!.GetValue<string>(), Is.EqualTo("0.22.0"), endpoint.Name);
+        Assert.That(semantic["catalogueVersion"]!.GetValue<string>(), Is.EqualTo("0.23.0"), endpoint.Name);
         Assert.That(semantic["concept"]!.GetValue<string>(), Is.EqualTo(concept), endpoint.Name);
         Assert.That(semantic["role"]!.GetValue<string>(), Is.EqualTo(role), endpoint.Name);
     }

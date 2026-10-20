@@ -112,6 +112,7 @@ public class TargetLandingSample
     public string? Message { get; set; }
     public double? TotalLandingLength { get; set; }
     public double? PeakLandingCurvature { get; set; }
+    public CurveCurvatureCharacteristics? CurvatureCharacteristics { get; set; }
     public SurveyStation? LandingStation { get; set; }
     public SurveyStationEllipse? LandingEllipseInTargetPlane { get; set; }
     public List<TrajectoryExtrapolationSolvedSection>? SolvedSectionList { get; set; }

@@ -54128,6 +54128,39 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     }
 
     [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
+    public partial class CurveCurvatureCharacteristics
+    {
+
+        /// <summary>
+        /// Least attained curvature over the complete declared curve domain, in SI radians per metre; not a sampled-grid minimum.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("MinimumCurvature")]
+        public double MinimumCurvature { get; set; }
+
+        /// <summary>
+        /// Continuous curvature at the declared junction between adjacent curve sections, in SI radians per metre.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("JunctionCurvature")]
+        public double? JunctionCurvature { get; set; }
+
+        /// <summary>
+        /// Greatest attained curvature over the complete declared curve domain, in SI radians per metre; not a sampled-grid maximum.
+        /// </summary>
+        [System.Text.Json.Serialization.JsonPropertyName("MaximumCurvature")]
+        public double MaximumCurvature { get; set; }
+
+        private System.Collections.Generic.IDictionary<string, object> _additionalProperties;
+
+        [System.Text.Json.Serialization.JsonExtensionData]
+        public System.Collections.Generic.IDictionary<string, object> AdditionalProperties
+        {
+            get { return _additionalProperties ?? (_additionalProperties = new System.Collections.Generic.Dictionary<string, object>()); }
+            set { _additionalProperties = value; }
+        }
+
+    }
+
+    [System.CodeDom.Compiler.GeneratedCode("NJsonSchema", "14.6.2.0 (NJsonSchema v11.5.2.0 (Newtonsoft.Json v13.0.0.0))")]
     public partial class DepartureGeosteeringExtentConstraint : GeosteeringExtentConstraint
     {
 
@@ -57424,6 +57457,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("PeakLandingCurvature")]
         public double? PeakLandingCurvature { get; set; }
 
+        [System.Text.Json.Serialization.JsonPropertyName("CurvatureCharacteristics")]
+        public CurveCurvatureCharacteristics CurvatureCharacteristics { get; set; }
+
         [System.Text.Json.Serialization.JsonPropertyName("LandingStation")]
         public SurveyStation LandingStation { get; set; }
 
@@ -57645,6 +57681,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("CoarsenedReferencePointCount")]
         public int CoarsenedReferencePointCount { get; set; }
 
+        /// <summary>
+        /// Exact number of elements in the complete SectionList for this aggregation result.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("SectionCount")]
         public int SectionCount { get; set; }
 
@@ -57654,6 +57693,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("DistanceResultCount")]
         public int DistanceResultCount { get; set; }
 
+        /// <summary>
+        /// Complete ordered list of aggregation sections, in ascending zero-based SectionIndex order.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("SectionList")]
         public System.Collections.Generic.List<TrajectoryAggregationSection> SectionList { get; set; }
 
@@ -57706,9 +57748,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("CalculationMessage")]
         public string CalculationMessage { get; set; }
 
+        /// <summary>
+        /// SI metres. Constancy tolerance applied independently to smoothed osculating-circle centre coordinate series during section classification; not a final position-error bound.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("EpsilonL")]
         public double? EpsilonL { get; set; }
 
+        /// <summary>
+        /// SI radians per metre. Constancy tolerance applied to smoothed curvature, build-rate and turn-rate series during section classification; not a final position-error bound.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("EpsilonKappa")]
         public double? EpsilonKappa { get; set; }
 
@@ -57794,9 +57842,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         [System.Text.Json.Serialization.JsonPropertyName("CalculationMessage")]
         public string CalculationMessage { get; set; }
 
+        /// <summary>
+        /// SI metres. Constancy tolerance applied independently to smoothed osculating-circle centre coordinate series during section classification; not a final position-error bound.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("EpsilonL")]
         public double? EpsilonL { get; set; }
 
+        /// <summary>
+        /// SI radians per metre. Constancy tolerance applied to smoothed curvature, build-rate and turn-rate series during section classification; not a final position-error bound.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("EpsilonKappa")]
         public double? EpsilonKappa { get; set; }
 
@@ -57912,9 +57966,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
     public partial class TrajectoryAggregationSection
     {
 
+        /// <summary>
+        /// Zero-based position in the complete ordered aggregation section list.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("SectionIndex")]
         public int SectionIndex { get; set; }
 
+        /// <summary>
+        /// Finite drilling-curve type used by this aggregation section.
+        /// </summary>
         [System.Text.Json.Serialization.JsonPropertyName("SectionType")]
         [System.Text.Json.Serialization.JsonConverter(typeof(System.Text.Json.Serialization.JsonStringEnumConverter<TrajectoryAggregationSectionType>))]
         public TrajectoryAggregationSectionType SectionType { get; set; }
@@ -58471,7 +58531,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
         public string CalculationMessage { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("InterpolationInterval")]
-        public double InterpolationInterval { get; set; }
+        public double InterpolationInterval { get; set; } = 10D;
 
         [System.Text.Json.Serialization.JsonPropertyName("Specification")]
         public TrajectoryExtrapolationSpecification Specification { get; set; }
@@ -58493,6 +58553,9 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 
         [System.Text.Json.Serialization.JsonPropertyName("ReferenceTrajectoryRevision")]
         public System.DateTimeOffset? ReferenceTrajectoryRevision { get; set; }
+
+        [System.Text.Json.Serialization.JsonPropertyName("CurvatureCharacteristics")]
+        public CurveCurvatureCharacteristics CurvatureCharacteristics { get; set; }
 
         [System.Text.Json.Serialization.JsonPropertyName("SolvedSectionList")]
         public System.Collections.Generic.List<TrajectoryExtrapolationSolvedSection> SolvedSectionList { get; set; }

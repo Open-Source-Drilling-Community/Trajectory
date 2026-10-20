@@ -110,6 +110,7 @@ internal static class TrajectoryProviderSemantics
         type == typeof(TrajectoryAggregation) ? Metadata(Concepts.TrajectoryAggregation, Concepts.ServerDerivedCalculationResult, null) :
         type == typeof(TrajectoryAggregationSection) ? CompleteOrderedSectionCollection() :
         type == typeof(TrajectoryExtrapolationSolvedSection) ? Metadata(Concepts.SolvedTrajectorySection, Concepts.ServerDerivedCalculationResult, null) :
+        type == typeof(CurveCurvatureCharacteristics) ? Metadata(Concepts.CurveCurvatureCharacteristics, Concepts.ServerDerivedCalculationResult, null) :
         type == typeof(TrajectoryCalculationType) ? Metadata(Concepts.TrajectoryCalculationMethod, null, null) :
         SemanticMetadata.For(type) ?? For(type.Name);
 
@@ -171,6 +172,19 @@ internal static class TrajectoryProviderSemantics
                 result["orderedBy"] = nameof(TrajectoryExtrapolationSolvedSection.SectionIndex);
                 return result;
             }
+            if (property.Name == nameof(TrajectoryExtrapolationCase.CurvatureCharacteristics))
+                return Metadata(Concepts.CurveCurvatureCharacteristics, Concepts.ServerDerivedCalculationResult, null);
+        }
+        if (owner == typeof(TargetLandingSample) && property.Name == nameof(TargetLandingSample.CurvatureCharacteristics))
+            return Metadata(Concepts.CurveCurvatureCharacteristics, Concepts.ServerDerivedCalculationResult, null);
+        if (owner == typeof(CurveCurvatureCharacteristics))
+        {
+            if (property.Name == nameof(CurveCurvatureCharacteristics.MinimumCurvature))
+                return Metadata(Concepts.WellboreCurvature, Concepts.MinimumValue, null);
+            if (property.Name == nameof(CurveCurvatureCharacteristics.JunctionCurvature))
+                return Metadata(Concepts.WellboreCurvature, Concepts.JunctionValue, null);
+            if (property.Name == nameof(CurveCurvatureCharacteristics.MaximumCurvature))
+                return Metadata(Concepts.WellboreCurvature, Concepts.MaximumValue, null);
         }
         if (owner == typeof(ReconnectTrajectoryExtrapolationSpecification))
         {
@@ -192,13 +206,28 @@ internal static class TrajectoryProviderSemantics
                 return result;
             }
             if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.Role))
-                return Metadata(Concepts.SolvedTrajectorySection, null, null);
+            {
+                JsonObject result = Metadata(Concepts.SolvedTrajectorySection, null, null);
+                result["valueConcepts"] = new JsonObject
+                {
+                    [nameof(TrajectoryExtrapolationSectionRole.FixedLengthExtension)] = Concepts.FixedLengthExtensionSection,
+                    [nameof(TrajectoryExtrapolationSectionRole.LeadInContinuation)] = Concepts.LeadInContinuationSection,
+                    [nameof(TrajectoryExtrapolationSectionRole.UpstreamSteeringSection)] = Concepts.UpstreamSteeringSection,
+                    [nameof(TrajectoryExtrapolationSectionRole.DownstreamSteeringSection)] = Concepts.DownstreamSteeringSection,
+                    [nameof(TrajectoryExtrapolationSectionRole.WellPathSection)] = Concepts.WellPathSection
+                };
+                return result;
+            }
             if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.CurveType))
                 return Metadata(Concepts.TrajectoryCalculationMethod, null, null);
             if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.StartMD))
                 return Metadata(Concepts.AlongHoleDepth, Concepts.IntervalStartCoordinate, null);
             if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.EndMD))
                 return Metadata(Concepts.AlongHoleDepth, Concepts.IntervalEndCoordinate, null);
+            if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.CircularArcCurvature))
+                return Metadata(Concepts.WellboreCurvature, null, null);
+            if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.CircularArcStartToolface))
+                return Metadata(Concepts.Toolface, null, null);
             if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.ConstantBuildRate))
                 return Metadata(Concepts.BuildRate, null, null);
             if (property.Name == nameof(TrajectoryExtrapolationSolvedSection.ConstantTurnRate))
@@ -376,6 +405,13 @@ internal static class TrajectoryProviderSemantics
         {
             nameof(TrajectoryAggregationSection.SectionIndex) => "Zero-based position in the complete ordered aggregation section list.",
             nameof(TrajectoryAggregationSection.SectionType) => "Finite drilling-curve type used by this aggregation section.",
+            _ => null
+        };
+        if (owner == typeof(CurveCurvatureCharacteristics)) return name switch
+        {
+            nameof(CurveCurvatureCharacteristics.MinimumCurvature) => "Least attained curvature over the complete declared curve domain, in SI radians per metre; not a sampled-grid minimum.",
+            nameof(CurveCurvatureCharacteristics.JunctionCurvature) => "Continuous curvature at the declared junction between adjacent curve sections, in SI radians per metre.",
+            nameof(CurveCurvatureCharacteristics.MaximumCurvature) => "Greatest attained curvature over the complete declared curve domain, in SI radians per metre; not a sampled-grid maximum.",
             _ => null
         };
         if(owner==typeof(VerticalSurveyUncertaintyEllipse))return name switch {

@@ -77,6 +77,7 @@ namespace OSDC.Drilling.Trajectory.Model
         public double? TargetReferenceMD { get; set; }
         public DateTimeOffset? SourceTrajectoryRevision { get; set; }
         public DateTimeOffset? ReferenceTrajectoryRevision { get; set; }
+        public CurveCurvatureCharacteristics? CurvatureCharacteristics { get; set; }
         public List<TrajectoryExtrapolationSolvedSection>? SolvedSectionList { get; set; }
         public List<SurveyStation>? SurveyStationList { get; set; }
     }
@@ -234,5 +235,16 @@ namespace OSDC.Drilling.Trajectory.Model
         public double? ConstantTurnRate { get; set; }
         public double? ConstantCurvature { get; set; }
         public double? ConstantToolface { get; set; }
+    }
+
+    /// <summary>
+    /// Curvature characteristics over one declared curve or compound-curve domain. For trajectory
+    /// double curves the domain contains the active steering sections and excludes any lead-in.
+    /// </summary>
+    public sealed class CurveCurvatureCharacteristics
+    {
+        public double MinimumCurvature { get; set; }
+        public double? JunctionCurvature { get; set; }
+        public double MaximumCurvature { get; set; }
     }
 }

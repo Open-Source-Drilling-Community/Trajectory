@@ -235,6 +235,10 @@ public static class TargetLandingCalculator
         result.TotalLandingLength = sections.Sum(SectionLength);
         result.PeakLandingCurvature = sections.Max(PeakCurvature);
         result.ControlPointList = BuildControlPointList(sections);
+        List<TrajectoryExtrapolationSolvedSection> solved = sections
+            .Select((section, index) => ToSolvedSection(section, index)).ToList();
+        result.SolvedSectionList = solved;
+        result.CurvatureCharacteristics = CurveCurvatureCharacteristicsCalculator.Calculate(solved);
         bool exceedsMaximumCurvature = value.MaximumLandingCurvature is double maximum &&
             result.PeakLandingCurvature > maximum + 1e-12;
 
@@ -255,14 +259,12 @@ public static class TargetLandingCalculator
         // A matrix cannot be reconstructed from the covariance at steeringStart alone.
         List<SurveyStation> uncertaintyStations = leadStations.Select(x => new SurveyStation(x)).ToList();
         List<SurveyStation> stations = [new SurveyStation(steeringStart)];
-        List<TrajectoryExtrapolationSolvedSection> solved = [];
         for (int index = 0; index < sections.Count; index++)
         {
             ArcSection section = sections[index];
             double startMd = section.Start.Abscissa!.Value;
             double endMd = section.End.Abscissa!.Value;
             TrajectoryExtrapolationCalculator.AddSamples(stations, section, startMd, endMd, SamplingInterval);
-            solved.Add(ToSolvedSection(section, index));
         }
         foreach (SurveyStation station in stations.Skip(1)) uncertaintyStations.Add(new SurveyStation(station));
         TrajectoryExtrapolationCalculator.ContinueSourceUncertainty(uncertaintyStations, sourceEnd, sourceHistory);
@@ -272,7 +274,6 @@ public static class TargetLandingCalculator
             .Select(x => new SurveyStation(x)).ToList();
         SurveyStation landing = landingStations[^1];
         result.SurveyStationList = landingStations;
-        result.SolvedSectionList = solved;
         result.LandingStation = new SurveyStation(landing);
 
         if (TryProjectedEllipse(landing, frame, value.ConfidenceFactor, out SurveyStationEllipse ellipse))

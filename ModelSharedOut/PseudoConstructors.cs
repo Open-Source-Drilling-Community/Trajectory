@@ -397,6 +397,857 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				GaussianValue = ConstructGaussianDistribution(),
 			};
 		}
+		public static ScalarDrillingProperty ConstructScalarDrillingProperty()
+		{
+			return new ScalarDrillingProperty
+			{
+				DiracDistributionValue = ConstructDiracDistribution(),
+			};
+		}
+		public static DiracDistribution ConstructDiracDistribution()
+		{
+			return new DiracDistribution
+			{
+				MinValue = 0.0,
+				MaxValue = 0.0,
+				Value = null,
+			};
+		}
+		public static GaussianDistribution ConstructGaussianDistribution()
+		{
+			return new GaussianDistribution
+			{
+				MinValue = 0.0,
+				MaxValue = 0.0,
+				Mean = null,
+				StandardDeviation = null,
+			};
+		}
+		public static BoreHoleSize ConstructBoreHoleSize()
+		{
+			return new BoreHoleSize
+			{
+				ComponentID = new Guid(),
+				HoleSize = ConstructGaussianDrillingProperty(),
+				Length = ConstructGaussianDrillingProperty(),
+			};
+		}
+		public static CasingSection ConstructCasingSection()
+		{
+			return new CasingSection
+			{
+				ComponentID = new Guid(),
+				TopDepth = ConstructGaussianDrillingProperty(),
+				Length = ConstructGaussianDrillingProperty(),
+				TopCementDepth = ConstructGaussianDrillingProperty(),
+				CasingSectionElements = new List<CasingSectionElement>
+					{
+						ConstructCasingSectionElement(),
+					},
+				CasingSectionSizeTable = new List<BoreHoleSize>
+					{
+						ConstructBoreHoleSize(),
+					},
+			};
+		}
+		public static CasingSectionElement ConstructCasingSectionElement()
+		{
+			return new CasingSectionElement
+			{
+				ComponentID = new Guid(),
+				BodyOD = ConstructGaussianDrillingProperty(),
+				BodyID = ConstructGaussianDrillingProperty(),
+				CollarOD = ConstructGaussianDrillingProperty(),
+				JointLength = ConstructGaussianDrillingProperty(),
+				SectionLength = ConstructGaussianDrillingProperty(),
+				MaxDLS = ConstructScalarDrillingProperty(),
+				ConnectionType = "Default ConnectionType",
+				Grade = "Default Grade",
+				MaterialDensity = ConstructGaussianDrillingProperty(),
+				YoungModulus = ConstructGaussianDrillingProperty(),
+				LinearWeight = ConstructGaussianDrillingProperty(),
+				TensileStrength = ConstructGaussianDrillingProperty(),
+				TorsionalStrength = ConstructGaussianDrillingProperty(),
+				BurstPressure = ConstructGaussianDrillingProperty(),
+				CollapsePressure = ConstructGaussianDrillingProperty(),
+				YieldStress = ConstructGaussianDrillingProperty(),
+				MakeUpTorqueRecommended = ConstructScalarDrillingProperty(),
+			};
+		}
+		public static CountPerDay ConstructCountPerDay()
+		{
+			return new CountPerDay
+			{
+				Date = DateTimeOffset.UtcNow,
+				Count = 0,
+			};
+		}
+		public static DeepestCasingShoeResult ConstructDeepestCasingShoeResult()
+		{
+			return new DeepestCasingShoeResult
+			{
+				WellBoreArchitectureID = new Guid(),
+				AlongHoleDepth = 0.0,
+				CasingSectionComponentID = new Guid(),
+				RadialProfile = ConstructWellboreRadialProfile(),
+			};
+		}
+		public static ElementConnectivity ConstructElementConnectivity()
+		{
+			return new ElementConnectivity
+			{
+				ComponentID = new Guid(),
+				UpstreamElement = ConstructSideElement(),
+				DownstreamElement = ConstructSideElement(),
+			};
+		}
+		public static History ConstructHistory()
+		{
+			return new History
+			{
+				Data = new List<CountPerDay>
+					{
+						ConstructCountPerDay(),
+					},
+			};
+		}
+		public static OpenHoleSection ConstructOpenHoleSection()
+		{
+			return new OpenHoleSection
+			{
+				ComponentID = new Guid(),
+				HoleSizes = new List<BoreHoleSize>
+					{
+						ConstructBoreHoleSize(),
+					},
+			};
+		}
+		public static RadialBoundary ConstructRadialBoundary()
+		{
+			return new RadialBoundary
+			{
+				Diameter = 0.0,
+				DiameterStandardDeviation = null,
+				Kind = (RadialBoundaryKind)0,
+				MaterialOutside = (RadialMaterialKind)0,
+				MaterialInside = (RadialMaterialKind)0,
+				IntervalTop = 0.0,
+				IntervalBottom = 0.0,
+				SourceSectionComponentID = new Guid(),
+				SourceComponentID = new Guid(),
+				SourceDescription = "Default SourceDescription",
+				CasingOuterDiameter = null,
+				CasingInnerDiameter = null,
+				CasingCollarOuterDiameter = null,
+				CasingGrade = "Default CasingGrade",
+				CasingMaterialDensity = null,
+				CasingLinearMassDensity = null,
+			};
+		}
+		public static SideConnector ConstructSideConnector()
+		{
+			return new SideConnector
+			{
+				ComponentID = new Guid(),
+				Position = ConstructGaussianDrillingProperty(),
+				VerticalDepth = ConstructGaussianDrillingProperty(),
+				FirstSideElement = ConstructSideElement(),
+				ElementConnectivities = new List<ElementConnectivity>
+					{
+						ConstructElementConnectivity(),
+					},
+			};
+		}
+		public static SideElement ConstructSideElement()
+		{
+			return new SideElement
+			{
+				ComponentID = new Guid(),
+				Name = "Default Name",
+				Type = (SideElementType)0,
+				Length = ConstructGaussianDrillingProperty(),
+				TopVerticalDepth = ConstructGaussianDrillingProperty(),
+				OD = ConstructGaussianDrillingProperty(),
+				ID = ConstructGaussianDrillingProperty(),
+			};
+		}
+		public static SurfaceSection ConstructSurfaceSection()
+		{
+			return new SurfaceSection
+			{
+				ComponentID = new Guid(),
+				Type = (SurfaceSectionType)0,
+				SectionLength = ConstructGaussianDrillingProperty(),
+				BodyOD = ConstructGaussianDrillingProperty(),
+				BodyID = ConstructGaussianDrillingProperty(),
+				ConnectionType = "Default ConnectionType",
+				Grade = "Default Grade",
+				MaterialDensity = ConstructGaussianDrillingProperty(),
+				YoungModulus = ConstructGaussianDrillingProperty(),
+				LinearWeight = ConstructGaussianDrillingProperty(),
+				TensileStrength = ConstructGaussianDrillingProperty(),
+				BurstPressure = ConstructGaussianDrillingProperty(),
+				CollapsePressure = ConstructGaussianDrillingProperty(),
+				YieldStress = ConstructGaussianDrillingProperty(),
+				MakeUpTorqueRecommended = ConstructScalarDrillingProperty(),
+				SideConnectors = new List<SideConnector>
+					{
+						ConstructSideConnector(),
+					},
+			};
+		}
+		public static UsageStatisticsWellBoreArchitecture ConstructUsageStatisticsWellBoreArchitecture()
+		{
+			return new UsageStatisticsWellBoreArchitecture
+			{
+				DiscoveryRequestsPerDay = ConstructHistory(),
+				LastSaved = DateTimeOffset.UtcNow,
+				BackUpInterval = "Default BackUpInterval",
+				GetAllWellBoreArchitectureIdPerDay = ConstructHistory(),
+				GetAllWellBoreArchitectureMetaInfoPerDay = ConstructHistory(),
+				GetWellBoreArchitectureByIdPerDay = ConstructHistory(),
+				GetAllWellBoreArchitectureLightPerDay = ConstructHistory(),
+				GetAllWellBoreArchitecturePerDay = ConstructHistory(),
+				PostWellBoreArchitecturePerDay = ConstructHistory(),
+				PutWellBoreArchitectureByIdPerDay = ConstructHistory(),
+				DeleteWellBoreArchitectureByIdPerDay = ConstructHistory(),
+			};
+		}
+		public static WellBoreArchitecture ConstructWellBoreArchitecture()
+		{
+			return new WellBoreArchitecture
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				WellBoreArchitectureIdentityAssignments = new List<WellBoreArchitectureIdentityAssignment>(),
+				WellBoreArchitectureFeatureAssignments = new List<WellBoreArchitectureFeatureAssignment>(),
+				WellBoreID = null,
+				WellHead = ConstructWellHead(),
+				FluidsAboveGroundLevel = new List<WellBoreArchitectureFluid>
+					{
+						ConstructWellBoreArchitectureFluid(),
+					},
+				SurfaceSections = new List<SurfaceSection>
+					{
+						ConstructSurfaceSection(),
+					},
+				CasingSections = new List<CasingSection>
+					{
+						ConstructCasingSection(),
+					},
+				OpenHoleSection = ConstructOpenHoleSection(),
+			};
+		}
+		public static WellBoreArchitectureBatchCatalogDependencies ConstructWellBoreArchitectureBatchCatalogDependencies()
+		{
+			return new WellBoreArchitectureBatchCatalogDependencies
+			{
+				Identities = new List<WellBoreArchitectureIdentity>
+					{
+						ConstructWellBoreArchitectureIdentity(),
+					},
+				FeatureCategories = new List<WellBoreArchitectureFeatureCategory>
+					{
+						ConstructWellBoreArchitectureFeatureCategory(),
+					},
+			};
+		}
+		public static WellBoreArchitectureBatchCatalogMapping ConstructWellBoreArchitectureBatchCatalogMapping()
+		{
+			return new WellBoreArchitectureBatchCatalogMapping
+			{
+				Catalog = "Default Catalog",
+				Name = "Default Name",
+				SourceID = new Guid(),
+				LocalID = new Guid(),
+				Resolution = "Default Resolution",
+			};
+		}
+		public static WellBoreArchitectureBatchError ConstructWellBoreArchitectureBatchError()
+		{
+			return new WellBoreArchitectureBatchError
+			{
+				PositionIndex = null,
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static WellBoreArchitectureBatchErrorEnvelope ConstructWellBoreArchitectureBatchErrorEnvelope()
+		{
+			return new WellBoreArchitectureBatchErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<WellBoreArchitectureBatchError>
+					{
+						ConstructWellBoreArchitectureBatchError(),
+					},
+			};
+		}
+		public static WellBoreArchitectureBatchExportDocument ConstructWellBoreArchitectureBatchExportDocument()
+		{
+			return new WellBoreArchitectureBatchExportDocument
+			{
+				FormatIdentifier = "Default FormatIdentifier",
+				SchemaVersion = 0,
+				ExportedAtUtc = DateTimeOffset.UtcNow,
+				CatalogDependencies = ConstructWellBoreArchitectureBatchCatalogDependencies(),
+				WellBoreArchitectures = new List<WellBoreArchitecture>
+					{
+						ConstructWellBoreArchitecture(),
+					},
+			};
+		}
+		public static WellBoreArchitectureBatchExportRequest ConstructWellBoreArchitectureBatchExportRequest()
+		{
+			return new WellBoreArchitectureBatchExportRequest
+			{
+				Scope = (WellBoreArchitectureBatchExportScope)0,
+				WellBoreArchitectureIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellBoreArchitectureBatchRestoreRequest ConstructWellBoreArchitectureBatchRestoreRequest()
+		{
+			return new WellBoreArchitectureBatchRestoreRequest
+			{
+				ConflictPolicy = (WellBoreArchitectureBatchRestoreConflictPolicy)0,
+				CatalogPolicy = (WellBoreArchitectureBatchCatalogRestorePolicy)0,
+				AllowNormalizedNameMapping = false,
+				Document = ConstructWellBoreArchitectureBatchExportDocument(),
+			};
+		}
+		public static WellBoreArchitectureBatchRestoreResponse ConstructWellBoreArchitectureBatchRestoreResponse()
+		{
+			return new WellBoreArchitectureBatchRestoreResponse
+			{
+				RestoredAtUtc = DateTimeOffset.UtcNow,
+				CreatedCount = 0,
+				ReplacedCount = 0,
+				CreatedCatalogDefinitionCount = 0,
+				CreatedCatalogOptionCount = 0,
+				CatalogMappings = new List<WellBoreArchitectureBatchCatalogMapping>
+					{
+						ConstructWellBoreArchitectureBatchCatalogMapping(),
+					},
+				WellBoreArchitectureIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellBoreArchitectureDiscoveryPage ConstructWellBoreArchitectureDiscoveryPage()
+		{
+			return new WellBoreArchitectureDiscoveryPage
+			{
+				Items = new List<WellBoreArchitectureLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static WellBoreArchitectureExternalReferenceAuditRequest ConstructWellBoreArchitectureExternalReferenceAuditRequest()
+		{
+			return new WellBoreArchitectureExternalReferenceAuditRequest
+			{
+				Scope = (WellBoreArchitectureExternalReferenceAuditScope)0,
+				WellBoreArchitectureIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				Offset = 0,
+				Limit = 0,
+			};
+		}
+		public static WellBoreArchitectureExternalReferenceAuditResult ConstructWellBoreArchitectureExternalReferenceAuditResult()
+		{
+			return new WellBoreArchitectureExternalReferenceAuditResult
+			{
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Total = 0,
+				Offset = 0,
+				Limit = 0,
+				ValidCount = 0,
+				InvalidCount = 0,
+				UnavailableCount = 0,
+				Items = new List<WellBoreArchitectureExternalReferenceValidation>
+					{
+						ConstructWellBoreArchitectureExternalReferenceValidation(),
+					},
+			};
+		}
+		public static WellBoreArchitectureExternalReferenceIssue ConstructWellBoreArchitectureExternalReferenceIssue()
+		{
+			return new WellBoreArchitectureExternalReferenceIssue
+			{
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static WellBoreArchitectureExternalReferenceValidation ConstructWellBoreArchitectureExternalReferenceValidation()
+		{
+			return new WellBoreArchitectureExternalReferenceValidation
+			{
+				WellBoreArchitectureID = new Guid(),
+				WellBoreID = null,
+				WellBoreExists = null,
+				Status = (WellBoreArchitectureExternalReferenceValidationStatus)0,
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Issues = new List<WellBoreArchitectureExternalReferenceIssue>
+					{
+						ConstructWellBoreArchitectureExternalReferenceIssue(),
+					},
+			};
+		}
+		public static WellBoreArchitectureFeatureAssignment ConstructWellBoreArchitectureFeatureAssignment()
+		{
+			return new WellBoreArchitectureFeatureAssignment
+			{
+				ID = new Guid(),
+				FeatureCategoryID = null,
+				FeatureOptionID = null,
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellBoreArchitectureFeatureCategory ConstructWellBoreArchitectureFeatureCategory()
+		{
+			return new WellBoreArchitectureFeatureCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				IsExclusive = false,
+				HasValidityPeriod = false,
+				Options = new List<WellBoreArchitectureFeatureOption>
+					{
+						ConstructWellBoreArchitectureFeatureOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellBoreArchitectureFeatureCategoryDiscoveryPage ConstructWellBoreArchitectureFeatureCategoryDiscoveryPage()
+		{
+			return new WellBoreArchitectureFeatureCategoryDiscoveryPage
+			{
+				Items = new List<WellBoreArchitectureFeatureCategoryLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static WellBoreArchitectureFeatureOption ConstructWellBoreArchitectureFeatureOption()
+		{
+			return new WellBoreArchitectureFeatureOption
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static WellBoreArchitectureFluid ConstructWellBoreArchitectureFluid()
+		{
+			return new WellBoreArchitectureFluid
+			{
+				Fluid = (FluidType)0,
+				Depth = ConstructGaussianDrillingProperty(),
+			};
+		}
+		public static WellBoreArchitectureIdentity ConstructWellBoreArchitectureIdentity()
+		{
+			return new WellBoreArchitectureIdentity
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellBoreArchitectureIdentityAssignment ConstructWellBoreArchitectureIdentityAssignment()
+		{
+			return new WellBoreArchitectureIdentityAssignment
+			{
+				ID = new Guid(),
+				IdentityID = null,
+				Value = "Default Value",
+			};
+		}
+		public static WellBoreArchitectureIdentityDiscoveryPage ConstructWellBoreArchitectureIdentityDiscoveryPage()
+		{
+			return new WellBoreArchitectureIdentityDiscoveryPage
+			{
+				Items = new List<WellBoreArchitectureIdentityLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static WellHead ConstructWellHead()
+		{
+			return new WellHead
+			{
+				MaxOD = ConstructScalarDrillingProperty(),
+				MinOD = ConstructScalarDrillingProperty(),
+				Depth = ConstructGaussianDrillingProperty(),
+				CasingHangerDepth = ConstructScalarDrillingProperty(),
+				TubingHangerDepth = ConstructScalarDrillingProperty(),
+			};
+		}
+		public static WellboreRadialProfile ConstructWellboreRadialProfile()
+		{
+			return new WellboreRadialProfile
+			{
+				WellBoreArchitectureID = new Guid(),
+				AlongHoleDepth = 0.0,
+				Boundaries = new List<RadialBoundary>
+					{
+						ConstructRadialBoundary(),
+					},
+				OutermostKnownPhysicalEnvelopeDiameter = 0.0,
+				InnermostKnownPhysicalEnvelopeDiameter = 0.0,
+			};
+		}
+		public static UsageStatisticsWell ConstructUsageStatisticsWell()
+		{
+			return new UsageStatisticsWell
+			{
+				DiscoveryRequestsPerDay = ConstructHistory(),
+				LastSaved = DateTimeOffset.UtcNow,
+				BackUpInterval = "Default BackUpInterval",
+				GetAllWellIdPerDay = ConstructHistory(),
+				GetAllWellMetaInfoPerDay = ConstructHistory(),
+				GetWellByIdPerDay = ConstructHistory(),
+				GetAllWellPerDay = ConstructHistory(),
+				GetAllWellBySlotIdPerDay = ConstructHistory(),
+				GetAllWellByClusterIdPerDay = ConstructHistory(),
+				PostWellPerDay = ConstructHistory(),
+				PutWellByIdPerDay = ConstructHistory(),
+				DeleteWellByIdPerDay = ConstructHistory(),
+			};
+		}
+		public static Well ConstructWell()
+		{
+			return new Well
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				SlotID = null,
+				ClusterID = null,
+				IsSingleWell = false,
+				WellIdentityAssignments = new List<WellIdentityAssignment>(),
+				WellFeatureAssignments = new List<WellFeatureAssignment>(),
+			};
+		}
+		public static WellBatchCatalogDependencies ConstructWellBatchCatalogDependencies()
+		{
+			return new WellBatchCatalogDependencies
+			{
+				Identities = new List<WellIdentity>
+					{
+						ConstructWellIdentity(),
+					},
+				FeatureCategories = new List<WellFeatureCategory>
+					{
+						ConstructWellFeatureCategory(),
+					},
+			};
+		}
+		public static WellBatchCatalogMapping ConstructWellBatchCatalogMapping()
+		{
+			return new WellBatchCatalogMapping
+			{
+				Catalog = "Default Catalog",
+				Name = "Default Name",
+				SourceID = new Guid(),
+				LocalID = new Guid(),
+				Resolution = "Default Resolution",
+			};
+		}
+		public static WellBatchError ConstructWellBatchError()
+		{
+			return new WellBatchError
+			{
+				PositionIndex = null,
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static WellBatchErrorEnvelope ConstructWellBatchErrorEnvelope()
+		{
+			return new WellBatchErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<WellBatchError>
+					{
+						ConstructWellBatchError(),
+					},
+			};
+		}
+		public static WellBatchExportDocument ConstructWellBatchExportDocument()
+		{
+			return new WellBatchExportDocument
+			{
+				FormatIdentifier = "Default FormatIdentifier",
+				SchemaVersion = 0,
+				ExportedAtUtc = DateTimeOffset.UtcNow,
+				CatalogDependencies = ConstructWellBatchCatalogDependencies(),
+				Wells = new List<Well>
+					{
+						ConstructWell(),
+					},
+			};
+		}
+		public static WellBatchExportRequest ConstructWellBatchExportRequest()
+		{
+			return new WellBatchExportRequest
+			{
+				Scope = (WellBatchExportScope)0,
+				WellIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellBatchRestoreRequest ConstructWellBatchRestoreRequest()
+		{
+			return new WellBatchRestoreRequest
+			{
+				ConflictPolicy = (WellBatchRestoreConflictPolicy)0,
+				CatalogPolicy = (WellBatchCatalogRestorePolicy)0,
+				Document = ConstructWellBatchExportDocument(),
+			};
+		}
+		public static WellBatchRestoreResponse ConstructWellBatchRestoreResponse()
+		{
+			return new WellBatchRestoreResponse
+			{
+				RestoredAtUtc = DateTimeOffset.UtcNow,
+				CreatedCount = 0,
+				ReplacedCount = 0,
+				CreatedCatalogDefinitionCount = 0,
+				CreatedCatalogOptionCount = 0,
+				CatalogMappings = new List<WellBatchCatalogMapping>
+					{
+						ConstructWellBatchCatalogMapping(),
+					},
+				WellIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellDetailsUpdate ConstructWellDetailsUpdate()
+		{
+			return new WellDetailsUpdate
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static WellDiscoveryPage ConstructWellDiscoveryPage()
+		{
+			return new WellDiscoveryPage
+			{
+				Items = new List<WellLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static WellExternalReferenceAuditRequest ConstructWellExternalReferenceAuditRequest()
+		{
+			return new WellExternalReferenceAuditRequest
+			{
+				Scope = (WellExternalReferenceAuditScope)0,
+				WellIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				Offset = 0,
+				Limit = 0,
+			};
+		}
+		public static WellExternalReferenceAuditResult ConstructWellExternalReferenceAuditResult()
+		{
+			return new WellExternalReferenceAuditResult
+			{
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Total = 0,
+				Offset = 0,
+				Limit = 0,
+				ValidCount = 0,
+				InvalidCount = 0,
+				UnavailableCount = 0,
+				Items = new List<WellExternalReferenceValidation>
+					{
+						ConstructWellExternalReferenceValidation(),
+					},
+			};
+		}
+		public static WellExternalReferenceIssue ConstructWellExternalReferenceIssue()
+		{
+			return new WellExternalReferenceIssue
+			{
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static WellExternalReferenceValidation ConstructWellExternalReferenceValidation()
+		{
+			return new WellExternalReferenceValidation
+			{
+				WellID = new Guid(),
+				ClusterID = null,
+				SlotID = null,
+				ClusterExists = null,
+				SlotBelongsToCluster = null,
+				Status = (WellExternalReferenceValidationStatus)0,
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Issues = new List<WellExternalReferenceIssue>
+					{
+						ConstructWellExternalReferenceIssue(),
+					},
+			};
+		}
+		public static WellFeatureAssignment ConstructWellFeatureAssignment()
+		{
+			return new WellFeatureAssignment
+			{
+				ID = new Guid(),
+				FeatureCategoryID = null,
+				FeatureOptionID = null,
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellFeatureCategory ConstructWellFeatureCategory()
+		{
+			return new WellFeatureCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				IsExclusive = false,
+				HasValidityPeriod = false,
+				Options = new List<WellFeatureOption>
+					{
+						ConstructWellFeatureOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellFeatureCategoryDiscoveryPage ConstructWellFeatureCategoryDiscoveryPage()
+		{
+			return new WellFeatureCategoryDiscoveryPage
+			{
+				Items = new List<WellFeatureCategoryLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static WellFeatureOption ConstructWellFeatureOption()
+		{
+			return new WellFeatureOption
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static WellIdentity ConstructWellIdentity()
+		{
+			return new WellIdentity
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellIdentityAssignment ConstructWellIdentityAssignment()
+		{
+			return new WellIdentityAssignment
+			{
+				ID = new Guid(),
+				IdentityID = null,
+				Value = "Default Value",
+			};
+		}
+		public static WellIdentityDiscoveryPage ConstructWellIdentityDiscoveryPage()
+		{
+			return new WellIdentityDiscoveryPage
+			{
+				Items = new List<WellIdentityLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static WellLocationUpdate ConstructWellLocationUpdate()
+		{
+			return new WellLocationUpdate
+			{
+				ClusterID = null,
+				SlotID = null,
+				IsSingleWell = false,
+			};
+		}
+		public static WellMutationError ConstructWellMutationError()
+		{
+			return new WellMutationError
+			{
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+				ReferencingWellIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellMutationErrorEnvelope ConstructWellMutationErrorEnvelope()
+		{
+			return new WellMutationErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<WellMutationError>
+					{
+						ConstructWellMutationError(),
+					},
+			};
+		}
+		public static WellSearchResult ConstructWellSearchResult()
+		{
+			return new WellSearchResult
+			{
+				Items = new List<Well>
+					{
+						ConstructWell(),
+					},
+				Total = 0,
+				Offset = 0,
+				Limit = 0,
+			};
+		}
 		public static Point3DGlobalCoordinates ConstructPoint3DGlobalCoordinates()
 		{
 			return new Point3DGlobalCoordinates
@@ -409,16 +1260,6 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				Latitude = null,
 				Longitude = null,
 				TVD = null,
-			};
-		}
-		public static GaussianDistribution ConstructGaussianDistribution()
-		{
-			return new GaussianDistribution
-			{
-				MinValue = 0.0,
-				MaxValue = 0.0,
-				Mean = null,
-				StandardDeviation = null,
 			};
 		}
 		public static Cluster ConstructCluster()
@@ -587,6 +1428,17 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					},
 			};
 		}
+		public static ClusterDiscoveryPage ConstructClusterDiscoveryPage()
+		{
+			return new ClusterDiscoveryPage
+			{
+				Items = new List<ClusterLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
 		public static ClusterFeatureAssignment ConstructClusterFeatureAssignment()
 		{
 			return new ClusterFeatureAssignment
@@ -612,6 +1464,17 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					},
 				CreationDate = DateTimeOffset.UtcNow,
 				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static ClusterFeatureCategoryDiscoveryPage ConstructClusterFeatureCategoryDiscoveryPage()
+		{
+			return new ClusterFeatureCategoryDiscoveryPage
+			{
+				Items = new List<ClusterFeatureCategoryLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
 			};
 		}
 		public static ClusterFeatureOption ConstructClusterFeatureOption()
@@ -641,22 +1504,15 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				Value = "Default Value",
 			};
 		}
-		public static CountPerDay ConstructCountPerDay()
+		public static ClusterIdentityDiscoveryPage ConstructClusterIdentityDiscoveryPage()
 		{
-			return new CountPerDay
+			return new ClusterIdentityDiscoveryPage
 			{
-				Date = DateTimeOffset.UtcNow,
-				Count = 0,
-			};
-		}
-		public static History ConstructHistory()
-		{
-			return new History
-			{
-				Data = new List<CountPerDay>
-					{
-						ConstructCountPerDay(),
-					},
+				Items = new List<ClusterIdentityLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
 			};
 		}
 		public static Slot ConstructSlot()
@@ -671,6 +1527,17 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				Latitude = ConstructGaussianDrillingProperty(),
 				Longitude = ConstructGaussianDrillingProperty(),
 				SlotFeatureAssignments = new List<SlotFeatureAssignment>(),
+			};
+		}
+		public static SlotDiscoveryPage ConstructSlotDiscoveryPage()
+		{
+			return new SlotDiscoveryPage
+			{
+				Items = new List<SlotLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
 			};
 		}
 		public static SlotFeatureAssignment ConstructSlotFeatureAssignment()
@@ -700,6 +1567,17 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				LastModificationDate = DateTimeOffset.UtcNow,
 			};
 		}
+		public static SlotFeatureCategoryDiscoveryPage ConstructSlotFeatureCategoryDiscoveryPage()
+		{
+			return new SlotFeatureCategoryDiscoveryPage
+			{
+				Items = new List<SlotFeatureCategoryLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
 		public static SlotFeatureOption ConstructSlotFeatureOption()
 		{
 			return new SlotFeatureOption
@@ -712,6 +1590,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new UsageStatisticsCluster
 			{
+				DiscoveryRequestsPerDay = ConstructHistory(),
 				LastSaved = DateTimeOffset.UtcNow,
 				BackUpInterval = "Default BackUpInterval",
 				GetAllClusterIdPerDay = ConstructHistory(),
@@ -750,492 +1629,6 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				PutSlotFeatureCategoryByIdPerDay = ConstructHistory(),
 				DeleteSlotFeatureCategoryByIdPerDay = ConstructHistory(),
 				GetClusterUsageStatisticsPerDay = ConstructHistory(),
-			};
-		}
-		public static Field ConstructField()
-		{
-			return new Field
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				ProjectionDefinitionID = null,
-				ReferencePoint = ConstructPoint3DGlobalCoordinates(),
-				FieldFeatureAssignments = new List<FieldFeatureAssignment>(),
-				FieldIdentityAssignments = new List<FieldIdentityAssignment>(),
-				FieldMembershipAssignments = new List<FieldMembershipAssignment>
-					{
-						ConstructFieldMembershipAssignment(),
-					},
-				DelineationLines = new List<FieldDelineationLine>
-					{
-						ConstructFieldDelineationLine(),
-					},
-			};
-		}
-		public static FieldBatchCatalogDependencies ConstructFieldBatchCatalogDependencies()
-		{
-			return new FieldBatchCatalogDependencies
-			{
-				FeatureCategories = new List<FieldFeatureCategory>
-					{
-						ConstructFieldFeatureCategory(),
-					},
-				MembershipCategories = new List<FieldMembershipCategory>
-					{
-						ConstructFieldMembershipCategory(),
-					},
-				Identities = new List<FieldIdentity>
-					{
-						ConstructFieldIdentity(),
-					},
-				DelineationLineTypes = new List<FieldDelineationLineType>
-					{
-						ConstructFieldDelineationLineType(),
-					},
-			};
-		}
-		public static FieldBatchCatalogMapping ConstructFieldBatchCatalogMapping()
-		{
-			return new FieldBatchCatalogMapping
-			{
-				Catalog = "Default Catalog",
-				Name = "Default Name",
-				SourceID = new Guid(),
-				LocalID = new Guid(),
-				Resolution = "Default Resolution",
-			};
-		}
-		public static FieldBatchError ConstructFieldBatchError()
-		{
-			return new FieldBatchError
-			{
-				PositionIndex = null,
-				Property = "Default Property",
-				Code = "Default Code",
-				Message = "Default Message",
-			};
-		}
-		public static FieldBatchErrorEnvelope ConstructFieldBatchErrorEnvelope()
-		{
-			return new FieldBatchErrorEnvelope
-			{
-				Error = "Default Error",
-				Message = "Default Message",
-				Errors = new List<FieldBatchError>
-					{
-						ConstructFieldBatchError(),
-					},
-			};
-		}
-		public static FieldBatchExportDocument ConstructFieldBatchExportDocument()
-		{
-			return new FieldBatchExportDocument
-			{
-				FormatIdentifier = "Default FormatIdentifier",
-				SchemaVersion = 0,
-				ExportedAtUtc = DateTimeOffset.UtcNow,
-				CatalogDependencies = ConstructFieldBatchCatalogDependencies(),
-				Fields = new List<Field>
-					{
-						ConstructField(),
-					},
-			};
-		}
-		public static FieldBatchExportRequest ConstructFieldBatchExportRequest()
-		{
-			return new FieldBatchExportRequest
-			{
-				Scope = (FieldBatchExportScope)0,
-				FieldIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-			};
-		}
-		public static FieldBatchRestoreRequest ConstructFieldBatchRestoreRequest()
-		{
-			return new FieldBatchRestoreRequest
-			{
-				ConflictPolicy = (FieldBatchRestoreConflictPolicy)0,
-				CatalogPolicy = (FieldBatchCatalogRestorePolicy)0,
-				Document = ConstructFieldBatchExportDocument(),
-			};
-		}
-		public static FieldBatchRestoreResponse ConstructFieldBatchRestoreResponse()
-		{
-			return new FieldBatchRestoreResponse
-			{
-				RestoredAtUtc = DateTimeOffset.UtcNow,
-				CreatedCount = 0,
-				ReplacedCount = 0,
-				CreatedCatalogDefinitionCount = 0,
-				CreatedCatalogOptionCount = 0,
-				CatalogMappings = new List<FieldBatchCatalogMapping>
-					{
-						ConstructFieldBatchCatalogMapping(),
-					},
-				FieldIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-			};
-		}
-		public static FieldCatalogReference ConstructFieldCatalogReference()
-		{
-			return new FieldCatalogReference
-			{
-				ID = new Guid(),
-				Name = "Default Name",
-				Authority = "Default Authority",
-				Code = "Default Code",
-			};
-		}
-		public static FieldConversionErrorEnvelope ConstructFieldConversionErrorEnvelope()
-		{
-			return new FieldConversionErrorEnvelope
-			{
-				Error = "Default Error",
-				Message = "Default Message",
-				Errors = new List<FieldConversionValidationError>
-					{
-						ConstructFieldConversionValidationError(),
-					},
-			};
-		}
-		public static FieldConversionValidationError ConstructFieldConversionValidationError()
-		{
-			return new FieldConversionValidationError
-			{
-				PositionIndex = null,
-				Property = "Default Property",
-				Code = "Default Code",
-				Message = "Default Message",
-			};
-		}
-		public static FieldConversionWarning ConstructFieldConversionWarning()
-		{
-			return new FieldConversionWarning
-			{
-				Code = "Default Code",
-				Message = "Default Message",
-			};
-		}
-		public static FieldCoordinateConversionPositionResult ConstructFieldCoordinateConversionPositionResult()
-		{
-			return new FieldCoordinateConversionPositionResult
-			{
-				PositionIndex = 0,
-				ProjectionDatumGeographicCoordinate = ConstructFieldGeographicCoordinate(),
-				Wgs84GeographicCoordinate = ConstructFieldGeographicCoordinate(),
-				ProjectedCoordinate = ConstructFieldProjectedCoordinate(),
-				ProjectionDatumVerticalDepth = 0.0,
-				Wgs84VerticalDepth = null,
-				CoordinateEpochUtc = DateTimeOffset.UtcNow,
-				GridConvergence = null,
-			};
-		}
-		public static FieldCoordinateConversionResponse ConstructFieldCoordinateConversionResponse()
-		{
-			return new FieldCoordinateConversionResponse
-			{
-				FieldID = new Guid(),
-				ProjectionDefinition = ConstructFieldCatalogReference(),
-				ProjectionDatum = ConstructFieldCatalogReference(),
-				Wgs84Datum = ConstructFieldCatalogReference(),
-				ApiAxisConvention = "Default ApiAxisConvention",
-				Positions = new List<FieldCoordinateConversionPositionResult>
-					{
-						ConstructFieldCoordinateConversionPositionResult(),
-					},
-				Warnings = new List<FieldConversionWarning>
-					{
-						ConstructFieldConversionWarning(),
-					},
-			};
-		}
-		public static FieldDelineationBoundaryLine ConstructFieldDelineationBoundaryLine()
-		{
-			return new FieldDelineationBoundaryLine
-			{
-				ID = new Guid(),
-				IsInteriorBoundary = false,
-				IsClosed = false,
-				Points = new List<Point3DGlobalCoordinates>
-					{
-						ConstructPoint3DGlobalCoordinates(),
-					},
-			};
-		}
-		public static FieldDelineationLine ConstructFieldDelineationLine()
-		{
-			return new FieldDelineationLine
-			{
-				ID = new Guid(),
-				DelineationLineTypeID = null,
-				Name = "Default Name",
-				Description = "Default Description",
-				Margin = null,
-				TopDepth = null,
-				BottomDepth = null,
-				Points = new List<Point3DGlobalCoordinates>
-					{
-						ConstructPoint3DGlobalCoordinates(),
-					},
-				CalculatedBoundaryLines = new List<FieldDelineationBoundaryLine>
-					{
-						ConstructFieldDelineationBoundaryLine(),
-					},
-			};
-		}
-		public static FieldDelineationLineType ConstructFieldDelineationLineType()
-		{
-			return new FieldDelineationLineType
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static FieldFeatureAssignment ConstructFieldFeatureAssignment()
-		{
-			return new FieldFeatureAssignment
-			{
-				ID = new Guid(),
-				FeatureCategoryID = null,
-				FeatureOptionID = null,
-				FromDate = DateTimeOffset.UtcNow,
-				ToDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static FieldFeatureCategory ConstructFieldFeatureCategory()
-		{
-			return new FieldFeatureCategory
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				IsExclusive = false,
-				HasValidityPeriod = false,
-				Options = new List<FieldFeatureOption>
-					{
-						ConstructFieldFeatureOption(),
-					},
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static FieldFeatureOption ConstructFieldFeatureOption()
-		{
-			return new FieldFeatureOption
-			{
-				ID = new Guid(),
-				Name = "Default Name",
-			};
-		}
-		public static FieldForwardConversionPosition ConstructFieldForwardConversionPosition()
-		{
-			return new FieldForwardConversionPosition
-			{
-				Latitude = 0.0,
-				Longitude = 0.0,
-				VerticalDepth = 0.0,
-				CoordinateEpochUtc = DateTimeOffset.UtcNow,
-			};
-		}
-		public static FieldForwardConversionRequest ConstructFieldForwardConversionRequest()
-		{
-			return new FieldForwardConversionRequest
-			{
-				FieldID = new Guid(),
-				SourceGeographicReference = (FieldGeographicReference)0,
-				ProjectionApplicabilityPolicy = (FieldApplicabilityPolicy)0,
-				Transformation = ConstructFieldTransformationOptions(),
-				Positions = new List<FieldForwardConversionPosition>
-					{
-						ConstructFieldForwardConversionPosition(),
-					},
-			};
-		}
-		public static FieldGeographicCoordinate ConstructFieldGeographicCoordinate()
-		{
-			return new FieldGeographicCoordinate
-			{
-				Latitude = 0.0,
-				Longitude = 0.0,
-			};
-		}
-		public static FieldIdentity ConstructFieldIdentity()
-		{
-			return new FieldIdentity
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static FieldIdentityAssignment ConstructFieldIdentityAssignment()
-		{
-			return new FieldIdentityAssignment
-			{
-				ID = new Guid(),
-				IdentityID = null,
-				Value = "Default Value",
-			};
-		}
-		public static FieldInverseConversionPosition ConstructFieldInverseConversionPosition()
-		{
-			return new FieldInverseConversionPosition
-			{
-				Easting = 0.0,
-				Northing = 0.0,
-				VerticalDepth = 0.0,
-				CoordinateEpochUtc = DateTimeOffset.UtcNow,
-			};
-		}
-		public static FieldInverseConversionRequest ConstructFieldInverseConversionRequest()
-		{
-			return new FieldInverseConversionRequest
-			{
-				FieldID = new Guid(),
-				ProjectionApplicabilityPolicy = (FieldApplicabilityPolicy)0,
-				Transformation = ConstructFieldTransformationOptions(),
-				Positions = new List<FieldInverseConversionPosition>
-					{
-						ConstructFieldInverseConversionPosition(),
-					},
-			};
-		}
-		public static FieldMembershipAssignment ConstructFieldMembershipAssignment()
-		{
-			return new FieldMembershipAssignment
-			{
-				ID = new Guid(),
-				MembershipCategoryID = null,
-				MembershipOptionID = null,
-				FromDate = DateTimeOffset.UtcNow,
-				ToDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static FieldMembershipCategory ConstructFieldMembershipCategory()
-		{
-			return new FieldMembershipCategory
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				IsExclusive = false,
-				HasValidityPeriod = false,
-				Options = new List<FieldMembershipOption>
-					{
-						ConstructFieldMembershipOption(),
-					},
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static FieldMembershipOption ConstructFieldMembershipOption()
-		{
-			return new FieldMembershipOption
-			{
-				ID = new Guid(),
-				Name = "Default Name",
-			};
-		}
-		public static FieldMutationError ConstructFieldMutationError()
-		{
-			return new FieldMutationError
-			{
-				Property = "Default Property",
-				Code = "Default Code",
-				Message = "Default Message",
-				ReferencingFieldIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-			};
-		}
-		public static FieldMutationErrorEnvelope ConstructFieldMutationErrorEnvelope()
-		{
-			return new FieldMutationErrorEnvelope
-			{
-				Error = "Default Error",
-				Message = "Default Message",
-				Errors = new List<FieldMutationError>
-					{
-						ConstructFieldMutationError(),
-					},
-			};
-		}
-		public static FieldProjectedCoordinate ConstructFieldProjectedCoordinate()
-		{
-			return new FieldProjectedCoordinate
-			{
-				Easting = 0.0,
-				Northing = 0.0,
-			};
-		}
-		public static FieldTransformationOptions ConstructFieldTransformationOptions()
-		{
-			return new FieldTransformationOptions
-			{
-				SelectionPolicy = (FieldTransformationSelectionPolicy)0,
-				TransformationPathIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-				SelectionToken = "Default SelectionToken",
-				ApplicabilityPolicy = (FieldApplicabilityPolicy)0,
-				DepthPolicy = (FieldDepthTransformationPolicy)0,
-			};
-		}
-		public static UsageStatisticsField ConstructUsageStatisticsField()
-		{
-			return new UsageStatisticsField
-			{
-				LastSaved = DateTimeOffset.UtcNow,
-				BackUpInterval = "Default BackUpInterval",
-				GetAllFieldIdPerDay = ConstructHistory(),
-				GetAllFieldMetaInfoPerDay = ConstructHistory(),
-				GetFieldByIdPerDay = ConstructHistory(),
-				GetAllFieldLightPerDay = ConstructHistory(),
-				GetAllFieldPerDay = ConstructHistory(),
-				BatchExportFieldsPerDay = ConstructHistory(),
-				BatchRestoreFieldsPerDay = ConstructHistory(),
-				PostFieldPerDay = ConstructHistory(),
-				PutFieldByIdPerDay = ConstructHistory(),
-				DeleteFieldByIdPerDay = ConstructHistory(),
-				GetAllFieldDelineationLineTypeIdPerDay = ConstructHistory(),
-				GetAllFieldDelineationLineTypeMetaInfoPerDay = ConstructHistory(),
-				GetFieldDelineationLineTypeByIdPerDay = ConstructHistory(),
-				GetAllFieldDelineationLineTypePerDay = ConstructHistory(),
-				PostFieldDelineationLineTypePerDay = ConstructHistory(),
-				PutFieldDelineationLineTypeByIdPerDay = ConstructHistory(),
-				DeleteFieldDelineationLineTypeByIdPerDay = ConstructHistory(),
-				GetAllFieldFeatureCategoryIdPerDay = ConstructHistory(),
-				GetAllFieldFeatureCategoryMetaInfoPerDay = ConstructHistory(),
-				GetFieldFeatureCategoryByIdPerDay = ConstructHistory(),
-				GetAllFieldFeatureCategoryPerDay = ConstructHistory(),
-				PostFieldFeatureCategoryPerDay = ConstructHistory(),
-				PutFieldFeatureCategoryByIdPerDay = ConstructHistory(),
-				DeleteFieldFeatureCategoryByIdPerDay = ConstructHistory(),
-				GetAllFieldIdentityIdPerDay = ConstructHistory(),
-				GetAllFieldIdentityMetaInfoPerDay = ConstructHistory(),
-				GetFieldIdentityByIdPerDay = ConstructHistory(),
-				GetAllFieldIdentityPerDay = ConstructHistory(),
-				PostFieldIdentityPerDay = ConstructHistory(),
-				PutFieldIdentityByIdPerDay = ConstructHistory(),
-				DeleteFieldIdentityByIdPerDay = ConstructHistory(),
-				GetAllFieldMembershipCategoryIdPerDay = ConstructHistory(),
-				GetAllFieldMembershipCategoryMetaInfoPerDay = ConstructHistory(),
-				GetFieldMembershipCategoryByIdPerDay = ConstructHistory(),
-				GetAllFieldMembershipCategoryPerDay = ConstructHistory(),
-				PostFieldMembershipCategoryPerDay = ConstructHistory(),
-				PutFieldMembershipCategoryByIdPerDay = ConstructHistory(),
-				DeleteFieldMembershipCategoryByIdPerDay = ConstructHistory(),
-				GetFieldUsageStatisticsPerDay = ConstructHistory(),
 			};
 		}
 		public static Accumulator ConstructAccumulator()
@@ -2747,6 +3140,17 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				Description = "Default Description",
 			};
 		}
+		public static RigDiscoveryPage ConstructRigDiscoveryPage()
+		{
+			return new RigDiscoveryPage
+			{
+				Items = new List<RigLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
 		public static RigExternalIdentifier ConstructRigExternalIdentifier()
 		{
 			return new RigExternalIdentifier
@@ -2786,6 +3190,17 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					},
 				CreationDate = DateTimeOffset.UtcNow,
 				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static RigFeatureCategoryDiscoveryPage ConstructRigFeatureCategoryDiscoveryPage()
+		{
+			return new RigFeatureCategoryDiscoveryPage
+			{
+				Items = new List<RigFeatureCategoryLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
 			};
 		}
 		public static RigFeatureOption ConstructRigFeatureOption()
@@ -3392,6 +3807,7 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 		{
 			return new UsageStatisticsRig
 			{
+				DiscoveryRequestsPerDay = ConstructHistory(),
 				LastSaved = DateTimeOffset.UtcNow,
 				BackUpInterval = "Default BackUpInterval",
 				GetAllRigIdPerDay = ConstructHistory(),
@@ -3404,1052 +3820,6 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				DeleteRigByIdPerDay = ConstructHistory(),
 				BatchExportRigsPerDay = ConstructHistory(),
 				BatchRestoreRigsPerDay = ConstructHistory(),
-			};
-		}
-		public static UsageStatisticsWell ConstructUsageStatisticsWell()
-		{
-			return new UsageStatisticsWell
-			{
-				LastSaved = DateTimeOffset.UtcNow,
-				BackUpInterval = "Default BackUpInterval",
-				GetAllWellIdPerDay = ConstructHistory(),
-				GetAllWellMetaInfoPerDay = ConstructHistory(),
-				GetWellByIdPerDay = ConstructHistory(),
-				GetAllWellPerDay = ConstructHistory(),
-				GetAllWellBySlotIdPerDay = ConstructHistory(),
-				GetAllWellByClusterIdPerDay = ConstructHistory(),
-				PostWellPerDay = ConstructHistory(),
-				PutWellByIdPerDay = ConstructHistory(),
-				DeleteWellByIdPerDay = ConstructHistory(),
-			};
-		}
-		public static Well ConstructWell()
-		{
-			return new Well
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				SlotID = null,
-				ClusterID = null,
-				IsSingleWell = false,
-				WellIdentityAssignments = new List<WellIdentityAssignment>(),
-				WellFeatureAssignments = new List<WellFeatureAssignment>(),
-			};
-		}
-		public static WellBatchCatalogDependencies ConstructWellBatchCatalogDependencies()
-		{
-			return new WellBatchCatalogDependencies
-			{
-				Identities = new List<WellIdentity>
-					{
-						ConstructWellIdentity(),
-					},
-				FeatureCategories = new List<WellFeatureCategory>
-					{
-						ConstructWellFeatureCategory(),
-					},
-			};
-		}
-		public static WellBatchCatalogMapping ConstructWellBatchCatalogMapping()
-		{
-			return new WellBatchCatalogMapping
-			{
-				Catalog = "Default Catalog",
-				Name = "Default Name",
-				SourceID = new Guid(),
-				LocalID = new Guid(),
-				Resolution = "Default Resolution",
-			};
-		}
-		public static WellBatchError ConstructWellBatchError()
-		{
-			return new WellBatchError
-			{
-				PositionIndex = null,
-				Property = "Default Property",
-				Code = "Default Code",
-				Message = "Default Message",
-			};
-		}
-		public static WellBatchErrorEnvelope ConstructWellBatchErrorEnvelope()
-		{
-			return new WellBatchErrorEnvelope
-			{
-				Error = "Default Error",
-				Message = "Default Message",
-				Errors = new List<WellBatchError>
-					{
-						ConstructWellBatchError(),
-					},
-			};
-		}
-		public static WellBatchExportDocument ConstructWellBatchExportDocument()
-		{
-			return new WellBatchExportDocument
-			{
-				FormatIdentifier = "Default FormatIdentifier",
-				SchemaVersion = 0,
-				ExportedAtUtc = DateTimeOffset.UtcNow,
-				CatalogDependencies = ConstructWellBatchCatalogDependencies(),
-				Wells = new List<Well>
-					{
-						ConstructWell(),
-					},
-			};
-		}
-		public static WellBatchExportRequest ConstructWellBatchExportRequest()
-		{
-			return new WellBatchExportRequest
-			{
-				Scope = (WellBatchExportScope)0,
-				WellIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-			};
-		}
-		public static WellBatchRestoreRequest ConstructWellBatchRestoreRequest()
-		{
-			return new WellBatchRestoreRequest
-			{
-				ConflictPolicy = (WellBatchRestoreConflictPolicy)0,
-				CatalogPolicy = (WellBatchCatalogRestorePolicy)0,
-				Document = ConstructWellBatchExportDocument(),
-			};
-		}
-		public static WellBatchRestoreResponse ConstructWellBatchRestoreResponse()
-		{
-			return new WellBatchRestoreResponse
-			{
-				RestoredAtUtc = DateTimeOffset.UtcNow,
-				CreatedCount = 0,
-				ReplacedCount = 0,
-				CreatedCatalogDefinitionCount = 0,
-				CreatedCatalogOptionCount = 0,
-				CatalogMappings = new List<WellBatchCatalogMapping>
-					{
-						ConstructWellBatchCatalogMapping(),
-					},
-				WellIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-			};
-		}
-		public static WellDetailsUpdate ConstructWellDetailsUpdate()
-		{
-			return new WellDetailsUpdate
-			{
-				Name = "Default Name",
-				Description = "Default Description",
-			};
-		}
-		public static WellExternalReferenceAuditRequest ConstructWellExternalReferenceAuditRequest()
-		{
-			return new WellExternalReferenceAuditRequest
-			{
-				Scope = (WellExternalReferenceAuditScope)0,
-				WellIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-				Offset = 0,
-				Limit = 0,
-			};
-		}
-		public static WellExternalReferenceAuditResult ConstructWellExternalReferenceAuditResult()
-		{
-			return new WellExternalReferenceAuditResult
-			{
-				CheckedAtUtc = DateTimeOffset.UtcNow,
-				Total = 0,
-				Offset = 0,
-				Limit = 0,
-				ValidCount = 0,
-				InvalidCount = 0,
-				UnavailableCount = 0,
-				Items = new List<WellExternalReferenceValidation>
-					{
-						ConstructWellExternalReferenceValidation(),
-					},
-			};
-		}
-		public static WellExternalReferenceIssue ConstructWellExternalReferenceIssue()
-		{
-			return new WellExternalReferenceIssue
-			{
-				Property = "Default Property",
-				Code = "Default Code",
-				Message = "Default Message",
-			};
-		}
-		public static WellExternalReferenceValidation ConstructWellExternalReferenceValidation()
-		{
-			return new WellExternalReferenceValidation
-			{
-				WellID = new Guid(),
-				ClusterID = null,
-				SlotID = null,
-				ClusterExists = null,
-				SlotBelongsToCluster = null,
-				Status = (WellExternalReferenceValidationStatus)0,
-				CheckedAtUtc = DateTimeOffset.UtcNow,
-				Issues = new List<WellExternalReferenceIssue>
-					{
-						ConstructWellExternalReferenceIssue(),
-					},
-			};
-		}
-		public static WellFeatureAssignment ConstructWellFeatureAssignment()
-		{
-			return new WellFeatureAssignment
-			{
-				ID = new Guid(),
-				FeatureCategoryID = null,
-				FeatureOptionID = null,
-				FromDate = DateTimeOffset.UtcNow,
-				ToDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static WellFeatureCategory ConstructWellFeatureCategory()
-		{
-			return new WellFeatureCategory
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				IsExclusive = false,
-				HasValidityPeriod = false,
-				Options = new List<WellFeatureOption>
-					{
-						ConstructWellFeatureOption(),
-					},
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static WellFeatureOption ConstructWellFeatureOption()
-		{
-			return new WellFeatureOption
-			{
-				ID = new Guid(),
-				Name = "Default Name",
-			};
-		}
-		public static WellIdentity ConstructWellIdentity()
-		{
-			return new WellIdentity
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static WellIdentityAssignment ConstructWellIdentityAssignment()
-		{
-			return new WellIdentityAssignment
-			{
-				ID = new Guid(),
-				IdentityID = null,
-				Value = "Default Value",
-			};
-		}
-		public static WellLocationUpdate ConstructWellLocationUpdate()
-		{
-			return new WellLocationUpdate
-			{
-				ClusterID = null,
-				SlotID = null,
-				IsSingleWell = false,
-			};
-		}
-		public static WellMutationError ConstructWellMutationError()
-		{
-			return new WellMutationError
-			{
-				Property = "Default Property",
-				Code = "Default Code",
-				Message = "Default Message",
-				ReferencingWellIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-			};
-		}
-		public static WellMutationErrorEnvelope ConstructWellMutationErrorEnvelope()
-		{
-			return new WellMutationErrorEnvelope
-			{
-				Error = "Default Error",
-				Message = "Default Message",
-				Errors = new List<WellMutationError>
-					{
-						ConstructWellMutationError(),
-					},
-			};
-		}
-		public static WellSearchResult ConstructWellSearchResult()
-		{
-			return new WellSearchResult
-			{
-				Items = new List<Well>
-					{
-						ConstructWell(),
-					},
-				Total = 0,
-				Offset = 0,
-				Limit = 0,
-			};
-		}
-		public static RigJob ConstructRigJob()
-		{
-			return new RigJob
-			{
-				RigJobID = new Guid(),
-				RigID = new Guid(),
-				StartDate = DateTimeOffset.UtcNow,
-				EndDate = DateTimeOffset.UtcNow,
-				DrillFloorDepthSource = (DrillFloorDepthSource)0,
-				DrillFloorDepth = ConstructGaussianDrillingProperty(),
-			};
-		}
-		public static UsageStatisticsWellBore ConstructUsageStatisticsWellBore()
-		{
-			return new UsageStatisticsWellBore
-			{
-				LastSaved = DateTimeOffset.UtcNow,
-				BackUpInterval = "Default BackUpInterval",
-				GetAllWellBoreIdPerDay = ConstructHistory(),
-				GetAllWellBoreMetaInfoPerDay = ConstructHistory(),
-				GetWellBoreByIdPerDay = ConstructHistory(),
-				GetAllWellBorePerDay = ConstructHistory(),
-				GetAllWellBoreByWellIDPerDay = ConstructHistory(),
-				GetAllWellBoreByRigIDPerDay = ConstructHistory(),
-				GetAllWellBoreByParentIDPerDay = ConstructHistory(),
-				GetAllSidetrackedWellBorePerDay = ConstructHistory(),
-				PostWellBorePerDay = ConstructHistory(),
-				PutWellBoreByIdPerDay = ConstructHistory(),
-				DeleteWellBoreByIdPerDay = ConstructHistory(),
-			};
-		}
-		public static WellBore ConstructWellBore()
-		{
-			return new WellBore
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				WellID = null,
-				RigID = null,
-				RigJobs = new List<RigJob>
-					{
-						ConstructRigJob(),
-					},
-				IsSidetrack = false,
-				ParentWellBoreID = null,
-				TieInPointAlongHoleDepth = ConstructGaussianDrillingProperty(),
-				SidetrackType = (SidetrackType)0,
-				WellBoreIdentityAssignments = new List<WellBoreIdentityAssignment>(),
-				WellBoreFeatureAssignments = new List<WellBoreFeatureAssignment>(),
-			};
-		}
-		public static WellBoreBatchCatalogDependencies ConstructWellBoreBatchCatalogDependencies()
-		{
-			return new WellBoreBatchCatalogDependencies
-			{
-				Identities = new List<WellBoreIdentity>
-					{
-						ConstructWellBoreIdentity(),
-					},
-				FeatureCategories = new List<WellBoreFeatureCategory>
-					{
-						ConstructWellBoreFeatureCategory(),
-					},
-			};
-		}
-		public static WellBoreBatchCatalogMapping ConstructWellBoreBatchCatalogMapping()
-		{
-			return new WellBoreBatchCatalogMapping
-			{
-				Catalog = "Default Catalog",
-				Name = "Default Name",
-				SourceID = new Guid(),
-				LocalID = new Guid(),
-				Resolution = "Default Resolution",
-			};
-		}
-		public static WellBoreBatchError ConstructWellBoreBatchError()
-		{
-			return new WellBoreBatchError
-			{
-				PositionIndex = null,
-				Property = "Default Property",
-				Code = "Default Code",
-				Message = "Default Message",
-			};
-		}
-		public static WellBoreBatchErrorEnvelope ConstructWellBoreBatchErrorEnvelope()
-		{
-			return new WellBoreBatchErrorEnvelope
-			{
-				Error = "Default Error",
-				Message = "Default Message",
-				Errors = new List<WellBoreBatchError>
-					{
-						ConstructWellBoreBatchError(),
-					},
-			};
-		}
-		public static WellBoreBatchExportDocument ConstructWellBoreBatchExportDocument()
-		{
-			return new WellBoreBatchExportDocument
-			{
-				FormatIdentifier = "Default FormatIdentifier",
-				SchemaVersion = 0,
-				ExportedAtUtc = DateTimeOffset.UtcNow,
-				CatalogDependencies = ConstructWellBoreBatchCatalogDependencies(),
-				WellBores = new List<WellBore>
-					{
-						ConstructWellBore(),
-					},
-			};
-		}
-		public static WellBoreBatchExportRequest ConstructWellBoreBatchExportRequest()
-		{
-			return new WellBoreBatchExportRequest
-			{
-				Scope = (WellBoreBatchExportScope)0,
-				WellBoreIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-			};
-		}
-		public static WellBoreBatchRestoreRequest ConstructWellBoreBatchRestoreRequest()
-		{
-			return new WellBoreBatchRestoreRequest
-			{
-				ConflictPolicy = (WellBoreBatchRestoreConflictPolicy)0,
-				CatalogPolicy = (WellBoreBatchCatalogRestorePolicy)0,
-				Document = ConstructWellBoreBatchExportDocument(),
-			};
-		}
-		public static WellBoreBatchRestoreResponse ConstructWellBoreBatchRestoreResponse()
-		{
-			return new WellBoreBatchRestoreResponse
-			{
-				RestoredAtUtc = DateTimeOffset.UtcNow,
-				CreatedCount = 0,
-				ReplacedCount = 0,
-				CreatedCatalogDefinitionCount = 0,
-				CreatedCatalogOptionCount = 0,
-				CatalogMappings = new List<WellBoreBatchCatalogMapping>
-					{
-						ConstructWellBoreBatchCatalogMapping(),
-					},
-				WellBoreIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-			};
-		}
-		public static WellBoreDetailsUpdate ConstructWellBoreDetailsUpdate()
-		{
-			return new WellBoreDetailsUpdate
-			{
-				Name = "Default Name",
-				Description = "Default Description",
-			};
-		}
-		public static WellBoreExternalReferenceAuditRequest ConstructWellBoreExternalReferenceAuditRequest()
-		{
-			return new WellBoreExternalReferenceAuditRequest
-			{
-				Scope = (WellBoreExternalReferenceAuditScope)0,
-				WellBoreIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-				Offset = 0,
-				Limit = 0,
-			};
-		}
-		public static WellBoreExternalReferenceAuditResult ConstructWellBoreExternalReferenceAuditResult()
-		{
-			return new WellBoreExternalReferenceAuditResult
-			{
-				CheckedAtUtc = DateTimeOffset.UtcNow,
-				Total = 0,
-				Offset = 0,
-				Limit = 0,
-				ValidCount = 0,
-				InvalidCount = 0,
-				UnavailableCount = 0,
-				Items = new List<WellBoreExternalReferenceValidation>
-					{
-						ConstructWellBoreExternalReferenceValidation(),
-					},
-			};
-		}
-		public static WellBoreExternalReferenceIssue ConstructWellBoreExternalReferenceIssue()
-		{
-			return new WellBoreExternalReferenceIssue
-			{
-				Property = "Default Property",
-				Code = "Default Code",
-				Message = "Default Message",
-			};
-		}
-		public static WellBoreExternalReferenceValidation ConstructWellBoreExternalReferenceValidation()
-		{
-			return new WellBoreExternalReferenceValidation
-			{
-				WellBoreID = new Guid(),
-				WellID = null,
-				RigID = null,
-				WellExists = null,
-				RigExists = null,
-				Status = (WellBoreExternalReferenceValidationStatus)0,
-				CheckedAtUtc = DateTimeOffset.UtcNow,
-				Issues = new List<WellBoreExternalReferenceIssue>
-					{
-						ConstructWellBoreExternalReferenceIssue(),
-					},
-			};
-		}
-		public static WellBoreFeatureAssignment ConstructWellBoreFeatureAssignment()
-		{
-			return new WellBoreFeatureAssignment
-			{
-				ID = new Guid(),
-				FeatureCategoryID = null,
-				FeatureOptionID = null,
-				FromDate = DateTimeOffset.UtcNow,
-				ToDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static WellBoreFeatureCategory ConstructWellBoreFeatureCategory()
-		{
-			return new WellBoreFeatureCategory
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				IsExclusive = false,
-				HasValidityPeriod = false,
-				Options = new List<WellBoreFeatureOption>
-					{
-						ConstructWellBoreFeatureOption(),
-					},
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static WellBoreFeatureOption ConstructWellBoreFeatureOption()
-		{
-			return new WellBoreFeatureOption
-			{
-				ID = new Guid(),
-				Name = "Default Name",
-			};
-		}
-		public static WellBoreIdentity ConstructWellBoreIdentity()
-		{
-			return new WellBoreIdentity
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static WellBoreIdentityAssignment ConstructWellBoreIdentityAssignment()
-		{
-			return new WellBoreIdentityAssignment
-			{
-				ID = new Guid(),
-				IdentityID = null,
-				Value = "Default Value",
-			};
-		}
-		public static WellBoreMutationError ConstructWellBoreMutationError()
-		{
-			return new WellBoreMutationError
-			{
-				Property = "Default Property",
-				Code = "Default Code",
-				Message = "Default Message",
-				ReferencingWellBoreIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-			};
-		}
-		public static WellBoreMutationErrorEnvelope ConstructWellBoreMutationErrorEnvelope()
-		{
-			return new WellBoreMutationErrorEnvelope
-			{
-				Error = "Default Error",
-				Message = "Default Message",
-				Errors = new List<WellBoreMutationError>
-					{
-						ConstructWellBoreMutationError(),
-					},
-			};
-		}
-		public static WellBoreSearchResult ConstructWellBoreSearchResult()
-		{
-			return new WellBoreSearchResult
-			{
-				Items = new List<WellBore>
-					{
-						ConstructWellBore(),
-					},
-				Total = 0,
-				Offset = 0,
-				Limit = 0,
-			};
-		}
-		public static WellBoreTopologyUpdate ConstructWellBoreTopologyUpdate()
-		{
-			return new WellBoreTopologyUpdate
-			{
-				WellID = null,
-				RigID = null,
-				RigJobs = new List<RigJob>
-					{
-						ConstructRigJob(),
-					},
-				IsSidetrack = false,
-				ParentWellBoreID = null,
-				TieInPointAlongHoleDepth = ConstructGaussianDrillingProperty(),
-				SidetrackType = (SidetrackType)0,
-			};
-		}
-		public static ScalarDrillingProperty ConstructScalarDrillingProperty()
-		{
-			return new ScalarDrillingProperty
-			{
-				DiracDistributionValue = ConstructDiracDistribution(),
-			};
-		}
-		public static DiracDistribution ConstructDiracDistribution()
-		{
-			return new DiracDistribution
-			{
-				MinValue = 0.0,
-				MaxValue = 0.0,
-				Value = null,
-			};
-		}
-		public static BoreHoleSize ConstructBoreHoleSize()
-		{
-			return new BoreHoleSize
-			{
-				ComponentID = new Guid(),
-				HoleSize = ConstructGaussianDrillingProperty(),
-				Length = ConstructGaussianDrillingProperty(),
-			};
-		}
-		public static CasingSection ConstructCasingSection()
-		{
-			return new CasingSection
-			{
-				ComponentID = new Guid(),
-				TopDepth = ConstructGaussianDrillingProperty(),
-				Length = ConstructGaussianDrillingProperty(),
-				TopCementDepth = ConstructGaussianDrillingProperty(),
-				CasingSectionElements = new List<CasingSectionElement>
-					{
-						ConstructCasingSectionElement(),
-					},
-				CasingSectionSizeTable = new List<BoreHoleSize>
-					{
-						ConstructBoreHoleSize(),
-					},
-			};
-		}
-		public static CasingSectionElement ConstructCasingSectionElement()
-		{
-			return new CasingSectionElement
-			{
-				ComponentID = new Guid(),
-				BodyOD = ConstructGaussianDrillingProperty(),
-				BodyID = ConstructGaussianDrillingProperty(),
-				CollarOD = ConstructGaussianDrillingProperty(),
-				JointLength = ConstructGaussianDrillingProperty(),
-				SectionLength = ConstructGaussianDrillingProperty(),
-				MaxDLS = ConstructScalarDrillingProperty(),
-				ConnectionType = "Default ConnectionType",
-				Grade = "Default Grade",
-				MaterialDensity = ConstructGaussianDrillingProperty(),
-				YoungModulus = ConstructGaussianDrillingProperty(),
-				LinearWeight = ConstructGaussianDrillingProperty(),
-				TensileStrength = ConstructGaussianDrillingProperty(),
-				TorsionalStrength = ConstructGaussianDrillingProperty(),
-				BurstPressure = ConstructGaussianDrillingProperty(),
-				CollapsePressure = ConstructGaussianDrillingProperty(),
-				YieldStress = ConstructGaussianDrillingProperty(),
-				MakeUpTorqueRecommended = ConstructScalarDrillingProperty(),
-			};
-		}
-		public static ElementConnectivity ConstructElementConnectivity()
-		{
-			return new ElementConnectivity
-			{
-				ComponentID = new Guid(),
-				UpstreamElement = ConstructSideElement(),
-				DownstreamElement = ConstructSideElement(),
-			};
-		}
-		public static OpenHoleSection ConstructOpenHoleSection()
-		{
-			return new OpenHoleSection
-			{
-				ComponentID = new Guid(),
-				HoleSizes = new List<BoreHoleSize>
-					{
-						ConstructBoreHoleSize(),
-					},
-			};
-		}
-		public static SideConnector ConstructSideConnector()
-		{
-			return new SideConnector
-			{
-				ComponentID = new Guid(),
-				Position = ConstructGaussianDrillingProperty(),
-				VerticalDepth = ConstructGaussianDrillingProperty(),
-				FirstSideElement = ConstructSideElement(),
-				ElementConnectivities = new List<ElementConnectivity>
-					{
-						ConstructElementConnectivity(),
-					},
-			};
-		}
-		public static SideElement ConstructSideElement()
-		{
-			return new SideElement
-			{
-				ComponentID = new Guid(),
-				Name = "Default Name",
-				Type = (SideElementType)0,
-				Length = ConstructGaussianDrillingProperty(),
-				TopVerticalDepth = ConstructGaussianDrillingProperty(),
-				OD = ConstructGaussianDrillingProperty(),
-				ID = ConstructGaussianDrillingProperty(),
-			};
-		}
-		public static SurfaceSection ConstructSurfaceSection()
-		{
-			return new SurfaceSection
-			{
-				ComponentID = new Guid(),
-				Type = (SurfaceSectionType)0,
-				SectionLength = ConstructGaussianDrillingProperty(),
-				BodyOD = ConstructGaussianDrillingProperty(),
-				BodyID = ConstructGaussianDrillingProperty(),
-				ConnectionType = "Default ConnectionType",
-				Grade = "Default Grade",
-				MaterialDensity = ConstructGaussianDrillingProperty(),
-				YoungModulus = ConstructGaussianDrillingProperty(),
-				LinearWeight = ConstructGaussianDrillingProperty(),
-				TensileStrength = ConstructGaussianDrillingProperty(),
-				BurstPressure = ConstructGaussianDrillingProperty(),
-				CollapsePressure = ConstructGaussianDrillingProperty(),
-				YieldStress = ConstructGaussianDrillingProperty(),
-				MakeUpTorqueRecommended = ConstructScalarDrillingProperty(),
-				SideConnectors = new List<SideConnector>
-					{
-						ConstructSideConnector(),
-					},
-			};
-		}
-		public static UsageStatisticsWellBoreArchitecture ConstructUsageStatisticsWellBoreArchitecture()
-		{
-			return new UsageStatisticsWellBoreArchitecture
-			{
-				LastSaved = DateTimeOffset.UtcNow,
-				BackUpInterval = "Default BackUpInterval",
-				GetAllWellBoreArchitectureIdPerDay = ConstructHistory(),
-				GetAllWellBoreArchitectureMetaInfoPerDay = ConstructHistory(),
-				GetWellBoreArchitectureByIdPerDay = ConstructHistory(),
-				GetAllWellBoreArchitectureLightPerDay = ConstructHistory(),
-				GetAllWellBoreArchitecturePerDay = ConstructHistory(),
-				PostWellBoreArchitecturePerDay = ConstructHistory(),
-				PutWellBoreArchitectureByIdPerDay = ConstructHistory(),
-				DeleteWellBoreArchitectureByIdPerDay = ConstructHistory(),
-			};
-		}
-		public static WellBoreArchitecture ConstructWellBoreArchitecture()
-		{
-			return new WellBoreArchitecture
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				WellBoreArchitectureIdentityAssignments = new List<WellBoreArchitectureIdentityAssignment>(),
-				WellBoreArchitectureFeatureAssignments = new List<WellBoreArchitectureFeatureAssignment>(),
-				WellBoreID = null,
-				WellHead = ConstructWellHead(),
-				FluidsAboveGroundLevel = new List<WellBoreArchitectureFluid>
-					{
-						ConstructWellBoreArchitectureFluid(),
-					},
-				SurfaceSections = new List<SurfaceSection>
-					{
-						ConstructSurfaceSection(),
-					},
-				CasingSections = new List<CasingSection>
-					{
-						ConstructCasingSection(),
-					},
-				OpenHoleSection = ConstructOpenHoleSection(),
-			};
-		}
-		public static WellBoreArchitectureBatchCatalogDependencies ConstructWellBoreArchitectureBatchCatalogDependencies()
-		{
-			return new WellBoreArchitectureBatchCatalogDependencies
-			{
-				Identities = new List<WellBoreArchitectureIdentity>
-					{
-						ConstructWellBoreArchitectureIdentity(),
-					},
-				FeatureCategories = new List<WellBoreArchitectureFeatureCategory>
-					{
-						ConstructWellBoreArchitectureFeatureCategory(),
-					},
-			};
-		}
-		public static WellBoreArchitectureBatchCatalogMapping ConstructWellBoreArchitectureBatchCatalogMapping()
-		{
-			return new WellBoreArchitectureBatchCatalogMapping
-			{
-				Catalog = "Default Catalog",
-				Name = "Default Name",
-				SourceID = new Guid(),
-				LocalID = new Guid(),
-				Resolution = "Default Resolution",
-			};
-		}
-		public static WellBoreArchitectureBatchError ConstructWellBoreArchitectureBatchError()
-		{
-			return new WellBoreArchitectureBatchError
-			{
-				PositionIndex = null,
-				Property = "Default Property",
-				Code = "Default Code",
-				Message = "Default Message",
-			};
-		}
-		public static WellBoreArchitectureBatchErrorEnvelope ConstructWellBoreArchitectureBatchErrorEnvelope()
-		{
-			return new WellBoreArchitectureBatchErrorEnvelope
-			{
-				Error = "Default Error",
-				Message = "Default Message",
-				Errors = new List<WellBoreArchitectureBatchError>
-					{
-						ConstructWellBoreArchitectureBatchError(),
-					},
-			};
-		}
-		public static WellBoreArchitectureBatchExportDocument ConstructWellBoreArchitectureBatchExportDocument()
-		{
-			return new WellBoreArchitectureBatchExportDocument
-			{
-				FormatIdentifier = "Default FormatIdentifier",
-				SchemaVersion = 0,
-				ExportedAtUtc = DateTimeOffset.UtcNow,
-				CatalogDependencies = ConstructWellBoreArchitectureBatchCatalogDependencies(),
-				WellBoreArchitectures = new List<WellBoreArchitecture>
-					{
-						ConstructWellBoreArchitecture(),
-					},
-			};
-		}
-		public static WellBoreArchitectureBatchExportRequest ConstructWellBoreArchitectureBatchExportRequest()
-		{
-			return new WellBoreArchitectureBatchExportRequest
-			{
-				Scope = (WellBoreArchitectureBatchExportScope)0,
-				WellBoreArchitectureIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-			};
-		}
-		public static WellBoreArchitectureBatchRestoreRequest ConstructWellBoreArchitectureBatchRestoreRequest()
-		{
-			return new WellBoreArchitectureBatchRestoreRequest
-			{
-				ConflictPolicy = (WellBoreArchitectureBatchRestoreConflictPolicy)0,
-				CatalogPolicy = (WellBoreArchitectureBatchCatalogRestorePolicy)0,
-				AllowNormalizedNameMapping = false,
-				Document = ConstructWellBoreArchitectureBatchExportDocument(),
-			};
-		}
-		public static WellBoreArchitectureBatchRestoreResponse ConstructWellBoreArchitectureBatchRestoreResponse()
-		{
-			return new WellBoreArchitectureBatchRestoreResponse
-			{
-				RestoredAtUtc = DateTimeOffset.UtcNow,
-				CreatedCount = 0,
-				ReplacedCount = 0,
-				CreatedCatalogDefinitionCount = 0,
-				CreatedCatalogOptionCount = 0,
-				CatalogMappings = new List<WellBoreArchitectureBatchCatalogMapping>
-					{
-						ConstructWellBoreArchitectureBatchCatalogMapping(),
-					},
-				WellBoreArchitectureIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-			};
-		}
-		public static WellBoreArchitectureExternalReferenceAuditRequest ConstructWellBoreArchitectureExternalReferenceAuditRequest()
-		{
-			return new WellBoreArchitectureExternalReferenceAuditRequest
-			{
-				Scope = (WellBoreArchitectureExternalReferenceAuditScope)0,
-				WellBoreArchitectureIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-				Offset = 0,
-				Limit = 0,
-			};
-		}
-		public static WellBoreArchitectureExternalReferenceAuditResult ConstructWellBoreArchitectureExternalReferenceAuditResult()
-		{
-			return new WellBoreArchitectureExternalReferenceAuditResult
-			{
-				CheckedAtUtc = DateTimeOffset.UtcNow,
-				Total = 0,
-				Offset = 0,
-				Limit = 0,
-				ValidCount = 0,
-				InvalidCount = 0,
-				UnavailableCount = 0,
-				Items = new List<WellBoreArchitectureExternalReferenceValidation>
-					{
-						ConstructWellBoreArchitectureExternalReferenceValidation(),
-					},
-			};
-		}
-		public static WellBoreArchitectureExternalReferenceIssue ConstructWellBoreArchitectureExternalReferenceIssue()
-		{
-			return new WellBoreArchitectureExternalReferenceIssue
-			{
-				Property = "Default Property",
-				Code = "Default Code",
-				Message = "Default Message",
-			};
-		}
-		public static WellBoreArchitectureExternalReferenceValidation ConstructWellBoreArchitectureExternalReferenceValidation()
-		{
-			return new WellBoreArchitectureExternalReferenceValidation
-			{
-				WellBoreArchitectureID = new Guid(),
-				WellBoreID = null,
-				WellBoreExists = null,
-				Status = (WellBoreArchitectureExternalReferenceValidationStatus)0,
-				CheckedAtUtc = DateTimeOffset.UtcNow,
-				Issues = new List<WellBoreArchitectureExternalReferenceIssue>
-					{
-						ConstructWellBoreArchitectureExternalReferenceIssue(),
-					},
-			};
-		}
-		public static WellBoreArchitectureFeatureAssignment ConstructWellBoreArchitectureFeatureAssignment()
-		{
-			return new WellBoreArchitectureFeatureAssignment
-			{
-				ID = new Guid(),
-				FeatureCategoryID = null,
-				FeatureOptionID = null,
-				FromDate = DateTimeOffset.UtcNow,
-				ToDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static WellBoreArchitectureFeatureCategory ConstructWellBoreArchitectureFeatureCategory()
-		{
-			return new WellBoreArchitectureFeatureCategory
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				IsExclusive = false,
-				HasValidityPeriod = false,
-				Options = new List<WellBoreArchitectureFeatureOption>
-					{
-						ConstructWellBoreArchitectureFeatureOption(),
-					},
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static WellBoreArchitectureFeatureOption ConstructWellBoreArchitectureFeatureOption()
-		{
-			return new WellBoreArchitectureFeatureOption
-			{
-				ID = new Guid(),
-				Name = "Default Name",
-			};
-		}
-		public static WellBoreArchitectureFluid ConstructWellBoreArchitectureFluid()
-		{
-			return new WellBoreArchitectureFluid
-			{
-				Fluid = (FluidType)0,
-				Depth = ConstructGaussianDrillingProperty(),
-			};
-		}
-		public static WellBoreArchitectureIdentity ConstructWellBoreArchitectureIdentity()
-		{
-			return new WellBoreArchitectureIdentity
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static WellBoreArchitectureIdentityAssignment ConstructWellBoreArchitectureIdentityAssignment()
-		{
-			return new WellBoreArchitectureIdentityAssignment
-			{
-				ID = new Guid(),
-				IdentityID = null,
-				Value = "Default Value",
-			};
-		}
-		public static WellHead ConstructWellHead()
-		{
-			return new WellHead
-			{
-				MaxOD = ConstructScalarDrillingProperty(),
-				MinOD = ConstructScalarDrillingProperty(),
-				Depth = ConstructGaussianDrillingProperty(),
-				CasingHangerDepth = ConstructScalarDrillingProperty(),
-				TubingHangerDepth = ConstructScalarDrillingProperty(),
-			};
-		}
-		public static ProblemDetails ConstructProblemDetails()
-		{
-			return new ProblemDetails
-			{
-				Type = "Default Type",
-				Title = "Default Title",
-				Status = null,
-				Detail = "Default Detail",
-				Instance = "Default Instance",
 			};
 		}
 		public static ErrorSource ConstructErrorSource()
@@ -4474,6 +3844,17 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				StartInclination = null,
 				EndInclination = null,
 				InitInclination = null,
+			};
+		}
+		public static ErrorSourceDiscoveryPage ConstructErrorSourceDiscoveryPage()
+		{
+			return new ErrorSourceDiscoveryPage
+			{
+				Items = new List<ErrorSourceLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
 			};
 		}
 		public static SurveyInstrument ConstructSurveyInstrument()
@@ -4515,1939 +3896,6 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				DrillStringMag = null,
 				UseGyroCompassError = false,
 				GyroCompassError = null,
-			};
-		}
-		public static SurveyPoint ConstructSurveyPoint()
-		{
-			return new SurveyPoint
-			{
-				X = null,
-				Y = null,
-				Z = null,
-				RiemannianNorth = null,
-				RiemannianEast = null,
-				Latitude = null,
-				Longitude = null,
-				TVD = null,
-				Abscissa = null,
-				Inclination = null,
-				Azimuth = null,
-				Curvature = null,
-				Toolface = null,
-				BUR = null,
-				TUR = null,
-				VerticalSection = null,
-				MD = null,
-				Annotation = "Default Annotation",
-			};
-		}
-		public static SurveyStation ConstructSurveyStation()
-		{
-			return new SurveyStation
-			{
-				X = null,
-				Y = null,
-				Z = null,
-				RiemannianNorth = null,
-				RiemannianEast = null,
-				Latitude = null,
-				Longitude = null,
-				TVD = null,
-				Abscissa = null,
-				Inclination = null,
-				Azimuth = null,
-				Curvature = null,
-				Toolface = null,
-				BUR = null,
-				TUR = null,
-				VerticalSection = null,
-				MD = null,
-				Annotation = "Default Annotation",
-				Covariance = ConstructSymmetricMatrix3x3(),
-				EigenVectors = ConstructMatrix3x3(),
-				EigenValues = ConstructVector3D(),
-				Bias = ConstructVector3D(),
-				SurveyTool = ConstructSurveyInstrument(),
-				BoreholeRadius = null,
-			};
-		}
-		public static Matrix3x3 ConstructMatrix3x3()
-		{
-			return new Matrix3x3
-			{
-				RowCount = 0,
-				ColumnCount = 0,
-			};
-		}
-		public static SymmetricMatrix3x3 ConstructSymmetricMatrix3x3()
-		{
-			return new SymmetricMatrix3x3
-			{
-				ColumnCount = 0,
-				RowCount = 0,
-			};
-		}
-		public static Vector3D ConstructVector3D()
-		{
-			return new Vector3D
-			{
-				X = null,
-				Y = null,
-				Z = null,
-				Dim = 0,
-			};
-		}
-		public static OctreeCodeLong ConstructOctreeCodeLong()
-		{
-			return new OctreeCodeLong
-			{
-				Depth = 0,
-				CodeHigh = 0,
-				CodeLow = 0,
-			};
-		}
-		public static GlobalAntiCollision ConstructGlobalAntiCollision()
-		{
-			return new GlobalAntiCollision
-			{
-				ID = "Default ID",
-				ConfidenceFactor = 0.0,
-				RequestedPolicyAssignmentID = null,
-				PolicyEvaluationUtc = DateTimeOffset.UtcNow,
-				PolicyAssignmentID = null,
-				PolicySnapshot = ConstructAntiCollisionPolicyRevision(),
-				ReferenceWellPathID = new Guid(),
-				ReferenceTrajectoryID = new Guid(),
-				ComparisonTrajectoryIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-				SeparationFactorResults = new List<SeparationFactorResult>
-					{
-						ConstructSeparationFactorResult(),
-					},
-				CalculationState = (GlobalAntiCollisionCalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-			};
-		}
-		public static GlobalAntiCollisionCalculationStatus ConstructGlobalAntiCollisionCalculationStatus()
-		{
-			return new GlobalAntiCollisionCalculationStatus
-			{
-				ID = "Default ID",
-				CalculationState = (GlobalAntiCollisionCalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-			};
-		}
-		public static MeasuredDepthRange ConstructMeasuredDepthRange()
-		{
-			return new MeasuredDepthRange
-			{
-				StartMD = 0.0,
-				EndMD = 0.0,
-			};
-		}
-		public static SeparationFactorPoint ConstructSeparationFactorPoint()
-		{
-			return new SeparationFactorPoint
-			{
-				ReferenceMD = 0.0,
-				ComparisonMD = 0.0,
-				SeparationFactor = 0.0,
-			};
-		}
-		public static SeparationFactorResult ConstructSeparationFactorResult()
-		{
-			return new SeparationFactorResult
-			{
-				ComparisonTrajectoryID = new Guid(),
-				ReferenceMDRange = ConstructMeasuredDepthRange(),
-				ComparisonMDRange = ConstructMeasuredDepthRange(),
-				SeparationFactorProfile = new List<SeparationFactorPoint>
-					{
-						ConstructSeparationFactorPoint(),
-					},
-				PolicyEvaluation = ConstructAntiCollisionPolicyEvaluation(),
-			};
-		}
-		public static AnnotatedAbscissa ConstructAnnotatedAbscissa()
-		{
-			return new AnnotatedAbscissa
-			{
-				Abscissa = 0.0,
-				Annotation = "Default Annotation",
-			};
-		}
-		public static ExternalReferenceIssue ConstructExternalReferenceIssue()
-		{
-			return new ExternalReferenceIssue
-			{
-				Property = "Default Property",
-				Code = "Default Code",
-				Message = "Default Message",
-			};
-		}
-		public static InterpolatedTrajectory ConstructInterpolatedTrajectory()
-		{
-			return new InterpolatedTrajectory
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				TrajectoryID = new Guid(),
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				SurveyStationList = new List<SurveyStation>
-					{
-						ConstructSurveyStation(),
-					},
-				InterpolationStep = null,
-				InterpolationReferenceDepth = null,
-				MaximumChordArcDistance = null,
-				IncludeFirstSurvey = false,
-				IncludeLastSurvey = false,
-				InterpolateAtCasingAndLinerShoeDepths = false,
-				InterpolateAtLinerHangerDepths = false,
-				InterpolateAtCasingChangeOfDiameter = false,
-				AdditionalAbscissaList = new List<AnnotatedAbscissa>
-					{
-						ConstructAnnotatedAbscissa(),
-					},
-				InternalAdditionalAbscissaList = new List<AnnotatedAbscissa>
-					{
-						ConstructAnnotatedAbscissa(),
-					},
-			};
-		}
-		public static MinimumDistanceAdaptiveRefinementSettings ConstructMinimumDistanceAdaptiveRefinementSettings()
-		{
-			return new MinimumDistanceAdaptiveRefinementSettings
-			{
-				Enabled = false,
-				PolarDeviationTolerance = null,
-				PolarAngularTolerance = null,
-				MinimumMDStep = null,
-				MaximumDepth = 0,
-				MaximumExtraSamplesPerComparison = 0,
-			};
-		}
-		public static MinimumDistanceReferenceInterval ConstructMinimumDistanceReferenceInterval()
-		{
-			return new MinimumDistanceReferenceInterval
-			{
-				ID = new Guid(),
-				Name = "Default Name",
-				StartMD = null,
-				EndMD = null,
-			};
-		}
-		public static OctreeIndexStatus ConstructOctreeIndexStatus()
-		{
-			return new OctreeIndexStatus
-			{
-				TrajectoryID = new Guid(),
-				State = (OctreeIndexState)0,
-				HasIndex = false,
-				IsCurrent = false,
-				TrajectoryType = (TrajectoryType)0,
-				IsDefinitive = false,
-				SurveyStationCount = 0,
-				BucketCount = 0,
-				OctreeCodeCount = 0,
-				SourceLastModificationDate = DateTimeOffset.UtcNow,
-				IndexSchemaVersion = null,
-				ConfidenceFactor = null,
-				CalculationParametersHash = "Default CalculationParametersHash",
-			};
-		}
-		public static OctreeSearchJobRequest ConstructOctreeSearchJobRequest()
-		{
-			return new OctreeSearchJobRequest
-			{
-				ReferenceTrajectoryID = new Guid(),
-				IncludePlanned = false,
-				IncludeActual = false,
-				DefinitiveOnly = false,
-			};
-		}
-		public static OctreeSearchJobResult ConstructOctreeSearchJobResult()
-		{
-			return new OctreeSearchJobResult
-			{
-				JobID = new Guid(),
-				ReferenceTrajectoryID = new Guid(),
-				CandidateTrajectoryIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-			};
-		}
-		public static OctreeSearchJobStatus ConstructOctreeSearchJobStatus()
-		{
-			return new OctreeSearchJobStatus
-			{
-				JobID = new Guid(),
-				ReferenceTrajectoryID = new Guid(),
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				CandidateCount = null,
-				CreatedUtc = DateTimeOffset.UtcNow,
-				CompletedUtc = DateTimeOffset.UtcNow,
-			};
-		}
-		public static SurveyImportSettings ConstructSurveyImportSettings()
-		{
-			return new SurveyImportSettings
-			{
-				SelectedSurveyImportFormat = "Default SelectedSurveyImportFormat",
-				SelectedSurveyImportSeparator = "Default SelectedSurveyImportSeparator",
-				SelectedSurveyImportDecimalMarker = "Default SelectedSurveyImportDecimalMarker",
-				SelectedSurveyImportMDUnit = "Default SelectedSurveyImportMDUnit",
-				SelectedSurveyImportInclinationUnit = "Default SelectedSurveyImportInclinationUnit",
-				SelectedSurveyImportAzimuthUnit = "Default SelectedSurveyImportAzimuthUnit",
-				SurveyImportMDColumn = 0,
-				SurveyImportInclinationColumn = 0,
-				SurveyImportAzimuthColumn = 0,
-				SurveyImportTimeColumn = 0,
-				DefaultInclinationReference = (SurveyInclinationReference)0,
-				DefaultAzimuthReference = (SurveyAzimuthReference)0,
-				GeomagneticModel = (SurveyGeomagneticModel)0,
-				SurveyImportMDStart = 0,
-				SurveyImportMDWidth = 0,
-				SurveyImportInclinationStart = 0,
-				SurveyImportInclinationWidth = 0,
-				SurveyImportAzimuthStart = 0,
-				SurveyImportAzimuthWidth = 0,
-				SurveyImportTimeStart = 0,
-				SurveyImportTimeWidth = 0,
-			};
-		}
-		public static SurveyMeasurement ConstructSurveyMeasurement()
-		{
-			return new SurveyMeasurement
-			{
-				MeasurementID = new Guid(),
-				Origin = (SurveyMeasurementOrigin)0,
-				MD = null,
-				Inclination = null,
-				Azimuth = null,
-				ObservedInclination = null,
-				ObservedAzimuth = null,
-				MeasurementTimeUtc = DateTimeOffset.UtcNow,
-				InclinationReference = (SurveyInclinationReference)0,
-				AzimuthReference = (SurveyAzimuthReference)0,
-				Correction = ConstructSurveyMeasurementCorrection(),
-				Annotation = "Default Annotation",
-			};
-		}
-		public static SurveyMeasurementChunk ConstructSurveyMeasurementChunk()
-		{
-			return new SurveyMeasurementChunk
-			{
-				SurveyRunID = new Guid(),
-				ChunkIndex = 0,
-				MeasurementCount = 0,
-				StartMD = null,
-				EndMD = null,
-				SurveyMeasurementList = new List<SurveyMeasurement>
-					{
-						ConstructSurveyMeasurement(),
-					},
-			};
-		}
-		public static SurveyPointChunk ConstructSurveyPointChunk()
-		{
-			return new SurveyPointChunk
-			{
-				OwnerID = new Guid(),
-				OwnerType = "Default OwnerType",
-				ChunkIndex = 0,
-				PointCount = 0,
-				StartMD = null,
-				EndMD = null,
-				SurveyPointList = new List<SurveyPoint>
-					{
-						ConstructSurveyPoint(),
-					},
-			};
-		}
-		public static SurveyRun ConstructSurveyRun()
-		{
-			return new SurveyRun
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				AcquisitionStartUtc = DateTimeOffset.UtcNow,
-				AcquisitionEndUtc = DateTimeOffset.UtcNow,
-				FieldID = null,
-				ClusterID = null,
-				WellID = null,
-				WellBoreID = new Guid(),
-				SurveyInstrumentID = new Guid(),
-				SurveyRunType = (SurveyRunType)0,
-				CalculationType = (TrajectoryCalculationType)0,
-				DefaultInclinationReference = (SurveyInclinationReference)0,
-				DefaultAzimuthReference = (SurveyAzimuthReference)0,
-				GeomagneticModel = (SurveyGeomagneticModel)0,
-				ParentSurveyRunID = null,
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				SurveyRunIdentityAssignments = new List<TrajectoryIdentityAssignment>(),
-				SurveyRunFeatureAssignments = new List<TrajectoryFeatureAssignment>(),
-				TieInPoint = ConstructSurveyStation(),
-				SurveyMeasurementList = new List<SurveyMeasurement>
-					{
-						ConstructSurveyMeasurement(),
-					},
-				SurveyStationList = new List<SurveyStation>
-					{
-						ConstructSurveyStation(),
-					},
-				BitExtrapolation = ConstructSurveyRunBitExtrapolation(),
-			};
-		}
-		public static SurveyRunBatchImport ConstructSurveyRunBatchImport()
-		{
-			return new SurveyRunBatchImport
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				SelectedFieldId = null,
-				SelectedClusterId = null,
-				SelectedWellId = null,
-				CommonDepthReference = "Default CommonDepthReference",
-				ReplaceExistingTrajectories = false,
-				ReplaceTrajectoriesWithSameName = false,
-				Settings = ConstructSurveyImportSettings(),
-				Rows = new List<SurveyRunBatchImportRow>
-					{
-						ConstructSurveyRunBatchImportRow(),
-					},
-			};
-		}
-		public static SurveyRunBatchImportRow ConstructSurveyRunBatchImportRow()
-		{
-			return new SurveyRunBatchImportRow
-			{
-				RowId = new Guid(),
-				WellBoreId = null,
-				SurveyInstrumentId = null,
-				ParentSurveyRunId = null,
-				DepthReferenceName = "Default DepthReferenceName",
-				FileName = "Default FileName",
-				FileContentBase64 = "Default FileContentBase64",
-				AcquisitionStartUtc = DateTimeOffset.UtcNow,
-				AcquisitionEndUtc = DateTimeOffset.UtcNow,
-			};
-		}
-		public static SurveyRunExternalReferenceAuditRequest ConstructSurveyRunExternalReferenceAuditRequest()
-		{
-			return new SurveyRunExternalReferenceAuditRequest
-			{
-				Scope = (ExternalReferenceAuditScope)0,
-				SurveyRunIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-				Offset = 0,
-				Limit = 0,
-			};
-		}
-		public static SurveyRunExternalReferenceAuditResult ConstructSurveyRunExternalReferenceAuditResult()
-		{
-			return new SurveyRunExternalReferenceAuditResult
-			{
-				CheckedAtUtc = DateTimeOffset.UtcNow,
-				Total = 0,
-				Offset = 0,
-				Limit = 0,
-				ValidCount = 0,
-				InvalidCount = 0,
-				UnavailableCount = 0,
-				Items = new List<SurveyRunExternalReferenceValidation>
-					{
-						ConstructSurveyRunExternalReferenceValidation(),
-					},
-			};
-		}
-		public static SurveyRunExternalReferenceValidation ConstructSurveyRunExternalReferenceValidation()
-		{
-			return new SurveyRunExternalReferenceValidation
-			{
-				SurveyRunID = new Guid(),
-				FieldID = null,
-				ClusterID = null,
-				WellID = null,
-				WellBoreID = new Guid(),
-				SurveyInstrumentID = new Guid(),
-				FieldExists = null,
-				ClusterExists = null,
-				WellExists = null,
-				WellBoreExists = null,
-				SurveyInstrumentExists = null,
-				Status = (ExternalReferenceValidationStatus)0,
-				CheckedAtUtc = DateTimeOffset.UtcNow,
-				Issues = new List<ExternalReferenceIssue>
-					{
-						ConstructExternalReferenceIssue(),
-					},
-			};
-		}
-		public static SurveyRunMinimumDistanceCalculation ConstructSurveyRunMinimumDistanceCalculation()
-		{
-			return new SurveyRunMinimumDistanceCalculation
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				ReferenceSurveyRunID = new Guid(),
-				ComparisonSurveyRunIDList = new List<Guid>
-					{
-						new Guid(),
-					},
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				ResultCount = 0,
-				IntervalResultCount = 0,
-				MaximumChordArcDistance = null,
-				AccountForBoreholeRadius = false,
-				OctreeMaximumDepth = 0,
-				OctreeMaximumSegmentCountPerLeaf = 0,
-				AdaptiveRefinementSettings = ConstructMinimumDistanceAdaptiveRefinementSettings(),
-				GlobalMinimumCenterToCenterDistance = null,
-				GlobalMinimumClearanceDistance = null,
-				GlobalMinimumReferenceMD = null,
-				GlobalMinimumComparisonSurveyRunID = null,
-				GlobalMinimumComparisonMD = null,
-				GlobalMinimumToolface = null,
-				GlobalMinimumIsGravity = false,
-				ReferenceIntervalList = new List<MinimumDistanceReferenceInterval>
-					{
-						ConstructMinimumDistanceReferenceInterval(),
-					},
-				ResultList = new List<SurveyRunMinimumDistanceResult>
-					{
-						ConstructSurveyRunMinimumDistanceResult(),
-					},
-				IntervalResultList = new List<SurveyRunMinimumDistanceIntervalResult>
-					{
-						ConstructSurveyRunMinimumDistanceIntervalResult(),
-					},
-			};
-		}
-		public static SurveyRunMinimumDistanceIntervalResult ConstructSurveyRunMinimumDistanceIntervalResult()
-		{
-			return new SurveyRunMinimumDistanceIntervalResult
-			{
-				IntervalID = new Guid(),
-				IntervalName = "Default IntervalName",
-				StartMD = null,
-				EndMD = null,
-				ComparisonSurveyRunID = null,
-				SampleCount = 0,
-				AverageCenterToCenterDistance = null,
-				StandardDeviationCenterToCenterDistance = null,
-				AverageClearanceDistance = null,
-				StandardDeviationClearanceDistance = null,
-			};
-		}
-		public static SurveyRunMinimumDistanceResult ConstructSurveyRunMinimumDistanceResult()
-		{
-			return new SurveyRunMinimumDistanceResult
-			{
-				ReferenceMD = null,
-				ReferenceTVD = null,
-				ReferenceNorth = null,
-				ReferenceEast = null,
-				ReferenceBoreholeDiameter = null,
-				ComparisonSurveyRunID = null,
-				ComparisonMD = null,
-				ComparisonTVD = null,
-				ComparisonNorth = null,
-				ComparisonEast = null,
-				ComparisonBoreholeDiameter = null,
-				CenterToCenterDistance = null,
-				ClearanceDistance = null,
-				Toolface = null,
-				IsGravity = false,
-				IsAdaptiveRefinementSample = false,
-				RefinementLevel = 0,
-			};
-		}
-		public static SurveyRunMinimumDistanceResultChunk ConstructSurveyRunMinimumDistanceResultChunk()
-		{
-			return new SurveyRunMinimumDistanceResultChunk
-			{
-				OwnerID = new Guid(),
-				ChunkIndex = 0,
-				ResultCount = 0,
-				StartReferenceMD = null,
-				EndReferenceMD = null,
-				ResultList = new List<SurveyRunMinimumDistanceResult>
-					{
-						ConstructSurveyRunMinimumDistanceResult(),
-					},
-			};
-		}
-		public static SurveyRunSearchResult ConstructSurveyRunSearchResult()
-		{
-			return new SurveyRunSearchResult
-			{
-				Offset = 0,
-				Limit = 0,
-				TotalCount = 0,
-				Items = new List<SurveyRunLight>(),
-			};
-		}
-		public static SurveyStationChunk ConstructSurveyStationChunk()
-		{
-			return new SurveyStationChunk
-			{
-				OwnerID = new Guid(),
-				OwnerType = "Default OwnerType",
-				ChunkIndex = 0,
-				StationCount = 0,
-				StartMD = null,
-				EndMD = null,
-				SurveyStationList = new List<SurveyStation>
-					{
-						ConstructSurveyStation(),
-					},
-			};
-		}
-		public static SurveyStationEllipse ConstructSurveyStationEllipse()
-		{
-			return new SurveyStationEllipse
-			{
-				SemiMajorAxis = null,
-				SemiMinorAxis = null,
-				OrientationAngle = null,
-			};
-		}
-		public static SurveyStationEllipseCalculation ConstructSurveyStationEllipseCalculation()
-		{
-			return new SurveyStationEllipseCalculation
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				ConfidenceFactor = 0.0,
-				SurveyInstrumentID = null,
-				SurveyStationList = new List<SurveyStation>
-					{
-						ConstructSurveyStation(),
-					},
-				SurveyStationEllipseResultList = new List<SurveyStationEllipseResult>
-					{
-						ConstructSurveyStationEllipseResult(),
-					},
-				HighestTvdSurveyPointList = new List<SurveyPoint>
-					{
-						ConstructSurveyPoint(),
-					},
-				LowestTvdSurveyPointList = new List<SurveyPoint>
-					{
-						ConstructSurveyPoint(),
-					},
-				CalculationMessage = "Default CalculationMessage",
-			};
-		}
-		public static SurveyStationEllipseResult ConstructSurveyStationEllipseResult()
-		{
-			return new SurveyStationEllipseResult
-			{
-				MD = null,
-				HorizontalEllipse = ConstructSurveyStationEllipse(),
-				VerticalEllipse = ConstructSurveyStationEllipse(),
-				PerpendicularEllipse = ConstructSurveyStationEllipse(),
-			};
-		}
-		public static Trajectory ConstructTrajectory()
-		{
-			return new Trajectory
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				FieldID = null,
-				ClusterID = null,
-				WellID = null,
-				WellBoreID = new Guid(),
-				TrajectoryType = (TrajectoryType)0,
-				IsDefinitive = false,
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				TrajectoryIdentityAssignments = new List<TrajectoryIdentityAssignment>(),
-				TrajectoryFeatureAssignments = new List<TrajectoryFeatureAssignment>(),
-				SurveyRunSectionList = new List<TrajectorySurveyRunSection>
-					{
-						ConstructTrajectorySurveyRunSection(),
-					},
-				SurveyStationList = new List<SurveyStation>
-					{
-						ConstructSurveyStation(),
-					},
-				TieInPoint = ConstructSurveyStation(),
-				CalculationType = (TrajectoryCalculationType)0,
-				MDStep = 0.0,
-			};
-		}
-		public static TrajectoryAggregation ConstructTrajectoryAggregation()
-		{
-			return new TrajectoryAggregation
-			{
-				ID = new Guid(),
-				TrajectoryID = new Guid(),
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				OriginalReferenceStationCount = 0,
-				CoarsenedReferencePointCount = 0,
-				SectionCount = 0,
-				AggregatedSurveyPointCount = 0,
-				DistanceResultCount = 0,
-				SectionList = new List<TrajectoryAggregationSection>
-					{
-						ConstructTrajectoryAggregationSection(),
-					},
-				AggregatedSurveyPointList = new List<SurveyPoint>
-					{
-						ConstructSurveyPoint(),
-					},
-				CoarsenedReferenceTrajectory = new List<SurveyPoint>
-					{
-						ConstructSurveyPoint(),
-					},
-				DistanceResultList = new List<TrajectoryAggregationDistanceResult>
-					{
-						ConstructTrajectoryAggregationDistanceResult(),
-					},
-			};
-		}
-		public static TrajectoryAggregationCase ConstructTrajectoryAggregationCase()
-		{
-			return new TrajectoryAggregationCase
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				EpsilonL = null,
-				EpsilonKappa = null,
-				Alpha = null,
-				InterpolationInterval = null,
-				DistanceReferenceCoarseningThreshold = null,
-				TrajectoryAggregationList = new List<TrajectoryAggregation>
-					{
-						ConstructTrajectoryAggregation(),
-					},
-			};
-		}
-		public static TrajectoryAggregationDistanceResult ConstructTrajectoryAggregationDistanceResult()
-		{
-			return new TrajectoryAggregationDistanceResult
-			{
-				ReferenceMD = null,
-				ReferenceTVD = null,
-				ReferenceNorth = null,
-				ReferenceEast = null,
-				ClosestMD = null,
-				ClosestTVD = null,
-				ClosestNorth = null,
-				ClosestEast = null,
-				CenterToCenterDistance = null,
-				ClosestSectionIndex = null,
-				ClosestSectionType = (TrajectoryAggregationSectionType)0,
-				SectionParameter = null,
-			};
-		}
-		public static TrajectoryAggregationDistanceResultChunk ConstructTrajectoryAggregationDistanceResultChunk()
-		{
-			return new TrajectoryAggregationDistanceResultChunk
-			{
-				OwnerID = new Guid(),
-				ChunkIndex = 0,
-				ResultCount = 0,
-				StartReferenceMD = null,
-				EndReferenceMD = null,
-				ResultList = new List<TrajectoryAggregationDistanceResult>
-					{
-						ConstructTrajectoryAggregationDistanceResult(),
-					},
-			};
-		}
-		public static TrajectoryAggregationSection ConstructTrajectoryAggregationSection()
-		{
-			return new TrajectoryAggregationSection
-			{
-				SectionIndex = 0,
-				SectionType = (TrajectoryAggregationSectionType)0,
-				StartMD = null,
-				EndMD = null,
-				StartInclination = null,
-				StartAzimuth = null,
-				StartTVD = null,
-				StartNorth = null,
-				StartEast = null,
-				CircularArcCurvature = null,
-				CircularArcStartToolface = null,
-				ConstantCurvature = null,
-				ConstantToolface = null,
-				BuildRate = null,
-				TurnRate = null,
-			};
-		}
-		public static TrajectoryBatchCatalogDependencies ConstructTrajectoryBatchCatalogDependencies()
-		{
-			return new TrajectoryBatchCatalogDependencies
-			{
-				Identities = new List<TrajectoryIdentity>
-					{
-						ConstructTrajectoryIdentity(),
-					},
-				FeatureCategories = new List<TrajectoryFeatureCategory>
-					{
-						ConstructTrajectoryFeatureCategory(),
-					},
-			};
-		}
-		public static TrajectoryBatchCatalogMapping ConstructTrajectoryBatchCatalogMapping()
-		{
-			return new TrajectoryBatchCatalogMapping
-			{
-				Catalog = "Default Catalog",
-				Name = "Default Name",
-				SourceID = new Guid(),
-				LocalID = new Guid(),
-				Resolution = "Default Resolution",
-			};
-		}
-		public static TrajectoryBatchError ConstructTrajectoryBatchError()
-		{
-			return new TrajectoryBatchError
-			{
-				PositionIndex = null,
-				Property = "Default Property",
-				Code = "Default Code",
-				Message = "Default Message",
-			};
-		}
-		public static TrajectoryBatchErrorEnvelope ConstructTrajectoryBatchErrorEnvelope()
-		{
-			return new TrajectoryBatchErrorEnvelope
-			{
-				Error = "Default Error",
-				Message = "Default Message",
-				Errors = new List<TrajectoryBatchError>
-					{
-						ConstructTrajectoryBatchError(),
-					},
-			};
-		}
-		public static TrajectoryBatchExportDocument ConstructTrajectoryBatchExportDocument()
-		{
-			return new TrajectoryBatchExportDocument
-			{
-				FormatIdentifier = "Default FormatIdentifier",
-				SchemaVersion = 0,
-				ExportedAtUtc = DateTimeOffset.UtcNow,
-				CatalogDependencies = ConstructTrajectoryBatchCatalogDependencies(),
-				SurveyRuns = new List<SurveyRun>
-					{
-						ConstructSurveyRun(),
-					},
-				Trajectories = new List<Trajectory>
-					{
-						ConstructTrajectory(),
-					},
-				AntiCollisionPolicyRevisions = new List<AntiCollisionPolicyRevision>
-					{
-						ConstructAntiCollisionPolicyRevision(),
-					},
-				FieldAntiCollisionPolicyAssignments = new List<FieldAntiCollisionPolicyAssignment>
-					{
-						ConstructFieldAntiCollisionPolicyAssignment(),
-					},
-			};
-		}
-		public static TrajectoryBatchExportRequest ConstructTrajectoryBatchExportRequest()
-		{
-			return new TrajectoryBatchExportRequest
-			{
-				Scope = (TrajectoryBatchExportScope)0,
-				SurveyRunIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-				TrajectoryIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-			};
-		}
-		public static TrajectoryBatchRestoreRequest ConstructTrajectoryBatchRestoreRequest()
-		{
-			return new TrajectoryBatchRestoreRequest
-			{
-				ConflictPolicy = (TrajectoryBatchRestoreConflictPolicy)0,
-				CatalogPolicy = (TrajectoryBatchCatalogRestorePolicy)0,
-				AllowNormalizedNameMapping = false,
-				Document = ConstructTrajectoryBatchExportDocument(),
-			};
-		}
-		public static TrajectoryBatchRestoreResponse ConstructTrajectoryBatchRestoreResponse()
-		{
-			return new TrajectoryBatchRestoreResponse
-			{
-				RestoredAtUtc = DateTimeOffset.UtcNow,
-				CreatedSurveyRunCount = 0,
-				ReplacedSurveyRunCount = 0,
-				CreatedTrajectoryCount = 0,
-				ReplacedTrajectoryCount = 0,
-				CreatedCatalogDefinitionCount = 0,
-				CreatedAntiCollisionPolicyRevisionCount = 0,
-				ReplacedAntiCollisionPolicyRevisionCount = 0,
-				CreatedFieldPolicyAssignmentCount = 0,
-				ReplacedFieldPolicyAssignmentCount = 0,
-				CatalogMappings = new List<TrajectoryBatchCatalogMapping>
-					{
-						ConstructTrajectoryBatchCatalogMapping(),
-					},
-				SurveyRunIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-				TrajectoryIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-				AntiCollisionPolicyRevisionIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-				FieldAntiCollisionPolicyAssignmentIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-			};
-		}
-		public static TrajectoryExternalReferenceAuditRequest ConstructTrajectoryExternalReferenceAuditRequest()
-		{
-			return new TrajectoryExternalReferenceAuditRequest
-			{
-				Scope = (ExternalReferenceAuditScope)0,
-				TrajectoryIDs = new List<Guid>
-					{
-						new Guid(),
-					},
-				Offset = 0,
-				Limit = 0,
-			};
-		}
-		public static TrajectoryExternalReferenceAuditResult ConstructTrajectoryExternalReferenceAuditResult()
-		{
-			return new TrajectoryExternalReferenceAuditResult
-			{
-				CheckedAtUtc = DateTimeOffset.UtcNow,
-				Total = 0,
-				Offset = 0,
-				Limit = 0,
-				ValidCount = 0,
-				InvalidCount = 0,
-				UnavailableCount = 0,
-				Items = new List<TrajectoryExternalReferenceValidation>
-					{
-						ConstructTrajectoryExternalReferenceValidation(),
-					},
-			};
-		}
-		public static TrajectoryExternalReferenceValidation ConstructTrajectoryExternalReferenceValidation()
-		{
-			return new TrajectoryExternalReferenceValidation
-			{
-				TrajectoryID = new Guid(),
-				FieldID = null,
-				ClusterID = null,
-				WellID = null,
-				WellBoreID = new Guid(),
-				FieldExists = null,
-				ClusterExists = null,
-				WellExists = null,
-				WellBoreExists = null,
-				Status = (ExternalReferenceValidationStatus)0,
-				CheckedAtUtc = DateTimeOffset.UtcNow,
-				Issues = new List<ExternalReferenceIssue>
-					{
-						ConstructExternalReferenceIssue(),
-					},
-			};
-		}
-		public static TrajectoryFeatureAssignment ConstructTrajectoryFeatureAssignment()
-		{
-			return new TrajectoryFeatureAssignment
-			{
-				ID = new Guid(),
-				FeatureCategoryID = null,
-				FeatureOptionID = null,
-				FromDate = DateTimeOffset.UtcNow,
-				ToDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static TrajectoryFeatureCategory ConstructTrajectoryFeatureCategory()
-		{
-			return new TrajectoryFeatureCategory
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				IsExclusive = false,
-				HasValidityPeriod = false,
-				Options = new List<TrajectoryFeatureOption>
-					{
-						ConstructTrajectoryFeatureOption(),
-					},
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static TrajectoryFeatureOption ConstructTrajectoryFeatureOption()
-		{
-			return new TrajectoryFeatureOption
-			{
-				ID = new Guid(),
-				Name = "Default Name",
-			};
-		}
-		public static TrajectoryIdentity ConstructTrajectoryIdentity()
-		{
-			return new TrajectoryIdentity
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static TrajectoryIdentityAssignment ConstructTrajectoryIdentityAssignment()
-		{
-			return new TrajectoryIdentityAssignment
-			{
-				ID = new Guid(),
-				IdentityID = null,
-				Value = "Default Value",
-			};
-		}
-		public static TrajectoryMinimumDistanceCalculation ConstructTrajectoryMinimumDistanceCalculation()
-		{
-			return new TrajectoryMinimumDistanceCalculation
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				ReferenceTrajectoryID = new Guid(),
-				ComparisonTrajectoryIDList = new List<Guid>
-					{
-						new Guid(),
-					},
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				ResultCount = 0,
-				IntervalResultCount = 0,
-				MaximumChordArcDistance = null,
-				AccountForBoreholeRadius = false,
-				OctreeMaximumDepth = 0,
-				OctreeMaximumSegmentCountPerLeaf = 0,
-				AdaptiveRefinementSettings = ConstructMinimumDistanceAdaptiveRefinementSettings(),
-				GlobalMinimumCenterToCenterDistance = null,
-				GlobalMinimumClearanceDistance = null,
-				GlobalMinimumReferenceMD = null,
-				GlobalMinimumComparisonTrajectoryID = null,
-				GlobalMinimumComparisonMD = null,
-				GlobalMinimumToolface = null,
-				GlobalMinimumIsGravity = false,
-				ReferenceIntervalList = new List<MinimumDistanceReferenceInterval>
-					{
-						ConstructMinimumDistanceReferenceInterval(),
-					},
-				ResultList = new List<TrajectoryMinimumDistanceResult>
-					{
-						ConstructTrajectoryMinimumDistanceResult(),
-					},
-				IntervalResultList = new List<TrajectoryMinimumDistanceIntervalResult>
-					{
-						ConstructTrajectoryMinimumDistanceIntervalResult(),
-					},
-			};
-		}
-		public static TrajectoryMinimumDistanceIntervalResult ConstructTrajectoryMinimumDistanceIntervalResult()
-		{
-			return new TrajectoryMinimumDistanceIntervalResult
-			{
-				IntervalID = new Guid(),
-				IntervalName = "Default IntervalName",
-				StartMD = null,
-				EndMD = null,
-				ComparisonTrajectoryID = null,
-				SampleCount = 0,
-				AverageCenterToCenterDistance = null,
-				StandardDeviationCenterToCenterDistance = null,
-				AverageClearanceDistance = null,
-				StandardDeviationClearanceDistance = null,
-			};
-		}
-		public static TrajectoryMinimumDistanceResult ConstructTrajectoryMinimumDistanceResult()
-		{
-			return new TrajectoryMinimumDistanceResult
-			{
-				ReferenceMD = null,
-				ReferenceTVD = null,
-				ReferenceNorth = null,
-				ReferenceEast = null,
-				ReferenceBoreholeDiameter = null,
-				ComparisonTrajectoryID = null,
-				ComparisonMD = null,
-				ComparisonTVD = null,
-				ComparisonNorth = null,
-				ComparisonEast = null,
-				ComparisonBoreholeDiameter = null,
-				CenterToCenterDistance = null,
-				ClearanceDistance = null,
-				Toolface = null,
-				IsGravity = false,
-				IsAdaptiveRefinementSample = false,
-				RefinementLevel = 0,
-			};
-		}
-		public static TrajectoryMinimumDistanceResultChunk ConstructTrajectoryMinimumDistanceResultChunk()
-		{
-			return new TrajectoryMinimumDistanceResultChunk
-			{
-				OwnerID = new Guid(),
-				ChunkIndex = 0,
-				ResultCount = 0,
-				StartReferenceMD = null,
-				EndReferenceMD = null,
-				ResultList = new List<TrajectoryMinimumDistanceResult>
-					{
-						ConstructTrajectoryMinimumDistanceResult(),
-					},
-			};
-		}
-		public static TrajectoryRealizationCase ConstructTrajectoryRealizationCase()
-		{
-			return new TrajectoryRealizationCase
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				TrajectoryID = new Guid(),
-				RealizationCount = 0,
-				CoarseningMaximumDistance = 0.0,
-				RandomSeed = null,
-				ReferenceStationCount = null,
-				CoarsenedStationCount = null,
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				RealizationList = new List<List<SurveyPoint>>
-					{
-						new List<SurveyPoint>
-						{
-							ConstructSurveyPoint(),
-						}
-					},
-			};
-		}
-		public static TrajectoryRealizationChunk ConstructTrajectoryRealizationChunk()
-		{
-			return new TrajectoryRealizationChunk
-			{
-				OwnerID = new Guid(),
-				ChunkIndex = 0,
-				RealizationCount = 0,
-				SurveyPointCount = 0,
-				StartMD = null,
-				EndMD = null,
-				RealizationList = new List<List<SurveyPoint>>
-					{
-						new List<SurveyPoint>
-						{
-							ConstructSurveyPoint(),
-						}
-					},
-			};
-		}
-		public static TrajectorySearchResult ConstructTrajectorySearchResult()
-		{
-			return new TrajectorySearchResult
-			{
-				Offset = 0,
-				Limit = 0,
-				TotalCount = 0,
-				Items = new List<TrajectoryLight>(),
-			};
-		}
-		public static TrajectorySurveyRunSection ConstructTrajectorySurveyRunSection()
-		{
-			return new TrajectorySurveyRunSection
-			{
-				SurveyRunID = new Guid(),
-				StartAbscissa = 0.0,
-			};
-		}
-		public static UsageStatisticsTrajectory ConstructUsageStatisticsTrajectory()
-		{
-			return new UsageStatisticsTrajectory
-			{
-				LastSaved = DateTimeOffset.UtcNow,
-				BackUpInterval = "Default BackUpInterval",
-				GetAllTrajectoryIdPerDay = ConstructHistory(),
-				GetAllTrajectoryMetaInfoPerDay = ConstructHistory(),
-				GetTrajectoryByIdPerDay = ConstructHistory(),
-				GetAllTrajectoryLightPerDay = ConstructHistory(),
-				GetAllTrajectoryPerDay = ConstructHistory(),
-				PostTrajectoryPerDay = ConstructHistory(),
-				PutTrajectoryByIdPerDay = ConstructHistory(),
-				DeleteTrajectoryByIdPerDay = ConstructHistory(),
-				GetAllTrajectoryExtrapolationCaseIdPerDay = ConstructHistory(),
-				GetAllTrajectoryExtrapolationCaseMetaInfoPerDay = ConstructHistory(),
-				GetAllTrajectoryExtrapolationCaseLightPerDay = ConstructHistory(),
-				GetAllTrajectoryExtrapolationCasePerDay = ConstructHistory(),
-				GetTrajectoryExtrapolationCaseByIdPerDay = ConstructHistory(),
-				GetTrajectoryExtrapolationCaseStatusPerDay = ConstructHistory(),
-				GetTrajectoryExtrapolationSurveyStationChunkCountPerDay = ConstructHistory(),
-				GetTrajectoryExtrapolationSurveyStationChunkPerDay = ConstructHistory(),
-				PostTrajectoryExtrapolationCasePerDay = ConstructHistory(),
-				PutTrajectoryExtrapolationCaseByIdPerDay = ConstructHistory(),
-				DeleteTrajectoryExtrapolationCaseByIdPerDay = ConstructHistory(),
-				GetAllTargetLandingCaseIdPerDay = ConstructHistory(),
-				GetAllTargetLandingCaseMetaInfoPerDay = ConstructHistory(),
-				GetAllTargetLandingCaseLightPerDay = ConstructHistory(),
-				GetAllTargetLandingCasePerDay = ConstructHistory(),
-				GetTargetLandingCaseByIdPerDay = ConstructHistory(),
-				GetTargetLandingCaseEditDataPerDay = ConstructHistory(),
-				GetTargetLandingCaseDisplayDataPerDay = ConstructHistory(),
-				GetTargetLandingCaseUncertaintyDisplayDataPerDay = ConstructHistory(),
-				GetTargetLandingCaseStatusPerDay = ConstructHistory(),
-				PostTargetLandingCasePerDay = ConstructHistory(),
-				PutTargetLandingCaseByIdPerDay = ConstructHistory(),
-				DeleteTargetLandingCaseByIdPerDay = ConstructHistory(),
-				GetAllDirectionalControlEvaluationCaseIdPerDay = ConstructHistory(),
-				GetAllDirectionalControlEvaluationCaseLightPerDay = ConstructHistory(),
-				GetDirectionalControlEvaluationCaseByIdPerDay = ConstructHistory(),
-				GetDirectionalControlEvaluationCaseStatusPerDay = ConstructHistory(),
-				GetDirectionalControlEvaluationSampleChunkCountPerDay = ConstructHistory(),
-				GetDirectionalControlEvaluationSampleChunkPerDay = ConstructHistory(),
-				PostDirectionalControlEvaluationCasePerDay = ConstructHistory(),
-				PutDirectionalControlEvaluationCaseByIdPerDay = ConstructHistory(),
-				DeleteDirectionalControlEvaluationCaseByIdPerDay = ConstructHistory(),
-				GetAllAntiCollisionPolicyRevisionIdPerDay = ConstructHistory(),
-				GetAllAntiCollisionPolicyRevisionPerDay = ConstructHistory(),
-				GetAntiCollisionPolicyRevisionByIdPerDay = ConstructHistory(),
-				PostAntiCollisionPolicyRevisionPerDay = ConstructHistory(),
-				DeleteAntiCollisionPolicyByPolicyIdPerDay = ConstructHistory(),
-				GetAllFieldAntiCollisionPolicyAssignmentPerDay = ConstructHistory(),
-				GetFieldAntiCollisionPolicyAssignmentByIdPerDay = ConstructHistory(),
-				GetEffectiveFieldAntiCollisionPolicyAssignmentPerDay = ConstructHistory(),
-				PostFieldAntiCollisionPolicyAssignmentPerDay = ConstructHistory(),
-				PutFieldAntiCollisionPolicyAssignmentByIdPerDay = ConstructHistory(),
-				DeleteFutureFieldAntiCollisionPolicyAssignmentByIdPerDay = ConstructHistory(),
-			};
-		}
-		public static CurvilinearPoint3D ConstructCurvilinearPoint3D()
-		{
-			return new CurvilinearPoint3D
-			{
-				X = null,
-				Y = null,
-				Z = null,
-				RiemannianNorth = null,
-				RiemannianEast = null,
-				Latitude = null,
-				Longitude = null,
-				TVD = null,
-				Abscissa = null,
-				Inclination = null,
-				Azimuth = null,
-			};
-		}
-		public static AntiCollisionFeatureCondition ConstructAntiCollisionFeatureCondition()
-		{
-			return new AntiCollisionFeatureCondition
-			{
-				ResourceLevel = (AntiCollisionHierarchyLevel)0,
-				FeatureCategoryID = new Guid(),
-				FeatureOptionID = new Guid(),
-				TemporalOperator = (AntiCollisionFeatureTemporalOperator)0,
-				SpecifiedTimeUtc = DateTimeOffset.UtcNow,
-				SpecifiedFromUtc = DateTimeOffset.UtcNow,
-				SpecifiedToUtc = DateTimeOffset.UtcNow,
-				ConditionID = new Guid(),
-			};
-		}
-		public static AntiCollisionFeatureValueSnapshot ConstructAntiCollisionFeatureValueSnapshot()
-		{
-			return new AntiCollisionFeatureValueSnapshot
-			{
-				FeatureCategoryID = new Guid(),
-				FeatureOptionID = new Guid(),
-				FromUtc = DateTimeOffset.UtcNow,
-				ToUtc = DateTimeOffset.UtcNow,
-			};
-		}
-		public static AntiCollisionIdentityCondition ConstructAntiCollisionIdentityCondition()
-		{
-			return new AntiCollisionIdentityCondition
-			{
-				ResourceLevel = (AntiCollisionHierarchyLevel)0,
-				IdentityDefinitionID = new Guid(),
-				MatchOperator = (AntiCollisionIdentityMatchOperator)0,
-				Pattern = "Default Pattern",
-				CaseSensitive = false,
-				ConditionID = new Guid(),
-			};
-		}
-		public static AntiCollisionIdentityValueSnapshot ConstructAntiCollisionIdentityValueSnapshot()
-		{
-			return new AntiCollisionIdentityValueSnapshot
-			{
-				IdentityDefinitionID = new Guid(),
-				Value = "Default Value",
-			};
-		}
-		public static AntiCollisionPolicyCondition ConstructAntiCollisionPolicyCondition()
-		{
-			return new AntiCollisionPolicyCondition
-			{
-				ConditionID = new Guid(),
-			};
-		}
-		public static AntiCollisionPolicyEvaluation ConstructAntiCollisionPolicyEvaluation()
-		{
-			return new AntiCollisionPolicyEvaluation
-			{
-				ComparisonTrajectoryID = new Guid(),
-				State = (AntiCollisionPolicyEvaluationState)0,
-				Message = "Default Message",
-				MatchedRuleID = null,
-				MatchedRulePriority = null,
-				AlertThreshold = null,
-				AlarmThreshold = null,
-				OldestEvidenceUtc = DateTimeOffset.UtcNow,
-				NewestEvidenceUtc = DateTimeOffset.UtcNow,
-				TrajectoryAge = null,
-				WorstClassification = (AntiCollisionClassification)0,
-				Context = new List<AntiCollisionResourceContextSnapshot>
-					{
-						ConstructAntiCollisionResourceContextSnapshot(),
-					},
-			};
-		}
-		public static AntiCollisionPolicyRevision ConstructAntiCollisionPolicyRevision()
-		{
-			return new AntiCollisionPolicyRevision
-			{
-				MetaInfo = ConstructMetaInfo(),
-				PolicyID = new Guid(),
-				RevisionNumber = 0,
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				ConfidenceFactor = 0.0,
-				Rules = new List<AntiCollisionPolicyRule>
-					{
-						ConstructAntiCollisionPolicyRule(),
-					},
-			};
-		}
-		public static AntiCollisionPolicyRevisionCreate ConstructAntiCollisionPolicyRevisionCreate()
-		{
-			return new AntiCollisionPolicyRevisionCreate
-			{
-				MetaInfo = ConstructMetaInfo(),
-				PolicyID = new Guid(),
-				Name = "Default Name",
-				Description = "Default Description",
-				ConfidenceFactor = 0.0,
-				Rules = new List<AntiCollisionPolicyRule>
-					{
-						ConstructAntiCollisionPolicyRule(),
-					},
-			};
-		}
-		public static AntiCollisionPolicyRule ConstructAntiCollisionPolicyRule()
-		{
-			return new AntiCollisionPolicyRule
-			{
-				RuleID = new Guid(),
-				Name = "Default Name",
-				Priority = 0,
-				AlertThreshold = 0.0,
-				AlarmThreshold = 0.0,
-				Conditions = new List<AntiCollisionPolicyCondition>
-					{
-						ConstructAntiCollisionPolicyCondition(),
-					},
-			};
-		}
-		public static AntiCollisionResourceContextSnapshot ConstructAntiCollisionResourceContextSnapshot()
-		{
-			return new AntiCollisionResourceContextSnapshot
-			{
-				ResourceLevel = (AntiCollisionHierarchyLevel)0,
-				ResourceID = new Guid(),
-				Name = "Default Name",
-				IsAvailable = false,
-				Identities = new List<AntiCollisionIdentityValueSnapshot>
-					{
-						ConstructAntiCollisionIdentityValueSnapshot(),
-					},
-				Features = new List<AntiCollisionFeatureValueSnapshot>
-					{
-						ConstructAntiCollisionFeatureValueSnapshot(),
-					},
-				IdentityCatalogAvailable = false,
-				UnavailableReason = "Default UnavailableReason",
-			};
-		}
-		public static AntiCollisionTrajectoryAgeCondition ConstructAntiCollisionTrajectoryAgeCondition()
-		{
-			return new AntiCollisionTrajectoryAgeCondition
-			{
-				Operator = (AntiCollisionComparisonOperator)0,
-				AgeThreshold = 0.0,
-				ConditionID = new Guid(),
-			};
-		}
-		public static FieldAntiCollisionPolicyAssignment ConstructFieldAntiCollisionPolicyAssignment()
-		{
-			return new FieldAntiCollisionPolicyAssignment
-			{
-				MetaInfo = ConstructMetaInfo(),
-				FieldID = new Guid(),
-				PolicyRevisionID = new Guid(),
-				ValidFromUtc = DateTimeOffset.UtcNow,
-				ValidToUtc = DateTimeOffset.UtcNow,
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-			};
-		}
-		public static FieldAntiCollisionPolicyAssignmentMutation ConstructFieldAntiCollisionPolicyAssignmentMutation()
-		{
-			return new FieldAntiCollisionPolicyAssignmentMutation
-			{
-				MetaInfo = ConstructMetaInfo(),
-				FieldID = new Guid(),
-				PolicyRevisionID = new Guid(),
-				ValidFromUtc = DateTimeOffset.UtcNow,
-				ValidToUtc = DateTimeOffset.UtcNow,
-			};
-		}
-		public static CircularArcWellPathSectionSpecification ConstructCircularArcWellPathSectionSpecification()
-		{
-			return new CircularArcWellPathSectionSpecification
-			{
-				Curvature = null,
-				StartToolface = null,
-				SectionID = new Guid(),
-				Length = null,
-				EndInclination = null,
-				EndAzimuth = null,
-				EndVerticalDepth = null,
-				EndNorth = null,
-				EndEast = null,
-			};
-		}
-		public static ConstantBuildAndTurnWellPathSectionSpecification ConstructConstantBuildAndTurnWellPathSectionSpecification()
-		{
-			return new ConstantBuildAndTurnWellPathSectionSpecification
-			{
-				BuildRate = null,
-				TurnRate = null,
-				SectionID = new Guid(),
-				Length = null,
-				EndInclination = null,
-				EndAzimuth = null,
-				EndVerticalDepth = null,
-				EndNorth = null,
-				EndEast = null,
-			};
-		}
-		public static ConstantCurvatureAndToolfaceWellPathSectionSpecification ConstructConstantCurvatureAndToolfaceWellPathSectionSpecification()
-		{
-			return new ConstantCurvatureAndToolfaceWellPathSectionSpecification
-			{
-				Curvature = null,
-				Toolface = null,
-				SectionID = new Guid(),
-				Length = null,
-				EndInclination = null,
-				EndAzimuth = null,
-				EndVerticalDepth = null,
-				EndNorth = null,
-				EndEast = null,
-			};
-		}
-		public static DepartureGeosteeringExtentConstraint ConstructDepartureGeosteeringExtentConstraint()
-		{
-			return new DepartureGeosteeringExtentConstraint
-			{
-				DepartureDistance = 0.0,
-				DepartureBearing = 0.0,
-			};
-		}
-		public static DirectionalControlDistributionSummary ConstructDirectionalControlDistributionSummary()
-		{
-			return new DirectionalControlDistributionSummary
-			{
-				Count = 0,
-				P10 = 0.0,
-				P50 = 0.0,
-				P90 = 0.0,
-				Mean = 0.0,
-				StandardDeviation = 0.0,
-				MedianAbsoluteDeviation = 0.0,
-				Minimum = 0.0,
-				Maximum = 0.0,
-				IsCircular = false,
-				Histogram = new List<DirectionalControlHistogramBin>
-					{
-						ConstructDirectionalControlHistogramBin(),
-					},
-			};
-		}
-		public static DirectionalControlEvaluationBundle ConstructDirectionalControlEvaluationBundle()
-		{
-			return new DirectionalControlEvaluationBundle
-			{
-				BundleID = new Guid(),
-				BundleIndex = 0,
-				StartActualMD = 0.0,
-				EndActualMD = 0.0,
-				AttemptedSampleCount = 0,
-				ValidSampleCount = 0,
-				InvalidSampleCount = 0,
-				ValidCoverageRatio = 0.0,
-				MaximumInvalidGap = 0.0,
-				CurvatureResidual = ConstructDirectionalControlDistributionSummary(),
-				ToolfaceResidual = ConstructDirectionalControlDistributionSummary(),
-				BuildRateResidual = ConstructDirectionalControlDistributionSummary(),
-				TurnRateResidual = ConstructDirectionalControlDistributionSummary(),
-			};
-		}
-		public static DirectionalControlEvaluationCase ConstructDirectionalControlEvaluationCase()
-		{
-			return new DirectionalControlEvaluationCase
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				ReferenceTrajectoryID = new Guid(),
-				ActualTrajectoryID = new Guid(),
-				CurveType = (ExtrapolationCurveType)0,
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				IsStale = false,
-				EvaluationInterval = 0.0,
-				StartActualMD = null,
-				EndActualMD = null,
-				ReferenceMDAdvance = 0.0,
-				JunctionCurvatureRatio = 0.0,
-				MaximumInvalidGap = 0.0,
-				MinimumBundleLength = 0.0,
-				MinimumBundleSampleCount = 0,
-				BundlingPenalty = 0.0,
-				ReferenceTrajectoryRevision = DateTimeOffset.UtcNow,
-				ActualTrajectoryRevision = DateTimeOffset.UtcNow,
-				CalculationFingerprint = "Default CalculationFingerprint",
-				SampleList = new List<DirectionalControlEvaluationSample>
-					{
-						ConstructDirectionalControlEvaluationSample(),
-					},
-				BundleList = new List<DirectionalControlEvaluationBundle>
-					{
-						ConstructDirectionalControlEvaluationBundle(),
-					},
-			};
-		}
-		public static DirectionalControlEvaluationSample ConstructDirectionalControlEvaluationSample()
-		{
-			return new DirectionalControlEvaluationSample
-			{
-				SampleID = new Guid(),
-				ActualMD = 0.0,
-				ActualEndMD = 0.0,
-				ClosestReferenceMD = null,
-				TargetReferenceMD = null,
-				IsValid = false,
-				FailureCode = "Default FailureCode",
-				FailureMessage = "Default FailureMessage",
-				ExpectedCurvature = null,
-				ActualCurvature = null,
-				CurvatureResidual = null,
-				ExpectedToolface = null,
-				ActualToolface = null,
-				ToolfaceResidual = null,
-				ExpectedBuildRate = null,
-				ActualBuildRate = null,
-				BuildRateResidual = null,
-				ExpectedTurnRate = null,
-				ActualTurnRate = null,
-				TurnRateResidual = null,
-			};
-		}
-		public static DirectionalControlEvaluationSampleChunk ConstructDirectionalControlEvaluationSampleChunk()
-		{
-			return new DirectionalControlEvaluationSampleChunk
-			{
-				ChunkIndex = 0,
-				SampleCount = 0,
-				StartActualMD = null,
-				EndActualMD = null,
-				SampleList = new List<DirectionalControlEvaluationSample>
-					{
-						ConstructDirectionalControlEvaluationSample(),
-					},
-			};
-		}
-		public static DirectionalControlHistogramBin ConstructDirectionalControlHistogramBin()
-		{
-			return new DirectionalControlHistogramBin
-			{
-				LowerBound = 0.0,
-				UpperBound = 0.0,
-				Count = 0,
-			};
-		}
-		public static DrilledLengthGeosteeringExtentConstraint ConstructDrilledLengthGeosteeringExtentConstraint()
-		{
-			return new DrilledLengthGeosteeringExtentConstraint
-			{
-				SteeringLength = 0.0,
-				SteeringLengthRatio = 0.0,
-			};
-		}
-		public static FixedLengthExtrapolationSpecification ConstructFixedLengthExtrapolationSpecification()
-		{
-			return new FixedLengthExtrapolationSpecification
-			{
-				Length = 0.0,
-				ExtensionType = (FixedLengthExtrapolationType)0,
-			};
-		}
-		public static GeosteeringExtentConstraint ConstructGeosteeringExtentConstraint()
-		{
-			return new GeosteeringExtentConstraint
-			{
-			};
-		}
-		public static GeosteeringTrajectoryExtrapolationSpecification ConstructGeosteeringTrajectoryExtrapolationSpecification()
-		{
-			return new GeosteeringTrajectoryExtrapolationSpecification
-			{
-				LeadInLength = 0.0,
-				TargetVerticalDepth = 0.0,
-				EndInclination = 0.0,
-				EndAzimuth = 0.0,
-				CurveType = (ExtrapolationCurveType)0,
-				AzimuthBranch = 0,
-				Extent = ConstructGeosteeringExtentConstraint(),
-			};
-		}
-		public static ReconnectTrajectoryExtrapolationSpecification ConstructReconnectTrajectoryExtrapolationSpecification()
-		{
-			return new ReconnectTrajectoryExtrapolationSpecification
-			{
-				ReferenceTrajectoryID = new Guid(),
-				ReferenceMDAdvance = 0.0,
-				CurveType = (ExtrapolationCurveType)0,
-				AzimuthBranch = 0,
-				JunctionCurvatureRatio = 0.0,
-				LeadInLength = 0.0,
-			};
-		}
-		public static SurveyMeasurementCorrection ConstructSurveyMeasurementCorrection()
-		{
-			return new SurveyMeasurementCorrection
-			{
-				Source = (SurveyCorrectionSource)0,
-				Status = (SurveyCorrectionStatus)0,
-				Message = "Default Message",
-				AppliedInclinationCorrection = null,
-				AppliedAzimuthCorrection = null,
-				MagneticDeclination = null,
-				GravityNorth = null,
-				GravityEast = null,
-				GravityDown = null,
-				EvaluatedLatitude = null,
-				EvaluatedLongitude = null,
-				EvaluatedDepthWgs84 = null,
-				EvaluationTimeUtc = DateTimeOffset.UtcNow,
-				TimeMethod = (SurveyCorrectionTimeMethod)0,
-				GravityModelID = "Default GravityModelID",
-				GravityModelVersion = "Default GravityModelVersion",
-				GravityCoefficientSHA256 = "Default GravityCoefficientSHA256",
-				GeomagneticModelID = "Default GeomagneticModelID",
-				GeomagneticMetadataSHA256 = "Default GeomagneticMetadataSHA256",
-				GeomagneticCoefficientSHA256 = "Default GeomagneticCoefficientSHA256",
-				AlgorithmVersion = "Default AlgorithmVersion",
-			};
-		}
-		public static SurveyRunBitExtrapolation ConstructSurveyRunBitExtrapolation()
-		{
-			return new SurveyRunBitExtrapolation
-			{
-				Mode = (SurveyRunBitExtrapolationMode)0,
-				MeasurementToolToBitDistance = 0.0,
-			};
-		}
-		public static TargetLandingCase ConstructTargetLandingCase()
-		{
-			return new TargetLandingCase
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				SourceTrajectoryID = new Guid(),
-				TargetType = (TargetLandingTargetType)0,
-				CurveType = (ExtrapolationCurveType)0,
-				AttitudeMode = (TargetLandingAttitudeMode)0,
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				IsStale = false,
-				Target = ConstructTargetPlaneDefinition(),
-				LeadLength = 0.0,
-				ConfidenceFactor = 0.0,
-				MaximumLandingCurvature = null,
-				SourceTrajectoryRevision = DateTimeOffset.UtcNow,
-				CalculationFingerprint = "Default CalculationFingerprint",
-				SourceEndStation = ConstructSurveyStation(),
-				LeadSurveyStationList = new List<SurveyStation>
-					{
-						ConstructSurveyStation(),
-					},
-				SteeringStartStation = ConstructSurveyStation(),
-				GeologicalTargetBoundary = new List<TargetPlanePoint>
-					{
-						ConstructTargetPlanePoint(),
-					},
-				DrillerTargetBoundary = new List<TargetPlanePoint>
-					{
-						ConstructTargetPlanePoint(),
-					},
-				ReachableTargetBoundary = new List<TargetPlanePoint>
-					{
-						ConstructTargetPlanePoint(),
-					},
-				DrillerTargetContourList = new List<List<TargetPlanePoint>>
-					{
-						new List<TargetPlanePoint>
-						{
-							ConstructTargetPlanePoint(),
-						}
-					},
-				ReachableTargetContourList = new List<List<TargetPlanePoint>>
-					{
-						new List<TargetPlanePoint>
-						{
-							ConstructTargetPlanePoint(),
-						}
-					},
-				SampleList = new List<TargetLandingSample>
-					{
-						ConstructTargetLandingSample(),
-					},
-				MeshTriangleList = new List<TargetLandingMeshTriangle>
-					{
-						ConstructTargetLandingMeshTriangle(),
-					},
-			};
-		}
-		public static TargetLandingControlPoint ConstructTargetLandingControlPoint()
-		{
-			return new TargetLandingControlPoint
-			{
-				NormalizedLength = 0.0,
-				Inclination = null,
-				Curvature = 0.0,
-				Toolface = 0.0,
-				BuildRate = 0.0,
-				TurnRate = 0.0,
-			};
-		}
-		public static TargetLandingMeshTriangle ConstructTargetLandingMeshTriangle()
-		{
-			return new TargetLandingMeshTriangle
-			{
-				FirstSampleID = new Guid(),
-				SecondSampleID = new Guid(),
-				ThirdSampleID = new Guid(),
-			};
-		}
-		public static TargetLandingSample ConstructTargetLandingSample()
-		{
-			return new TargetLandingSample
-			{
-				SampleID = new Guid(),
-				PlaneX = 0.0,
-				PlaneY = 0.0,
-				PolarRadius = 0.0,
-				PolarAngle = 0.0,
-				North = 0.0,
-				East = 0.0,
-				TVD = 0.0,
-				State = (TargetLandingSampleState)0,
-				IsUncertaintySafe = null,
-				Message = "Default Message",
-				TotalLandingLength = null,
-				PeakLandingCurvature = null,
-				LandingStation = ConstructSurveyStation(),
-				LandingEllipseInTargetPlane = ConstructSurveyStationEllipse(),
-				SolvedSectionList = new List<TrajectoryExtrapolationSolvedSection>
-					{
-						ConstructTrajectoryExtrapolationSolvedSection(),
-					},
-				SurveyStationList = new List<SurveyStation>
-					{
-						ConstructSurveyStation(),
-					},
-				ControlPointList = new List<TargetLandingControlPoint>
-					{
-						ConstructTargetLandingControlPoint(),
-					},
-			};
-		}
-		public static TargetPlaneDefinition ConstructTargetPlaneDefinition()
-		{
-			return new TargetPlaneDefinition
-			{
-				Plane = ConstructCurvilinearPoint3D(),
-				Polygon = new List<TargetPlanePoint>
-					{
-						ConstructTargetPlanePoint(),
-					},
-			};
-		}
-		public static TargetPlanePoint ConstructTargetPlanePoint()
-		{
-			return new TargetPlanePoint
-			{
-				X = 0.0,
-				Y = 0.0,
-			};
-		}
-		public static TrajectoryExtrapolationCase ConstructTrajectoryExtrapolationCase()
-		{
-			return new TrajectoryExtrapolationCase
-			{
-				MetaInfo = ConstructMetaInfo(),
-				Name = "Default Name",
-				Description = "Default Description",
-				CreationDate = DateTimeOffset.UtcNow,
-				LastModificationDate = DateTimeOffset.UtcNow,
-				SourceTrajectoryID = new Guid(),
-				Mode = (TrajectoryExtrapolationMode)0,
-				CalculationState = (CalculationState)0,
-				CalculationProgress = 0.0,
-				CalculationMessage = "Default CalculationMessage",
-				InterpolationInterval = 0.0,
-				Specification = ConstructTrajectoryExtrapolationSpecification(),
-				StartStation = ConstructSurveyStation(),
-				TargetStation = ConstructSurveyStation(),
-				ClosestReferenceMD = null,
-				TargetReferenceMD = null,
-				SourceTrajectoryRevision = DateTimeOffset.UtcNow,
-				ReferenceTrajectoryRevision = DateTimeOffset.UtcNow,
-				SolvedSectionList = new List<TrajectoryExtrapolationSolvedSection>
-					{
-						ConstructTrajectoryExtrapolationSolvedSection(),
-					},
-				SurveyStationList = new List<SurveyStation>
-					{
-						ConstructSurveyStation(),
-					},
-			};
-		}
-		public static TrajectoryExtrapolationSolvedSection ConstructTrajectoryExtrapolationSolvedSection()
-		{
-			return new TrajectoryExtrapolationSolvedSection
-			{
-				SectionID = new Guid(),
-				SectionIndex = 0,
-				Role = (TrajectoryExtrapolationSectionRole)0,
-				CurveType = (ExtrapolationCurveType)0,
-				StartMD = 0.0,
-				EndMD = 0.0,
-				Length = 0.0,
-				Start = ConstructSurveyStation(),
-				End = ConstructSurveyStation(),
-				CircularArcCurvature = null,
-				CircularArcStartToolface = null,
-				ConstantBuildRate = null,
-				ConstantTurnRate = null,
-				ConstantCurvature = null,
-				ConstantToolface = null,
-			};
-		}
-		public static TrajectoryExtrapolationSpecification ConstructTrajectoryExtrapolationSpecification()
-		{
-			return new TrajectoryExtrapolationSpecification
-			{
-			};
-		}
-		public static WellPathExtrapolationSpecification ConstructWellPathExtrapolationSpecification()
-		{
-			return new WellPathExtrapolationSpecification
-			{
-				SectionList = new List<WellPathSectionSpecification>(),
-			};
-		}
-		public static WellPathSectionSpecification ConstructWellPathSectionSpecification()
-		{
-			return new WellPathSectionSpecification
-			{
-				SectionID = new Guid(),
-				Length = null,
-				EndInclination = null,
-				EndAzimuth = null,
-				EndVerticalDepth = null,
-				EndNorth = null,
-				EndEast = null,
 			};
 		}
 		public static SurveyInstrumentBatchCatalogDependencies ConstructSurveyInstrumentBatchCatalogDependencies()
@@ -6538,6 +3986,17 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					},
 			};
 		}
+		public static SurveyInstrumentDiscoveryPage ConstructSurveyInstrumentDiscoveryPage()
+		{
+			return new SurveyInstrumentDiscoveryPage
+			{
+				Items = new List<SurveyInstrumentLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
 		public static SurveyInstrumentFeatureAssignment ConstructSurveyInstrumentFeatureAssignment()
 		{
 			return new SurveyInstrumentFeatureAssignment
@@ -6563,6 +4022,17 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 					},
 				CreationDate = DateTimeOffset.UtcNow,
 				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static SurveyInstrumentFeatureCategoryDiscoveryPage ConstructSurveyInstrumentFeatureCategoryDiscoveryPage()
+		{
+			return new SurveyInstrumentFeatureCategoryDiscoveryPage
+			{
+				Items = new List<SurveyInstrumentFeatureCategoryLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
 			};
 		}
 		public static SurveyInstrumentFeatureOption ConstructSurveyInstrumentFeatureOption()
@@ -6592,10 +4062,22 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				Value = "Default Value",
 			};
 		}
+		public static SurveyInstrumentIdentityDiscoveryPage ConstructSurveyInstrumentIdentityDiscoveryPage()
+		{
+			return new SurveyInstrumentIdentityDiscoveryPage
+			{
+				Items = new List<SurveyInstrumentIdentityLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
 		public static UsageStatisticsSurveyInstrument ConstructUsageStatisticsSurveyInstrument()
 		{
 			return new UsageStatisticsSurveyInstrument
 			{
+				DiscoveryRequestsPerDay = ConstructHistory(),
 				LastSaved = DateTimeOffset.UtcNow,
 				BackUpInterval = "Default BackUpInterval",
 				GetAllSurveyInstrumentIdPerDay = ConstructHistory(),
@@ -6613,6 +4095,17 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				PostErrorSourcePerDay = ConstructHistory(),
 				PutErrorSourceByIdPerDay = ConstructHistory(),
 				DeleteErrorSourceByIdPerDay = ConstructHistory(),
+			};
+		}
+		public static ProblemDetails ConstructProblemDetails()
+		{
+			return new ProblemDetails
+			{
+				Type = "Default Type",
+				Title = "Default Title",
+				Status = null,
+				Detail = "Default Detail",
+				Instance = "Default Instance",
 			};
 		}
 		public static AuthorityIdentifier ConstructAuthorityIdentifier()
@@ -7266,6 +4759,1189 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				CatalogWrites = 0,
 			};
 		}
+		public static Field ConstructField()
+		{
+			return new Field
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				ProjectionDefinitionID = null,
+				ReferencePoint = ConstructPoint3DGlobalCoordinates(),
+				FieldFeatureAssignments = new List<FieldFeatureAssignment>(),
+				FieldIdentityAssignments = new List<FieldIdentityAssignment>(),
+				FieldMembershipAssignments = new List<FieldMembershipAssignment>
+					{
+						ConstructFieldMembershipAssignment(),
+					},
+				DelineationLines = new List<FieldDelineationLine>
+					{
+						ConstructFieldDelineationLine(),
+					},
+			};
+		}
+		public static FieldBatchCatalogDependencies ConstructFieldBatchCatalogDependencies()
+		{
+			return new FieldBatchCatalogDependencies
+			{
+				FeatureCategories = new List<FieldFeatureCategory>
+					{
+						ConstructFieldFeatureCategory(),
+					},
+				MembershipCategories = new List<FieldMembershipCategory>
+					{
+						ConstructFieldMembershipCategory(),
+					},
+				Identities = new List<FieldIdentity>
+					{
+						ConstructFieldIdentity(),
+					},
+				DelineationLineTypes = new List<FieldDelineationLineType>
+					{
+						ConstructFieldDelineationLineType(),
+					},
+			};
+		}
+		public static FieldBatchCatalogMapping ConstructFieldBatchCatalogMapping()
+		{
+			return new FieldBatchCatalogMapping
+			{
+				Catalog = "Default Catalog",
+				Name = "Default Name",
+				SourceID = new Guid(),
+				LocalID = new Guid(),
+				Resolution = "Default Resolution",
+			};
+		}
+		public static FieldBatchError ConstructFieldBatchError()
+		{
+			return new FieldBatchError
+			{
+				PositionIndex = null,
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static FieldBatchErrorEnvelope ConstructFieldBatchErrorEnvelope()
+		{
+			return new FieldBatchErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<FieldBatchError>
+					{
+						ConstructFieldBatchError(),
+					},
+			};
+		}
+		public static FieldBatchExportDocument ConstructFieldBatchExportDocument()
+		{
+			return new FieldBatchExportDocument
+			{
+				FormatIdentifier = "Default FormatIdentifier",
+				SchemaVersion = 0,
+				ExportedAtUtc = DateTimeOffset.UtcNow,
+				CatalogDependencies = ConstructFieldBatchCatalogDependencies(),
+				Fields = new List<Field>
+					{
+						ConstructField(),
+					},
+			};
+		}
+		public static FieldBatchExportRequest ConstructFieldBatchExportRequest()
+		{
+			return new FieldBatchExportRequest
+			{
+				Scope = (FieldBatchExportScope)0,
+				FieldIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static FieldBatchRestoreRequest ConstructFieldBatchRestoreRequest()
+		{
+			return new FieldBatchRestoreRequest
+			{
+				ConflictPolicy = (FieldBatchRestoreConflictPolicy)0,
+				CatalogPolicy = (FieldBatchCatalogRestorePolicy)0,
+				Document = ConstructFieldBatchExportDocument(),
+			};
+		}
+		public static FieldBatchRestoreResponse ConstructFieldBatchRestoreResponse()
+		{
+			return new FieldBatchRestoreResponse
+			{
+				RestoredAtUtc = DateTimeOffset.UtcNow,
+				CreatedCount = 0,
+				ReplacedCount = 0,
+				CreatedCatalogDefinitionCount = 0,
+				CreatedCatalogOptionCount = 0,
+				CatalogMappings = new List<FieldBatchCatalogMapping>
+					{
+						ConstructFieldBatchCatalogMapping(),
+					},
+				FieldIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static FieldCatalogReference ConstructFieldCatalogReference()
+		{
+			return new FieldCatalogReference
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+				Authority = "Default Authority",
+				Code = "Default Code",
+			};
+		}
+		public static FieldConversionErrorEnvelope ConstructFieldConversionErrorEnvelope()
+		{
+			return new FieldConversionErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<FieldConversionValidationError>
+					{
+						ConstructFieldConversionValidationError(),
+					},
+			};
+		}
+		public static FieldConversionValidationError ConstructFieldConversionValidationError()
+		{
+			return new FieldConversionValidationError
+			{
+				PositionIndex = null,
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static FieldConversionWarning ConstructFieldConversionWarning()
+		{
+			return new FieldConversionWarning
+			{
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static FieldCoordinateConversionPositionResult ConstructFieldCoordinateConversionPositionResult()
+		{
+			return new FieldCoordinateConversionPositionResult
+			{
+				PositionIndex = 0,
+				ProjectionDatumGeographicCoordinate = ConstructFieldGeographicCoordinate(),
+				Wgs84GeographicCoordinate = ConstructFieldGeographicCoordinate(),
+				ProjectedCoordinate = ConstructFieldProjectedCoordinate(),
+				ProjectionDatumVerticalDepth = 0.0,
+				Wgs84VerticalDepth = null,
+				CoordinateEpochUtc = DateTimeOffset.UtcNow,
+				GridConvergence = null,
+			};
+		}
+		public static FieldCoordinateConversionResponse ConstructFieldCoordinateConversionResponse()
+		{
+			return new FieldCoordinateConversionResponse
+			{
+				FieldID = new Guid(),
+				ProjectionDefinition = ConstructFieldCatalogReference(),
+				ProjectionDatum = ConstructFieldCatalogReference(),
+				Wgs84Datum = ConstructFieldCatalogReference(),
+				ApiAxisConvention = "Default ApiAxisConvention",
+				Positions = new List<FieldCoordinateConversionPositionResult>
+					{
+						ConstructFieldCoordinateConversionPositionResult(),
+					},
+				Warnings = new List<FieldConversionWarning>
+					{
+						ConstructFieldConversionWarning(),
+					},
+			};
+		}
+		public static FieldDelineationBoundaryLine ConstructFieldDelineationBoundaryLine()
+		{
+			return new FieldDelineationBoundaryLine
+			{
+				ID = new Guid(),
+				IsInteriorBoundary = false,
+				IsClosed = false,
+				Points = new List<Point3DGlobalCoordinates>
+					{
+						ConstructPoint3DGlobalCoordinates(),
+					},
+			};
+		}
+		public static FieldDelineationLine ConstructFieldDelineationLine()
+		{
+			return new FieldDelineationLine
+			{
+				ID = new Guid(),
+				DelineationLineTypeID = null,
+				Name = "Default Name",
+				Description = "Default Description",
+				Margin = null,
+				TopDepth = null,
+				BottomDepth = null,
+				Points = new List<Point3DGlobalCoordinates>
+					{
+						ConstructPoint3DGlobalCoordinates(),
+					},
+				CalculatedBoundaryLines = new List<FieldDelineationBoundaryLine>
+					{
+						ConstructFieldDelineationBoundaryLine(),
+					},
+			};
+		}
+		public static FieldDelineationLineType ConstructFieldDelineationLineType()
+		{
+			return new FieldDelineationLineType
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldDelineationLineTypeDiscoveryPage ConstructFieldDelineationLineTypeDiscoveryPage()
+		{
+			return new FieldDelineationLineTypeDiscoveryPage
+			{
+				Items = new List<FieldDelineationLineTypeLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static FieldDiscoveryPage ConstructFieldDiscoveryPage()
+		{
+			return new FieldDiscoveryPage
+			{
+				Items = new List<FieldLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static FieldFeatureAssignment ConstructFieldFeatureAssignment()
+		{
+			return new FieldFeatureAssignment
+			{
+				ID = new Guid(),
+				FeatureCategoryID = null,
+				FeatureOptionID = null,
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldFeatureCategory ConstructFieldFeatureCategory()
+		{
+			return new FieldFeatureCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				IsExclusive = false,
+				HasValidityPeriod = false,
+				Options = new List<FieldFeatureOption>
+					{
+						ConstructFieldFeatureOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldFeatureCategoryDiscoveryPage ConstructFieldFeatureCategoryDiscoveryPage()
+		{
+			return new FieldFeatureCategoryDiscoveryPage
+			{
+				Items = new List<FieldFeatureCategoryLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static FieldFeatureOption ConstructFieldFeatureOption()
+		{
+			return new FieldFeatureOption
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static FieldForwardConversionPosition ConstructFieldForwardConversionPosition()
+		{
+			return new FieldForwardConversionPosition
+			{
+				Latitude = 0.0,
+				Longitude = 0.0,
+				VerticalDepth = 0.0,
+				CoordinateEpochUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldForwardConversionRequest ConstructFieldForwardConversionRequest()
+		{
+			return new FieldForwardConversionRequest
+			{
+				FieldID = new Guid(),
+				SourceGeographicReference = (FieldGeographicReference)0,
+				ProjectionApplicabilityPolicy = (FieldApplicabilityPolicy)0,
+				Transformation = ConstructFieldTransformationOptions(),
+				Positions = new List<FieldForwardConversionPosition>
+					{
+						ConstructFieldForwardConversionPosition(),
+					},
+			};
+		}
+		public static FieldGeographicCoordinate ConstructFieldGeographicCoordinate()
+		{
+			return new FieldGeographicCoordinate
+			{
+				Latitude = 0.0,
+				Longitude = 0.0,
+			};
+		}
+		public static FieldIdentity ConstructFieldIdentity()
+		{
+			return new FieldIdentity
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldIdentityAssignment ConstructFieldIdentityAssignment()
+		{
+			return new FieldIdentityAssignment
+			{
+				ID = new Guid(),
+				IdentityID = null,
+				Value = "Default Value",
+			};
+		}
+		public static FieldIdentityDiscoveryPage ConstructFieldIdentityDiscoveryPage()
+		{
+			return new FieldIdentityDiscoveryPage
+			{
+				Items = new List<FieldIdentityLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static FieldInverseConversionPosition ConstructFieldInverseConversionPosition()
+		{
+			return new FieldInverseConversionPosition
+			{
+				Easting = 0.0,
+				Northing = 0.0,
+				VerticalDepth = 0.0,
+				CoordinateEpochUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldInverseConversionRequest ConstructFieldInverseConversionRequest()
+		{
+			return new FieldInverseConversionRequest
+			{
+				FieldID = new Guid(),
+				ProjectionApplicabilityPolicy = (FieldApplicabilityPolicy)0,
+				Transformation = ConstructFieldTransformationOptions(),
+				Positions = new List<FieldInverseConversionPosition>
+					{
+						ConstructFieldInverseConversionPosition(),
+					},
+			};
+		}
+		public static FieldMembershipAssignment ConstructFieldMembershipAssignment()
+		{
+			return new FieldMembershipAssignment
+			{
+				ID = new Guid(),
+				MembershipCategoryID = null,
+				MembershipOptionID = null,
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldMembershipCategory ConstructFieldMembershipCategory()
+		{
+			return new FieldMembershipCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				IsExclusive = false,
+				HasValidityPeriod = false,
+				Options = new List<FieldMembershipOption>
+					{
+						ConstructFieldMembershipOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldMembershipCategoryDiscoveryPage ConstructFieldMembershipCategoryDiscoveryPage()
+		{
+			return new FieldMembershipCategoryDiscoveryPage
+			{
+				Items = new List<FieldMembershipCategoryLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static FieldMembershipOption ConstructFieldMembershipOption()
+		{
+			return new FieldMembershipOption
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static FieldMutationError ConstructFieldMutationError()
+		{
+			return new FieldMutationError
+			{
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+				ReferencingFieldIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static FieldMutationErrorEnvelope ConstructFieldMutationErrorEnvelope()
+		{
+			return new FieldMutationErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<FieldMutationError>
+					{
+						ConstructFieldMutationError(),
+					},
+			};
+		}
+		public static FieldProjectedCoordinate ConstructFieldProjectedCoordinate()
+		{
+			return new FieldProjectedCoordinate
+			{
+				Easting = 0.0,
+				Northing = 0.0,
+			};
+		}
+		public static FieldTransformationOptions ConstructFieldTransformationOptions()
+		{
+			return new FieldTransformationOptions
+			{
+				SelectionPolicy = (FieldTransformationSelectionPolicy)0,
+				TransformationPathIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				SelectionToken = "Default SelectionToken",
+				ApplicabilityPolicy = (FieldApplicabilityPolicy)0,
+				DepthPolicy = (FieldDepthTransformationPolicy)0,
+			};
+		}
+		public static UsageStatisticsField ConstructUsageStatisticsField()
+		{
+			return new UsageStatisticsField
+			{
+				DiscoveryRequestsPerDay = ConstructHistory(),
+				LastSaved = DateTimeOffset.UtcNow,
+				BackUpInterval = "Default BackUpInterval",
+				GetAllFieldIdPerDay = ConstructHistory(),
+				GetAllFieldMetaInfoPerDay = ConstructHistory(),
+				GetFieldByIdPerDay = ConstructHistory(),
+				GetAllFieldLightPerDay = ConstructHistory(),
+				GetAllFieldPerDay = ConstructHistory(),
+				BatchExportFieldsPerDay = ConstructHistory(),
+				BatchRestoreFieldsPerDay = ConstructHistory(),
+				PostFieldPerDay = ConstructHistory(),
+				PutFieldByIdPerDay = ConstructHistory(),
+				DeleteFieldByIdPerDay = ConstructHistory(),
+				GetAllFieldDelineationLineTypeIdPerDay = ConstructHistory(),
+				GetAllFieldDelineationLineTypeMetaInfoPerDay = ConstructHistory(),
+				GetFieldDelineationLineTypeByIdPerDay = ConstructHistory(),
+				GetAllFieldDelineationLineTypePerDay = ConstructHistory(),
+				PostFieldDelineationLineTypePerDay = ConstructHistory(),
+				PutFieldDelineationLineTypeByIdPerDay = ConstructHistory(),
+				DeleteFieldDelineationLineTypeByIdPerDay = ConstructHistory(),
+				GetAllFieldFeatureCategoryIdPerDay = ConstructHistory(),
+				GetAllFieldFeatureCategoryMetaInfoPerDay = ConstructHistory(),
+				GetFieldFeatureCategoryByIdPerDay = ConstructHistory(),
+				GetAllFieldFeatureCategoryPerDay = ConstructHistory(),
+				PostFieldFeatureCategoryPerDay = ConstructHistory(),
+				PutFieldFeatureCategoryByIdPerDay = ConstructHistory(),
+				DeleteFieldFeatureCategoryByIdPerDay = ConstructHistory(),
+				GetAllFieldIdentityIdPerDay = ConstructHistory(),
+				GetAllFieldIdentityMetaInfoPerDay = ConstructHistory(),
+				GetFieldIdentityByIdPerDay = ConstructHistory(),
+				GetAllFieldIdentityPerDay = ConstructHistory(),
+				PostFieldIdentityPerDay = ConstructHistory(),
+				PutFieldIdentityByIdPerDay = ConstructHistory(),
+				DeleteFieldIdentityByIdPerDay = ConstructHistory(),
+				GetAllFieldMembershipCategoryIdPerDay = ConstructHistory(),
+				GetAllFieldMembershipCategoryMetaInfoPerDay = ConstructHistory(),
+				GetFieldMembershipCategoryByIdPerDay = ConstructHistory(),
+				GetAllFieldMembershipCategoryPerDay = ConstructHistory(),
+				PostFieldMembershipCategoryPerDay = ConstructHistory(),
+				PutFieldMembershipCategoryByIdPerDay = ConstructHistory(),
+				DeleteFieldMembershipCategoryByIdPerDay = ConstructHistory(),
+				GetFieldUsageStatisticsPerDay = ConstructHistory(),
+			};
+		}
+		public static SurveyPoint ConstructSurveyPoint()
+		{
+			return new SurveyPoint
+			{
+				X = null,
+				Y = null,
+				Z = null,
+				RiemannianNorth = null,
+				RiemannianEast = null,
+				Latitude = null,
+				Longitude = null,
+				TVD = null,
+				Abscissa = null,
+				Inclination = null,
+				Azimuth = null,
+				Curvature = null,
+				Toolface = null,
+				BUR = null,
+				TUR = null,
+				VerticalSection = null,
+				MD = null,
+				Annotation = "Default Annotation",
+			};
+		}
+		public static SurveyStation ConstructSurveyStation()
+		{
+			return new SurveyStation
+			{
+				X = null,
+				Y = null,
+				Z = null,
+				RiemannianNorth = null,
+				RiemannianEast = null,
+				Latitude = null,
+				Longitude = null,
+				TVD = null,
+				Abscissa = null,
+				Inclination = null,
+				Azimuth = null,
+				Curvature = null,
+				Toolface = null,
+				BUR = null,
+				TUR = null,
+				VerticalSection = null,
+				MD = null,
+				Annotation = "Default Annotation",
+				Covariance = ConstructSymmetricMatrix3x3(),
+				EigenVectors = ConstructMatrix3x3(),
+				EigenValues = ConstructVector3D(),
+				Bias = ConstructVector3D(),
+				SurveyTool = ConstructSurveyInstrument(),
+				BoreholeRadius = null,
+			};
+		}
+		public static CurvilinearPoint3D ConstructCurvilinearPoint3D()
+		{
+			return new CurvilinearPoint3D
+			{
+				X = null,
+				Y = null,
+				Z = null,
+				RiemannianNorth = null,
+				RiemannianEast = null,
+				Latitude = null,
+				Longitude = null,
+				TVD = null,
+				Abscissa = null,
+				Inclination = null,
+				Azimuth = null,
+			};
+		}
+		public static Matrix3x3 ConstructMatrix3x3()
+		{
+			return new Matrix3x3
+			{
+				RowCount = 0,
+				ColumnCount = 0,
+				FormatVersion = 0,
+				Values = new List<double?>
+					{
+						null,
+					},
+			};
+		}
+		public static SymmetricMatrix3x3 ConstructSymmetricMatrix3x3()
+		{
+			return new SymmetricMatrix3x3
+			{
+				ColumnCount = 0,
+				RowCount = 0,
+				FormatVersion = 0,
+				Values = new List<double?>
+					{
+						null,
+					},
+			};
+		}
+		public static Vector3D ConstructVector3D()
+		{
+			return new Vector3D
+			{
+				X = null,
+				Y = null,
+				Z = null,
+				Dim = 0,
+			};
+		}
+		public static OctreeCodeLong ConstructOctreeCodeLong()
+		{
+			return new OctreeCodeLong
+			{
+				Depth = 0,
+				CodeHigh = 0,
+				CodeLow = 0,
+			};
+		}
+		public static AntiCollisionFeatureCondition ConstructAntiCollisionFeatureCondition()
+		{
+			return new AntiCollisionFeatureCondition
+			{
+				ResourceLevel = (AntiCollisionHierarchyLevel)0,
+				FeatureCategoryID = new Guid(),
+				FeatureOptionID = new Guid(),
+				TemporalOperator = (AntiCollisionFeatureTemporalOperator)0,
+				SpecifiedTimeUtc = DateTimeOffset.UtcNow,
+				SpecifiedFromUtc = DateTimeOffset.UtcNow,
+				SpecifiedToUtc = DateTimeOffset.UtcNow,
+				ConditionID = new Guid(),
+			};
+		}
+		public static AntiCollisionFeatureValueSnapshot ConstructAntiCollisionFeatureValueSnapshot()
+		{
+			return new AntiCollisionFeatureValueSnapshot
+			{
+				FeatureCategoryID = new Guid(),
+				FeatureOptionID = new Guid(),
+				FromUtc = DateTimeOffset.UtcNow,
+				ToUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static AntiCollisionIdentityCondition ConstructAntiCollisionIdentityCondition()
+		{
+			return new AntiCollisionIdentityCondition
+			{
+				ResourceLevel = (AntiCollisionHierarchyLevel)0,
+				IdentityDefinitionID = new Guid(),
+				MatchOperator = (AntiCollisionIdentityMatchOperator)0,
+				Pattern = "Default Pattern",
+				CaseSensitive = false,
+				ConditionID = new Guid(),
+			};
+		}
+		public static AntiCollisionIdentityValueSnapshot ConstructAntiCollisionIdentityValueSnapshot()
+		{
+			return new AntiCollisionIdentityValueSnapshot
+			{
+				IdentityDefinitionID = new Guid(),
+				Value = "Default Value",
+			};
+		}
+		public static AntiCollisionPolicyCondition ConstructAntiCollisionPolicyCondition()
+		{
+			return new AntiCollisionPolicyCondition
+			{
+				ConditionID = new Guid(),
+			};
+		}
+		public static AntiCollisionPolicyEvaluation ConstructAntiCollisionPolicyEvaluation()
+		{
+			return new AntiCollisionPolicyEvaluation
+			{
+				ComparisonTrajectoryID = new Guid(),
+				State = (AntiCollisionPolicyEvaluationState)0,
+				Message = "Default Message",
+				MatchedRuleID = null,
+				MatchedRulePriority = null,
+				AlertThreshold = null,
+				AlarmThreshold = null,
+				OldestEvidenceUtc = DateTimeOffset.UtcNow,
+				NewestEvidenceUtc = DateTimeOffset.UtcNow,
+				TrajectoryAge = null,
+				WorstClassification = (AntiCollisionClassification)0,
+				Context = new List<AntiCollisionResourceContextSnapshot>
+					{
+						ConstructAntiCollisionResourceContextSnapshot(),
+					},
+			};
+		}
+		public static AntiCollisionPolicyRevision ConstructAntiCollisionPolicyRevision()
+		{
+			return new AntiCollisionPolicyRevision
+			{
+				MetaInfo = ConstructMetaInfo(),
+				PolicyID = new Guid(),
+				RevisionNumber = 0,
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				ConfidenceFactor = 0.0,
+				Rules = new List<AntiCollisionPolicyRule>
+					{
+						ConstructAntiCollisionPolicyRule(),
+					},
+			};
+		}
+		public static AntiCollisionPolicyRevisionCreate ConstructAntiCollisionPolicyRevisionCreate()
+		{
+			return new AntiCollisionPolicyRevisionCreate
+			{
+				MetaInfo = ConstructMetaInfo(),
+				PolicyID = new Guid(),
+				Name = "Default Name",
+				Description = "Default Description",
+				ConfidenceFactor = 0.0,
+				Rules = new List<AntiCollisionPolicyRule>
+					{
+						ConstructAntiCollisionPolicyRule(),
+					},
+			};
+		}
+		public static AntiCollisionPolicyRule ConstructAntiCollisionPolicyRule()
+		{
+			return new AntiCollisionPolicyRule
+			{
+				RuleID = new Guid(),
+				Name = "Default Name",
+				Priority = 0,
+				AlertThreshold = 0.0,
+				AlarmThreshold = 0.0,
+				Conditions = new List<AntiCollisionPolicyCondition>
+					{
+						ConstructAntiCollisionPolicyCondition(),
+					},
+			};
+		}
+		public static AntiCollisionResourceContextSnapshot ConstructAntiCollisionResourceContextSnapshot()
+		{
+			return new AntiCollisionResourceContextSnapshot
+			{
+				ResourceLevel = (AntiCollisionHierarchyLevel)0,
+				ResourceID = new Guid(),
+				Name = "Default Name",
+				IsAvailable = false,
+				Identities = new List<AntiCollisionIdentityValueSnapshot>
+					{
+						ConstructAntiCollisionIdentityValueSnapshot(),
+					},
+				Features = new List<AntiCollisionFeatureValueSnapshot>
+					{
+						ConstructAntiCollisionFeatureValueSnapshot(),
+					},
+				IdentityCatalogAvailable = false,
+				UnavailableReason = "Default UnavailableReason",
+			};
+		}
+		public static AntiCollisionTrajectoryAgeCondition ConstructAntiCollisionTrajectoryAgeCondition()
+		{
+			return new AntiCollisionTrajectoryAgeCondition
+			{
+				Operator = (AntiCollisionComparisonOperator)0,
+				AgeThreshold = 0.0,
+				ConditionID = new Guid(),
+			};
+		}
+		public static FieldAntiCollisionPolicyAssignment ConstructFieldAntiCollisionPolicyAssignment()
+		{
+			return new FieldAntiCollisionPolicyAssignment
+			{
+				MetaInfo = ConstructMetaInfo(),
+				FieldID = new Guid(),
+				PolicyRevisionID = new Guid(),
+				ValidFromUtc = DateTimeOffset.UtcNow,
+				ValidToUtc = DateTimeOffset.UtcNow,
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static FieldAntiCollisionPolicyAssignmentMutation ConstructFieldAntiCollisionPolicyAssignmentMutation()
+		{
+			return new FieldAntiCollisionPolicyAssignmentMutation
+			{
+				MetaInfo = ConstructMetaInfo(),
+				FieldID = new Guid(),
+				PolicyRevisionID = new Guid(),
+				ValidFromUtc = DateTimeOffset.UtcNow,
+				ValidToUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static GlobalAntiCollision ConstructGlobalAntiCollision()
+		{
+			return new GlobalAntiCollision
+			{
+				ID = "Default ID",
+				ConfidenceFactor = 0.0,
+				RequestedPolicyAssignmentID = null,
+				PolicyEvaluationUtc = DateTimeOffset.UtcNow,
+				PolicyAssignmentID = null,
+				PolicySnapshot = ConstructAntiCollisionPolicyRevision(),
+				ReferenceWellPathID = new Guid(),
+				ReferenceTrajectoryID = new Guid(),
+				ComparisonTrajectoryIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				SeparationFactorResults = new List<SeparationFactorResult>
+					{
+						ConstructSeparationFactorResult(),
+					},
+				CalculationState = (GlobalAntiCollisionCalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+			};
+		}
+		public static GlobalAntiCollisionCalculationStatus ConstructGlobalAntiCollisionCalculationStatus()
+		{
+			return new GlobalAntiCollisionCalculationStatus
+			{
+				ID = "Default ID",
+				CalculationState = (GlobalAntiCollisionCalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+			};
+		}
+		public static MeasuredDepthRange ConstructMeasuredDepthRange()
+		{
+			return new MeasuredDepthRange
+			{
+				StartMD = 0.0,
+				EndMD = 0.0,
+			};
+		}
+		public static SeparationFactorPoint ConstructSeparationFactorPoint()
+		{
+			return new SeparationFactorPoint
+			{
+				ReferenceMD = 0.0,
+				ComparisonMD = 0.0,
+				SeparationFactor = 0.0,
+			};
+		}
+		public static SeparationFactorResult ConstructSeparationFactorResult()
+		{
+			return new SeparationFactorResult
+			{
+				ComparisonTrajectoryID = new Guid(),
+				ReferenceMDRange = ConstructMeasuredDepthRange(),
+				ComparisonMDRange = ConstructMeasuredDepthRange(),
+				SeparationFactorProfile = new List<SeparationFactorPoint>
+					{
+						ConstructSeparationFactorPoint(),
+					},
+				PolicyEvaluation = ConstructAntiCollisionPolicyEvaluation(),
+			};
+		}
+		public static AnnotatedAbscissa ConstructAnnotatedAbscissa()
+		{
+			return new AnnotatedAbscissa
+			{
+				Abscissa = 0.0,
+				Annotation = "Default Annotation",
+			};
+		}
+		public static AntiCollisionPolicyRevisionDiscoveryPage ConstructAntiCollisionPolicyRevisionDiscoveryPage()
+		{
+			return new AntiCollisionPolicyRevisionDiscoveryPage
+			{
+				Items = new List<AntiCollisionPolicyRevisionLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static CircularArcWellPathSectionSpecification ConstructCircularArcWellPathSectionSpecification()
+		{
+			return new CircularArcWellPathSectionSpecification
+			{
+				Curvature = null,
+				StartToolface = null,
+				SectionID = new Guid(),
+				Length = null,
+				EndInclination = null,
+				EndAzimuth = null,
+				EndVerticalDepth = null,
+				EndNorth = null,
+				EndEast = null,
+			};
+		}
+		public static ConstantBuildAndTurnWellPathSectionSpecification ConstructConstantBuildAndTurnWellPathSectionSpecification()
+		{
+			return new ConstantBuildAndTurnWellPathSectionSpecification
+			{
+				BuildRate = null,
+				TurnRate = null,
+				SectionID = new Guid(),
+				Length = null,
+				EndInclination = null,
+				EndAzimuth = null,
+				EndVerticalDepth = null,
+				EndNorth = null,
+				EndEast = null,
+			};
+		}
+		public static ConstantCurvatureAndToolfaceWellPathSectionSpecification ConstructConstantCurvatureAndToolfaceWellPathSectionSpecification()
+		{
+			return new ConstantCurvatureAndToolfaceWellPathSectionSpecification
+			{
+				Curvature = null,
+				Toolface = null,
+				SectionID = new Guid(),
+				Length = null,
+				EndInclination = null,
+				EndAzimuth = null,
+				EndVerticalDepth = null,
+				EndNorth = null,
+				EndEast = null,
+			};
+		}
+		public static CurveCurvatureCharacteristics ConstructCurveCurvatureCharacteristics()
+		{
+			return new CurveCurvatureCharacteristics
+			{
+				MinimumCurvature = 0.0,
+				JunctionCurvature = null,
+				MaximumCurvature = 0.0,
+			};
+		}
+		public static DepartureGeosteeringExtentConstraint ConstructDepartureGeosteeringExtentConstraint()
+		{
+			return new DepartureGeosteeringExtentConstraint
+			{
+				DepartureDistance = 0.0,
+				DepartureBearing = 0.0,
+			};
+		}
+		public static DirectionalControlDistributionSummary ConstructDirectionalControlDistributionSummary()
+		{
+			return new DirectionalControlDistributionSummary
+			{
+				Count = 0,
+				P10 = 0.0,
+				P50 = 0.0,
+				P90 = 0.0,
+				Mean = 0.0,
+				StandardDeviation = 0.0,
+				MedianAbsoluteDeviation = 0.0,
+				Minimum = 0.0,
+				Maximum = 0.0,
+				IsCircular = false,
+				Histogram = new List<DirectionalControlHistogramBin>
+					{
+						ConstructDirectionalControlHistogramBin(),
+					},
+			};
+		}
+		public static DirectionalControlEvaluationBundle ConstructDirectionalControlEvaluationBundle()
+		{
+			return new DirectionalControlEvaluationBundle
+			{
+				BundleID = new Guid(),
+				BundleIndex = 0,
+				StartActualMD = 0.0,
+				EndActualMD = 0.0,
+				AttemptedSampleCount = 0,
+				ValidSampleCount = 0,
+				InvalidSampleCount = 0,
+				ValidCoverageRatio = 0.0,
+				MaximumInvalidGap = 0.0,
+				CurvatureResidual = ConstructDirectionalControlDistributionSummary(),
+				ToolfaceResidual = ConstructDirectionalControlDistributionSummary(),
+				BuildRateResidual = ConstructDirectionalControlDistributionSummary(),
+				TurnRateResidual = ConstructDirectionalControlDistributionSummary(),
+			};
+		}
+		public static DirectionalControlEvaluationCase ConstructDirectionalControlEvaluationCase()
+		{
+			return new DirectionalControlEvaluationCase
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				ReferenceTrajectoryID = new Guid(),
+				ActualTrajectoryID = new Guid(),
+				CurveType = (ExtrapolationCurveType)0,
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				IsStale = false,
+				EvaluationInterval = 0.0,
+				StartActualMD = null,
+				EndActualMD = null,
+				ReferenceMDAdvance = 0.0,
+				JunctionCurvatureRatio = 0.0,
+				MaximumInvalidGap = 0.0,
+				MinimumBundleLength = 0.0,
+				MinimumBundleSampleCount = 0,
+				BundlingPenalty = 0.0,
+				ReferenceTrajectoryRevision = DateTimeOffset.UtcNow,
+				ActualTrajectoryRevision = DateTimeOffset.UtcNow,
+				CalculationFingerprint = "Default CalculationFingerprint",
+				SampleList = new List<DirectionalControlEvaluationSample>
+					{
+						ConstructDirectionalControlEvaluationSample(),
+					},
+				BundleList = new List<DirectionalControlEvaluationBundle>
+					{
+						ConstructDirectionalControlEvaluationBundle(),
+					},
+			};
+		}
+		public static DirectionalControlEvaluationCaseDiscoveryPage ConstructDirectionalControlEvaluationCaseDiscoveryPage()
+		{
+			return new DirectionalControlEvaluationCaseDiscoveryPage
+			{
+				Items = new List<DirectionalControlEvaluationCaseLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static DirectionalControlEvaluationSample ConstructDirectionalControlEvaluationSample()
+		{
+			return new DirectionalControlEvaluationSample
+			{
+				SampleID = new Guid(),
+				ActualMD = 0.0,
+				ActualEndMD = 0.0,
+				ClosestReferenceMD = null,
+				TargetReferenceMD = null,
+				IsValid = false,
+				FailureCode = "Default FailureCode",
+				FailureMessage = "Default FailureMessage",
+				ExpectedCurvature = null,
+				ActualCurvature = null,
+				CurvatureResidual = null,
+				ExpectedToolface = null,
+				ActualToolface = null,
+				ToolfaceResidual = null,
+				ExpectedBuildRate = null,
+				ActualBuildRate = null,
+				BuildRateResidual = null,
+				ExpectedTurnRate = null,
+				ActualTurnRate = null,
+				TurnRateResidual = null,
+			};
+		}
+		public static DirectionalControlEvaluationSampleChunk ConstructDirectionalControlEvaluationSampleChunk()
+		{
+			return new DirectionalControlEvaluationSampleChunk
+			{
+				ChunkIndex = 0,
+				SampleCount = 0,
+				StartActualMD = null,
+				EndActualMD = null,
+				SampleList = new List<DirectionalControlEvaluationSample>
+					{
+						ConstructDirectionalControlEvaluationSample(),
+					},
+			};
+		}
+		public static DirectionalControlHistogramBin ConstructDirectionalControlHistogramBin()
+		{
+			return new DirectionalControlHistogramBin
+			{
+				LowerBound = 0.0,
+				UpperBound = 0.0,
+				Count = 0,
+			};
+		}
+		public static DrilledLengthGeosteeringExtentConstraint ConstructDrilledLengthGeosteeringExtentConstraint()
+		{
+			return new DrilledLengthGeosteeringExtentConstraint
+			{
+				SteeringLength = 0.0,
+				SteeringLengthRatio = 0.0,
+			};
+		}
+		public static ExternalReferenceIssue ConstructExternalReferenceIssue()
+		{
+			return new ExternalReferenceIssue
+			{
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static FieldAntiCollisionPolicyAssignmentDiscoveryPage ConstructFieldAntiCollisionPolicyAssignmentDiscoveryPage()
+		{
+			return new FieldAntiCollisionPolicyAssignmentDiscoveryPage
+			{
+				Items = new List<FieldAntiCollisionPolicyAssignment>
+					{
+						ConstructFieldAntiCollisionPolicyAssignment(),
+					},
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static FixedLengthExtrapolationSpecification ConstructFixedLengthExtrapolationSpecification()
+		{
+			return new FixedLengthExtrapolationSpecification
+			{
+				Length = 0.0,
+				ExtensionType = (FixedLengthExtrapolationType)0,
+			};
+		}
+		public static GeosteeringExtentConstraint ConstructGeosteeringExtentConstraint()
+		{
+			return new GeosteeringExtentConstraint
+			{
+			};
+		}
+		public static GeosteeringTrajectoryExtrapolationSpecification ConstructGeosteeringTrajectoryExtrapolationSpecification()
+		{
+			return new GeosteeringTrajectoryExtrapolationSpecification
+			{
+				LeadInLength = 0.0,
+				TargetVerticalDepth = 0.0,
+				EndInclination = 0.0,
+				EndAzimuth = 0.0,
+				CurveType = (ExtrapolationCurveType)0,
+				AzimuthBranch = 0,
+				Extent = ConstructGeosteeringExtentConstraint(),
+			};
+		}
+		public static GlobalAntiCollisionsDiscoveryPage ConstructGlobalAntiCollisionsDiscoveryPage()
+		{
+			return new GlobalAntiCollisionsDiscoveryPage
+			{
+				Items = new List<GlobalAntiCollisionLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
 		public static HorizontalSurveyUncertaintyEllipse ConstructHorizontalSurveyUncertaintyEllipse()
 		{
 			return new HorizontalSurveyUncertaintyEllipse
@@ -7275,6 +5951,140 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				MajorAxis = 0.0,
 				MinorAxis = 0.0,
 				OrientationAngle = 0.0,
+			};
+		}
+		public static InterpolatedTrajectory ConstructInterpolatedTrajectory()
+		{
+			return new InterpolatedTrajectory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				TrajectoryID = new Guid(),
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+				InterpolationStep = null,
+				InterpolationReferenceDepth = null,
+				MaximumChordArcDistance = null,
+				IncludeFirstSurvey = false,
+				IncludeLastSurvey = false,
+				InterpolateAtCasingAndLinerShoeDepths = false,
+				InterpolateAtLinerHangerDepths = false,
+				InterpolateAtCasingChangeOfDiameter = false,
+				AdditionalAbscissaList = new List<AnnotatedAbscissa>
+					{
+						ConstructAnnotatedAbscissa(),
+					},
+				InternalAdditionalAbscissaList = new List<AnnotatedAbscissa>
+					{
+						ConstructAnnotatedAbscissa(),
+					},
+			};
+		}
+		public static InterpolatedTrajectoryDiscoveryPage ConstructInterpolatedTrajectoryDiscoveryPage()
+		{
+			return new InterpolatedTrajectoryDiscoveryPage
+			{
+				Items = new List<InterpolatedTrajectoryLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static MinimumDistanceAdaptiveRefinementSettings ConstructMinimumDistanceAdaptiveRefinementSettings()
+		{
+			return new MinimumDistanceAdaptiveRefinementSettings
+			{
+				Enabled = false,
+				PolarDeviationTolerance = null,
+				PolarAngularTolerance = null,
+				MinimumMDStep = null,
+				MaximumDepth = 0,
+				MaximumExtraSamplesPerComparison = 0,
+			};
+		}
+		public static MinimumDistanceReferenceInterval ConstructMinimumDistanceReferenceInterval()
+		{
+			return new MinimumDistanceReferenceInterval
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+				StartMD = null,
+				EndMD = null,
+			};
+		}
+		public static OctreeIndexStatus ConstructOctreeIndexStatus()
+		{
+			return new OctreeIndexStatus
+			{
+				TrajectoryID = new Guid(),
+				State = (OctreeIndexState)0,
+				HasIndex = false,
+				IsCurrent = false,
+				TrajectoryType = (TrajectoryType)0,
+				IsDefinitive = false,
+				SurveyStationCount = 0,
+				BucketCount = 0,
+				OctreeCodeCount = 0,
+				SourceLastModificationDate = DateTimeOffset.UtcNow,
+				IndexSchemaVersion = null,
+				ConfidenceFactor = null,
+				CalculationParametersHash = "Default CalculationParametersHash",
+			};
+		}
+		public static OctreeSearchJobRequest ConstructOctreeSearchJobRequest()
+		{
+			return new OctreeSearchJobRequest
+			{
+				ReferenceTrajectoryID = new Guid(),
+				IncludePlanned = false,
+				IncludeActual = false,
+				DefinitiveOnly = false,
+			};
+		}
+		public static OctreeSearchJobResult ConstructOctreeSearchJobResult()
+		{
+			return new OctreeSearchJobResult
+			{
+				JobID = new Guid(),
+				ReferenceTrajectoryID = new Guid(),
+				CandidateTrajectoryIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static OctreeSearchJobStatus ConstructOctreeSearchJobStatus()
+		{
+			return new OctreeSearchJobStatus
+			{
+				JobID = new Guid(),
+				ReferenceTrajectoryID = new Guid(),
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				CandidateCount = null,
+				CreatedUtc = DateTimeOffset.UtcNow,
+				CompletedUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static OctreesDiscoveryPage ConstructOctreesDiscoveryPage()
+		{
+			return new OctreesDiscoveryPage
+			{
+				Items = new List<OctreeLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
 			};
 		}
 		public static PhysicalUncertaintyEnvelopeEvaluation ConstructPhysicalUncertaintyEnvelopeEvaluation()
@@ -7313,6 +6123,18 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				OrientationAngle = 0.0,
 			};
 		}
+		public static ReconnectTrajectoryExtrapolationSpecification ConstructReconnectTrajectoryExtrapolationSpecification()
+		{
+			return new ReconnectTrajectoryExtrapolationSpecification
+			{
+				ReferenceTrajectoryID = new Guid(),
+				ReferenceMDAdvance = 0.0,
+				CurveType = (ExtrapolationCurveType)0,
+				AzimuthBranch = 0,
+				JunctionCurvatureRatio = 0.0,
+				LeadInLength = 0.0,
+			};
+		}
 		public static ReferencedTrajectoryStation ConstructReferencedTrajectoryStation()
 		{
 			return new ReferencedTrajectoryStation
@@ -7323,6 +6145,1080 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				Station = ConstructSurveyStation(),
 			};
 		}
+		public static SurveyImportSettings ConstructSurveyImportSettings()
+		{
+			return new SurveyImportSettings
+			{
+				SelectedSurveyImportFormat = "Default SelectedSurveyImportFormat",
+				SelectedSurveyImportSeparator = "Default SelectedSurveyImportSeparator",
+				SelectedSurveyImportDecimalMarker = "Default SelectedSurveyImportDecimalMarker",
+				SelectedSurveyImportMDUnit = "Default SelectedSurveyImportMDUnit",
+				SelectedSurveyImportInclinationUnit = "Default SelectedSurveyImportInclinationUnit",
+				SelectedSurveyImportAzimuthUnit = "Default SelectedSurveyImportAzimuthUnit",
+				SurveyImportMDColumn = 0,
+				SurveyImportInclinationColumn = 0,
+				SurveyImportAzimuthColumn = 0,
+				SurveyImportTimeColumn = 0,
+				DefaultInclinationReference = (SurveyInclinationReference)0,
+				DefaultAzimuthReference = (SurveyAzimuthReference)0,
+				GeomagneticModel = (SurveyGeomagneticModel)0,
+				SurveyImportMDStart = 0,
+				SurveyImportMDWidth = 0,
+				SurveyImportInclinationStart = 0,
+				SurveyImportInclinationWidth = 0,
+				SurveyImportAzimuthStart = 0,
+				SurveyImportAzimuthWidth = 0,
+				SurveyImportTimeStart = 0,
+				SurveyImportTimeWidth = 0,
+			};
+		}
+		public static SurveyMeasurement ConstructSurveyMeasurement()
+		{
+			return new SurveyMeasurement
+			{
+				MeasurementID = new Guid(),
+				Origin = (SurveyMeasurementOrigin)0,
+				MD = null,
+				Inclination = null,
+				Azimuth = null,
+				ObservedInclination = null,
+				ObservedAzimuth = null,
+				MeasurementTimeUtc = DateTimeOffset.UtcNow,
+				InclinationReference = (SurveyInclinationReference)0,
+				AzimuthReference = (SurveyAzimuthReference)0,
+				Correction = ConstructSurveyMeasurementCorrection(),
+				Annotation = "Default Annotation",
+			};
+		}
+		public static SurveyMeasurementChunk ConstructSurveyMeasurementChunk()
+		{
+			return new SurveyMeasurementChunk
+			{
+				SurveyRunID = new Guid(),
+				ChunkIndex = 0,
+				MeasurementCount = 0,
+				StartMD = null,
+				EndMD = null,
+				SurveyMeasurementList = new List<SurveyMeasurement>
+					{
+						ConstructSurveyMeasurement(),
+					},
+			};
+		}
+		public static SurveyMeasurementCorrection ConstructSurveyMeasurementCorrection()
+		{
+			return new SurveyMeasurementCorrection
+			{
+				Source = (SurveyCorrectionSource)0,
+				Status = (SurveyCorrectionStatus)0,
+				Message = "Default Message",
+				AppliedInclinationCorrection = null,
+				AppliedAzimuthCorrection = null,
+				MagneticDeclination = null,
+				GravityNorth = null,
+				GravityEast = null,
+				GravityDown = null,
+				EvaluatedLatitude = null,
+				EvaluatedLongitude = null,
+				EvaluatedDepthWgs84 = null,
+				EvaluationTimeUtc = DateTimeOffset.UtcNow,
+				TimeMethod = (SurveyCorrectionTimeMethod)0,
+				GravityModelID = "Default GravityModelID",
+				GravityModelVersion = "Default GravityModelVersion",
+				GravityCoefficientSHA256 = "Default GravityCoefficientSHA256",
+				GeomagneticModelID = "Default GeomagneticModelID",
+				GeomagneticMetadataSHA256 = "Default GeomagneticMetadataSHA256",
+				GeomagneticCoefficientSHA256 = "Default GeomagneticCoefficientSHA256",
+				AlgorithmVersion = "Default AlgorithmVersion",
+			};
+		}
+		public static SurveyPointChunk ConstructSurveyPointChunk()
+		{
+			return new SurveyPointChunk
+			{
+				OwnerID = new Guid(),
+				OwnerType = "Default OwnerType",
+				ChunkIndex = 0,
+				PointCount = 0,
+				StartMD = null,
+				EndMD = null,
+				SurveyPointList = new List<SurveyPoint>
+					{
+						ConstructSurveyPoint(),
+					},
+			};
+		}
+		public static SurveyRun ConstructSurveyRun()
+		{
+			return new SurveyRun
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				AcquisitionStartUtc = DateTimeOffset.UtcNow,
+				AcquisitionEndUtc = DateTimeOffset.UtcNow,
+				FieldID = null,
+				ClusterID = null,
+				WellID = null,
+				WellBoreID = new Guid(),
+				SurveyInstrumentID = new Guid(),
+				SurveyRunType = (SurveyRunType)0,
+				CalculationType = (TrajectoryCalculationType)0,
+				DefaultInclinationReference = (SurveyInclinationReference)0,
+				DefaultAzimuthReference = (SurveyAzimuthReference)0,
+				GeomagneticModel = (SurveyGeomagneticModel)0,
+				ParentSurveyRunID = null,
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				SurveyRunIdentityAssignments = new List<TrajectoryIdentityAssignment>(),
+				SurveyRunFeatureAssignments = new List<TrajectoryFeatureAssignment>(),
+				TieInPoint = ConstructSurveyStation(),
+				SurveyMeasurementList = new List<SurveyMeasurement>
+					{
+						ConstructSurveyMeasurement(),
+					},
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+				BitExtrapolation = ConstructSurveyRunBitExtrapolation(),
+			};
+		}
+		public static SurveyRunBatchImport ConstructSurveyRunBatchImport()
+		{
+			return new SurveyRunBatchImport
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				SelectedFieldId = null,
+				SelectedClusterId = null,
+				SelectedWellId = null,
+				CommonDepthReference = "Default CommonDepthReference",
+				ReplaceExistingTrajectories = false,
+				ReplaceTrajectoriesWithSameName = false,
+				Settings = ConstructSurveyImportSettings(),
+				Rows = new List<SurveyRunBatchImportRow>
+					{
+						ConstructSurveyRunBatchImportRow(),
+					},
+			};
+		}
+		public static SurveyRunBatchImportDiscoveryPage ConstructSurveyRunBatchImportDiscoveryPage()
+		{
+			return new SurveyRunBatchImportDiscoveryPage
+			{
+				Items = new List<SurveyRunBatchImportLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static SurveyRunBatchImportRow ConstructSurveyRunBatchImportRow()
+		{
+			return new SurveyRunBatchImportRow
+			{
+				RowId = new Guid(),
+				WellBoreId = null,
+				SurveyInstrumentId = null,
+				ParentSurveyRunId = null,
+				DepthReferenceName = "Default DepthReferenceName",
+				FileName = "Default FileName",
+				FileContentBase64 = "Default FileContentBase64",
+				AcquisitionStartUtc = DateTimeOffset.UtcNow,
+				AcquisitionEndUtc = DateTimeOffset.UtcNow,
+			};
+		}
+		public static SurveyRunBitExtrapolation ConstructSurveyRunBitExtrapolation()
+		{
+			return new SurveyRunBitExtrapolation
+			{
+				Mode = (SurveyRunBitExtrapolationMode)0,
+				MeasurementToolToBitDistance = 0.0,
+			};
+		}
+		public static SurveyRunDiscoveryPage ConstructSurveyRunDiscoveryPage()
+		{
+			return new SurveyRunDiscoveryPage
+			{
+				Items = new List<SurveyRunLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static SurveyRunExternalReferenceAuditRequest ConstructSurveyRunExternalReferenceAuditRequest()
+		{
+			return new SurveyRunExternalReferenceAuditRequest
+			{
+				Scope = (ExternalReferenceAuditScope)0,
+				SurveyRunIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				Offset = 0,
+				Limit = 0,
+			};
+		}
+		public static SurveyRunExternalReferenceAuditResult ConstructSurveyRunExternalReferenceAuditResult()
+		{
+			return new SurveyRunExternalReferenceAuditResult
+			{
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Total = 0,
+				Offset = 0,
+				Limit = 0,
+				ValidCount = 0,
+				InvalidCount = 0,
+				UnavailableCount = 0,
+				Items = new List<SurveyRunExternalReferenceValidation>
+					{
+						ConstructSurveyRunExternalReferenceValidation(),
+					},
+			};
+		}
+		public static SurveyRunExternalReferenceValidation ConstructSurveyRunExternalReferenceValidation()
+		{
+			return new SurveyRunExternalReferenceValidation
+			{
+				SurveyRunID = new Guid(),
+				FieldID = null,
+				ClusterID = null,
+				WellID = null,
+				WellBoreID = new Guid(),
+				SurveyInstrumentID = new Guid(),
+				FieldExists = null,
+				ClusterExists = null,
+				WellExists = null,
+				WellBoreExists = null,
+				SurveyInstrumentExists = null,
+				Status = (ExternalReferenceValidationStatus)0,
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Issues = new List<ExternalReferenceIssue>
+					{
+						ConstructExternalReferenceIssue(),
+					},
+			};
+		}
+		public static SurveyRunMinimumDistanceCalculation ConstructSurveyRunMinimumDistanceCalculation()
+		{
+			return new SurveyRunMinimumDistanceCalculation
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				ReferenceSurveyRunID = new Guid(),
+				ComparisonSurveyRunIDList = new List<Guid>
+					{
+						new Guid(),
+					},
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				ResultCount = 0,
+				IntervalResultCount = 0,
+				MaximumChordArcDistance = null,
+				AccountForBoreholeRadius = false,
+				OctreeMaximumDepth = 0,
+				OctreeMaximumSegmentCountPerLeaf = 0,
+				AdaptiveRefinementSettings = ConstructMinimumDistanceAdaptiveRefinementSettings(),
+				GlobalMinimumCenterToCenterDistance = null,
+				GlobalMinimumClearanceDistance = null,
+				GlobalMinimumReferenceMD = null,
+				GlobalMinimumComparisonSurveyRunID = null,
+				GlobalMinimumComparisonMD = null,
+				GlobalMinimumToolface = null,
+				GlobalMinimumIsGravity = false,
+				ReferenceIntervalList = new List<MinimumDistanceReferenceInterval>
+					{
+						ConstructMinimumDistanceReferenceInterval(),
+					},
+				ResultList = new List<SurveyRunMinimumDistanceResult>
+					{
+						ConstructSurveyRunMinimumDistanceResult(),
+					},
+				IntervalResultList = new List<SurveyRunMinimumDistanceIntervalResult>
+					{
+						ConstructSurveyRunMinimumDistanceIntervalResult(),
+					},
+			};
+		}
+		public static SurveyRunMinimumDistanceCalculationDiscoveryPage ConstructSurveyRunMinimumDistanceCalculationDiscoveryPage()
+		{
+			return new SurveyRunMinimumDistanceCalculationDiscoveryPage
+			{
+				Items = new List<SurveyRunMinimumDistanceCalculationLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static SurveyRunMinimumDistanceIntervalResult ConstructSurveyRunMinimumDistanceIntervalResult()
+		{
+			return new SurveyRunMinimumDistanceIntervalResult
+			{
+				IntervalID = new Guid(),
+				IntervalName = "Default IntervalName",
+				StartMD = null,
+				EndMD = null,
+				ComparisonSurveyRunID = null,
+				SampleCount = 0,
+				AverageCenterToCenterDistance = null,
+				StandardDeviationCenterToCenterDistance = null,
+				AverageClearanceDistance = null,
+				StandardDeviationClearanceDistance = null,
+			};
+		}
+		public static SurveyRunMinimumDistanceResult ConstructSurveyRunMinimumDistanceResult()
+		{
+			return new SurveyRunMinimumDistanceResult
+			{
+				ReferenceMD = null,
+				ReferenceTVD = null,
+				ReferenceNorth = null,
+				ReferenceEast = null,
+				ReferenceBoreholeDiameter = null,
+				ComparisonSurveyRunID = null,
+				ComparisonMD = null,
+				ComparisonTVD = null,
+				ComparisonNorth = null,
+				ComparisonEast = null,
+				ComparisonBoreholeDiameter = null,
+				CenterToCenterDistance = null,
+				ClearanceDistance = null,
+				Toolface = null,
+				IsGravity = false,
+				IsAdaptiveRefinementSample = false,
+				RefinementLevel = 0,
+			};
+		}
+		public static SurveyRunMinimumDistanceResultChunk ConstructSurveyRunMinimumDistanceResultChunk()
+		{
+			return new SurveyRunMinimumDistanceResultChunk
+			{
+				OwnerID = new Guid(),
+				ChunkIndex = 0,
+				ResultCount = 0,
+				StartReferenceMD = null,
+				EndReferenceMD = null,
+				ResultList = new List<SurveyRunMinimumDistanceResult>
+					{
+						ConstructSurveyRunMinimumDistanceResult(),
+					},
+			};
+		}
+		public static SurveyRunSearchResult ConstructSurveyRunSearchResult()
+		{
+			return new SurveyRunSearchResult
+			{
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				Items = new List<SurveyRunLight>(),
+			};
+		}
+		public static SurveyStationChunk ConstructSurveyStationChunk()
+		{
+			return new SurveyStationChunk
+			{
+				OwnerID = new Guid(),
+				OwnerType = "Default OwnerType",
+				ChunkIndex = 0,
+				StationCount = 0,
+				StartMD = null,
+				EndMD = null,
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+			};
+		}
+		public static SurveyStationEllipse ConstructSurveyStationEllipse()
+		{
+			return new SurveyStationEllipse
+			{
+				SemiMajorAxis = null,
+				SemiMinorAxis = null,
+				OrientationAngle = null,
+			};
+		}
+		public static SurveyStationEllipseCalculation ConstructSurveyStationEllipseCalculation()
+		{
+			return new SurveyStationEllipseCalculation
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				ConfidenceFactor = 0.0,
+				SurveyInstrumentID = null,
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+				SurveyStationEllipseResultList = new List<SurveyStationEllipseResult>
+					{
+						ConstructSurveyStationEllipseResult(),
+					},
+				HighestTvdSurveyPointList = new List<SurveyPoint>
+					{
+						ConstructSurveyPoint(),
+					},
+				LowestTvdSurveyPointList = new List<SurveyPoint>
+					{
+						ConstructSurveyPoint(),
+					},
+				CalculationMessage = "Default CalculationMessage",
+			};
+		}
+		public static SurveyStationEllipseCalculationDiscoveryPage ConstructSurveyStationEllipseCalculationDiscoveryPage()
+		{
+			return new SurveyStationEllipseCalculationDiscoveryPage
+			{
+				Items = new List<SurveyStationEllipseCalculationLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static SurveyStationEllipseResult ConstructSurveyStationEllipseResult()
+		{
+			return new SurveyStationEllipseResult
+			{
+				MD = null,
+				HorizontalEllipse = ConstructSurveyStationEllipse(),
+				VerticalEllipse = ConstructSurveyStationEllipse(),
+				PerpendicularEllipse = ConstructSurveyStationEllipse(),
+			};
+		}
+		public static TargetLandingCase ConstructTargetLandingCase()
+		{
+			return new TargetLandingCase
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				SourceTrajectoryID = new Guid(),
+				TargetType = (TargetLandingTargetType)0,
+				CurveType = (ExtrapolationCurveType)0,
+				AttitudeMode = (TargetLandingAttitudeMode)0,
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				IsStale = false,
+				Target = ConstructTargetPlaneDefinition(),
+				LeadLength = 0.0,
+				ConfidenceFactor = 0.0,
+				MaximumLandingCurvature = null,
+				SourceTrajectoryRevision = DateTimeOffset.UtcNow,
+				CalculationFingerprint = "Default CalculationFingerprint",
+				SourceEndStation = ConstructSurveyStation(),
+				LeadSurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+				SteeringStartStation = ConstructSurveyStation(),
+				GeologicalTargetBoundary = new List<TargetPlanePoint>
+					{
+						ConstructTargetPlanePoint(),
+					},
+				DrillerTargetBoundary = new List<TargetPlanePoint>
+					{
+						ConstructTargetPlanePoint(),
+					},
+				ReachableTargetBoundary = new List<TargetPlanePoint>
+					{
+						ConstructTargetPlanePoint(),
+					},
+				DrillerTargetContourList = new List<List<TargetPlanePoint>>
+					{
+						new List<TargetPlanePoint>
+						{
+							ConstructTargetPlanePoint(),
+						}
+					},
+				ReachableTargetContourList = new List<List<TargetPlanePoint>>
+					{
+						new List<TargetPlanePoint>
+						{
+							ConstructTargetPlanePoint(),
+						}
+					},
+				SampleList = new List<TargetLandingSample>
+					{
+						ConstructTargetLandingSample(),
+					},
+				MeshTriangleList = new List<TargetLandingMeshTriangle>
+					{
+						ConstructTargetLandingMeshTriangle(),
+					},
+			};
+		}
+		public static TargetLandingCaseDiscoveryPage ConstructTargetLandingCaseDiscoveryPage()
+		{
+			return new TargetLandingCaseDiscoveryPage
+			{
+				Items = new List<TargetLandingCaseLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static TargetLandingControlPoint ConstructTargetLandingControlPoint()
+		{
+			return new TargetLandingControlPoint
+			{
+				NormalizedLength = 0.0,
+				Inclination = null,
+				Curvature = 0.0,
+				Toolface = 0.0,
+				BuildRate = 0.0,
+				TurnRate = 0.0,
+			};
+		}
+		public static TargetLandingMeshTriangle ConstructTargetLandingMeshTriangle()
+		{
+			return new TargetLandingMeshTriangle
+			{
+				FirstSampleID = new Guid(),
+				SecondSampleID = new Guid(),
+				ThirdSampleID = new Guid(),
+			};
+		}
+		public static TargetLandingSample ConstructTargetLandingSample()
+		{
+			return new TargetLandingSample
+			{
+				SampleID = new Guid(),
+				PlaneX = 0.0,
+				PlaneY = 0.0,
+				PolarRadius = 0.0,
+				PolarAngle = 0.0,
+				North = 0.0,
+				East = 0.0,
+				TVD = 0.0,
+				State = (TargetLandingSampleState)0,
+				IsUncertaintySafe = null,
+				Message = "Default Message",
+				TotalLandingLength = null,
+				PeakLandingCurvature = null,
+				CurvatureCharacteristics = ConstructCurveCurvatureCharacteristics(),
+				LandingStation = ConstructSurveyStation(),
+				LandingEllipseInTargetPlane = ConstructSurveyStationEllipse(),
+				SolvedSectionList = new List<TrajectoryExtrapolationSolvedSection>
+					{
+						ConstructTrajectoryExtrapolationSolvedSection(),
+					},
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+				ControlPointList = new List<TargetLandingControlPoint>
+					{
+						ConstructTargetLandingControlPoint(),
+					},
+			};
+		}
+		public static TargetPlaneDefinition ConstructTargetPlaneDefinition()
+		{
+			return new TargetPlaneDefinition
+			{
+				Plane = ConstructCurvilinearPoint3D(),
+				Polygon = new List<TargetPlanePoint>
+					{
+						ConstructTargetPlanePoint(),
+					},
+			};
+		}
+		public static TargetPlanePoint ConstructTargetPlanePoint()
+		{
+			return new TargetPlanePoint
+			{
+				X = 0.0,
+				Y = 0.0,
+			};
+		}
+		public static Trajectory ConstructTrajectory()
+		{
+			return new Trajectory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				FieldID = null,
+				ClusterID = null,
+				WellID = null,
+				WellBoreID = new Guid(),
+				TrajectoryType = (TrajectoryType)0,
+				IsDefinitive = false,
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				TrajectoryIdentityAssignments = new List<TrajectoryIdentityAssignment>(),
+				TrajectoryFeatureAssignments = new List<TrajectoryFeatureAssignment>(),
+				SurveyRunSectionList = new List<TrajectorySurveyRunSection>
+					{
+						ConstructTrajectorySurveyRunSection(),
+					},
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+				TieInPoint = ConstructSurveyStation(),
+				CalculationType = (TrajectoryCalculationType)0,
+				MDStep = 0.0,
+			};
+		}
+		public static TrajectoryAggregation ConstructTrajectoryAggregation()
+		{
+			return new TrajectoryAggregation
+			{
+				ID = new Guid(),
+				TrajectoryID = new Guid(),
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				OriginalReferenceStationCount = 0,
+				CoarsenedReferencePointCount = 0,
+				SectionCount = 0,
+				AggregatedSurveyPointCount = 0,
+				DistanceResultCount = 0,
+				SectionList = new List<TrajectoryAggregationSection>
+					{
+						ConstructTrajectoryAggregationSection(),
+					},
+				AggregatedSurveyPointList = new List<SurveyPoint>
+					{
+						ConstructSurveyPoint(),
+					},
+				CoarsenedReferenceTrajectory = new List<SurveyPoint>
+					{
+						ConstructSurveyPoint(),
+					},
+				DistanceResultList = new List<TrajectoryAggregationDistanceResult>
+					{
+						ConstructTrajectoryAggregationDistanceResult(),
+					},
+			};
+		}
+		public static TrajectoryAggregationCase ConstructTrajectoryAggregationCase()
+		{
+			return new TrajectoryAggregationCase
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				EpsilonL = null,
+				EpsilonKappa = null,
+				Alpha = null,
+				InterpolationInterval = null,
+				DistanceReferenceCoarseningThreshold = null,
+				TrajectoryAggregationList = new List<TrajectoryAggregation>
+					{
+						ConstructTrajectoryAggregation(),
+					},
+			};
+		}
+		public static TrajectoryAggregationCaseDiscoveryPage ConstructTrajectoryAggregationCaseDiscoveryPage()
+		{
+			return new TrajectoryAggregationCaseDiscoveryPage
+			{
+				Items = new List<TrajectoryAggregationCaseLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static TrajectoryAggregationDistanceResult ConstructTrajectoryAggregationDistanceResult()
+		{
+			return new TrajectoryAggregationDistanceResult
+			{
+				ReferenceMD = null,
+				ReferenceTVD = null,
+				ReferenceNorth = null,
+				ReferenceEast = null,
+				ClosestMD = null,
+				ClosestTVD = null,
+				ClosestNorth = null,
+				ClosestEast = null,
+				CenterToCenterDistance = null,
+				ClosestSectionIndex = null,
+				ClosestSectionType = (TrajectoryAggregationSectionType)0,
+				SectionParameter = null,
+			};
+		}
+		public static TrajectoryAggregationDistanceResultChunk ConstructTrajectoryAggregationDistanceResultChunk()
+		{
+			return new TrajectoryAggregationDistanceResultChunk
+			{
+				OwnerID = new Guid(),
+				ChunkIndex = 0,
+				ResultCount = 0,
+				StartReferenceMD = null,
+				EndReferenceMD = null,
+				ResultList = new List<TrajectoryAggregationDistanceResult>
+					{
+						ConstructTrajectoryAggregationDistanceResult(),
+					},
+			};
+		}
+		public static TrajectoryAggregationSection ConstructTrajectoryAggregationSection()
+		{
+			return new TrajectoryAggregationSection
+			{
+				SectionIndex = 0,
+				SectionType = (TrajectoryAggregationSectionType)0,
+				StartMD = null,
+				EndMD = null,
+				StartInclination = null,
+				StartAzimuth = null,
+				StartTVD = null,
+				StartNorth = null,
+				StartEast = null,
+				CircularArcCurvature = null,
+				CircularArcStartToolface = null,
+				ConstantCurvature = null,
+				ConstantToolface = null,
+				BuildRate = null,
+				TurnRate = null,
+			};
+		}
+		public static TrajectoryBatchCatalogDependencies ConstructTrajectoryBatchCatalogDependencies()
+		{
+			return new TrajectoryBatchCatalogDependencies
+			{
+				Identities = new List<TrajectoryIdentity>
+					{
+						ConstructTrajectoryIdentity(),
+					},
+				FeatureCategories = new List<TrajectoryFeatureCategory>
+					{
+						ConstructTrajectoryFeatureCategory(),
+					},
+			};
+		}
+		public static TrajectoryBatchCatalogMapping ConstructTrajectoryBatchCatalogMapping()
+		{
+			return new TrajectoryBatchCatalogMapping
+			{
+				Catalog = "Default Catalog",
+				Name = "Default Name",
+				SourceID = new Guid(),
+				LocalID = new Guid(),
+				Resolution = "Default Resolution",
+			};
+		}
+		public static TrajectoryBatchError ConstructTrajectoryBatchError()
+		{
+			return new TrajectoryBatchError
+			{
+				PositionIndex = null,
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static TrajectoryBatchErrorEnvelope ConstructTrajectoryBatchErrorEnvelope()
+		{
+			return new TrajectoryBatchErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<TrajectoryBatchError>
+					{
+						ConstructTrajectoryBatchError(),
+					},
+			};
+		}
+		public static TrajectoryBatchExportDocument ConstructTrajectoryBatchExportDocument()
+		{
+			return new TrajectoryBatchExportDocument
+			{
+				FormatIdentifier = "Default FormatIdentifier",
+				SchemaVersion = 0,
+				ExportedAtUtc = DateTimeOffset.UtcNow,
+				CatalogDependencies = ConstructTrajectoryBatchCatalogDependencies(),
+				SurveyRuns = new List<SurveyRun>
+					{
+						ConstructSurveyRun(),
+					},
+				Trajectories = new List<Trajectory>
+					{
+						ConstructTrajectory(),
+					},
+				AntiCollisionPolicyRevisions = new List<AntiCollisionPolicyRevision>
+					{
+						ConstructAntiCollisionPolicyRevision(),
+					},
+				FieldAntiCollisionPolicyAssignments = new List<FieldAntiCollisionPolicyAssignment>
+					{
+						ConstructFieldAntiCollisionPolicyAssignment(),
+					},
+			};
+		}
+		public static TrajectoryBatchExportRequest ConstructTrajectoryBatchExportRequest()
+		{
+			return new TrajectoryBatchExportRequest
+			{
+				Scope = (TrajectoryBatchExportScope)0,
+				SurveyRunIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				TrajectoryIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static TrajectoryBatchRestoreRequest ConstructTrajectoryBatchRestoreRequest()
+		{
+			return new TrajectoryBatchRestoreRequest
+			{
+				ConflictPolicy = (TrajectoryBatchRestoreConflictPolicy)0,
+				CatalogPolicy = (TrajectoryBatchCatalogRestorePolicy)0,
+				AllowNormalizedNameMapping = false,
+				Document = ConstructTrajectoryBatchExportDocument(),
+			};
+		}
+		public static TrajectoryBatchRestoreResponse ConstructTrajectoryBatchRestoreResponse()
+		{
+			return new TrajectoryBatchRestoreResponse
+			{
+				RestoredAtUtc = DateTimeOffset.UtcNow,
+				CreatedSurveyRunCount = 0,
+				ReplacedSurveyRunCount = 0,
+				CreatedTrajectoryCount = 0,
+				ReplacedTrajectoryCount = 0,
+				CreatedCatalogDefinitionCount = 0,
+				CreatedAntiCollisionPolicyRevisionCount = 0,
+				ReplacedAntiCollisionPolicyRevisionCount = 0,
+				CreatedFieldPolicyAssignmentCount = 0,
+				ReplacedFieldPolicyAssignmentCount = 0,
+				CatalogMappings = new List<TrajectoryBatchCatalogMapping>
+					{
+						ConstructTrajectoryBatchCatalogMapping(),
+					},
+				SurveyRunIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				TrajectoryIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				AntiCollisionPolicyRevisionIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				FieldAntiCollisionPolicyAssignmentIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static TrajectoryDiscoveryPage ConstructTrajectoryDiscoveryPage()
+		{
+			return new TrajectoryDiscoveryPage
+			{
+				Items = new List<TrajectoryLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static TrajectoryExternalReferenceAuditRequest ConstructTrajectoryExternalReferenceAuditRequest()
+		{
+			return new TrajectoryExternalReferenceAuditRequest
+			{
+				Scope = (ExternalReferenceAuditScope)0,
+				TrajectoryIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				Offset = 0,
+				Limit = 0,
+			};
+		}
+		public static TrajectoryExternalReferenceAuditResult ConstructTrajectoryExternalReferenceAuditResult()
+		{
+			return new TrajectoryExternalReferenceAuditResult
+			{
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Total = 0,
+				Offset = 0,
+				Limit = 0,
+				ValidCount = 0,
+				InvalidCount = 0,
+				UnavailableCount = 0,
+				Items = new List<TrajectoryExternalReferenceValidation>
+					{
+						ConstructTrajectoryExternalReferenceValidation(),
+					},
+			};
+		}
+		public static TrajectoryExternalReferenceValidation ConstructTrajectoryExternalReferenceValidation()
+		{
+			return new TrajectoryExternalReferenceValidation
+			{
+				TrajectoryID = new Guid(),
+				FieldID = null,
+				ClusterID = null,
+				WellID = null,
+				WellBoreID = new Guid(),
+				FieldExists = null,
+				ClusterExists = null,
+				WellExists = null,
+				WellBoreExists = null,
+				Status = (ExternalReferenceValidationStatus)0,
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Issues = new List<ExternalReferenceIssue>
+					{
+						ConstructExternalReferenceIssue(),
+					},
+			};
+		}
+		public static TrajectoryExtrapolationCase ConstructTrajectoryExtrapolationCase()
+		{
+			return new TrajectoryExtrapolationCase
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				SourceTrajectoryID = new Guid(),
+				Mode = (TrajectoryExtrapolationMode)0,
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				InterpolationInterval = 0.0,
+				Specification = ConstructTrajectoryExtrapolationSpecification(),
+				StartStation = ConstructSurveyStation(),
+				TargetStation = ConstructSurveyStation(),
+				ClosestReferenceMD = null,
+				TargetReferenceMD = null,
+				SourceTrajectoryRevision = DateTimeOffset.UtcNow,
+				ReferenceTrajectoryRevision = DateTimeOffset.UtcNow,
+				CurvatureCharacteristics = ConstructCurveCurvatureCharacteristics(),
+				SolvedSectionList = new List<TrajectoryExtrapolationSolvedSection>
+					{
+						ConstructTrajectoryExtrapolationSolvedSection(),
+					},
+				SurveyStationList = new List<SurveyStation>
+					{
+						ConstructSurveyStation(),
+					},
+			};
+		}
+		public static TrajectoryExtrapolationCaseDiscoveryPage ConstructTrajectoryExtrapolationCaseDiscoveryPage()
+		{
+			return new TrajectoryExtrapolationCaseDiscoveryPage
+			{
+				Items = new List<TrajectoryExtrapolationCaseLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static TrajectoryExtrapolationSolvedSection ConstructTrajectoryExtrapolationSolvedSection()
+		{
+			return new TrajectoryExtrapolationSolvedSection
+			{
+				SectionID = new Guid(),
+				SectionIndex = 0,
+				Role = (TrajectoryExtrapolationSectionRole)0,
+				CurveType = (ExtrapolationCurveType)0,
+				StartMD = 0.0,
+				EndMD = 0.0,
+				Length = 0.0,
+				Start = ConstructSurveyStation(),
+				End = ConstructSurveyStation(),
+				CircularArcCurvature = null,
+				CircularArcStartToolface = null,
+				ConstantBuildRate = null,
+				ConstantTurnRate = null,
+				ConstantCurvature = null,
+				ConstantToolface = null,
+			};
+		}
+		public static TrajectoryExtrapolationSpecification ConstructTrajectoryExtrapolationSpecification()
+		{
+			return new TrajectoryExtrapolationSpecification
+			{
+			};
+		}
+		public static TrajectoryFeatureAssignment ConstructTrajectoryFeatureAssignment()
+		{
+			return new TrajectoryFeatureAssignment
+			{
+				ID = new Guid(),
+				FeatureCategoryID = null,
+				FeatureOptionID = null,
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static TrajectoryFeatureCategory ConstructTrajectoryFeatureCategory()
+		{
+			return new TrajectoryFeatureCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				IsExclusive = false,
+				HasValidityPeriod = false,
+				Options = new List<TrajectoryFeatureOption>
+					{
+						ConstructTrajectoryFeatureOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static TrajectoryFeatureCategoryDiscoveryPage ConstructTrajectoryFeatureCategoryDiscoveryPage()
+		{
+			return new TrajectoryFeatureCategoryDiscoveryPage
+			{
+				Items = new List<TrajectoryFeatureCategoryLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static TrajectoryFeatureOption ConstructTrajectoryFeatureOption()
+		{
+			return new TrajectoryFeatureOption
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+			};
+		}
 		public static TrajectoryHorizontalEllipseEvaluation ConstructTrajectoryHorizontalEllipseEvaluation()
 		{
 			return new TrajectoryHorizontalEllipseEvaluation
@@ -7331,6 +7227,221 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				AlongHoleDepth = 0.0,
 				ConfidenceFactor = 0.0,
 				HorizontalEllipse = ConstructHorizontalSurveyUncertaintyEllipse(),
+			};
+		}
+		public static TrajectoryIdentity ConstructTrajectoryIdentity()
+		{
+			return new TrajectoryIdentity
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static TrajectoryIdentityAssignment ConstructTrajectoryIdentityAssignment()
+		{
+			return new TrajectoryIdentityAssignment
+			{
+				ID = new Guid(),
+				IdentityID = null,
+				Value = "Default Value",
+			};
+		}
+		public static TrajectoryIdentityDiscoveryPage ConstructTrajectoryIdentityDiscoveryPage()
+		{
+			return new TrajectoryIdentityDiscoveryPage
+			{
+				Items = new List<TrajectoryIdentityLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static TrajectoryMinimumDistanceCalculation ConstructTrajectoryMinimumDistanceCalculation()
+		{
+			return new TrajectoryMinimumDistanceCalculation
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				ReferenceTrajectoryID = new Guid(),
+				ComparisonTrajectoryIDList = new List<Guid>
+					{
+						new Guid(),
+					},
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				ResultCount = 0,
+				IntervalResultCount = 0,
+				MaximumChordArcDistance = null,
+				AccountForBoreholeRadius = false,
+				OctreeMaximumDepth = 0,
+				OctreeMaximumSegmentCountPerLeaf = 0,
+				AdaptiveRefinementSettings = ConstructMinimumDistanceAdaptiveRefinementSettings(),
+				GlobalMinimumCenterToCenterDistance = null,
+				GlobalMinimumClearanceDistance = null,
+				GlobalMinimumReferenceMD = null,
+				GlobalMinimumComparisonTrajectoryID = null,
+				GlobalMinimumComparisonMD = null,
+				GlobalMinimumToolface = null,
+				GlobalMinimumIsGravity = false,
+				ReferenceIntervalList = new List<MinimumDistanceReferenceInterval>
+					{
+						ConstructMinimumDistanceReferenceInterval(),
+					},
+				ResultList = new List<TrajectoryMinimumDistanceResult>
+					{
+						ConstructTrajectoryMinimumDistanceResult(),
+					},
+				IntervalResultList = new List<TrajectoryMinimumDistanceIntervalResult>
+					{
+						ConstructTrajectoryMinimumDistanceIntervalResult(),
+					},
+			};
+		}
+		public static TrajectoryMinimumDistanceCalculationDiscoveryPage ConstructTrajectoryMinimumDistanceCalculationDiscoveryPage()
+		{
+			return new TrajectoryMinimumDistanceCalculationDiscoveryPage
+			{
+				Items = new List<TrajectoryMinimumDistanceCalculationLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static TrajectoryMinimumDistanceIntervalResult ConstructTrajectoryMinimumDistanceIntervalResult()
+		{
+			return new TrajectoryMinimumDistanceIntervalResult
+			{
+				IntervalID = new Guid(),
+				IntervalName = "Default IntervalName",
+				StartMD = null,
+				EndMD = null,
+				ComparisonTrajectoryID = null,
+				SampleCount = 0,
+				AverageCenterToCenterDistance = null,
+				StandardDeviationCenterToCenterDistance = null,
+				AverageClearanceDistance = null,
+				StandardDeviationClearanceDistance = null,
+			};
+		}
+		public static TrajectoryMinimumDistanceResult ConstructTrajectoryMinimumDistanceResult()
+		{
+			return new TrajectoryMinimumDistanceResult
+			{
+				ReferenceMD = null,
+				ReferenceTVD = null,
+				ReferenceNorth = null,
+				ReferenceEast = null,
+				ReferenceBoreholeDiameter = null,
+				ComparisonTrajectoryID = null,
+				ComparisonMD = null,
+				ComparisonTVD = null,
+				ComparisonNorth = null,
+				ComparisonEast = null,
+				ComparisonBoreholeDiameter = null,
+				CenterToCenterDistance = null,
+				ClearanceDistance = null,
+				Toolface = null,
+				IsGravity = false,
+				IsAdaptiveRefinementSample = false,
+				RefinementLevel = 0,
+			};
+		}
+		public static TrajectoryMinimumDistanceResultChunk ConstructTrajectoryMinimumDistanceResultChunk()
+		{
+			return new TrajectoryMinimumDistanceResultChunk
+			{
+				OwnerID = new Guid(),
+				ChunkIndex = 0,
+				ResultCount = 0,
+				StartReferenceMD = null,
+				EndReferenceMD = null,
+				ResultList = new List<TrajectoryMinimumDistanceResult>
+					{
+						ConstructTrajectoryMinimumDistanceResult(),
+					},
+			};
+		}
+		public static TrajectoryRealizationCase ConstructTrajectoryRealizationCase()
+		{
+			return new TrajectoryRealizationCase
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				TrajectoryID = new Guid(),
+				RealizationCount = 0,
+				CoarseningMaximumDistance = 0.0,
+				RandomSeed = null,
+				ReferenceStationCount = null,
+				CoarsenedStationCount = null,
+				CalculationState = (CalculationState)0,
+				CalculationProgress = 0.0,
+				CalculationMessage = "Default CalculationMessage",
+				RealizationList = new List<List<SurveyPoint>>
+					{
+						new List<SurveyPoint>
+						{
+							ConstructSurveyPoint(),
+						}
+					},
+			};
+		}
+		public static TrajectoryRealizationCaseDiscoveryPage ConstructTrajectoryRealizationCaseDiscoveryPage()
+		{
+			return new TrajectoryRealizationCaseDiscoveryPage
+			{
+				Items = new List<TrajectoryRealizationCaseLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static TrajectoryRealizationChunk ConstructTrajectoryRealizationChunk()
+		{
+			return new TrajectoryRealizationChunk
+			{
+				OwnerID = new Guid(),
+				ChunkIndex = 0,
+				RealizationCount = 0,
+				SurveyPointCount = 0,
+				StartMD = null,
+				EndMD = null,
+				RealizationList = new List<List<SurveyPoint>>
+					{
+						new List<SurveyPoint>
+						{
+							ConstructSurveyPoint(),
+						}
+					},
+			};
+		}
+		public static TrajectorySearchResult ConstructTrajectorySearchResult()
+		{
+			return new TrajectorySearchResult
+			{
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				Items = new List<TrajectoryLight>(),
+			};
+		}
+		public static TrajectorySurveyRunSection ConstructTrajectorySurveyRunSection()
+		{
+			return new TrajectorySurveyRunSection
+			{
+				SurveyRunID = new Guid(),
+				StartAbscissa = 0.0,
 			};
 		}
 		public static TrajectoryVerticalEllipseEvaluation ConstructTrajectoryVerticalEllipseEvaluation()
@@ -7344,6 +7455,66 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				VerticalEllipse = ConstructVerticalSurveyUncertaintyEllipse(),
 			};
 		}
+		public static UsageStatisticsTrajectory ConstructUsageStatisticsTrajectory()
+		{
+			return new UsageStatisticsTrajectory
+			{
+				DiscoveryRequestsPerDay = ConstructHistory(),
+				LastSaved = DateTimeOffset.UtcNow,
+				BackUpInterval = "Default BackUpInterval",
+				GetAllTrajectoryIdPerDay = ConstructHistory(),
+				GetAllTrajectoryMetaInfoPerDay = ConstructHistory(),
+				GetTrajectoryByIdPerDay = ConstructHistory(),
+				GetAllTrajectoryLightPerDay = ConstructHistory(),
+				GetAllTrajectoryPerDay = ConstructHistory(),
+				PostTrajectoryPerDay = ConstructHistory(),
+				PutTrajectoryByIdPerDay = ConstructHistory(),
+				DeleteTrajectoryByIdPerDay = ConstructHistory(),
+				GetAllTrajectoryExtrapolationCaseIdPerDay = ConstructHistory(),
+				GetAllTrajectoryExtrapolationCaseMetaInfoPerDay = ConstructHistory(),
+				GetAllTrajectoryExtrapolationCaseLightPerDay = ConstructHistory(),
+				GetAllTrajectoryExtrapolationCasePerDay = ConstructHistory(),
+				GetTrajectoryExtrapolationCaseByIdPerDay = ConstructHistory(),
+				GetTrajectoryExtrapolationCaseStatusPerDay = ConstructHistory(),
+				GetTrajectoryExtrapolationSurveyStationChunkCountPerDay = ConstructHistory(),
+				GetTrajectoryExtrapolationSurveyStationChunkPerDay = ConstructHistory(),
+				PostTrajectoryExtrapolationCasePerDay = ConstructHistory(),
+				PutTrajectoryExtrapolationCaseByIdPerDay = ConstructHistory(),
+				DeleteTrajectoryExtrapolationCaseByIdPerDay = ConstructHistory(),
+				GetAllTargetLandingCaseIdPerDay = ConstructHistory(),
+				GetAllTargetLandingCaseMetaInfoPerDay = ConstructHistory(),
+				GetAllTargetLandingCaseLightPerDay = ConstructHistory(),
+				GetAllTargetLandingCasePerDay = ConstructHistory(),
+				GetTargetLandingCaseByIdPerDay = ConstructHistory(),
+				GetTargetLandingCaseEditDataPerDay = ConstructHistory(),
+				GetTargetLandingCaseDisplayDataPerDay = ConstructHistory(),
+				GetTargetLandingCaseUncertaintyDisplayDataPerDay = ConstructHistory(),
+				GetTargetLandingCaseStatusPerDay = ConstructHistory(),
+				PostTargetLandingCasePerDay = ConstructHistory(),
+				PutTargetLandingCaseByIdPerDay = ConstructHistory(),
+				DeleteTargetLandingCaseByIdPerDay = ConstructHistory(),
+				GetAllDirectionalControlEvaluationCaseIdPerDay = ConstructHistory(),
+				GetAllDirectionalControlEvaluationCaseLightPerDay = ConstructHistory(),
+				GetDirectionalControlEvaluationCaseByIdPerDay = ConstructHistory(),
+				GetDirectionalControlEvaluationCaseStatusPerDay = ConstructHistory(),
+				GetDirectionalControlEvaluationSampleChunkCountPerDay = ConstructHistory(),
+				GetDirectionalControlEvaluationSampleChunkPerDay = ConstructHistory(),
+				PostDirectionalControlEvaluationCasePerDay = ConstructHistory(),
+				PutDirectionalControlEvaluationCaseByIdPerDay = ConstructHistory(),
+				DeleteDirectionalControlEvaluationCaseByIdPerDay = ConstructHistory(),
+				GetAllAntiCollisionPolicyRevisionIdPerDay = ConstructHistory(),
+				GetAllAntiCollisionPolicyRevisionPerDay = ConstructHistory(),
+				GetAntiCollisionPolicyRevisionByIdPerDay = ConstructHistory(),
+				PostAntiCollisionPolicyRevisionPerDay = ConstructHistory(),
+				DeleteAntiCollisionPolicyByPolicyIdPerDay = ConstructHistory(),
+				GetAllFieldAntiCollisionPolicyAssignmentPerDay = ConstructHistory(),
+				GetFieldAntiCollisionPolicyAssignmentByIdPerDay = ConstructHistory(),
+				GetEffectiveFieldAntiCollisionPolicyAssignmentPerDay = ConstructHistory(),
+				PostFieldAntiCollisionPolicyAssignmentPerDay = ConstructHistory(),
+				PutFieldAntiCollisionPolicyAssignmentByIdPerDay = ConstructHistory(),
+				DeleteFutureFieldAntiCollisionPolicyAssignmentByIdPerDay = ConstructHistory(),
+			};
+		}
 		public static VerticalSurveyUncertaintyEllipse ConstructVerticalSurveyUncertaintyEllipse()
 		{
 			return new VerticalSurveyUncertaintyEllipse
@@ -7353,6 +7524,386 @@ namespace OSDC.Drilling.Trajectory.ModelShared
 				MajorAxis = 0.0,
 				MinorAxis = 0.0,
 				OrientationAngle = 0.0,
+			};
+		}
+		public static WellPathExtrapolationSpecification ConstructWellPathExtrapolationSpecification()
+		{
+			return new WellPathExtrapolationSpecification
+			{
+				SectionList = new List<WellPathSectionSpecification>(),
+			};
+		}
+		public static WellPathSectionSpecification ConstructWellPathSectionSpecification()
+		{
+			return new WellPathSectionSpecification
+			{
+				SectionID = new Guid(),
+				Length = null,
+				EndInclination = null,
+				EndAzimuth = null,
+				EndVerticalDepth = null,
+				EndNorth = null,
+				EndEast = null,
+			};
+		}
+		public static RigJob ConstructRigJob()
+		{
+			return new RigJob
+			{
+				RigJobID = new Guid(),
+				RigID = new Guid(),
+				StartDate = DateTimeOffset.UtcNow,
+				EndDate = DateTimeOffset.UtcNow,
+				DrillFloorDepthSource = (DrillFloorDepthSource)0,
+				DrillFloorDepth = ConstructGaussianDrillingProperty(),
+			};
+		}
+		public static UsageStatisticsWellBore ConstructUsageStatisticsWellBore()
+		{
+			return new UsageStatisticsWellBore
+			{
+				DiscoveryRequestsPerDay = ConstructHistory(),
+				LastSaved = DateTimeOffset.UtcNow,
+				BackUpInterval = "Default BackUpInterval",
+				GetAllWellBoreIdPerDay = ConstructHistory(),
+				GetAllWellBoreMetaInfoPerDay = ConstructHistory(),
+				GetWellBoreByIdPerDay = ConstructHistory(),
+				GetAllWellBorePerDay = ConstructHistory(),
+				GetAllWellBoreByWellIDPerDay = ConstructHistory(),
+				GetAllWellBoreByRigIDPerDay = ConstructHistory(),
+				GetAllWellBoreByParentIDPerDay = ConstructHistory(),
+				GetAllSidetrackedWellBorePerDay = ConstructHistory(),
+				PostWellBorePerDay = ConstructHistory(),
+				PutWellBoreByIdPerDay = ConstructHistory(),
+				DeleteWellBoreByIdPerDay = ConstructHistory(),
+			};
+		}
+		public static WellBore ConstructWellBore()
+		{
+			return new WellBore
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				Description = "Default Description",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+				WellID = null,
+				RigID = null,
+				RigJobs = new List<RigJob>
+					{
+						ConstructRigJob(),
+					},
+				IsSidetrack = false,
+				ParentWellBoreID = null,
+				TieInPointAlongHoleDepth = ConstructGaussianDrillingProperty(),
+				SidetrackType = (SidetrackType)0,
+				WellBoreIdentityAssignments = new List<WellBoreIdentityAssignment>(),
+				WellBoreFeatureAssignments = new List<WellBoreFeatureAssignment>(),
+			};
+		}
+		public static WellBoreBatchCatalogDependencies ConstructWellBoreBatchCatalogDependencies()
+		{
+			return new WellBoreBatchCatalogDependencies
+			{
+				Identities = new List<WellBoreIdentity>
+					{
+						ConstructWellBoreIdentity(),
+					},
+				FeatureCategories = new List<WellBoreFeatureCategory>
+					{
+						ConstructWellBoreFeatureCategory(),
+					},
+			};
+		}
+		public static WellBoreBatchCatalogMapping ConstructWellBoreBatchCatalogMapping()
+		{
+			return new WellBoreBatchCatalogMapping
+			{
+				Catalog = "Default Catalog",
+				Name = "Default Name",
+				SourceID = new Guid(),
+				LocalID = new Guid(),
+				Resolution = "Default Resolution",
+			};
+		}
+		public static WellBoreBatchError ConstructWellBoreBatchError()
+		{
+			return new WellBoreBatchError
+			{
+				PositionIndex = null,
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static WellBoreBatchErrorEnvelope ConstructWellBoreBatchErrorEnvelope()
+		{
+			return new WellBoreBatchErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<WellBoreBatchError>
+					{
+						ConstructWellBoreBatchError(),
+					},
+			};
+		}
+		public static WellBoreBatchExportDocument ConstructWellBoreBatchExportDocument()
+		{
+			return new WellBoreBatchExportDocument
+			{
+				FormatIdentifier = "Default FormatIdentifier",
+				SchemaVersion = 0,
+				ExportedAtUtc = DateTimeOffset.UtcNow,
+				CatalogDependencies = ConstructWellBoreBatchCatalogDependencies(),
+				WellBores = new List<WellBore>
+					{
+						ConstructWellBore(),
+					},
+			};
+		}
+		public static WellBoreBatchExportRequest ConstructWellBoreBatchExportRequest()
+		{
+			return new WellBoreBatchExportRequest
+			{
+				Scope = (WellBoreBatchExportScope)0,
+				WellBoreIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellBoreBatchRestoreRequest ConstructWellBoreBatchRestoreRequest()
+		{
+			return new WellBoreBatchRestoreRequest
+			{
+				ConflictPolicy = (WellBoreBatchRestoreConflictPolicy)0,
+				CatalogPolicy = (WellBoreBatchCatalogRestorePolicy)0,
+				Document = ConstructWellBoreBatchExportDocument(),
+			};
+		}
+		public static WellBoreBatchRestoreResponse ConstructWellBoreBatchRestoreResponse()
+		{
+			return new WellBoreBatchRestoreResponse
+			{
+				RestoredAtUtc = DateTimeOffset.UtcNow,
+				CreatedCount = 0,
+				ReplacedCount = 0,
+				CreatedCatalogDefinitionCount = 0,
+				CreatedCatalogOptionCount = 0,
+				CatalogMappings = new List<WellBoreBatchCatalogMapping>
+					{
+						ConstructWellBoreBatchCatalogMapping(),
+					},
+				WellBoreIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellBoreDetailsUpdate ConstructWellBoreDetailsUpdate()
+		{
+			return new WellBoreDetailsUpdate
+			{
+				Name = "Default Name",
+				Description = "Default Description",
+			};
+		}
+		public static WellBoreDiscoveryPage ConstructWellBoreDiscoveryPage()
+		{
+			return new WellBoreDiscoveryPage
+			{
+				Items = new List<WellBoreLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static WellBoreExternalReferenceAuditRequest ConstructWellBoreExternalReferenceAuditRequest()
+		{
+			return new WellBoreExternalReferenceAuditRequest
+			{
+				Scope = (WellBoreExternalReferenceAuditScope)0,
+				WellBoreIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+				Offset = 0,
+				Limit = 0,
+			};
+		}
+		public static WellBoreExternalReferenceAuditResult ConstructWellBoreExternalReferenceAuditResult()
+		{
+			return new WellBoreExternalReferenceAuditResult
+			{
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Total = 0,
+				Offset = 0,
+				Limit = 0,
+				ValidCount = 0,
+				InvalidCount = 0,
+				UnavailableCount = 0,
+				Items = new List<WellBoreExternalReferenceValidation>
+					{
+						ConstructWellBoreExternalReferenceValidation(),
+					},
+			};
+		}
+		public static WellBoreExternalReferenceIssue ConstructWellBoreExternalReferenceIssue()
+		{
+			return new WellBoreExternalReferenceIssue
+			{
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+			};
+		}
+		public static WellBoreExternalReferenceValidation ConstructWellBoreExternalReferenceValidation()
+		{
+			return new WellBoreExternalReferenceValidation
+			{
+				WellBoreID = new Guid(),
+				WellID = null,
+				RigID = null,
+				WellExists = null,
+				RigExists = null,
+				Status = (WellBoreExternalReferenceValidationStatus)0,
+				CheckedAtUtc = DateTimeOffset.UtcNow,
+				Issues = new List<WellBoreExternalReferenceIssue>
+					{
+						ConstructWellBoreExternalReferenceIssue(),
+					},
+			};
+		}
+		public static WellBoreFeatureAssignment ConstructWellBoreFeatureAssignment()
+		{
+			return new WellBoreFeatureAssignment
+			{
+				ID = new Guid(),
+				FeatureCategoryID = null,
+				FeatureOptionID = null,
+				FromDate = DateTimeOffset.UtcNow,
+				ToDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellBoreFeatureCategory ConstructWellBoreFeatureCategory()
+		{
+			return new WellBoreFeatureCategory
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				IsExclusive = false,
+				HasValidityPeriod = false,
+				Options = new List<WellBoreFeatureOption>
+					{
+						ConstructWellBoreFeatureOption(),
+					},
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellBoreFeatureCategoryDiscoveryPage ConstructWellBoreFeatureCategoryDiscoveryPage()
+		{
+			return new WellBoreFeatureCategoryDiscoveryPage
+			{
+				Items = new List<WellBoreFeatureCategoryLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static WellBoreFeatureOption ConstructWellBoreFeatureOption()
+		{
+			return new WellBoreFeatureOption
+			{
+				ID = new Guid(),
+				Name = "Default Name",
+			};
+		}
+		public static WellBoreIdentity ConstructWellBoreIdentity()
+		{
+			return new WellBoreIdentity
+			{
+				MetaInfo = ConstructMetaInfo(),
+				Name = "Default Name",
+				CreationDate = DateTimeOffset.UtcNow,
+				LastModificationDate = DateTimeOffset.UtcNow,
+			};
+		}
+		public static WellBoreIdentityAssignment ConstructWellBoreIdentityAssignment()
+		{
+			return new WellBoreIdentityAssignment
+			{
+				ID = new Guid(),
+				IdentityID = null,
+				Value = "Default Value",
+			};
+		}
+		public static WellBoreIdentityDiscoveryPage ConstructWellBoreIdentityDiscoveryPage()
+		{
+			return new WellBoreIdentityDiscoveryPage
+			{
+				Items = new List<WellBoreIdentityLight>(),
+				Offset = 0,
+				Limit = 0,
+				TotalCount = 0,
+				NextOffset = null,
+			};
+		}
+		public static WellBoreMutationError ConstructWellBoreMutationError()
+		{
+			return new WellBoreMutationError
+			{
+				Property = "Default Property",
+				Code = "Default Code",
+				Message = "Default Message",
+				ReferencingWellBoreIDs = new List<Guid>
+					{
+						new Guid(),
+					},
+			};
+		}
+		public static WellBoreMutationErrorEnvelope ConstructWellBoreMutationErrorEnvelope()
+		{
+			return new WellBoreMutationErrorEnvelope
+			{
+				Error = "Default Error",
+				Message = "Default Message",
+				Errors = new List<WellBoreMutationError>
+					{
+						ConstructWellBoreMutationError(),
+					},
+			};
+		}
+		public static WellBoreSearchResult ConstructWellBoreSearchResult()
+		{
+			return new WellBoreSearchResult
+			{
+				Items = new List<WellBore>
+					{
+						ConstructWellBore(),
+					},
+				Total = 0,
+				Offset = 0,
+				Limit = 0,
+			};
+		}
+		public static WellBoreTopologyUpdate ConstructWellBoreTopologyUpdate()
+		{
+			return new WellBoreTopologyUpdate
+			{
+				WellID = null,
+				RigID = null,
+				RigJobs = new List<RigJob>
+					{
+						ConstructRigJob(),
+					},
+				IsSidetrack = false,
+				ParentWellBoreID = null,
+				TieInPointAlongHoleDepth = ConstructGaussianDrillingProperty(),
+				SidetrackType = (SidetrackType)0,
 			};
 		}
 	}

@@ -232,6 +232,8 @@ namespace OSDC.Drilling.Trajectory.Model
 
             AddSamples(calculation.SurveyStationList!, pair, start.MD!.Value, endMd, calculation.InterpolationInterval, JunctionMD(pair));
             AppendDoubleSolvedSections(calculation, pair, specification.CurveType);
+            calculation.CurvatureCharacteristics = CurveCurvatureCharacteristicsCalculator.Calculate(
+                calculation.SolvedSectionList!);
             return true;
         }
 

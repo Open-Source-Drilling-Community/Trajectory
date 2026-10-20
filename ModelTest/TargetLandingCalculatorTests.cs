@@ -193,6 +193,8 @@ public sealed class TargetLandingCalculatorTests
             Assert.That(value.LeadSurveyStationList!.Last().MD, Is.EqualTo(value.SteeringStartStation!.MD));
             Assert.That(value.SampleList!.Where(sample => sample.SolvedSectionList is { Count: > 0 })
                 .All(sample => sample.ControlPointList is { Count: > 0 }), Is.True);
+            Assert.That(value.SampleList!.Where(sample => sample.SolvedSectionList is { Count: > 0 })
+                .All(sample => sample.CurvatureCharacteristics is not null), Is.True);
         });
     }
 
@@ -228,6 +230,9 @@ public sealed class TargetLandingCalculatorTests
                     point.Inclination.HasValue && double.IsFinite(point.Inclination.Value) &&
                     double.IsFinite(point.Curvature) && double.IsFinite(point.Toolface) &&
                     double.IsFinite(point.BuildRate) && double.IsFinite(point.TurnRate)), Is.True);
+                Assert.That(sample.CurvatureCharacteristics, Is.Not.Null);
+                Assert.That(sample.CurvatureCharacteristics!.MinimumCurvature,
+                    Is.LessThanOrEqualTo(sample.CurvatureCharacteristics.MaximumCurvature));
             });
         }
     }

@@ -1,6 +1,6 @@
 # Trajectory semantic bindings
 
-`Service/TrajectoryProviderSemantics.cs` is the shared binding source for REST/OpenAPI and MCP. Bindings use the published SemanticCatalogue 0.21.0 concepts, generic operation profiles, calculation states, and authoritative physical-quantity and SI-unit metadata.
+`Service/TrajectoryProviderSemantics.cs` is the shared binding source for REST/OpenAPI and MCP. Bindings use SemanticCatalogue 0.23.0 concepts, generic operation profiles, calculation states, and authoritative physical-quantity and SI-unit metadata.
 
 | Values | Catalogue noun | Reference / meaning |
 | --- | --- | --- |
@@ -12,6 +12,7 @@
 | Canonical survey inclination / azimuth | `wellbore-inclination` / `wellbore-azimuth` | WGS84 downward normal / clockwise geodetic true north, radians. |
 | `MDStep`, `InterpolationStep` | `trajectory-interpolation-interval` | SI metres of along-hole sample spacing; an interval, not a vertical position. |
 | `DLS`, `BUR`, `TUR` | `wellbore-curvature`, `build-rate`, `turn-rate` | SI radians per metre. |
+| Curve curvature minimum / junction / maximum | `wellbore-curvature` with `minimum-value`, `junction-value`, or `maximum-value` role | SI radians per metre over the declared steering-curve domain. Lead-in continuation is excluded. |
 | Ellipse semi-major / semi-minor axis | `physical-length-extent` | SI metres, with `semi-major-axis` / `semi-minor-axis` roles; roles are not noun concepts. |
 | Metadata, name, description | `resource-metadata`, `resource-name`, `resource-description` | Managed-resource discovery and description. |
 | UUID arguments, properties and collection elements | `resource-identifier` | Resource/nested-object identifiers. Known relationships carry the target noun in `resourceType`. |
@@ -27,6 +28,8 @@ The catalogue deprecates `measured-depth` in favour of the broader reviewed `alo
 Bindings for inherited geometric coordinates are selected using their reflected survey/global-coordinate type. An arbitrary vector's Z is not labelled as a WGS84 TVD. Catalogue roles and references are not accepted as quantity nouns through name coincidence.
 
 The read-only station evaluation operation binds its UUID to `resource-identifier` with `resourceType=wellbore-trajectory`, and its required numerical MD key to `along-hole-depth` in SI metres. Its complete SurveyStation response carries the existing quantity/reference bindings and aliases. It uses the stored calculation method, rejects extrapolation and unfinished calculations, and creates no persisted case. No new catalogue concepts were needed.
+
+Extrapolation and target-landing results bind `CurveCurvatureCharacteristics` as one server-derived structured result. The solved-section role enum maps to reviewed fixed-extension, lead-in, upstream-steering, downstream-steering, and well-path section concepts. Circular-arc curvature and its start toolface are explicitly bound alongside the existing BT and CTC controls. These declarations let a generic consumer select the steering summary without confusing it with curvature on an excluded lead-in section.
 
 Octree candidate discovery declares a complete queued-calculation lifecycle: submission, lightweight status retrieval, result retrieval and deletion. Global anti-collision declares its corresponding calculation lifecycle. Their compatible typed roles allow a consumer to feed the candidate trajectory identifiers from the first result into the comparison-resource input of the second calculation. Supplying `RequestedPolicyAssignmentID` is optional for separation-factor calculation, but its metadata declares that it is required when the requested result includes policy evaluation, evaluation state or safety classification. The confidence-factor input publishes its provider default and admissible range.
 
