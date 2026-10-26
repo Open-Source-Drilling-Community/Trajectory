@@ -780,9 +780,14 @@
 
                 if (currentInterpolatedTrajectory.InterpolateAtLinerHangerDepths)
                 {
-                    double? hangerDepth = GetScalarValue(architecture.WellHead?.CasingHangerDepth);
-                    CasingSection? casingSection = FindCasingSectionForDepth(architecture.CasingSections, hangerDepth);
-                    AddOrUpdateAnnotatedAbscissa(values, hangerDepth, BuildCasingAnnotation("Casing hanger", GetCasingSize(casingSection)));
+                    var suspensionDepths = InterpolationSuspensionDepths.Resolve(
+                        architecture.CasingSections?.Select(section => GetGaussianMean(section?.TopDepth)),
+                        GetScalarValue(architecture.WellHead?.CasingHangerDepth));
+                    foreach (double suspensionDepth in suspensionDepths)
+                    {
+                        CasingSection? casingSection = FindCasingSectionForDepth(architecture.CasingSections, suspensionDepth);
+                        AddOrUpdateAnnotatedAbscissa(values, suspensionDepth, BuildCasingAnnotation("Casing hanger", GetCasingSize(casingSection)));
+                    }
                 }
 
                 if (currentInterpolatedTrajectory.InterpolateAtCasingChangeOfDiameter && architecture.CasingSections is { Count: > 0 } casingSectionsForChanges)

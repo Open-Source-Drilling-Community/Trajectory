@@ -1,5 +1,12 @@
 # OSDC.Drilling.Trajectory.WebPages
 
+In the interpolated-trajectory editor, **At casing hanger depths** includes the
+selected architecture's casing-section suspension depths (`TopDepth`), as well as
+an explicitly populated wellhead hanger marker. Coincident depths are included once;
+missing/non-finite values are ignored without inventing zero. Internal element,
+diameter and cement boundaries are not reclassified as suspension points. The
+existing casing-diameter-change option remains separate.
+
 This release targets MudBlazor 9.9.0 and the matching OSDC shared web component packages.
 
 `OSDC.Drilling.Trajectory.WebPages` is a Razor class library that contains the Trajectory UI pages extracted from the main Trajectory web application.

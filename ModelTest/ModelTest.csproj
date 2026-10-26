@@ -34,6 +34,8 @@
 
   <ItemGroup>
     <None Update="TestData\Ullrigg\*.txt" CopyToOutputDirectory="PreserveNewest" />
+    <None Update="TestData\Ullrigg\Interpolation-U3-Architecture.json" CopyToOutputDirectory="PreserveNewest" />
+    <Compile Include="..\WebPages\InterpolationSuspensionDepths.cs" Link="WebPages\InterpolationSuspensionDepths.cs" />
   </ItemGroup>
 
 </Project>

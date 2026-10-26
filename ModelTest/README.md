@@ -1,5 +1,12 @@
 # ModelTest
 
+`InterpolationSuspensionDepthTests` compiles the exact WebPages depth resolver into
+the test assembly and exercises the captured U3 architecture, distinct strings,
+wellhead-marker compatibility, missing/invalid values and duplicate depths. A model
+interpolation test verifies that a resolved off-grid suspension reaches the station
+output. The captured JSON fixture is SHA256-pinned and contains inputs, not an
+independently reviewed full engineering oracle.
+
 `ModelTest` is the NUnit test project reserved for the `OSDC.Drilling.Trajectory.Model` project.
 
 ## Responsibility

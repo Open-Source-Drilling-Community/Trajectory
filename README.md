@@ -1,5 +1,10 @@
 # Trajectory
 
+The interpolation editor's **At casing hanger depths** option includes the selected
+architecture's casing-section suspension positions and any explicit wellhead hanger
+marker, with coincident depths included once. It does not require the separate
+wellhead marker to be populated when section suspensions are already defined.
+
 The Trajectory repository contains the OSDC Trajectory service, the host web application, and a reusable Razor class library for the Trajectory UI pages. The solution-owned .NET namespace root is `OSDC.Drilling.Trajectory`; the companion anti-collision library uses `OSDC.Drilling.GlobalAntiCollision`.
 
 ## Solution Architecture

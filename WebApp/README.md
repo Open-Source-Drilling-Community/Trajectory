@@ -1,5 +1,9 @@
 # Trajectory WebApp
 
+The interpolation editor includes each casing string's architecture suspension
+depth when **At casing hanger depths** is selected. An explicit wellhead hanger
+marker is also retained, and coincident depths appear once.
+
 `WebApp` is the ASP.NET Core Blazor host application for Trajectory under `OSDC.Drilling.Trajectory.WebApp`.
 
 It provides the application shell, host-owned `/Home` route, startup configuration, routing, and static assets for the UI. Survey Run, Trajectory, interpolation, aggregation, realization, extrapolation, target landing, directional-control evaluation, distance/ellipse, anti-collision, catalog, batch-import, backup/restore, display, and usage-statistics pages are provided by the `WebPages` Razor class library.
