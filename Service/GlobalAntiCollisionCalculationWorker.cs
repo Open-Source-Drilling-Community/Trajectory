@@ -161,6 +161,15 @@ public sealed class GlobalAntiCollisionCalculationWorker : BackgroundService
                     $"Prepared {i + 1:N0}/{comparisonTrajectories.Count:N0} comparison trajectories");
             }
 
+            if (!TrajectoryManager.HasCompleteBoreholeRadii(referenceSurveyList) ||
+                comparisonTrajectories.Any(trajectory => !TrajectoryManager.HasCompleteBoreholeRadii(trajectory.SurveyStationList)))
+            {
+                value.SeparationFactorResults = [];
+                UpdateState(value, GlobalAntiCollisionCalculationState.Failed, 0.0,
+                    "Borehole radius is unavailable for one or more survey stations; review the wellbore architecture.", true);
+                return;
+            }
+
             List<List<SurveyStation>> comparisonSurveyLists = comparisonTrajectories
                 .Select(trajectory => trajectory.SurveyStationList!)
                 .ToList();

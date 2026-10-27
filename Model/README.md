@@ -1,5 +1,11 @@
 # Model
 
+Target landing requires a positive finite borehole radius at the source endpoint.
+An unknown radius (including legacy zero) stops the calculation with an explanation
+and clears prior results. The endpoint radius is carried through the projected lead
+and landing path and used in its uncertainty ellipse. The calculation fingerprint
+includes source station radii.
+
 `Model` contains the main Trajectory domain model and trajectory calculation logic used by the service under `OSDC.Drilling.Trajectory.Model`.
 
 The model references SemanticCatalogue 0.16.0; the service's reviewed provider registry supplies bindings for inherited and generated types that cannot carry local attributes.

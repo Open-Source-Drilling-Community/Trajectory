@@ -1437,35 +1437,44 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
         public async Task<int> EnsureBoreholeRadiiAsync(Model.Trajectory? trajectory)
         {
-            if (trajectory == null || trajectory.WellBoreID == Guid.Empty || trajectory.SurveyStationList is not { Count: > 0 } stations)
+            int count = await PrepareBoreholeRadiiAsync(trajectory, APIUtils.GetWellBoreArchitectureByWellBoreIdAsync);
+            if (trajectory?.SurveyStationList is { Count: > 0 } stations && !HasCompleteBoreholeRadii(stations))
+                _logger.LogWarning("Borehole radius remains unavailable for one or more stations of trajectory {TrajectoryID}", trajectory.MetaInfo?.ID);
+            return count;
+        }
+
+        internal static async Task<int> PrepareBoreholeRadiiAsync(Model.Trajectory? trajectory,
+            Func<Guid, Task<WellBoreArchitecture?>> getArchitecture)
+        {
+            if (trajectory?.SurveyStationList is not { Count: > 0 } stations)
             {
                 return 0;
             }
 
+            NormalizeMissingBoreholeRadii(stations);
             bool hasMissingRadius = stations.Any(station =>
                 station.MD is double md &&
                 Numeric.IsDefined(md) &&
                 !IsDefinedBoreholeRadius(station.BoreholeRadius));
-            if (!hasMissingRadius)
+            if (!hasMissingRadius || trajectory.WellBoreID == Guid.Empty)
             {
                 return stations.Count(station => IsDefinedBoreholeRadius(station.BoreholeRadius));
             }
 
-            WellBoreArchitecture? wellBoreArchitecture = await APIUtils.GetWellBoreArchitectureByWellBoreIdAsync(trajectory.WellBoreID);
-            if (wellBoreArchitecture == null)
-            {
-                _logger.LogWarning("No WellBoreArchitecture found for WellBoreID {WellBoreID}", trajectory.WellBoreID);
-                return 0;
-            }
-
-            int filledCount = FillBoreholeRadiusFromArchitecture(trajectory, wellBoreArchitecture);
-            if (filledCount == 0)
-            {
-                _logger.LogWarning("No borehole radius interval matched Trajectory {TrajectoryID}", trajectory.MetaInfo?.ID);
-            }
-
-            return filledCount;
+            WellBoreArchitecture? wellBoreArchitecture = await getArchitecture(trajectory.WellBoreID);
+            if (wellBoreArchitecture != null)
+                FillBoreholeRadiusFromArchitecture(trajectory, wellBoreArchitecture);
+            return stations.Count(station => IsDefinedBoreholeRadius(station.BoreholeRadius));
         }
+
+        internal static void NormalizeMissingBoreholeRadii(IEnumerable<SurveyStation> stations)
+        {
+            foreach (SurveyStation station in stations)
+                if (!IsDefinedBoreholeRadius(station.BoreholeRadius)) station.BoreholeRadius = null;
+        }
+
+        internal static bool HasCompleteBoreholeRadii(IEnumerable<SurveyStation>? stations) =>
+            stations != null && stations.Any() && stations.All(station => IsDefinedBoreholeRadius(station.BoreholeRadius));
 
         public static int FillBoreholeRadiusFromArchitecture(Model.Trajectory trajectory, WellBoreArchitecture architecture)
         {
@@ -1474,6 +1483,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 return 0;
             }
 
+            NormalizeMissingBoreholeRadii(trajectory.SurveyStationList);
             List<BoreholeRadiusInterval> intervals = BuildBoreholeRadiusIntervals(architecture);
             if (intervals.Count == 0)
             {
@@ -1483,7 +1493,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             int filledCount = 0;
             foreach (SurveyStation station in trajectory.SurveyStationList)
             {
-                if (station.MD is not double md)
+                if (IsDefinedBoreholeRadius(station.BoreholeRadius) || station.MD is not double md || !double.IsFinite(md))
                 {
                     continue;
                 }
@@ -1502,7 +1512,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         private static bool IsDefinedBoreholeRadius(double? radius) =>
             radius is double definedRadius &&
             Numeric.IsDefined(definedRadius) &&
-            definedRadius >= 0;
+            definedRadius > 0 && double.IsFinite(definedRadius);
 
         private static List<BoreholeRadiusInterval> BuildBoreholeRadiusIntervals(WellBoreArchitecture architecture)
         {

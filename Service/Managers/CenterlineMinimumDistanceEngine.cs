@@ -196,8 +196,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
             SurveyStation referenceStation = InterpolateStation(referenceSegment.Data, closest.ReferenceParameter ?? 0.0);
             SurveyStation comparisonStation = InterpolateStation(closest.ComparisonSegment.Data, closest.ComparisonParameter ?? 0.0);
-            double referenceRadius = accountForBoreholeRadius ? referenceStation.BoreholeRadius ?? 0.0 : 0.0;
-            double comparisonRadius = accountForBoreholeRadius ? comparisonStation.BoreholeRadius ?? 0.0 : 0.0;
+            double? referenceRadius = accountForBoreholeRadius ? DefinedRadius(referenceStation.BoreholeRadius) : 0.0;
+            double? comparisonRadius = accountForBoreholeRadius ? DefinedRadius(comparisonStation.BoreholeRadius) : 0.0;
 
             return new CenterlineMinimumDistanceResult
             {
@@ -404,6 +404,18 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             if (SurveyStation.InterpolateAtAbscissa(referenceStations, md, out SurveyStation? station, TrajectoryCalculationType.MinimumCurvatureMethod) &&
                 station != null)
             {
+                station.BoreholeRadius = null;
+                for (int i = 1; i < referenceStations.Count; i++)
+                {
+                    double startMd = GetMD(referenceStations[i - 1]);
+                    double endMd = GetMD(referenceStations[i]);
+                    if (md >= startMd && md <= endMd && endMd > startMd)
+                    {
+                        station.BoreholeRadius = InterpolateRadius(referenceStations[i - 1].BoreholeRadius,
+                            referenceStations[i].BoreholeRadius, (md - startMd) / (endMd - startMd));
+                        break;
+                    }
+                }
                 return station;
             }
 
@@ -421,7 +433,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                         TVD = Interpolate(referenceStations[i - 1].TVD, referenceStations[i].TVD, ratio),
                         RiemannianNorth = Interpolate(referenceStations[i - 1].RiemannianNorth, referenceStations[i].RiemannianNorth, ratio),
                         RiemannianEast = Interpolate(referenceStations[i - 1].RiemannianEast, referenceStations[i].RiemannianEast, ratio),
-                        BoreholeRadius = Interpolate(referenceStations[i - 1].BoreholeRadius, referenceStations[i].BoreholeRadius, ratio)
+                        BoreholeRadius = InterpolateRadius(referenceStations[i - 1].BoreholeRadius, referenceStations[i].BoreholeRadius, ratio)
                     };
                 }
             }
@@ -507,7 +519,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             double md = segment.StartMD + ratio * (segment.EndMD - segment.StartMD);
             if (SurveyStation.InterpolateAtAbscissa([segment.Start, segment.End], md, out SurveyStation? station, TrajectoryCalculationType.MinimumCurvatureMethod) && station != null)
             {
-                station.BoreholeRadius = Interpolate(segment.Start.BoreholeRadius, segment.End.BoreholeRadius, ratio);
+                station.BoreholeRadius = InterpolateRadius(segment.Start.BoreholeRadius, segment.End.BoreholeRadius, ratio);
                 return station;
             }
 
@@ -518,7 +530,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 TVD = Interpolate(segment.Start.TVD, segment.End.TVD, ratio),
                 RiemannianNorth = Interpolate(segment.Start.RiemannianNorth, segment.End.RiemannianNorth, ratio),
                 RiemannianEast = Interpolate(segment.Start.RiemannianEast, segment.End.RiemannianEast, ratio),
-                BoreholeRadius = Interpolate(segment.Start.BoreholeRadius, segment.End.BoreholeRadius, ratio)
+                BoreholeRadius = InterpolateRadius(segment.Start.BoreholeRadius, segment.End.BoreholeRadius, ratio)
             };
         }
 
@@ -546,6 +558,14 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         private static double GetMD(SurveyStation station) => station.MD ?? station.Abscissa ?? double.NaN;
         private static double? Interpolate(double? start, double? end, double ratio) =>
             start.HasValue && end.HasValue ? start.Value + ratio * (end.Value - start.Value) : start ?? end;
+        private static double? DefinedRadius(double? radius) => IsDefinedPositive(radius) ? radius : null;
+        private static double? InterpolateRadius(double? start, double? end, double ratio)
+        {
+            start = DefinedRadius(start); end = DefinedRadius(end);
+            if (ratio <= 0) return start;
+            if (ratio >= 1) return end;
+            return start.HasValue && end.HasValue ? start.Value + ratio * (end.Value - start.Value) : null;
+        }
         private static bool IsDefinedPositive(double? value) => value is { } defined && IsDefined(defined) && defined > 0.0;
         private static bool IsDefined(double? value) => value is { } defined && IsDefined(defined);
         private static bool IsDefined(double value) => !double.IsNaN(value) && !double.IsInfinity(value);

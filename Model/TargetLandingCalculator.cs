@@ -16,7 +16,7 @@ public static class TargetLandingCalculator
 {
     internal const int MaximumAdaptiveDepth = 4;
     internal const int EllipsePointCount = 72;
-    internal const int CalculationAlgorithmVersion = 16;
+    internal const int CalculationAlgorithmVersion = 17;
     internal const double BoundaryPositionTolerance = 0.25;
     internal const double PositionTolerance = 0.05;
     internal const double SamplingInterval = 10.0;
@@ -47,6 +47,11 @@ public static class TargetLandingCalculator
         if (errors.Count > 0) return Fail(value, string.Join(" ", errors));
         if (!TrajectoryExtrapolationCalculator.TryGetOrderedCompleteStations(source, out List<SurveyStation> sourceStations))
             return Fail(value, "The source trajectory has no complete calculated station list.");
+        if (sourceStations[^1].BoreholeRadius is not double radius || !Finite(radius) || radius <= 0)
+        {
+            ClearResults(value);
+            return Fail(value, "The source trajectory's final borehole radius is missing or invalid; provide a positive hole size before calculating target landing.");
+        }
         if (!TryCreateFrame(value.Target, out PlaneFrame frame, out string? frameError))
             return Fail(value, frameError ?? "The target plane is invalid.");
 
@@ -69,6 +74,7 @@ public static class TargetLandingCalculator
         if (!TryApplyLead(sourceStations, source.CalculationType, sourceEnd, value.LeadLength,
                 out SurveyStation steeringStart, out List<SurveyStation> leadStations))
             return Fail(value, "The final source trend could not be continued through the requested lead length.");
+        foreach (SurveyStation station in leadStations) station.BoreholeRadius = sourceEnd.BoreholeRadius;
         TrajectoryExtrapolationCalculator.ContinueSourceUncertainty(leadStations, sourceEnd, sourceStations);
         steeringStart = new SurveyStation(leadStations[^1]);
         value.LeadSurveyStationList = leadStations.Select(station => new SurveyStation(station)).ToList();
@@ -167,7 +173,7 @@ public static class TargetLandingCalculator
         var input = new
         {
             SourceRevision = source.LastModificationDate,
-            Stations = source.SurveyStationList?.Select(x => new { x.MD, x.Inclination, x.Azimuth, x.RiemannianNorth, x.RiemannianEast, x.TVD }),
+            Stations = source.SurveyStationList?.Select(x => new { x.MD, x.Inclination, x.Azimuth, x.RiemannianNorth, x.RiemannianEast, x.TVD, x.BoreholeRadius }),
             value.TargetType,
             value.CurveType,
             value.AttitudeMode,
@@ -267,6 +273,7 @@ public static class TargetLandingCalculator
             TrajectoryExtrapolationCalculator.AddSamples(stations, section, startMd, endMd, SamplingInterval);
         }
         foreach (SurveyStation station in stations.Skip(1)) uncertaintyStations.Add(new SurveyStation(station));
+        foreach (SurveyStation station in uncertaintyStations) station.BoreholeRadius = sourceEnd.BoreholeRadius;
         TrajectoryExtrapolationCalculator.ContinueSourceUncertainty(uncertaintyStations, sourceEnd, sourceHistory);
 
         int leadStationCount = uncertaintyStations.Count - stations.Count + 1;
@@ -552,7 +559,8 @@ public static class TargetLandingCalculator
         out SurveyStationEllipse ellipse)
     {
         ellipse = new SurveyStationEllipse();
-        if (station.Covariance is not { } covariance) return false;
+        if (station.Covariance is not { } covariance || station.BoreholeRadius is not double boreholeRadius ||
+            !Finite(boreholeRadius) || boreholeRadius <= 0) return false;
         double[,] c = new double[3, 3];
         for (int row = 0; row < 3; row++)
         for (int column = 0; column < 3; column++)
@@ -570,7 +578,6 @@ public static class TargetLandingCalculator
         double minorVariance = Math.Max(0.0, 0.5 * (trace - root));
         double angle = 0.5 * Math.Atan2(2.0 * b, a - d);
         double scale = Math.Sqrt(Statistics.GetChiSquare3D(confidence));
-        double boreholeRadius = station.BoreholeRadius ?? 0.0;
         ellipse.SemiMajorAxis = scale * Math.Sqrt(majorVariance) + boreholeRadius;
         ellipse.SemiMinorAxis = scale * Math.Sqrt(minorVariance) + boreholeRadius;
         ellipse.OrientationAngle = NormalizeAngle(angle);
@@ -950,6 +957,22 @@ public static class TargetLandingCalculator
         return result;
     }
     private static bool Finite(double value) => !double.IsNaN(value) && !double.IsInfinity(value);
+    private static void ClearResults(TargetLandingCase value)
+    {
+        value.SourceEndStation = null;
+        value.LeadSurveyStationList = null;
+        value.SteeringStartStation = null;
+        value.GeologicalTargetBoundary = null;
+        value.DrillerTargetBoundary = null;
+        value.ReachableTargetBoundary = null;
+        value.DrillerTargetContourList = null;
+        value.ReachableTargetContourList = null;
+        value.SampleList = null;
+        value.MeshTriangleList = null;
+        value.SourceTrajectoryRevision = null;
+        value.CalculationFingerprint = null;
+        value.IsStale = true;
+    }
     private static bool Fail(TargetLandingCase value, string message)
     {
         value.CalculationState = CalculationState.Failed;

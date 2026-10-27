@@ -150,6 +150,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
         private static bool UpsertChunk(SqliteConnection connection, SqliteTransaction transaction, SurveyStationChunk chunk)
         {
+            if (chunk.SurveyStationList != null)
+                TrajectoryManager.NormalizeMissingBoreholeRadii(chunk.SurveyStationList);
             string chunkId = $"{chunk.OwnerType}:{chunk.OwnerID:N}:{chunk.ChunkIndex:D10}";
             string data = JsonSerializer.Serialize(chunk, JsonSettings.Options);
             SqliteCommand command = connection.CreateCommand();

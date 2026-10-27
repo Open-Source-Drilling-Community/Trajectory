@@ -384,6 +384,15 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     return;
                 }
 
+                if (calculation.AccountForBoreholeRadius &&
+                    (!TrajectoryManager.HasCompleteBoreholeRadii(referenceStations) ||
+                     comparisonSources.Any(source => !TrajectoryManager.HasCompleteBoreholeRadii(source.StationList))))
+                {
+                    UpdateCalculationState(id, CalculationState.Failed, 0.0, "Borehole radius is unavailable for one or more stations; clearance is unresolved");
+                    DeleteResultChunks(id);
+                    return;
+                }
+
                 DateTimeOffset lastProgressUpdate = DateTimeOffset.UtcNow;
                 List<CenterlineMinimumDistanceResult> engineResults = CenterlineMinimumDistanceEngine.Calculate(
                     referenceStations,

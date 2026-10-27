@@ -1,5 +1,15 @@
 # Trajectory Service
 
+Calculated survey-station chunks store missing borehole radii as null. Trajectory
+preparation also treats legacy zero radii as missing, fills them from a covering
+wellbore-architecture interval, and preserves already defined positive radii.
+If architecture coverage is unavailable, the radius remains null. Global
+anti-collision and radius-aware minimum-distance jobs fail explicitly when any
+required station radius is unresolved; center-only minimum-distance jobs may run
+without radius accounting. This prevents a partial clearance minimum from being
+reported as complete. Existing stored records are not migrated by this behavior;
+see `../BOREHOLE-RADIUS-DATA-AUDIT-2026-10-27.md`.
+
 `Service` is the ASP.NET Core microservice for Trajectory. Its code namespace root is `OSDC.Drilling.Trajectory.Service`.
 
 `TrajectoryProviderSemantics` is the single provider binding source used to add structured SemanticCatalogue 0.23.0 metadata to both Swagger/OpenAPI and MCP schemas. MCP input roots publish generic resource operations, stateless evaluations and calculation lifecycle roles; calculation-state enum values identify queued, running, completed, failed and cancelled states. Typed correlation identifiers join lifecycle operations. Reference/comparison resource roles link candidate-search output to downstream calculation inputs, curve calculations expose minimum/junction/maximum curvature characteristics, and policy states and classifications use closed semantic value concepts.

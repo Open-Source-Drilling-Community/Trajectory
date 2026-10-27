@@ -9,6 +9,27 @@ namespace OSDC.Drilling.Trajectory.ModelTest;
 
 public sealed class TargetLandingCalculatorTests
 {
+    [TestCase(null)]
+    [TestCase(0.0)]
+    [TestCase(-0.1)]
+    [TestCase(double.NaN)]
+    public void MissingOrInvalidEndpointRadiusStopsBeforeSamplingAndClearsPreviousResults(double? radius)
+    {
+        var source = Source();
+        source.SurveyStationList![^1].BoreholeRadius = radius;
+        var value = Case();
+        value.SampleList = [new TargetLandingSample { State = TargetLandingSampleState.Reachable }];
+        value.CalculationFingerprint = "previous";
+        int progress = 0;
+        Assert.That(TargetLandingCalculator.Calculate(value, source, (_, _) => progress++), Is.False);
+        Assert.That(value.CalculationState, Is.EqualTo(CalculationState.Failed));
+        Assert.That(value.CalculationMessage, Does.Contain("borehole radius").And.Contain("hole size"));
+        Assert.That(value.SampleList, Is.Null);
+        Assert.That(value.CalculationFingerprint, Is.Null);
+        Assert.That(value.IsStale, Is.True);
+        Assert.That(progress, Is.Zero);
+    }
+
     [Test]
     public void DefaultsMatchAgreedLandingInputs()
     {
@@ -28,7 +49,7 @@ public sealed class TargetLandingCalculatorTests
         {
             Assert.That(TargetLandingCalculator.MaximumAdaptiveDepth, Is.EqualTo(4));
             Assert.That(TargetLandingCalculator.BoundaryPositionTolerance, Is.EqualTo(0.25));
-            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(16));
+            Assert.That(TargetLandingCalculator.CalculationAlgorithmVersion, Is.EqualTo(17));
             Assert.That(TargetLandingCalculator.MinimumConstantToolfaceInclination,
                 Is.EqualTo(3.0 * Math.PI / 180.0).Within(1e-15));
         });
@@ -196,6 +217,36 @@ public sealed class TargetLandingCalculatorTests
             Assert.That(value.SampleList!.Where(sample => sample.SolvedSectionList is { Count: > 0 })
                 .All(sample => sample.CurvatureCharacteristics is not null), Is.True);
         });
+    }
+
+    [Test]
+    public void EndpointRadiusIsCarriedToLeadAndLandingAndAffectsFingerprintAndEllipse()
+    {
+        var source = Source();
+        var endpoint = source.SurveyStationList![^1];
+        endpoint.BoreholeRadius = 0.2;
+        var covariance = new SymmetricMatrix3x3();
+        for (int row = 0; row < 3; row++)
+            for (int column = 0; column < 3; column++) covariance[row, column] = row == column ? 0.01 : 0;
+        endpoint.Covariance = covariance;
+        var value = Case();
+        value.LeadLength = 5;
+        value.MaximumLandingCurvature = null;
+        string before = TargetLandingCalculator.ComputeFingerprint(value, source);
+        Assert.That(TargetLandingCalculator.Calculate(value, source), Is.True, value.CalculationMessage);
+        Assert.That(value.LeadSurveyStationList!.All(s => s.BoreholeRadius == 0.2), Is.True);
+        var samples = value.SampleList!.Where(s => s.LandingEllipseInTargetPlane != null).ToArray();
+        Assert.That(samples, Is.Not.Empty);
+        Assert.That(samples.All(s => s.SurveyStationList!.All(station => station.BoreholeRadius == 0.2)), Is.True);
+        var firstEllipse = samples[0].LandingEllipseInTargetPlane!;
+        Assert.That(firstEllipse.SemiMajorAxis, Is.GreaterThan(0.2));
+        double firstMajor = firstEllipse.SemiMajorAxis!.Value;
+        double firstX = samples[0].PlaneX, firstY = samples[0].PlaneY;
+        endpoint.BoreholeRadius = 0.3;
+        Assert.That(TargetLandingCalculator.ComputeFingerprint(value, source), Is.Not.EqualTo(before));
+        Assert.That(TargetLandingCalculator.Calculate(value, source), Is.True, value.CalculationMessage);
+        var matching = value.SampleList!.Single(s => s.PlaneX == firstX && s.PlaneY == firstY);
+        Assert.That(matching.LandingEllipseInTargetPlane!.SemiMajorAxis, Is.EqualTo(firstMajor + 0.1).Within(1e-9));
     }
 
     [TestCase(ExtrapolationCurveType.CircularArc)]
@@ -460,6 +511,7 @@ public sealed class TargetLandingCalculatorTests
                     RiemannianNorth = 6534963.59450052,
                     RiemannianEast = 328719.40509292,
                     TVD = 974.754488870058,
+                    BoreholeRadius = 0.1,
                     Curvature = 0.00246785292641435,
                     Toolface = -0.202012736161278,
                     BUR = 0.0024176685547328,
@@ -546,8 +598,8 @@ public sealed class TargetLandingCalculatorTests
         CalculationType = TrajectoryCalculationType.MinimumCurvatureMethod,
         SurveyStationList =
         [
-            new SurveyStation { MD = 0.0, Inclination = Math.PI / 2.0, Azimuth = 0.0, RiemannianNorth = -10.0, RiemannianEast = 0.0, TVD = 1000.0 },
-            new SurveyStation { MD = 10.0, Inclination = Math.PI / 2.0, Azimuth = 0.0, RiemannianNorth = 0.0, RiemannianEast = 0.0, TVD = 1000.0 }
+            new SurveyStation { MD = 0.0, Inclination = Math.PI / 2.0, Azimuth = 0.0, RiemannianNorth = -10.0, RiemannianEast = 0.0, TVD = 1000.0, BoreholeRadius = 0.1 },
+            new SurveyStation { MD = 10.0, Inclination = Math.PI / 2.0, Azimuth = 0.0, RiemannianNorth = 0.0, RiemannianEast = 0.0, TVD = 1000.0, BoreholeRadius = 0.1 }
         ]
     };
 
@@ -558,7 +610,8 @@ public sealed class TargetLandingCalculatorTests
         Azimuth = azimuth,
         RiemannianNorth = north,
         RiemannianEast = east,
-        TVD = tvd
+        TVD = tvd,
+        BoreholeRadius = 0.1
     };
 
     private static bool HasSelfIntersection(IReadOnlyList<TargetPlanePoint> polygon)
