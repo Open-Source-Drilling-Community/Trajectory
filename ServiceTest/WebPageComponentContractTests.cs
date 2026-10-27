@@ -428,6 +428,30 @@ public sealed class WebPageComponentContractTests
     }
 
     [Test]
+    public void Trajectory_input_paths_do_not_submit_generated_tie_in_placeholders()
+    {
+        string repositoryRoot = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,
+            "..", "..", "..", ".."));
+        string editor = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "TrajectoryEdit.razor"));
+        string batchImport = File.ReadAllText(Path.Combine(repositoryRoot, "WebPages", "SurveyRunBatchImport.razor"));
+        string save = GetMethodSource(editor,
+            "private async Task SaveTrajectory()", "private async Task RefreshTrajectoryAfterCalculationAsync");
+        string initialize = GetMethodSource(editor,
+            "private async Task InitializeTrajectoryAsync(Trajectory traj)", "private void ManageUnits()");
+        string applyBatchImport = GetMethodSource(batchImport,
+            "private static void ApplySurveyRunToTrajectory", "private static double? GetWellheadMd");
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(save, Does.Contain("currentTrajectory.TieInPoint = null!;")
+                .And.Contain("PostTrajectoryAsync(currentTrajectory)")
+                .And.Contain("PutTrajectoryByIdAsync(trajectoryId, expectedModifiedUtc, currentTrajectory)"));
+            Assert.That(initialize, Does.Contain("traj.TieInPoint = null!;"));
+            Assert.That(applyBatchImport, Does.Contain("trajectory.TieInPoint = null!;"));
+        });
+    }
+
+    [Test]
     public void Trajectory_extrapolation_source_uses_the_searchable_resource_hierarchy()
     {
         string path = Path.GetFullPath(Path.Combine(TestContext.CurrentContext.TestDirectory,

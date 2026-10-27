@@ -568,6 +568,9 @@
             {
                 ApplySelectedContext();
                 NormalizeSurveyRunSections();
+                // The service derives the trajectory tie-in point from the selected wellbore and
+                // survey runs. Do not round-trip a generated or stale result-shaped placeholder.
+                currentTrajectory.TieInPoint = null!;
                 if (trajectoryIdBeingEdited is Guid trajectoryId)
                 {
                     DateTimeOffset expectedModifiedUtc = ConcurrencyToken.Require(currentTrajectory.LastModificationDate);
@@ -1932,6 +1935,7 @@
                 traj.MDStep = 10.0;
             traj.SurveyRunSectionList = new List<TrajectorySurveyRunSection>();
             traj.SurveyStationList = new List<SurveyStation>();
+            traj.TieInPoint = null!;
         }
         catch (Exception ex)
         {

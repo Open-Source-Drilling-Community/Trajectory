@@ -1480,6 +1480,7 @@ else
         trajectory.CalculationType = TrajectoryCalculationType.MinimumCurvatureMethod;
         trajectory.MDStep = EstimateMdStep(surveyStations);
         trajectory.SurveyStationList = null;
+        trajectory.TieInPoint = null!;
         trajectory.SurveyRunSectionList =
         [
             new TrajectorySurveyRunSection
