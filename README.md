@@ -215,3 +215,5 @@ relative to WGS84; slot latitude/longitude still define its horizontal position.
 If no architecture wellhead depth is available, the cluster reference depth is retained
 for older resources. Sidetrack tie-ins continue to use the parent trajectory. Existing
 trajectories need recalculation to update their starting station; reads do not migrate data.
+
+Stored-trajectory uncertainty ellipse reconstruction restores trajectory-owned tie-in stations after source survey-run replay, preserving saved geometry when the source run begins at a different depth.

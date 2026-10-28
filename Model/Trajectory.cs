@@ -69,7 +69,24 @@ namespace OSDC.Drilling.Trajectory.Model
                 System.Console.WriteLine("not enough survey stations");
                 return false;
             }
-            if (TieInPoint is not null && TieInPoint.Abscissa is not null)
+            ApplyTieInPoint();
+            if (!SurveyPoint.CompleteSurvey(SurveyStationList, CalculationType))
+            {
+                System.Console.WriteLine("incomplete survey");
+                return false;
+            }
+            if (!Numeric.IsDefined(MDStep) || !Numeric.GT(MDStep, 0))
+            {
+                System.Console.WriteLine("invalid measured depth step");
+                return false;
+            }
+            return true;
+        }
+
+        /// <summary>Apply the trajectory tie-in to materialized source stations without recalculating geometry.</summary>
+        public void ApplyTieInPoint()
+        {
+            if (SurveyStationList is not null && TieInPoint is not null && TieInPoint.Abscissa is not null)
             {
                 // remove the survey stations that are above the tie in point
                 List<SurveyStation> updatedList = new List<SurveyStation>();
@@ -95,17 +112,6 @@ namespace OSDC.Drilling.Trajectory.Model
                 }
                 SurveyStationList = updatedList;
             }
-            if (!SurveyPoint.CompleteSurvey(SurveyStationList, CalculationType))
-            {
-                System.Console.WriteLine("incomplete survey");
-                return false;
-            }
-            if (!Numeric.IsDefined(MDStep) || !Numeric.GT(MDStep, 0))
-            {
-                System.Console.WriteLine("invalid measured depth step");
-                return false;
-            }
-            return true;
         }
 
         private static SurveyStation CreateTieInStation(SurveyStation tieInPoint, SurveyStation? matchingStation = null)

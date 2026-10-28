@@ -14,9 +14,10 @@ namespace ServiceTest;
 [TestFixture, NonParallelizable]
 public sealed class StoredTrajectoryEllipseTests
 {
-    [TestCase(false)]
-    [TestCase(true)]
-    public async Task Stored_geometry_is_retained_only_when_authoritative_survey_attitudes_match(bool mismatch)
+    [TestCase(false, false)]
+    [TestCase(true, false)]
+    [TestCase(false, true)]
+    public async Task Stored_geometry_is_retained_only_when_authoritative_survey_attitudes_match(bool mismatch, bool separateTieIn)
     {
         string directory = Path.Combine(Path.GetTempPath(), $"StoredEllipse_{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
@@ -77,6 +78,14 @@ public sealed class StoredTrajectoryEllipseTests
                 MetaInfo = new MetaInfo { ID = runId }, WellBoreID = wellBoreId,
                 SurveyInstrumentID = Guid.NewGuid(), SurveyStationList = geometry.Select(station => new SurveyStation(station)).ToList()
             };
+            if (separateTieIn)
+            {
+                geometry.Add(Station(90, .35));
+                run.SurveyStationList.Add(Station(90, .35));
+                geometry[0].Inclination = 0;
+                geometry[0].Azimuth = 0;
+                run.SurveyStationList[0] = Station(-.76, 0);
+            }
             if (mismatch) run.SurveyStationList[1].Inclination = .4;
             var trajectory = new OSDC.Drilling.Trajectory.Model.Trajectory
             {
@@ -84,6 +93,7 @@ public sealed class StoredTrajectoryEllipseTests
                 CalculationState = CalculationState.Completed, SurveyStationList = geometry,
                 SurveyRunSectionList = [new() { SurveyRunID = runId, StartAbscissa = 0 }],
                 // Geometry is already complete; ellipse reads must not require a new geometry calculation.
+                TieInPoint = separateTieIn ? new SurveyStation(geometry[0]) : null,
                 MDStep = 0
             };
             using (var connection = database.GetConnection()!)
@@ -109,7 +119,7 @@ public sealed class StoredTrajectoryEllipseTests
             else
             {
                 Assert.That(result, Is.Not.Null, request.CalculationMessage);
-                Assert.That(result!.SurveyStationEllipseResultList, Has.Count.EqualTo(3));
+                Assert.That(result!.SurveyStationEllipseResultList, Has.Count.EqualTo(geometry.Count));
                 Assert.That(result.SurveyStationEllipseResultList![2].HorizontalEllipse, Is.Not.Null);
                 Assert.That(result.SurveyStationList![2].X, Is.EqualTo(geometry[2].X));
                 Assert.That(result.SurveyStationList[2].TVD, Is.EqualTo(geometry[2].TVD));

@@ -947,8 +947,24 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
 
             List<SurveyStation> retainedGeometry = calculatedStations.Select(CloneSurveyStation).ToList();
-            if (!await MaterializeSurveyRunSectionsAsync(trajectory, recalculateSurveyRunUncertainty: true) ||
-                trajectory.SurveyStationList is not { } replayedUncertainty ||
+            if (!await MaterializeSurveyRunSectionsAsync(trajectory, recalculateSurveyRunUncertainty: true))
+            {
+                return null;
+            }
+
+            // Geometry completion inserts a trajectory-owned tie-in that may not occur in
+            // the selected SurveyRun section. Replay that same step with fresh uncertainty.
+            if (trajectory.TieInPoint != null)
+            {
+                var (reference, wellBore, _) = await APIUtils.GetReferencePointAsync(trajectory);
+                if (reference == null || wellBore == null ||
+                    await GetTieInPointCoordinatesAsync(reference, wellBore, true, [id]) is not { } tieIn)
+                    return null;
+                trajectory.TieInPoint = NormalizeSidetrackTieInPointAbscissa(trajectory, wellBore, tieIn);
+                trajectory.ApplyTieInPoint();
+            }
+
+            if (trajectory.SurveyStationList is not { } replayedUncertainty ||
                 !TryApplyRecalculatedUncertainty(retainedGeometry, replayedUncertainty))
             {
                 return null;
