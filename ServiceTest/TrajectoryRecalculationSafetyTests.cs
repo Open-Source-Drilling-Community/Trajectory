@@ -16,6 +16,16 @@ namespace ServiceTest;
 [TestFixture, NonParallelizable]
 public sealed class TrajectoryRecalculationSafetyTests
 {
+    [TestCase(-90.56, -90.56)]
+    [TestCase(null, -91.2)]
+    public void Wellhead_depth_prefers_architecture_over_cluster(double? architectureDepth, double expected)
+    {
+        double depth = APIUtils.ResolveWellheadDepth(-91.2, architectureDepth);
+        var point = APIUtils.CreateWellheadReferencePoint(1, .1, depth, 1e-8, 1e-8);
+        Assert.That(point.MD, Is.EqualTo(expected));
+        Assert.That(point.TVD, Is.EqualTo(expected));
+    }
+
     [Test]
     public void Wellhead_conversion_populates_geometry_and_nonzero_SI_covariance()
     {

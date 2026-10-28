@@ -112,7 +112,9 @@ public static class APIUtils
                             (cluster.ReferencePoint?.TVD ?? cluster.ReferencePoint?.Z) is { } refTVD)
                         {
                             msg = "cluster, slot, and wellbore successfully retrieved";
-                            SurveyStation surveyPoint = CreateWellheadReferencePoint(refLat, refLon, refTVD, refLatStd, refLonStd);
+                            WellBoreArchitecture? architecture = await GetWellBoreArchitectureByWellBoreIdAsync(wellBoreId);
+                            double wellheadDepth = ResolveWellheadDepth(refTVD, architecture?.WellHead?.Depth?.GaussianValue?.Mean);
+                            SurveyStation surveyPoint = CreateWellheadReferencePoint(refLat, refLon, wellheadDepth, refLatStd, refLonStd);
                             return (surveyPoint, wellBore, msg);
                         }
                         else
@@ -166,6 +168,14 @@ public static class APIUtils
         {
             return null;
         }
+    }
+
+    // Older resources may not have an architecture; retain their existing cluster reference.
+    internal static double ResolveWellheadDepth(double clusterDepth, double? architectureDepth)
+    {
+        double depth = architectureDepth ?? clusterDepth;
+        if (!double.IsFinite(depth)) throw new ArgumentOutOfRangeException(nameof(architectureDepth));
+        return depth;
     }
 
     internal static SurveyStation CreateWellheadReferencePoint(double latitude, double longitude, double tvd,

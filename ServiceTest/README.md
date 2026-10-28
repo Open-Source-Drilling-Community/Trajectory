@@ -120,3 +120,9 @@ Contract checks cover removed heavy routes/tools, bounded pagination and strict 
 `TrajectoryRecalculationSafetyTests` covers explicit geographic-to-Riemannian wellhead conversion, horizontal covariance against WGS84 scale factors, invalid inputs, main-wellbore and sidetrack calculation with/without uncertainty replay, preservation of chunked and inline geometry on calculation/save failure, atomic successful replacement, and a failed first calculation without fabricated results.
 
 Lossless-matrix tests cover native/generated-client round trips, legacy unavailable entries, malformed/asymmetric payload rejection and independent reference covariance. Repair tests cover dry-run immutability, application idempotence and atomic rollback on a station-write failure. SurveyRun regression cases retain both inline and chunk-only geometry when saving a recalculation fails.
+
+Wellhead reference depth is taken from the linked wellbore architecture in SI metres
+relative to WGS84; slot latitude/longitude still define its horizontal position.
+If no architecture wellhead depth is available, the cluster reference depth is retained
+for older resources. Sidetrack tie-ins continue to use the parent trajectory. Existing
+trajectories need recalculation to update their starting station; reads do not migrate data.

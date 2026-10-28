@@ -209,3 +209,9 @@ Pages contain `Items`, `Offset`, `Limit`, `TotalCount`, and `NextOffset`; `NextO
 Single-record reads, result/chunk reads, and deliberate backup/export/restore operations are preserved. Backups can still contain complete resources and should be treated as explicit bulk operations.
 
 This is a breaking REST/MCP contract change: update generated clients, UIs, and external integrations together with the service release. Removed heavy-list names are not compatibility aliases. No persisted engineering shapes, database names, or storage volumes are changed. Historical usage counters are retained; bounded discovery has a separate additive `DiscoveryRequestsPerDay` history in resource services.
+
+Wellhead reference depth is taken from the linked wellbore architecture in SI metres
+relative to WGS84; slot latitude/longitude still define its horizontal position.
+If no architecture wellhead depth is available, the cluster reference depth is retained
+for older resources. Sidetrack tie-ins continue to use the parent trajectory. Existing
+trajectories need recalculation to update their starting station; reads do not migrate data.

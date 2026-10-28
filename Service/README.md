@@ -256,3 +256,9 @@ SurveyRun queueing, measurement commit, calculation failure and save failure ret
 The administrative `--repair-covariance true --repair-database /home/Trajectory.db --repair-audit /home/.deployment-backups/<verified-snapshot>` mode exits without starting HTTP or hosted workers. Add `--repair-apply true` only after a dry run and a rehearsal against an independent in-cluster copy. Stop all other writers first. Apply verifies the independent Trajectory snapshot SHA256. Each run pins and revalidates external instrument/wellhead dependencies, patches only covariance/bias/eigensystems, compares retained geometry and observations, and commits the complete eligible set atomically. Failed/incomplete resources are left unchanged; an unreconstructable Completed resource aborts the operation. Read-back must match the approved candidates. Repetition with the same inputs is a no-op.
 
 Keep both dependency-complete JSON exports and independent SQLite/PVC snapshots in-cluster. Rebuild the separately stored octree before reopening traffic; changed source revisions make revision-aware derived results stale. Retain historical ellipse and engineering results as dated snapshots. The repair does not move coordinates, extend truncated trajectories, rewrite measured observations or automatically modify AWE.
+
+Wellhead reference depth is taken from the linked wellbore architecture in SI metres
+relative to WGS84; slot latitude/longitude still define its horizontal position.
+If no architecture wellhead depth is available, the cluster reference depth is retained
+for older resources. Sidetrack tie-ins continue to use the parent trajectory. Existing
+trajectories need recalculation to update their starting station; reads do not migrate data.
