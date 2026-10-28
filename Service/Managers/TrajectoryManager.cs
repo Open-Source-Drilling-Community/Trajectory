@@ -952,6 +952,15 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 return null;
             }
 
+            // Existing trajectories can retain an older wellhead depth. When their source
+            // already matches, refresh uncertainty without applying today's geometry reference.
+            if (trajectory.SurveyStationList is { } sourceStations &&
+                TryApplyRecalculatedUncertainty(retainedGeometry, sourceStations))
+            {
+                trajectory.SurveyStationList = retainedGeometry;
+                return trajectory;
+            }
+
             // Geometry completion inserts a trajectory-owned tie-in that may not occur in
             // the selected SurveyRun section. Replay that same step with fresh uncertainty.
             if (trajectory.TieInPoint != null)
@@ -1001,6 +1010,13 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     return false;
                 }
 
+            }
+
+            // Validate every station before modifying any retained uncertainty.
+            for (int index = 0; index < calculatedStations.Count; index++)
+            {
+                SurveyStation calculated = calculatedStations[index];
+                SurveyStation replayed = replayedStations[index];
                 calculated.Covariance = replayed.Covariance;
                 calculated.Bias = replayed.Bias;
                 calculated.EigenValues = replayed.EigenValues;

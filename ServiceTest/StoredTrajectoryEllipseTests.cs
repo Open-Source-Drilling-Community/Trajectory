@@ -14,10 +14,12 @@ namespace ServiceTest;
 [TestFixture, NonParallelizable]
 public sealed class StoredTrajectoryEllipseTests
 {
-    [TestCase(false, false)]
-    [TestCase(true, false)]
-    [TestCase(false, true)]
-    public async Task Stored_geometry_is_retained_only_when_authoritative_survey_attitudes_match(bool mismatch, bool separateTieIn)
+    [TestCase(false, false, false)]
+    [TestCase(true, false, false)]
+    [TestCase(false, true, false)]
+    [TestCase(false, false, true)]
+    [TestCase(true, false, true)]
+    public async Task Stored_geometry_is_retained_only_when_authoritative_survey_attitudes_match(bool mismatch, bool separateTieIn, bool legacyTieIn)
     {
         string directory = Path.Combine(Path.GetTempPath(), $"StoredEllipse_{Guid.NewGuid():N}");
         Directory.CreateDirectory(directory);
@@ -78,6 +80,12 @@ public sealed class StoredTrajectoryEllipseTests
                 MetaInfo = new MetaInfo { ID = runId }, WellBoreID = wellBoreId,
                 SurveyInstrumentID = Guid.NewGuid(), SurveyStationList = geometry.Select(station => new SurveyStation(station)).ToList()
             };
+            if (legacyTieIn)
+            {
+                geometry[0] = Station(-.76, 0);
+                geometry[0].Azimuth = 0;
+                run.SurveyStationList[0] = new SurveyStation(geometry[0]);
+            }
             if (separateTieIn)
             {
                 geometry.Add(Station(90, .35));
@@ -91,9 +99,9 @@ public sealed class StoredTrajectoryEllipseTests
             {
                 MetaInfo = new MetaInfo { ID = trajectoryId }, WellBoreID = wellBoreId,
                 CalculationState = CalculationState.Completed, SurveyStationList = geometry,
-                SurveyRunSectionList = [new() { SurveyRunID = runId, StartAbscissa = 0 }],
+                SurveyRunSectionList = [new() { SurveyRunID = runId, StartAbscissa = legacyTieIn ? -.76 : 0 }],
                 // Geometry is already complete; ellipse reads must not require a new geometry calculation.
-                TieInPoint = separateTieIn ? new SurveyStation(geometry[0]) : null,
+                TieInPoint = separateTieIn || legacyTieIn ? new SurveyStation(geometry[0]) : null,
                 MDStep = 0
             };
             using (var connection = database.GetConnection()!)

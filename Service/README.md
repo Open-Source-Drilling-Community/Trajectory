@@ -264,3 +264,5 @@ for older resources. Sidetrack tie-ins continue to use the parent trajectory. Ex
 trajectories need recalculation to update their starting station; reads do not migrate data.
 
 Uncertainty ellipse reconstruction reapplies the trajectory tie-in after replaying source survey-run sections, including when its depth differs from the source run tie-in. Saved geometry remains frozen and station attitudes must still match.
+
+Uncertainty reconstruction first validates the saved geometry against replayed source stations. A matching source retains its historical tie-in depth even when the current architecture wellhead depth has changed. Only a missing trajectory-owned tie-in is reconstructed; source attitude mismatches still fail closed, and uncertainty is copied only after every station validates. Regression coverage includes historical and offset tie-ins.
