@@ -219,3 +219,7 @@ trajectories need recalculation to update their starting station; reads do not m
 Stored-trajectory uncertainty ellipse reconstruction restores trajectory-owned tie-in stations after source survey-run replay, preserving saved geometry when the source run begins at a different depth.
 
 Uncertainty reconstruction first validates the saved geometry against replayed source stations. A matching source retains its historical tie-in depth even when the current architecture wellhead depth has changed. Only a missing trajectory-owned tie-in is reconstructed; source attitude mismatches still fail closed, and uncertainty is copied only after every station validates. Regression coverage includes historical and offset tie-ins.
+
+## Position reference initialization
+
+Trajectory and Survey Run convert slot and cluster latitude/longitude (SI radians) through Point3DGlobalCoordinates to obtain WGS84 Riemannian north/east origins. SurveyPoint deliberately keeps these coordinate representations independent and must not be used for this conversion. Well-head, cluster, Field, WGS84 and cartographic presentation share the selected reference in tables and 2D/3D plots; stored coordinates remain SI WGS84. Refreshing reference sources preserves a valid Field selection while its origin is resolved. Cartographic offsets are resolved through the Field conversion service.

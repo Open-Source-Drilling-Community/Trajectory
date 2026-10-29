@@ -27,6 +27,7 @@
   </ItemGroup>
 
   <ItemGroup>
+    <ProjectReference Include="..\WebPages\WebPages.csproj" Aliases="WebPagesAlias" />
     <ProjectReference Include="..\ModelSharedOut\ModelSharedOut.csproj">
       <Aliases>ModelSharedOutAlias</Aliases>
     </ProjectReference>

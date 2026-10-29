@@ -38,7 +38,8 @@ public static class DataUtils
         DataUtils.WellHeadPositionReferenceSource.WellHeadEastPositionReference = 0;
         DataUtils.CartographicGridPositionReferenceSource.CartographicGridNorthPositionReference = null;
         DataUtils.CartographicGridPositionReferenceSource.CartographicGridEastPositionReference = null;
-        ApplyFieldPositionReference(null);
+        FieldPositionReferenceSource.FieldNorthPositionReference = null;
+        FieldPositionReferenceSource.FieldEastPositionReference = null;
         DataUtils.ClusterPositionReferenceSource.ClusterNorthPositionReference = 0;
         DataUtils.ClusterPositionReferenceSource.ClusterEastPositionReference = 0;
         TrajectoryLight? trajectory = null;
@@ -148,7 +149,8 @@ public static class DataUtils
                 slot.Latitude != null && slot.Latitude.GaussianValue != null && slot.Latitude.GaussianValue.Mean != null &&
                 slot.Longitude != null && slot.Longitude.GaussianValue != null && slot.Longitude.GaussianValue.Mean != null)
             {
-                OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint surveyPoint = new ();
+                // SurveyPoint keeps geodetic and Riemannian coordinates independent; use the converting point type.
+                OSDC.DotnetLibraries.General.Math.Point3DGlobalCoordinates surveyPoint = new ();
                 surveyPoint.Latitude = slot.Latitude.GaussianValue.Mean;
                 surveyPoint.Longitude = slot.Longitude.GaussianValue.Mean;
                 if (surveyPoint.RiemannianNorth != null && surveyPoint.RiemannianEast != null)
@@ -161,7 +163,8 @@ public static class DataUtils
                 cluster.ReferencePoint?.Latitude != null &&
                 cluster.ReferencePoint?.Longitude != null)
             {
-                OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint surveyPoint = new ();
+                // SurveyPoint keeps geodetic and Riemannian coordinates independent; use the converting point type.
+                OSDC.DotnetLibraries.General.Math.Point3DGlobalCoordinates surveyPoint = new ();
                 surveyPoint.Latitude = cluster.ReferencePoint.Latitude;
                 surveyPoint.Longitude = cluster.ReferencePoint.Longitude;
                 if (surveyPoint.RiemannianNorth != null && surveyPoint.RiemannianEast != null)

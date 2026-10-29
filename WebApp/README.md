@@ -159,3 +159,7 @@ Package releases with a new major version use the bounded light discovery contra
 The Cluster, Well and WellBore trajectory/SurveyRun views use WebPages 2.0.2, which submits each complete plot frame in one update, including all ellipses.
 
 Earth Vertical Datum WebPages 1.1.6 includes the Geoid Model read-only grid-resolution rendering fix.
+
+## Position reference initialization
+
+Trajectory and Survey Run convert slot and cluster latitude/longitude (SI radians) through Point3DGlobalCoordinates to obtain WGS84 Riemannian north/east origins. SurveyPoint deliberately keeps these coordinate representations independent and must not be used for this conversion. Well-head, cluster, Field, WGS84 and cartographic presentation share the selected reference in tables and 2D/3D plots; stored coordinates remain SI WGS84. Refreshing reference sources preserves a valid Field selection while its origin is resolved. Cartographic offsets are resolved through the Field conversion service.

@@ -237,3 +237,7 @@ On nuget.org, the package owner must configure a trusted-publishing policy for `
 ## Package release 2.0.1
 
 Requires OSDC.UnitConversion.DrillingRazorMudComponents 3.4.9 so embedded unit selectors consume bounded UnitSystem discovery pages. Rebuild consuming WebApps after upgrading this package.
+
+## Position reference initialization
+
+Trajectory and Survey Run convert slot and cluster latitude/longitude (SI radians) through Point3DGlobalCoordinates to obtain WGS84 Riemannian north/east origins. SurveyPoint deliberately keeps these coordinate representations independent and must not be used for this conversion. Well-head, cluster, Field, WGS84 and cartographic presentation share the selected reference in tables and 2D/3D plots; stored coordinates remain SI WGS84. Refreshing reference sources preserves a valid Field selection while its origin is resolved. Cartographic offsets are resolved through the Field conversion service.

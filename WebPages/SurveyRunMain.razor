@@ -2138,7 +2138,8 @@
         DataUtils.RotaryTableDepthReferenceSource.RotaryTableDepthReference = 0;
         DataUtils.WellHeadPositionReferenceSource.WellHeadNorthPositionReference = 0;
         DataUtils.WellHeadPositionReferenceSource.WellHeadEastPositionReference = 0;
-        DataUtils.ApplyFieldPositionReference(null);
+        DataUtils.FieldPositionReferenceSource.FieldNorthPositionReference = null;
+        DataUtils.FieldPositionReferenceSource.FieldEastPositionReference = null;
         DataUtils.ClusterPositionReferenceSource.ClusterNorthPositionReference = 0;
         DataUtils.ClusterPositionReferenceSource.ClusterEastPositionReference = 0;
 
@@ -2204,7 +2205,7 @@
         if (slot?.Latitude?.GaussianValue?.Mean is { } latitude &&
             slot.Longitude?.GaussianValue?.Mean is { } longitude)
         {
-            OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint surveyPoint = new()
+            OSDC.DotnetLibraries.General.Math.Point3DGlobalCoordinates surveyPoint = new()
             {
                 Latitude = latitude,
                 Longitude = longitude
@@ -2225,7 +2226,7 @@
             return;
         }
 
-        OSDC.DotnetLibraries.Drilling.Surveying.SurveyPoint surveyPoint = new()
+        OSDC.DotnetLibraries.General.Math.Point3DGlobalCoordinates surveyPoint = new()
         {
             Latitude = latitude,
             Longitude = longitude
