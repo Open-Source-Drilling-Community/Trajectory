@@ -241,3 +241,5 @@ Requires OSDC.UnitConversion.DrillingRazorMudComponents 3.4.9 so embedded unit s
 ## Position reference initialization
 
 Trajectory and Survey Run convert slot and cluster latitude/longitude (SI radians) through Point3DGlobalCoordinates to obtain WGS84 Riemannian north/east origins. SurveyPoint deliberately keeps these coordinate representations independent and must not be used for this conversion. Well-head, cluster, Field, WGS84 and cartographic presentation share the selected reference in tables and 2D/3D plots; stored coordinates remain SI WGS84. Refreshing reference sources preserves a valid Field selection while its origin is resolved. Cartographic offsets are resolved through the Field conversion service.
+
+Resource hierarchy selectors show every matching choice in their scrollable dropdowns, including reference and comparison selectors on the trajectory-distance page. Typing filters names case-insensitively; parent selections still constrain child lists.

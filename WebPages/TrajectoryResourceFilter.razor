@@ -2,19 +2,19 @@
     <MudItem xs="12" sm="6" md="@ColumnWidth">
         <MudAutocomplete Label="Field" T="Guid?" Value="@FieldId" ValueChanged="OnFieldChangedAsync"
                          SearchFunc="SearchFieldsAsync" ToStringFunc="GetFieldName"
-                         Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                         Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" MaxItems="@((int?)null)" ShrinkLabel
                          Disabled="@Disabled" />
     </MudItem>
     <MudItem xs="12" sm="6" md="@ColumnWidth">
         <MudAutocomplete Label="Cluster" T="Guid?" Value="@ClusterId" ValueChanged="OnClusterChangedAsync"
                          SearchFunc="SearchClustersAsync" ToStringFunc="GetClusterName"
-                         Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                         Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" MaxItems="@((int?)null)" ShrinkLabel
                          Disabled="@(Disabled || FieldId == null)" />
     </MudItem>
     <MudItem xs="12" sm="6" md="@ColumnWidth">
         <MudAutocomplete Label="Well" T="Guid?" Value="@WellId" ValueChanged="OnWellChangedAsync"
                          SearchFunc="SearchWellsAsync" ToStringFunc="GetWellName"
-                         Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                         Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" MaxItems="@((int?)null)" ShrinkLabel
                          Disabled="@(Disabled || FieldId == null)" />
     </MudItem>
     @if (ShowWellBore)
@@ -22,7 +22,7 @@
         <MudItem xs="12" sm="6" md="@ColumnWidth">
             <MudAutocomplete Label="WellBore" T="Guid?" Value="@WellBoreId" ValueChanged="OnWellBoreChangedAsync"
                              SearchFunc="SearchWellBoresAsync" ToStringFunc="GetWellBoreName"
-                             Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                             Clearable="true" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" MaxItems="@((int?)null)" ShrinkLabel
                              Disabled="@(Disabled || WellId == null)" />
         </MudItem>
     }
@@ -31,7 +31,7 @@
         <MudItem xs="12" sm="6" md="@ResourceColumnWidth">
             <MudAutocomplete Label="@ResourceLabel" T="Guid?" Value="@ResourceId" ValueChanged="OnResourceChangedAsync"
                              SearchFunc="SearchResourcesAsync" ToStringFunc="GetResourceName"
-                             Clearable="@(!ResourceRequired)" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" ShrinkLabel
+                             Clearable="@(!ResourceRequired)" ResetValueOnEmptyText="true" CoerceText="false" MinCharacters="0" MaxItems="@((int?)null)" ShrinkLabel
                              Required="@ResourceRequired" Disabled="@(Disabled || WellBoreId == null)" />
         </MudItem>
     }
