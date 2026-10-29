@@ -573,9 +573,11 @@ public sealed class WebPageComponentContractTests
             Assert.That(main, Does.Contain("WellHeadPositionReferenceSource=\"@DataUtils.WellHeadPositionReferenceSource\""));
             Assert.That(main, Does.Contain("GridConvergenceSource=\"@DataUtils.GridConvergenceSource\""));
             Assert.That(main, Does.Contain("MagneticDeclinationSource=\"@DataUtils.MagneticDeclinationSource\""));
-            Assert.That(editor, Does.Not.Contain("<MudInputWithUnit "),
-                "The extrapolation editor must not mix title-unit and value-adornment input components.");
-            Assert.That(Regex.Matches(editor, "<MudInputWithUnitAdornment(?=\\s|>)").Count, Is.GreaterThan(20));
+            string constraints = editor[editor.IndexOf("Well-path constraints", StringComparison.Ordinal)..editor.IndexOf("Calculated well path", StringComparison.Ordinal)];
+            Assert.That(Regex.Matches(constraints, "<MudInputWithUnit(?=\\s|>)").Count, Is.EqualTo(12));
+            Assert.That(constraints, Does.Not.Contain("MudInputWithUnitAdornment").And.Not.Contain("QuantityLabel="),
+                "Constraint cells omit labels and units because their column headers supply both.");
+            Assert.That(Regex.Matches(editor, "<MudInputWithUnitAdornment(?=\\s|>)").Count, Is.GreaterThan(8));
             Assert.That(editor, Does.Contain("<MudInputWithUnitAdornment QuantityLabel=\"Target TVD\" QuantityName=\"DepthDrilling\" DrillingSignalReference=\"DrillingSignalReferenceType.Depth\""));
             Assert.That(editor, Does.Contain("<MudInputWithUnitAdornment QuantityLabel=\"End azimuth\" QuantityName=\"PlaneAngleDrilling\" DrillingSignalReference=\"DrillingSignalReferenceType.Azimuth\""));
             Assert.That(editor, Does.Contain("<MudInputWithUnitAdornment QuantityLabel=\"Departure bearing\" QuantityName=\"PlaneAngleDrilling\" DrillingSignalReference=\"DrillingSignalReferenceType.Azimuth\""));
