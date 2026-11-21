@@ -8,7 +8,7 @@ This project stores upstream OpenAPI schema files and generates C# classes from 
 
 It supports the distributed shared model approach for dependencies that the Trajectory model consumes from other services.
 
-The generated contracts supply the ownership hierarchy and tie-in context, survey-instrument error models, and gravity/magnetic reference evaluations used by SurveyRun correction, trajectory composition, uncertainty propagation, target landing, directional-control evaluation, and anti-collision evidence. Trajectory-owned DTOs are not defined here.
+The generated contracts supply the ownership hierarchy and tie-in context, survey-instrument error models, and gravity/magnetic reference evaluations used by SurveyRun correction, trajectory composition, uncertainty propagation, target landing, directional-control evaluation, and anti-collision evidence. Survey-instrument error-source DTOs contain the declarative wire contract only; executable weighting delegates remain package-owned runtime behavior. Trajectory-owned DTOs are not defined here.
 
 ## Dependencies
 

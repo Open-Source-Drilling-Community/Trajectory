@@ -635,7 +635,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             return surveyRun;
         }
 
-        private static OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument ConvertSurveyInstrument(OSDC.Drilling.Trajectory.ModelShared.SurveyInstrument surveyInstrument)
+        internal static OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument ConvertSurveyInstrument(OSDC.Drilling.Trajectory.ModelShared.SurveyInstrument surveyInstrument)
         {
             string data = JsonSerializer.Serialize(surveyInstrument, JsonSettings.Options);
             return JsonSerializer.Deserialize<OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument>(data, JsonSettings.Options)
