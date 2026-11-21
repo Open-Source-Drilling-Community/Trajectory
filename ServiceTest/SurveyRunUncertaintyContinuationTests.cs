@@ -45,7 +45,7 @@ public sealed class SurveyRunUncertaintyContinuationTests
     }
 
     [Test]
-    public void Iscwsa_child_run_continues_parent_error_accumulators_across_local_md_restart()
+    public void Iscwsa_child_run_applies_multi_leg_correlation_across_local_md_restart()
     {
         SurveyInstrument instrument = CreateIscwsaInstrument();
         List<SurveyStation> parent =
@@ -65,7 +65,11 @@ public sealed class SurveyRunUncertaintyContinuationTests
         expectedChildEnd.MD = 90.0;
         expectedChildEnd.Abscissa = 90.0;
         expectedReplay.Add(expectedChildEnd);
-        Assert.That(CovarianceCalculatorISCWSA.Calculate(expectedReplay), Is.True);
+        Assert.That(CovarianceCalculatorISCWSA.CalculateMultiLeg(expectedReplay,
+        [
+            new(0, 2, instrument),
+            new(3, 3, instrument)
+        ]), Is.True);
         parent[^1].Covariance = DiagonalCovariance(999.0);
 
         Assert.That(SurveyRunManager.ContinueIscwsaFromParentHistory(parent, child, instrument), Is.True);
@@ -78,6 +82,40 @@ public sealed class SurveyRunUncertaintyContinuationTests
             Assert.That(parentTieInTrace, Is.Not.EqualTo(2997.0),
                 "The endpoint covariance must be recomputed from the ISCWSA history, not copied as sufficient state.");
             Assert.That(child[0].MD, Is.EqualTo(0.0), "The child run keeps its local sidetrack MD coordinate.");
+        });
+    }
+
+    [Test]
+    public void Iscwsa_gyro_parent_hands_over_to_mwd_child_with_different_error_sources()
+    {
+        SurveyInstrument gyro = CreateIscwsaInstrument();
+        gyro.ModelType = SurveyInstrumentModelType.Gyro_ISCWSA;
+        gyro.ErrorSourceList = gyro.ErrorSourceList!
+            .Where(source => source.ErrorCode is not ErrorCode.DSFS and not ErrorCode.MBXY_TI1)
+            .ToList();
+        SurveyInstrument mwd = CreateIscwsaInstrument();
+        mwd.ModelType = SurveyInstrumentModelType.MWD_ISCWSA;
+        List<SurveyStation> parent =
+        [
+            Station(0.0, 0.20, 0.30, 0.0, 0.0, 0.0, gyro),
+            Station(30.0, 0.25, 0.32, 29.0, 5.0, 2.0, gyro),
+            Station(60.0, 0.30, 0.34, 57.0, 12.0, 4.0, gyro)
+        ];
+        List<SurveyStation> child =
+        [
+            Station(455.0, 0.30, 0.34, 57.0, 12.0, 4.0, mwd),
+            Station(485.0, 0.35, 0.36, 85.0, 20.0, 6.0, mwd),
+            Station(515.0, 0.40, 0.38, 112.0, 30.0, 8.0, mwd)
+        ];
+
+        Assert.That(SurveyRunManager.ContinueIscwsaFromParentHistory(parent, child, mwd), Is.True);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(child, Is.All.Matches<SurveyStation>(station => station.Covariance != null));
+            Assert.That(Trace(child[0].Covariance!), Is.EqualTo(Trace(parent[2].Covariance!)).Within(1e-12));
+            Assert.That(Trace(child[^1].Covariance!), Is.GreaterThan(Trace(child[0].Covariance!)));
+            Assert.That(child[0].MD, Is.EqualTo(455.0));
         });
     }
 

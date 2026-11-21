@@ -578,7 +578,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.MWD_ISCWSA or
                     OSDC.Drilling.Trajectory.ModelShared.SurveyInstrumentModelType.Gyro_ISCWSA =>
                         surveyRun.ParentSurveyRunID is Guid parentId && parentId != Guid.Empty
-                            ? await CalculateWithParentPropagationHistoryAsync(surveyRun, uncertaintyStations, surveyTool)
+                            ? await CalculateIscwsaWithParentLegsAsync(surveyRun, uncertaintyStations, surveyTool)
                             : CovarianceCalculatorISCWSA.Calculate(uncertaintyStations),
 
                     _ => false
@@ -710,7 +710,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 ? [surveyRunId]
                 : [];
             List<SurveyStation>? parentHistory = await BuildParentPropagationHistoryAsync(
-                surveyRun, visited, childTool.ModelType, surveyRun.SurveyInstrumentID);
+                surveyRun, visited, childTool.ModelType);
             if (parentHistory is not { Count: > 0 })
             {
                 _logger.LogWarning(
@@ -734,8 +734,87 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             List<SurveyStation> parentHistory,
             List<SurveyStation> childStations,
             OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument childTool)
-            => IsIscwsa(childTool.ModelType) &&
-               ContinueFromParentPropagationHistory(parentHistory, childStations, childTool);
+        {
+            OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument? parentTool = parentHistory
+                .Select(station => station.SurveyTool)
+                .LastOrDefault(tool => tool != null);
+            return IsIscwsa(childTool.ModelType) && parentTool != null && IsIscwsa(parentTool.ModelType) &&
+                ContinueIscwsaFromParentLegs(
+                    parentHistory,
+                    [new CovarianceCalculatorISCWSA.SurveyLeg(0, parentHistory.Count - 1, parentTool)],
+                    childStations,
+                    childTool);
+        }
+
+        private async Task<bool> CalculateIscwsaWithParentLegsAsync(
+            SurveyRun surveyRun,
+            List<SurveyStation> childStations,
+            OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument childTool)
+        {
+            HashSet<Guid> visited = surveyRun.MetaInfo?.ID is Guid surveyRunId && surveyRunId != Guid.Empty
+                ? [surveyRunId]
+                : [];
+            IscwsaPropagationHistory? parentHistory = await BuildIscwsaParentHistoryAsync(surveyRun, visited);
+            if (parentHistory is not { Stations.Count: > 0 })
+            {
+                _logger.LogWarning(
+                    "The ISCWSA parent survey-leg history for SurveyRun {SurveyRunId} could not be reconstructed",
+                    surveyRun.MetaInfo?.ID);
+                return false;
+            }
+
+            return ContinueIscwsaFromParentLegs(
+                parentHistory.Stations,
+                parentHistory.Legs,
+                childStations,
+                childTool);
+        }
+
+        private static bool ContinueIscwsaFromParentLegs(
+            List<SurveyStation> parentHistory,
+            List<CovarianceCalculatorISCWSA.SurveyLeg> parentLegs,
+            List<SurveyStation> childStations,
+            OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument childTool)
+        {
+            List<SurveyStation> orderedChild = childStations
+                .Where(station => (station.MD ?? station.Abscissa) is double md && Numeric.IsDefined(md))
+                .OrderBy(station => station.MD ?? station.Abscissa)
+                .ToList();
+            if (parentHistory.Count == 0 || parentLegs.Count == 0 || orderedChild.Count < 2 ||
+                (orderedChild[0].MD ?? orderedChild[0].Abscissa) is not double childStartMd ||
+                (parentHistory[^1].MD ?? parentHistory[^1].Abscissa) is not double parentEndMd)
+            {
+                return false;
+            }
+
+            List<SurveyStation> replay = parentHistory;
+            int parentEndIndex = replay.Count - 1;
+            int childLegStart = replay.Count;
+            for (int index = 1; index < orderedChild.Count; index++)
+            {
+                double childMd = (orderedChild[index].MD ?? orderedChild[index].Abscissa)!.Value;
+                SurveyStation copy = CloneSurveyStation(orderedChild[index]);
+                copy.MD = parentEndMd + childMd - childStartMd;
+                copy.Abscissa = copy.MD;
+                copy.SurveyTool = childTool;
+                ClearUncertainty(copy);
+                replay.Add(copy);
+            }
+
+            List<CovarianceCalculatorISCWSA.SurveyLeg> legs = [.. parentLegs];
+            legs.Add(new CovarianceCalculatorISCWSA.SurveyLeg(childLegStart, replay.Count - 1, childTool));
+            if (!CovarianceCalculatorISCWSA.CalculateMultiLeg(replay, legs))
+            {
+                return false;
+            }
+
+            CopyUncertainty(replay[parentEndIndex], orderedChild[0]);
+            for (int index = 1; index < orderedChild.Count; index++)
+            {
+                CopyUncertainty(replay[parentEndIndex + index], orderedChild[index]);
+            }
+            return true;
+        }
 
         private static bool ContinueFromParentPropagationHistory(
             List<SurveyStation> parentHistory,
@@ -790,8 +869,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
         private async Task<List<SurveyStation>?> BuildParentPropagationHistoryAsync(
             SurveyRun childSurveyRun,
             HashSet<Guid> visited,
-            SurveyInstrumentModelType modelType,
-            Guid surveyInstrumentId)
+            SurveyInstrumentModelType modelType)
         {
             if (childSurveyRun.ParentSurveyRunID is not Guid parentId || parentId == Guid.Empty || !visited.Add(parentId))
             {
@@ -806,33 +884,156 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
             double? parentTieInMd = await ResolveParentTieInMdForUncertaintyAsync(childSurveyRun, parentSurveyRun);
             return parentTieInMd is double tieInMd
-                ? await BuildPropagationHistoryAsync(parentSurveyRun, tieInMd, visited, modelType, surveyInstrumentId)
+                ? await BuildPropagationHistoryAsync(parentSurveyRun, tieInMd, visited, modelType)
                 : null;
+        }
+
+        private async Task<IscwsaPropagationHistory?> BuildIscwsaParentHistoryAsync(
+            SurveyRun childSurveyRun,
+            HashSet<Guid> visited)
+        {
+            if (childSurveyRun.ParentSurveyRunID is not Guid parentId || parentId == Guid.Empty || !visited.Add(parentId))
+            {
+                return null;
+            }
+
+            SurveyRun? parentSurveyRun = GetSurveyRunById(parentId);
+            if (parentSurveyRun?.SurveyStationList is not { Count: > 1 })
+            {
+                return null;
+            }
+
+            double? parentTieInMd = await ResolveParentTieInMdForUncertaintyAsync(childSurveyRun, parentSurveyRun);
+            return parentTieInMd is double tieInMd
+                ? await BuildIscwsaHistoryAsync(parentSurveyRun, tieInMd, visited)
+                : null;
+        }
+
+        private async Task<IscwsaPropagationHistory?> BuildIscwsaHistoryAsync(
+            SurveyRun surveyRun,
+            double cutoffMd,
+            HashSet<Guid> visited)
+        {
+            IscwsaPropagationHistory? ancestorHistory = null;
+            if (surveyRun.ParentSurveyRunID is Guid parentId && parentId != Guid.Empty)
+            {
+                ancestorHistory = await BuildIscwsaParentHistoryAsync(surveyRun, visited);
+                if (ancestorHistory is not { Stations.Count: > 0 })
+                {
+                    return null;
+                }
+            }
+
+            List<SurveyStation> available = surveyRun.SurveyStationList!
+                .Where(station => (station.MD ?? station.Abscissa) is double md && Numeric.IsDefined(md))
+                .OrderBy(station => station.MD ?? station.Abscissa)
+                .ToList();
+            if (surveyRun.BitExtrapolation != null && available.Count > 1)
+            {
+                available.RemoveAt(available.Count - 1);
+            }
+            if (available.Count < 2 ||
+                (available[0].MD ?? available[0].Abscissa) is not double firstMd ||
+                Numeric.LT(cutoffMd, firstMd))
+            {
+                return null;
+            }
+
+            List<SurveyStation> segment = available
+                .Where(station => Numeric.LE((station.MD ?? station.Abscissa)!.Value, cutoffMd))
+                .Select(CloneSurveyStation)
+                .ToList();
+            double lastAvailableMd = (available[^1].MD ?? available[^1].Abscissa)!.Value;
+            if (Numeric.GT(cutoffMd, lastAvailableMd))
+            {
+                const double maxTieInGap = 10.0;
+                if (Numeric.GT(cutoffMd - lastAvailableMd, maxTieInGap))
+                {
+                    return null;
+                }
+                SurveyStation extendedTieIn = CloneSurveyStation(available[^1]);
+                extendedTieIn.MD = cutoffMd;
+                extendedTieIn.Abscissa = cutoffMd;
+                segment.Add(extendedTieIn);
+            }
+            else if (Numeric.LT(cutoffMd, lastAvailableMd) &&
+                (segment.Count == 0 || !Numeric.EQ((segment[^1].MD ?? segment[^1].Abscissa)!.Value, cutoffMd)))
+            {
+                if (!SurveyStation.InterpolateAtAbscissa(available, cutoffMd, out SurveyStation? tieIn, surveyRun.CalculationType) ||
+                    tieIn == null)
+                {
+                    return null;
+                }
+                tieIn.MD = cutoffMd;
+                tieIn.Abscissa = cutoffMd;
+                segment.Add(tieIn);
+            }
+            if (segment.Count == 0)
+            {
+                return null;
+            }
+
+            OSDC.Drilling.Trajectory.ModelShared.SurveyInstrument? instrument;
+            try
+            {
+                instrument = await APIUtils.ClientSurveyInstrument.GetSurveyInstrumentByIdAsync(surveyRun.SurveyInstrumentID);
+            }
+            catch (Exception ex)
+            {
+                _logger.LogError(ex, "Impossible to retrieve the SurveyInstrument for parent SurveyRun {SurveyRunId}", surveyRun.MetaInfo?.ID);
+                return null;
+            }
+            OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument? runTool =
+                instrument == null ? null : ConvertSurveyInstrument(instrument);
+            if (runTool == null || !IsIscwsa(runTool.ModelType))
+            {
+                _logger.LogWarning("Parent SurveyRun {SurveyRunId} does not use an ISCWSA survey instrument", surveyRun.MetaInfo?.ID);
+                return null;
+            }
+            foreach (SurveyStation station in segment)
+            {
+                station.SurveyTool = runTool;
+                ClearUncertainty(station);
+            }
+
+            if (ancestorHistory is not { Stations.Count: > 0 })
+            {
+                return new IscwsaPropagationHistory(
+                    segment,
+                    [new CovarianceCalculatorISCWSA.SurveyLeg(0, segment.Count - 1, runTool)]);
+            }
+
+            double ancestorEndMd = (ancestorHistory.Stations[^1].MD ?? ancestorHistory.Stations[^1].Abscissa)!.Value;
+            double segmentStartMd = (segment[0].MD ?? segment[0].Abscissa)!.Value;
+            int legStart = ancestorHistory.Stations.Count;
+            foreach (SurveyStation station in segment.Skip(1))
+            {
+                double localMd = (station.MD ?? station.Abscissa)!.Value;
+                station.MD = ancestorEndMd + localMd - segmentStartMd;
+                station.Abscissa = station.MD;
+                ancestorHistory.Stations.Add(station);
+            }
+            if (legStart < ancestorHistory.Stations.Count)
+            {
+                ancestorHistory.Legs.Add(new CovarianceCalculatorISCWSA.SurveyLeg(
+                    legStart,
+                    ancestorHistory.Stations.Count - 1,
+                    runTool));
+            }
+            return ancestorHistory;
         }
 
         private async Task<List<SurveyStation>?> BuildPropagationHistoryAsync(
             SurveyRun surveyRun,
             double cutoffMd,
             HashSet<Guid> visited,
-            SurveyInstrumentModelType modelType,
-            Guid surveyInstrumentId)
+            SurveyInstrumentModelType modelType)
         {
-            // The ISCWSA calculator carries one accumulator per error source from the first
-            // station. Changing the instrument definition mid-history would make those indexes
-            // and correlation identities ambiguous, so fail closed rather than joining models.
-            if (IsIscwsa(modelType) && surveyRun.SurveyInstrumentID != surveyInstrumentId)
-            {
-                _logger.LogWarning(
-                    "Parent SurveyRun {SurveyRunId} uses a different ISCWSA survey instrument",
-                    surveyRun.MetaInfo?.ID);
-                return null;
-            }
-
             List<SurveyStation>? ancestorHistory = null;
             if (surveyRun.ParentSurveyRunID is Guid parentId && parentId != Guid.Empty)
             {
                 ancestorHistory = await BuildParentPropagationHistoryAsync(
-                    surveyRun, visited, modelType, surveyInstrumentId);
+                    surveyRun, visited, modelType);
                 if (ancestorHistory is not { Count: > 0 })
                 {
                     return null;
@@ -955,6 +1156,10 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
 
         private static bool IsIscwsa(SurveyInstrumentModelType modelType) =>
             modelType is SurveyInstrumentModelType.MWD_ISCWSA or SurveyInstrumentModelType.Gyro_ISCWSA;
+
+        private sealed record IscwsaPropagationHistory(
+            List<SurveyStation> Stations,
+            List<CovarianceCalculatorISCWSA.SurveyLeg> Legs);
 
         private async Task<double?> ResolveParentTieInMdForUncertaintyAsync(SurveyRun child, SurveyRun parent)
         {
