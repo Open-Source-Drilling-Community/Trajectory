@@ -48,7 +48,7 @@ It also requires explicit domain workflow guidance for interpolation, aggregatio
 
 `TrajectoryBatchServiceTests.cs` verifies dependency-closed trajectory export, parent survey-run inclusion, measurement and station chunk round trips, exact-UUID catalog matching by default, explicit opt-in normalized-name mapping, restore ordering, and all-or-nothing conflict behavior.
 
-`SurveyRunUncertaintyContinuationTests.cs` verifies that Wolff-de Wardt covariance propagation continues the parent transfer matrix into a tied child SurveyRun even when a sidetrack restarts its local measured depth at zero, and that resource-specific ellipse calculations replace stale covariance and interpolate authoritative covariance at requested display depths.
+`SurveyRunUncertaintyContinuationTests.cs` verifies Wolff-de Wardt and ISCWSA parent continuation, preservation of authoritative one-section lineage, explicit trajectory-level gyro/MWD legs, initialization of a synthetic tool-less tie-in, terminal bit uncertainty carry-forward including a one-measurement run, incompatible-family rejection, derived-octree failure isolation, and authoritative covariance replacement/interpolation for resource-specific ellipse calculations.
 
 `IscwsaGeneratedDtoRegressionTests.cs` passes the U7 geometry and its ISCWSA instrument through the generated SurveyInstrument dependency DTO and the service conversion. It verifies covariance calculation with the complete station list and after one or both leading pre-tie-in stations are removed.
 
@@ -58,7 +58,7 @@ It also requires explicit domain workflow guidance for interpolation, aggregatio
 
 `OctreePersistenceTests.cs` verifies the lossless version-1 to version-2 `GlobalAntiCollision.db` migration and its integrity-checked backup, atomic rollback of a failed replacement, exact and combined planned/actual/definitive overlap filtering, status/provenance/count reporting, classification changes, and complete indexed deletion of a trajectory's state and bucket memberships.
 
-`OctreeEnvelopeCoverageTests.cs` characterizes the spatial broad phase. It verifies detection of a crossing between longitudinal mesh samples, strict concentric containment, entry through an uncertainty-volume end, and continuous relevant-MD range coverage.
+`OctreeEnvelopeCoverageTests.cs` characterizes the spatial broad phase. It verifies detection of a crossing between longitudinal mesh samples, strict concentric containment, entry through an uncertainty-volume end, continuous relevant-MD range coverage, and index construction from prepared covariance when the synthetic first station has no original instrument.
 
 `OctreeCoverageBenchmarkTests.cs` is an explicit, read-only benchmark against the development Trajectory API. It compares the production one-cell-padded solid swept-AABB cover at depth 22 with the same representation at depths 20, 21, and 23 using fresh isolated SQLite databases. Every representation is compacted without crossing the database cache depth. It is excluded from normal CI runs. Run it deliberately with:
 

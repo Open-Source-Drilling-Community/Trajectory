@@ -56,6 +56,8 @@ namespace OSDC.Drilling.GlobalAntiCollision
             _comparisonMinimumMD = NormalizeMinimumMD(comparisonMinimumMD);
             _sharedReferenceCache = sharedReferenceCache;
             _meshSectorCount = meshSectorCount ?? PerpendicularEllipseEnvelopeBuilder.DefaultMeshSectorCount;
+            _referenceSurveyPrepared = PerpendicularEllipseEnvelopeBuilder.HasPreparedCovariance(_surveysRef);
+            _comparisonSurveyPrepared = PerpendicularEllipseEnvelopeBuilder.HasPreparedCovariance(_surveysCmp);
             ComparisonMeshLongitudinalLength = GetPairComparisonMeshLongitudinalLength(_surveysRef, _surveysCmp);
             if (ComparisonMeshLongitudinalLength.HasValue)
             {

@@ -150,7 +150,8 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     null,
                     targetPointSpacing,
                     out List<UncertaintyEllipse>? ellipses,
-                    out _);
+                    out _,
+                    surveyStationsPrepared: PerpendicularEllipseEnvelopeBuilder.HasPreparedCovariance(surveyList));
 
                 HashSet<OctreeCodeLong> leafCodes = new(OctreeCodeLongComparer.Instance);
                 if (ok && ellipses is { Count: > 1 })

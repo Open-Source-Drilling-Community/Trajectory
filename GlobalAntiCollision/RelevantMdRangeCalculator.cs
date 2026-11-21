@@ -173,7 +173,8 @@ namespace OSDC.Drilling.GlobalAntiCollision
                     MeshSectorCount,
                     null,
                     minimumDeltaMD.Value / SeparationFactorCalculations.MinNumberInterpolations,
-                    out ellipses);
+                    out ellipses,
+                    surveyStationsPrepared: PerpendicularEllipseEnvelopeBuilder.HasPreparedCovariance(surveyStations));
             }
 
             return PerpendicularEllipseEnvelopeBuilder.TryBuildMeshedEllipseList(
@@ -184,7 +185,8 @@ namespace OSDC.Drilling.GlobalAntiCollision
                 MeshSectorCount,
                 SeparationFactorCalculations.MinNumberInterpolations,
                 null,
-                out ellipses);
+                out ellipses,
+                surveyStationsPrepared: PerpendicularEllipseEnvelopeBuilder.HasPreparedCovariance(surveyStations));
         }
 
         private static MeasuredDepthRange? ClampRangeToSurvey(MeasuredDepthRange range, List<SurveyStation> surveyStations)

@@ -2,6 +2,7 @@ using OSDC.Drilling.Trajectory.Service.Managers;
 using OSDC.Drilling.Trajectory.Model;
 using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Math;
+using Microsoft.Extensions.Logging.Abstractions;
 
 namespace OSDC.Drilling.Trajectory.ServiceTest;
 
@@ -120,6 +121,172 @@ public sealed class SurveyRunUncertaintyContinuationTests
     }
 
     [Test]
+    public void Trajectory_sections_form_explicit_iscwsa_legs_and_initialize_a_synthetic_tie_in()
+    {
+        SurveyInstrument gyro = CreateIscwsaInstrument();
+        gyro.ModelType = SurveyInstrumentModelType.Gyro_ISCWSA;
+        gyro.ErrorSourceList = gyro.ErrorSourceList!
+            .Where(source => source.ErrorCode is not ErrorCode.DSFS and not ErrorCode.MBXY_TI1)
+            .ToList();
+        SurveyInstrument mwd = CreateIscwsaInstrument();
+        OSDC.Drilling.Trajectory.Model.Trajectory trajectory = new()
+        {
+            TieInPoint = Station(0.0, 0.20, 0.30, 0.0, 0.0, 0.0, null),
+            SurveyRunSectionList =
+            [
+                new() { SurveyRunID = Guid.NewGuid(), StartAbscissa = 10.0 },
+                new() { SurveyRunID = Guid.NewGuid(), StartAbscissa = 60.0 }
+            ],
+            SurveyStationList =
+            [
+                Station(0.0, 0.20, 0.30, 0.0, 0.0, 0.0, null),
+                Station(30.0, 0.25, 0.32, 29.0, 5.0, 2.0, gyro),
+                Station(60.0, 0.30, 0.34, 57.0, 12.0, 4.0, mwd),
+                Station(90.0, 0.35, 0.36, 85.0, 20.0, 6.0, mwd),
+                Station(120.0, 0.40, 0.38, 112.0, 30.0, 8.0, mwd)
+            ]
+        };
+
+        Assert.That(TrajectoryManager.TryCalculateComposedTrajectoryUncertainty(
+            trajectory, terminalBitExtrapolation: false, out string failure), Is.True, failure);
+        Assert.Multiple(() =>
+        {
+            Assert.That(trajectory.SurveyStationList![0].SurveyTool, Is.SameAs(gyro));
+            Assert.That(trajectory.SurveyStationList, Is.All.Matches<SurveyStation>(station => station.Covariance != null));
+            Assert.That(Trace(trajectory.SurveyStationList[^1].Covariance!),
+                Is.GreaterThan(Trace(trajectory.SurveyStationList[1].Covariance!)));
+        });
+    }
+
+    [Test]
+    public void Single_section_trajectory_preserves_authoritative_parent_lineage_covariance()
+    {
+        SurveyInstrument tool = CreateIscwsaInstrument();
+        OSDC.Drilling.Trajectory.Model.Trajectory trajectory = new()
+        {
+            SurveyRunSectionList = [new() { SurveyRunID = Guid.NewGuid(), StartAbscissa = 0.0 }],
+            SurveyStationList =
+            [
+                StationWithCovariance(0.0, 0.20, 0.30, 0.0, 0.0, 0.0, 7.0),
+                StationWithCovariance(30.0, 0.25, 0.32, 29.0, 5.0, 2.0, 8.0),
+                StationWithCovariance(60.0, 0.30, 0.34, 57.0, 12.0, 4.0, 9.0)
+            ]
+        };
+        trajectory.SurveyStationList[1].SurveyTool = tool;
+        trajectory.SurveyStationList[2].SurveyTool = tool;
+
+        Assert.That(TrajectoryManager.TryCalculateComposedTrajectoryUncertainty(
+            trajectory, terminalBitExtrapolation: false, out string failure), Is.True, failure);
+        Assert.Multiple(() =>
+        {
+            Assert.That(trajectory.SurveyStationList[0].SurveyTool, Is.SameAs(tool));
+            Assert.That(Trace(trajectory.SurveyStationList[0].Covariance!), Is.EqualTo(21.0));
+            Assert.That(Trace(trajectory.SurveyStationList[1].Covariance!), Is.EqualTo(24.0));
+            Assert.That(Trace(trajectory.SurveyStationList[2].Covariance!), Is.EqualTo(27.0));
+        });
+    }
+
+    [Test]
+    public void Trajectory_terminal_bit_extrapolation_carries_the_last_measured_uncertainty()
+    {
+        SurveyInstrument tool = CreateIscwsaInstrument();
+        OSDC.Drilling.Trajectory.Model.Trajectory trajectory = new()
+        {
+            SurveyRunSectionList = [new() { SurveyRunID = Guid.NewGuid(), StartAbscissa = 0.0 }],
+            SurveyStationList =
+            [
+                Station(0.0, 0.20, 0.30, 0.0, 0.0, 0.0, tool),
+                Station(30.0, 0.25, 0.32, 29.0, 5.0, 2.0, tool),
+                Station(60.0, 0.30, 0.34, 57.0, 12.0, 4.0, tool),
+                Station(74.0, 0.30, 0.34, 70.2, 15.3, 5.1, tool)
+            ]
+        };
+
+        Assert.That(TrajectoryManager.TryCalculateComposedTrajectoryUncertainty(
+            trajectory, terminalBitExtrapolation: true, out string failure), Is.True, failure);
+        Assert.That(Trace(trajectory.SurveyStationList![^1].Covariance!),
+            Is.EqualTo(Trace(trajectory.SurveyStationList[^2].Covariance!)).Within(1e-12));
+    }
+
+    [Test]
+    public void Trajectory_with_one_measurement_and_a_bit_endpoint_can_complete_uncertainty()
+    {
+        SurveyInstrument tool = CreateIscwsaInstrument();
+        OSDC.Drilling.Trajectory.Model.Trajectory trajectory = new()
+        {
+            SurveyRunSectionList = [new() { SurveyRunID = Guid.NewGuid(), StartAbscissa = 0.0 }],
+            SurveyStationList =
+            [
+                Station(0.0, 0.20, 0.30, 0.0, 0.0, 0.0, tool),
+                Station(14.0, 0.20, 0.30, 13.7, 2.6, 0.8, tool)
+            ]
+        };
+
+        Assert.That(TrajectoryManager.TryCalculateComposedTrajectoryUncertainty(
+            trajectory, terminalBitExtrapolation: true, out string failure), Is.True, failure);
+        Assert.That(Trace(trajectory.SurveyStationList![^1].Covariance!),
+            Is.EqualTo(Trace(trajectory.SurveyStationList[0].Covariance!)).Within(1e-12));
+    }
+
+    [Test]
+    public void Trajectory_rejects_mixed_uncertainty_model_families_with_a_specific_reason()
+    {
+        SurveyInstrument wolffDeWardt = new()
+        {
+            ModelType = SurveyInstrumentModelType.MWD_WolffDeWardt,
+            RelDepthError = 0.001,
+            Misalignment = 0.001
+        };
+        SurveyInstrument iscwsa = CreateIscwsaInstrument();
+        OSDC.Drilling.Trajectory.Model.Trajectory trajectory = new()
+        {
+            SurveyRunSectionList =
+            [
+                new() { SurveyRunID = Guid.NewGuid(), StartAbscissa = 0.0 },
+                new() { SurveyRunID = Guid.NewGuid(), StartAbscissa = 30.0 }
+            ],
+            SurveyStationList =
+            [
+                Station(0.0, 0.20, 0.30, 0.0, 0.0, 0.0, wolffDeWardt),
+                Station(30.0, 0.25, 0.32, 29.0, 5.0, 2.0, iscwsa),
+                Station(60.0, 0.30, 0.34, 57.0, 12.0, 4.0, iscwsa)
+            ]
+        };
+
+        Assert.That(TrajectoryManager.TryCalculateComposedTrajectoryUncertainty(
+            trajectory, terminalBitExtrapolation: false, out string failure), Is.False);
+        Assert.That(failure, Does.Contain("compatible survey-instrument leg sequence"));
+    }
+
+    [Test]
+    public void Derived_octree_exception_does_not_change_a_completed_trajectory()
+    {
+        Guid id = Guid.NewGuid();
+        bool deleted = false;
+        OSDC.Drilling.Trajectory.Model.Trajectory trajectory = new()
+        {
+            MetaInfo = new OSDC.DotnetLibraries.General.DataManagement.MetaInfo { ID = id },
+            CalculationState = CalculationState.Completed,
+            CalculationProgress = 1.0
+        };
+
+        bool rebuilt = TrajectoryManager.TryRefreshDerivedOctree(
+            trajectory,
+            id,
+            _ => throw new InvalidOperationException("synthetic octree failure"),
+            value => deleted = value == id,
+            NullLogger.Instance);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(rebuilt, Is.False);
+            Assert.That(deleted, Is.True);
+            Assert.That(trajectory.CalculationState, Is.EqualTo(CalculationState.Completed));
+            Assert.That(trajectory.CalculationProgress, Is.EqualTo(1.0));
+        });
+    }
+
+    [Test]
     public void Ellipse_request_replaces_stale_covariance_from_authoritative_trajectory()
     {
         SurveyInstrument instrument = new()
@@ -221,7 +388,7 @@ public sealed class SurveyRunUncertaintyContinuationTests
         double tvd,
         double north,
         double east,
-        SurveyInstrument instrument) => new()
+        SurveyInstrument? instrument) => new()
         {
             MD = md,
             Abscissa = md,
@@ -255,6 +422,13 @@ public sealed class SurveyRunUncertaintyContinuationTests
     private static SymmetricMatrix3x3 DiagonalCovariance(double value)
     {
         SymmetricMatrix3x3 covariance = new();
+        for (int row = 0; row < 3; row++)
+        {
+            for (int column = 0; column < 3; column++)
+            {
+                covariance[row, column] = 0.0;
+            }
+        }
         covariance[0, 0] = covariance[1, 1] = covariance[2, 2] = value;
         return covariance;
     }

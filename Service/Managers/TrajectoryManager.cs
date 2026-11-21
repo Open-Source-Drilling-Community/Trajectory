@@ -18,6 +18,7 @@ using System.Linq;
 using System.Reflection;
 using System.Text.Json;
 using System.Threading.Tasks;
+using SurveyInstrumentModelType = OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrumentModelType;
 
 namespace OSDC.Drilling.Trajectory.Service.Managers
 {
@@ -644,17 +645,54 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 else if (_octreeManager != null)
                 {
                     trajectory.SurveyStationList = calculatedStations;
-                    if (!_octreeManager.Rebuild(trajectory))
-                    {
-                        _octreeManager.Delete(trajectoryId);
-                        _logger.LogWarning("The trajectory was saved, but no valid uncertainty-envelope octree could be generated for {TrajectoryId}", trajectoryId);
-                    }
+                    TryRefreshDerivedOctree(
+                        trajectory,
+                        trajectoryId,
+                        _octreeManager.Rebuild,
+                        _octreeManager.Delete,
+                        _logger);
                 }
             }
             catch (Exception ex)
             {
                 _logger.LogError(ex, "Unexpected error during background Trajectory calculation");
                 UpdateTrajectoryCalculationState(trajectoryId, CalculationState.Failed, 0.0, "Trajectory calculation failed");
+            }
+        }
+
+        internal static bool TryRefreshDerivedOctree(
+            Model.Trajectory trajectory,
+            Guid trajectoryId,
+            Func<Model.Trajectory, bool> rebuild,
+            Func<Guid, bool> delete,
+            Microsoft.Extensions.Logging.ILogger logger)
+        {
+            try
+            {
+                if (rebuild(trajectory))
+                {
+                    return true;
+                }
+                delete(trajectoryId);
+                logger.LogWarning("The trajectory was saved, but no valid uncertainty-envelope octree could be generated for {TrajectoryId}", trajectoryId);
+                return false;
+            }
+            catch (Exception ex)
+            {
+                logger.LogError(ex,
+                    "The trajectory {TrajectoryId} was saved successfully, but its derived uncertainty-envelope octree could not be generated",
+                    trajectoryId);
+                try
+                {
+                    delete(trajectoryId);
+                }
+                catch (Exception cleanupException)
+                {
+                    logger.LogError(cleanupException,
+                        "The stale octree for trajectory {TrajectoryId} could not be removed after rebuild failure",
+                        trajectoryId);
+                }
+                return false;
             }
         }
 
@@ -955,6 +993,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             // Existing trajectories can retain an older wellhead depth. When their source
             // already matches, refresh uncertainty without applying today's geometry reference.
             if (trajectory.SurveyStationList is { } sourceStations &&
+                CalculateComposedTrajectoryUncertainty(trajectory, out _) &&
                 TryApplyRecalculatedUncertainty(retainedGeometry, sourceStations))
             {
                 trajectory.SurveyStationList = retainedGeometry;
@@ -974,6 +1013,7 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
             }
 
             if (trajectory.SurveyStationList is not { } replayedUncertainty ||
+                !CalculateComposedTrajectoryUncertainty(trajectory, out _) ||
                 !TryApplyRecalculatedUncertainty(retainedGeometry, replayedUncertainty))
             {
                 return null;
@@ -1082,6 +1122,14 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                     _logger.LogWarning("Impossible to calculate outputs for the given Trajectory");
                     return Failed("Geometry completion or measured-depth-step validation failed.");
                 }
+                if (!CalculateComposedTrajectoryUncertainty(trajectory, out string uncertaintyFailure))
+                {
+                    _logger.LogWarning(
+                        "Impossible to calculate composed survey-leg uncertainty for Trajectory {TrajectoryId}: {Reason}",
+                        trajectory.MetaInfo?.ID,
+                        uncertaintyFailure);
+                    return Failed(uncertaintyFailure);
+                }
 
                 await EnsureBoreholeRadiiAsync(trajectory);
 
@@ -1092,6 +1140,180 @@ namespace OSDC.Drilling.Trajectory.Service.Managers
                 _logger.LogError(ex, "Unexpected error during trajectory calculation");
                 return Failed("Unexpected calculation error; see service logs.");
             }
+        }
+
+        private bool CalculateComposedTrajectoryUncertainty(
+            Model.Trajectory trajectory,
+            out string failure)
+        {
+            bool terminalBitExtrapolation = false;
+            if (trajectory.SurveyRunSectionList is { Count: > 0 } sections &&
+                trajectory.SurveyStationList is { Count: > 0 } stations)
+            {
+                TrajectorySurveyRunSection lastSection = sections[^1];
+                Model.SurveyRun? lastRun = GetSurveyRunById(lastSection.SurveyRunID);
+                if (lastRun?.BitExtrapolation != null &&
+                lastRun.SurveyStationList is { Count: > 1 } sourceStations &&
+                (sourceStations[^1].MD ?? sourceStations[^1].Abscissa) is double sourceTerminalMd &&
+                (stations[^1].MD ?? stations[^1].Abscissa) is double trajectoryTerminalMd &&
+                Numeric.EQ(sourceTerminalMd, trajectoryTerminalMd))
+                {
+                    terminalBitExtrapolation = true;
+                }
+            }
+
+            return TryCalculateComposedTrajectoryUncertainty(trajectory, terminalBitExtrapolation, out failure);
+        }
+
+        internal static bool TryCalculateComposedTrajectoryUncertainty(
+            Model.Trajectory trajectory,
+            bool terminalBitExtrapolation,
+            out string failure)
+        {
+            failure = "Composed survey-leg uncertainty could not be calculated.";
+            if (trajectory.SurveyStationList is not { Count: > 0 } stations ||
+                trajectory.SurveyRunSectionList is not { Count: > 0 } sections)
+            {
+                return false;
+            }
+
+            // A single SurveyRun has already reconstructed its complete parent lineage. Preserve
+            // that authoritative result because endpoint covariance cannot recover ISCWSA source
+            // correlation or the Wolff-de Wardt transfer matrix. Multi-section trajectories must
+            // instead replay their selected instrument legs as one composed chain below.
+            if (sections.Count == 1 &&
+                OSDC.Drilling.GlobalAntiCollision.PerpendicularEllipseEnvelopeBuilder.HasPreparedCovariance(stations))
+            {
+                stations[0].SurveyTool ??= stations.Select(station => station.SurveyTool).FirstOrDefault(tool => tool != null);
+                if (terminalBitExtrapolation && stations.Count > 1)
+                {
+                    CopyUncertainty(stations[^2], stations[^1]);
+                }
+                return true;
+            }
+
+            SymmetricMatrix3x3? referenceCovariance = CloneCovariance(trajectory.TieInPoint?.Covariance);
+
+            List<SurveyStation> uncertaintyStations = terminalBitExtrapolation
+                ? stations.Take(stations.Count - 1).ToList()
+                : stations;
+            if (uncertaintyStations.Count == 0 ||
+                !TryBuildTrajectorySurveyLegs(uncertaintyStations, sections, out List<CovarianceCalculatorISCWSA.SurveyLeg> legs, out SurveyInstrumentModelType? modelType))
+            {
+                failure = "SurveyRun sections do not define a complete, compatible survey-instrument leg sequence.";
+                return false;
+            }
+
+            bool calculated = modelType switch
+            {
+                SurveyInstrumentModelType.MWD_ISCWSA or SurveyInstrumentModelType.Gyro_ISCWSA =>
+                    CovarianceCalculatorISCWSA.CalculateMultiLeg(uncertaintyStations, legs),
+                SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt =>
+                    CovarianceCalculatorWolffDeWardt.Calculate(uncertaintyStations),
+                _ => false
+            };
+            if (!calculated)
+            {
+                failure = $"The composed {modelType} survey-instrument leg sequence was rejected.";
+                return false;
+            }
+
+            if (referenceCovariance != null &&
+                !UncertaintyPropagation.AddIndependentReference(uncertaintyStations, referenceCovariance))
+            {
+                failure = "The trajectory reference-position covariance could not be combined with survey uncertainty.";
+                return false;
+            }
+
+            if (terminalBitExtrapolation)
+            {
+                CopyUncertainty(uncertaintyStations[^1], stations[^1]);
+            }
+            return true;
+        }
+
+        private static bool TryBuildTrajectorySurveyLegs(
+            List<SurveyStation> stations,
+            IReadOnlyList<TrajectorySurveyRunSection> sections,
+            out List<CovarianceCalculatorISCWSA.SurveyLeg> legs,
+            out SurveyInstrumentModelType? modelType)
+        {
+            legs = [];
+            modelType = null;
+            if (stations.Count == 0 || sections.Count == 0)
+            {
+                return false;
+            }
+
+            int nextSectionIndex = 1;
+            int legStart = 0;
+            for (int stationIndex = 0; stationIndex < stations.Count; stationIndex++)
+            {
+                if ((stations[stationIndex].MD ?? stations[stationIndex].Abscissa) is not double md)
+                {
+                    return false;
+                }
+
+                while (nextSectionIndex < sections.Count && Numeric.GE(md, sections[nextSectionIndex].StartAbscissa))
+                {
+                    if (stationIndex > legStart && !TryAddTrajectoryLeg(stations, legStart, stationIndex - 1, legs, ref modelType))
+                    {
+                        return false;
+                    }
+                    legStart = stationIndex;
+                    nextSectionIndex++;
+                }
+            }
+
+            return TryAddTrajectoryLeg(stations, legStart, stations.Count - 1, legs, ref modelType) &&
+                legs.Count > 0 && legs[0].StartIndex == 0 && legs[^1].EndIndex == stations.Count - 1;
+        }
+
+        private static bool TryAddTrajectoryLeg(
+            IReadOnlyList<SurveyStation> stations,
+            int startIndex,
+            int endIndex,
+            List<CovarianceCalculatorISCWSA.SurveyLeg> legs,
+            ref SurveyInstrumentModelType? modelType)
+        {
+            OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument? tool = stations[startIndex].SurveyTool ??
+                stations.Skip(startIndex).Take(endIndex - startIndex + 1).Select(station => station.SurveyTool).FirstOrDefault(value => value != null);
+            if (tool == null)
+            {
+                return false;
+            }
+
+            SurveyInstrumentModelType candidate = tool.ModelType;
+            bool sameFamily = modelType == null ||
+                (IsIscwsa(modelType.Value) && IsIscwsa(candidate)) ||
+                (IsWolffDeWardt(modelType.Value) && IsWolffDeWardt(candidate));
+            if (!sameFamily)
+            {
+                return false;
+            }
+
+            for (int index = startIndex; index <= endIndex; index++)
+            {
+                stations[index].SurveyTool ??= tool;
+            }
+            modelType ??= candidate;
+            legs.Add(new CovarianceCalculatorISCWSA.SurveyLeg(startIndex, endIndex, tool));
+            return true;
+        }
+
+        private static bool IsWolffDeWardt(SurveyInstrumentModelType modelType) =>
+            modelType is SurveyInstrumentModelType.MWD_WolffDeWardt or SurveyInstrumentModelType.Gyro_WolffDeWardt;
+
+        private static bool IsIscwsa(SurveyInstrumentModelType modelType) =>
+            modelType is SurveyInstrumentModelType.MWD_ISCWSA or SurveyInstrumentModelType.Gyro_ISCWSA;
+
+        private static void CopyUncertainty(SurveyStation source, SurveyStation target)
+        {
+            target.Covariance = CloneCovariance(source.Covariance);
+            target.Bias = source.Bias == null ? null : new Vector3D(source.Bias);
+            target.EigenValues = source.EigenValues == null ? null : new Vector3D(source.EigenValues);
+            target.EigenVectors = source.EigenVectors == null ? null : new Matrix3x3(source.EigenVectors);
+            target.SurveyTool = source.SurveyTool;
         }
 
         private static SurveyStation NormalizeSidetrackTieInPointAbscissa(Model.Trajectory trajectory, WellBore wellBore, SurveyStation tieInPoint)

@@ -61,6 +61,32 @@ public sealed class TrajectoryUncertaintyCompositionTests
         });
     }
 
+    [Test]
+    public void Synthetic_wellhead_station_inherits_only_the_next_station_survey_tool()
+    {
+        SurveyInstrument tool = new() { Name = "First survey leg", ModelType = SurveyInstrumentModelType.MWD_ISCWSA };
+        SymmetricMatrix3x3 referenceCovariance = DiagonalCovariance(1.0);
+        TrajectoryModel trajectory = new()
+        {
+            MDStep = 10.0,
+            TieInPoint = Station(0.0, 0.10, 0.20, 0.0, 0.0, 0.0, referenceCovariance),
+            SurveyStationList =
+            [
+                ToolStation(10.0, 0.12, 0.22, 9.9, 1.0, 0.2, DiagonalCovariance(4.0), tool),
+                ToolStation(20.0, 0.14, 0.24, 19.7, 2.2, 0.5, DiagonalCovariance(5.0), tool),
+                ToolStation(30.0, 0.16, 0.26, 29.4, 3.6, 0.9, DiagonalCovariance(6.0), tool)
+            ]
+        };
+
+        Assert.That(trajectory.Calculate(), Is.True);
+        Assert.Multiple(() =>
+        {
+            Assert.That(trajectory.SurveyStationList![0].SurveyTool, Is.SameAs(tool));
+            Assert.That(Trace(trajectory.SurveyStationList[0].Covariance!), Is.EqualTo(3.0));
+            Assert.That(Trace(trajectory.SurveyStationList[1].Covariance!), Is.EqualTo(12.0));
+        });
+    }
+
     private static SurveyStation Station(
         double md,
         double inclination,
@@ -87,6 +113,21 @@ public sealed class TrajectoryUncertaintyCompositionTests
         SymmetricMatrix3x3 covariance = new();
         covariance[0, 0] = covariance[1, 1] = covariance[2, 2] = value;
         return covariance;
+    }
+
+    private static SurveyStation ToolStation(
+        double md,
+        double inclination,
+        double azimuth,
+        double tvd,
+        double north,
+        double east,
+        SymmetricMatrix3x3 covariance,
+        SurveyInstrument tool)
+    {
+        SurveyStation station = Station(md, inclination, azimuth, tvd, north, east, covariance);
+        station.SurveyTool = tool;
+        return station;
     }
 
     private static double Trace(SymmetricMatrix3x3 covariance) =>

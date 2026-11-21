@@ -2,6 +2,7 @@ using OSDC.DotnetLibraries.Drilling.Surveying;
 using OSDC.DotnetLibraries.General.Statistics;
 using System;
 using System.Collections.Generic;
+using System.Linq;
 
 namespace OSDC.Drilling.GlobalAntiCollision
 {
@@ -38,9 +39,10 @@ namespace OSDC.Drilling.GlobalAntiCollision
             int meshSectorCount,
             int? meshLongitudinalCount,
             double? meshLongitudinalLength,
-            out List<UncertaintyEllipse>? meshedEllipseList)
+            out List<UncertaintyEllipse>? meshedEllipseList,
+            bool surveyStationsPrepared = false)
         {
-            bool surveyPrepared = false;
+            bool surveyPrepared = surveyStationsPrepared;
             return TryBuildMeshedEllipseList(
                 surveyStations,
                 errorModelType,
@@ -64,7 +66,8 @@ namespace OSDC.Drilling.GlobalAntiCollision
             int? meshLongitudinalCount,
             double? meshLongitudinalLength,
             out List<UncertaintyEllipse>? meshedEllipseList,
-            out int meshSectorCount)
+            out int meshSectorCount,
+            bool surveyStationsPrepared = false)
         {
             meshSectorCount = DefaultMeshSectorCount;
             int initialMeshSectorCount = Math.Clamp(DefaultMeshSectorCount, Math.Max(4, minMeshSectorCount), Math.Max(4, maxMeshSectorCount));
@@ -76,7 +79,8 @@ namespace OSDC.Drilling.GlobalAntiCollision
                 initialMeshSectorCount,
                 meshLongitudinalCount,
                 meshLongitudinalLength,
-                out meshedEllipseList) ||
+                out meshedEllipseList,
+                surveyStationsPrepared) ||
                 meshedEllipseList == null ||
                 !TryCalculateMeshSectorCountFromMaxSemiAxis(
                     meshedEllipseList,
@@ -116,6 +120,7 @@ namespace OSDC.Drilling.GlobalAntiCollision
                 MeshSectorCount = meshSectorCount,
                 MeshLongitudinalCount = meshLongitudinalCount,
                 MeshLongitudinalLength = meshLongitudinalLength ?? 3.0,
+                SurveyStationsPrepared = surveyPrepared,
             };
 
             bool ok = uncertaintyEnvelope.Calculate();
@@ -132,6 +137,12 @@ namespace OSDC.Drilling.GlobalAntiCollision
             meshedEllipseList = ok ? uncertaintyEnvelope.MeshedEllipseList : null;
             return meshedEllipseList is { Count: > 0 };
         }
+
+        public static bool HasPreparedCovariance(IReadOnlyList<SurveyStation>? surveyStations) =>
+            surveyStations is { Count: > 0 } && surveyStations.All(station =>
+                station?.Covariance is { } covariance &&
+                Enumerable.Range(0, 3).All(row => Enumerable.Range(0, 3).All(column =>
+                    covariance[row, column] is double value && double.IsFinite(value))));
 
         private static bool TryAppendDownholeTerminalHalfEllipsoid(
             List<UncertaintyEllipse>? meshedEllipseList,

@@ -47,7 +47,7 @@ dotnet test ModelTest/ModelTest.csproj
 
 ## Notes
 
-`TrajectoryUncertaintyCompositionTests.cs` verifies that trajectory materialization preserves the parent tie-in covariance and the already-continued station covariance supplied by its SurveyRun sections.
+`TrajectoryUncertaintyCompositionTests.cs` verifies tie-in covariance composition and that a synthetic wellhead station inherits only the next station's survey instrument, without copying that station's covariance.
 
 `TrajectoryAggregationCalculatorTests.cs` verifies that overlapping constant-period boundaries map to exactly one trajectory interval, that the production-shaped U3 trajectory aggregates without mirroring its vertical departure or overall displacement, and that sampled aggregate stations respect the interpolation step and expose derived DLS, BUR, and TR values.
 

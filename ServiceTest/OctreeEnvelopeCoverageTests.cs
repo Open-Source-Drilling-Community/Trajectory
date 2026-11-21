@@ -29,6 +29,26 @@ public sealed class OctreeEnvelopeCoverageTests
     }
 
     [Test]
+    public void Prepared_trajectory_with_synthetic_tool_less_tie_in_builds_an_octree_without_recalculation()
+    {
+        WithManager(manager =>
+        {
+            List<SurveyStation> stations = CreateHorizontalTrajectory(0.0, 0.0, 0.0, 90.0, 2.0);
+            Assert.That(CovarianceCalculatorWolffDeWardt.Calculate(stations), Is.True);
+            var expected = stations.Select(station => station.Covariance![0, 0]).ToArray();
+            stations[0].SurveyTool = null;
+
+            List<OctreeCodeLong> codes = manager.GetLeavesFromSurveyList(stations);
+
+            Assert.Multiple(() =>
+            {
+                Assert.That(codes, Is.Not.Empty);
+                Assert.That(stations.Select(station => station.Covariance![0, 0]), Is.EqualTo(expected));
+            });
+        });
+    }
+
+    [Test]
     public void Crossing_uncertainty_tubes_are_returned_as_candidates()
     {
         WithManager(manager =>

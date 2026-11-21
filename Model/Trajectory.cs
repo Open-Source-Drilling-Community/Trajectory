@@ -106,7 +106,9 @@ namespace OSDC.Drilling.Trajectory.Model
                     }
                     else
                     {
-                        SurveyStation tieInStation = CreateTieInStation(TieInPoint);
+                        SurveyStation tieInStation = CreateTieInStation(
+                            TieInPoint,
+                            continuationTool: updatedList[0].SurveyTool);
                         updatedList.Insert(0, tieInStation);
                     }
                 }
@@ -114,13 +116,16 @@ namespace OSDC.Drilling.Trajectory.Model
             }
         }
 
-        private static SurveyStation CreateTieInStation(SurveyStation tieInPoint, SurveyStation? matchingStation = null)
+        private static SurveyStation CreateTieInStation(
+            SurveyStation tieInPoint,
+            SurveyStation? matchingStation = null,
+            OSDC.DotnetLibraries.Drilling.Surveying.SurveyInstrument? continuationTool = null)
         {
             SurveyStation tieInStation = new(tieInPoint)
             {
                 VerticalSection = tieInPoint.VerticalSection ?? 0
             };
-            tieInStation.SurveyTool ??= matchingStation?.SurveyTool;
+            tieInStation.SurveyTool ??= matchingStation?.SurveyTool ?? continuationTool;
 
             // A SurveyRun whose first station is exactly at the trajectory tie-in may already
             // contain the complete propagated uncertainty lineage. Preserve that result instead
