@@ -196,6 +196,101 @@ public sealed class SurveyRunCorrectionServiceTests
         });
     }
 
+    [TestCase(SurveyInclinationReference.GravityVertical, SurveyAzimuthReference.TrueNorth)]
+    [TestCase(SurveyInclinationReference.GeodeticVertical, SurveyAzimuthReference.MagneticNorth)]
+    [TestCase(SurveyInclinationReference.GravityVertical, SurveyAzimuthReference.MagneticNorth)]
+    public async Task Fresh_run_materializes_positions_before_reference_correction(
+        SurveyInclinationReference inclinationReference,
+        SurveyAzimuthReference azimuthReference)
+    {
+        SurveyRun run = new()
+        {
+            DefaultInclinationReference = inclinationReference,
+            DefaultAzimuthReference = azimuthReference,
+            AcquisitionStartUtc = new DateTimeOffset(1985, 4, 30, 0, 0, 0, TimeSpan.Zero),
+            AcquisitionEndUtc = new DateTimeOffset(1985, 4, 30, 2, 0, 0, TimeSpan.Zero),
+            TieInPoint = new SurveyStation
+            {
+                MD = -90.97,
+                Inclination = 0.0,
+                Azimuth = 0.0,
+                RiemannianNorth = 6535267.0030161245,
+                RiemannianEast = 328671.1614195671,
+                Latitude = 1.0285845008237529,
+                Longitude = 0.09961438594882861,
+                TVD = -90.97
+            },
+            SurveyMeasurementList =
+            [
+                new SurveyMeasurement
+                {
+                    MeasurementID = Guid.NewGuid(), MD = -99.22,
+                    Inclination = 0.0, Azimuth = 0.0,
+                    ObservedInclination = 0.0, ObservedAzimuth = 0.0
+                },
+                new SurveyMeasurement
+                {
+                    MeasurementID = Guid.NewGuid(), MD = -49.22,
+                    Inclination = 0.02984513466228953, Azimuth = 2.966116779673778,
+                    ObservedInclination = 0.029845130209103034, ObservedAzimuth = 2.966187063764363
+                },
+                new SurveyMeasurement
+                {
+                    MeasurementID = Guid.NewGuid(), MD = 0.78,
+                    Inclination = 0.07696902915291015, Azimuth = 2.9570840628854005,
+                    ObservedInclination = 0.07696902001294993, ObservedAzimuth = 2.9571113516539924
+                }
+            ],
+            BitExtrapolation = new SurveyRunBitExtrapolation
+            {
+                Mode = SurveyRunBitExtrapolationMode.CalculateFromLastMeasurement,
+                MeasurementToolToBitDistance = 14.0
+            }
+        };
+        Assert.That(run.Calculate(), Is.True);
+        Assert.That(run.SurveyStationList, Is.All.Matches<SurveyStation>(station =>
+            station.Latitude is { } latitude && double.IsFinite(latitude) &&
+            station.Longitude is { } longitude && double.IsFinite(longitude) &&
+            (station.TVD ?? station.Z) is { } depth && double.IsFinite(depth)));
+
+        int gravityCount = inclinationReference == SurveyInclinationReference.GravityVertical ? 3 : 0;
+        int magneticCount = azimuthReference == SurveyAzimuthReference.MagneticNorth ? 3 : 0;
+        StubReferenceModelClient client = new()
+        {
+            GravityResponse = new EarthGravityEvaluationResponse
+            {
+                Model = new EarthGravityModelInfo { ID = "EGM96", DataVersion = "v1", CoefficientSHA256 = "gravity-sha" },
+                Samples = Enumerable.Range(0, gravityCount).Select(_ => new EarthGravitySample
+                {
+                    Gravity = new EarthGravityVector { North = 0.1, East = 0.0, Down = 9.8 }
+                }).ToList()
+            },
+            MagneticResponse = new EvaluateEarthMagneticFieldResponse
+            {
+                Model = new EarthMagneticModelInfo { ID = "IGRF14", MetadataSHA256 = "metadata-sha", CoefficientSHA256 = "magnetic-sha" },
+                Samples = Enumerable.Range(0, magneticCount).Select(_ => new EarthMagneticFieldSample
+                {
+                    North = 20e-6, East = 5e-6, Down = 40e-6, Declination = Math.Atan2(5.0, 20.0)
+                }).ToList()
+            }
+        };
+
+        (bool success, _) = await SurveyRunCorrectionService.ApplyAsync(
+            run, NullLogger.Instance, referenceModelClient: client);
+
+        Assert.Multiple(() =>
+        {
+            Assert.That(success, Is.True);
+            Assert.That(run.SurveyMeasurementList, Is.All.Matches<SurveyMeasurement>(measurement =>
+                measurement.Correction?.Status == SurveyCorrectionStatus.Completed));
+            Assert.That(client.GravityRequests.SelectMany(request => request.Positions).Count(), Is.EqualTo(gravityCount));
+            Assert.That(client.MagneticRequests.SelectMany(request => request.Samples).Count(), Is.EqualTo(magneticCount));
+            Assert.That(run.SurveyStationList![^1].Annotation, Is.EqualTo(SurveyRunBitExtrapolationCalculator.TerminalAnnotation));
+            Assert.That(run.SurveyStationList[^1].Latitude, Is.Not.Null);
+            Assert.That(run.SurveyStationList[^1].Longitude, Is.Not.Null);
+        });
+    }
+
     private static SurveyRun CreateRun(SurveyInclinationReference inclinationReference, SurveyAzimuthReference azimuthReference)
     {
         return new SurveyRun

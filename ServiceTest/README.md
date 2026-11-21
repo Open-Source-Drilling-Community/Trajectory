@@ -131,6 +131,8 @@ trajectories need recalculation to update their starting station; reads do not m
 
 Stored trajectory ellipse regression tests cover a trajectory tie-in at a different depth from its source survey run, while retaining rejection of mismatched survey attitudes.
 
+Survey reference-correction regression tests start from a fresh run with only a resolved tie-in and canonical plus observed measurements. They verify that calculated WGS84 positions bootstrap gravity-vertical, magnetic-north, and combined correction, including terminal bit extrapolation.
+
 Uncertainty reconstruction first validates the saved geometry against replayed source stations. A matching source retains its historical tie-in depth even when the current architecture wellhead depth has changed. Only a missing trajectory-owned tie-in is reconstructed; source attitude mismatches still fail closed, and uncertainty is copied only after every station validates. Regression coverage includes historical and offset tie-ins.
 
 PositionReferenceInitializationTests covers nonzero slot/cluster origins and preservation of all five position-reference selections during reference initialization.

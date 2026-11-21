@@ -87,12 +87,26 @@ namespace OSDC.Drilling.Trajectory.Model
                 return false;
             }
 
-            if (BitExtrapolation?.Mode == SurveyRunBitExtrapolationMode.CalculateFromLastMeasurement)
-            {
-                return SurveyRunBitExtrapolationCalculator.TryAppendCalculatedStation(
+            if (BitExtrapolation?.Mode == SurveyRunBitExtrapolationMode.CalculateFromLastMeasurement &&
+                !SurveyRunBitExtrapolationCalculator.TryAppendCalculatedStation(
                     SurveyStationList,
                     CalculationType,
-                    BitExtrapolation.MeasurementToolToBitDistance);
+                    BitExtrapolation.MeasurementToolToBitDistance))
+            {
+                return false;
+            }
+
+            // Curvilinear survey points intentionally do not synchronize their optional geographic
+            // cache while minimum-curvature geometry assigns Riemannian X/Y. Reference correction
+            // nevertheless requires the equivalent WGS84 position, so materialize it explicitly
+            // from the server-calculated coordinates on every provisional and final calculation.
+            foreach (SurveyStation station in SurveyStationList)
+            {
+                if (station.X is { } north && station.Y is { } east &&
+                    double.IsFinite(north) && double.IsFinite(east))
+                {
+                    station.SetLatitudeLongitude(north, east);
+                }
             }
 
             return SurveyStationList.Count >= 2;
